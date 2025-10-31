@@ -2,5 +2,9 @@
   {
     "version": "main",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/main/"
+  },
+  {
+    "version": "pr-1",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-1/"
   }
 ]
