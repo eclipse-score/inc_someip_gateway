@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+set -e
+
+echo "Container for car_window_controller started"
+
+# Add multicast route
+route add -net 224.0.0.0/4 dev eth0
+
+# copy the config bin file as temp solution, as the gatewayd loads it from a relative path
+cp /home/source/bazel-bin/src/gatewayd/etc/gatewayd_config.bin /home/source/src/gatewayd/etc/
+
+# Automatically startup gatewayd and someipd:
+# gatewayd --> connects to car_window_controller, sets up IPC communication to someipd
+# someipd --> connects to gatewayd, sends out SOME/IP messages on the network
+
+/home/source/bazel-bin/src/gatewayd/gatewayd -service_instance_manifest /home/source/src/gatewayd/etc/mw_com_config.json &
+export VSOMEIP_CONFIGURATION=$(pwd)/tests/integration/vsomeip.json
+/home/source/bazel-bin/src/someipd/someipd -service_instance_manifest /home/source/src/someipd/etc/mw_com_config.json &
+
+# Manuylly start up car_window_controller, as it requires user input
+# /home/source/bazel-bin/examples/car_window_sim/car_window_controller
+
+sleep infinity

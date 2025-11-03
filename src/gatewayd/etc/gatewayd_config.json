@@ -1,0 +1,28 @@
+{
+    "local_service_instances": [
+        {
+            "instance_specifier": "gatewayd/application_window_control",
+            "events": [
+                {
+                    "event_name": "window_control"
+                }
+            ]
+        },
+        {
+            "instance_specifier": "gatewayd/application_echo_request",
+            "events": [
+                {
+                    "event_name": "echo_request_tiny"
+                }
+            ]
+        },
+        {
+            "instance_specifier": "gatewayd/application_echo_response",
+            "events": [
+                {
+                    "event_name": "echo_response_tiny"
+                }
+            ]
+        }
+    ]
+}

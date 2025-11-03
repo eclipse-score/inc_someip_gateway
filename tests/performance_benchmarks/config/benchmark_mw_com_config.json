@@ -1,0 +1,205 @@
+{
+    "serviceTypes": [
+        {
+            "serviceTypeName": "/benchmark/EchoRequest",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "bindings": [
+                {
+                    "binding": "SHM",
+                    "serviceId": 7000,
+                    "events": [
+                        {
+                            "eventName": "echo_request_tiny",
+                            "eventId": 0
+                        },
+                        {
+                            "eventName": "echo_request_small",
+                            "eventId": 1
+                        },
+                        {
+                            "eventName": "echo_request_medium",
+                            "eventId": 2
+                        },
+                        {
+                            "eventName": "echo_request_large",
+                            "eventId": 3
+                        },
+                        {
+                            "eventName": "echo_request_xlarge",
+                            "eventId": 4
+                        },
+                        {
+                            "eventName": "echo_request_xxlarge",
+                            "eventId": 5
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "serviceTypeName": "/benchmark/EchoResponse",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "bindings": [
+                {
+                    "binding": "SHM",
+                    "serviceId": 7001,
+                    "events": [
+                        {
+                            "eventName": "echo_response_tiny",
+                            "eventId": 0
+                        },
+                        {
+                            "eventName": "echo_response_small",
+                            "eventId": 1
+                        },
+                        {
+                            "eventName": "echo_response_medium",
+                            "eventId": 2
+                        },
+                        {
+                            "eventName": "echo_response_large",
+                            "eventId": 3
+                        },
+                        {
+                            "eventName": "echo_response_xlarge",
+                            "eventId": 4
+                        },
+                        {
+                            "eventName": "echo_response_xxlarge",
+                            "eventId": 5
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "serviceInstances": [
+        {
+            "instanceSpecifier": "benchmark/echo_request",
+            "serviceTypeName": "/benchmark/EchoRequest",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "instances": [
+                {
+                    "instanceId": 0,
+                    "allowedConsumer": {
+                        "QM": [
+                            8002,
+                            0
+                        ]
+                    },
+                    "allowedProvider": {
+                        "QM": [
+                            8001,
+                            0
+                        ]
+                    },
+                    "asil-level": "QM",
+                    "binding": "SHM",
+                    "events": [
+                        {
+                            "eventName": "echo_request_tiny",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_request_small",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_request_medium",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_request_large",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_request_xlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_request_xxlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "instanceSpecifier": "benchmark/echo_response",
+            "serviceTypeName": "/benchmark/EchoResponse",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "instances": [
+                {
+                    "instanceId": 0,
+                    "allowedConsumer": {
+                        "QM": [
+                            8001,
+                            0
+                        ]
+                    },
+                    "allowedProvider": {
+                        "QM": [
+                            8002,
+                            0
+                        ]
+                    },
+                    "asil-level": "QM",
+                    "binding": "SHM",
+                    "events": [
+                        {
+                            "eventName": "echo_response_tiny",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_response_small",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_response_medium",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_response_large",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_response_xlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        },
+                        {
+                            "eventName": "echo_response_xxlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 3
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "global": {
+        "asil-level": "QM"
+    }
+}

@@ -1,0 +1,60 @@
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+cc_library(
+    name = "echo_service",
+    hdrs = ["echo_service.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@communication//score/mw/com",
+    ],
+)
+
+cc_binary(
+    name = "echo_server",
+    srcs = ["echo_server.cpp"],
+    args = [
+        "-service_instance_manifest",
+        "$(rootpath config/benchmark_mw_com_config.json)",
+    ],
+    data = ["config/benchmark_mw_com_config.json"],
+    deps = [
+        ":echo_service",
+        "@communication//score/mw/com",
+        "@score-baselibs//score/language/futurecpp",
+    ],
+)
+
+cc_binary(
+    name = "ipc_benchmarks",
+    srcs = ["ipc_benchmarks.cpp"],
+    data = ["config/benchmark_mw_com_config.json"],
+    deps = [
+        ":echo_service",
+        "@communication//score/mw/com",
+        "@google_benchmark//:benchmark",
+        "@score-baselibs//score/language/futurecpp",
+    ],
+)
+
+validate_json_schema_test(
+    name = "benchmark_mw_com_config_schema_valid",
+    size = "small",
+    json = "config/benchmark_mw_com_config.json",
+    schema = "@communication//score/mw/com:config_schema",
+    tags = ["lint"],
+)

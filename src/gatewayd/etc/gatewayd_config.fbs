@@ -1,0 +1,20 @@
+namespace score.someipgateway.gatewayd.config;
+
+table Root {
+    local_service_instances: [ServiceInstance] (required);
+}
+
+table ServiceInstance {
+    someip_service_id: uint16 (key);
+    someip_service_version_major: uint8;
+    someip_service_version_minor: uint32 = 0xFFFFFFFF;
+    instance_specifier: string (required);
+    events: [Event] (required);
+}
+
+table Event {
+    someip_method_id: uint16 (key);
+    event_name: string (required);
+}
+
+root_type Root;

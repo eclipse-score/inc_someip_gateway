@@ -1,0 +1,90 @@
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+"""
+This daemon is a gateway between the SCORE middleware and the SOME/IP communication stack.
+"""
+
+load("@communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+cc_library(
+    name = "interfaces/someip_message_service",
+    hdrs = [
+        "interfaces/someip_message_service.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@communication//score/mw/com",
+    ],
+)
+
+cc_binary(
+    name = "gatewayd",
+    srcs = ["main.cpp"],
+    args = [
+        "-service_instance_manifest",
+        "$(rootpath etc/mw_com_config.json)",
+    ],
+    data = [
+        "etc/mw_com_config.json",
+        ":config_file",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":config_flatbuffers",
+        ":interfaces/someip_message_service",
+        ":local_service_instance",
+        "@communication//score/mw/com",
+    ],
+)
+
+cc_library(
+    name = "local_service_instance",
+    srcs = ["local_service_instance.cpp"],
+    hdrs = ["local_service_instance.h"],
+    deps = [
+        ":config_flatbuffers",
+        ":interfaces/someip_message_service",
+        "@communication//score/mw/com",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "config_flatbuffers",
+    srcs = ["etc/gatewayd_config.fbs"],
+)
+
+genrule(
+    name = "config_file",
+    srcs = [
+        "etc/gatewayd_config.fbs",
+        "etc/gatewayd_config.json",
+    ],
+    outs = ["etc/gatewayd_config.bin"],
+    cmd = """
+    $(location @flatbuffers//:flatc) --binary -o $(RULEDIR)/etc/ $(SRCS)
+    """,
+    message = "Generating gatewayd_config binary",
+    tools = ["@flatbuffers//:flatc"],
+)
+
+validate_json_schema_test(
+    name = "mw_com_config_schema_valid",
+    size = "small",
+    json = "etc/mw_com_config.json",
+    schema = "@communication//score/mw/com:config_schema",
+    tags = ["lint"],
+)

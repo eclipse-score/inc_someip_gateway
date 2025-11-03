@@ -1,0 +1,98 @@
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+load("@score-baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+
+cc_library(
+    name = "car_window_types_cpp",
+    srcs = [
+        "src/car_window_types.cpp",
+    ],
+    hdrs = [
+        "src/car_window_types.h",
+    ],
+    features = COMPILER_WARNING_FEATURES,
+    visibility = ["//visibility:public"],
+    deps = [
+        "@communication//score/mw/com",
+        "@score-baselibs//score/language/futurecpp",
+    ],
+)
+
+cc_library(
+    name = "car_window_types_ipc_gen_cpp",
+    srcs = ["src/car_window_types_ipc_gen.cpp"],
+    features = COMPILER_WARNING_FEATURES,
+    implementation_deps = [
+        ":car_window_types_cpp",
+        "@communication//score/mw/com/impl/rust:bridge_macros",
+    ],
+)
+
+rust_library(
+    name = "car_window_types",
+    srcs = ["src/car_window_types.rs"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":car_window_types_ipc_gen_cpp",
+        "@communication//score/mw/com/impl/rust:mw_com",
+        #"@my_crate_index//:libc",
+        "@@rules_rust++crate+crate_index//:libc",
+    ],
+)
+
+rust_binary(
+    name = "car_window",
+    srcs = ["src/car_window.rs"],
+    data = ["config/mw_com_config.json"],
+    features = ["link_std_cpp_lib"],
+    rustc_flags = ["-Clink-arg=-lstdc++"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":car_window_types",
+        "@communication//score/mw/com/impl/rust:mw_com",
+        #"@my_crate_index//:clap",
+        "@@rules_rust++crate+crate_index//:clap",
+        #"@my_crate_index//:futures",
+        "@@rules_rust++crate+crate_index//:futures",
+    ],
+)
+
+rust_binary(
+    name = "car_window_controller",
+    srcs = ["src/car_window_controller.rs"],
+    data = ["config/mw_com_config.json"],
+    features = ["link_std_cpp_lib"],
+    proc_macro_deps = [
+        "@car_window_sim_crate//:async-trait",
+    ],
+    rustc_flags = [
+        "-Clink-arg=-lstdc++",
+        "-Clink-arg=-lm",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":car_window_types",
+        "@car_window_sim_crate//:rustyrepl",
+        "@car_window_sim_crate//:anyhow",
+        "@car_window_sim_crate//:clap",
+        "@car_window_sim_crate//:tokio",
+        "@communication//score/mw/com/impl/rust:mw_com",
+        #"@my_crate_index//:clap",
+        #"@@rules_rust++crate+crate_index//:clap",
+        #"@my_crate_index//:futures",
+        "@@rules_rust++crate+crate_index//:futures",
+        "@score-baselibs//score/mw/log",
+    ],
+)

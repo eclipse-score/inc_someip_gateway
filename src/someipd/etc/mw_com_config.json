@@ -1,0 +1,48 @@
+{
+  "serviceTypes": [
+    {
+      "serviceTypeName": "/gatewayd/SomeipMessageService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 1337,
+          "events": [
+            {
+              "eventName": "message",
+              "eventId": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "serviceInstances": [
+    {
+      "instanceSpecifier": "someipd/gatewayd_messages",
+      "serviceTypeName": "/gatewayd/SomeipMessageService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 0,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "message"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "global": {
+    "asil-level": "QM"
+  }
+}

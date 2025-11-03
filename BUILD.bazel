@@ -11,14 +11,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "setup_starpls", "use_format_targets")
+load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "use_format_targets")
 load("//:project_config.bzl", "PROJECT_CONFIG")
-
-setup_starpls(
-    name = "starpls_server",
-    visibility = ["//visibility:public"],
-)
 
 copyright_checker(
     name = "copyright",
@@ -45,4 +41,12 @@ use_format_targets()
 
 docs(
     source_dir = "docs",
+)
+
+# Update python dependencies
+# Run `bazel run //:python_requirements.update` to update the lock file
+compile_pip_requirements(
+    name = "python_requirements",
+    src = "pyproject.toml",
+    requirements_txt = "requirements_lock.txt",
 )

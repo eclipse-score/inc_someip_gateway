@@ -1,0 +1,101 @@
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+"""
+This daemon contains the SOME/IP communication stack and is QM
+"""
+
+load("@communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "boost_build", "cmake")
+
+cc_binary(
+    name = "someipd",
+    srcs = ["main.cpp"],
+    args = [
+        "-service_instance_manifest",
+        "$(rootpath etc/mw_com_config.json)",
+    ],
+    data = ["etc/mw_com_config.json"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":vsomeip",
+        "//src/gatewayd:interfaces/someip_message_service",
+        "@communication//score/mw/com",
+        "@score-baselibs//score/language/futurecpp",
+    ],
+)
+
+validate_json_schema_test(
+    name = "mw_com_config_schema_valid",
+    size = "small",
+    json = "etc/mw_com_config.json",
+    schema = "@communication//score/mw/com:config_schema",
+    tags = ["lint"],
+)
+
+# Dependencies
+
+boost_build(
+    name = "boost",
+    bootstrap_options = [
+        "--with-toolset=clang",  # This should be passed down by Bazel but is needed
+        "--without-libraries=python",
+    ],
+    lib_source = "@boost//:all_srcs",
+    out_shared_libs = [
+        "libboost_atomic.so.1.87.0",
+        "libboost_chrono.so.1.87.0",
+        "libboost_date_time.so.1.87.0",
+        "libboost_filesystem.so.1.87.0",
+        "libboost_log.so.1.87.0",
+        "libboost_log_setup.so.1.87.0",
+        "libboost_regex.so.1.87.0",
+        "libboost_system.so.1.87.0",
+        "libboost_thread.so.1.87.0",
+    ],
+    user_options = [
+        "threading=multi",
+        "link=shared",
+        #"-d0",  # Minimal output
+        "-j16",  # Build with this number of processes
+        "--with-atomic",
+        "--with-chrono",
+        "--with-date_time",
+        "--with-filesystem",
+        "--with-log",
+        "--with-regex",
+        "--with-system",
+        "--with-thread",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# TODO: Move this to the bazel registry
+cmake(
+    name = "vsomeip",
+    build_args = ["-j"],
+    cache_entries = {
+        "BOOST_ROOT": "$$EXT_BUILD_DEPS/boost/",
+        "BOOST_INCLUDEDIR": "$$EXT_BUILD_DEPS/boost/include",
+    },
+    lib_source = "@vsomeip//:all_srcs",
+    out_shared_libs = [
+        "libvsomeip3-cfg.so.3",
+        "libvsomeip3-e2e.so.3",
+        "libvsomeip3-sd.so.3",
+        "libvsomeip3.so.3",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":boost"],
+)

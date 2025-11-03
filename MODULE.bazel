@@ -1,5 +1,6 @@
 # *******************************************************************************
 # Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2025 ETAS GmbH
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -10,10 +11,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-module(
-    name = "cpp_rust_template_repository",
-    version = "1.0",
-)
+
+"S-CORE SOME/IP Gateway"
+
+module(name = "score_someip_gateway")
 
 bazel_dep(name = "rules_python", version = "1.4.1")
 
@@ -26,8 +27,27 @@ python.toolchain(
 )
 use_repo(python)
 
+bazel_dep(name = "score_bazel_tools_python", version = "0.1.2", repo_name = "bazel_tools_python")
+git_override(
+    module_name = "score_bazel_tools_python",
+    commit = "ec582ce2c7150e876c47b40889a1da78e33fcf3a",
+    remote = "https://github.com/eclipse-score/bazel-tools-python.git",
+)
+
+# Python pip dependencies for testing
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "someip_pip",
+    python_version = PYTHON_VERSION,
+    requirements_lock = "//:requirements_lock.txt",
+)
+use_repo(pip, "someip_pip")
+
 # Add GoogleTest dependency
 bazel_dep(name = "googletest", version = "1.17.0")
+
+# Add Google Benchmark dependency for performance testing
+bazel_dep(name = "google_benchmark", version = "1.9.1")
 
 # Rust rules for Bazel
 bazel_dep(name = "rules_rust", version = "0.63.0")
@@ -49,9 +69,114 @@ use_repo(llvm, "llvm_toolchain_llvm")
 register_toolchains("@llvm_toolchain//:all")
 
 # tooling
-bazel_dep(name = "score_tooling", version = "1.0.1")
+bazel_dep(name = "score_tooling", version = "1.0.2")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
-#docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "1.1.0")
+# docs-as-code
+bazel_dep(name = "score_docs_as_code", version = "1.4.0")
+
+# communication
+bazel_dep(name = "communication", version = "0.0.0")
+git_override(
+    module_name = "communication",
+    commit = "86c66f345fdd35dcc3f380905e799f559dfd5001",
+    remote = "https://github.com/eclipse-score/communication.git",
+)
+
+# TODO: These should fetched via registry and we shouldn't have to care about updating them
+archive_override(
+    module_name = "rules_boost",
+    integrity = "sha256-iKHWUIBrUN/fFOCltkTmHfDcKw0h4ZVmP7NVSoc8zBs=",
+    strip_prefix = "rules_boost-master",
+    urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
+)
+
+bazel_dep(name = "score-baselibs", version = "0.0.0")
+git_override(
+    module_name = "score-baselibs",
+    commit = "f02d7f427df1968df8d5f9f9aa85bf68baeb839e",
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
+
+git_override(
+    module_name = "trlc",
+    commit = "650b51a47264a4f232b3341f473527710fc32669",  # trlc-2.0.2 release
+    remote = "https://github.com/bmw-software-engineering/trlc.git",
+)
+
+bazel_dep(name = "flatbuffers", version = "25.2.10")
+
+###################################################################################
+# Examples
+###################################################################################
+
+#-------------------------------------------------------------
+# Crate index for hello world example
+#-------------------------------------------------------------
+car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+car_window_sim_crate.spec(
+    package = "rustyrepl",
+    version = "0.2.0",
+)  #//,features = ["async"])
+car_window_sim_crate.spec(
+    package = "anyhow",
+    version = "1",
+)
+car_window_sim_crate.spec(
+    package = "async-trait",
+    version = "0.1",
+)
+car_window_sim_crate.spec(
+    features = ["derive"],
+    package = "clap",
+    version = "4",
+)
+car_window_sim_crate.spec(
+    features = ["full"],
+    package = "tokio",
+    version = "1.10",
+)
+car_window_sim_crate.from_specs(name = "car_window_sim_crate")
+use_repo(car_window_sim_crate, "car_window_sim_crate")
+
+###################################################################################
+# vsomeip integration
+###################################################################################
+bazel_dep(name = "rules_foreign_cc", version = "0.15.0")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+_ALL_CONTENT = """
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
+# Boost
+http_archive(
+    name = "boost",
+    build_file_content = """
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"], exclude = ["libs/**/test/**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89",
+    strip_prefix = "boost_1_87_0",
+    urls = ["https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.bz2"],
+)
+
+# pcre source code repository
+http_archive(
+    name = "vsomeip",
+    build_file_content = _ALL_CONTENT,
+    sha256 = "659421fa01c0f56e5587c82f476c18a593e1a7ad4b381d95b57821d0545dae53",
+    strip_prefix = "vsomeip-3.5.7",
+    urls = [
+        "https://github.com/COVESA/vsomeip/archive/refs/tags/3.5.7.tar.gz",
+    ],
+)

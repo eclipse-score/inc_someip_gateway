@@ -37,8 +37,10 @@ bazel-*
 MODULE.bazel.lock
 user.bazelrc
 
-# Ruff
+# Caches
 .ruff_cache
+/.cache/
+__pycache__/
 
 # docs:incremental and docs:ide_support build artifacts
 /_build
@@ -52,5 +54,7 @@ styles/
 
 # Python
 .venv
-__pycache__/
 /.coverage
+
+# Compiler commands database
+/compile_commands.json

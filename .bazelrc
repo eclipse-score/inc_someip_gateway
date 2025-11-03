@@ -7,3 +7,11 @@ test --test_output=errors
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
+
+# Feature flags
+common --features=-treat_warnings_as_errors
+common --features=external_include_paths
+common --@score-baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
+common --@score-baselibs//score/mw/log/flags:KRemote_Logging=False
+common --@score-baselibs//score/json:base_library=nlohmann
+common --@communication//score/mw/com/flags:tracing_library=stub

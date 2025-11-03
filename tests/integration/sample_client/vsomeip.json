@@ -1,0 +1,29 @@
+{
+    "unicast": "192.168.87.3",
+    "logging": {
+        "level": "debug",
+        "console": "true"
+    },
+    "applications": [
+        {
+            "name": "sample_client",
+            "id": "0x0200"
+        }
+    ],
+    "services": [],
+    "routing": "sample_client",
+    "service-discovery": {
+        "enable": "true",
+        "multicast": "224.244.224.245",
+        "port": "30490",
+        "protocol": "udp",
+        "initial_delay_min": "10",
+        "initial_delay_max": "100",
+        "repetitions_base_delay": "200",
+        "repetitions_max": "3",
+        "ttl": "3",
+        "cyclic_offer_delay": "2000",
+        "request_response_delay": "1500"
+    },
+    "network": "sample_client"
+}

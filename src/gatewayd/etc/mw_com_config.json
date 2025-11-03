@@ -1,0 +1,173 @@
+{
+  "serviceTypes": [
+    {
+      "serviceTypeName": "/gatewayd/SomeipMessageService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 1337,
+          "events": [
+            {
+              "eventName": "message",
+              "eventId": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "serviceTypeName": "/carwindow/WindowControl",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6433,
+          "events": [
+            {
+              "eventName": "window_control",
+              "eventId": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "serviceTypeName": "/benchmark/EchoRequest",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 7000,
+          "events": [
+            {
+              "eventName": "echo_request_tiny",
+              "eventId": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "serviceTypeName": "/benchmark/EchoResponse",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 7001,
+          "events": [
+            {
+              "eventName": "echo_response_tiny",
+              "eventId": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "serviceInstances": [
+    {
+      "instanceSpecifier": "gatewayd/someipd_messages",
+      "serviceTypeName": "/gatewayd/SomeipMessageService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 0,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "message",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "gatewayd/application_window_control",
+      "serviceTypeName": "/carwindow/WindowControl",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "window_control",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "gatewayd/application_echo_request",
+      "serviceTypeName": "/benchmark/EchoRequest",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 0,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "echo_request_tiny",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "gatewayd/application_echo_response",
+      "serviceTypeName": "/benchmark/EchoResponse",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 0,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "echo_response_tiny",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "global": {
+    "asil-level": "B"
+  }
+}

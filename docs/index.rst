@@ -12,14 +12,15 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-Module Template Documentation
+SOMEIP Gateway Documentation
 =============================
 
-This documentation describes the structure, usage and configuration of the Bazel-based C++/Rust module template.
 
-.. contents:: Table of Contents
-   :depth: 2
-   :local:
+.. toctree::
+   :maxdepth: 2
+
+   architecture/index.rst
+
 
 Overview
 --------
