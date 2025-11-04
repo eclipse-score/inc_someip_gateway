@@ -100,7 +100,7 @@
             "fileMatch": [
                 "**/mw_com_config.json"
             ],
-            "url": "./bazel-score-someip-gateway/external/communication+/score/mw/com/impl/configuration/ara_com_config_schema.json"
+            "url": "./external/communication+/score/mw/com/impl/configuration/ara_com_config_schema.json"
         }
     ],
 }
