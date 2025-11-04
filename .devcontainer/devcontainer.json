@@ -1,0 +1,12 @@
+{
+    "name": "eclipse-s-core",
+    "image": "ghcr.io/eclipse-score/devcontainer:latest",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "detachhead.basedpyright",
+                "akiramiyakoda.cppincludeguard"
+            ]
+        }
+    }
+}
