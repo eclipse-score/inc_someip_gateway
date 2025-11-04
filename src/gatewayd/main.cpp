@@ -23,6 +23,7 @@
 
 #include "interfaces/someip_message_service.h"
 #include "local_service_instance.h"
+#include "remote_service_instance.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
 
 // In the main file we are not in any namespace
@@ -76,15 +77,13 @@ int main(int argc, const char* argv[]) {
 
     // TODO: Need to come up with a proper scheme how to generate instance specifiers
     auto create_result = SomeipMessageServiceSkeleton::Create(
-        score::mw::com::InstanceSpecifier::Create(std::string("gatewayd/someipd_messages"))
+        score::mw::com::InstanceSpecifier::Create(std::string("gatewayd/gatewayd_messages"))
             .value());
     // TODO: Error handling
     auto someip_message_skeleton = std::move(create_result).value();
 
-    (void)someip_message_skeleton.OfferService();
     // TODO: Error handling
-
-    std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
+    (void)someip_message_skeleton.OfferService();
 
     // Create service instances from configuration
     if (config->local_service_instances() == nullptr) {
@@ -92,10 +91,24 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
+    std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
     for (auto service_instance_config : *config->local_service_instances()) {
         LocalServiceInstance::CreateAsyncLocalService(
             std::shared_ptr<const config::ServiceInstance>(config, service_instance_config),
             someip_message_skeleton, local_service_instances);
+    }
+
+    // Create service instances from configuration
+    if (config->remote_service_instances() == nullptr) {
+        std::cerr << "No remote service instances configured" << std::endl;
+        return 1;
+    }
+
+    std::vector<std::unique_ptr<RemoteServiceInstance>> remote_service_instances;
+    for (auto service_instance_config : *config->remote_service_instances()) {
+        RemoteServiceInstance::CreateAsyncRemoteService(
+            std::shared_ptr<const config::ServiceInstance>(config, service_instance_config),
+            remote_service_instances);
     }
 
     std::cout << "Gateway started, waiting for shutdown signal..." << std::endl;

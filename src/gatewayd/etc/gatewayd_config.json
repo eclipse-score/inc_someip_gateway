@@ -15,7 +15,9 @@
                     "event_name": "echo_request_tiny"
                 }
             ]
-        },
+        }
+    ],
+    "remote_service_instances": [
         {
             "instance_specifier": "gatewayd/application_echo_response",
             "events": [

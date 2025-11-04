@@ -40,6 +40,28 @@
           ]
         }
       ]
+    },
+    {
+      "instanceSpecifier": "someipd/someipd_messages",
+      "serviceTypeName": "/gatewayd/SomeipMessageService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 12,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "message",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
     }
   ],
   "global": {

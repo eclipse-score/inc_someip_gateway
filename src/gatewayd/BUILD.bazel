@@ -47,6 +47,7 @@ cc_binary(
         ":config_flatbuffers",
         ":interfaces/someip_message_service",
         ":local_service_instance",
+        ":remote_service_instance",
         "@communication//score/mw/com",
     ],
 )
@@ -58,6 +59,19 @@ cc_library(
     deps = [
         ":config_flatbuffers",
         ":interfaces/someip_message_service",
+        "@communication//score/mw/com",
+    ],
+)
+
+cc_library(
+    name = "remote_service_instance",
+    srcs = ["remote_service_instance.cpp"],
+    hdrs = ["remote_service_instance.h"],
+    deps = [
+        ":config_flatbuffers",
+        ":interfaces/someip_message_service",
+        "//tests/performance_benchmarks:echo_service",
+        "//src/someipd:vsomeip",
         "@communication//score/mw/com",
     ],
 )

@@ -15,6 +15,7 @@
 
 #include <score/mw/com/types.h>
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 
@@ -55,59 +56,57 @@ LocalServiceInstance::LocalServiceInstance(
                                   << maybe_message.error().Message() << std::endl;
                         return;
                     }
-                    auto message = std::move(maybe_message).value();
+                    auto message_sample = std::move(maybe_message).value();
+                    score::cpp::span<std::byte> message(message_sample->data,
+                                                        someip_message_service::MAX_MESSAGE_SIZE);
                     std::size_t pos = 0;
 
                     // TODO: Design decision: the gateway needs to generate the SOME/IP message
                     // including the header in order to have the E2E protection in the ASIL
                     // context.
                     std::uint16_t service_id = service_instance_config_->someip_service_id();
-                    message->data[pos++] = static_cast<std::byte>(service_id >> 8);
-                    message->data[pos++] = static_cast<std::byte>(service_id & 0xFF);
+                    message.data()[pos++] = static_cast<std::byte>(service_id >> 8);
+                    message.data()[pos++] = static_cast<std::byte>(service_id & 0xFF);
 
                     std::uint16_t method_id = event_config->someip_method_id();
-                    message->data[pos++] = static_cast<std::byte>(method_id >> 8);
-                    message->data[pos++] = static_cast<std::byte>(method_id & 0xFF);
+                    message.data()[pos++] = static_cast<std::byte>(method_id >> 8);
+                    message.data()[pos++] = static_cast<std::byte>(method_id & 0xFF);
 
                     // Length set by someipd
                     pos += 4;
 
                     // TODO: get client ID during registration at the someipd
                     std::uint16_t client_id = 0xFFFF;
-                    message->data[pos++] = static_cast<std::byte>(client_id >> 8);
-                    message->data[pos++] = static_cast<std::byte>(client_id & 0xFF);
+                    message.data()[pos++] = static_cast<std::byte>(client_id >> 8);
+                    message.data()[pos++] = static_cast<std::byte>(client_id & 0xFF);
 
                     std::uint16_t session_id = 0x0000;
-                    message->data[pos++] = static_cast<std::byte>(session_id >> 8);
-                    message->data[pos++] = static_cast<std::byte>(session_id & 0xFF);
+                    message.data()[pos++] = static_cast<std::byte>(session_id >> 8);
+                    message.data()[pos++] = static_cast<std::byte>(session_id & 0xFF);
 
                     std::uint8_t protocol_version = 1;
-                    message->data[pos++] = static_cast<std::byte>(protocol_version);
+                    message.data()[pos++] = static_cast<std::byte>(protocol_version);
 
                     std::uint8_t interface_version =
                         service_instance_config_->someip_service_version_major();
-                    message->data[pos++] = static_cast<std::byte>(interface_version);
+                    message.data()[pos++] = static_cast<std::byte>(interface_version);
 
                     std::uint8_t message_type = 0x02;  // NOTIFICATION
-                    message->data[pos++] = static_cast<std::byte>(message_type);
+                    message.data()[pos++] = static_cast<std::byte>(message_type);
 
                     std::uint8_t return_code = 0x00;  // Unused
-                    message->data[pos++] = static_cast<std::byte>(return_code);
+                    message.data()[pos++] = static_cast<std::byte>(return_code);
 
                     // Serialize payload
                     // TODO: Call serialization plugin here
-                    assert(ipc_event.GetSampleSize() == sizeof(std::uint32_t));
-                    std::uint32_t example_payload =
-                        *static_cast<const std::uint32_t*>(sample.get());
-                    message->data[pos++] = static_cast<std::byte>(example_payload >> 24);
-                    message->data[pos++] = static_cast<std::byte>((example_payload >> 16) & 0xFF);
-                    message->data[pos++] = static_cast<std::byte>((example_payload >> 8) & 0xFF);
-                    message->data[pos++] = static_cast<std::byte>(example_payload & 0xFF);
+                    auto payload = message.subspan(pos);
+                    std::size_t payload_size = std::min(payload.size(), ipc_event.GetSampleSize());
+                    std::memcpy(payload.data(), sample.get(), payload_size);
+                    pos += payload_size;
 
-                    message->size = pos;
+                    message_sample->size = pos;
 
-                    someip_message_skeleton_.message_.Send(std::move(message));
-                    std::cout << "Sent Window command.\n";
+                    someip_message_skeleton_.message_.Send(std::move(message_sample));
                 },
                 max_sample_count);
         });
@@ -116,6 +115,7 @@ LocalServiceInstance::LocalServiceInstance(
     }
 }
 
+namespace {
 struct FindServiceContext {
     std::shared_ptr<const config::ServiceInstance> config;
     SomeipMessageServiceSkeleton& skeleton;
@@ -126,6 +126,8 @@ struct FindServiceContext {
                        std::vector<std::unique_ptr<LocalServiceInstance>>& instances_)
         : config(std::move(config_)), skeleton(skeleton_), instances(instances_) {}
 };
+
+}  // namespace
 
 Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService(
     std::shared_ptr<const config::ServiceInstance> service_instance_config,

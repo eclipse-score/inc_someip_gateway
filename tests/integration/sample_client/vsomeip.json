@@ -10,7 +10,27 @@
             "id": "0x0200"
         }
     ],
-    "services": [],
+    "services": [
+        {
+            "service": "0x4321",
+            "instance": "0x5678",
+            "unreliable": "31000",
+            "events": [
+                {
+                    "event": "0x8778",
+                    "is_field": "false"
+                }
+            ],
+            "eventgroups": [
+                {
+                    "eventgroup": "0x4465",
+                    "events": [
+                        "0x8778"
+                    ]
+                }
+            ]
+        }
+    ],
     "routing": "sample_client",
     "service-discovery": {
         "enable": "true",

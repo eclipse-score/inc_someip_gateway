@@ -15,7 +15,7 @@
 
 set -e
 
-echo "Container for car_window_controller started"
+echo "Container using someipd started"
 
 # Add multicast route
 route add -net 224.0.0.0/4 dev eth0
@@ -28,10 +28,12 @@ cp /home/source/bazel-bin/src/gatewayd/etc/gatewayd_config.bin /home/source/src/
 # someipd --> connects to gatewayd, sends out SOME/IP messages on the network
 
 /home/source/bazel-bin/src/gatewayd/gatewayd -service_instance_manifest /home/source/src/gatewayd/etc/mw_com_config.json &
+# Give gatewayd some time to start. TODO: improve with some sort of state check
+sleep 2s
+
 export VSOMEIP_CONFIGURATION=$(pwd)/tests/integration/vsomeip.json
 /home/source/bazel-bin/src/someipd/someipd -service_instance_manifest /home/source/src/someipd/etc/mw_com_config.json &
 
-# Manuylly start up car_window_controller, as it requires user input
-# /home/source/bazel-bin/examples/car_window_sim/car_window_controller
+# /home/source/bazel-bin/tests/performance_benchmarks/ipc_benchmarks
 
 sleep infinity

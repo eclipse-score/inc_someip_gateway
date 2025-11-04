@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 SHELL ["/bin/bash", "-xec"]
 RUN export DEBIAN_FRONTEND=noninteractive;\
     apt-get update;\

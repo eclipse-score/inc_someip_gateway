@@ -90,18 +90,6 @@
             "instances": [
                 {
                     "instanceId": 0,
-                    "allowedConsumer": {
-                        "QM": [
-                            8002,
-                            0
-                        ]
-                    },
-                    "allowedProvider": {
-                        "QM": [
-                            8001,
-                            0
-                        ]
-                    },
                     "asil-level": "QM",
                     "binding": "SHM",
                     "events": [
@@ -149,18 +137,6 @@
             "instances": [
                 {
                     "instanceId": 0,
-                    "allowedConsumer": {
-                        "QM": [
-                            8001,
-                            0
-                        ]
-                    },
-                    "allowedProvider": {
-                        "QM": [
-                            8002,
-                            0
-                        ]
-                    },
                     "asil-level": "QM",
                     "binding": "SHM",
                     "events": [

@@ -41,7 +41,12 @@ x-common: &common
     core: -1
   volumes:
     - ${SOURCE_DIR:-../../..}:/home/source
-    - /home/${USER}/.cache/bazel:/home/${USER}/.cache/bazel
+    - bazel-cache:/var/cache/bazel
+
+volumes:
+  bazel-cache:
+    external: true
+    name: eclipse-s-core-bazel-cache
 
 services:
   someipd:

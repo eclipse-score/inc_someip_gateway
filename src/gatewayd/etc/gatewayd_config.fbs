@@ -2,6 +2,7 @@ namespace score.someipgateway.gatewayd.config;
 
 table Root {
     local_service_instances: [ServiceInstance] (required);
+    remote_service_instances: [ServiceInstance] (required);
 }
 
 table ServiceInstance {
