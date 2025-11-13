@@ -1,0 +1,18 @@
+[package]
+name = "examples"
+description = "examples"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+com-api = { workspace = true, features = ["iceoryx"] }
+com_api_gen = { workspace = true, features = ["iceoryx"] }
+iceoryx2.workspace = true
+
+[[example]]
+name = "poc_ui"
+path = "poc_ui.rs"
+
+[[example]]
+name = "poc_window_steering"
+path = "poc_window_steering.rs"

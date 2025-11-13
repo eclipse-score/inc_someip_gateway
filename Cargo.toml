@@ -2,12 +2,12 @@
 resolver = "2"
 
 members = [
-    "gateway",
-    "gateway_common",
-    "gateway_generated",
-    "gateway_someip_adapters",
-    "com_api_gen",
-    "examples",
+    "src/gateway",
+    "src/gateway_common",
+    "src/gateway_generated",
+    "src/gateway_someip_adapters",
+    "src/com_api_gen",
+    "src/examples",
 ]
 
 [workspace.package]
@@ -15,24 +15,22 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace.dependencies]
-gateway = { path = "gateway" }
-gateway_generated = { path = "gateway_generated" }
-gateway_common = { path = "gateway_common" }
-gateway_someip_adapters = { path = "gateway_someip_adapters" }
-com_api_gen = { path = "com_api_gen" }
+gateway = { path = "src/gateway" }
+gateway_generated = { path = "src/gateway_generated" }
+gateway_common = { path = "src/gateway_common" }
+gateway_someip_adapters = { path = "src/gateway_someip_adapters" }
+com_api_gen = { path = "src/com_api_gen" }
 
-async_runtime = { git = "https://github.com/eclipse-score/inc_orchestrator.git", rev = "4e6c13d58f6ff97759bb2aeae187cb74ffa8e9c2" }
-foundation = { git = "https://github.com/eclipse-score/inc_orchestrator.git", rev = "4e6c13d58f6ff97759bb2aeae187cb74ffa8e9c2" }
-logging_tracing = { git = "https://github.com/eclipse-score/inc_orchestrator.git", rev = "4e6c13d58f6ff97759bb2aeae187cb74ffa8e9c2" }
+kyron = { git = "https://github.com/eclipse-score/orchestrator.git", rev = "7bb94ebae08805ea0a83dcc14f7c17da5ab927e6" }
+kyron-foundation = { git = "https://github.com/eclipse-score/orchestrator.git", rev = "7bb94ebae08805ea0a83dcc14f7c17da5ab927e6" }
+logging_tracing = { git = "https://github.com/eclipse-score/orchestrator.git", rev = "7bb94ebae08805ea0a83dcc14f7c17da5ab927e6" }
 
 
-iceoryx2 = { git = "https://github.com/eclipse-iceoryx/iceoryx2.git", rev = "cfa8b10fe1e723b22dc5abd97a155b6a992fe8e6" }
-iceoryx2-bb-container = { git = "https://github.com/eclipse-iceoryx/iceoryx2.git", rev = "cfa8b10fe1e723b22dc5abd97a155b6a992fe8e6" }
+iceoryx2 = { git = "https://github.com/eclipse-iceoryx/iceoryx2.git", rev = "d3d1c9a727d3dc405733081923be5dba8213d6d8" }
+iceoryx2-bb-container = { git = "https://github.com/eclipse-iceoryx/iceoryx2.git", rev = "d3d1c9a727d3dc405733081923be5dba8213d6d8" }
 abi-types-codegen = { git = "https://github.com/qorix-group/inc_abi_compatible_datatypes.git", rev = "7f2b4e050c93c96db2778994e63b1ef74982204d" }
 
-com-api = { git = "https://github.com/qorix-group/inc_mw_com.git", rev = "eee3289437ecd843ecdc56280f5c243bc6859ee2", features = [
-    "iceoryx",
+com-api = { git = "https://github.com/qorix-group/inc_mw_com.git", rev = "9442805345b32ba019cb7592fe5436e1e22bdc97", features = [
+   "iceoryx",
 ] }
-com-api-runtime-iceoryx = { git = "https://github.com/qorix-group/inc_mw_com.git", rev = "eee3289437ecd843ecdc56280f5c243bc6859ee2" }
-# com-api-runtime-iceoryx = { path = "../../inc_mw_com/com-api/com-api-runtime-iceoryx/"  }
-# com-api = { path = "../inc_mw_com/com-api/com-api", features = ["iceoryx"] }
+com-api-runtime-iceoryx = { git = "https://github.com/qorix-group/inc_mw_com.git", rev = "9442805345b32ba019cb7592fe5436e1e22bdc97" }

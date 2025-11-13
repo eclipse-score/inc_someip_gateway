@@ -1,9 +1,0 @@
-[package]
-name = "gateway_common"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-com-api.workspace = true
-iceoryx2 = { git = "https://github.com/eclipse-iceoryx/iceoryx2.git", rev = "cfa8b10fe1e723b22dc5abd97a155b6a992fe8e6" }
-async_runtime.workspace = true

@@ -7,3 +7,6 @@ test --test_output=errors
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
+common --credential_helper=*.qnx.com=%workspace%/scripts/internal/qnx_creds.py
+
+build:build_qnx8 --platforms=@score_toolchains_rust//platforms:aarch64-unknown-qnx8_0

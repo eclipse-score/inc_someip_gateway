@@ -1,0 +1,9 @@
+[package]
+name = "gateway_common"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+com-api.workspace = true
+iceoryx2.workspace = true
+kyron.workspace = true

@@ -53,7 +53,7 @@ if [[ "$1" == "--no-tmux" ]]; then
     USE_TMUX=0
 fi
 
-EXAMPLES_DIR="$(dirname "$0")/../examples"
+EXAMPLES_DIR="$(dirname "$0")/../src/examples"
 TARGET_DIR="$(dirname "$0")/../target/debug/examples"
 SESSION="mvp_run"
 
@@ -98,7 +98,7 @@ while IFS= read -r -d '' RSFILE; do
         EXAMPLE_BINS+=("$BIN_PATH")
     else
         echo "Warning: binary $BIN_PATH not found or not executable" >&2
-        
+
     fi
 done < <(find "$EXAMPLES_DIR" -maxdepth 1 -type f -name '*.rs' -print0)
 

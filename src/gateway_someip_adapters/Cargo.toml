@@ -1,0 +1,12 @@
+[package]
+name = "gateway_someip_adapters"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+iceoryx2.workspace = true
+com-api.workspace = true
+com_api_gen.workspace = true
+gateway_common.workspace = true
+kyron-foundation.workspace = true
+kyron.workspace = true

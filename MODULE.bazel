@@ -11,47 +11,155 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 module(
-    name = "cpp_rust_template_repository",
-    version = "1.0",
+    name = "score_someip_gateway",
+    version = "0.0.1",
+    compatibility_level = 0,
 )
 
+# Bazel global rules
 bazel_dep(name = "rules_python", version = "1.4.1")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_rust", version = "0.61.0")
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "aspect_rules_lint", version = "1.0.3")
+bazel_dep(name = "buildifier_prebuilt", version = "7.3.1")
+bazel_dep(name = "platforms", version = "1.0.0")
+
+# S-CORE process rules
+bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
+bazel_dep(name = "score_docs_as_code", version = "1.4.0")
+bazel_dep(name = "score_tooling", version = "1.0.2")
+
+bazel_dep(name = "score_process", version = "1.2.1", dev_dependency = True)
+bazel_dep(name = "score_platform", version = "0.3.0", dev_dependency = True)  # This is main score repo
+bazel_dep(name = "score_virtualization", version = "0.0.1", dev_dependency = True)
+
+# Toolchains and extensions
+bazel_dep(name = "score_toolchains_gcc", version = "0.4", dev_dependency = True)
+bazel_dep(name = "score_toolchains_qnx", version = "0.0.2", dev_dependency = True)
+bazel_dep(name = "rust_qnx8_toolchain", version = "1.2.0", dev_dependency = True)
+bazel_dep(name = "score_toolchains_rust", version = "0.1.1", dev_dependency = True)
+
+# Others
+bazel_dep(name = "custom_qemu", version = "1.0.0", dev_dependency = True)
+
+bazel_dep(name = "googletest", version = "1.14.0")
+
+# Overrides
+git_override(
+    module_name = "score_platform",
+    commit = "bcab25561cdce7bd4eeebdb20b0ba4e2a4becc12",
+    remote = "https://github.com/eclipse-score/score.git",
+)
+
+git_override(
+    module_name = "score_toolchains_rust",
+    commit = "6651945b4ba8e7c342d9740e9cb2d37842f56261",
+    remote = "https://github.com/eclipse-score/toolchains_rust.git",
+)
+
+git_override(
+    module_name = "score_toolchains_qnx",
+    commit = "3477ac13a8015a4e2016588fba573c2f9519237d",
+    remote = "https://github.com/eclipse-score/toolchains_qnx.git",
+)
+
+git_override(
+    module_name = "score_virtualization",
+    commit = "99d3f153c43796b67a63e82aad1ede6a881aa6af",
+    remote = "https://github.com/qorix-group/score_virtualization.git",
+)
+
+archive_override(
+    module_name = "rust_qnx8_toolchain",
+    strip_prefix = "qnx8",
+    urls = [
+        "https://github.com/qorix-group/rust-lang-qnx8/releases/download/1.2.0/qnx8_rust_toolchain.tar.gz",
+    ],
+)
+
+archive_override(
+    module_name = "custom_qemu",
+    integrity = "sha256-3V2d+p7nP0tsbrVWOPYUSJogLNal43CIAHEto6Vjdfg=",
+    strip_prefix = "third_party",  # matches top-level dir in the tar
+    urls = [
+        "https://github.com/qorix-group/custom-qemu/releases/download/1.0.0/custom_qemu.tar.gz",
+    ],
+)
+
+# Extensions
+
+gcc = use_extension("@score_toolchains_gcc//extentions:gcc.bzl", "gcc", dev_dependency = True)
+gcc.toolchain(
+    sha256 = "457f5f20f57528033cb840d708b507050d711ae93e009388847e113b11bf3600",
+    strip_prefix = "x86_64-unknown-linux-gnu",
+    url = "https://github.com/eclipse-score/toolchains_gcc_packages/releases/download/0.0.1/x86_64-unknown-linux-gnu_gcc12.tar.gz",
+)
+use_repo(gcc, "gcc_toolchain", "gcc_toolchain_gcc")
+
+toolchains_qnx = use_extension("@score_toolchains_qnx//:extensions.bzl", "toolchains_qnx", dev_dependency = True)
+toolchains_qnx.sdp(
+    sha256 = "f2e0cb21c6baddbcb65f6a70610ce498e7685de8ea2e0f1648f01b327f6bac63",
+    strip_prefix = "installation",
+    url = "https://www.qnx.com/download/download/79858/installation.tgz",
+)
 
 PYTHON_VERSION = "3.12"
 
-python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
 python.toolchain(
     is_default = True,
     python_version = PYTHON_VERSION,
 )
-use_repo(python)
 
-# Add GoogleTest dependency
-bazel_dep(name = "googletest", version = "1.17.0")
+use_repo(toolchains_qnx, "toolchains_qnx_sdp")
+use_repo(toolchains_qnx, "toolchains_qnx_qcc")
+use_repo(toolchains_qnx, "toolchains_qnx_ifs")
 
-# Rust rules for Bazel
-bazel_dep(name = "rules_rust", version = "0.63.0")
-
-# C/C++ rules for Bazel
-bazel_dep(name = "rules_cc", version = "0.2.1")
-
-# LLVM Toolchains Rules - host configuration
-bazel_dep(name = "toolchains_llvm", version = "1.4.0")
-
-llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-llvm.toolchain(
-    cxx_standard = {"": "c++17"},
-    llvm_version = "19.1.0",
+# Registers the custom Rust toolchain wired to @qnx_rust
+register_toolchains(
+    "@toolchains_qnx_qcc//:qcc_aarch64",
+    "@score_toolchains_rust//toolchains/aarch64-unknown-qnx8_0:toolchain_aarch64_qnx8_0",
+    "@score_toolchains_rust//toolchains/x86_64-unknown-linux-gnu:toolchain_x86_64_linux",
+    dev_dependency = True,
 )
-use_repo(llvm, "llvm_toolchain")
-use_repo(llvm, "llvm_toolchain_llvm")
 
-register_toolchains("@llvm_toolchain//:all")
+register_toolchains(
+    "@toolchains_qnx_ifs//:ifs_x86_64",
+    "@toolchains_qnx_ifs//:ifs_aarch64",
+    dev_dependency = True,
+)
 
-# tooling
-bazel_dep(name = "score_tooling", version = "1.0.1")
-bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
-bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
+# Module deps
+bazel_dep(name = "score_orchestrator", version = "0.0.3")
 
-#docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "1.1.0")
+# Crate configs
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.from_cargo(
+    name = "score_someip_gateway_crates",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = [
+        "//:Cargo.toml",
+        "//src/com_api_gen:Cargo.toml",
+        "//src/gateway:Cargo.toml",
+        "//src/examples:Cargo.toml",
+        "//src/gateway_common:Cargo.toml",
+        "//src/gateway_generated:Cargo.toml",
+        "//src/gateway_someip_adapters:Cargo.toml",
+    ],
+
+    # This shall not be here but rules_rust 0.61.0 or even 0.67.0 does not correct finds out that when we use out platform it shall append
+    # aarch64-unknown-nto-qnx710 or best aarch64-unknown-nto-qnx800 which is not fully supported in any rust_rules version for now (even if rustc 1.86.0 already supports it)
+    supported_platform_triples = [
+        "aarch64-unknown-nto-qnx710",  # This enables also QNX8 becasue OS and CPU for platform matches....
+        "x86_64-unknown-linux-gnu",
+        "x86_64-unknown-none",
+    ],
+)
+crate.annotation(
+    crate = "iceoryx2-bb-derive-macros",
+    patches = ["//patches:iceoryx2_bb_derive_macros_readme.patch"],
+    repositories = ["score_someip_gateway_crates"],
+)
+use_repo(crate, "score_someip_gateway_crates")
+use_repo(crate, "score_orchestrator_crates")
