@@ -1,9 +1,74 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
 build --java_language_version=17
 build --tool_java_language_version=17
 build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 
+build --strip=never
+common --compilation_mode=dbg
+
 test --test_output=errors
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
+
+# use mw/log stub implementation by default
+common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
+common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
+common --@score_baselibs//score/json:base_library=nlohmann
+common --@communication//score/mw/com/flags:tracing_library=stub
+
+# Toolchain / compiler configuration. Impression is that Bazels leans towards not using host compiler
+common --copt="-Wall"
+common --copt="-Wextra"
+common --copt="-pedantic"
+common --copt="-Wno-error"
+common --copt="-Wno-error=deprecated-declarations"
+common --copt="-Wno-error=dangling-reference"
+common --copt -fno-omit-frame-pointer
+
+build --incompatible_strict_action_env
+test --test_tag_filters=-manual
+build --experimental_retain_test_configuration_across_testonly #https://github.com/bazelbuild/bazel/issues/6842
+
+# unshare /dev/shm and /tmp
+test --sandbox_tmpfs_path=/dev/shm
+test --sandbox_tmpfs_path=/tmp
+test --nosandbox_default_allow_network
+
+# Build with sanitizers
+# To build with ASan, use: bazel --output_base=/tmp/asan-out build --config=asan //...
+# To test with ASan, use:  bazel --output_base=/tmp/asan-out test  --config=asan //...
+# TODO compiling and linking Rust code does not work yet and needs to be disabled manually
+build:san --copt -fsanitize=address,undefined,leak
+build:san --copt -O1
+build:san --copt -g
+build:san --copt="-Wno-error=maybe-uninitialized"
+build:san --linkopt -fsanitize=address,undefined,leak
+build:san --@rules_rust//rust/settings:extra_rustc_flag="-Zsanitizer=address,undefined,leak"
+
+build:asan --copt -fsanitize=address
+build:asan --copt -O1
+build:asan --copt -g
+build:asan --copt="-Wno-error=maybe-uninitialized"
+build:asan --linkopt -fsanitize=address
+build:asan --@rules_rust//rust/settings:extra_rustc_flag="-Zsanitizer=address"
+
+build:ubsan --copt -fsanitize=undefined
+build:ubsan --copt -O1
+build:ubsan --copt -g
+build:ubsan --copt="-Wno-error=maybe-uninitialized"
+build:ubsan --linkopt -fsanitize=undefined
+build:ubsan --@rules_rust//rust/settings:extra_rustc_flag="-Zsanitizer=undefined"

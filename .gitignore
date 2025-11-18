@@ -54,3 +54,10 @@ styles/
 .venv
 __pycache__/
 /.coverage
+
+# clangd cache
+compile_commands.json
+.cache
+
+# rust-analyzer config
+rust-project.json
