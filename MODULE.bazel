@@ -10,9 +10,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+
+"""SOME/IP Gateway bridges internal IPC communication to SOME/IP
+
+Initially it does not do E2E or payload transformation and just forwards the payload.
+E2E and payload transformation will be added in future releases.
+
+As long as the IPC communication only supports events, they are the only supported
+SOME/IP message type.
+"""
+
 module(
-    name = "cpp_rust_template_repository",
-    version = "1.0",
+    name = "some-ip_gateway",
+    version = "0.0",
 )
 
 bazel_dep(name = "rules_python", version = "1.4.1")
@@ -32,26 +42,76 @@ bazel_dep(name = "googletest", version = "1.17.0")
 # Rust rules for Bazel
 bazel_dep(name = "rules_rust", version = "0.63.0")
 
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.86.0"],
+)
+
 # C/C++ rules for Bazel
 bazel_dep(name = "rules_cc", version = "0.2.1")
 
-# LLVM Toolchains Rules - host configuration
-bazel_dep(name = "toolchains_llvm", version = "1.4.0")
-
-llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-llvm.toolchain(
-    cxx_standard = {"": "c++17"},
-    llvm_version = "19.1.0",
-)
-use_repo(llvm, "llvm_toolchain")
-use_repo(llvm, "llvm_toolchain_llvm")
-
-register_toolchains("@llvm_toolchain//:all")
+# Shell rules for Bazel
+bazel_dep(name = "rules_shell", version = "0.6.1")
 
 # tooling
-bazel_dep(name = "score_tooling", version = "1.0.1")
+bazel_dep(name = "score_tooling", version = "1.0.3")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
+bazel_dep(name = "rules_pkg", version = "1.1.0")
 
 #docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "1.1.0")
+bazel_dep(name = "score_docs_as_code", version = "2.0.2")
+
+# Baselibs
+bazel_dep(name = "rules_boost", repo_name = "com_github_nelhage_rules_boost")
+archive_override(
+    module_name = "rules_boost",
+    strip_prefix = "rules_boost-master",
+    urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
+)
+
+bazel_dep(name = "boost.program_options", version = "1.87.0")
+bazel_dep(name = "score_baselibs", version = "0.2.0")
+git_override(
+    module_name = "score_baselibs",
+    commit = "de5bb275ee9957433b3587582ac07d3eeb98dd6a",
+    patch_strip = 1,
+    patches = [
+        "//:wait_free_stack_fix.patch",
+    ],
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
+
+# Communication
+## TRLC dependency for requirements traceability
+bazel_dep(name = "trlc", version = "0.0.0")
+git_override(
+    module_name = "trlc",
+    commit = "650b51a47264a4f232b3341f473527710fc32669",  # trlc-2.0.2 release
+    remote = "https://github.com/bmw-software-engineering/trlc.git",
+)
+
+bazel_dep(name = "communication", version = "0.0.0")
+git_override(
+    module_name = "communication",
+    commit = "ff40e5f1e90ce406b71c664cc6c8e902ab465305",
+    remote = "https://github.com/eclipse-score/communication.git",
+)
+
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.spec(
+    package = "futures",
+    version = "0.3.31",
+)
+crate.spec(
+    package = "libc",
+    version = "0.2.155",
+)
+crate.spec(
+    features = ["derive"],
+    package = "clap",
+    version = "4.5.4",
+)
+crate.from_specs(name = "crate_index2")
+use_repo(crate, "crate_index")

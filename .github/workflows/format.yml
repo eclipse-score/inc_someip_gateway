@@ -24,3 +24,11 @@ jobs:
     uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@main
     with:
       bazel-target: "test //:format.check" # optional, this is the default
+
+  clang_format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+      - name: Run clang-format
+        run: ./check_clang_format.sh

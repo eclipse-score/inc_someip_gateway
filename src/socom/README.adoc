@@ -1,0 +1,23 @@
+= Service Oriented Communication (SOCom)
+:description: SOCom
+:docinfo: shared
+:diagramdir: models
+:imagesdir: images
+:toc: left
+:iconsdir: images
+:icons: font
+:sectnums:
+:sectnumlevels: 5
+
+The bundle service oriented communication (SOCom) implements components for client/server pattern based communication for the following communication paradigms:
+
+* remote procedure call;
+* publish/subscribe (event communication).
+
+SOCom provides interfaces which enable the implementation of service gateways (bridges).
+This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
+SOCom provides intra-process client/server communication only.
+
+== Design
+
+See <<doc/design/README.adoc#,design/>> for a high level design.

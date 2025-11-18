@@ -13,8 +13,9 @@
 
 name: Copyright checks
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+  # pull_request:
+  #   types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
 jobs:

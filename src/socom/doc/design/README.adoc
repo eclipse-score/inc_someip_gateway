@@ -1,0 +1,39 @@
+// *******************************************************************************
+// Copyright (c) 2025 Elektrobit Automotive GmbH
+//
+// See the NOTICE file(s) distributed with this work for additional
+// information regarding copyright ownership.
+//
+// This program and the accompanying materials are made available under the
+// terms of the Apache License Version 2.0 which is available at
+// https://www.apache.org/licenses/LICENSE-2.0
+//
+// SPDX-License-Identifier: Apache-2.0
+// *******************************************************************************
+
+= Software design SOCom library
+:description: SOCom library software element
+:docinfo: shared
+:diagramdir: models
+:imagesdir: images
+:toc: left
+:iconsdir: images
+:icons: font
+:sectnums:
+:sectnumlevels: 5
+
+// keep the structure of this document
+// 1st line = Document main title
+// 2nd line = Document sub title (this is what you see in web directory)
+// don't touch all the other attributes, they are needed by asciidoc
+// store external PUML files always to a models sub directory
+// store images always to a images sub directory
+// in this file shall only be include what is part of HTML documentation only
+
+
+[#software_element_socom]
+== SOCom library
+
+include::30_structural_view.adoc[leveloffset=+1]
+include::40_behavioral_view.adoc[leveloffset=+1]
+include::50_state_dynamics_view.adoc[leveloffset=+1]
