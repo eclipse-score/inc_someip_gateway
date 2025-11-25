@@ -32,6 +32,7 @@ cc_binary(
         "$(rootpath config/benchmark_mw_com_config.json)",
     ],
     data = ["config/benchmark_mw_com_config.json"],
+    visibility = ["//visibility:public"],
     deps = [
         ":echo_service",
         "@communication//score/mw/com",
@@ -43,6 +44,7 @@ cc_binary(
     name = "ipc_benchmarks",
     srcs = ["ipc_benchmarks.cpp"],
     data = ["config/benchmark_mw_com_config.json"],
+    visibility = ["//visibility:public"],
     deps = [
         ":echo_service",
         "@communication//score/mw/com",

@@ -14,6 +14,7 @@
 #include <benchmark/benchmark.h>
 #include <score/mw/com/runtime.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -25,6 +26,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
 #include "echo_service.h"
 
@@ -34,7 +36,7 @@ constexpr std::uint16_t MaxSamplesCount{10};
 constexpr std::uint8_t MAX_SERVICE_DISCOVERY_RETRIES{30};
 constexpr std::chrono::seconds SERVICE_DISCOVERY_RETRY_INTERVAL{1};
 constexpr std::chrono::seconds SEQUENTIAL_HANDSHAKE_DELAY{2};
-constexpr std::chrono::seconds RESPONSE_TIMEOUT{2};
+constexpr std::chrono::seconds RESPONSE_TIMEOUT{1};
 constexpr std::uint16_t STRESS_THROUGHPUT_BATCH_SIZE{100};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
@@ -106,6 +108,8 @@ class BenchmarkFixture {
                                      " seconds. Make sure echo_server is running.");
         }
 
+        // auto handler_result = response_proxy_->echo_response_tiny_.SetReceiveHandler(
+        //     [this]() { this->ProcessResponsesTiny(); });
         auto handler_small_result = response_proxy_->echo_response_small_.SetReceiveHandler(
             [this]() { this->ProcessResponsesSmall(); });
         auto handler_medium_result = response_proxy_->echo_response_medium_.SetReceiveHandler(
@@ -117,9 +121,9 @@ class BenchmarkFixture {
         auto handler_xxlarge_result = response_proxy_->echo_response_xxlarge_.SetReceiveHandler(
             [this]() { this->ProcessResponsesXXLarge(); });
 
-        if (!handler_small_result.has_value() || !handler_medium_result.has_value() ||
-            !handler_large_result.has_value() || !handler_xlarge_result.has_value() ||
-            !handler_xxlarge_result.has_value()) {
+        if (/* !handler_result.has_value() || */ !handler_small_result.has_value() ||
+            !handler_medium_result.has_value() || !handler_large_result.has_value() ||
+            !handler_xlarge_result.has_value() || !handler_xxlarge_result.has_value()) {
             throw std::runtime_error("Failed to set response handlers");
         }
 
@@ -160,6 +164,7 @@ class BenchmarkFixture {
         }
 
         if (response_proxy_.has_value()) {
+            response_proxy_->echo_response_tiny_.UnsetReceiveHandler();
             response_proxy_->echo_response_small_.UnsetReceiveHandler();
             response_proxy_->echo_response_medium_.UnsetReceiveHandler();
             response_proxy_->echo_response_large_.UnsetReceiveHandler();
@@ -260,6 +265,7 @@ class BenchmarkFixture {
                   << ". Check if echo_server is properly handling requests." << std::endl;
         return std::chrono::nanoseconds{0};
     }
+
     // Helper method to select the correct event based on payload size
     void SendRequestUsingCorrectEvent(PayloadSize size, std::uint64_t sequence_id,
                                       std::uint32_t actual_size) {
@@ -331,6 +337,27 @@ class BenchmarkFixture {
         bool received{false};
         std::chrono::high_resolution_clock::time_point receive_time;
     };
+
+    void ProcessResponsesTiny() {
+        if (g_stop_token.stop_requested()) {
+            return;
+        }
+        response_proxy_->echo_response_tiny_.GetNewSamples(
+            [this](const auto& response_sample) {
+                if (g_stop_token.stop_requested()) {
+                    return;
+                }
+
+                std::lock_guard<std::mutex> lock(pending_mutex_);
+                auto it = pending_responses_.find(response_sample->sequence_id);
+                if (it != pending_responses_.end()) {
+                    it->second.received = true;
+                    it->second.receive_time = std::chrono::high_resolution_clock::now();
+                    response_cv_.notify_all();
+                }
+            },
+            MaxSamplesCount);
+    }
 
     void ProcessResponsesSmall() {
         if (g_stop_token.stop_requested()) {
@@ -500,6 +527,26 @@ std::string GetPayloadSizeName(PayloadSize size) {
     return "Unknown";
 }
 
+// Helper function to calculate percentiles
+double Percentile(const std::vector<double>& v, double percentile) {
+    std::vector<double> sorted = v;
+    std::sort(sorted.begin(), sorted.end());
+
+    if (sorted.empty()) return 0.0;
+
+    // Linear interpolation method
+    double index = (percentile / 100.0) * (sorted.size() - 1);
+    size_t lower = static_cast<size_t>(std::floor(index));
+    size_t upper = static_cast<size_t>(std::ceil(index));
+
+    if (lower == upper) {
+        return sorted[lower];
+    }
+
+    double weight = index - lower;
+    return sorted[lower] * (1.0 - weight) + sorted[upper] * weight;
+}
+
 // Latency benchmarks - measure round-trip time
 BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
@@ -510,18 +557,24 @@ BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
     }
 
     state.SetLabel(GetPayloadSizeName(payload_size));
-    state.counters["payload_bytes"] = static_cast<double>(static_cast<std::uint32_t>(payload_size));
+    state.counters["payload_bytes"] =
+        benchmark::Counter(static_cast<double>(static_cast<std::uint32_t>(payload_size)),
+                           benchmark::Counter::kIsIterationInvariant);
 }
 
 BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
     ->Arg(0)  // Tiny
-    //->Arg(1)  // Small
-    //->Arg(2)  // Medium
-    //->Arg(3)  // Large
-    //->Arg(4)  // XLarge
-    //->Arg(5)  // XXLarge
+    // ->Arg(1)  // Small
+    // ->Arg(2)  // Medium
+    // ->Arg(3)  // Large
+    // ->Arg(4)  // XLarge
+    // ->Arg(5)  // XXLarge
     ->UseManualTime()
-    ->Unit(benchmark::kMicrosecond);
+    ->Unit(benchmark::kMicrosecond)
+    ->Repetitions(30)
+    ->ComputeStatistics("p50", [](const std::vector<double>& v) { return Percentile(v, 50.0); })
+    ->ComputeStatistics("p90", [](const std::vector<double>& v) { return Percentile(v, 90.0); })
+    ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
 
 // Throughput benchmarks - measure message sending rate
 BENCHMARK_DEFINE_F(IpcBenchmark, ThroughputEcho)(benchmark::State& state) {
@@ -542,11 +595,11 @@ BENCHMARK_DEFINE_F(IpcBenchmark, ThroughputEcho)(benchmark::State& state) {
 
 BENCHMARK_REGISTER_F(IpcBenchmark, ThroughputEcho)
     ->Arg(0)  // Tiny
-    //->Arg(1)  // Small
-    //->Arg(2)  // Medium
-    //->Arg(3)  // Large
-    //->Arg(4)  // XLarge
-    //->Arg(5)  // XXLarge
+    // ->Arg(1)  // Small
+    // ->Arg(2)  // Medium
+    // ->Arg(3)  // Large
+    // ->Arg(4)  // XLarge
+    // ->Arg(5)  // XXLarge
     ->Unit(benchmark::kMicrosecond);
 
 // Stress test - send messages in batches to test system under high load
@@ -574,9 +627,9 @@ BENCHMARK_DEFINE_F(IpcBenchmark, StressThroughput)(benchmark::State& state) {
 
 BENCHMARK_REGISTER_F(IpcBenchmark, StressThroughput)
     ->Arg(0)  // Tiny
-    //->Arg(1)  // Small
-    //->Arg(2)  // Medium
-    //->Arg(3)  // Large
+    // ->Arg(1)  // Small
+    // ->Arg(2)  // Medium
+    // ->Arg(3)  // Large
     ->Unit(benchmark::kMicrosecond);
 
 int main(int argc, char** argv) {
@@ -601,6 +654,14 @@ int main(int argc, char** argv) {
     std::cout << "Starting IPC Performance Benchmarks..." << std::endl;
     std::cout << "Echo server should be running. If not, run:" << std::endl;
     std::cout << "bazel run //tests/performance_benchmarks:echo_server" << std::endl;
+
+#if defined(__aarch64__) || defined(__arm64__)
+    benchmark::AddCustomContext("architecture", "aarch64");
+#elif defined(__x86_64__) || defined(_M_X64)
+    benchmark::AddCustomContext("architecture", "x86_64");
+#else
+    benchmark::AddCustomContext("architecture", "unknown");
+#endif
 
     if (g_stop_token.stop_requested()) {
         std::cout << "Stop requested before running benchmarks. Exiting..." << std::endl;

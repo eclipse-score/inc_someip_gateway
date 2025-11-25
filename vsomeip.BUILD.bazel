@@ -1,0 +1,69 @@
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+"""
+Bazel rules for building the vsomeip SOME/IP stack
+"""
+
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+# ============================================================================
+# Boost
+# ============================================================================
+cmake(
+    name = "boost",
+    build_args = ["-j"],
+    cache_entries = {
+        "BOOST_INCLUDE_LIBRARIES": "algorithm;array;asio;exception;filesystem;foreach;functional;icl;optional;property_tree;shared_ptr;stacktrace;system;thread;utility",
+        "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
+    },
+    lib_source = "@boost//:all_srcs",
+    # Building Boost as static libraries in order to avoid conflicts with other versions
+    out_static_libs = [
+        "libboost_atomic.a",
+        "libboost_chrono.a",
+        "libboost_container.a",
+        "libboost_date_time.a",
+        "libboost_filesystem.a",
+        "libboost_thread.a",
+    ],
+)
+
+# ============================================================================
+# vsomeip SOME/IP Stack
+# ============================================================================
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+cmake(
+    name = "vsomeip",
+    build_args = ["-j"],
+    cache_entries = {
+        "BOOST_ROOT": "$$EXT_BUILD_DEPS/boost",
+        "Boost_NO_SYSTEM_PATHS": "ON",
+        "Boost_USE_STATIC_LIBS": "ON",
+        "ENABLE_SIGNAL_HANDLING": "ON",
+    },
+    lib_source = ":all_srcs",
+    out_shared_libs = [
+        "libvsomeip3.so.3",
+        "libvsomeip3-cfg.so.3",
+        "libvsomeip3-e2e.so.3",
+        "libvsomeip3-sd.so.3",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":boost"],
+)

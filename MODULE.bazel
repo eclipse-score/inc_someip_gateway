@@ -13,11 +13,14 @@
 # *******************************************************************************
 
 "S-CORE SOME/IP Gateway"
-
 module(name = "score_someip_gateway")
 
+# ============================================================================
+# Python Configuration
+# ============================================================================
 bazel_dep(name = "rules_python", version = "1.4.1")
 
+# Python 3.12: Required for testing infrastructure and code generation tools
 PYTHON_VERSION = "3.12"
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -43,48 +46,129 @@ pip.parse(
 )
 use_repo(pip, "someip_pip")
 
-# Add GoogleTest dependency
+# ============================================================================
+# Testing & Performance Measurement
+# ============================================================================
 bazel_dep(name = "googletest", version = "1.17.0")
-
-# Add Google Benchmark dependency for performance testing
 bazel_dep(name = "google_benchmark", version = "1.9.1")
 
-# Rust rules for Bazel
+# ============================================================================
+# Build System Rules
+# ============================================================================
+bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "rules_rust", version = "0.63.0")
+bazel_dep(name = "rules_pkg", version = "1.1.0")
 
-# C/C++ rules for Bazel
-bazel_dep(name = "rules_cc", version = "0.2.1")
+# Platforms: Standard constraint values and platform definitions
+# Required for select() expressions that use @platforms//cpu:* and @platforms//os:*
+bazel_dep(name = "platforms", version = "1.0.0")
 
-# LLVM Toolchains Rules - host configuration
-bazel_dep(name = "toolchains_llvm", version = "1.4.0")
+# ============================================================================
+# Toolchains & Platform Configuration
+# ============================================================================
+# S-CORE Platform Definitions: Provides constraint values and platform definitions
+bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
 
+# LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
+# Integrates with LLVM 19.1.0 and Debian Bullseye sysroots
+bazel_dep(name = "toolchains_llvm", version = "1.5.0")
+
+# Rust Toolchain Extension: Manages sysroot download and toolchain registration
+bazel_dep(name = "score_toolchains_rust", version = "0.1")
+git_override(
+    module_name = "score_toolchains_rust",
+    remote = "https://github.com/eclipse-score/toolchains_rust.git",
+    commit = "5614e4b273f2f5302d47a05d7e58dae86f97a3c3",  # Last verified: 23.08.2025
+)
+
+# ============================================================================
+# Optional Toolchain Dependencies
+# ============================================================================
+# We provide a local stub to satisfy module resolution without adding QNX support.
+bazel_dep(name = "rust_qnx8_toolchain", version = "1.0.0")
+local_path_override(
+    module_name = "rust_qnx8_toolchain",
+    path = "bazel_stubs/rust_qnx8_toolchain",
+)
+
+# ============================================================================
+# Sysroot Management for Multi-Architecture Support
+# ============================================================================
+# Downloads and registers Debian Bullseye sysroots for both x86_64 and aarch64.
+# These sysroots are used by both LLVM (C++) and Rust toolchains for cross-compilation.
+rust_ext = use_extension("@score_toolchains_rust//extensions:rust_toolchain_ext.bzl", "rust_toolchain_ext")
+rust_ext.sysroot(
+    name = "sysroot_linux_x64",
+    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
+    sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
+    strip_prefix = "",
+    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
+)
+rust_ext.sysroot(
+    name = "sysroot_linux_aarch64",
+    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/906cc7c6bf47d4bd969a3221fc0602c6b3153caa/debian_bullseye_arm64_sysroot.tar.xz",
+    sha256 = "d303cf3faf7804c9dd24c9b6b167d0345d41d7fe4bfb7d34add3ab342f6a236c",
+    strip_prefix = "",
+    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
+)
+
+use_repo(rust_ext, "sysroot_linux_x64")
+use_repo(rust_ext, "sysroot_linux_aarch64")
+
+# ============================================================================
+# LLVM C/C++ Toolchain Configuration
+# ============================================================================
+# Configures LLVM 19.1.0 for C/C++ compilation with cross-architecture support.
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
+    name = "llvm_toolchain",
     cxx_standard = {"": "c++17"},
     llvm_version = "19.1.0",
 )
-use_repo(llvm, "llvm_toolchain")
-use_repo(llvm, "llvm_toolchain_llvm")
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@sysroot_linux_x64//:sysroot",
+    targets = ["linux-x86_64"],
+)
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@sysroot_linux_aarch64//:sysroot",
+    targets = ["linux-aarch64"],
+)
 
+use_repo(llvm, "llvm_toolchain")
 register_toolchains("@llvm_toolchain//:all")
 
-# tooling
+# ============================================================================
+# Rust Toolchain Configuration for Multi-Architecture Support
+# ============================================================================
+# Configures rules_rust to compile for both x86_64 and aarch64 targets.
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    extra_target_triples = ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"],
+    versions = ["1.83.0"],
+)
+use_repo(rust, "rust_toolchains")
+register_toolchains("@rust_toolchains//:all")
+
+# ============================================================================
+# Tooling & Development
+# ============================================================================
 bazel_dep(name = "score_tooling", version = "1.0.2")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
-# docs-as-code
+# ============================================================================
+# Documentation
+# ============================================================================
 bazel_dep(name = "score_docs_as_code", version = "1.4.0")
 
-# communication
-bazel_dep(name = "communication", version = "0.0.0")
-git_override(
-    module_name = "communication",
-    commit = "86c66f345fdd35dcc3f380905e799f559dfd5001",
-    remote = "https://github.com/eclipse-score/communication.git",
-)
-
-# TODO: These should fetched via registry and we shouldn't have to care about updating them
+# ============================================================================
+# Dependency Chain Compatibility
+# ============================================================================
+# TODO: Migrate rules_boost to Bazel Central Registry once compatible versions available.
+# Currently using archive_override to pin master branch for compatibility with other deps.
 archive_override(
     module_name = "rules_boost",
     integrity = "sha256-iKHWUIBrUN/fFOCltkTmHfDcKw0h4ZVmP7NVSoc8zBs=",
@@ -92,70 +176,66 @@ archive_override(
     urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
 )
 
-bazel_dep(name = "score-baselibs", version = "0.0.0")
+# ============================================================================
+# Communication Framework
+# ============================================================================
+bazel_dep(name = "communication", version = "0.0.0")
 git_override(
-    module_name = "score-baselibs",
-    commit = "f02d7f427df1968df8d5f9f9aa85bf68baeb839e",
-    remote = "https://github.com/eclipse-score/baselibs.git",
+    module_name = "communication",
+    commit = "86c66f345fdd35dcc3f380905e799f559dfd5001",
+    remote = "https://github.com/eclipse-score/communication.git",
 )
 
+# ============================================================================
+# Base Libraries
+# ============================================================================
+# ============================================================================
+# Base Libraries
+# ============================================================================
+# Patch note: baselibs-multiarch.patch adds multi-arch support for .deb downloads.
+# score-baselibs hardcodes amd64 URLs; patch replaces them with architecture-aware
+# selection (x86_64 or aarch64) based on TARGET_ARCH environment variable.
+bazel_dep(name = "score-baselibs", version = "0.0.0")
+archive_override(
+    module_name = "score-baselibs",
+    urls = ["https://github.com/eclipse-score/baselibs/archive/f02d7f427df1968df8d5f9f9aa85bf68baeb839e.tar.gz"],
+    strip_prefix = "baselibs-f02d7f427df1968df8d5f9f9aa85bf68baeb839e",
+    patches = ["//patches:baselibs-multiarch.patch"],
+    patch_strip = 1,
+)
+
+# ============================================================================
+# Code Generation - FlatBuffers
+# ============================================================================
+bazel_dep(name = "flatbuffers", version = "25.2.10")
+
+# TRLC: Traceability Language Compiler for requirements management
 git_override(
     module_name = "trlc",
     commit = "650b51a47264a4f232b3341f473527710fc32669",  # trlc-2.0.2 release
     remote = "https://github.com/bmw-software-engineering/trlc.git",
 )
 
-bazel_dep(name = "flatbuffers", version = "25.2.10")
-
-###################################################################################
-# Examples
-###################################################################################
-
-#-------------------------------------------------------------
-# Crate index for hello world example
-#-------------------------------------------------------------
+# ============================================================================
+# Examples: Car Window Simulator
+# ============================================================================
 car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
-car_window_sim_crate.spec(
-    package = "rustyrepl",
-    version = "0.2.0",
-)  #//,features = ["async"])
-car_window_sim_crate.spec(
-    package = "anyhow",
-    version = "1",
-)
-car_window_sim_crate.spec(
-    package = "async-trait",
-    version = "0.1",
-)
-car_window_sim_crate.spec(
-    features = ["derive"],
-    package = "clap",
-    version = "4",
-)
-car_window_sim_crate.spec(
-    features = ["full"],
-    package = "tokio",
-    version = "1.10",
-)
+car_window_sim_crate.spec(package = "rustyrepl", version = "0.2.0")
+car_window_sim_crate.spec(package = "anyhow", version = "1")
+car_window_sim_crate.spec(package = "async-trait", version = "0.1")
+car_window_sim_crate.spec(features = ["derive"], package = "clap", version = "4")
+car_window_sim_crate.spec(features = ["full"], package = "tokio", version = "1.10")
 car_window_sim_crate.from_specs(name = "car_window_sim_crate")
 use_repo(car_window_sim_crate, "car_window_sim_crate")
 
-###################################################################################
-# vsomeip integration
-###################################################################################
-bazel_dep(name = "rules_foreign_cc", version = "0.15.0")
+# ============================================================================
+# SOME/IP Stack Integration
+# ============================================================================
+# Rules for Foreign/C/C++/CMake integration
+bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-_ALL_CONTENT = """
-filegroup(
-    name = "all_srcs",
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-"""
-
-# Boost
 http_archive(
     name = "boost",
     build_file_content = """
@@ -165,15 +245,14 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 """,
-    sha256 = "af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89",
-    strip_prefix = "boost_1_87_0",
-    urls = ["https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.bz2"],
+    sha256 = "7da75f171837577a52bbf217e17f8ea576c7c246e4594d617bfde7fafd408be5",
+    strip_prefix = "boost-1.87.0",
+    urls = ["https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.tar.xz"],
 )
 
-# pcre source code repository
 http_archive(
     name = "vsomeip",
-    build_file_content = _ALL_CONTENT,
+    build_file = "@//:vsomeip.BUILD.bazel",
     sha256 = "659421fa01c0f56e5587c82f476c18a593e1a7ad4b381d95b57821d0545dae53",
     strip_prefix = "vsomeip-3.5.7",
     urls = [

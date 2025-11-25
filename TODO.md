@@ -41,7 +41,7 @@
 
 ### Build & Dependencies
 - [ ] Optimize Bazel build configuration
-    - [ ] Build vsomeip using native bazel or at least improve the Boost dependency
+    - [x] Build vsomeip using native bazel or at least improve the Boost dependency
     - [ ] Right now the clang++ from the environment is somehow visible in the sandbox when building Boost which also makes it necessary that you have clang installed on your host. We should improve the sandboxing so that clang from the host system is no longer visible to any build.
 - [ ] Update dependency versions
 - [ ] Try out running on QNX

@@ -71,7 +71,6 @@ cc_library(
         ":config_flatbuffers",
         ":interfaces/someip_message_service",
         "//tests/performance_benchmarks:echo_service",
-        "//src/someipd:vsomeip",
         "@communication//score/mw/com",
     ],
 )

@@ -1,0 +1,161 @@
+diff --git a/MODULE.bazel b/MODULE.bazel
+index eacab52..4bdbb6a 100644
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -51,47 +51,9 @@ bazel_dep(name = "boost.interprocess", version = "1.87.0")
+ 
+ bazel_dep(name = "download_utils", version = "1.0.1")
+ 
+-deb = use_repo_rule("@download_utils//download/deb:defs.bzl", "download_deb")
+ 
+-deb(
+-    name = "acl-deb",
+-    build = "//third_party/acl:acl.BUILD",
+-    urls = ["https://archive.ubuntu.com/ubuntu/pool/main/a/acl/libacl1-dev_2.2.52-3build1_amd64.deb"],
+-    visibility = ["//visibility:public"],
+-)
+-
+-deb(
+-    name = "valgrind-deb",
+-    build = "//third_party/valgrind:valgrind.BUILD",
+-    urls = ["https://archive.ubuntu.com/ubuntu/pool/main/v/valgrind/valgrind_3.15.0-1ubuntu9.1_amd64.deb"],
+-    visibility = ["//visibility:public"],
+-)
+-
+-deb(
+-    name = "libcap2-deb",
+-    urls = ["https://archive.ubuntu.com/ubuntu/pool/main/libc/libcap2/libcap2_2.25-1.2_amd64.deb"],
+-    visibility = ["//visibility:public"],
+-)
+-
+-deb(
+-    name = "libcap2-dev-deb",
+-    build = "//third_party/libcap2:libcap2.BUILD",
+-    urls = ["https://archive.ubuntu.com/ubuntu/pool/main/libc/libcap2/libcap-dev_2.25-1.2_amd64.deb"],
+-    visibility = ["//visibility:public"],
+-)
+-
+-deb(
+-    name = "libseccomp2-deb",
+-    urls = ["https://archive.ubuntu.com/ubuntu/pool/main/libs/libseccomp/libseccomp2_2.5.1-1ubuntu1~18.04.2_amd64.deb"],
+-    visibility = ["//visibility:public"],
+-)
+-
+-deb(
+-    name = "libseccomp2-dev-deb",
+-       build = "//third_party/libseccomp2:libseccomp2.BUILD",
+-    urls = ["https://archive.ubuntu.com/ubuntu/pool/main/libs/libseccomp/libseccomp-dev_2.5.1-1ubuntu1~18.04.2_i386.deb"],
+-    visibility = ["//visibility:public"],
+-)
++multiarch_debs = use_extension("//third_party:multiarch_deb_extension.bzl", "multiarch_debs")
++use_repo(multiarch_debs, "acl-deb", "valgrind-deb", "libcap2-deb", "libcap2-dev-deb", "libseccomp2-deb", "libseccomp2-dev-deb")
+ 
+ bazel_dep(name = "nlohmann_json", version = "3.11.3")
+ bazel_dep(name = "bazel_skylib", version = "1.7.1")
+diff --git a/third_party/BUILD.bazel b/third_party/BUILD.bazel
+new file mode 100644
+index 0000000..e4ebb1d
+--- /dev/null
++++ b/third_party/BUILD.bazel
+@@ -0,0 +1,3 @@
++"""Package file for third_party directory."""
++
++# This allows the multiarch_deb_extension.bzl to be loaded as a module extension
+diff --git a/third_party/multiarch_deb_extension.bzl b/third_party/multiarch_deb_extension.bzl
+new file mode 100644
+index 0000000..b4f02aa
+--- /dev/null
++++ b/third_party/multiarch_deb_extension.bzl
+@@ -0,0 +1,92 @@
++"""Module extension for multi-architecture .deb downloads."""
++
++def _multiarch_deb_impl(ctx):
++    """Repository rule that selects .deb URL based on TARGET_ARCH."""
++    arch = ctx.os.environ.get("TARGET_ARCH", "x86_64")
++    
++    # Select the appropriate URL
++    if arch == "aarch64":
++        urls = ctx.attr.urls_aarch64
++    else:
++        urls = ctx.attr.urls_x86_64
++    
++    # Download the .deb file
++    ctx.download(
++        url = urls,
++        output = "package.deb",
++    )
++    
++    # Extract the .deb (Debian package format: ar archive containing data.tar.*)
++    result = ctx.execute(["ar", "t", "package.deb"])
++    if result.return_code != 0:
++        fail("Failed to list .deb contents: " + result.stderr)
++    
++    # Extract data.tar.*
++    ctx.execute(["ar", "x", "package.deb"])
++    
++    # Find and extract the data tarball
++    for line in result.stdout.split("\n"):
++        if line.startswith("data.tar"):
++            ctx.execute(["tar", "xf", line])
++            break
++    
++    # Create BUILD file from template
++    if ctx.attr.build_file:
++        ctx.symlink(ctx.attr.build_file, "BUILD.bazel")
++
++multiarch_deb = repository_rule(
++    implementation = _multiarch_deb_impl,
++    attrs = {
++        "urls_x86_64": attr.string_list(mandatory = True),
++        "urls_aarch64": attr.string_list(mandatory = True),
++        "build_file": attr.label(allow_single_file = True),
++    },
++    environ = ["TARGET_ARCH"],
++)
++
++def _multiarch_debs_ext_impl(module_ctx):
++    """Module extension that sets up all multi-arch .deb repos."""
++    
++    multiarch_deb(
++        name = "acl-deb",
++        urls_x86_64 = ["https://archive.ubuntu.com/ubuntu/pool/main/a/acl/libacl1-dev_2.2.52-3build1_amd64.deb"],
++        urls_aarch64 = ["https://ports.ubuntu.com/ubuntu-ports/pool/main/a/acl/libacl1-dev_2.2.52-3build1_arm64.deb"],
++        build_file = Label("//third_party/acl:acl.BUILD"),
++    )
++    
++    multiarch_deb(
++        name = "valgrind-deb",
++        urls_x86_64 = ["https://archive.ubuntu.com/ubuntu/pool/main/v/valgrind/valgrind_3.15.0-1ubuntu9.1_amd64.deb"],
++        urls_aarch64 = ["https://ports.ubuntu.com/ubuntu-ports/pool/main/v/valgrind/valgrind_3.15.0-1ubuntu9.1_arm64.deb"],
++        build_file = Label("//third_party/valgrind:valgrind.BUILD"),
++    )
++    
++    multiarch_deb(
++        name = "libcap2-deb",
++        urls_x86_64 = ["https://archive.ubuntu.com/ubuntu/pool/main/libc/libcap2/libcap2_2.25-1.2_amd64.deb"],
++        urls_aarch64 = ["https://ports.ubuntu.com/ubuntu-ports/pool/main/libc/libcap2/libcap2_2.25-1.2_arm64.deb"],
++    )
++    
++    multiarch_deb(
++        name = "libcap2-dev-deb",
++        urls_x86_64 = ["https://archive.ubuntu.com/ubuntu/pool/main/libc/libcap2/libcap-dev_2.25-1.2_amd64.deb"],
++        urls_aarch64 = ["https://ports.ubuntu.com/ubuntu-ports/pool/main/libc/libcap2/libcap-dev_2.25-1.2_arm64.deb"],
++        build_file = Label("//third_party/libcap2:libcap2.BUILD"),
++    )
++    
++    multiarch_deb(
++        name = "libseccomp2-deb",
++        urls_x86_64 = ["https://archive.ubuntu.com/ubuntu/pool/main/libs/libseccomp/libseccomp2_2.5.1-1ubuntu1~18.04.2_amd64.deb"],
++        urls_aarch64 = ["https://ports.ubuntu.com/ubuntu-ports/pool/main/libs/libseccomp/libseccomp2_2.5.1-1ubuntu1~18.04.2_arm64.deb"],
++    )
++    
++    multiarch_deb(
++        name = "libseccomp2-dev-deb",
++        urls_x86_64 = ["https://archive.ubuntu.com/ubuntu/pool/main/libs/libseccomp/libseccomp-dev_2.5.1-1ubuntu1~18.04.2_i386.deb"],
++        urls_aarch64 = ["https://ports.ubuntu.com/ubuntu-ports/pool/main/libs/libseccomp/libseccomp-dev_2.5.1-1ubuntu1~18.04.2_arm64.deb"],
++        build_file = Label("//third_party/libseccomp2:libseccomp2.BUILD"),
++    )
++    
++    return module_ctx.extension_metadata(reproducible = True)
++
++multiarch_debs = module_extension(implementation = _multiarch_debs_ext_impl)

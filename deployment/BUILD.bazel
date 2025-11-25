@@ -1,0 +1,100 @@
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# =============================================================================
+# Simple Deployment Packages
+#
+# Creates platform-specific deployment packages (tar.gz) containing:
+# - Executables (bins with all runtime dependencies)
+# - Configuration files (.json)
+#
+# Usage:
+#   # Build arm64 packages
+#   bazel build //deployment:someipd_tar --config=arm64-linux
+#   bazel build //deployment:gatewayd_tar --config=arm64-linux
+#   bazel build //deployment:benchmarks_tar --config=arm64-linux
+#
+#   # Build x86_64 packages (default)
+#   bazel build //deployment:someipd_tar
+#   bazel build //deployment:gatewayd_tar
+#   bazel build //deployment:benchmarks_tar
+#
+#   # Build all
+#   bazel build //deployment:all_tars --config=arm64-linux
+#   bazel build //deployment:all_tars
+# =============================================================================
+
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load(":defs.bzl", "names_from_toolchains")
+
+names_from_toolchains(
+    name = "toolchain_vars",
+)
+
+# TODO refactor common attributes into a macro
+pkg_tar(
+    name = "someipd_tar",
+    srcs = [
+        "//src/someipd",
+    ],
+    out = "someipd.tar.gz",
+    extension = "tar.gz",
+    include_runfiles = True,
+    package_dir = module_name(),
+    package_file_name = "someipd-{cc_cpu}.tar.gz",
+    package_variables = ":toolchain_vars",
+    visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "gatewayd_tar",
+    srcs = [
+        "//src/gatewayd",
+    ],
+    out = "gatewayd.tar.gz",
+    extension = "tar.gz",
+    include_runfiles = True,
+    package_dir = module_name(),
+    package_file_name = "gatewayd-{cc_cpu}.tar.gz",
+    package_variables = ":toolchain_vars",
+    visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "benchmarks_tar",
+    srcs = [
+        "//tests/performance_benchmarks:echo_server",
+        "//tests/performance_benchmarks:ipc_benchmarks",
+    ],
+    out = "benchmarks.tar.gz",
+    extension = "tar.gz",
+    include_runfiles = True,
+    package_dir = module_name() + "/benchmarks",
+    package_file_name = "benchmarks-{cc_cpu}.tar.gz",
+    package_variables = ":toolchain_vars",
+    visibility = ["//visibility:public"],
+)
+
+# =============================================================================
+# Convenience target
+# =============================================================================
+
+filegroup(
+    name = "all_tars",
+    srcs = [
+        ":benchmarks_tar",
+        ":gatewayd_tar",
+        ":someipd_tar",
+    ],
+    visibility = ["//visibility:public"],
+)

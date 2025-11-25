@@ -71,6 +71,7 @@ int main(int argc, const char* argv[]) {
     auto application = runtime->create_application(someipd_name);
     if (!application->init()) {
         std::cerr << "App init failed";
+        return 1;
     }
 
     std::thread([application]() {

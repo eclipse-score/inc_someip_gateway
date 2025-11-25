@@ -1,16 +1,56 @@
+# *******************************************************************************
+# Copyright (c) 2025 ETAS GmbH
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Java Language Configuration
 build --java_language_version=17
 build --tool_java_language_version=17
 build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
+
+# ============================================================================
+# Multi-Architecture Build Configuration
+# ============================================================================
+# These configs enable building for different target architectures.
+#
+# Usage:
+#   bazel build //... --config=x86_64-linux    # Build for x86_64 (native on x86_64 host)
+#   bazel build //... --config=arm64-linux     # Build for ARM64/aarch64 (cross-compile)
+#
+# Platform Definitions:
+#   @score_bazel_platforms//:x86_64-linux  - x86_64 architecture (GNU/Linux)
+#   @score_bazel_platforms//:arm64-linux   - ARM64/aarch64 architecture (GNU/Linux)
+build:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
+build:x86_64-linux --define=config=x86_64-linux
+build:x86_64-linux --repo_env=TARGET_ARCH=x86_64
+
+build:arm64-linux --platforms=@score_bazel_platforms//:arm64-linux
+build:arm64-linux --extra_toolchains=@llvm_toolchain//:cc-toolchain-aarch64-linux
+build:arm64-linux --incompatible_enable_cc_toolchain_resolution
+build:arm64-linux --define=config=arm64-linux
+build:arm64-linux --repo_env=TARGET_ARCH=aarch64
 
 test --test_output=errors
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
 
-# Feature flags
+# ============================================================================
+# Feature Flags & S-CORE Configuration
+# ============================================================================
 common --features=-treat_warnings_as_errors
 common --features=external_include_paths
+
+# S-CORE Base Libraries and Communication Configuration
 common --@score-baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
 common --@score-baselibs//score/mw/log/flags:KRemote_Logging=False
 common --@score-baselibs//score/json:base_library=nlohmann
