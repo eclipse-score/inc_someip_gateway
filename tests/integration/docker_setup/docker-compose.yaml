@@ -50,7 +50,7 @@ volumes:
 
 services:
   someipd:
-    <<: *common
+    !!merge <<: *common
     networks:
       docker-network:
         ipv4_address: 192.168.87.2
@@ -62,7 +62,7 @@ services:
       net.ipv4.ip_local_port_range: 34600 60999 # Set local port range to exclude SOME/IP server port range
 
   client:
-    <<: *common
+    !!merge <<: *common
     networks:
       docker-network:
         ipv4_address: 192.168.87.3

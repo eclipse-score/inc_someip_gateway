@@ -13,6 +13,7 @@
 # *******************************************************************************
 
 "S-CORE SOME/IP Gateway"
+
 module(name = "score_someip_gateway")
 
 # ============================================================================
@@ -77,8 +78,8 @@ bazel_dep(name = "toolchains_llvm", version = "1.5.0")
 bazel_dep(name = "score_toolchains_rust", version = "0.1")
 git_override(
     module_name = "score_toolchains_rust",
-    remote = "https://github.com/eclipse-score/toolchains_rust.git",
     commit = "5614e4b273f2f5302d47a05d7e58dae86f97a3c3",  # Last verified: 23.08.2025
+    remote = "https://github.com/eclipse-score/toolchains_rust.git",
 )
 
 # ============================================================================
@@ -99,19 +100,18 @@ local_path_override(
 rust_ext = use_extension("@score_toolchains_rust//extensions:rust_toolchain_ext.bzl", "rust_toolchain_ext")
 rust_ext.sysroot(
     name = "sysroot_linux_x64",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
+    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
     sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
     strip_prefix = "",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
+    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
 )
 rust_ext.sysroot(
     name = "sysroot_linux_aarch64",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/906cc7c6bf47d4bd969a3221fc0602c6b3153caa/debian_bullseye_arm64_sysroot.tar.xz",
+    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
     sha256 = "d303cf3faf7804c9dd24c9b6b167d0345d41d7fe4bfb7d34add3ab342f6a236c",
     strip_prefix = "",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
+    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/906cc7c6bf47d4bd969a3221fc0602c6b3153caa/debian_bullseye_arm64_sysroot.tar.xz",
 )
-
 use_repo(rust_ext, "sysroot_linux_x64")
 use_repo(rust_ext, "sysroot_linux_aarch64")
 
@@ -135,8 +135,8 @@ llvm.sysroot(
     label = "@sysroot_linux_aarch64//:sysroot",
     targets = ["linux-aarch64"],
 )
-
 use_repo(llvm, "llvm_toolchain")
+
 register_toolchains("@llvm_toolchain//:all")
 
 # ============================================================================
@@ -146,10 +146,14 @@ register_toolchains("@llvm_toolchain//:all")
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
     edition = "2021",
-    extra_target_triples = ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"],
+    extra_target_triples = [
+        "x86_64-unknown-linux-gnu",
+        "aarch64-unknown-linux-gnu",
+    ],
     versions = ["1.83.0"],
 )
 use_repo(rust, "rust_toolchains")
+
 register_toolchains("@rust_toolchains//:all")
 
 # ============================================================================
@@ -198,10 +202,10 @@ git_override(
 bazel_dep(name = "score-baselibs", version = "0.0.0")
 archive_override(
     module_name = "score-baselibs",
-    urls = ["https://github.com/eclipse-score/baselibs/archive/f02d7f427df1968df8d5f9f9aa85bf68baeb839e.tar.gz"],
-    strip_prefix = "baselibs-f02d7f427df1968df8d5f9f9aa85bf68baeb839e",
-    patches = ["//patches:baselibs-multiarch.patch"],
     patch_strip = 1,
+    patches = ["//patches:baselibs-multiarch.patch"],
+    strip_prefix = "baselibs-f02d7f427df1968df8d5f9f9aa85bf68baeb839e",
+    urls = ["https://github.com/eclipse-score/baselibs/archive/f02d7f427df1968df8d5f9f9aa85bf68baeb839e.tar.gz"],
 )
 
 # ============================================================================
@@ -220,11 +224,28 @@ git_override(
 # Examples: Car Window Simulator
 # ============================================================================
 car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
-car_window_sim_crate.spec(package = "rustyrepl", version = "0.2.0")
-car_window_sim_crate.spec(package = "anyhow", version = "1")
-car_window_sim_crate.spec(package = "async-trait", version = "0.1")
-car_window_sim_crate.spec(features = ["derive"], package = "clap", version = "4")
-car_window_sim_crate.spec(features = ["full"], package = "tokio", version = "1.10")
+car_window_sim_crate.spec(
+    package = "rustyrepl",
+    version = "0.2.0",
+)
+car_window_sim_crate.spec(
+    package = "anyhow",
+    version = "1",
+)
+car_window_sim_crate.spec(
+    package = "async-trait",
+    version = "0.1",
+)
+car_window_sim_crate.spec(
+    features = ["derive"],
+    package = "clap",
+    version = "4",
+)
+car_window_sim_crate.spec(
+    features = ["full"],
+    package = "tokio",
+    version = "1.10",
+)
 car_window_sim_crate.from_specs(name = "car_window_sim_crate")
 use_repo(car_window_sim_crate, "car_window_sim_crate")
 
