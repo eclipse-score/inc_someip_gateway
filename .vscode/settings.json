@@ -103,4 +103,10 @@
             "url": "./external/communication+/score/mw/com/impl/configuration/ara_com_config_schema.json"
         }
     ],
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/",
+        "--pretty",
+        "--background-index",
+        "--query-driver=/var/cache/bazel/*/execroot/_main/external/toolchains_llvm++llvm+llvm_toolchain/bin/cc_wrapper.sh"
+    ],
 }
