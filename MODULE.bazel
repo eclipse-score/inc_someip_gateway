@@ -210,7 +210,7 @@ bazel_dep(name = "score-baselibs", version = "0.0.0")
 archive_override(
     module_name = "score-baselibs",
     patch_strip = 1,
-    patches = ["//patches:baselibs-multiarch.patch"],
+    patches = ["//:third_party/baselibs-multiarch.patch"],
     strip_prefix = "baselibs-f02d7f427df1968df8d5f9f9aa85bf68baeb839e",
     urls = ["https://github.com/eclipse-score/baselibs/archive/f02d7f427df1968df8d5f9f9aa85bf68baeb839e.tar.gz"],
 )
@@ -280,7 +280,7 @@ filegroup(
 
 http_archive(
     name = "vsomeip",
-    build_file = "@//:vsomeip.BUILD.bazel",
+    build_file = "@//:third_party/vsomeip.BUILD.bazel",
     sha256 = "659421fa01c0f56e5587c82f476c18a593e1a7ad4b381d95b57821d0545dae53",
     strip_prefix = "vsomeip-3.5.7",
     urls = [

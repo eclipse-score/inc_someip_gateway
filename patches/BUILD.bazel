@@ -1,7 +1,0 @@
-"""Patch files for external dependencies."""
-
-filegroup(
-    name = "baselibs-multiarch.patch",
-    srcs = ["baselibs-multiarch.patch"],
-    visibility = ["//visibility:public"],
-)
