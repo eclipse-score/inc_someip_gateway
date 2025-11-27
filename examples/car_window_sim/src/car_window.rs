@@ -24,8 +24,8 @@ const SERVICE_DISCOVERY_SLEEP_DURATION: Duration = Duration::from_millis(500);
 
 fn update_state_machine(
     command: Option<car_window_types::WindowCommand>,
-    winfo: &mut WindowInfo
-) -> bool{
+    winfo: &mut WindowInfo,
+) -> bool {
     // window state is represented by position (0 = closed, 100 = open, in between = opening/closing/stopped).
     // the state represents the current action of the window.
     // the state open means the window is at position 100.
@@ -137,15 +137,14 @@ fn main() {
         let car_window_types::WindowControlInterface::Proxy { window_control_ } =
             car_window_types::WindowControlInterface::Proxy::new(&handles[0])
                 .expect("Failed to create the proxy");
-        let subscribed_window_control =
-            window_control_.subscribe(1).expect("Failed to subscribe");
+        let subscribed_window_control = window_control_.subscribe(1).expect("Failed to subscribe");
         println!("Subscribed!");
         //let mut command = None;
         let mut winfo = WindowInfo::default();
         winfo.state = WindowState::Closed;
         winfo.pos = 0;
         loop {
-            let command =if let Some(y) = subscribed_window_control.get_new_sample() {
+            let command = if let Some(y) = subscribed_window_control.get_new_sample() {
                 println!("Got sample: {:#?}", y.command);
                 Some(y.command)
             } else {

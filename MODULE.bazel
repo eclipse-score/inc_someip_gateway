@@ -1,6 +1,5 @@
 # *******************************************************************************
 # Copyright (c) 2025 Contributors to the Eclipse Foundation
-# Copyright (c) 2025 ETAS GmbH
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -160,6 +159,14 @@ register_toolchains("@rust_toolchains//:all")
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.0.2")
+
+# Temporary override to fix #87
+git_override(
+    module_name = "score_tooling",
+    commit = "56e924e3e0689700af766020834301f1d673cbc8",
+    remote = "https://github.com/etas-contrib/score_tooling.git",
+)
+
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 

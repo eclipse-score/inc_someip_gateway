@@ -26,13 +26,15 @@ pub fn main() -> Result<()> {
         mw_com::InstanceSpecifier::try_from(CONTROL_INSTANCE_SPECIFIER_ID)
             .expect("Control Instance specifier creation failed");
 
-    let skeleton = car_window_types::WindowControlInterface::Skeleton::new(&control_instance_specifier)
-        .expect("Control Skeleton creation failed");
+    let skeleton =
+        car_window_types::WindowControlInterface::Skeleton::new(&control_instance_specifier)
+            .expect("Control Skeleton creation failed");
 
-    let offered_skeleton: car_window_types::WindowControlInterface::Skeleton<mw_com::skeleton::Offered> =
-        skeleton
-            .offer_service()
-            .expect("Failed offering Control Skeleton");
+    let offered_skeleton: car_window_types::WindowControlInterface::Skeleton<
+        mw_com::skeleton::Offered,
+    > = skeleton
+        .offer_service()
+        .expect("Failed offering Control Skeleton");
 
     //let stdin = io::stdin();
     loop {
@@ -45,15 +47,16 @@ pub fn main() -> Result<()> {
                     println!("Exiting...");
                     break;
                 }
-                let cmd: car_window_types::WindowCommand = match input.trim_end().to_lowercase().as_str() {
-                    "open" => car_window_types::WindowCommand::Open,
-                    "close" => car_window_types::WindowCommand::Close,
-                    "stop" => car_window_types::WindowCommand::Stop,
-                    _ => {
-                        println!("Unknown command. Please enter 'open', 'close', or 'stop'.");
-                        continue;
-                    }
-                };
+                let cmd: car_window_types::WindowCommand =
+                    match input.trim_end().to_lowercase().as_str() {
+                        "open" => car_window_types::WindowCommand::Open,
+                        "close" => car_window_types::WindowCommand::Close,
+                        "stop" => car_window_types::WindowCommand::Stop,
+                        _ => {
+                            println!("Unknown command. Please enter 'open', 'close', or 'stop'.");
+                            continue;
+                        }
+                    };
 
                 let mut wincontrol: car_window_types::WindowControl =
                     car_window_types::WindowControl::default();
@@ -62,8 +65,7 @@ pub fn main() -> Result<()> {
                     .events
                     .window_control_
                     .send(wincontrol)
-                    .expect(format!("Failed sending event: {:#?}",cmd).as_str());
-
+                    .expect(format!("Failed sending event: {:#?}", cmd).as_str());
             }
             Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                 std::thread::sleep(std::time::Duration::from_millis(100));
