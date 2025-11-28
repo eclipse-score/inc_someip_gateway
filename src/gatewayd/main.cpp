@@ -21,14 +21,15 @@
 #include <memory>
 #include <thread>
 
-#include "interfaces/someip_message_service.h"
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
+#include "src/network_service/interfaces/message_transfer.h"
 
 // In the main file we are not in any namespace
 using namespace score::someip_gateway::gatewayd;
-using someip_message_service::SomeipMessageServiceSkeleton;
+using score::someip_gateway::network_service::interfaces::message_transfer::
+    SomeipMessageTransferSkeleton;
 
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
@@ -76,7 +77,7 @@ int main(int argc, const char* argv[]) {
     score::mw::com::runtime::InitializeRuntime(argc, argv);
 
     // TODO: Need to come up with a proper scheme how to generate instance specifiers
-    auto create_result = SomeipMessageServiceSkeleton::Create(
+    auto create_result = SomeipMessageTransferSkeleton::Create(
         score::mw::com::InstanceSpecifier::Create(std::string("gatewayd/gatewayd_messages"))
             .value());
     // TODO: Error handling

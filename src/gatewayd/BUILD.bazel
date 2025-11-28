@@ -20,17 +20,6 @@ load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-cc_library(
-    name = "interfaces/someip_message_service",
-    hdrs = [
-        "interfaces/someip_message_service.h",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@communication//score/mw/com",
-    ],
-)
-
 cc_binary(
     name = "gatewayd",
     srcs = ["main.cpp"],
@@ -45,9 +34,9 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":config_flatbuffers",
-        ":interfaces/someip_message_service",
         ":local_service_instance",
         ":remote_service_instance",
+        "//src/network_service:consumer",
         "@communication//score/mw/com",
     ],
 )
@@ -58,7 +47,7 @@ cc_library(
     hdrs = ["local_service_instance.h"],
     deps = [
         ":config_flatbuffers",
-        ":interfaces/someip_message_service",
+        "//src/network_service:consumer",
         "@communication//score/mw/com",
     ],
 )
@@ -69,7 +58,7 @@ cc_library(
     hdrs = ["remote_service_instance.h"],
     deps = [
         ":config_flatbuffers",
-        ":interfaces/someip_message_service",
+        "//src/network_service:consumer",
         "//tests/performance_benchmarks:echo_service",
         "@communication//score/mw/com",
     ],

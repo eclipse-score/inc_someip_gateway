@@ -19,8 +19,8 @@
 #include <memory>
 #include <vector>
 
-#include "interfaces/someip_message_service.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
+#include "src/network_service/interfaces/message_transfer.h"
 
 namespace score::someip_gateway::gatewayd {
 
@@ -30,11 +30,13 @@ class LocalServiceInstance {
         std::shared_ptr<const config::ServiceInstance> service_instance_config,
         score::mw::com::GenericProxy&& ipc_proxy,
         // TODO: Decouple this via an interface
-        someip_message_service::SomeipMessageServiceSkeleton& someip_message_skeleton);
+        network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
+            someip_message_skeleton);
 
     static Result<mw::com::FindServiceHandle> CreateAsyncLocalService(
         std::shared_ptr<const config::ServiceInstance> service_instance_config,
-        someip_message_service::SomeipMessageServiceSkeleton& someip_message_skeleton,
+        network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
+            someip_message_skeleton,
         std::vector<std::unique_ptr<LocalServiceInstance>>& instances);
 
     LocalServiceInstance(const LocalServiceInstance&) = delete;
@@ -45,7 +47,8 @@ class LocalServiceInstance {
    private:
     std::shared_ptr<const config::ServiceInstance> service_instance_config_;
     score::mw::com::GenericProxy ipc_proxy_;
-    someip_message_service::SomeipMessageServiceSkeleton& someip_message_skeleton_;
+    network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
+        someip_message_skeleton_;
 };
 }  // namespace score::someip_gateway::gatewayd
 

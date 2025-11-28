@@ -23,7 +23,7 @@
 #include <vsomeip/primitive_types.hpp>
 #include <vsomeip/vsomeip.hpp>
 
-#include "src/gatewayd/interfaces/someip_message_service.h"
+#include "src/network_service/interfaces/message_transfer.h"
 
 const char* someipd_name = "someipd";
 
@@ -48,8 +48,10 @@ static const std::size_t max_sample_count = 10;
 #define OTHER_SAMPLE_INSTANCE_ID 0x5422
 #define OTHER_SAMPLE_METHOD_ID 0x1421
 
-using someip_message_service::SomeipMessageServiceProxy;
-using someip_message_service::SomeipMessageServiceSkeleton;
+using score::someip_gateway::network_service::interfaces::message_transfer::
+    SomeipMessageTransferProxy;
+using score::someip_gateway::network_service::interfaces::message_transfer::
+    SomeipMessageTransferSkeleton;
 
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
@@ -76,17 +78,17 @@ int main(int argc, const char* argv[]) {
 
     std::thread([application]() {
         auto handles =
-            SomeipMessageServiceProxy::FindService(
+            SomeipMessageTransferProxy::FindService(
                 score::mw::com::InstanceSpecifier::Create(std::string("someipd/gatewayd_messages"))
                     .value())
                 .value();
 
         {  // Proxy for receiving messages from gatewayd to be sent via SOME/IP
-            auto proxy = SomeipMessageServiceProxy::Create(handles.front()).value();
+            auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
             proxy.message_.Subscribe(max_sample_count);
 
             // Skeleton for transmitting messages from the network to gatewayd
-            auto create_result = SomeipMessageServiceSkeleton::Create(
+            auto create_result = SomeipMessageTransferSkeleton::Create(
                 score::mw::com::InstanceSpecifier::Create(std::string("someipd/someipd_messages"))
                     .value());
             // TODO: Error handling

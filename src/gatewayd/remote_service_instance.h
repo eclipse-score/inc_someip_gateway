@@ -19,8 +19,8 @@
 #include <memory>
 #include <vector>
 
-#include "interfaces/someip_message_service.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
+#include "src/network_service/interfaces/message_transfer.h"
 #include "tests/performance_benchmarks/echo_service.h"
 
 namespace score::someip_gateway::gatewayd {
@@ -30,7 +30,8 @@ class RemoteServiceInstance {
     RemoteServiceInstance(std::shared_ptr<const config::ServiceInstance> service_instance_config,
                           // TODO: Use something generic (template)?
                           echo_service::EchoResponseSkeleton&& ipc_skeleton,
-                          someip_message_service::SomeipMessageServiceProxy someip_message_proxy);
+                          network_service::interfaces::message_transfer::SomeipMessageTransferProxy
+                              someip_message_proxy);
 
     static Result<mw::com::FindServiceHandle> CreateAsyncRemoteService(
         std::shared_ptr<const config::ServiceInstance> service_instance_config,
@@ -44,7 +45,7 @@ class RemoteServiceInstance {
    private:
     std::shared_ptr<const config::ServiceInstance> service_instance_config_;
     echo_service::EchoResponseSkeleton ipc_skeleton_;
-    someip_message_service::SomeipMessageServiceProxy someip_message_proxy_;
+    network_service::interfaces::message_transfer::SomeipMessageTransferProxy someip_message_proxy_;
 };
 }  // namespace score::someip_gateway::gatewayd
 

@@ -20,9 +20,10 @@
 
 using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;
-using someip_message_service::SomeipMessageServiceProxy;
 
 namespace score::someip_gateway::gatewayd {
+
+using network_service::interfaces::message_transfer::SomeipMessageTransferProxy;
 
 static const std::size_t max_sample_count = 10;
 static const std::size_t SOMEIP_FULL_HEADER_SIZE = 16;
@@ -30,7 +31,7 @@ static const std::size_t SOMEIP_FULL_HEADER_SIZE = 16;
 RemoteServiceInstance::RemoteServiceInstance(
     std::shared_ptr<const config::ServiceInstance> service_instance_config,
     echo_service::EchoResponseSkeleton&& ipc_skeleton,
-    SomeipMessageServiceProxy someip_message_proxy)
+    SomeipMessageTransferProxy someip_message_proxy)
     : service_instance_config_(std::move(service_instance_config)),
       ipc_skeleton_(std::move(ipc_skeleton)),
       someip_message_proxy_(std::move(someip_message_proxy)) {
@@ -113,13 +114,13 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
     auto context = std::make_unique<FindServiceContext>(service_instance_config,
                                                         std::move(ipc_skeleton), instances);
 
-    return SomeipMessageServiceProxy::StartFindService(
+    return SomeipMessageTransferProxy::StartFindService(
         [context = std::move(context)](auto handles, auto find_handle) {
             auto this_config = context->config;
 
-            auto proxy_result = SomeipMessageServiceProxy::Create(handles.front());
+            auto proxy_result = SomeipMessageTransferProxy::Create(handles.front());
             if (!proxy_result.has_value()) {
-                std::cerr << "SomeipMessageServiceProxy creation failed for "
+                std::cerr << "SomeipMessageTransferProxy creation failed for "
                           << this_config->instance_specifier()->string_view() << ": "
                           << proxy_result.error().Message() << "\n";
                 return;
@@ -129,10 +130,10 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
             context->instances.push_back(std::make_unique<RemoteServiceInstance>(
                 this_config, std::move(context->skeleton), std::move(proxy_result).value()));
 
-            std::cout << "SomeipMessageServiceProxy created for "
+            std::cout << "SomeipMessageTransferProxy created for "
                       << this_config->instance_specifier()->string_view() << "\n";
 
-            SomeipMessageServiceProxy::StopFindService(find_handle);
+            SomeipMessageTransferProxy::StopFindService(find_handle);
         },
         someipd_instance_specifier);
 }

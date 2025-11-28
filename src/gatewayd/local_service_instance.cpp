@@ -21,9 +21,10 @@
 
 using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;
-using someip_message_service::SomeipMessageServiceSkeleton;
 
 namespace score::someip_gateway::gatewayd {
+
+using network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton;
 
 static const std::size_t max_sample_count = 10;
 
@@ -31,7 +32,7 @@ LocalServiceInstance::LocalServiceInstance(
     std::shared_ptr<const config::ServiceInstance> service_instance_config,
     GenericProxy&& ipc_proxy,
     // TODO: Decouple this via an interface
-    SomeipMessageServiceSkeleton& someip_message_skeleton)
+    SomeipMessageTransferSkeleton& someip_message_skeleton)
     : service_instance_config_(std::move(service_instance_config)),
       ipc_proxy_(std::move(ipc_proxy)),
       someip_message_skeleton_(someip_message_skeleton) {
@@ -57,8 +58,9 @@ LocalServiceInstance::LocalServiceInstance(
                         return;
                     }
                     auto message_sample = std::move(maybe_message).value();
-                    score::cpp::span<std::byte> message(message_sample->data,
-                                                        someip_message_service::MAX_MESSAGE_SIZE);
+                    score::cpp::span<std::byte> message(
+                        message_sample->data,
+                        network_service::interfaces::message_transfer::MAX_MESSAGE_SIZE);
                     std::size_t pos = 0;
 
                     // TODO: Design decision: the gateway needs to generate the SOME/IP message
@@ -118,11 +120,11 @@ LocalServiceInstance::LocalServiceInstance(
 namespace {
 struct FindServiceContext {
     std::shared_ptr<const config::ServiceInstance> config;
-    SomeipMessageServiceSkeleton& skeleton;
+    SomeipMessageTransferSkeleton& skeleton;
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances;
 
     FindServiceContext(std::shared_ptr<const config::ServiceInstance> config_,
-                       SomeipMessageServiceSkeleton& skeleton_,
+                       SomeipMessageTransferSkeleton& skeleton_,
                        std::vector<std::unique_ptr<LocalServiceInstance>>& instances_)
         : config(std::move(config_)), skeleton(skeleton_), instances(instances_) {}
 };
@@ -131,7 +133,7 @@ struct FindServiceContext {
 
 Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService(
     std::shared_ptr<const config::ServiceInstance> service_instance_config,
-    SomeipMessageServiceSkeleton& someip_message_skeleton,
+    SomeipMessageTransferSkeleton& someip_message_skeleton,
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
         std::cerr << "ERROR: Service instance config is nullptr!" << std::endl;

@@ -33,7 +33,7 @@ cc_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/gatewayd:interfaces/someip_message_service",
+        "//src/network_service:provider",
         "@communication//score/mw/com",
         "@score-baselibs//score/language/futurecpp",
         "@vsomeip",

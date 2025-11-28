@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_GATEWAYD_INTERFACES_SOMEIP_MESSAGE_SERVICE
-#define SRC_GATEWAYD_INTERFACES_SOMEIP_MESSAGE_SERVICE
+#ifndef SRC_NETWORK_SERVICE_INTERFACES_MESSAGE_TRANSFER
+#define SRC_NETWORK_SERVICE_INTERFACES_MESSAGE_TRANSFER
 
 #include <score/mw/com/types.h>
 
@@ -20,7 +20,7 @@
 
 /// Service for exchanging raw SOME/IP messages.
 /// Used between gatewayd and someipd for the payload communication.
-namespace someip_message_service {
+namespace score::someip_gateway::network_service::interfaces::message_transfer {
 constexpr std::size_t MAX_MESSAGE_SIZE = 1500U;  // TODO: Make configurable
 
 struct SomeipMessage {
@@ -29,7 +29,7 @@ struct SomeipMessage {
 };
 
 template <typename Trait>
-class SomeipMessageService : public Trait::Base {
+class SomeipMessageTransferService : public Trait::Base {
    public:
     using Trait::Base::Base;
 
@@ -37,9 +37,9 @@ class SomeipMessageService : public Trait::Base {
     typename Trait::template Event<SomeipMessage> message_{*this, "message"};
 };
 
-using SomeipMessageServiceProxy = score::mw::com::AsProxy<SomeipMessageService>;
-using SomeipMessageServiceSkeleton = score::mw::com::AsSkeleton<SomeipMessageService>;
+using SomeipMessageTransferProxy = score::mw::com::AsProxy<SomeipMessageTransferService>;
+using SomeipMessageTransferSkeleton = score::mw::com::AsSkeleton<SomeipMessageTransferService>;
 
-}  // namespace someip_message_service
+}  // namespace score::someip_gateway::network_service::interfaces::message_transfer
 
-#endif  // SRC_GATEWAYD_INTERFACES_SOMEIP_MESSAGE_SERVICE
+#endif  // SRC_NETWORK_SERVICE_INTERFACES_MESSAGE_TRANSFER
