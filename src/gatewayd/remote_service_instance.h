@@ -23,7 +23,7 @@
 #include "src/gatewayd/gatewayd_config_generated.h"
 #include "tests/performance_benchmarks/echo_service.h"
 
-namespace score::someipgateway::gatewayd {
+namespace score::someip_gateway::gatewayd {
 
 class RemoteServiceInstance {
    public:
@@ -46,6 +46,6 @@ class RemoteServiceInstance {
     echo_service::EchoResponseSkeleton ipc_skeleton_;
     someip_message_service::SomeipMessageServiceProxy someip_message_proxy_;
 };
-}  // namespace score::someipgateway::gatewayd
+}  // namespace score::someip_gateway::gatewayd
 
 #endif  // SRC_GATEWAYD_REMOTE_SERVICE_INSTANCE

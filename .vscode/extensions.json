@@ -16,5 +16,8 @@
         "bazelbuild.vscode-bazel",
         // C++ include guard generation
         "akiramiyakoda.cppincludeguard",
+        "floxay.vscode-flatbuffers",
+        "github.vscode-github-actions",
+        "streetsidesoftware.code-spell-checker"
     ]
 }

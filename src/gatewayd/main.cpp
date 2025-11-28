@@ -27,7 +27,7 @@
 #include "src/gatewayd/gatewayd_config_generated.h"
 
 // In the main file we are not in any namespace
-using namespace score::someipgateway::gatewayd;
+using namespace score::someip_gateway::gatewayd;
 using someip_message_service::SomeipMessageServiceSkeleton;
 
 // Global flag to control application shutdown

@@ -23,7 +23,7 @@ using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;
 using someip_message_service::SomeipMessageServiceSkeleton;
 
-namespace score::someipgateway::gatewayd {
+namespace score::someip_gateway::gatewayd {
 
 static const std::size_t max_sample_count = 10;
 
@@ -172,4 +172,4 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
         instance_specifier);
 }
 
-}  // namespace score::someipgateway::gatewayd
+}  // namespace score::someip_gateway::gatewayd

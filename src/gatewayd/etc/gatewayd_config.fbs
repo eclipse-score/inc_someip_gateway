@@ -1,4 +1,4 @@
-namespace score.someipgateway.gatewayd.config;
+namespace score.someip_gateway.gatewayd.config;
 
 table Root {
     local_service_instances: [ServiceInstance] (required);

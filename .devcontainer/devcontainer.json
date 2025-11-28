@@ -5,7 +5,9 @@
         "vscode": {
             "extensions": [
                 "detachhead.basedpyright",
-                "akiramiyakoda.cppincludeguard"
+                "akiramiyakoda.cppincludeguard",
+                "github.vscode-github-actions",
+                "streetsidesoftware.code-spell-checker"
             ]
         }
     }

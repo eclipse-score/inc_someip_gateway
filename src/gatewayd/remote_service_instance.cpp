@@ -22,7 +22,7 @@ using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;
 using someip_message_service::SomeipMessageServiceProxy;
 
-namespace score::someipgateway::gatewayd {
+namespace score::someip_gateway::gatewayd {
 
 static const std::size_t max_sample_count = 10;
 static const std::size_t SOMEIP_FULL_HEADER_SIZE = 16;
@@ -137,4 +137,4 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
         someipd_instance_specifier);
 }
 
-}  // namespace score::someipgateway::gatewayd
+}  // namespace score::someip_gateway::gatewayd

@@ -22,7 +22,7 @@
 #include "interfaces/someip_message_service.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
 
-namespace score::someipgateway::gatewayd {
+namespace score::someip_gateway::gatewayd {
 
 class LocalServiceInstance {
    public:
@@ -47,6 +47,6 @@ class LocalServiceInstance {
     score::mw::com::GenericProxy ipc_proxy_;
     someip_message_service::SomeipMessageServiceSkeleton& someip_message_skeleton_;
 };
-}  // namespace score::someipgateway::gatewayd
+}  // namespace score::someip_gateway::gatewayd
 
 #endif  // SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE

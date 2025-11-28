@@ -111,4 +111,13 @@
         "--background-index",
         "--query-driver=/var/cache/bazel/*/execroot/_main/external/toolchains_llvm++llvm+llvm_toolchain/bin/cc_wrapper.sh"
     ],
+    "cSpell.words": [
+        "ASIL",
+        "flatbuffer",
+        "flatbuffers",
+        "gatewayd",
+        "someip",
+        "someipd",
+        "vsomeip"
+    ],
 }
