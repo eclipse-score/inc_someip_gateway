@@ -57,7 +57,7 @@
     // Esbonio 0.x (Current)
     // see https://github.com/swyddfa/esbonio/blob/0.x/docs/lsp/getting-started.rst
     // and https://github.com/swyddfa/esbonio/blob/0.x/docs/lsp/editors/vscode/_configuration.rst
-    "esbonio.server.pythonPath": "${workspaceFolder}/.venv_docs/bin/python",
+    "esbonio.server.pythonPath": "${workspaceFolder}/bazel-bin/docs.runfiles/.docs.venv/bin/python",
     "esbonio.sphinx.srcDir": "${workspaceFolder}/docs",
     "esbonio.sphinx.confDir": "${workspaceFolder}/docs",
     "esbonio.sphinx.buildDir": "${workspaceFolder}/_build",
@@ -70,9 +70,11 @@
     //
     //
     // Esbonio 1.x (Preview)
-    "esbonio.sphinx.pythonCommand": [
-        ".venv_docs/bin/python"
-    ],
+    "esbonio.sphinx.pythonCommand": {
+        "command": [
+            "${workspaceFolder}/bazel-bin/docs.runfiles/.docs.venv/bin/python"
+        ]
+    },
     "esbonio.sphinx.buildCommand": [
         "docs",
         "_build",
