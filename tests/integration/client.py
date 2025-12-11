@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # *******************************************************************************
-# Copyright (c) 2025 ETAS GmbH
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
