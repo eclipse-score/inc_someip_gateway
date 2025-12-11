@@ -51,7 +51,7 @@ common --features=-treat_warnings_as_errors
 common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration
-common --@score-baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
-common --@score-baselibs//score/mw/log/flags:KRemote_Logging=False
-common --@score-baselibs//score/json:base_library=nlohmann
-common --@communication//score/mw/com/flags:tracing_library=stub
+common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
+common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
+common --@score_baselibs//score/json:base_library=nlohmann
+common --@score_communication//score/mw/com/flags:tracing_library=stub

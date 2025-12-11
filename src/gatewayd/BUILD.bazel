@@ -15,10 +15,10 @@
 This daemon is a gateway between the SCORE middleware and the SOME/IP communication stack.
 """
 
-load("@communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 cc_binary(
     name = "gatewayd",
@@ -37,7 +37,7 @@ cc_binary(
         ":local_service_instance",
         ":remote_service_instance",
         "//src/network_service:consumer",
-        "@communication//score/mw/com",
+        "@score_communication//score/mw/com",
     ],
 )
 
@@ -48,7 +48,7 @@ cc_library(
     deps = [
         ":config_flatbuffers",
         "//src/network_service:consumer",
-        "@communication//score/mw/com",
+        "@score_communication//score/mw/com",
     ],
 )
 
@@ -60,7 +60,7 @@ cc_library(
         ":config_flatbuffers",
         "//src/network_service:consumer",
         "//tests/performance_benchmarks:echo_service",
-        "@communication//score/mw/com",
+        "@score_communication//score/mw/com",
     ],
 )
 
@@ -87,6 +87,6 @@ validate_json_schema_test(
     name = "mw_com_config_schema_valid",
     size = "small",
     json = "etc/mw_com_config.json",
-    schema = "@communication//score/mw/com:config_schema",
+    schema = "@score_communication//score/mw/com:config_schema",
     tags = ["lint"],
 )

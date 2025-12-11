@@ -23,7 +23,7 @@ cc_library(
         "interfaces/message_transfer.h",
     ],
     deps = [
-        "@communication//score/mw/com",
+        "@score_communication//score/mw/com",
     ],
 )
 

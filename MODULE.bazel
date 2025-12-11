@@ -30,12 +30,7 @@ python.toolchain(
 )
 use_repo(python)
 
-bazel_dep(name = "score_bazel_tools_python", version = "0.1.2", repo_name = "bazel_tools_python")
-git_override(
-    module_name = "score_bazel_tools_python",
-    commit = "ec582ce2c7150e876c47b40889a1da78e33fcf3a",
-    remote = "https://github.com/eclipse-score/bazel-tools-python.git",
-)
+bazel_dep(name = "score_bazel_tools_python", version = "0.1.3", repo_name = "bazel_tools_python")
 
 # Python pip dependencies for testing
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
@@ -74,10 +69,10 @@ bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
 bazel_dep(name = "toolchains_llvm", version = "1.5.0")
 
 # Rust Toolchain Extension: Manages sysroot download and toolchain registration
-bazel_dep(name = "score_toolchains_rust", version = "0.1")
+bazel_dep(name = "score_toolchains_rust", version = "0.1.1")
 git_override(
     module_name = "score_toolchains_rust",
-    commit = "5614e4b273f2f5302d47a05d7e58dae86f97a3c3",  # Last verified: 23.08.2025
+    commit = "6651945b4ba8e7c342d9740e9cb2d37842f56261",  # Last verified: 2025-12-11
     remote = "https://github.com/eclipse-score/toolchains_rust.git",
 )
 
@@ -85,7 +80,6 @@ git_override(
 # Optional Toolchain Dependencies
 # ============================================================================
 # We provide a local stub to satisfy module resolution without adding QNX support.
-bazel_dep(name = "rust_qnx8_toolchain", version = "1.0.0")
 local_path_override(
     module_name = "rust_qnx8_toolchain",
     path = "bazel_stubs/rust_qnx8_toolchain",
@@ -158,15 +152,7 @@ register_toolchains("@rust_toolchains//:all")
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.0.2")
-
-# Temporary override to fix #87
-git_override(
-    module_name = "score_tooling",
-    commit = "56e924e3e0689700af766020834301f1d673cbc8",
-    remote = "https://github.com/etas-contrib/score_tooling.git",
-)
-
+bazel_dep(name = "score_tooling", version = "1.0.4")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
@@ -190,12 +176,7 @@ archive_override(
 # ============================================================================
 # Communication Framework
 # ============================================================================
-bazel_dep(name = "communication", version = "0.0.0")
-git_override(
-    module_name = "communication",
-    commit = "86c66f345fdd35dcc3f380905e799f559dfd5001",
-    remote = "https://github.com/eclipse-score/communication.git",
-)
+bazel_dep(name = "score_communication", version = "0.1.1")
 
 # ============================================================================
 # Base Libraries
@@ -204,15 +185,13 @@ git_override(
 # Base Libraries
 # ============================================================================
 # Patch note: baselibs-multiarch.patch adds multi-arch support for .deb downloads.
-# score-baselibs hardcodes amd64 URLs; patch replaces them with architecture-aware
+# score_baselibs hardcodes amd64 URLs; patch replaces them with architecture-aware
 # selection (x86_64 or aarch64) based on TARGET_ARCH environment variable.
-bazel_dep(name = "score-baselibs", version = "0.0.0")
-archive_override(
-    module_name = "score-baselibs",
+bazel_dep(name = "score_baselibs", version = "0.1.3")
+single_version_override(
+    module_name = "score_baselibs",
     patch_strip = 1,
     patches = ["//:third_party/baselibs-multiarch.patch"],
-    strip_prefix = "baselibs-f02d7f427df1968df8d5f9f9aa85bf68baeb839e",
-    urls = ["https://github.com/eclipse-score/baselibs/archive/f02d7f427df1968df8d5f9f9aa85bf68baeb839e.tar.gz"],
 )
 
 # ============================================================================

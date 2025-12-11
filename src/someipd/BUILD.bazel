@@ -15,8 +15,8 @@
 This daemon contains the SOME/IP communication stack and is QM
 """
 
-load("@communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 # ============================================================================
 # Main Binary
@@ -34,8 +34,8 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//src/network_service:provider",
-        "@communication//score/mw/com",
-        "@score-baselibs//score/language/futurecpp",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_communication//score/mw/com",
         "@vsomeip",
     ],
 )
@@ -47,6 +47,6 @@ validate_json_schema_test(
     name = "mw_com_config_schema_valid",
     size = "small",
     json = "etc/mw_com_config.json",
-    schema = "@communication//score/mw/com:config_schema",
+    schema = "@score_communication//score/mw/com:config_schema",
     tags = ["lint"],
 )

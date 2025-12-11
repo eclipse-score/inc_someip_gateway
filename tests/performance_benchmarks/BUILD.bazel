@@ -11,16 +11,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 cc_library(
     name = "echo_service",
     hdrs = ["echo_service.h"],
     visibility = ["//visibility:public"],
     deps = [
-        "@communication//score/mw/com",
+        "@score_communication//score/mw/com",
     ],
 )
 
@@ -35,8 +35,8 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":echo_service",
-        "@communication//score/mw/com",
-        "@score-baselibs//score/language/futurecpp",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_communication//score/mw/com",
     ],
 )
 
@@ -47,9 +47,9 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":echo_service",
-        "@communication//score/mw/com",
         "@google_benchmark//:benchmark",
-        "@score-baselibs//score/language/futurecpp",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_communication//score/mw/com",
     ],
 )
 
@@ -57,6 +57,6 @@ validate_json_schema_test(
     name = "benchmark_mw_com_config_schema_valid",
     size = "small",
     json = "config/benchmark_mw_com_config.json",
-    schema = "@communication//score/mw/com:config_schema",
+    schema = "@score_communication//score/mw/com:config_schema",
     tags = ["lint"],
 )
