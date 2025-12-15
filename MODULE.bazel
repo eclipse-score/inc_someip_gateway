@@ -18,34 +18,43 @@ module(name = "score_someip_gateway")
 # ============================================================================
 # Python Configuration
 # ============================================================================
-bazel_dep(name = "rules_python", version = "1.4.1")
+bazel_dep(name = "rules_python", version = "1.4.1", dev_dependency = True)
 
 # Python 3.12: Required for testing infrastructure and code generation tools
 PYTHON_VERSION = "3.12"
 
-python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python = use_extension(
+    "@rules_python//python/extensions:python.bzl",
+    "python",
+    dev_dependency = True,
+)
 python.toolchain(
     is_default = True,
     python_version = PYTHON_VERSION,
 )
 use_repo(python)
 
-bazel_dep(name = "score_bazel_tools_python", version = "0.1.3", repo_name = "bazel_tools_python")
+bazel_dep(
+    name = "score_bazel_tools_python",
+    version = "0.1.3",
+    dev_dependency = True,
+    repo_name = "bazel_tools_python",
+)
 
 # Python pip dependencies for testing
-pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
 pip.parse(
     hub_name = "someip_pip",
     python_version = PYTHON_VERSION,
-    requirements_lock = "//:requirements_lock.txt",
+    requirements_lock = "//:python_requirements_lock.txt",
 )
 use_repo(pip, "someip_pip")
 
 # ============================================================================
 # Testing & Performance Measurement
 # ============================================================================
-bazel_dep(name = "googletest", version = "1.17.0")
-bazel_dep(name = "google_benchmark", version = "1.9.1")
+bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
+bazel_dep(name = "google_benchmark", version = "1.9.1", dev_dependency = True)
 
 # ============================================================================
 # Build System Rules
@@ -64,12 +73,25 @@ bazel_dep(name = "platforms", version = "1.0.0")
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
 bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
 
-# LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
-# Integrates with LLVM 19.1.0 and Debian Bullseye sysroots
-bazel_dep(name = "toolchains_llvm", version = "1.5.0")
+# ============================================================================
+# Rust Toolchain Configuration for Multi-Architecture Support
+# ============================================================================
+# Configures rules_rust to compile for both x86_64 and aarch64 targets.
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust", dev_dependency = True)
+rust.toolchain(
+    edition = "2021",
+    extra_target_triples = [
+        "x86_64-unknown-linux-gnu",
+        "aarch64-unknown-linux-gnu",
+    ],
+    versions = ["1.83.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
 
 # Rust Toolchain Extension: Manages sysroot download and toolchain registration
-bazel_dep(name = "score_toolchains_rust", version = "0.1.1")
+bazel_dep(name = "score_toolchains_rust", version = "0.1.1", dev_dependency = True)
 git_override(
     module_name = "score_toolchains_rust",
     commit = "6651945b4ba8e7c342d9740e9cb2d37842f56261",  # Last verified: 2025-12-11
@@ -90,7 +112,11 @@ local_path_override(
 # ============================================================================
 # Downloads and registers Debian Bullseye sysroots for both x86_64 and aarch64.
 # These sysroots are used by both LLVM (C++) and Rust toolchains for cross-compilation.
-rust_ext = use_extension("@score_toolchains_rust//extensions:rust_toolchain_ext.bzl", "rust_toolchain_ext")
+rust_ext = use_extension(
+    "@score_toolchains_rust//extensions:rust_toolchain_ext.bzl",
+    "rust_toolchain_ext",
+    dev_dependency = True,
+)
 rust_ext.sysroot(
     name = "sysroot_linux_x64",
     build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
@@ -111,8 +137,17 @@ use_repo(rust_ext, "sysroot_linux_aarch64")
 # ============================================================================
 # LLVM C/C++ Toolchain Configuration
 # ============================================================================
+
+# LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
+# Integrates with LLVM 19.1.0 and Debian Bullseye sysroots
+bazel_dep(name = "toolchains_llvm", version = "1.5.0", dev_dependency = True)
+
 # Configures LLVM 19.1.0 for C/C++ compilation with cross-architecture support.
-llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm = use_extension(
+    "@toolchains_llvm//toolchain/extensions:llvm.bzl",
+    "llvm",
+    dev_dependency = True,
+)
 llvm.toolchain(
     name = "llvm_toolchain",
     cxx_standard = {"": "c++17"},
@@ -133,33 +168,16 @@ use_repo(llvm, "llvm_toolchain")
 register_toolchains("@llvm_toolchain//:all")
 
 # ============================================================================
-# Rust Toolchain Configuration for Multi-Architecture Support
-# ============================================================================
-# Configures rules_rust to compile for both x86_64 and aarch64 targets.
-rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(
-    edition = "2021",
-    extra_target_triples = [
-        "x86_64-unknown-linux-gnu",
-        "aarch64-unknown-linux-gnu",
-    ],
-    versions = ["1.83.0"],
-)
-use_repo(rust, "rust_toolchains")
-
-register_toolchains("@rust_toolchains//:all")
-
-# ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.0.4")
-bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
-bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
+bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "1.5.3", dev_dependency = True)
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
 
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "1.4.0")
+bazel_dep(name = "score_docs_as_code", version = "1.4.0", dev_dependency = True)
 
 # ============================================================================
 # Dependency Chain Compatibility
@@ -209,7 +227,7 @@ git_override(
 # ============================================================================
 # Examples: Car Window Simulator
 # ============================================================================
-car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate", dev_dependency = True)
 car_window_sim_crate.spec(
     package = "rustyrepl",
     version = "0.2.0",

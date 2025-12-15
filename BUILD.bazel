@@ -47,6 +47,10 @@ docs(
 # Run `bazel run //:python_requirements.update` to update the lock file
 compile_pip_requirements(
     name = "python_requirements",
-    src = "pyproject.toml",
-    requirements_txt = "requirements_lock.txt",
+    env_inherit = [
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "no_proxy",
+    ],
+    requirements_txt = "python_requirements_lock.txt",
 )

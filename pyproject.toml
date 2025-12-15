@@ -22,7 +22,7 @@ requires-python = ">= 3.10"
 # This project is not meant for consumption from other packages
 classifiers = ["Private :: Do Not Upload"]
 
-# Run `bazel run //:python_requirements.update` to update requirements_lock.txt
+# Run `bazel run //:python_requirements.update` to update python_requirements_lock.txt
 dependencies = ["pytest~=8.0", "someip~=0.3.0"]
 
 [tool.basedpyright]
