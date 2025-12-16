@@ -13,10 +13,10 @@
 
 #include "remote_service_instance.h"
 
-#include <score/mw/com/types.h>
-
 #include <cstring>
 #include <iostream>
+
+#include "score/mw/com/types.h"
 
 using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;

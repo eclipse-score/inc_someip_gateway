@@ -11,17 +11,16 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/mw/com/runtime.h>
-
 #include <chrono>
 #include <csignal>
 #include <iostream>
 #include <optional>
-#include <score/stop_token.hpp>
 #include <string>
 #include <thread>
 
 #include "echo_service.h"
+#include "score/mw/com/runtime.h"
+#include "score/stop_token.hpp"
 
 using namespace echo_service;
 

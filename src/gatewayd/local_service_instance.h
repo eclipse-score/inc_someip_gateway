@@ -14,11 +14,10 @@
 #ifndef SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE
 #define SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE
 
-#include <score/mw/com/types.h>
-
 #include <memory>
 #include <vector>
 
+#include "score/mw/com/types.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
 

@@ -12,7 +12,6 @@
  ********************************************************************************/
 
 #include <benchmark/benchmark.h>
-#include <score/mw/com/runtime.h>
 
 #include <algorithm>
 #include <atomic>
@@ -22,13 +21,14 @@
 #include <iostream>
 #include <mutex>
 #include <optional>
-#include <score/stop_token.hpp>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
 #include "echo_service.h"
+#include "score/mw/com/runtime.h"
+#include "score/stop_token.hpp"
 
 using namespace echo_service;
 

@@ -11,9 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/mw/com/runtime.h>
-#include <score/mw/com/types.h>
-
 #include <atomic>
 #include <csignal>
 #include <fstream>
@@ -23,6 +20,8 @@
 
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
+#include "score/mw/com/runtime.h"
+#include "score/mw/com/types.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
 

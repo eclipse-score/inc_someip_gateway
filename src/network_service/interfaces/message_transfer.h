@@ -14,9 +14,9 @@
 #ifndef SRC_NETWORK_SERVICE_INTERFACES_MESSAGE_TRANSFER
 #define SRC_NETWORK_SERVICE_INTERFACES_MESSAGE_TRANSFER
 
-#include <score/mw/com/types.h>
-
 #include <cstddef>
+
+#include "score/mw/com/types.h"
 
 /// Service for exchanging raw SOME/IP messages.
 /// Used between gatewayd and someipd for the payload communication.

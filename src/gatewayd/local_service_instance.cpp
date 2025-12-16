@@ -13,11 +13,11 @@
 
 #include "local_service_instance.h"
 
-#include <score/mw/com/types.h>
-
 #include <algorithm>
 #include <iostream>
 #include <memory>
+
+#include "score/mw/com/types.h"
 
 using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;

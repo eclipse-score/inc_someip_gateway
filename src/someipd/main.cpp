@@ -11,18 +11,17 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/mw/com/runtime.h>
-
 #include <atomic>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
-#include <score/span.hpp>
 #include <thread>
 #include <vsomeip/defines.hpp>
 #include <vsomeip/primitive_types.hpp>
 #include <vsomeip/vsomeip.hpp>
 
+#include "score/mw/com/runtime.h"
+#include "score/span.hpp"
 #include "src/network_service/interfaces/message_transfer.h"
 
 const char* someipd_name = "someipd";

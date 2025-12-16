@@ -13,12 +13,12 @@
 #ifndef TESTS_PERFORMANCE_BENCHMARKS_ECHO_SERVICE
 #define TESTS_PERFORMANCE_BENCHMARKS_ECHO_SERVICE
 
-#include <score/mw/com/types.h>
-
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
+
+#include "score/mw/com/types.h"
 
 namespace echo_service {
 
