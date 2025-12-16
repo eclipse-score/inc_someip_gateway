@@ -32,9 +32,19 @@ jobs:
           sudo docker image prune --all --force
           sudo docker builder prune -a
       - run: df -h
-      - uses: bazel-contrib/setup-bazel@0.15.0
+      - name: Create Bazel output base directory
+        run: |
+          sudo mkdir -p /mnt/.bazel
+          sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.15.0
         with:
+          output-base: /mnt/.bazel
+          # Avoid downloading Bazel every time.
           bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
           repository-cache: true
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
