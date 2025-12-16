@@ -25,13 +25,9 @@ jobs:
     # Starting with Ubuntu 24.04 apparmor breaks Bazels linux-sandbox: https://github.com/bazelbuild/bazel/issues/24081
     runs-on: ubuntu-22.04
     steps:
-      - run: df -h
       - name: Clean up disk space
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo docker image prune --all --force
-          sudo docker builder prune -a
-      - run: df -h
       - name: Create Bazel output base directory
         run: |
           sudo mkdir -p /mnt/.bazel
@@ -46,6 +42,8 @@ jobs:
           disk-cache: ${{ github.workflow }}
           # Share repository cache between workflows.
           repository-cache: true
+          # Cache external/
+          external-cache: true
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
       - run: df -h
