@@ -11,12 +11,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: License check preparation
+name: License Check
+
 on:
   pull_request_target:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
+  push:
+    branches:
+      - main
 
 permissions:
   pull-requests: write
@@ -26,7 +30,5 @@ permissions:
 jobs:
   license-check:
     uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@main
-    with:
-      repo-url: "${{ github.server_url }}/${{ github.repository }}"
     secrets:
       dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}
