@@ -1,15 +1,10 @@
 
-# SOME/IP Gateway Prototype
+# SOME/IP Gateway
 
 The gateway is divided into a gateway daemon (gatewayd) which contains the network-independent logic (payload serialization, etc.) and the SOME/IP daemon (someipd) which binds to the concrete SOME/IP stack.
 The IPC interface between the gatewayd and the someipd serves as isolation boundary between ASIL and QM context and also allows to replace the network stack without touching the main gateway logic.
 
 ![SOME/IP Gateway Architecture](docs/architecture/score-someip-car-window-overview.drawio.png)
-
-## Proof of concept
-
-In its current state the code is a proof of concept to validate the architecture proposal for the SOME/IP gateway in S-CORE.
-
 
 
 ---
