@@ -20,6 +20,12 @@ module(name = "score_someip_gateway")
 # ============================================================================
 bazel_dep(name = "rules_python", version = "1.4.1", dev_dependency = True)
 
+# rules_python 1.5.0 breaks score_docs_as_code; pin to 1.4.1 until resolved.
+single_version_override(
+    module_name = "rules_python",
+    version = "1.4.1",
+)
+
 # Python 3.12: Required for testing infrastructure and code generation tools
 PYTHON_VERSION = "3.12"
 
@@ -54,7 +60,7 @@ use_repo(pip, "someip_pip")
 # Testing & Performance Measurement
 # ============================================================================
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
-bazel_dep(name = "google_benchmark", version = "1.9.1", dev_dependency = True)
+bazel_dep(name = "google_benchmark", version = "1.9.4", dev_dependency = True)
 
 # ============================================================================
 # Build System Rules
@@ -71,7 +77,7 @@ bazel_dep(name = "platforms", version = "1.0.0")
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
+bazel_dep(name = "score_bazel_platforms", version = "0.0.3")
 
 # ============================================================================
 # Rust Toolchain Configuration for Multi-Architecture Support
@@ -171,41 +177,26 @@ register_toolchains("@llvm_toolchain//:all")
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
-bazel_dep(name = "aspect_rules_lint", version = "1.5.3", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "1.10.2", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
 
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "1.4.0", dev_dependency = True)
-
-# ============================================================================
-# Dependency Chain Compatibility
-# ============================================================================
-# TODO: Migrate rules_boost to Bazel Central Registry once compatible versions available.
-# Currently using archive_override to pin master branch for compatibility with other deps.
-archive_override(
-    module_name = "rules_boost",
-    integrity = "sha256-iKHWUIBrUN/fFOCltkTmHfDcKw0h4ZVmP7NVSoc8zBs=",
-    strip_prefix = "rules_boost-master",
-    urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
-)
+bazel_dep(name = "score_docs_as_code", version = "2.3.0", dev_dependency = True)
 
 # ============================================================================
 # Communication Framework
 # ============================================================================
-bazel_dep(name = "score_communication", version = "0.1.1")
+bazel_dep(name = "score_communication", version = "0.1.2")
 
-# ============================================================================
-# Base Libraries
-# ============================================================================
 # ============================================================================
 # Base Libraries
 # ============================================================================
 # Patch note: baselibs-multiarch.patch adds multi-arch support for .deb downloads.
 # score_baselibs hardcodes amd64 URLs; patch replaces them with architecture-aware
 # selection (x86_64 or aarch64) based on TARGET_ARCH environment variable.
-bazel_dep(name = "score_baselibs", version = "0.1.3")
+bazel_dep(name = "score_baselibs", version = "0.2.2")
 single_version_override(
     module_name = "score_baselibs",
     patch_strip = 1,

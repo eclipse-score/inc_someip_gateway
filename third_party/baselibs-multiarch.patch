@@ -1,13 +1,13 @@
 diff --git a/MODULE.bazel b/MODULE.bazel
-index eacab52..4bdbb6a 100644
+index 53cbfd4..2885df8 100644
 --- a/MODULE.bazel
 +++ b/MODULE.bazel
-@@ -51,47 +51,9 @@ bazel_dep(name = "boost.interprocess", version = "1.87.0")
- 
- bazel_dep(name = "download_utils", version = "1.0.1")
+@@ -84,47 +84,8 @@ python.toolchain(
+ bazel_dep(name = "aspect_rules_py", version = "1.4.0", dev_dependency = True)
+ bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
  
 -deb = use_repo_rule("@download_utils//download/deb:defs.bzl", "download_deb")
- 
+-
 -deb(
 -    name = "acl-deb",
 -    build = "//third_party/acl:acl.BUILD",
@@ -43,15 +43,15 @@ index eacab52..4bdbb6a 100644
 -
 -deb(
 -    name = "libseccomp2-dev-deb",
--       build = "//third_party/libseccomp2:libseccomp2.BUILD",
+-    build = "//third_party/libseccomp2:libseccomp2.BUILD",
 -    urls = ["https://archive.ubuntu.com/ubuntu/pool/main/libs/libseccomp/libseccomp-dev_2.5.1-1ubuntu1~18.04.2_i386.deb"],
 -    visibility = ["//visibility:public"],
 -)
 +multiarch_debs = use_extension("//third_party:multiarch_deb_extension.bzl", "multiarch_debs")
-+use_repo(multiarch_debs, "acl-deb", "valgrind-deb", "libcap2-deb", "libcap2-dev-deb", "libseccomp2-deb", "libseccomp2-dev-deb")
++use_repo(multiarch_debs, "acl-deb", "libcap2-deb", "libcap2-dev-deb", "libseccomp2-deb", "libseccomp2-dev-deb", "valgrind-deb")
  
  bazel_dep(name = "nlohmann_json", version = "3.11.3")
- bazel_dep(name = "bazel_skylib", version = "1.7.1")
+ bazel_dep(name = "bazel_skylib", version = "1.8.1")
 diff --git a/third_party/BUILD.bazel b/third_party/BUILD.bazel
 new file mode 100644
 index 0000000..e4ebb1d
