@@ -269,9 +269,9 @@ filegroup(
 http_archive(
     name = "vsomeip",
     build_file = "@//:third_party/vsomeip.BUILD.bazel",
-    sha256 = "659421fa01c0f56e5587c82f476c18a593e1a7ad4b381d95b57821d0545dae53",
-    strip_prefix = "vsomeip-3.5.7",
+    integrity = "sha256-lXdZnBQt+J6gfEMKfTLBFmf9BlDJOsz+FxATmqFFzr4=",
+    strip_prefix = "vsomeip-3.6.0",
     urls = [
-        "https://github.com/COVESA/vsomeip/archive/refs/tags/3.5.7.tar.gz",
+        "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.0.tar.gz",
     ],
 )
