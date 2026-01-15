@@ -1,17 +1,25 @@
 {
     "local_service_instances": [
         {
+            "someip_service_id": 6433,
+            "someip_service_instance_id": 1,
+            "someip_service_version_major": 1,
             "instance_specifier": "gatewayd/application_window_control",
             "events": [
                 {
+                    "someip_method_id": 2,
                     "event_name": "window_control"
                 }
             ]
         },
         {
+            "someip_service_id": 7000,
+            "someip_service_instance_id": 1,
+            "someip_service_version_major": 1,
             "instance_specifier": "gatewayd/application_echo_request",
             "events": [
                 {
+                    "someip_method_id": 0,
                     "event_name": "echo_request_tiny"
                 }
             ]
@@ -19,9 +27,13 @@
     ],
     "remote_service_instances": [
         {
+            "someip_service_id": 7001,
+            "someip_service_instance_id": 1,
+            "someip_service_version_major": 1,
             "instance_specifier": "gatewayd/application_echo_response",
             "events": [
                 {
+                    "someip_method_id": 0,
                     "event_name": "echo_response_tiny"
                 }
             ]

@@ -14,6 +14,7 @@
 #include "local_service_instance.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 
@@ -31,11 +32,10 @@ static const std::size_t max_sample_count = 10;
 LocalServiceInstance::LocalServiceInstance(
     std::shared_ptr<const config::ServiceInstance> service_instance_config,
     GenericProxy&& ipc_proxy,
-    // TODO: Decouple this via an interface
-    SomeipMessageTransferSkeleton& someip_message_skeleton)
+    std::map<uint16_t, SomeipMessageTransferSkeleton>&& someip_message_skeletons)
     : service_instance_config_(std::move(service_instance_config)),
       ipc_proxy_(std::move(ipc_proxy)),
-      someip_message_skeleton_(someip_message_skeleton) {
+      someip_message_skeletons_(std::move(someip_message_skeletons)) {
     // Set up IPC event handlers
     auto& events = ipc_proxy_.GetEvents();
 
@@ -51,7 +51,9 @@ LocalServiceInstance::LocalServiceInstance(
         ipc_event.SetReceiveHandler([this, &ipc_event, event_config]() {
             ipc_event.GetNewSamples(
                 [&](SamplePtr<void> sample) {
-                    auto maybe_message = someip_message_skeleton_.message_.Allocate();
+                    auto& someip_message_skeleton =
+                        someip_message_skeletons_.at(event_config->someip_method_id());
+                    auto maybe_message = someip_message_skeleton.message_.Allocate();
                     if (!maybe_message.has_value()) {
                         std::cerr << "Failed to allocate SOME/IP message:"
                                   << maybe_message.error().Message() << std::endl;
@@ -108,7 +110,7 @@ LocalServiceInstance::LocalServiceInstance(
 
                     message_sample->size = pos;
 
-                    someip_message_skeleton_.message_.Send(std::move(message_sample));
+                    someip_message_skeleton.message_.Send(std::move(message_sample));
                 },
                 max_sample_count);
         });
@@ -120,20 +122,23 @@ LocalServiceInstance::LocalServiceInstance(
 namespace {
 struct FindServiceContext {
     std::shared_ptr<const config::ServiceInstance> config;
-    SomeipMessageTransferSkeleton& skeleton;
+    std::map<uint16_t, SomeipMessageTransferSkeleton> someip_message_skeletons;
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances;
 
-    FindServiceContext(std::shared_ptr<const config::ServiceInstance> config_,
-                       SomeipMessageTransferSkeleton& skeleton_,
-                       std::vector<std::unique_ptr<LocalServiceInstance>>& instances_)
-        : config(std::move(config_)), skeleton(skeleton_), instances(instances_) {}
+    FindServiceContext(
+        std::shared_ptr<const config::ServiceInstance> config_,
+        std::map<uint16_t, SomeipMessageTransferSkeleton>&& someip_message_skeletons_,
+        std::vector<std::unique_ptr<LocalServiceInstance>>& instances_)
+        : config(std::move(config_)),
+          someip_message_skeletons(std::move(someip_message_skeletons_)),
+          instances(instances_) {}
 };
 
 }  // namespace
 
 Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService(
     std::shared_ptr<const config::ServiceInstance> service_instance_config,
-    SomeipMessageTransferSkeleton& someip_message_skeleton,
+    std::map<uint16_t, SomeipMessageTransferSkeleton>&& someip_message_skeletons,
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
         std::cerr << "ERROR: Service instance config is nullptr!" << std::endl;
@@ -148,8 +153,8 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
 
     // TODO: StartFindService should be modified to handle arbitrarily large lambdas
     // or we need to check whether it is OK to stick with dynamic allocation here.
-    auto context = std::make_unique<FindServiceContext>(service_instance_config,
-                                                        someip_message_skeleton, instances);
+    auto context = std::make_unique<FindServiceContext>(
+        service_instance_config, std::move(someip_message_skeletons), instances);
 
     return GenericProxy::StartFindService(
         [context = std::move(context)](auto handles, auto find_handle) {
@@ -164,7 +169,8 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
 
             // TODO: Add mutex if callbacks can run concurrently or use futures
             context->instances.push_back(std::make_unique<LocalServiceInstance>(
-                this_config, std::move(proxy_result).value(), context->skeleton));
+                this_config, std::move(proxy_result).value(),
+                std::move(context->someip_message_skeletons)));
 
             std::cout << "Proxy created: " << this_config->instance_specifier()->string_view()
                       << "\n";

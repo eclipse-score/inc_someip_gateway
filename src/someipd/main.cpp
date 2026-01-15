@@ -26,10 +26,6 @@
 
 const char* someipd_name = "someipd";
 
-static const vsomeip::service_t service_id = 0x1111;
-static const vsomeip::instance_t service_instance_id = 0x2222;
-static const vsomeip::method_t service_method_id = 0x3333;
-
 static const std::size_t max_sample_count = 10;
 
 #define SAMPLE_SERVICE_ID 0x1234
@@ -47,6 +43,7 @@ static const std::size_t max_sample_count = 10;
 #define OTHER_SAMPLE_INSTANCE_ID 0x5422
 #define OTHER_SAMPLE_METHOD_ID 0x1421
 
+using score::mw::com::InstanceSpecifier;
 using score::someip_gateway::network_service::interfaces::message_transfer::
     SomeipMessageTransferProxy;
 using score::someip_gateway::network_service::interfaces::message_transfer::
@@ -76,11 +73,13 @@ int main(int argc, const char* argv[]) {
     }
 
     std::thread([application]() {
-        auto handles =
-            SomeipMessageTransferProxy::FindService(
-                score::mw::com::InstanceSpecifier::Create(std::string("someipd/gatewayd_messages"))
-                    .value())
-                .value();
+        // TODO: Make configuration available in someipd. Currently only available in gatewayd.
+        //       Needs to be passed from gatewayd to someipd during startup.
+        // TODO: Once configuration is available, create all SomeipMessageTransfer proxies
+        //       based on configuration instead of hardcoding here.
+        auto handles = SomeipMessageTransferProxy::FindService(
+                           InstanceSpecifier::Create(std::string("SomeipMessage_7000_1_0")).value())
+                           .value();
 
         {  // Proxy for receiving messages from gatewayd to be sent via SOME/IP
             auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
@@ -88,8 +87,7 @@ int main(int argc, const char* argv[]) {
 
             // Skeleton for transmitting messages from the network to gatewayd
             auto create_result = SomeipMessageTransferSkeleton::Create(
-                score::mw::com::InstanceSpecifier::Create(std::string("someipd/someipd_messages"))
-                    .value());
+                InstanceSpecifier::Create(std::string("someipd/someipd_messages")).value());
             // TODO: Error handling
             auto skeleton = std::move(create_result).value();
             (void)skeleton.OfferService();

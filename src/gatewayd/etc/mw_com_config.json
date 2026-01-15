@@ -118,7 +118,7 @@
   ],
   "serviceInstances": [
     {
-      "instanceSpecifier": "gatewayd/gatewayd_messages",
+      "instanceSpecifier": "SomeipMessage_6433_1_2",
       "serviceTypeName": "/gatewayd/SomeipMessageService",
       "version": {
         "major": 1,
@@ -127,6 +127,28 @@
       "instances": [
         {
           "instanceId": 0,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "message",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "SomeipMessage_7000_1_0",
+      "serviceTypeName": "/gatewayd/SomeipMessageService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 13,
           "asil-level": "QM",
           "binding": "SHM",
           "events": [

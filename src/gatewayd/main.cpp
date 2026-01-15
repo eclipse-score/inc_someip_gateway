@@ -27,6 +27,7 @@
 
 // In the main file we are not in any namespace
 using namespace score::someip_gateway::gatewayd;
+using score::mw::com::InstanceSpecifier;
 using score::someip_gateway::network_service::interfaces::message_transfer::
     SomeipMessageTransferSkeleton;
 
@@ -75,16 +76,6 @@ int main(int argc, const char* argv[]) {
 
     score::mw::com::runtime::InitializeRuntime(argc, argv);
 
-    // TODO: Need to come up with a proper scheme how to generate instance specifiers
-    auto create_result = SomeipMessageTransferSkeleton::Create(
-        score::mw::com::InstanceSpecifier::Create(std::string("gatewayd/gatewayd_messages"))
-            .value());
-    // TODO: Error handling
-    auto someip_message_skeleton = std::move(create_result).value();
-
-    // TODO: Error handling
-    (void)someip_message_skeleton.OfferService();
-
     // Create service instances from configuration
     if (config->local_service_instances() == nullptr) {
         std::cerr << "No local service instances configured" << std::endl;
@@ -92,10 +83,49 @@ int main(int argc, const char* argv[]) {
     }
 
     std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
+
     for (auto service_instance_config : *config->local_service_instances()) {
+        // Create SomeipMessageTransferSkeletons for each event/method of the service instance
+        std::map<uint16_t, SomeipMessageTransferSkeleton> skeletons_map;
+
+        // Retrieve IDs for IPC InstanceSpecifier creation
+        auto service_id = std::to_string(service_instance_config->someip_service_id());
+        auto instance_id = std::to_string(service_instance_config->someip_service_instance_id());
+        for (auto event : *service_instance_config->events()) {
+            auto method_id = std::to_string(event->someip_method_id());
+
+            // Instance specifier format: "SomeipMessage_<service_id>_<instance_id>_<method_id>"
+            auto instance_specifier_result = InstanceSpecifier::Create(
+                "SomeipMessage_" + service_id + "_" + instance_id + "_" + method_id);
+            if (!instance_specifier_result.has_value()) {
+                std::cerr << "Error: Failed to create InstanceSpecifier within local service "
+                             "instance. SID= "
+                          << service_id << ", IID= " << instance_id << ", MID= " << method_id
+                          << ", Error= " << instance_specifier_result.error().Message()
+                          << std::endl;
+                return 1;
+            }
+
+            auto skeleton_create_result =
+                SomeipMessageTransferSkeleton::Create(instance_specifier_result.value());
+            if (!skeleton_create_result.has_value()) {
+                std::cerr << "Error: Failed to create SomeipMessageTransferSkeleton for local "
+                             "service instance: SID= "
+                          << service_id << ", IID= " << instance_id << ", MID= " << method_id
+                          << ", Error= " << skeleton_create_result.error().Message() << std::endl;
+                return 1;
+            }
+
+            auto someip_message_skeleton = std::move(skeleton_create_result).value();
+            // TODO: Error handling
+            (void)someip_message_skeleton.OfferService();
+
+            skeletons_map.try_emplace(event->someip_method_id(),
+                                      std::move(someip_message_skeleton));
+        }
         LocalServiceInstance::CreateAsyncLocalService(
             std::shared_ptr<const config::ServiceInstance>(config, service_instance_config),
-            someip_message_skeleton, local_service_instances);
+            std::move(skeletons_map), local_service_instances);
     }
 
     // Create service instances from configuration

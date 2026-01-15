@@ -35,7 +35,8 @@ class LocalServiceInstance {
     /// \brief Constructs a LocalServiceInstance
     /// \param service_instance_config Configuration for this service instance
     /// \param ipc_proxy Generic proxy for IPC communication with the local service
-    /// \param someip_message_skeleton Skeleton for message transfer to the someipd daemon
+    /// \param someip_message_skeletons Map of SomeipMessage skeletons for message transfer to the
+    /// someipd daemon
     /// \details This constructor initializes a local service instance with the necessary
     ///          components to forward local service messages to the someipd daemon, which
     ///          then handles the SOME/IP network communication with remote ECUs.
@@ -43,12 +44,14 @@ class LocalServiceInstance {
         std::shared_ptr<const config::ServiceInstance> service_instance_config,
         score::mw::com::GenericProxy&& ipc_proxy,
         // TODO: Decouple this via an interface
-        network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
-            someip_message_skeleton);
+        std::map<uint16_t,
+                 network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton>&&
+            someip_message_skeletons);
 
     /// \brief Asynchronously creates a local service instance
     /// \param service_instance_config Configuration for the service instance to create
-    /// \param someip_message_skeleton Skeleton for message transfer to the someipd daemon
+    /// \param someip_message_skeletons Map of SomeipMessage skeletons for message transfer to the
+    /// someipd daemon
     /// \param instances Vector to store the created local service instance
     /// \return Result containing a FindServiceHandle on success, or an error on failure
     /// \details This static factory method asynchronously searches for and creates a local
@@ -58,8 +61,9 @@ class LocalServiceInstance {
     ///          operation.
     static Result<mw::com::FindServiceHandle> CreateAsyncLocalService(
         std::shared_ptr<const config::ServiceInstance> service_instance_config,
-        network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
-            someip_message_skeleton,
+        std::map<uint16_t,
+                 network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton>&&
+            someip_message_skeletons,
         std::vector<std::unique_ptr<LocalServiceInstance>>& instances);
 
     LocalServiceInstance(const LocalServiceInstance&) = delete;
@@ -72,9 +76,10 @@ class LocalServiceInstance {
     std::shared_ptr<const config::ServiceInstance> service_instance_config_;
     /// Generic proxy for IPC communication with the local service providing application
     score::mw::com::GenericProxy ipc_proxy_;
-    /// Reference to the SOME/IP message skeleton for forwarding messages to the someipd daemon
-    network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
-        someip_message_skeleton_;
+    /// Map of SomeipMessageTransferSkeletons with event/method ID as key. One skeleton for each
+    /// service instance element to forward to the someipd daemon.
+    std::map<uint16_t, network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton>
+        someip_message_skeletons_;
 };
 }  // namespace score::someip_gateway::gatewayd
 
