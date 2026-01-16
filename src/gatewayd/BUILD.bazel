@@ -15,6 +15,7 @@
 This daemon is a gateway between the SCORE middleware and the SOME/IP communication stack.
 """
 
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
@@ -91,20 +92,31 @@ validate_json_schema_test(
     tags = ["lint"],
 )
 
+filegroup(
+    name = "config_schema",
+    srcs = ["etc/gatewayd_config.schema.json"],
+    visibility = ["//visibility:public"],
+)
+
 genrule(
-    name = "generate_gatewayd_config_schema",
-    srcs = [
-        "etc/gatewayd_config.fbs",
-    ],
+    name = "config_schema.generate",
+    srcs = ["etc/gatewayd_config.fbs"],
     outs = ["gatewayd_config.schema.json"],
     cmd = "$(location @flatbuffers//:flatc) --jsonschema -o $(@D) $(SRCS)",
     tools = ["@flatbuffers//:flatc"],
 )
 
+write_source_files(
+    name = "config_schema.update",
+    files = {
+        "etc/gatewayd_config.schema.json": ":config_schema.generate",
+    },
+)
+
 validate_json_schema_test(
-    name = "gatewayd_config_schema_validation",
+    name = "validate_gatewayd_config",
     size = "small",
     json = "etc/gatewayd_config.json",
-    schema = "etc/gatewayd_config.schema.json",
+    schema = ":config_schema",
     tags = ["lint"],
 )
