@@ -1,15 +1,15 @@
 namespace score.someip_gateway.gatewayd.config;
 
-/// Contains lists of all local and remote service instances required by the application.
+/// Top-level element of the gateway configuration
 table Root {
-    /// Defines all service instances that are hosted on the same machine.
+    /// The service instances hosted on this machine which shall be offered to the network.
     local_service_instances: [ServiceInstance] (required);
 
-    /// Defines all external service instances that this application will communicate with.
+    /// The external service instances that shall be made available on this machine.
     remote_service_instances: [ServiceInstance] (required);
 }
 
-/// Uniquely identifies and describes a specific SOME/IP service, including its version and location.
+/// Each entry identifies and describes a specific SOME/IP service instance.
 table ServiceInstance {
     /// The 16-bit identifier for the service as defined in the SOME/IP specification.
     someip_service_id: uint16 (key);
@@ -32,7 +32,7 @@ table Event {
     /// The identifier for the event within the service, corresponding to the Method ID in the SOME/IP specification.
     someip_method_id: uint16 (key);
 
-    /// A unique, human-readable name for the event (e.g., 'VehicleSpeedChanged').
+    /// A unique, human-readable name for the event. This needs to be exactly the same name as used in the score::mw::com definition of the IPC Service.
     event_name: string (required);
 }
 
