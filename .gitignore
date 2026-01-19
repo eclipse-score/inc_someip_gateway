@@ -45,6 +45,7 @@ __pycache__/
 
 # docs:incremental and docs:ide_support build artifacts
 /_build
+/docs/ubproject.toml
 
 # Vale - editorial style guide
 .vale.ini
