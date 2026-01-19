@@ -7,6 +7,7 @@ table Root {
 
 table ServiceInstance {
     someip_service_id: uint16 (key);
+    someip_service_instance_id: uint16 = 0xFFFF;
     someip_service_version_major: uint8;
     someip_service_version_minor: uint32 = 0xFFFFFFFF;
     instance_specifier: string (required);
