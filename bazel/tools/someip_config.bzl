@@ -1,72 +1,98 @@
-"""A macro for generating a SOME/IP configuration binary."""
+"""Rule to generate and validate a SOME/IP gateway configuration"""
 
-def generate_someip_config_bin(name, json_file_path, output_filename, visibility = "//visibility:private"):
-    """Generates a SOME/IP Config binary based on the specified JSON file.
+load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
-    Args:
-        name: Name of the test target
-        json_file_path: Label or path to the JSON file to validate
-        output_filename: The name of the file to be used for the output
-        visibility: The visibility to use. (default: //visibility:private)
-    """
+def _generate_someip_config_bin_impl(ctx):
+    """Generates a SOME/IP Gateway configuration binary based on a specified json file."""
 
-    base_filename = json_file_path.split("/")[-1]
-    bin_filename = base_filename.replace(".json", ".bin")
+    schema_filename = ctx.file._schema.basename
+    bin_filename = schema_filename.replace(".fbs", ".bin")
+
+    output_file = ctx.actions.declare_file(ctx.attr.output_filename)
+    output_dir = output_file.dirname
+
+    if not ctx.attr.output_filename.endswith(".bin"):
+        fail("The output_file must end with '.bin'")
 
     commands = [
-        "$(location @flatbuffers//:flatc) --binary",
-        "-o $(@D)",
-        "$(location @score_someip_gateway//src/gatewayd:etc/gatewayd_config.fbs)",
-        "$(location %s)" % json_file_path,
+        "%s --binary" % ctx.executable._flatc.path,
+        "-o %s" % output_dir,
+        "%s" % ctx.file._schema.path,
+        "%s" % ctx.file.json.path,
     ]
 
-    if not output_filename.endswith(".bin"):
-        fail("The output_filename must end with '.bin'")
-
-    if bin_filename != output_filename:
-        rename_command = "&& mv $(@D)/%s $(@D)/%s" % (bin_filename, output_filename)
+    if bin_filename != output_file.basename:
+        rename_command = "&& mv %s/%s %s" % (output_dir, bin_filename, output_file.path)
         commands.append(rename_command)
 
-    native.genrule(
-        name = name,
-        srcs = [
-            json_file_path,
-            "@score_someip_gateway//src/gatewayd:etc/gatewayd_config.fbs",
+    command = " ".join(commands)
+
+    ctx.actions.run_shell(
+        outputs = [output_file],
+        inputs = [
+            ctx.file.json,
+            ctx.file._schema,
         ],
-        outs = [output_filename],
-        cmd = " ".join(commands),
-        tools = ["@flatbuffers//:flatc"],
-        message = "Generating binary config from " + json_file_path,
-        visibility = visibility,
+        tools = [ctx.executable._flatc],
+        command = command,
+        mnemonic = "SomeIpConfigBin",
+        progress_message = "Generating binary config from {json}".format(json = ctx.file.json.path),
     )
 
-"""Macro for validating a SOME/IP JSON configuration file against its schema."""
+    return [DefaultInfo(files = depset([output_file]))]
 
-def validate_someip_config_test(name, json_file_path, expect_failure = False, visibility = "//visibility:private"):
-    """Validates a SOME/IP JSON configuration file against its corresponding schema.
+generate_someip_config_bin = rule(
+    implementation = _generate_someip_config_bin_impl,
+    attrs = {
+        "json": attr.label(
+            doc = "The input JSON configuration file.",
+            mandatory = True,
+            allow_single_file = True,
+        ),
+        "output_filename": attr.string(
+            doc = "The name of the output binary file. Must end with '.bin'.",
+            mandatory = True,
+        ),
+        "_schema": attr.label(
+            doc = "The FlatBuffers schema file.",
+            allow_single_file = True,
+            default = "@score_someip_gateway//src/gatewayd:etc/gatewayd_config.fbs",
+        ),
+        "_flatc": attr.label(
+            doc = "The FlatBuffers compiler.",
+            default = "@flatbuffers//:flatc",
+            cfg = "exec",
+            executable = True,
+        ),
+    },
+    doc = "Generates a SOME/IP Gateway configuration binary based on a specified json file.",
+)
 
-    Args:
-        name: Name of the test target
-        json_file_path: Label or path to the JSON file to validate
-        expect_failure: If True, the test passes when validation fails (default: False)
-        visibility: The visibility to use. (default: //visibility:private)
-    """
+def _validate_someip_config_impl(name, json, _schema, expected_failure, **kwargs):
+    """Validates a SOME/IP gateway config json against its corresponding schema."""
 
-    schema = "@score_someip_gateway//src/gatewayd:etc/gatewayd_config.schema.json"
-
-    native.sh_test(
+    validate_json_schema_test(
         name = name,
-        size = "small",
-        srcs = ["@score_someip_gateway//bazel/tools/validators:json_schema_validator.sh"],
-        args = [
-            "$(location %s)" % json_file_path,
-            "$(location %s)" % schema,
-            "true" if expect_failure else "false",
-        ],
-        data = [
-            json_file_path,
-            schema,
-        ],
-        tags = ["lint"],
-        visibility = visibility,
+        json = json,
+        schema = _schema,
+        expected_failure = expected_failure,
+        **kwargs
     )
+
+validate_someip_config_test = macro(
+    doc = "Validates a SOME/IP gateway config json against its corresponding schema.",
+    implementation = _validate_someip_config_impl,
+    attrs = {
+        "json": attr.label(
+            doc = "The input JSON configuration file.",
+            mandatory = True,
+            allow_single_file = True,
+        ),
+        "_schema": attr.label(
+            doc = "The JSON schema file.",
+            allow_single_file = True,
+            default = "@score_someip_gateway//src/gatewayd:etc/gatewayd_config.schema.json",
+        ),
+        "expected_failure": attr.bool(default = False),
+    },
+)

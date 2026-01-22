@@ -13,7 +13,6 @@
 
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin", "validate_someip_config_test")
 load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "use_format_targets")
 load("//:project_config.bzl", "PROJECT_CONFIG")
 
@@ -54,17 +53,4 @@ compile_pip_requirements(
         "no_proxy",
     ],
     requirements_txt = "python_requirements_lock.txt",
-)
-
-validate_someip_config_test(
-    name = "someip_config.validate",
-    json_file_path = "//src/gatewayd:etc/gatewayd_config.json",
-    visibility = ["//visibility:public"],
-)
-
-generate_someip_config_bin(
-    name = "someip_config.generate",
-    json_file_path = "//src/gatewayd:etc/gatewayd_config.json",
-    output_filename = "gatewayd_config.bin",
-    visibility = ["//visibility:public"],
 )

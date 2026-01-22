@@ -1,7 +1,6 @@
 {
     "name": "eclipse-s-core",
     "image": "ghcr.io/eclipse-score/devcontainer:latest",
-    "postCreateCommand": "sudo apt update && sudo apt install -y python3-jsonschema",
     "customizations": {
         "vscode": {
             "extensions": [
