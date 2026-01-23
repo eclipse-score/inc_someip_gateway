@@ -1,0 +1,88 @@
+' *******************************************************************************
+' Copyright (c) 2025 Elektrobit Automotive GmbH
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+participant app as "Application" <<component user>>
+participant socom as "SOCom"
+participant bridge as "Generic service bridge" <<component user>>
+autonumber
+
+== Initialization ==
+
+activate app
+app  -> socom ** : create_runtime()
+
+app  -> bridge ** : create_bridge_component()
+activate bridge
+
+bridge -> socom :  register_service_bridge\n(bridge_subscribe_find_service, bridge_request_service)
+activate socom
+return
+
+bridge -> socom : subscribe_find_service\n(bridge_find_callback)
+activate socom
+return
+
+note right
+A generic service bridge (e.g. bridge::ipc)
+is interested in every service instance
+within the local process.
+This enables a config-free (dynamic)
+implementation of service discovery functionality
+based on the pure internal service instance identifiers.
+end note
+
+
+== Application searches for a service instance ==
+
+app -> socom : subscribe_find_service\n(app_find_callback, interface_A, instance_1)
+activate socom
+socom -> bridge : bridge_subscribe_find_service\n(socom_find_callback, interface_A, instance_1)
+activate bridge
+
+group Implementation detail
+bridge -> bridge
+note right
+The generic service bridge
+searches for the service instance on
+its remote counterparts.
+end note
+end
+return
+
+return
+
+
+== service instance remote search result changed (added)==
+
+group Implementation detail
+bridge -> bridge
+note right
+Found a service instance on a remote counterpart.
+end note
+end
+
+bridge -> socom : socom_find_callback\n(interface_A, instance_1, State::added)
+activate socom
+socom -> app : app_find_callback\n(interface_A, instance_1, State::added)
+activate app
+return
+
+return
+
+note right
+Important: SOCom does not forward find results to
+service-interface wildcard finds
+(subscribe_find_service(callback)).
+end note
+@enduml

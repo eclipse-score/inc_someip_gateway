@@ -1,0 +1,57 @@
+' *******************************************************************************
+' Copyright (c) 2025 Elektrobit Automotive GmbH
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+participant Client_1 <<component user>>
+participant Client_2 <<component user>>
+participant SOCom
+participant Server <<component user>>
+autonumber
+activate Server
+activate Client_1
+activate Client_2
+
+note right of Server
+    Multiple clients can be served sequentially.
+end note
+
+== Reply requested ==
+
+Client_1 -> SOCom : call_method(x, call_payload)
+
+activate SOCom
+SOCom -> Server : on_method_call(x, call_payload)
+activate Server
+Server -> Server : process method x
+return
+return
+
+Server -> SOCom : on_method_reply(x, reply_payload)
+activate SOCom
+SOCom -> Client_1 : on_method_reply(x, reply_payload)
+activate Client_1
+return
+SOCom --> Server
+
+deactivate SOCom
+== Fire and forget (no reply) ==
+Client_2 -> SOCom : call_method(x, call_payload)
+activate SOCom
+
+SOCom -> Server : on_method_call(x, call_payload)
+activate Server
+
+Server -> Server : process method x
+return
+return
+@enduml
