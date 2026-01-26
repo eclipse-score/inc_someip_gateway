@@ -20,7 +20,6 @@
 #include <score/socom/client_connector.hpp>
 #include <score/socom/error.hpp>
 #include <score/socom/posix_credentials.hpp>
-#include <score/socom/result.hpp>
 #include <score/socom/server_connector.hpp>
 #include <score/socom/service_interface.hpp>
 #include <vector>

@@ -20,7 +20,6 @@
 #include <score/socom/method.hpp>
 #include <score/socom/payload.hpp>
 #include <score/socom/posix_credentials.hpp>
-#include <score/socom/result.hpp>
 #include <score/socom/service_interface_configuration.hpp>
 
 namespace score::socom {

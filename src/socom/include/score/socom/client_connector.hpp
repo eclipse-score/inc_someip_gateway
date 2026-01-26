@@ -20,7 +20,6 @@
 #include <score/socom/method.hpp>
 #include <score/socom/payload.hpp>
 #include <score/socom/posix_credentials.hpp>
-#include <score/socom/result.hpp>
 #include <score/socom/service_interface_configuration.hpp>
 
 namespace score::socom {
@@ -48,12 +47,10 @@ using Event_subscription_status_callback =
     std::function<void(Client_connector const&, Event_id, Event_state)>;
 
 using Event_payload_allocate_callback =
-    std::function<Expected<std::unique_ptr<Writable_payload>, Error>(Client_connector const&,
-                                                                     Event_id)>;
+    std::function<Result<std::unique_ptr<Writable_payload>>(Client_connector const&, Event_id)>;
 
 using Method_reply_payload_allocate_callback =
-    std::function<Expected<std::unique_ptr<Writable_payload>, Error>(Client_connector const&,
-                                                                     Method_id)>;
+    std::function<Result<std::unique_ptr<Writable_payload>>(Client_connector const&, Method_id)>;
 
 /// \brief Interface for applications to use a service (client-role).
 /// \details Changes of service instance state are indicated by callback on_service_state_change.

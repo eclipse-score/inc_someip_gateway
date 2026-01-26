@@ -21,7 +21,6 @@
 #include "messages.hpp"
 #include "runtime_impl.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/result.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface.hpp"
 #include "score/socom/service_interface_configuration.hpp"
