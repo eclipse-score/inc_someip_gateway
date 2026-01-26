@@ -28,8 +28,7 @@ class Client_connector_mock : public Client_connector {
     // MOCK_METHOD(Result<Blank>, request_event_update, (Event_id), (const, noexcept, override));
     MOCK_METHOD(std::vector<std::reference_wrapper<Event const>>, get_events, (),
                 (const, noexcept, override));
-    MOCK_METHOD(Result<Method_invocation::Uptr>, call_method,
-                (Method_id, Payload::Sptr, Method_reply_callback const&),
+    MOCK_METHOD(std::vector<std::reference_wrapper<Method const>>, get_methods, (),
                 (const, noexcept, override));
     MOCK_METHOD(Result<Posix_credentials>, get_peer_credentials, (), (const, noexcept, override));
     MOCK_METHOD(Service_interface_configuration const&, get_configuration, (),

@@ -14,6 +14,7 @@
 #include "client_connector_impl.hpp"
 
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <utility>
 
@@ -40,11 +41,23 @@ Result<Blank> Event_impl::request_update() const noexcept {
     return m_connector.request_event_update(m_id);
 }
 
-std::vector<Event_impl> create_events(Impl& connector,
-                                      Service_interface_configuration const& configuration) {
-    std::vector<Event_impl> events;
-    events.reserve(configuration.num_events);
-    for (Event_id id = 0; id < configuration.num_events; ++id) {
+Method_impl::Method_impl(Impl& connector, Method_id id) : m_connector{connector}, m_id{id} {}
+
+Result<Method_invocation::Uptr> Method_impl::call(
+    Payload::Sptr payload, Method_reply_callback const& on_method_reply) const noexcept {
+    return m_connector.call_method(m_id, std::move(payload), on_method_reply);
+}
+
+Result<std::unique_ptr<Writable_payload>> Method_impl::allocate_method_payload() noexcept {
+    assert(false && "Not implemented");
+    return MakeUnexpected(Error::runtime_error_permission_not_allowed);
+}
+
+template <typename T>
+auto create_impls(Impl& connector, std::size_t const& num_elements) {
+    std::vector<T> events;
+    events.reserve(num_elements);
+    for (Event_id id = 0; id < num_elements; ++id) {
         events.emplace_back(connector, id);
     }
     return events;
@@ -58,7 +71,8 @@ Impl::Impl(Runtime_impl& runtime, Service_interface_configuration const& configu
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
           std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
-      m_events{create_events(*this, configuration)},
+      m_events{create_impls<Event_impl>(*this, configuration.num_events)},
+      m_methods{create_impls<Method_impl>(*this, configuration.num_methods)},
       m_registration{
           runtime.register_connector(configuration, instance, make_on_server_update_callback())},
       m_credentials{credentials} {
@@ -103,18 +117,32 @@ message::Request_event_update::Return_type Impl::request_event_update(
     return send(message::Request_event_update{client_id});
 }
 
+template <typename T, typename U>
+auto create_wrapper_vector(std::vector<U> const& vec) {
+    std::vector<std::reference_wrapper<T const>> result;
+    result.reserve(vec.size());
+    for (auto& item : vec) {
+        result.emplace_back(item);
+    }
+    return result;
+}
+
 std::vector<std::reference_wrapper<Client_connector::Event const>> Impl::get_events()
     const noexcept {
     if (!m_server.has_value()) {
         return {};
     }
 
-    std::vector<std::reference_wrapper<Client_connector::Event const>> result;
-    result.reserve(m_events.size());
-    for (auto& event : m_events) {
-        result.emplace_back(event);
+    return create_wrapper_vector<Client_connector::Event>(m_events);
+}
+
+std::vector<std::reference_wrapper<Client_connector::Method const>> Impl::get_methods()
+    const noexcept {
+    if (!m_server.has_value()) {
+        return {};
     }
-    return result;
+
+    return create_wrapper_vector<Client_connector::Method>(m_methods);
 }
 
 message::Call_method::Return_type Impl::call_method(
