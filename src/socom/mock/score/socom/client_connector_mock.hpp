@@ -20,10 +20,10 @@
 
 namespace score::socom {
 
-class Client_connector_mock : public Client_connector {
+class Client_connector_mock : public Client_connector, public Client_connector::Event_manager {
    public:
-    MOCK_METHOD(Result<Blank>, subscribe_event, (Event_id client_id, Event_mode mode),
-                (const, noexcept, override));
+    MOCK_METHOD(Result<Client_connector::Event>, subscribe_event,
+                (Event_id client_id, Event_mode mode), (const, noexcept, override));
     MOCK_METHOD(Result<Blank>, unsubscribe_event, (Event_id), (const, noexcept, override));
     MOCK_METHOD(Result<Blank>, request_event_update, (Event_id), (const, noexcept, override));
     MOCK_METHOD(Result<Method_invocation::Uptr>, call_method,

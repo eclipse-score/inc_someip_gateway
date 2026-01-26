@@ -168,8 +168,10 @@ TEST_F(Runtime_test, connection_setup_works) {
 TEST_F(Connection_test, server_sends_event_which_is_received_by_the_client) {
     EXPECT_CALL(m_event_update_mock, Call(_, _, _)).Times(1);
     EXPECT_CALL(m_event_subscription_change_mock, Call(_, 0, Event_state::subscribed)).Times(1);
-    ASSERT_TRUE(client_connector->subscribe_event(0, Event_mode::update));
+    auto const client_event = client_connector->subscribe_event(0, Event_mode::update);
+    ASSERT_TRUE(client_event);
     server_connector->update_event(0, empty_payload());
+    EXPECT_CALL(m_event_subscription_change_mock, Call(_, 0, Event_state::unsubscribed)).Times(1);
 }
 
 TEST_F(Connection_test, client_calls_method_and_gets_response) {

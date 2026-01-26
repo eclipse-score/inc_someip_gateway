@@ -15,6 +15,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <utility>
 
 #include "runtime_impl.hpp"
 #include "score/socom/client_connector.hpp"
@@ -63,9 +64,12 @@ Impl::~Impl() noexcept {
     Final_action const catch_promise_exceptions{wait_for_stop_complete};
 }
 
-message::Subscribe_event::Return_type Impl::subscribe_event(Event_id client_id,
-                                                            Event_mode mode) const noexcept {
-    return send(message::Subscribe_event{client_id, mode});
+score::Result<Client_connector::Event> Impl::subscribe_event(Event_id client_id,
+                                                             Event_mode mode) const noexcept {
+    return send(message::Subscribe_event{client_id, mode})
+        .and_then([this, client_id](auto const& /* message */) {
+            return Result<Client_connector::Event>{std::in_place, *this, client_id};
+        });
 }
 
 message::Unsubscribe_event::Return_type Impl::unsubscribe_event(Event_id client_id) const noexcept {
