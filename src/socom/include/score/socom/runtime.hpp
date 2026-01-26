@@ -162,7 +162,7 @@ class Runtime {
 
     /// \brief Alias for the result of an operation.
     template <typename T>
-    using Result = Expected<T, Construction_error>;
+    using Result = score::Result<T>;
 
     Runtime() = default;
     virtual ~Runtime() noexcept = default;

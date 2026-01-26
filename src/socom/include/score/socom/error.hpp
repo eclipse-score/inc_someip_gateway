@@ -14,12 +14,14 @@
 #ifndef SCORE_SOCOM_ERROR_HPP
 #define SCORE_SOCOM_ERROR_HPP
 
-#include <cstdint>
+#include <score/result/error_code.h>
+#include <score/result/error_domain.h>
+#include <score/result/result.h>
 
 namespace score::socom {
 
 /// \brief Error conditions when using Client_connector.
-enum class Error : std::uint8_t {
+enum class Error : score::result::ErrorCode {
     /// Service state is not Service_state::available. Service_state::available cannot prevent
     /// network issues, so if it is important that the Server receives a method call, it always has
     /// to send some return value via the callback.
@@ -34,17 +36,25 @@ enum class Error : std::uint8_t {
     runtime_error_permission_not_allowed,
 };
 
+score::result::Error MakeError(Error code, std::string_view user_message = "") noexcept;
+
 /// \brief Error conditions when using Enabled_server_connector.
-enum class Server_connector_error : std::uint8_t {
+enum class Server_connector_error : score::result::ErrorCode {
     /// Event or method ID is out of range.
     logic_error_id_out_of_range
 };
 
+score::result::Error MakeError(Server_connector_error code,
+                               std::string_view user_message = "") noexcept;
+
 /// \brief Errors upon connector construction.
-enum class Construction_error : std::uint8_t {
+enum class Construction_error : score::result::ErrorCode {
     duplicate_service,  ///< Service identifier already exists.
     callback_missing    ///< At least one of the provided callbacks is missing.
 };
+
+score::result::Error MakeError(Construction_error code,
+                               std::string_view user_message = "") noexcept;
 
 }  // namespace score::socom
 

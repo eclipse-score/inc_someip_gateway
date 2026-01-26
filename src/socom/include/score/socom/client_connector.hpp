@@ -117,7 +117,7 @@ class Client_connector {
 
     /// \brief Alias for the result of an operation.
     template <typename T>
-    using Result = Expected<T, Error>;
+    using Result = score::Result<T>;
 
     /// \brief Constructor.
     /// \details A Client_connector instance and a Server_connector instance do not match under the

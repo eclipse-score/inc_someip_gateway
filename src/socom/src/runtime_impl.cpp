@@ -513,7 +513,7 @@ Runtime::Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
     Service_interface_configuration const& configuration, Service_instance const& instance,
     Client_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
     if (!is_valid(callbacks)) {
-        return make_unexpected(Construction_error::callback_missing);
+        return MakeUnexpected(Construction_error::callback_missing);
     }
 
     return {std::make_unique<CC_impl>(*this, configuration, instance, std::move(callbacks),
@@ -533,13 +533,13 @@ Runtime::Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_conne
     Service_identifier const identifier{configuration.get_interface(), instance};
 
     if (!is_valid(callbacks)) {
-        return make_unexpected(Construction_error::callback_missing);
+        return MakeUnexpected(Construction_error::callback_missing);
     }
 
     {
         std::lock_guard<std::mutex> const lock(this->m_service_identifiers->mutex);
         if (!m_service_identifiers->data.insert(identifier).second) {
-            return make_unexpected(Construction_error::duplicate_service);
+            return MakeUnexpected(Construction_error::duplicate_service);
         }
     }
 
@@ -715,7 +715,7 @@ Runtime::Result<Service_bridge_registration> Runtime_impl::register_service_brid
     Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
     Request_service_function request_service) noexcept {
     if (!subscribe_find_service || !request_service) {
-        return make_unexpected(Construction_error::callback_missing);
+        return MakeUnexpected(Construction_error::callback_missing);
     }
     // false positive, registration is moved at return
     // stack allocation not possible as the object needs a stable memory address

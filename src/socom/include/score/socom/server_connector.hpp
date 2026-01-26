@@ -136,7 +136,7 @@ class Enabled_server_connector {
 
     /// \brief Alias for the result of an operation.
     template <typename T>
-    using Result = Expected<T, Server_connector_error>;
+    using Result = score::Result<T>;
 
     /// \brief Constructor.
     Enabled_server_connector() = default;

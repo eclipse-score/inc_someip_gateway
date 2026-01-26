@@ -41,12 +41,12 @@ struct Connect_return {
 };
 
 struct Connect {
-    using Return_type = Expected<message::Connect_return, Error>;
+    using Return_type = score::Result<message::Connect_return>;
     Client_connector_endpoint& endpoint;
 };
 
 struct Call_method {
-    using Return_type = Expected<Method_invocation::Uptr, Error>;
+    using Return_type = score::Result<Method_invocation::Uptr>;
     Method_id const id;
     Payload::Sptr payload;
     Method_reply_callback const on_method_reply;
@@ -54,22 +54,22 @@ struct Call_method {
 };
 
 struct Posix_credentials {
-    using Return_type = Expected<::score::socom::Posix_credentials, Error>;
+    using Return_type = score::Result<::score::socom::Posix_credentials>;
 };
 
 struct Subscribe_event {
-    using Return_type = Expected<Blank, Error>;
+    using Return_type = score::Result<Blank>;
     Event_id const id;
     Event_mode const mode;
 };
 
 struct Unsubscribe_event {
-    using Return_type = Expected<Blank, Error>;
+    using Return_type = score::Result<Blank>;
     Event_id const id;
 };
 
 struct Request_event_update {
-    using Return_type = Expected<Blank, Error>;
+    using Return_type = score::Result<Blank>;
     Event_id const id;
 };
 

@@ -27,8 +27,6 @@
 #include "score/socom/service_interface_configuration.hpp"
 #include "temporary_thread_id_add.hpp"
 
-using score::cpp::make_unexpected;
-
 namespace score {
 namespace socom {
 
@@ -36,7 +34,7 @@ namespace {
 
 template <typename T>
 Enabled_server_connector::Result<T> create_error() {
-    return make_unexpected(Server_connector_error::logic_error_id_out_of_range);
+    return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
 }
 
 }  // namespace
@@ -260,7 +258,7 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
     // Destroying server-connector before receiving is not possible with deterministic results.
 
     if (nullptr == m_stop_block_token) {
-        return make_unexpected(Error::runtime_error_service_not_available);
+        return MakeUnexpected(Error::runtime_error_service_not_available);
     }
 
     auto const it_client = m_clients.emplace(m_clients.end(), *this, message.endpoint);
@@ -280,7 +278,7 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
 message::Call_method::Return_type Impl::receive(Client_connection const& /*client*/,
                                                 message::Call_method const& message) {
     if (message.id >= m_configuration.get_num_methods()) {
-        return make_unexpected(Error::logic_error_id_out_of_range);
+        return MakeUnexpected(Error::logic_error_id_out_of_range);
     }
 
     assert(message.id < m_configuration.get_num_methods());
@@ -300,7 +298,7 @@ message::Posix_credentials::Return_type Impl::receive(
 message::Subscribe_event::Return_type Impl::receive(Client_connection const& client,
                                                     message::Subscribe_event message) {
     if (message.id >= m_event_infos.size()) {
-        return make_unexpected(Error::logic_error_id_out_of_range);
+        return MakeUnexpected(Error::logic_error_id_out_of_range);
     }
 
     assert(message.id < m_event_infos.size());
@@ -347,7 +345,7 @@ message::Subscribe_event::Return_type Impl::receive(Client_connection const& cli
 message::Unsubscribe_event::Return_type Impl::receive(Client_connection const& client,
                                                       message::Unsubscribe_event message) {
     if (message.id >= m_event_infos.size()) {
-        return make_unexpected(Error::logic_error_id_out_of_range);
+        return MakeUnexpected(Error::logic_error_id_out_of_range);
     }
 
     unsubscribe_event(client, message.id);
@@ -357,7 +355,7 @@ message::Unsubscribe_event::Return_type Impl::receive(Client_connection const& c
 message::Request_event_update::Return_type Impl::receive(Client_connection const& client,
                                                          message::Request_event_update message) {
     if (message.id >= m_update_requester.size()) {
-        return make_unexpected(Error::logic_error_id_out_of_range);
+        return MakeUnexpected(Error::logic_error_id_out_of_range);
     }
 
     assert(message.id < m_update_requester.size());
