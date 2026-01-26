@@ -22,17 +22,14 @@ namespace score::socom {
 
 class Client_connector_mock : public Client_connector {
    public:
-    MOCK_METHOD(Client_connector::Result<Blank>, subscribe_event,
-                (Event_id client_id, Event_mode mode), (const, noexcept, override));
-    MOCK_METHOD(Client_connector::Result<Blank>, unsubscribe_event, (Event_id),
+    MOCK_METHOD(Result<Blank>, subscribe_event, (Event_id client_id, Event_mode mode),
                 (const, noexcept, override));
-    MOCK_METHOD(Client_connector::Result<Blank>, request_event_update, (Event_id),
-                (const, noexcept, override));
-    MOCK_METHOD(Client_connector::Result<Method_invocation::Uptr>, call_method,
+    MOCK_METHOD(Result<Blank>, unsubscribe_event, (Event_id), (const, noexcept, override));
+    MOCK_METHOD(Result<Blank>, request_event_update, (Event_id), (const, noexcept, override));
+    MOCK_METHOD(Result<Method_invocation::Uptr>, call_method,
                 (Method_id, Payload::Sptr, Method_reply_callback const&),
                 (const, noexcept, override));
-    MOCK_METHOD(Client_connector::Result<Posix_credentials>, get_peer_credentials, (),
-                (const, noexcept, override));
+    MOCK_METHOD(Result<Posix_credentials>, get_peer_credentials, (), (const, noexcept, override));
     MOCK_METHOD(Service_interface_configuration const&, get_configuration, (),
                 (const, noexcept, override));
     MOCK_METHOD(Service_instance const&, get_service_instance, (), (const, noexcept, override));

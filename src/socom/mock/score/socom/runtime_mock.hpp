@@ -29,19 +29,19 @@ class Service_bridge_registration_handle_mock : public Service_bridge_registrati
 class Runtime_mock : public Runtime {
    public:
     // mock interface
-    MOCK_METHOD(Runtime::Result<Client_connector::Uptr>, make_client_connector,
+    MOCK_METHOD(Result<Client_connector::Uptr>, make_client_connector,
                 (Service_interface_configuration const&, Service_instance const&,
                  Client_connector::Callbacks),
                 (noexcept, override));
-    MOCK_METHOD(Runtime::Result<Client_connector::Uptr>, make_client_connector,
+    MOCK_METHOD(Result<Client_connector::Uptr>, make_client_connector,
                 (Service_interface_configuration const&, Service_instance const&,
                  Client_connector::Callbacks, Posix_credentials const&),
                 (noexcept, override));
-    MOCK_METHOD((Runtime::Result<Disabled_server_connector::Uptr>), make_server_connector,
+    MOCK_METHOD((Result<Disabled_server_connector::Uptr>), make_server_connector,
                 (Server_service_interface_configuration const&, Service_instance const&,
                  Disabled_server_connector::Callbacks),
                 (noexcept, override));
-    MOCK_METHOD((Runtime::Result<Disabled_server_connector::Uptr>), make_server_connector,
+    MOCK_METHOD((Result<Disabled_server_connector::Uptr>), make_server_connector,
                 (Server_service_interface_configuration const&, Service_instance const&,
                  Disabled_server_connector::Callbacks, Posix_credentials const&),
                 (noexcept, override));
@@ -52,7 +52,7 @@ class Runtime_mock : public Runtime {
                 (Find_result_change_callback, std::optional<Service_interface>,
                  std::optional<Service_instance>, std::optional<Bridge_identity>),
                 (noexcept, override));
-    MOCK_METHOD(Runtime::Result<Service_bridge_registration>, register_service_bridge,
+    MOCK_METHOD(Result<Service_bridge_registration>, register_service_bridge,
                 (Bridge_identity, Subscribe_find_service_function, Request_service_function),
                 (noexcept, override));
 };

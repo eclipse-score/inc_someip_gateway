@@ -502,14 +502,14 @@ Service_record::Client_registration Service_record::register_client_connector(
         m_server};
 }
 
-Runtime::Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
+Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
     Service_interface_configuration const& configuration, Service_instance const& instance,
     Client_connector::Callbacks callbacks) noexcept {
     return make_client_connector(configuration, instance, std::move(callbacks),
                                  Posix_credentials{::getuid(), ::getgid()});
 }
 
-Runtime::Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
+Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
     Service_interface_configuration const& configuration, Service_instance const& instance,
     Client_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
     if (!is_valid(callbacks)) {
@@ -520,14 +520,14 @@ Runtime::Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
                                       credentials)};
 }
 
-Runtime::Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
+Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
     Server_service_interface_configuration const& configuration, Service_instance const& instance,
     Disabled_server_connector::Callbacks callbacks) noexcept {
     return make_server_connector(configuration, instance, std::move(callbacks),
                                  Posix_credentials{::getuid(), ::getgid()});
 }
 
-Runtime::Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
+Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
     Server_service_interface_configuration const& configuration, Service_instance const& instance,
     Disabled_server_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
     Service_identifier const identifier{configuration.get_interface(), instance};
@@ -710,8 +710,7 @@ Find_subscription Runtime_impl::subscribe_find_service(
     return find_handle;
 }
 
-// NOLINTBEGIN(bugprone-exception-escape)(ClangTidy Android warning)
-Runtime::Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
+Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
     Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
     Request_service_function request_service) noexcept {
     if (!subscribe_find_service || !request_service) {
@@ -746,9 +745,8 @@ Runtime::Result<Service_bridge_registration> Runtime_impl::register_service_brid
                     create_find_subscription);
     register_bridge(registration.get(), lock, m_service_requests, create_service_request);
 
-    return Runtime::Result<Service_bridge_registration>{std::move(registration)};
+    return Result<Service_bridge_registration>{std::move(registration)};
 }
-// NOLINTEND(bugprone-exception-escape)
 
 Registration Runtime_impl::register_connector(Service_interface_configuration const& configuration,
                                               Service_instance const& instance,

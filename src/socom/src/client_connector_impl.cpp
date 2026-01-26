@@ -101,7 +101,7 @@ message::Call_method::Return_type Impl::call_method(
     return send(message::Call_method{client_id, payload, protected_on_method_reply, m_credentials});
 }
 
-Client_connector::Result<Posix_credentials> Impl::get_peer_credentials() const noexcept {
+Result<Posix_credentials> Impl::get_peer_credentials() const noexcept {
     return send(message::Posix_credentials{});
 }
 

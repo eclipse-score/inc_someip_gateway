@@ -159,10 +159,6 @@ class Runtime {
     /// \brief Alias for an unique pointer to this interface.
     using Uptr = std::unique_ptr<Runtime>;
 
-    /// \brief Alias for the result of an operation.
-    template <typename T>
-    using Result = score::Result<T>;
-
     Runtime() = default;
     virtual ~Runtime() noexcept = default;
     Runtime(Runtime const&) = delete;

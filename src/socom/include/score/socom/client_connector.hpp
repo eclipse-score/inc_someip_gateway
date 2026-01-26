@@ -112,10 +112,6 @@ class Client_connector {
         Method_reply_payload_allocate_callback on_method_reply_payload_allocate = {};
     };
 
-    /// \brief Alias for the result of an operation.
-    template <typename T>
-    using Result = score::Result<T>;
-
     /// \brief Constructor.
     /// \details A Client_connector instance and a Server_connector instance do not match under the
     /// following conditions:

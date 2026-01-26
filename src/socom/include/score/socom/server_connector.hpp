@@ -133,10 +133,6 @@ class Enabled_server_connector {
     /// \brief Alias for an unique pointer to this interface.
     using Uptr = std::unique_ptr<Enabled_server_connector>;
 
-    /// \brief Alias for the result of an operation.
-    template <typename T>
-    using Result = score::Result<T>;
-
     /// \brief Constructor.
     Enabled_server_connector() = default;
 

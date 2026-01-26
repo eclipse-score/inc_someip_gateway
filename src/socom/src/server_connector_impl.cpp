@@ -29,15 +29,6 @@
 namespace score {
 namespace socom {
 
-namespace {
-
-template <typename T>
-Enabled_server_connector::Result<T> create_error() {
-    return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
-}
-
-}  // namespace
-
 namespace server_connector {
 
 Client_connection::Client_connection(Impl& impl, Client_connector_endpoint client)
@@ -127,10 +118,9 @@ Server_service_interface_configuration const& Impl::get_configuration() const no
 
 Service_instance const& Impl::get_service_instance() const noexcept { return m_instance; }
 
-Enabled_server_connector::Result<Blank> Impl::update_event(Event_id server_id,
-                                                           Payload::Sptr payload) noexcept {
+Result<Blank> Impl::update_event(Event_id server_id, Payload::Sptr payload) noexcept {
     if (server_id >= m_configuration.get_num_events()) {
-        return create_error<Blank>();
+        return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
 
     assert(server_id < m_subscriber.size());
@@ -142,13 +132,12 @@ Enabled_server_connector::Result<Blank> Impl::update_event(Event_id server_id,
 
     // May throw std::bad_alloc: left unhandled as a design decision
     send(clients, message::Update_event{server_id, payload});
-    return Enabled_server_connector::Result<Blank>{Blank{}};
+    return Result<Blank>{Blank{}};
 }
 
-Enabled_server_connector::Result<Blank> Impl::update_requested_event(
-    Event_id server_id, Payload::Sptr payload) noexcept {
+Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Sptr payload) noexcept {
     if (server_id >= m_configuration.get_num_events()) {
-        return create_error<Blank>();
+        return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
 
     assert(server_id < m_update_requester.size());
@@ -161,13 +150,13 @@ Enabled_server_connector::Result<Blank> Impl::update_requested_event(
 
     // May throw std::bad_alloc: left unhandled as a design decision
     send(clients, message::Update_requested_event{server_id, payload});
-    return Enabled_server_connector::Result<Blank>{Blank{}};
+    return Result<Blank>{Blank{}};
 }
 
-Enabled_server_connector::Result<Blank> Impl::set_event_subscription_state(
-    Event_id server_id, Event_state event_state) noexcept {
+Result<Blank> Impl::set_event_subscription_state(Event_id server_id,
+                                                 Event_state event_state) noexcept {
     if (server_id >= m_configuration.get_num_events()) {
-        return create_error<Blank>();
+        return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
 
     assert(server_id < m_event_infos.size());
@@ -179,7 +168,7 @@ Enabled_server_connector::Result<Blank> Impl::set_event_subscription_state(
         (Event_state::subscribed == event_state) ? Event_ack_state::ack : Event_ack_state::not_ack;
 
     if (target_state == m_event_infos[server_id].ack_state) {
-        return Enabled_server_connector::Result<Blank>{Blank{}};
+        return Result<Blank>{Blank{}};
     }
 
     m_event_infos[server_id].ack_state = target_state;
@@ -189,13 +178,12 @@ Enabled_server_connector::Result<Blank> Impl::set_event_subscription_state(
 
     // May throw std::bad_alloc: left unhandled as a design decision
     send(clients, message::Ack_subscribed_event{server_id, event_state});
-    return Enabled_server_connector::Result<Blank>{Blank{}};
+    return Result<Blank>{Blank{}};
 }
 
-Enabled_server_connector::Result<Event_mode> Impl::get_event_mode(
-    Event_id server_id) const noexcept {
+Result<Event_mode> Impl::get_event_mode(Event_id server_id) const noexcept {
     if (server_id >= m_configuration.get_num_events()) {
-        return create_error<Event_mode>();
+        return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
 
     assert(server_id < m_event_infos.size());

@@ -60,7 +60,7 @@ class Impl final : public Client_connector {
     message::Call_method::Return_type call_method(
         Method_id client_id, Payload::Sptr payload,
         Method_reply_callback const& on_method_reply) const noexcept override;
-    Client_connector::Result<Posix_credentials> get_peer_credentials() const noexcept override;
+    Result<Posix_credentials> get_peer_credentials() const noexcept override;
     Service_interface_configuration const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
     bool is_service_available() const noexcept override;

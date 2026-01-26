@@ -195,21 +195,21 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Bridge_id_to<std::tuple<Subscribe_find_service_function, Request_service_function,
                                 Interfaces_instances>>;
 
-    Runtime::Result<Client_connector::Uptr> make_client_connector(
+    Result<Client_connector::Uptr> make_client_connector(
         Service_interface_configuration const& configuration, Service_instance const& instance,
         Client_connector::Callbacks callbacks) noexcept override;
 
-    Runtime::Result<Client_connector::Uptr> make_client_connector(
+    Result<Client_connector::Uptr> make_client_connector(
         Service_interface_configuration const& configuration, Service_instance const& instance,
         Client_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
 
-    Runtime::Result<Disabled_server_connector::Uptr> make_server_connector(
+    Result<Disabled_server_connector::Uptr> make_server_connector(
         Server_service_interface_configuration const& configuration,
         Service_instance const& instance,
         Disabled_server_connector::Callbacks callbacks) noexcept override;
 
-    Runtime::Result<Disabled_server_connector::Uptr> make_server_connector(
+    Result<Disabled_server_connector::Uptr> make_server_connector(
         Server_service_interface_configuration const& configuration,
         Service_instance const& instance, Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
@@ -224,7 +224,7 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         std::optional<Bridge_identity> identity) noexcept override;
 
     // NOLINTBEGIN(bugprone-exception-escape)(ClangTidy Android Warning)
-    Runtime::Result<Service_bridge_registration> register_service_bridge(
+    Result<Service_bridge_registration> register_service_bridge(
         Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
         Request_service_function request_service) noexcept override;
     // NOLINTEND(bugprone-exception-escape)
