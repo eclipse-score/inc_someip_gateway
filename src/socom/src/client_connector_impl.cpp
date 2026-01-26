@@ -49,7 +49,7 @@ Result<Method_invocation::Uptr> Method_impl::call(
     return m_connector.call_method(m_id, std::move(payload), on_method_reply);
 }
 
-Result<std::unique_ptr<Writable_payload>> Method_impl::allocate_method_payload() noexcept {
+Result<std::unique_ptr<Writable_payload>> Method_impl::allocate_payload() noexcept {
     assert(false && "Not implemented");
     return MakeUnexpected(Error::runtime_error_permission_not_allowed);
 }

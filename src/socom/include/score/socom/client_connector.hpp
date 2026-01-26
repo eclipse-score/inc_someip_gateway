@@ -215,7 +215,7 @@ class Client_connector {
             Payload::Sptr payload, Method_reply_callback const& on_method_reply) const noexcept = 0;
 
         [[nodiscard]]
-        virtual Result<std::unique_ptr<Writable_payload>> allocate_method_payload() noexcept {
+        virtual Result<std::unique_ptr<Writable_payload>> allocate_payload() noexcept {
             return nullptr;
         }
     };
