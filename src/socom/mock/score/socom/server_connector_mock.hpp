@@ -24,12 +24,13 @@ class Server_connector_mock : public Disabled_server_connector, public Enabled_s
    public:
     MOCK_METHOD(Enabled_server_connector*, enable, (), (noexcept, override));
     MOCK_METHOD(Disabled_server_connector*, disable, (), (noexcept, override));
-    MOCK_METHOD(Result<Blank>, update_event, (Event_id, Payload::Sptr), (noexcept, override));
-    MOCK_METHOD(Result<Blank>, update_requested_event, (Event_id, Payload::Sptr),
-                (noexcept, override));
-    MOCK_METHOD(Result<Blank>, set_event_subscription_state, (Event_id, Event_state),
-                (noexcept, override));
-    MOCK_METHOD(Result<Event_mode>, get_event_mode, (Event_id), (const, noexcept, override));
+    // MOCK_METHOD(Result<Blank>, update_event, (Event_id, Payload::Sptr), (noexcept, override));
+    // MOCK_METHOD(Result<Blank>, update_requested_event, (Event_id, Payload::Sptr),
+    //             (noexcept, override));
+    // MOCK_METHOD(Result<Blank>, set_event_subscription_state, (Event_id, Event_state),
+    //             (noexcept, override));
+    // MOCK_METHOD(Result<Event_mode>, get_event_mode, (Event_id), (const, noexcept, override));
+    MOCK_METHOD(std::vector<std::reference_wrapper<Event>>, get_events, (), (noexcept, override));
 
     MOCK_METHOD(Server_service_interface_configuration const&, get_configuration, (),
                 (const, noexcept, override));
