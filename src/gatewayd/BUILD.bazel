@@ -20,13 +20,13 @@ load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
-load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin", "validate_someip_config_test")
+load("@score_someip_gateway//:bazel/tools/someip_config.bzl", "generate_someip_config_bin", "validate_someip_config_test")
 
 exports_files(
     [
         "etc/gatewayd_config.fbs",
         "etc/gatewayd_config.json",
-        "etc/gatewayd_config.schema.json",
+        "etc/gatewayd_config_schema.json",
     ],
 )
 
@@ -79,18 +79,10 @@ flatbuffer_cc_library(
     srcs = ["etc/gatewayd_config.fbs"],
 )
 
-genrule(
+generate_someip_config_bin(
     name = "config_file",
-    srcs = [
-        "etc/gatewayd_config.fbs",
-        "etc/gatewayd_config.json",
-    ],
-    outs = ["etc/gatewayd_config.bin"],
-    cmd = """
-    $(location @flatbuffers//:flatc) --binary -o $(RULEDIR)/etc/ $(SRCS)
-    """,
-    message = "Generating gatewayd_config binary",
-    tools = ["@flatbuffers//:flatc"],
+    json = "etc/gatewayd_config.json",
+    output = "etc/gatewayd_config.bin",
 )
 
 validate_json_schema_test(
@@ -103,32 +95,31 @@ validate_json_schema_test(
 
 filegroup(
     name = "config_schema",
-    srcs = ["etc/gatewayd_config.schema.json"],
+    srcs = ["etc/gatewayd_config_schema.json"],
     visibility = ["//visibility:public"],
 )
 
 genrule(
     name = "config_schema.generate",
     srcs = ["etc/gatewayd_config.fbs"],
-    outs = ["gatewayd_config.schema.json"],
-    cmd = "$(location @flatbuffers//:flatc) --jsonschema -o $(@D) $(SRCS)",
+    outs = ["gatewayd_config_schema.json"],
+    cmd = """
+        $(location @flatbuffers//:flatc) --jsonschema -o $(@D) $(SRCS) && \
+        mv $(@D)/gatewayd_config.schema.json $(@)
+    """,
     tools = ["@flatbuffers//:flatc"],
 )
 
 write_source_files(
     name = "config_schema.update",
     files = {
-        "etc/gatewayd_config.schema.json": ":config_schema.generate",
+        "etc/gatewayd_config_schema.json": ":config_schema.generate",
     },
 )
 
 validate_someip_config_test(
     name = "validate_gatewayd_config_test",
+    size = "small",
     json = "etc/gatewayd_config.json",
-)
-
-generate_someip_config_bin(
-    name = "someip_config.generate",
-    json = "@score_someip_gateway//src/gatewayd:etc/gatewayd_config.json",
-    output_filename = "gatewayd_config.bin",
+    tags = ["lint"],
 )

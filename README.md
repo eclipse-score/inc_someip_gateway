@@ -87,7 +87,7 @@ The `gatewayd` module uses a JSON file for configuration. To ensure the validity
 The JSON schema for the `gatewayd` configuration is located at:
 
 ```bash
-src/gatewayd/etc/gatewayd_config.schema.json
+src/gatewayd/etc/gatewayd_config_schema.json
 ```
 
 This schema defines the expected properties, data types, and constraints for a valid `gatewayd_config.json` configuration file.
@@ -99,12 +99,12 @@ You can validate your JSON configuration file against the schema using the `vali
 To add a validation test to your project, add the following to your `BUILD.bazel` file:
 
 ```bash
-load("@score_someip_gateway//bazel/tools:someip_config.bzl", "validate_someip_config_test")
+load("@score_someip_gateway//:bazel/tools/someip_config.bzl", "validate_someip_config_test")
 validate_someip_config_test(
     name = "<validation_rule_name>",
     expect_failure = <False / True>,
     json = "//<package>:<path_to_gatewayd_config_json>",
-    visibility = ["//visibility:public"],
+    size = "small",
 )
 ```
 
@@ -121,12 +121,11 @@ If the test passes, your configuration file is valid. If it fails, the test logs
 If validation passed successful you can add the following macro in your `BUILD.bazel` to generate a `gatewayd_config.bin`
 
 ```bash
-load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
+load("@score_someip_gateway//:bazel/tools/someip_config.bzl", "generate_someip_config_bin")
 generate_someip_config_bin(
     name = "<generation_rule_name>",
     json = "//<project>:<gatewayd_config_json>",
-    output_filename = "gatewayd_config.bin",
-    visibility = ["//visibility:public"],
+    output = "etc/gatewayd_config.bin",
 )
 ```
 
@@ -136,4 +135,4 @@ The `gatewayd_config.bin` can then be generated with the following command:
 bazel build //:<generation_rule_name> # if added to root BUILD.bazel
 ```
 
-On success you can retrieve the generated `gatewayd_config.bin` from `bazel-bin/gatewayd_config.bin`
+On success you can retrieve the generated `gatewayd_config.bin` from `bazel-bin/`. Check the success message for the exact path.
