@@ -32,8 +32,24 @@ namespace socom {
 class Runtime_impl;
 
 namespace client_connector {
-// deadlock detection.
-class Impl final : public Client_connector, public Client_connector::Event_manager {
+
+class Impl;
+
+class Event_impl : public Client_connector::Event {
+    Impl& m_connector;
+    Event_id m_id;
+
+   public:
+    Event_impl(Impl& connector, Event_id id);
+
+    Result<Blank> subscribe(Event_mode mode) const noexcept override;
+
+    Result<Blank> unsubscribe() const noexcept override;
+
+    Result<Blank> request_update() const noexcept override;
+};
+
+class Impl final : public Client_connector {
    public:
     using Endpoint = Client_connector_endpoint;
 
@@ -50,13 +66,14 @@ class Impl final : public Client_connector, public Client_connector::Event_manag
 
     ~Impl() noexcept override;
 
-    // interface ::score::socom::Client_connector
-    score::Result<Client_connector::Event> subscribe_event(Event_id client_id,
-                                                           Event_mode mode) const noexcept override;
-    message::Unsubscribe_event::Return_type unsubscribe_event(
-        Event_id client_id) const noexcept override;
+    message::Subscribe_event::Return_type subscribe_event(Event_id client_id,
+                                                          Event_mode mode) const noexcept;
+    message::Unsubscribe_event::Return_type unsubscribe_event(Event_id client_id) const noexcept;
     message::Request_event_update::Return_type request_event_update(
-        Event_id client_id) const noexcept override;
+        Event_id client_id) const noexcept;
+
+    // interface ::score::socom::Client_connector
+    std::vector<std::reference_wrapper<Event const>> get_events() const noexcept override;
     message::Call_method::Return_type call_method(
         Method_id client_id, Payload::Sptr payload,
         Method_reply_callback const& on_method_reply) const noexcept override;
@@ -94,6 +111,7 @@ class Impl final : public Client_connector, public Client_connector::Event_manag
     std::promise<void> m_stop_complete_promise;
     Reference_token m_stop_block_token;                 // Protected by m_mutex
     std::optional<Server_connector_endpoint> m_server;  // Protected by m_mutex
+    std::vector<Event_impl> m_events;                   // Protected by m_mutex
     Registration m_registration;                        // Protected by m_mutex
     Posix_credentials m_credentials;
 };

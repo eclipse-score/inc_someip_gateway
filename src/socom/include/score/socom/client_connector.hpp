@@ -112,9 +112,60 @@ class Client_connector {
         Method_reply_payload_allocate_callback on_method_reply_payload_allocate = {};
     };
 
-    class Event_manager {
+    class Event {
        public:
-        virtual ~Event_manager() noexcept = default;
+        virtual ~Event() noexcept = default;
+
+        /// \brief Subscribe an event to receive event updates from the Server_connector.
+        /// \details The mode value Event_mode::update_and_initial_value supports the field
+        /// use-case.
+        ///
+        /// The user is responsible for calling subscribe_event() again, if the service state
+        /// transitions to Service_state::available and a subscription is required.
+        ///
+        /// If the service state is Service_state::available, then the Enabled_server_connector
+        /// instance registers this Client_connector as subscribed for event server_id.
+        ///
+        /// If the server has acknowledged this event for any subscriber before with a call to
+        /// set_event_subscription_state(Event_state::subscribed), callback
+        /// on_event_subscription_status_change(Event_state::subscribed) is called (might be even
+        /// within the context of subscribe_event()).
+        ///
+        /// The available Enabled_server_connector instance combines the mode parameter with modes
+        /// of other clients subscription's and stores the result.
+        ///
+        /// The mode value Event_mode::update_and_initial_value is dominant while mode value
+        /// Event_mode::update is recessive.
+        ///
+        /// If one subscription requests mode value Event_mode::update_and_initial_value,
+        /// then the resulting stored mode value is Event_mode::update_and_initial_value.
+        ///
+        /// All subscriptions are lost if the service state Service_state::available is left.
+        ///
+        /// If this is the first subscription for this event server_id at the
+        /// Enabled_server_connector instance (no matter from which Client_connector), then the
+        /// Enabled_server_connector instance calls callback on_event_subscription_change(server_id,
+        /// Event_state::subscribed).
+        ///
+        /// If this is the first subscription for this event server_id at the
+        /// Enabled_server_connector instance and the parameter mode is
+        /// Event_mode::update_and_initial_value, then the Enabled_server_connector instance stores
+        /// the Client_connector instance in a list of update requesters for event server_id and
+        /// calls callback on_event_update_request(server_id) after calling callback
+        /// on_event_subscription_change().
+        ///
+        /// After successful subscription the Client_connector calls
+        /// on_event_subscription_status_change with Event_state::subscribed.
+        ///
+        /// After loss of subscription the Client_connector calls
+        /// on_event_subscription_status_change with Event_state::unsubscribed.
+        ///
+        /// At subscription for any event the state is Event_state::unsubscribed until
+        /// on_event_subscription_change(Event_state::subscribed) has been called (might be even
+        /// within the context of subscribe_event()).
+        /// \param mode Mode of the event.
+        /// \return Void in case of successful operation, otherwise an error.
+        virtual Result<Blank> subscribe(Event_mode mode) const noexcept = 0;
 
         /// \brief Unsubscribes from an event to stop receiving event updates.
         /// \details If the service state is Service_state::available, then the available
@@ -126,33 +177,16 @@ class Client_connector {
         /// server_id at the Enabled_server_connector instance, then the Enabled_server_connector
         /// instance calls callback on_event_subscription_change(server_id,
         /// Event_state::not_subscribed).
-        /// \param client_id ID of the event.
         /// \return Void in case of successful operation, otherwise an error.
-        virtual Result<Blank> unsubscribe_event(Event_id client_id) const noexcept = 0;
+        virtual Result<Blank> unsubscribe() const noexcept = 0;
 
         /// \brief Requests an event update.
         /// \details If the service state is Service_state::available, then the available
         /// Enabled_server_connector instance stores the Client_connector instance in a list of
         /// update requesters for event server_id and calls callback
         /// on_event_update_request(server_id) if this is the first update_request for the event.
-        /// \param client_id ID of the event.
         /// \return Void in case of successful operation, otherwise an error.
-        virtual Result<Blank> request_event_update(Event_id client_id) const noexcept = 0;
-    };
-
-    class Event {
-        Event_manager const* m_event_manager;
-        Event_id m_event_id;
-
-       public:
-        Event(Event_manager const& event_manager, Event_id event_id)
-            : m_event_manager{&event_manager}, m_event_id{event_id} {}
-
-        ~Event() { m_event_manager->unsubscribe_event(m_event_id); }
-
-        Result<Blank> request_event_update() const noexcept {
-            return m_event_manager->request_event_update(m_event_id);
-        }
+        virtual Result<Blank> request_update() const noexcept = 0;
     };
 
     /// \brief Constructor.
@@ -205,56 +239,8 @@ class Client_connector {
         return nullptr;
     }
 
-    /// \brief Subscribe an event to receive event updates from the Server_connector.
-    /// \details The mode value Event_mode::update_and_initial_value supports the field use-case.
-    ///
-    /// The user is responsible for calling subscribe_event() again, if the service state
-    /// transitions to Service_state::available and a subscription is required.
-    ///
-    /// If the service state is Service_state::available, then the Enabled_server_connector instance
-    /// registers this Client_connector as subscribed for event server_id.
-    ///
-    /// If the server has acknowledged this event for any subscriber before with a call to
-    /// set_event_subscription_state(Event_state::subscribed), callback
-    /// on_event_subscription_status_change(Event_state::subscribed) is called (might be even within
-    /// the context of subscribe_event()).
-    ///
-    /// The available Enabled_server_connector instance combines the mode parameter with modes of
-    /// other clients subscription's and stores the result.
-    ///
-    /// The mode value Event_mode::update_and_initial_value is dominant while mode value
-    /// Event_mode::update is recessive.
-    ///
-    /// If one subscription requests mode value Event_mode::update_and_initial_value,
-    /// then the resulting stored mode value is Event_mode::update_and_initial_value.
-    ///
-    /// All subscriptions are lost if the service state Service_state::available is left.
-    ///
-    /// If this is the first subscription for this event server_id at the Enabled_server_connector
-    /// instance (no matter from which Client_connector), then the Enabled_server_connector instance
-    /// calls callback on_event_subscription_change(server_id, Event_state::subscribed).
-    ///
-    /// If this is the first subscription for this event server_id at the Enabled_server_connector
-    /// instance and the parameter mode is Event_mode::update_and_initial_value, then the
-    /// Enabled_server_connector instance stores the Client_connector instance in a list of update
-    /// requesters for event server_id and calls callback on_event_update_request(server_id) after
-    /// calling callback on_event_subscription_change().
-    ///
-    /// After successful subscription the Client_connector calls on_event_subscription_status_change
-    /// with Event_state::subscribed.
-    ///
-    /// After loss of subscription the Client_connector calls on_event_subscription_status_change
-    /// with Event_state::unsubscribed.
-    ///
-    /// At subscription for any event the state is Event_state::unsubscribed until
-    /// on_event_subscription_change(Event_state::subscribed) has been called (might be even within
-    /// the context of subscribe_event()).
-    /// \param client_id ID of the event.
-    /// \param mode Mode of the event.
-    /// \return Void in case of successful operation, otherwise an error.
-    virtual Result<Event> subscribe_event(Event_id client_id, Event_mode mode) const noexcept = 0;
+    virtual std::vector<std::reference_wrapper<Event const>> get_events() const noexcept = 0;
 
-   public:
     /// \brief Calls a method at the Server_connector side.
     /// \details If on_method_reply is nullptr, then the Server application (of the
     /// Enabled_server_connector instance) and the Method_invocation object returned do not allocate
