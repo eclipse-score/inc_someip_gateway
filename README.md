@@ -23,7 +23,7 @@ cd inc_someip_gateway
 Start the daemons in this order:
 
 ```sh
-bazel run //src/gatewayd
+bazel run //src/gatewayd:gatewayd_example
 ```
 
 and in a separate terminal
@@ -109,25 +109,28 @@ You can then either use it as a runfile dependency for a run target:
 
 ```bash
 generate_someip_config_bin(
-    name = "config_file",
+    name = "someipd_config",
     ...
 )
 
-cc_binary(
+native_binary(
     name = "gatewayd",
-    srcs = ["main.cpp"],
-    data = [
-        ":config_file", # <-- like this
+    src = "@score_someip_gateway//src/gatewayd",
+    args = [
+        "-service_instance_manifest",
+        "$(rootpath etc/mw_com_config.json)",
     ],
-    visibility = ["//visibility:public"],
-    ...
+    data = [
+        "etc/mw_com_config.json",
+        ":someipd_config",
+    ],
 )
 ```
 
 Or you can manually generate the `gatewayd_config.bin` with the following command:
 
 ```bash
-bazel build //:config_file # if the macro has been added to root BUILD.bazel
+bazel build //:someipd_config # if the macro has been added to root BUILD.bazel
 ```
 
 On success you can retrieve the generated `gatewayd_config.bin` from `bazel-bin/`. Check the success message for the exact path.
