@@ -65,6 +65,15 @@ common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry
 common --registry=https://bcr.bazel.build
 
 # ============================================================================
+# Integration Test Framework Configuration
+# ============================================================================
+
+build:qemu-linux --run_under=@itf//scripts:run_under_qemu
+build:qemu-linux --test_arg="--qemu"
+build:qemu-linux --test_arg="--os=linux"
+
+
+# ============================================================================
 # Feature Flags & S-CORE Configuration
 # ============================================================================
 common --features=-treat_warnings_as_errors

@@ -62,6 +62,8 @@ use_repo(pip, "someip_pip")
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 bazel_dep(name = "google_benchmark", version = "1.9.4", dev_dependency = True)
 
+bazel_dep(name = "score_itf", version = "0.1.0", repo_name = "itf")
+
 # ============================================================================
 # Build System Rules
 # ============================================================================
