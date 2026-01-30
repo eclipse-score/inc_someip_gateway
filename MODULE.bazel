@@ -77,7 +77,7 @@ bazel_dep(name = "platforms", version = "1.0.0")
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.0.3")
+bazel_dep(name = "score_bazel_platforms", version = "0.0.4")
 
 # ============================================================================
 # Rust Toolchain Configuration for Multi-Architecture Support
@@ -110,15 +110,31 @@ git_override(
 # ============================================================================
 # QNX8 Toolchain Configuration
 # ============================================================================
-bazel_dep(name = "score_toolchains_qnx", version = "0.0.6")
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.2.2", dev_dependency = True)
 
-toolchains_qnx = use_extension("@score_toolchains_qnx//:extensions.bzl", "toolchains_qnx")
-toolchains_qnx.sdp(
-    sha256 = "03a0afc329e4cbc78a1d0829009fad0de47fb335189b36c81670bfd4ec0e67de",
-    url = "file:////home/snj1brg/workspace/score/inc_someip_gateway/qnx800.tgz",
+gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
+
+# Custom QNX SDP package (no authentication required)
+# TODO: Update the URL to point to your locally downloaded QNX SDP
+gcc.sdp(
+    name = "score_gcc_qnx_toolchain_pkg",
+    build_file = "@score_bazel_cpp_toolchains//packages/qnx/aarch64/sdp/8.0.0:sdp.BUILD",
+    sha256 = "f2e0cb21c6baddbcb65f6a70610ce498e7685de8ea2e0f1648f01b327f6bac63",
+    strip_prefix = "installation",
+    url = "file:///home/wbm1lo/score/score_inc_someip_gateway/installation.tgz",  # Local path
+    # url = "file:///workspaces/score_inc_someip_gateway/installation.tgz",  # devcontainer
 )
-use_repo(toolchains_qnx, "toolchains_qnx_sdp")
-use_repo(toolchains_qnx, "toolchains_qnx_qcc")
+gcc.toolchain(
+    name = "score_gcc_qnx_toolchain",
+    sdp_to_link = "score_gcc_qnx_toolchain_pkg",  # Link to custom package
+    sdp_version = "8.0.0",
+    target_cpu = "aarch64",
+    target_os = "qnx",
+    version = "12.2.0",
+)
+use_repo(gcc, "score_gcc_qnx_toolchain")
+
+register_toolchains("@score_gcc_qnx_toolchain//:all")
 
 # ============================================================================
 # Optional Toolchain Dependencies

@@ -24,42 +24,39 @@ build --tool_java_runtime_version=remotejdk_17
 #
 # Usage:
 #   bazel build //... --config=x86_64-linux  # Build for x86_64 (native on x86_64 host)
-#   bazel build //... --config=arm64-linux   # Build for ARM64/aarch64 (cross-compile)
+#   bazel build //... --config=aarch64-linux # Build for aarch64 (cross-compile)
 #   bazel build //... --config=x86_64-qnx    # Build for x86_64 (native on x86_64 QNX8)
-#   bazel build //... --config=arm64-qnx     # Build for ARM64/aarch64 (cross-compile QNX8)
+#   bazel build //... --config=aarch64-qnx   # Build for aarch64 (cross-compile QNX8)
 #
 # Platform Definitions:
 #   @score_bazel_platforms//:x86_64-linux  - x86_64 architecture (GNU/Linux)
-#   @score_bazel_platforms//:arm64-linux   - ARM64/aarch64 architecture (GNU/Linux)
+#   @score_bazel_platforms//:aarch64-linux - aarch64 architecture (GNU/Linux)
 #   @score_bazel_platforms//:x86_64-qnx    - x86_64 architecture (QNX8)
-#   @score_bazel_platforms//:arm64-qnx     - ARM64/aarch64 architecture (QNX8)
+#   @score_bazel_platforms//:aarch64-qnx   - aarch64 architecture (QNX8)
 common:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
-common:x86_64-linux --extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux
 common:x86_64-linux --define=config=x86_64-linux
 common:x86_64-linux --repo_env=TARGET_ARCH=x86_64
 
-common:arm64-linux --platforms=@score_bazel_platforms//:arm64-linux
-common:arm64-linux --extra_toolchains=@llvm_toolchain//:cc-toolchain-aarch64-linux
-common:arm64-linux --define=config=arm64-linux
-common:arm64-linux --repo_env=TARGET_ARCH=aarch64
+common:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux
+common:aarch64-linux --define=config=arm64-linux
+common:aarch64-linux --repo_env=TARGET_ARCH=aarch64
 
-common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx8_0
-common:x86_64-qnx --extra_toolchains=@toolchains_qnx_qcc//:qcc_x86_64
+common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 common:x86_64-qnx --sandbox_writable_path=/var
 common:x86_64-qnx --define=config=x86_64-qnx
 common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
 common:x86_64-qnx --action_env=QNX_TARGET_ARCH=x86_64
 common:x86_64-qnx --spawn_strategy=local
 
-common:arm64-qnx --platforms=@score_bazel_platforms//:arm64-qnx8_0
-common:arm64-qnx --extra_toolchains=@toolchains_qnx_qcc//:qcc_aarch64
-common:arm64-qnx --sandbox_writable_path=/var/tmp
-common:arm64-qnx --define=config=arm64-qnx
-common:arm64-qnx --repo_env=TARGET_ARCH=aarch64
-common:arm64-qnx --action_env=QNX_TARGET_ARCH=aarch64le
-common:arm64-qnx --spawn_strategy=local
+common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
+common:aarch64-qnx --sandbox_writable_path=/var/tmp
+common:aarch64-qnx --define=config=arm64-qnx
+common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
+common:aarch64-qnx --action_env=QNX_TARGET_ARCH=aarch64le
+common:aarch64-qnx --spawn_strategy=local
 
-common --action_env=QNXLM_LICENSE_FILE=<license_server_url>
+common --action_env=QNXLM_LICENSE_FILE="6287@rb-lic-qnxlm.de.bosch.com"
+
 
 test --test_output=errors
 build --incompatible_strict_action_env

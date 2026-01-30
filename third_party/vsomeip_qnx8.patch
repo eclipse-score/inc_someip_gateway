@@ -1,28 +1,11 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 877649e..fe560d4 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -327,7 +327,10 @@ if (MSVC)
-     set_target_properties(${VSOMEIP_NAME} PROPERTIES COMPILE_DEFINITIONS "VSOMEIP_DLL_COMPILATION")
-     set_target_properties(${VSOMEIP_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
- else ()
--    set_target_properties(${VSOMEIP_NAME} PROPERTIES LINK_FLAGS "-Wl,-wrap,socket -Wl,-wrap,accept -Wl,-wrap,open")
-+    # Linker function wrapping disabled - QNX handles this via conditional compilation in wrappers_qnx.cpp
-+    # For QNX: Uses standard POSIX or wrapper implementations depending on version
-+    # For other systems: Uses standard C library functions
-+    # set_target_properties(${VSOMEIP_NAME} PROPERTIES LINK_FLAGS "-Wl,-wrap,socket -Wl,-wrap,accept -Wl,-wrap,open")
- endif ()
- target_include_directories(${VSOMEIP_NAME} INTERFACE
-     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/interface>
-
 diff --git a/implementation/endpoints/include/asio_tcp_socket.hpp b/implementation/endpoints/include/asio_tcp_socket.hpp
-index 074d23d..82a8997 100644
+index 0b577f95..6615d6f1 100644
 --- a/implementation/endpoints/include/asio_tcp_socket.hpp
 +++ b/implementation/endpoints/include/asio_tcp_socket.hpp
 @@ -6,6 +6,13 @@
  #ifndef VSOMEIP_V3_ASIO_TCP_SOCKET_HPP_
  #define VSOMEIP_V3_ASIO_TCP_SOCKET_HPP_
-
+ 
 +#ifdef __QNX__
 +#include <sys/socket.h>
 +#ifndef SO_BINDTODEVICE
@@ -31,26 +14,25 @@ index 074d23d..82a8997 100644
 +#endif
 +
  #include "tcp_socket.hpp"
-
+ 
  #include <boost/asio/write.hpp>
-
 diff --git a/implementation/utility/src/wrappers_qnx.cpp b/implementation/utility/src/wrappers_qnx.cpp
-index deaa491..3538d2b 100644
+index 77c261cc..d1a925b8 100644
 --- a/implementation/utility/src/wrappers_qnx.cpp
 +++ b/implementation/utility/src/wrappers_qnx.cpp
 @@ -5,6 +5,8 @@
-
+ 
  #ifdef __QNX__
-
+ 
 +// QNX7 SDP specific headers - sys/sockmsg.h does not exist in QNX8
 +#if defined(__QNX__) && (__QNX__ < 800)
  #include <sys/socket.h>
  #include <sys/types.h>
-
+ 
 @@ -151,4 +153,8 @@ int __wrap_open(const char* pathname, int flags, mode_t mode) {
  }
  }
-
+ 
 +#else  // QNX8+ - no custom wrappers needed
 +// QNX8 has standard POSIX support (accept4, etc)
 +#endif  // QNX version check
