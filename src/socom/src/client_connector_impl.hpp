@@ -49,20 +49,6 @@ class Event_impl : public Client_connector::Event {
     Result<Blank> request_update() const noexcept override;
 };
 
-class Method_impl : public Client_connector::Method {
-    Impl& m_connector;
-    Method_id m_id;
-
-   public:
-    Method_impl(Impl& connector, Method_id id);
-
-    Result<Method_invocation::Uptr> call(
-        Payload::Sptr payload,
-        Method_reply_callback const& on_method_reply) const noexcept override;
-
-    Result<std::unique_ptr<Writable_payload>> allocate_method_payload() noexcept override;
-};
-
 class Impl final : public Client_connector {
    public:
     using Endpoint = Client_connector_endpoint;
@@ -85,13 +71,12 @@ class Impl final : public Client_connector {
     message::Unsubscribe_event::Return_type unsubscribe_event(Event_id client_id) const noexcept;
     message::Request_event_update::Return_type request_event_update(
         Event_id client_id) const noexcept;
-    message::Call_method::Return_type call_method(
-        Method_id client_id, Payload::Sptr payload,
-        Method_reply_callback const& on_method_reply) const noexcept;
 
     // interface ::score::socom::Client_connector
     std::vector<std::reference_wrapper<Event const>> get_events() const noexcept override;
-    std::vector<std::reference_wrapper<Method const>> get_methods() const noexcept override;
+    message::Call_method::Return_type call_method(
+        Method_id client_id, Payload::Sptr payload,
+        Method_reply_callback const& on_method_reply) const noexcept override;
     Result<Posix_credentials> get_peer_credentials() const noexcept override;
     Service_interface_configuration const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
@@ -127,7 +112,6 @@ class Impl final : public Client_connector {
     Reference_token m_stop_block_token;                 // Protected by m_mutex
     std::optional<Server_connector_endpoint> m_server;  // Protected by m_mutex
     std::vector<Event_impl> m_events;                   // Protected by m_mutex
-    std::vector<Method_impl> m_methods;                 // Protected by m_mutex
     Registration m_registration;                        // Protected by m_mutex
     Posix_credentials m_credentials;
 };

@@ -189,37 +189,6 @@ class Client_connector {
         virtual Result<Blank> request_update() const noexcept = 0;
     };
 
-    class Method {
-       public:
-        virtual ~Method() noexcept = default;
-
-        /// \brief Calls a method at the Server_connector side.
-        /// \details If on_method_reply is nullptr, then the Server application (of the
-        /// Enabled_server_connector instance) and the Method_invocation object returned do not
-        /// allocate any resources for this method call and callback on_method_reply() will not be
-        /// called.
-        ///
-        /// If on_method_reply is not nullptr, then the server application (of the
-        /// Enabled_server_connector instance) returns a Method_invocation object which allocates
-        /// resources required for the ongoing method invocation. Once the method invocation is
-        /// completed, the server application calls callback on_method_reply(). Discarding the
-        /// Method_invocation object cancels the method invocation.
-        ///
-        /// If the service state is Service_state::available, then the available Server_connector
-        /// instance calls the callback on_method_call(server_id, payload, on_method_reply).
-        /// \param payload Payload to be called with.
-        /// \param on_method_reply Callback function in case a reply is requested.
-        /// \return A pointer to a Method_invocation object in case of successful invocation,
-        /// otherwise an error.
-        [[nodiscard]] virtual Result<Method_invocation::Uptr> call(
-            Payload::Sptr payload, Method_reply_callback const& on_method_reply) const noexcept = 0;
-
-        [[nodiscard]]
-        virtual Result<std::unique_ptr<Writable_payload>> allocate_method_payload() noexcept {
-            return nullptr;
-        }
-    };
-
     /// \brief Constructor.
     /// \details A Client_connector instance and a Server_connector instance do not match under the
     /// following conditions:
@@ -264,9 +233,35 @@ class Client_connector {
     Client_connector& operator=(Client_connector const&) = delete;
     Client_connector& operator=(Client_connector&&) = delete;
 
+    [[nodiscard]]
+    virtual Result<std::unique_ptr<Writable_payload>> allocate_method_payload(
+        Method_id /* method_id */) noexcept {
+        return nullptr;
+    }
+
     virtual std::vector<std::reference_wrapper<Event const>> get_events() const noexcept = 0;
 
-    virtual std::vector<std::reference_wrapper<Method const>> get_methods() const noexcept = 0;
+    /// \brief Calls a method at the Server_connector side.
+    /// \details If on_method_reply is nullptr, then the Server application (of the
+    /// Enabled_server_connector instance) and the Method_invocation object returned do not allocate
+    /// any resources for this method call and callback on_method_reply() will not be called.
+    ///
+    /// If on_method_reply is not nullptr, then the server application (of the
+    /// Enabled_server_connector instance) returns a Method_invocation object which allocates
+    /// resources required for the ongoing method invocation. Once the method invocation is
+    /// completed, the server application calls callback on_method_reply(). Discarding the
+    /// Method_invocation object cancels the method invocation.
+    ///
+    /// If the service state is Service_state::available, then the available Server_connector
+    /// instance calls the callback on_method_call(server_id, payload, on_method_reply).
+    /// \param client_id ID of the method.
+    /// \param payload Payload to be called with.
+    /// \param on_method_reply Callback function in case a reply is requested.
+    /// \return A pointer to a Method_invocation object in case of successful invocation, otherwise
+    /// an error.
+    [[nodiscard]] virtual Result<Method_invocation::Uptr> call_method(
+        Method_id client_id, Payload::Sptr payload,
+        Method_reply_callback const& on_method_reply) const noexcept = 0;
 
     /// \brief Retrieves the peer posix credentials from the server.
     /// \details If the client connector is not connected, then an error is returned.

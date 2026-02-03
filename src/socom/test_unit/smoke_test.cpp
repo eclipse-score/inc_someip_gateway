@@ -176,8 +176,8 @@ TEST_F(Connection_test, client_calls_method_and_gets_response) {
     Method_reply_callback pointer;
     EXPECT_CALL(m_method_call_mock, Call(_, 0, _, _, _))
         .WillOnce(DoAll(SaveArgByMove<3>(&pointer), Return(nullptr)));
-    auto const invocation = client_connector->get_methods().at(0).get().call(
-        empty_payload(), m_method_reply_mock.AsStdFunction());
+    auto const invocation =
+        client_connector->call_method(0, empty_payload(), m_method_reply_mock.AsStdFunction());
     // ASSERT_TRUE(invocation);
 
     EXPECT_CALL(m_method_reply_mock, Call).Times(1);
