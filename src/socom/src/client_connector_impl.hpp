@@ -60,7 +60,7 @@ class Method_impl : public Client_connector::Method {
         Payload::Sptr payload,
         Method_reply_callback const& on_method_reply) const noexcept override;
 
-    Result<std::unique_ptr<Writable_payload>> allocate_payload() noexcept override;
+    Result<std::unique_ptr<Writable_payload>> allocate_method_payload() noexcept override;
 };
 
 class Impl final : public Client_connector {
