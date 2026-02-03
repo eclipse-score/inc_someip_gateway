@@ -22,7 +22,7 @@ state Event_subscribed_acknowledged
 [*] --> Not_available
 Not_available --> Available: Client_connector::Callbacks::\non_service_state_change\n(Service_state::available)
 
-Available --> Not_available: Client_connector::\nsubscribe_event()
+Available --> Not_available: Client_connector::Callbacks::\non_service_state_change\n(!Service_state::available)
 Available --> Event_subscribed: Client_connector::\nsubscribe_event()
 
 Event_subscribed --> Available: Client_connector::\nunsubscribe_event()
