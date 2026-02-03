@@ -38,23 +38,6 @@ namespace server_connector {
 
 class Impl;
 
-class Event_impl : public Enabled_server_connector::Event {
-   public:
-    Impl& m_connector;
-    Event_id m_id;
-
-   public:
-    Event_impl(Impl& connector, Event_id id);
-
-    Result<Blank> update(Payload::Sptr payload) noexcept override;
-
-    Result<Blank> update_requested(Payload::Sptr payload) noexcept override;
-
-    Result<Blank> set_subscription_state(Event_state event_state) noexcept override;
-
-    [[nodiscard]] Result<Event_mode> get_mode() const noexcept override;
-};
-
 class Client_connection {
    public:
     explicit Client_connection(Impl& impl, Client_connector_endpoint client);
@@ -121,14 +104,13 @@ class Impl final : public Disabled_server_connector, public Enabled_server_conne
 
     ~Impl() noexcept override;
 
-    Result<Blank> update_event(Event_id server_id, Payload::Sptr payload) noexcept;
-    Result<Blank> update_requested_event(Event_id server_id, Payload::Sptr payload) noexcept;
-    Result<Blank> set_event_subscription_state(Event_id server_id,
-                                               Event_state event_state) noexcept;
-    Result<Event_mode> get_event_mode(Event_id server_id) const noexcept;
-
     // interface ::score::socom::Enabled_server_connector
-    std::vector<std::reference_wrapper<Event>> get_events() noexcept override;
+    Result<Blank> update_event(Event_id server_id, Payload::Sptr payload) noexcept override;
+    Result<Blank> update_requested_event(Event_id server_id,
+                                         Payload::Sptr payload) noexcept override;
+    Result<Blank> set_event_subscription_state(Event_id server_id,
+                                               Event_state event_state) noexcept override;
+    Result<Event_mode> get_event_mode(Event_id server_id) const noexcept override;
     Impl* enable() override;
     Impl* disable() noexcept override;
     Server_service_interface_configuration const& get_configuration() const noexcept override;
@@ -158,7 +140,7 @@ class Impl final : public Disabled_server_connector, public Enabled_server_conne
     };
 
     using Clients = std::list<Client_connection>;
-    using Events = std::vector<server_connector::Event>;
+    using Events = std::vector<Event>;
     using Event_infos = std::vector<Event_info>;
 
     void unsubscribe_event();
@@ -181,7 +163,6 @@ class Impl final : public Disabled_server_connector, public Enabled_server_conne
     Server_service_interface_configuration const m_configuration;
     Service_instance const m_instance;
     Disabled_server_connector::Callbacks const m_callbacks;
-    std::vector<Event_impl> m_events;
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Deadlock_detector m_deadlock_detector;
 #endif

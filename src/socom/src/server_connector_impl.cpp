@@ -25,30 +25,11 @@
 #include "score/socom/service_interface.hpp"
 #include "score/socom/service_interface_configuration.hpp"
 #include "temporary_thread_id_add.hpp"
-#include "utility.hpp"
 
 namespace score {
 namespace socom {
 
 namespace server_connector {
-
-Event_impl::Event_impl(Impl& connector, Event_id id) : m_connector{connector}, m_id{id} {}
-
-Result<Blank> Event_impl::update(Payload::Sptr payload) noexcept {
-    return m_connector.update_event(m_id, std::move(payload));
-}
-
-Result<Blank> Event_impl::update_requested(Payload::Sptr payload) noexcept {
-    return m_connector.update_requested_event(m_id, std::move(payload));
-}
-
-Result<Blank> Event_impl::set_subscription_state(Event_state event_state) noexcept {
-    return m_connector.set_event_subscription_state(m_id, event_state);
-}
-
-[[nodiscard]] Result<Event_mode> Event_impl::get_mode() const noexcept {
-    return m_connector.get_event_mode(m_id);
-}
 
 Client_connection::Client_connection(Impl& impl, Client_connector_endpoint client)
     : m_impl{impl}, m_client{std::move(client)} {}
@@ -60,7 +41,6 @@ Impl::Impl(Runtime_impl& runtime, Server_service_interface_configuration configu
       m_configuration{std::move(configuration)},
       m_instance{instance},
       m_callbacks{std::move(callbacks)},
-      m_events{create_impls<Event_impl>(*this, m_configuration.get_num_events())},
       m_subscriber{m_configuration.get_num_events()},
       m_update_requester{m_configuration.get_num_events()},
       m_event_infos{m_configuration.get_num_events()},
@@ -72,10 +52,6 @@ Impl::Impl(Runtime_impl& runtime, Server_service_interface_configuration configu
 }
 
 Impl::~Impl() noexcept { disable(); }
-
-std::vector<std::reference_wrapper<Enabled_server_connector::Event>> Impl::get_events() noexcept {
-    return create_wrapper_vector<Enabled_server_connector::Event>(m_events);
-}
 
 Impl* Impl::enable() {
     // Defensive programming. True condition can not accour. At construction

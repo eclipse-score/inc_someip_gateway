@@ -119,8 +119,6 @@ class Impl final : public Client_connector {
     Service_interface_configuration const m_configuration;
     Service_instance const m_instance;
     Client_connector::Callbacks const m_callbacks;
-    std::vector<Event_impl> const m_events;
-    std::vector<Method_impl> const m_methods;
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     mutable Deadlock_detector m_deadlock_detector;
 #endif
@@ -128,6 +126,8 @@ class Impl final : public Client_connector {
     std::promise<void> m_stop_complete_promise;
     Reference_token m_stop_block_token;                 // Protected by m_mutex
     std::optional<Server_connector_endpoint> m_server;  // Protected by m_mutex
+    std::vector<Event_impl> m_events;                   // Protected by m_mutex
+    std::vector<Method_impl> m_methods;                 // Protected by m_mutex
     Registration m_registration;                        // Protected by m_mutex
     Posix_credentials m_credentials;
 };

@@ -22,7 +22,6 @@
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
 #include "server_connector_impl.hpp"
-#include "utility.hpp"
 
 namespace score {
 namespace socom {
@@ -54,16 +53,26 @@ Result<std::unique_ptr<Writable_payload>> Method_impl::allocate_method_payload()
     return MakeUnexpected(Error::runtime_error_permission_not_allowed);
 }
 
+template <typename T>
+auto create_impls(Impl& connector, std::size_t const& num_elements) {
+    std::vector<T> events;
+    events.reserve(num_elements);
+    for (Event_id id = 0; id < num_elements; ++id) {
+        events.emplace_back(connector, id);
+    }
+    return events;
+}
+
 Impl::Impl(Runtime_impl& runtime, Service_interface_configuration const& configuration,
            Service_instance const& instance, Client_connector::Callbacks callbacks,
            Posix_credentials const& credentials)
     : m_configuration{configuration},
       m_instance{instance},
       m_callbacks{std::move(callbacks)},
-      m_events{create_impls<Event_impl>(*this, configuration.num_events)},
-      m_methods{create_impls<Method_impl>(*this, configuration.num_methods)},
       m_stop_block_token{
           std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
+      m_events{create_impls<Event_impl>(*this, configuration.num_events)},
+      m_methods{create_impls<Method_impl>(*this, configuration.num_methods)},
       m_registration{
           runtime.register_connector(configuration, instance, make_on_server_update_callback())},
       m_credentials{credentials} {
@@ -108,13 +117,23 @@ message::Request_event_update::Return_type Impl::request_event_update(
     return send(message::Request_event_update{client_id});
 }
 
+template <typename T, typename U>
+auto create_wrapper_vector(std::vector<U> const& vec) {
+    std::vector<std::reference_wrapper<T const>> result;
+    result.reserve(vec.size());
+    for (auto& item : vec) {
+        result.emplace_back(item);
+    }
+    return result;
+}
+
 std::vector<std::reference_wrapper<Client_connector::Event const>> Impl::get_events()
     const noexcept {
     if (!m_server.has_value()) {
         return {};
     }
 
-    return create_wrapper_vector<Client_connector::Event const>(m_events);
+    return create_wrapper_vector<Client_connector::Event>(m_events);
 }
 
 std::vector<std::reference_wrapper<Client_connector::Method const>> Impl::get_methods()
@@ -123,7 +142,7 @@ std::vector<std::reference_wrapper<Client_connector::Method const>> Impl::get_me
         return {};
     }
 
-    return create_wrapper_vector<Client_connector::Method const>(m_methods);
+    return create_wrapper_vector<Client_connector::Method>(m_methods);
 }
 
 message::Call_method::Return_type Impl::call_method(

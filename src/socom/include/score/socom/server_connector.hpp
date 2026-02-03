@@ -163,65 +163,64 @@ class Enabled_server_connector {
     static std::unique_ptr<Disabled_server_connector> disable(
         std::unique_ptr<Enabled_server_connector> connector) noexcept;
 
+    // caveat: this only works with 1:1 connections, assumption is that it is ok because mw::com /
+    // message_passing will in S-CORE do the multiplexing
+    [[nodiscard]]
+    virtual Result<std::unique_ptr<Writable_payload>> allocate_event_payload(
+        Event_id /* event_id */) noexcept {
+        return nullptr;
+    }
+
     [[nodiscard]]
     virtual Result<std::unique_ptr<Writable_payload>> allocate_method_reply_payload(
         Method_invocation const* /* invovation_id */) noexcept {
         return nullptr;
     }
-    class Event {
-       public:
-        virtual ~Event() noexcept = default;
 
-        // caveat: this only works with 1:1 connections, assumption is that it is ok because mw::com
-        // / message_passing will in S-CORE do the multiplexing
-        [[nodiscard]]
-        virtual Result<std::unique_ptr<Writable_payload>> allocate_payload(
-            Event_id /* event_id */) noexcept {
-            return nullptr;
-        }
+    /// \brief Distributes new event data to all subscribed Client_connectors.
+    /// \details Clears the list of event update requesters for the event server_id.
+    ///
+    /// Calls the callback on_event_update(client_id, payload) for each connected Client_connector
+    /// which is subscribed to event server_id.
+    /// \param server_id ID of the event.
+    /// \param payload Event data.
+    /// \return Void in case of successful operation, otherwise an error.
+    virtual Result<Blank> update_event(Event_id server_id, Payload::Sptr payload) noexcept = 0;
 
-        /// \brief Distributes new event data to all subscribed Client_connectors.
-        /// \details Clears the list of event update requesters for the event server_id.
-        ///
-        /// Calls the callback on_event_update(client_id, payload) for each connected
-        /// Client_connector which is subscribed to event server_id.
-        /// \param payload Event data.
-        /// \return Void in case of successful operation, otherwise an error.
-        virtual Result<Blank> update(Payload::Sptr payload) noexcept = 0;
+    /// \brief Distributes new event data to all event update requesting Client_connectors.
+    /// \details Clears the list of event update requesters for the event server_id.
+    ///
+    /// Calls the callback on_event_requested_update(client_id, payload) for each connected
+    /// Client_connector instance in a list of update requesters for event server_id.
+    /// \param server_id ID of the event.
+    /// \param payload Event data.
+    /// \return Void in case of successful operation, otherwise an error.
+    virtual Result<Blank> update_requested_event(Event_id server_id,
+                                                 Payload::Sptr payload) noexcept = 0;
 
-        /// \brief Distributes new event data to all event update requesting Client_connectors.
-        /// \details Clears the list of event update requesters for the event server_id.
-        ///
-        /// Calls the callback on_event_requested_update(client_id, payload) for each connected
-        /// Client_connector instance in a list of update requesters for event server_id.
-        /// \param payload Event data.
-        /// \return Void in case of successful operation, otherwise an error.
-        virtual Result<Blank> update_requested(Payload::Sptr payload) noexcept = 0;
+    /// \brief Signals to clients whether event updates are going to be sent or not.
+    /// \details This function only informs clients, but does not enable or disable the sending of
+    /// events. Thus it is ok to not call this function and send event updates.
+    ///
+    /// Calls the callback on_event_subscription_change(client_id, event_state) for each connected
+    /// Client_connector which already subscribed to event server_id.
+    /// \param server_id ID of the event.
+    /// \param event_state Event state.
+    /// \return Void in case of successful operation, otherwise an error.
+    virtual Result<Blank> set_event_subscription_state(Event_id server_id,
+                                                       Event_state event_state) noexcept = 0;
 
-        /// \brief Signals to clients whether event updates are going to be sent or not.
-        /// \details This function only informs clients, but does not enable or disable the sending
-        /// of events. Thus it is ok to not call this function and send event updates.
-        ///
-        /// Calls the callback on_event_subscription_change(client_id, event_state) for each
-        /// connected Client_connector which already subscribed to event server_id.
-        /// \param event_state Event state.
-        /// \return Void in case of successful operation, otherwise an error.
-        virtual Result<Blank> set_subscription_state(Event_state event_state) noexcept = 0;
-
-        /// \brief Retrieves the mode of the event server_id.
-        /// \details Returns the combined event subscription mode for event server_id, see
-        /// Client_connector::subscribe_event().
-        ///
-        /// Returns Event_mode::update_and_initial_value if any client has subscribed with
-        /// Event_mode::update_and_initial_value.
-        ///
-        /// Returns Event_mode::update if no Client_connector instance has subscribed to this event
-        /// yet.
-        /// \return An event mode in case of successful operation, otherwise an error.
-        [[nodiscard]] virtual Result<Event_mode> get_mode() const noexcept = 0;
-    };
-
-    virtual std::vector<std::reference_wrapper<Event>> get_events() noexcept = 0;
+    /// \brief Retrieves the mode of the event server_id.
+    /// \details Returns the combined event subscription mode for event server_id, see
+    /// Client_connector::subscribe_event().
+    ///
+    /// Returns Event_mode::update_and_initial_value if any client has subscribed with
+    /// Event_mode::update_and_initial_value.
+    ///
+    /// Returns Event_mode::update if no Client_connector instance has subscribed to this event yet.
+    /// \param server_id ID of the event.
+    /// \return An event mode in case of successful operation, otherwise an error.
+    [[nodiscard]] virtual Result<Event_mode> get_event_mode(Event_id server_id) const noexcept = 0;
 
    protected:
     /// \cond INTERNAL
