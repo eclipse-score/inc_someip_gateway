@@ -34,10 +34,12 @@ using Event_subscription_change_callback =
 /// \brief Function type for indicating an event update request to the service provider.
 using Event_request_update_callback = std::function<void(Enabled_server_connector&, Event_id)>;
 
+using Allocate_method_reply_payload = std::function<Result<std::unique_ptr<Writable_payload>>()>;
+
 /// \brief Function type for processing any client side method invocation.
-using Method_call_credentials_callback =
-    std::function<Method_invocation::Uptr(Enabled_server_connector&, Method_id, Payload::Sptr,
-                                          Method_reply_callback const&, Posix_credentials const&)>;
+using Method_call_credentials_callback = std::function<Method_invocation::Uptr(
+    Enabled_server_connector&, Method_id, Payload::Sptr, Method_reply_callback const&,
+    Posix_credentials const&, Allocate_method_reply_payload const&)>;
 
 /// Function type for indicating a method call payload request to the service provider.
 using Method_payload_allocate_callback =
@@ -168,12 +170,6 @@ class Enabled_server_connector {
     [[nodiscard]]
     virtual Result<std::unique_ptr<Writable_payload>> allocate_event_payload(
         Event_id /* event_id */) noexcept {
-        return nullptr;
-    }
-
-    [[nodiscard]]
-    virtual Result<std::unique_ptr<Writable_payload>> allocate_method_reply_payload(
-        Method_invocation const* /* invovation_id */) noexcept {
         return nullptr;
     }
 
