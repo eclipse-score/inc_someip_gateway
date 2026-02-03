@@ -26,30 +26,6 @@ namespace score {
 namespace socom {
 namespace client_connector {
 
-Event_impl::Event_impl(Impl& connector, Event_id id) : m_connector{connector}, m_id{id} {}
-
-Result<Blank> Event_impl::subscribe(Event_mode mode) const noexcept {
-    return m_connector.subscribe_event(m_id, mode);
-}
-
-Result<Blank> Event_impl::unsubscribe() const noexcept {
-    return m_connector.unsubscribe_event(m_id);
-}
-
-Result<Blank> Event_impl::request_update() const noexcept {
-    return m_connector.request_event_update(m_id);
-}
-
-std::vector<Event_impl> create_events(Impl& connector,
-                                      Service_interface_configuration const& configuration) {
-    std::vector<Event_impl> events;
-    events.reserve(configuration.num_events);
-    for (Event_id id = 0; id < configuration.num_events; ++id) {
-        events.emplace_back(connector, id);
-    }
-    return events;
-}
-
 Impl::Impl(Runtime_impl& runtime, Service_interface_configuration const& configuration,
            Service_instance const& instance, Client_connector::Callbacks callbacks,
            Posix_credentials const& credentials)
@@ -58,7 +34,6 @@ Impl::Impl(Runtime_impl& runtime, Service_interface_configuration const& configu
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
           std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
-      m_events{create_events(*this, configuration)},
       m_registration{
           runtime.register_connector(configuration, instance, make_on_server_update_callback())},
       m_credentials{credentials} {
@@ -89,9 +64,12 @@ Impl::~Impl() noexcept {
     Final_action const catch_promise_exceptions{wait_for_stop_complete};
 }
 
-message::Subscribe_event::Return_type Impl::subscribe_event(Event_id client_id,
-                                                            Event_mode mode) const noexcept {
-    return send(message::Subscribe_event{client_id, mode});
+score::Result<Client_connector::Event> Impl::subscribe_event(Event_id client_id,
+                                                             Event_mode mode) const noexcept {
+    return send(message::Subscribe_event{client_id, mode})
+        .and_then([this, client_id](auto const& /* message */) {
+            return Result<Client_connector::Event>{std::in_place, *this, client_id};
+        });
 }
 
 message::Unsubscribe_event::Return_type Impl::unsubscribe_event(Event_id client_id) const noexcept {
@@ -101,20 +79,6 @@ message::Unsubscribe_event::Return_type Impl::unsubscribe_event(Event_id client_
 message::Request_event_update::Return_type Impl::request_event_update(
     Event_id client_id) const noexcept {
     return send(message::Request_event_update{client_id});
-}
-
-std::vector<std::reference_wrapper<Client_connector::Event const>> Impl::get_events()
-    const noexcept {
-    if (!m_server.has_value()) {
-        return {};
-    }
-
-    std::vector<std::reference_wrapper<Client_connector::Event const>> result;
-    result.reserve(m_events.size());
-    for (auto& event : m_events) {
-        result.emplace_back(event);
-    }
-    return result;
 }
 
 message::Call_method::Return_type Impl::call_method(
@@ -207,6 +171,9 @@ Impl::Server_indication Impl::make_on_server_update_callback() {
         if (!connect_return) {
             return;
         }
+
+        // As the false condition happens on the non deterministic behavior of thread scheduling it
+        // cannot be tested reliably in unit tests and is therefore excluded in the coverage.
 
         if (set_id_mappings_and_server(*connect_return)) {
             receive(connect_return->service_state);
