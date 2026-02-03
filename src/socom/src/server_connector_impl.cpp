@@ -127,7 +127,7 @@ Result<Blank> Impl::update_event(Event_id server_id, Payload::Sptr payload) noex
 
     std::unique_lock<std::mutex> lock{m_mutex};
     // May throw std::bad_alloc: left unhandled as a design decision
-    auto const clients = m_subscriber[server_id].get_clients();
+    auto const clients = m_subscriber[server_id].get_client();
     lock.unlock();
 
     // May throw std::bad_alloc: left unhandled as a design decision
@@ -144,7 +144,7 @@ Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Sptr pay
 
     std::unique_lock<std::mutex> lock{m_mutex};
     // May throw std::bad_alloc: left unhandled as a design decision
-    auto const clients = m_update_requester[server_id].get_clients();
+    auto const clients = m_update_requester[server_id].get_client();
     m_update_requester[server_id].clear();
     lock.unlock();
 
@@ -173,7 +173,7 @@ Result<Blank> Impl::set_event_subscription_state(Event_id server_id,
 
     m_event_infos[server_id].ack_state = target_state;
     // May throw std::bad_alloc: left unhandled as a design decision
-    auto const clients = m_subscriber[server_id].get_clients();
+    auto const clients = m_subscriber[server_id].get_client();
     lock.unlock();
 
     // May throw std::bad_alloc: left unhandled as a design decision
@@ -212,18 +212,18 @@ void Impl::unsubscribe_event(Client_connection const& client, Event_id id) {
     assert(id < m_event_infos.size());
 
     std::unique_lock<std::mutex> lock{m_mutex};
-    auto const was_last_subscriber = m_subscriber[id].remove_client(client);
-    (void)m_update_requester[id].remove_client(client);
+    auto const was_subscribed = m_subscriber[id].clear();
+    (void)m_update_requester[id].clear();
 
     // implicit state change is done here, better figure out how to get rid of
     // the entire if-statement. However I was not able to fix ara_Com then.
-    if (was_last_subscriber) {
+    if (was_subscribed) {
         m_event_infos[id].ack_state = Event_ack_state::not_ack;
     }
 
     lock.unlock();
 
-    if (was_last_subscriber) {
+    if (was_subscribed) {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
         Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
@@ -231,11 +231,10 @@ void Impl::unsubscribe_event(Client_connection const& client, Event_id id) {
     }
 }
 
-void Impl::remove_client(Clients::iterator client) {
-    unsubscribe_event(*client);
+void Impl::remove_client() {
+    unsubscribe_event(*m_client);
     std::unique_lock<std::mutex> lock{m_mutex};
-    auto const removed_client = std::move(*client);
-    this->m_clients.erase(client);
+    auto const removed_client = std::move(*m_client);
     // let removed_client get out of scope after unlock (destruction)
     lock.unlock();
 }
@@ -248,17 +247,20 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
         return MakeUnexpected(Error::runtime_error_service_not_available);
     }
 
-    auto const it_client = m_clients.emplace(m_clients.end(), *this, message.endpoint);
+    // TODO add error code
+    assert(!m_client.has_value());
+
+    m_client.emplace(*this, message.endpoint);
     auto stop_block_token_copy = m_stop_block_token;
     lock.unlock();
 
     auto reference_token = std::make_shared<Final_action>(
-        [this, it_client, stop_block_token_copy = std::move(stop_block_token_copy)]() {
-            this->remove_client(it_client);
+        [this, stop_block_token_copy = std::move(stop_block_token_copy)]() {
+            this->remove_client();
         });
 
     return message::Connect::Return_type{
-        {Server_connector_endpoint{*it_client, std::move(reference_token)},
+        {Server_connector_endpoint{*m_client, std::move(reference_token)},
          message::Service_state_change{Service_state::available, m_configuration}}};
 }
 
@@ -300,24 +302,24 @@ message::Subscribe_event::Return_type Impl::receive(Client_connection const& cli
     auto const is_event_subscription_acknowledged =
         (m_event_infos[message.id].ack_state == Event_ack_state::ack);
 
-    auto const is_first_subscriber = m_subscriber[message.id].add_client(client);
-    auto is_first_update_requester = false;
+    m_subscriber[message.id].set_client(client);
+    auto const is_update_requester = message.mode == Event_mode::update_and_initial_value;
 
-    if (message.mode == Event_mode::update_and_initial_value) {
-        is_first_update_requester = m_update_requester[message.id].add_client(client);
+    if (is_update_requester) {
+        m_update_requester[message.id].set_client(client);
         m_event_infos[message.id].mode = Event_mode::update_and_initial_value;
     }
 
     lock.unlock();
 
-    if (is_first_subscriber) {
+    {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
         Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
         m_callbacks.on_event_subscription_change(*this, message.id, Event_state::subscribed);
     }
 
-    if (is_first_update_requester) {
+    if (is_update_requester) {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
         Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
@@ -351,10 +353,10 @@ message::Request_event_update::Return_type Impl::receive(Client_connection const
     assert(message.id < m_update_requester.size());
 
     std::unique_lock<std::mutex> lock{m_mutex};
-    auto const is_first_requester = m_update_requester[message.id].add_client(client);
+    m_update_requester[message.id].set_client(client);
     lock.unlock();
 
-    if (is_first_requester) {
+    {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
         Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif

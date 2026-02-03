@@ -11,14 +11,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_SOCOM_SERVER_CONNECTOR_IMPL_HPP
-#define SCORE_SOCOM_SERVER_CONNECTOR_IMPL_HPP
+#ifndef SRC_SOCOM_SRC_SERVER_CONNECTOR_IMPL
+#define SRC_SOCOM_SRC_SERVER_CONNECTOR_IMPL
 
 #include <future>
-#include <list>
 #include <mutex>
+#include <optional>
 #include <score/socom/service_interface_configuration.hpp>
-#include <set>
 #include <vector>
 
 #include "endpoint.hpp"
@@ -54,39 +53,23 @@ class Client_connection {
 
 class Event {
    public:
-    // \retval true First client has been added
-    // \retval false 2nd or higher number client has been added
-    bool add_client(Client_connection const& client) {
-        auto const first_client = m_clients.empty();
-        m_clients.insert(&client);
-        return first_client;
+    void set_client(Client_connection const& client) { m_client = &client; }
+
+    bool clear() {
+        auto const had_client = (nullptr != m_client);
+        m_client = nullptr;
+        return had_client;
     }
 
-    // \retval true Last client has been removed
-    // \retval false None (client not contained) or one of more than 2 existing clients has been
-    // removed
-    bool remove_client(Client_connection const& client) {
-        if (m_clients.empty()) {
-            return false;
+    std::optional<Client_connector_endpoint> get_client() const {
+        if (nullptr == m_client) {
+            return std::nullopt;
         }
-
-        m_clients.erase(&client);
-        return m_clients.empty();
-    }
-
-    void clear() { m_clients.clear(); }
-
-    std::vector<Client_connector_endpoint> get_clients() const {
-        std::vector<Client_connector_endpoint> result{};
-        result.reserve(m_clients.size());
-        std::for_each(std::begin(m_clients), std::end(m_clients), [&result](auto const& item) {
-            result.emplace_back(item->get_client_endpoint());
-        });
-        return result;
+        return m_client->get_client_endpoint();
     }
 
    private:
-    std::set<Client_connection const*> m_clients{};
+    Client_connection const* m_client = nullptr;
 };
 
 class Impl final : public Disabled_server_connector, public Enabled_server_connector {
@@ -139,17 +122,16 @@ class Impl final : public Disabled_server_connector, public Enabled_server_conne
         Event_mode mode;
     };
 
-    using Clients = std::list<Client_connection>;
     using Events = std::vector<Event>;
     using Event_infos = std::vector<Event_info>;
 
     void unsubscribe_event();
     void unsubscribe_event(Client_connection const& client);
     void unsubscribe_event(Client_connection const& client, Event_id id);
-    void remove_client(Clients::iterator client);
+    void remove_client();
 
     template <typename MessageType>
-    typename MessageType::Return_type send_all(MessageType message) const;
+    void send_all(MessageType message) const;
 
     template <typename MessageType>
     static typename MessageType::Return_type send(Client_connector_endpoint const& client,
@@ -157,7 +139,7 @@ class Impl final : public Disabled_server_connector, public Enabled_server_conne
 
     template <typename MessageType>
     static typename MessageType::Return_type send(
-        std::vector<Client_connector_endpoint> const& clients, MessageType message);
+        std::optional<Client_connector_endpoint> const& client, MessageType message);
 
     Runtime_impl& m_runtime;
     Server_service_interface_configuration const m_configuration;
@@ -168,24 +150,25 @@ class Impl final : public Disabled_server_connector, public Enabled_server_conne
 #endif
     mutable std::mutex m_mutex;
     std::promise<void> m_stop_complete_promise;
-    Reference_token m_stop_block_token;  // Protected by m_mutex
-    Events m_subscriber;                 // Entries protected by m_mutex
-    Events m_update_requester;           // Entries protected by m_mutex
-    Event_infos m_event_infos;           // Entries protected by m_mutex
-    Clients m_clients;                   // Protected by m_mutex
+    Reference_token m_stop_block_token;         // Protected by m_mutex
+    Events m_subscriber;                        // Entries protected by m_mutex
+    Events m_update_requester;                  // Entries protected by m_mutex
+    Event_infos m_event_infos;                  // Entries protected by m_mutex
+    std::optional<Client_connection> m_client;  // Protected by m_mutex
     Registration m_registration;
     Final_action m_final_action;
     Posix_credentials m_credentials;
 };
 
 template <typename MessageType>
-typename MessageType::Return_type Impl::send_all(MessageType message) const {
+void Impl::send_all(MessageType message) const {
     std::unique_lock<std::mutex> lock{m_mutex};
-    auto locked_clients = m_clients;
+    auto locked_client = m_client;
     lock.unlock();
 
-    std::for_each(std::begin(locked_clients), std::end(locked_clients),
-                  [&message](auto const& client) { client.get_client_endpoint().send(message); });
+    if (locked_client) {
+        locked_client->get_client_endpoint().send(message);
+    }
 }
 
 template <typename MessageType>
@@ -195,10 +178,11 @@ typename MessageType::Return_type Impl::send(Client_connector_endpoint const& cl
 }
 
 template <typename MessageType>
-typename MessageType::Return_type Impl::send(std::vector<Client_connector_endpoint> const& clients,
+typename MessageType::Return_type Impl::send(std::optional<Client_connector_endpoint> const& client,
                                              MessageType message) {
-    std::for_each(std::begin(clients), std::end(clients),
-                  [&message](auto& client) { client.send(message); });
+    if (client) {
+        client->send(message);
+    }
 }
 
 template <typename MessageType>
@@ -212,4 +196,4 @@ inline Client_connector_endpoint Client_connection::get_client_endpoint() const 
 }  // namespace socom
 }  // namespace score
 
-#endif  // SCORE_SOCOM_SERVER_CONNECTOR_IMPL_HPP
+#endif  // SRC_SOCOM_SRC_SERVER_CONNECTOR_IMPL
