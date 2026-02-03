@@ -17,7 +17,7 @@ hide empty description
 state Not_available
 state Available
 state Event_subscribed
-state Event_subscribed_acknowledged
+state Event_subscribed_acknowledged as "Event_subscribed_acknowledged (optional)"
 
 [*] --> Not_available
 Not_available --> Available: Client_connector::Callbacks::\non_service_state_change\n(Service_state::available)
@@ -32,4 +32,10 @@ Event_subscribed --> Not_available: Client_connector::Callbacks::\non_service_st
 Event_subscribed_acknowledged --> Available: Client_connector::\nunsubscribe_event()
 Event_subscribed_acknowledged --> Event_subscribed: Client_connector::Callbacks::\non_event_subscription_status_change\n(Event_state::unsubscribed)
 Event_subscribed_acknowledged --> Not_available: Client_connector::Callbacks::\non_service_state_change\n(!Service_state::available)
+
+note bottom of Event_subscribed_acknowledged
+  State can be toggled via calling Enabled_server_connector::Event::set_subscription_state().
+  Events are delivered in both Event_subscribed and Event_subscribed_acknowledged states.
+end note
+
 @enduml
