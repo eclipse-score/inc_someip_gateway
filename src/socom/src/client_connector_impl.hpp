@@ -33,7 +33,7 @@ class Runtime_impl;
 
 namespace client_connector {
 // deadlock detection.
-class Impl final : public Client_connector, public Client_connector::Event_manager {
+class Impl final : public Client_connector {
    public:
     using Endpoint = Client_connector_endpoint;
 
@@ -51,8 +51,8 @@ class Impl final : public Client_connector, public Client_connector::Event_manag
     ~Impl() noexcept override;
 
     // interface ::score::socom::Client_connector
-    score::Result<Client_connector::Event> subscribe_event(Event_id client_id,
-                                                           Event_mode mode) const noexcept override;
+    message::Subscribe_event::Return_type subscribe_event(Event_id client_id,
+                                                          Event_mode mode) const noexcept override;
     message::Unsubscribe_event::Return_type unsubscribe_event(
         Event_id client_id) const noexcept override;
     message::Request_event_update::Return_type request_event_update(

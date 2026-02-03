@@ -112,49 +112,6 @@ class Client_connector {
         Method_reply_payload_allocate_callback on_method_reply_payload_allocate = {};
     };
 
-    class Event_manager {
-       public:
-        virtual ~Event_manager() noexcept = default;
-
-        /// \brief Unsubscribes from an event to stop receiving event updates.
-        /// \details If the service state is Service_state::available, then the available
-        /// Enabled_server_connector instance unregisters this Client_connector for event server_id
-        /// and removes this Client_connector instance from the list of update requesters for event
-        /// server_id.
-        ///
-        /// If this is the last Client_connector instance unsubscribing for a specific event
-        /// server_id at the Enabled_server_connector instance, then the Enabled_server_connector
-        /// instance calls callback on_event_subscription_change(server_id,
-        /// Event_state::not_subscribed).
-        /// \param client_id ID of the event.
-        /// \return Void in case of successful operation, otherwise an error.
-        virtual Result<Blank> unsubscribe_event(Event_id client_id) const noexcept = 0;
-
-        /// \brief Requests an event update.
-        /// \details If the service state is Service_state::available, then the available
-        /// Enabled_server_connector instance stores the Client_connector instance in a list of
-        /// update requesters for event server_id and calls callback
-        /// on_event_update_request(server_id) if this is the first update_request for the event.
-        /// \param client_id ID of the event.
-        /// \return Void in case of successful operation, otherwise an error.
-        virtual Result<Blank> request_event_update(Event_id client_id) const noexcept = 0;
-    };
-
-    class Event {
-        Event_manager const* m_event_manager;
-        Event_id m_event_id;
-
-       public:
-        Event(Event_manager const& event_manager, Event_id event_id)
-            : m_event_manager{&event_manager}, m_event_id{event_id} {}
-
-        ~Event() { m_event_manager->unsubscribe_event(m_event_id); }
-
-        Result<Blank> request_event_update() const noexcept {
-            return m_event_manager->request_event_update(m_event_id);
-        }
-    };
-
     /// \brief Constructor.
     /// \details A Client_connector instance and a Server_connector instance do not match under the
     /// following conditions:
@@ -252,9 +209,30 @@ class Client_connector {
     /// \param client_id ID of the event.
     /// \param mode Mode of the event.
     /// \return Void in case of successful operation, otherwise an error.
-    virtual Result<Event> subscribe_event(Event_id client_id, Event_mode mode) const noexcept = 0;
+    virtual Result<Blank> subscribe_event(Event_id client_id, Event_mode mode) const noexcept = 0;
 
-   public:
+    /// \brief Unsubscribes from an event to stop receiving event updates.
+    /// \details If the service state is Service_state::available, then the available
+    /// Enabled_server_connector instance unregisters this Client_connector for event server_id and
+    /// removes this Client_connector instance from the list of update requesters for event
+    /// server_id.
+    ///
+    /// If this is the last Client_connector instance unsubscribing for a specific event server_id
+    /// at the Enabled_server_connector instance, then the Enabled_server_connector instance calls
+    /// callback on_event_subscription_change(server_id, Event_state::not_subscribed).
+    /// \param client_id ID of the event.
+    /// \return Void in case of successful operation, otherwise an error.
+    virtual Result<Blank> unsubscribe_event(Event_id client_id) const noexcept = 0;
+
+    /// \brief Requests an event update.
+    /// \details If the service state is Service_state::available, then the available
+    /// Enabled_server_connector instance stores the Client_connector instance in a list of update
+    /// requesters for event server_id and calls callback on_event_update_request(server_id) if this
+    /// is the first update_request for the event.
+    /// \param client_id ID of the event.
+    /// \return Void in case of successful operation, otherwise an error.
+    virtual Result<Blank> request_event_update(Event_id client_id) const noexcept = 0;
+
     /// \brief Calls a method at the Server_connector side.
     /// \details If on_method_reply is nullptr, then the Server application (of the
     /// Enabled_server_connector instance) and the Method_invocation object returned do not allocate
