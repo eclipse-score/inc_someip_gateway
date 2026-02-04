@@ -13,13 +13,11 @@
 
 @startuml
 participant Client_1 <<component user>>
-participant Client_2 <<component user>>
 participant SOCom
 participant Server <<component user>>
 autonumber
 activate Server
 activate Client_1
-activate Client_2
 
 note right of Server
     Multiple clients can be served sequentially.
@@ -45,7 +43,7 @@ SOCom --> Server
 
 deactivate SOCom
 == Fire and forget (no reply) ==
-Client_2 -> SOCom : call_method(x, call_payload)
+Client_1 -> SOCom : call_method(x, call_payload)
 activate SOCom
 
 SOCom -> Server : on_method_call(x, call_payload)

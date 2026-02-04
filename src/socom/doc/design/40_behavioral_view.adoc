@@ -69,14 +69,11 @@ include::models/interaction_diagram_method_communication.puml[]
 
 == Event Communication
 
-Clients subscribe to an event.
-On the first subscription, SOCom informs the server using the request for events.
-All further subscriptions are not indicated to the server anymore.
-The server is decoupled from the particular subscribers and it is informed only about the fact that at least one client is subscribed to the event.
+The client subscribes to an event.
+On the subscription, SOCom informs the server using the request for events.
 If no client is subscribed to an event, the server will not send any event updates.
 
-SOCom takes care of event fan-out in case of a server event update.
-After unsubscription of the last subscriber, SOCom informs the server that an event is not subscribed anymore.
+After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
 SOCom keeps track of subscription states and related clients.
 
 .Interaction diagram: Event communication
@@ -93,9 +90,9 @@ NOTE: Additional behavior compared to field communication:
 since SOCom does not save the current event values, SOCom requests an event update from the server for each new subscriber.
 
 Servers answer this request with update_requested_event().
-Those updates are indicated to clients which subscribed and have an initial event update pending.
+Those updates are indicated to the client which is subscribed and has an initial event update pending.
 
-Regular update_event() calls update for the events of all subscribers and also fulfills the initial event update use-case.
+Regular update_event() calls update for the events of the subscriber and also fulfills the initial event update use-case.
 Consequently, update_event() satisfies the event update request implicitly.
 
 .Interaction diagram: Field notification communication

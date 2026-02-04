@@ -13,7 +13,6 @@
 
 @startuml
 participant Client_1 <<component user>>
-participant Client_2 <<component user>>
 participant SOCom
 participant Server <<component user>>
 
@@ -21,7 +20,6 @@ autonumber
 
 activate Server
 activate Client_1
-activate Client_2
 
 Server -> Server : field_update(x, payload)
 
@@ -48,24 +46,6 @@ return
 
 == ... ==
 
-Client_2 -> SOCom : subscribe_event(x, update_and_initial_value)
-activate SOCom
-
-SOCom -> Server : request_event_update(x)
-activate Server
-return
-return
-
-Server -> SOCom : update_requested_event(x, payload)
-activate SOCom
-
-SOCom -> Client_2 : on_requested_event_update(x, payload)
-activate Client_2
-return
-return
-
-== ... ==
-
 Server -> Server : field_update(x, payload)
 
 Server -> SOCom : update_event(x, payload)
@@ -75,22 +55,11 @@ SOCom -> Client_1 : on_event_update(x, payload)
 activate Client_1
 return
 
-SOCom -> Client_2 : on_event_update(x, payload)
-activate Client_2
-return
-
 return
 
 == ... ==
 
 Client_1 -> SOCom : unsubscribe_event(x)
-activate SOCom
-return
-deactivate Client_1
-
-== ... ==
-
-Client_2 -> SOCom : unsubscribe_event(x)
 activate SOCom
 
 SOCom -> Server : on_event_subscription_change(x, unsubscribed)
@@ -98,5 +67,5 @@ activate Server
 return
 
 return
-deactivate Client_2
+deactivate Client_1
 @enduml
