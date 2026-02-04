@@ -15,6 +15,42 @@
 
 load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
+def _get_expected_binary_name(json):
+    """Extracts the expected binary filename from a JSON label.
+
+    Args:
+        json: The input JSON label.
+
+    Returns:
+        The expected binary filename (e.g., "config.bin").
+    """
+    json_label_str = str(json)
+    json_basename = json_label_str.split("/")[-1].split(":")[-1]
+    if not json_basename.endswith(".json"):
+        json_basename = json_label_str.split(":")[-1]  # in case that json might be just a filename
+
+    return json_basename.replace(".json", ".bin")
+
+def _get_output_dir(output):
+    """Validates output basename and extracts the output directory.
+
+    Args:
+        output: The output path string.
+
+    Returns:
+        The output directory path.
+    """
+    if "/" in output or ":" in output:
+        path_part = output.split(":")[-1]
+        if "/" in path_part:
+            output_dir = "/".join(path_part.split("/")[:-1])
+        else:
+            output_dir = "."
+    else:
+        output_dir = "."
+
+    return output_dir
+
 def _generate_someip_config_bin_impl(name, json, output, **kwargs):
     """Generates a SOME/IP Gateway configuration binary based on a specified json file."""
 
@@ -26,23 +62,15 @@ def _generate_someip_config_bin_impl(name, json, output, **kwargs):
         tags = ["lint"],
     )
 
-    schema_file = "gatewayd_config.fbs"
-    schema_file_path = "@score_someip_gateway//src/gatewayd:etc/" + schema_file
+    schema_file_path = "@score_someip_gateway//src/gatewayd:etc/gatewayd_config.fbs"
 
-    expected_file_name = schema_file.replace(".fbs", ".bin")
+    expected_file_name = _get_expected_binary_name(json)
+
     output_basename = output.split("/")[-1].split(":")[-1]
-
     if not output_basename.endswith(".bin"):
         _warn("'output' should end with '.bin'")
 
-    if "/" in output or ":" in output:
-        path_part = output.split(":")[-1]
-        if "/" in path_part:
-            output_dir = "/".join(path_part.split("/")[:-1])
-        else:
-            output_dir = "."
-    else:
-        output_dir = "."
+    output_dir = _get_output_dir(output)
 
     commands = [
         "$(location @flatbuffers//:flatc) --binary -o $(RULEDIR)/%s $(SRCS)" % output_dir,
@@ -108,6 +136,7 @@ validate_someip_config_test = macro(
             doc = "The input JSON configuration file.",
             mandatory = True,
             allow_single_file = True,
+            configurable = False,
         ),
         "expected_failure": attr.bool(default = False),
         "schema": None,
