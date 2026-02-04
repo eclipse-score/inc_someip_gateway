@@ -153,34 +153,6 @@ Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Sptr pay
     return Result<Blank>{Blank{}};
 }
 
-Result<Blank> Impl::set_event_subscription_state(Event_id server_id,
-                                                 Event_state event_state) noexcept {
-    if (server_id >= m_configuration.get_num_events()) {
-        return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
-    }
-
-    assert(server_id < m_event_infos.size());
-    assert(server_id < m_subscriber.size());
-
-    std::unique_lock<std::mutex> lock{m_mutex};
-
-    auto const target_state =
-        (Event_state::subscribed == event_state) ? Event_ack_state::ack : Event_ack_state::not_ack;
-
-    if (target_state == m_event_infos[server_id].ack_state) {
-        return Result<Blank>{Blank{}};
-    }
-
-    m_event_infos[server_id].ack_state = target_state;
-    // May throw std::bad_alloc: left unhandled as a design decision
-    auto const clients = m_subscriber[server_id].get_client();
-    lock.unlock();
-
-    // May throw std::bad_alloc: left unhandled as a design decision
-    send(clients, message::Ack_subscribed_event{server_id, event_state});
-    return Result<Blank>{Blank{}};
-}
-
 Result<Event_mode> Impl::get_event_mode(Event_id server_id) const noexcept {
     if (server_id >= m_configuration.get_num_events()) {
         return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
@@ -196,7 +168,6 @@ void Impl::unsubscribe_event() {
     for (std::size_t id = 0U; id < m_configuration.get_num_events(); ++id) {
         m_subscriber[id].clear();
         m_update_requester[id].clear();
-        m_event_infos[id].ack_state = Event_ack_state::not_ack;
     }
 }
 
@@ -214,12 +185,6 @@ void Impl::unsubscribe_event(Client_connection const& client, Event_id id) {
     std::unique_lock<std::mutex> lock{m_mutex};
     auto const was_subscribed = m_subscriber[id].clear();
     (void)m_update_requester[id].clear();
-
-    // implicit state change is done here, better figure out how to get rid of
-    // the entire if-statement. However I was not able to fix ara_Com then.
-    if (was_subscribed) {
-        m_event_infos[id].ack_state = Event_ack_state::not_ack;
-    }
 
     lock.unlock();
 
@@ -299,9 +264,6 @@ message::Subscribe_event::Return_type Impl::receive(Client_connection const& cli
 
     std::unique_lock<std::mutex> lock{m_mutex};
 
-    auto const is_event_subscription_acknowledged =
-        (m_event_infos[message.id].ack_state == Event_ack_state::ack);
-
     m_subscriber[message.id].set_client(client);
     auto const is_update_requester = message.mode == Event_mode::update_and_initial_value;
 
@@ -324,11 +286,6 @@ message::Subscribe_event::Return_type Impl::receive(Client_connection const& cli
         Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
         m_callbacks.on_event_update_request(*this, message.id);
-    }
-
-    if (is_event_subscription_acknowledged) {
-        send(client.get_client_endpoint(),
-             message::Ack_subscribed_event{message.id, Event_state::subscribed});
     }
 
     return message::Subscribe_event::Return_type{Blank{}};

@@ -53,11 +53,6 @@ No event update will be received in this state.
 Event updates will be received in this state.
 However, the server has not acknowledged the subscription yet.
 Thus clients do not know if the server will send event updates.
-
-| Event_subscribed_acknowledged
-| The user is subscribed to the event.
-The server has acknowledged the reception of the event subscription and will send event updates.
-Clients know that the server will send event updates.
 |====
 
 .Triggers
@@ -69,12 +64,6 @@ Clients know that the server will send event updates.
 
 | Client_connector::unsubscribe_event()
 | The user calls Client_connector::unsubscribe_event() in order to unsubscribe from an event.
-
-| Client_connector::Callbacks::on_event_subscription_status_change(Event_state::subscribed)
-| SOCom calls the user callback Client_connector::Callbacks::on_event_subscription_status_change(Event_state::subscribed) in order to indicate the successful subscription to an event.
-
-| Client_connector::Callbacks::on_event_subscription_status_change(Event_state::unsubscribed)
-| SOCom calls the user callback Client_connector::Callbacks::on_event_subscription_status_change(Event_state::unsubscribed) in order to indicate the loss of an event subscription.
 
 | Client_connector::Callbacks::on_service_state_change(Service_state::available)
 | SOCom calls the user callback Client_connector::Callbacks::on_service_state_change(Service_state::available).

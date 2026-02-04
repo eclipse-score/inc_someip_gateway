@@ -27,8 +27,6 @@ class Server_connector_mock : public Disabled_server_connector, public Enabled_s
     MOCK_METHOD(Result<Blank>, update_event, (Event_id, Payload::Sptr), (noexcept, override));
     MOCK_METHOD(Result<Blank>, update_requested_event, (Event_id, Payload::Sptr),
                 (noexcept, override));
-    MOCK_METHOD(Result<Blank>, set_event_subscription_state, (Event_id, Event_state),
-                (noexcept, override));
     MOCK_METHOD(Result<Event_mode>, get_event_mode, (Event_id), (const, noexcept, override));
 
     MOCK_METHOD(Server_service_interface_configuration const&, get_configuration, (),

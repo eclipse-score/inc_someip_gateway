@@ -194,18 +194,6 @@ class Enabled_server_connector {
     virtual Result<Blank> update_requested_event(Event_id server_id,
                                                  Payload::Sptr payload) noexcept = 0;
 
-    /// \brief Signals to clients whether event updates are going to be sent or not.
-    /// \details This function only informs clients, but does not enable or disable the sending of
-    /// events. Thus it is ok to not call this function and send event updates.
-    ///
-    /// Calls the callback on_event_subscription_change(client_id, event_state) for each connected
-    /// Client_connector which already subscribed to event server_id.
-    /// \param server_id ID of the event.
-    /// \param event_state Event state.
-    /// \return Void in case of successful operation, otherwise an error.
-    virtual Result<Blank> set_event_subscription_state(Event_id server_id,
-                                                       Event_state event_state) noexcept = 0;
-
     /// \brief Retrieves the mode of the event server_id.
     /// \details Returns the combined event subscription mode for event server_id, see
     /// Client_connector::subscribe_event().

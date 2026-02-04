@@ -69,7 +69,6 @@ class Impl final : public Client_connector {
     message::Service_state_change::Return_type receive(message::Service_state_change message);
     message::Update_event::Return_type receive(message::Update_event message);
     message::Update_requested_event::Return_type receive(message::Update_requested_event message);
-    message::Ack_subscribed_event::Return_type receive(message::Ack_subscribed_event message);
 
    private:
     template <typename ReturnType, typename F>

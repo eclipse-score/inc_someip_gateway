@@ -29,8 +29,6 @@ using score::socom::Event_request_update_callback_mock;
 using score::socom::Event_state;
 using score::socom::Event_subscription_change_callback;
 using score::socom::Event_subscription_change_callback_mock;
-using score::socom::Event_subscription_status_callback;
-using score::socom::Event_subscription_status_callback_mock;
 using score::socom::Event_update_callback;
 using score::socom::Event_update_callback_mock;
 using score::socom::Find_result_change_callback;
@@ -70,11 +68,10 @@ class Runtime_test : public ::testing::Test {
     Service_state_change_callback_mock m_service_state_change_mock;
     Event_update_callback_mock m_event_update_mock;
     Event_update_callback_mock m_requested_event_update_mock;
-    Event_subscription_status_callback_mock m_event_subscription_mock;
 
-    Client_connector::Callbacks client_callbacks{
-        m_service_state_change_mock.AsStdFunction(), m_event_update_mock.AsStdFunction(),
-        m_requested_event_update_mock.AsStdFunction(), m_event_subscription_mock.AsStdFunction()};
+    Client_connector::Callbacks client_callbacks{m_service_state_change_mock.AsStdFunction(),
+                                                 m_event_update_mock.AsStdFunction(),
+                                                 m_requested_event_update_mock.AsStdFunction()};
 
     // Server_connector mocks
     Event_subscription_change_callback_mock m_event_subscription_change_mock;

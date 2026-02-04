@@ -41,11 +41,6 @@ using Service_state_change_callback = std::function<void(
 /// \brief Function type for indicating event updates to the service user.
 using Event_update_callback = std::function<void(Client_connector const&, Event_id, Payload::Sptr)>;
 
-/// \brief Function type for signaling to the service user if the event subscription is active or
-/// if it was denied or reset by the server.
-using Event_subscription_status_callback =
-    std::function<void(Client_connector const&, Event_id, Event_state)>;
-
 using Event_payload_allocate_callback =
     std::function<Result<std::unique_ptr<Writable_payload>>(Client_connector const&, Event_id)>;
 
@@ -79,12 +74,6 @@ using Method_reply_payload_allocate_callback =
 /// The Client_connector callback on_event_requested_update is called if an available
 /// Enabled_server_connector instance calls update_requested_event() and the
 /// Client_connector instance previously requested an event update with request_event_update().
-///
-/// The Client_connector calls the callback on_event_subscribed_status_change to signal that events
-/// can or cannot be received. If the server wants to send events, the callback is called with
-/// Event_state::subscribed. If the server is unable to produce events, the callback is called with
-/// Event_state::unsubscribed. Reasons for stopping the event subscription may be loss of connection
-/// or timeout.
 class Client_connector {
    public:
     /// \brief Alias for an unique pointer to this interface.
@@ -105,8 +94,6 @@ class Client_connector {
         /// \brief Callback is called on a client requested event update, see
         /// Client_connector::subscribe_event() and Client_connector::request_event_update().
         Event_update_callback on_event_requested_update;
-        /// \brief Callback is called on event subscription ack/nack.
-        Event_subscription_status_callback on_event_subscription_status_change;
 
         Event_payload_allocate_callback on_event_payload_allocate = {};
         Method_reply_payload_allocate_callback on_method_reply_payload_allocate = {};
@@ -171,11 +158,6 @@ class Client_connector {
     /// If the service state is Service_state::available, then the Enabled_server_connector instance
     /// registers this Client_connector as subscribed for event server_id.
     ///
-    /// If the server has acknowledged this event for any subscriber before with a call to
-    /// set_event_subscription_state(Event_state::subscribed), callback
-    /// on_event_subscription_status_change(Event_state::subscribed) is called (might be even within
-    /// the context of subscribe_event()).
-    ///
     /// The available Enabled_server_connector instance combines the mode parameter with modes of
     /// other clients subscription's and stores the result.
     ///
@@ -197,15 +179,6 @@ class Client_connector {
     /// requesters for event server_id and calls callback on_event_update_request(server_id) after
     /// calling callback on_event_subscription_change().
     ///
-    /// After successful subscription the Client_connector calls on_event_subscription_status_change
-    /// with Event_state::subscribed.
-    ///
-    /// After loss of subscription the Client_connector calls on_event_subscription_status_change
-    /// with Event_state::unsubscribed.
-    ///
-    /// At subscription for any event the state is Event_state::unsubscribed until
-    /// on_event_subscription_change(Event_state::subscribed) has been called (might be even within
-    /// the context of subscribe_event()).
     /// \param client_id ID of the event.
     /// \param mode Mode of the event.
     /// \return Void in case of successful operation, otherwise an error.

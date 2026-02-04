@@ -85,12 +85,6 @@ struct Update_requested_event {
     Payload::Sptr payload;
 };
 
-struct Ack_subscribed_event {
-    using Return_type = void;
-    Event_id const id;
-    Event_state state;
-};
-
 }  // namespace message
 }  // namespace socom
 }  // namespace score

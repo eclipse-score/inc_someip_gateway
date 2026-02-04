@@ -28,8 +28,6 @@ using Find_result_change_callback_mock = ::testing::MockFunction<Find_result_cha
 // Client_connector callbacks
 using Service_state_change_callback_mock = ::testing::MockFunction<Service_state_change_callback>;
 using Event_update_callback_mock = ::testing::MockFunction<Event_update_callback>;
-using Event_subscription_status_callback_mock =
-    ::testing::MockFunction<Event_subscription_status_callback>;
 
 // Server_connector callbacks
 using Event_subscription_change_callback_mock =
