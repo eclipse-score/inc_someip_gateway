@@ -1,6 +1,21 @@
 {
     "name": "eclipse-s-core",
     "image": "ghcr.io/eclipse-score/devcontainer:v1.1.0",
+    "runArgs": [
+        "--privileged"
+    ],
+    "mounts": [
+        {
+            "source": "${localEnv:HOME}${localEnv:USERPROFILE}/.qnx/license/licenses",
+            "target": "/opt/score_qnx/license/licenses",
+            "type": "bind"
+        },
+        {
+            "source": "${localEnv:HOME}${localEnv:USERPROFILE}/.netrc",
+            "target": "/home/vscode/.netrc",
+            "type": "bind"
+        }
+    ],
     "customizations": {
         "vscode": {
             "extensions": [

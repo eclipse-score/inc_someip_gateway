@@ -36,8 +36,8 @@ cmake(
         "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
     },
     env = {
-        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/host/linux/x86_64",
-        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/target/qnx",
+        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_x86_64_toolchain_pkg/host/linux/x86_64",
+        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_x86_64_toolchain_pkg/target/qnx",
     },
     generate_args = [
         "-DCMAKE_SYSTEM_NAME=QNX",
@@ -66,8 +66,8 @@ cmake(
         "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
     },
     env = {
-        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/host/linux/x86_64",
-        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/target/qnx",
+        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_aarch64_toolchain_pkg/host/linux/x86_64",
+        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_aarch64_toolchain_pkg/target/qnx",
     },
     generate_args = [
         "-DCMAKE_SYSTEM_NAME=QNX",
@@ -128,8 +128,8 @@ cmake(
         "ENABLE_SIGNAL_HANDLING": "ON",
     },
     env = {
-        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/host/linux/x86_64",
-        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/target/qnx",
+        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_x86_64_toolchain_pkg/host/linux/x86_64",
+        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_x86_64_toolchain_pkg/target/qnx",
     },
     generate_args = [
         "-DCMAKE_SYSTEM_NAME=QNX",
@@ -178,8 +178,8 @@ cmake(
         "CMAKE_SKIP_RPATH": "ON",
     },
     env = {
-        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/host/linux/x86_64",
-        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_toolchains_qnx++toolchains_qnx+toolchains_qnx_sdp/target/qnx",
+        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_aarch64_toolchain_pkg/host/linux/x86_64",
+        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_aarch64_toolchain_pkg/target/qnx",
     },
     generate_args = [
         "-DCMAKE_SYSTEM_NAME=QNX",

@@ -113,28 +113,51 @@ git_override(
 bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.2.2", dev_dependency = True)
 
 gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
-
-# Custom QNX SDP package (no authentication required)
-# TODO: Update the URL to point to your locally downloaded QNX SDP
-gcc.sdp(
-    name = "score_gcc_qnx_toolchain_pkg",
-    build_file = "@score_bazel_cpp_toolchains//packages/qnx/aarch64/sdp/8.0.0:sdp.BUILD",
-    sha256 = "f2e0cb21c6baddbcb65f6a70610ce498e7685de8ea2e0f1648f01b327f6bac63",
-    strip_prefix = "installation",
-    url = "file:///home/wbm1lo/score/score_inc_someip_gateway/installation.tgz",  # Local path
-    # url = "file:///workspaces/score_inc_someip_gateway/installation.tgz",  # devcontainer
+gcc.toolchain(
+    name = "score_gcc_x86_64_toolchain",
+    target_cpu = "x86_64",
+    target_os = "linux",
+    use_default_package = True,
+    version = "12.2.0",
 )
 gcc.toolchain(
-    name = "score_gcc_qnx_toolchain",
-    sdp_to_link = "score_gcc_qnx_toolchain_pkg",  # Link to custom package
+    name = "score_gcc_aarch64_toolchain",
+    target_cpu = "aarch64",
+    target_os = "linux",
+    use_default_package = True,
+    version = "12.2.0",
+)
+gcc.toolchain(
+    name = "score_qcc_x86_64_toolchain",
+    sdp_version = "8.0.0",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    use_default_package = True,
+    version = "12.2.0",
+)
+gcc.toolchain(
+    name = "score_qcc_aarch64_toolchain",
     sdp_version = "8.0.0",
     target_cpu = "aarch64",
     target_os = "qnx",
+    use_default_package = True,
     version = "12.2.0",
 )
-use_repo(gcc, "score_gcc_qnx_toolchain")
+use_repo(
+    gcc,
+    "score_gcc_aarch64_toolchain",
+    "score_gcc_x86_64_toolchain",
+    "score_qcc_aarch64_toolchain",
+    "score_qcc_x86_64_toolchain",
+)
 
-register_toolchains("@score_gcc_qnx_toolchain//:all")
+register_toolchains(
+    "@score_gcc_x86_64_toolchain//:all",
+    "@score_gcc_aarch64_toolchain//:all",
+    "@score_qcc_x86_64_toolchain//:all",
+    "@score_qcc_aarch64_toolchain//:all",
+    dev_dependency = True,
+)
 
 # ============================================================================
 # Optional Toolchain Dependencies

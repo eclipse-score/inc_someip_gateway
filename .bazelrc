@@ -55,8 +55,7 @@ common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
 common:aarch64-qnx --action_env=QNX_TARGET_ARCH=aarch64le
 common:aarch64-qnx --spawn_strategy=local
 
-common --action_env=QNXLM_LICENSE_FILE="6287@rb-lic-qnxlm.de.bosch.com"
-
+common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 
 test --test_output=errors
 build --incompatible_strict_action_env
