@@ -17,24 +17,29 @@ index 22ec4db1..e5783fa2 100644
  
  #include <boost/asio/write.hpp>
 diff --git a/implementation/utility/src/wrappers_qnx.cpp b/implementation/utility/src/wrappers_qnx.cpp
-index 77c261cc..d1a925b8 100644
+index 77c261cc..6e5a71b7 100644
 --- a/implementation/utility/src/wrappers_qnx.cpp
 +++ b/implementation/utility/src/wrappers_qnx.cpp
-@@ -5,6 +5,8 @@
+@@ -5,10 +5,12 @@
  
  #ifdef __QNX__
  
-+// QNX7 SDP specific headers - sys/sockmsg.h does not exist in QNX8
-+#if defined(__QNX__) && (__QNX__ < 800)
- #include <sys/socket.h>
+-#include <sys/socket.h>
  #include <sys/types.h>
- 
-@@ -151,4 +153,8 @@ int __wrap_open(const char* pathname, int flags, mode_t mode) {
- }
- }
- 
-+#else  // QNX8+ - no custom wrappers needed
-+// QNX8 has standard POSIX support (accept4, etc)
-+#endif  // QNX version check
+-
++#include <sys/socket.h>
+ #include <fcntl.h>
 +
- #endif
++// QNX7 is missing accept4()
++#if (__QNX__ < 800)
+ #include <cerrno>
+ #include <fcntl.h>
+ #include <pthread.h>
+@@ -114,6 +116,7 @@ static int __accept(int s, struct sockaddr* addr, socklen_t* addrlen, accept_msg
+ int accept4(int s, struct sockaddr* addr, socklen_t* addrlen, int flags) {
+     return __accept(s, addr, addrlen, ACCEPT4, flags);
+ }
++#endif  // QNX8 has standard POSIX support (accept4, etc)
+ 
+ /*
+  * These definitions MUST remain in the global namespace.
