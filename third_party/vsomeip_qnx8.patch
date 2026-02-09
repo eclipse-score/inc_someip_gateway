@@ -1,5 +1,5 @@
 diff --git a/implementation/endpoints/include/asio_tcp_socket.hpp b/implementation/endpoints/include/asio_tcp_socket.hpp
-index 0b577f95..6615d6f1 100644
+index 22ec4db1..e5783fa2 100644
 --- a/implementation/endpoints/include/asio_tcp_socket.hpp
 +++ b/implementation/endpoints/include/asio_tcp_socket.hpp
 @@ -6,6 +6,13 @@

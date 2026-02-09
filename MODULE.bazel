@@ -290,7 +290,7 @@ http_archive(
     integrity = "sha256-lXdZnBQt+J6gfEMKfTLBFmf9BlDJOsz+FxATmqFFzr4=",
     patch_strip = 1,
     patches = ["//:third_party/vsomeip_qnx8.patch"],
-    strip_prefix = "vsomeip-3.6.0",
+    strip_prefix = "vsomeip-3.6.1",
     urls = [
         "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
     ],
