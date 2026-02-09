@@ -329,12 +329,12 @@ filegroup(
 http_archive(
     name = "vsomeip",
     build_file = "@//:third_party/vsomeip.BUILD.bazel",
-    integrity = "sha256-lXdZnBQt+J6gfEMKfTLBFmf9BlDJOsz+FxATmqFFzr4=",
+    integrity = "sha256-hMjkJs3fQ14MVtpwupfno/UbK+rxV+1zih9632bO5Sk=",
     patch_strip = 1,
     patches = ["//:third_party/vsomeip_qnx8.patch"],
-    strip_prefix = "vsomeip-3.6.0",
+    strip_prefix = "vsomeip-3.6.1",
     urls = [
-        "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.0.tar.gz",
+        "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
     ],
 )
 
