@@ -45,7 +45,7 @@
     fsevmgr &
 
     # Create a RAM-backed writable filesystem for LoLa service discovery.
-    # /dev/shmem does NOT support mkdir or inotify, so we use devb-ram + QNX6 FS.
+    # /dev/shmem does NOT support mkdir or inotify, (crashes or errors at startup )  idea is to use devb-ram + QNX6 FS.
     devb-ram ram capacity=1 blk ramdisk=4m,cache=512k,vnode=256 &
     waitfor /dev/ram0 5
     ksh -c "echo y | mkqnx6fs /dev/ram0"
