@@ -15,8 +15,7 @@
 #define SCORE_SOCOM_ENDPOINT_HPP
 
 #include <memory>
-
-#include "final_action.hpp"
+#include <score/socom/final_action.hpp>
 
 namespace score {
 namespace socom {

@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "final_action.hpp"
+#include <score/socom/final_action.hpp>
 
 namespace score {
 namespace socom {

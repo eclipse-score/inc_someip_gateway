@@ -41,6 +41,11 @@ using Method_call_credentials_callback_mock =
     ::testing::MockFunction<Method_call_credentials_callback>;
 using Method_reply_callback_mock = ::testing::MockFunction<Method_reply_callback>;
 
+// Bridge callbacks
+using Subscribe_find_service_function_mock =
+    ::testing::MockFunction<Subscribe_find_service_function>;
+using Request_service_function_mock = ::testing::MockFunction<Request_service_function>;
+
 }  // namespace score::socom
 
 #endif  // SCORE_SOCOM_CLIENT_CONNECTOR_MOCK_HPP

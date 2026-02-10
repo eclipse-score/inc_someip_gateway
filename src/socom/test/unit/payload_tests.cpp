@@ -17,17 +17,16 @@
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include <random>
 #include <score/socom/payload.hpp>
 #include <score/socom/vector_payload.hpp>
 #include <type_traits>
+#include <utilities.hpp>
 #include <vector>
-
-#include "make_vector_buffer.hpp"
 
 namespace socom = ::score::socom;
 
-using ::score::socom::test::make_vector_buffer;
+using ac::increase_and_fill;
+using ::score::socom::make_vector_buffer;
 using socom::empty_payload;
 using socom::make_vector_payload;
 using socom::Payload;
@@ -42,23 +41,6 @@ static_assert(!std::is_move_assignable<Payload>::value, "");
 static_assert(!std::is_move_constructible<Payload>::value, "");
 static_assert(!std::is_copy_assignable<Payload>::value, "");
 static_assert(!std::is_copy_constructible<Payload>::value, "");
-
-void increase_and_fill(::score::socom::Vector_buffer& data, std::size_t const new_size) {
-    auto const old_size = data.size();
-    if (new_size <= old_size) {
-        return;
-    }
-    data.resize(new_size);
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(
-        std::numeric_limits<std::underlying_type_t<Payload::Byte>>::min(),
-        std::numeric_limits<std::underlying_type_t<Payload::Byte>>::max());
-    auto start = std::begin(data);
-    std::advance(start, old_size);
-    std::generate(start, std::end(data), [&gen, &distrib]() { return std::byte(distrib(gen)); });
-}
 
 Vector_buffer create_vector_payload_with_random_data(std::size_t const size) {
     Vector_buffer data;

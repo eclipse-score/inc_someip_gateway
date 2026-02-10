@@ -199,7 +199,7 @@ void Impl::unsubscribe_event(Client_connection const& client, Event_id id) {
 void Impl::remove_client() {
     unsubscribe_event(*m_client);
     std::unique_lock<std::mutex> lock{m_mutex};
-    auto const removed_client = std::move(*m_client);
+    m_client.reset();
     // let removed_client get out of scope after unlock (destruction)
     lock.unlock();
 }
@@ -264,6 +264,8 @@ message::Subscribe_event::Return_type Impl::receive(Client_connection const& cli
 
     std::unique_lock<std::mutex> lock{m_mutex};
 
+    auto const already_subscribed = m_subscriber[message.id].get_client().has_value();
+    auto const already_update_requester = m_update_requester[message.id].get_client().has_value();
     m_subscriber[message.id].set_client(client);
     auto const is_update_requester = message.mode == Event_mode::update_and_initial_value;
 
@@ -274,14 +276,14 @@ message::Subscribe_event::Return_type Impl::receive(Client_connection const& cli
 
     lock.unlock();
 
-    {
+    if (!already_subscribed) {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
         Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
         m_callbacks.on_event_subscription_change(*this, message.id, Event_state::subscribed);
     }
 
-    if (is_update_requester) {
+    if (is_update_requester && !already_update_requester) {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
         Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
@@ -310,6 +312,12 @@ message::Request_event_update::Return_type Impl::receive(Client_connection const
     assert(message.id < m_update_requester.size());
 
     std::unique_lock<std::mutex> lock{m_mutex};
+
+    auto const already_update_requester = m_update_requester[message.id].get_client().has_value();
+    if (already_update_requester) {
+        return message::Request_event_update::Return_type{Blank{}};
+    }
+
     m_update_requester[message.id].set_client(client);
     lock.unlock();
 

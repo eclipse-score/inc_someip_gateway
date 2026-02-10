@@ -52,7 +52,7 @@ struct Service_interface {
     /// \param new_id ID of the service interface.
     /// \param new_version Version of the service interface.
     Service_interface(std::string_view new_id, Version new_version)
-        : id{new_id.data(), new_id.size()}, version{new_version} {}
+        : id{new_id}, version{new_version} {}
 };
 
 /// \brief Operator == for Service_interface::Version.

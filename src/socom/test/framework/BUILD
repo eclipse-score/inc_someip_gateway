@@ -12,45 +12,19 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
-
-filegroup(
-    name = "headers",
-    srcs = glob(include = ["include/**"]),
-    visibility = ["//visibility:public"],
-)
 
 cc_library(
-    name = "socom",
+    name = "socom_test_framework",
     srcs = glob(include = ["src/**"]),
-    hdrs = [":headers"],
-    defines = [
-        "WITH_SOCOM_DEADLOCK_DETECTION=1",
-    ],
-    features = COMPILER_WARNING_FEATURES,
+    hdrs = glob(["inc/**"]),
     includes = [
-        "include",
-        "src/socom/include",
+        "inc",
+        "src/socom/test/framework/inc",
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "@score_baselibs//score/result",
-    ],
-)
-
-filegroup(
-    name = "mock_headers",
-    srcs = glob(include = ["mock/**"]),
-    visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "mock",
-    hdrs = [":mock_headers"],
-    includes = ["mock"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":socom",
+        "//src/socom",
+        "//src/socom:mock",
         "@googletest//:gtest_for_library",
     ],
 )

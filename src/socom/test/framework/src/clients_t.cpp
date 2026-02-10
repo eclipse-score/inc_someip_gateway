@@ -1,0 +1,382 @@
+/********************************************************************************
+ * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
+#include "clients_t.hpp"
+
+#include <atomic>
+#include <cstddef>
+#include <future>
+
+#include "score/socom/client_connector.hpp"
+#include "score/socom/event.hpp"
+#include "score/socom/method.hpp"
+#include "utilities.hpp"
+
+using ::ac::Client_connector_callbacks_mock;
+using ::score::socom::Client_connector;
+using ::score::socom::Event_id;
+using ::score::socom::Event_mode;
+using ::score::socom::Event_state;
+using ::score::socom::Method_id;
+using ::score::socom::Method_invocation;
+using ::score::socom::Method_reply_callback;
+using ::score::socom::Method_result;
+using ::score::socom::Payload;
+using ::score::socom::Posix_credentials;
+using ::score::socom::Server_service_interface_configuration;
+using ::score::socom::Service_instance;
+using ::score::socom::Service_interface_configuration;
+using ::score::socom::Service_state;
+using ::score::socom::Service_state_change_callback;
+using ::testing::_;
+using ::testing::AnyNumber;
+using ::testing::Assign;
+using ::testing::Invoke;
+
+namespace ac {
+namespace {
+
+void maybe_connect(Client_connector_callbacks_mock& callbacks,
+                   Client_data::No_connect_helper const& connect_helper,
+                   Service_state_change_callback const& state_change_callback) {
+    if (Client_data::might_connect == connect_helper && state_change_callback) {
+        EXPECT_CALL(callbacks, on_service_state_change(_, _, _))
+            .Times(AnyNumber())
+            .WillRepeatedly(state_change_callback);
+    }
+}
+
+Client_connector::Uptr create_and_maybe_connect(
+    Client_connector_callbacks_mock& callbacks, Connector_factory& factory,
+    Service_interface_configuration const& configuration, Service_instance const& instance,
+    Client_data::No_connect_helper const& connect_helper,
+    Service_state_change_callback const& state_change_callback) {
+    maybe_connect(callbacks, connect_helper, state_change_callback);
+    return factory.create_client_connector(configuration, instance, callbacks);
+}
+
+Client_connector::Uptr create_and_maybe_connect(
+    Client_connector_callbacks_mock& callbacks, Connector_factory& factory,
+    Client_data::No_connect_helper const& connect_helper,
+    Service_state_change_callback const& state_change_callback) {
+    maybe_connect(callbacks, connect_helper, state_change_callback);
+    return factory.create_client_connector(callbacks);
+}
+
+}  // namespace
+
+static_assert(!std::is_default_constructible<Client_data>::value, "");
+
+Client_data::Client_data(Connector_factory& factory)
+    : m_connector{factory.create_and_connect(m_callbacks)} {}
+
+Client_data::Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
+                         Service_state_change_callback const& state_change_callback)
+    : m_connector{
+          create_and_maybe_connect(m_callbacks, factory, connect_helper, state_change_callback)} {}
+
+Client_data::Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
+                         Service_interface_configuration const& configuration,
+                         Service_instance const& instance,
+                         Service_state_change_callback const& state_change_callback)
+    : m_connector{create_and_maybe_connect(m_callbacks, factory, configuration, instance,
+                                           connect_helper, state_change_callback)} {}
+
+Client_data::Client_data(Connector_factory& factory,
+                         Service_interface_configuration const& configuration,
+                         Service_instance const& instance,
+                         std::optional<Posix_credentials> const& credentials)
+    : m_connector{factory.create_and_connect(configuration, instance, m_callbacks, credentials)} {}
+
+Client_data::~Client_data() {
+    wait_for_atomics(m_event_callback_called, m_event_request_callback_called,
+                     m_method_callback_called, m_available, m_not_available,
+                     m_event_subscription_status_change_called);
+}
+
+void Client_data::subscribe_event(Event_id const& event_id) {
+    m_connector->subscribe_event(event_id, Event_mode::update);
+}
+
+void Client_data::unsubscribe_event(Event_id const& event_id) {
+    m_connector->unsubscribe_event(event_id);
+}
+
+std::unique_ptr<Temporary_event_subscription> Client_data::create_event_subscription(
+    Event_id const& event_id) {
+    return std::make_unique<Temporary_event_subscription>(*m_connector, event_id);
+}
+
+std::unique_ptr<Temporary_event_subscription> Client_data::create_event_subscription(
+    Server_connector_callbacks_mock& sc_callbacks, Event_id const& event_id,
+    Payload::Sptr const& payload) {
+    return std::make_unique<Temporary_event_subscription>(*m_connector, sc_callbacks, m_callbacks,
+                                                          event_id, payload);
+}
+
+std::unique_ptr<Temporary_event_subscription> Client_data::create_event_subscription(
+    Server_data& server, Event_id const& event_id, Payload::Sptr const& payload) {
+    return create_event_subscription(server.get_callbacks(), event_id, payload);
+}
+
+std::unique_ptr<Temporary_event_subscription> Client_data::create_event_subscription(
+    Server_data& server, Event_id const& event_id,
+    Temporary_event_subscription::Brokenness const& brokenness) {
+    return std::make_unique<Temporary_event_subscription>(*m_connector, server.get_callbacks(),
+                                                          event_id, brokenness);
+}
+
+void Client_data::request_event_update(Event_id const& event_id) const {
+    m_connector->request_event_update(event_id);
+}
+
+void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload) {
+    auto result = m_connector->call_method(method_id, payload, m_method_callback.AsStdFunction());
+    ASSERT_TRUE(result);
+    m_method_invocations.emplace_back(std::move(result).value());
+}
+
+void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload,
+                              Method_reply_callback const& reply) {
+    auto result = m_connector->call_method(method_id, payload, reply);
+    ASSERT_TRUE(result);
+    m_method_invocations.emplace_back(std::move(result).value());
+}
+
+void Client_data::call_method_fire_and_forget(Method_id const& method_id,
+                                              Payload::Sptr const& payload) {
+    EXPECT_TRUE(m_method_callback_called);
+    m_method_invocations.clear();
+    static const Method_reply_callback handler;
+    auto result = m_connector->call_method(method_id, payload, handler);
+    ASSERT_TRUE(result);
+    m_method_invocations.emplace_back(std::move(result).value());
+}
+
+score::Result<Method_invocation::Uptr>
+Client_data::call_method_fire_and_forget_and_return_invocation(Method_id const& method_id,
+                                                               Payload::Sptr const& payload) {
+    static const Method_reply_callback handler;
+    return m_connector->call_method(method_id, payload, handler);
+}
+
+std::atomic<bool> const& Client_data::expect_service_state_change(Service_state const& state) {
+    return expect_service_state_change(1, state);
+}
+
+std::atomic<bool>& Client_data::get_atomic(Service_state const& state) {
+    auto& atomi = Service_state::available == state ? m_available : m_not_available;
+    return atomi;
+}
+
+std::atomic<bool> const& Client_data::expect_service_state_change(size_t const count,
+                                                                  Service_state const& state) {
+    Optional_reference<Server_service_interface_configuration const> const conf;
+    return expect_service_state_change(count, state, conf);
+}
+
+std::atomic<bool> const& Client_data::expect_service_state_change(
+    size_t const count, Service_state const& state,
+    Optional_reference<Server_service_interface_configuration const> const& conf) {
+    auto& atomi = get_atomic(state);
+    EXPECT_TRUE(atomi);
+    atomi = false;
+    if (conf) {
+        EXPECT_CALL(m_callbacks, on_service_state_change(_, state, *conf))
+            .Times(count)
+            .WillRepeatedly(Assign(&atomi, true));
+    } else {
+        EXPECT_CALL(m_callbacks, on_service_state_change(_, state, _))
+            .Times(count)
+            .WillRepeatedly(Assign(&atomi, true));
+    }
+    return atomi;
+}
+
+std::atomic<bool> const& Client_data::expect_event_update(Event_id const& event_id,
+                                                          Payload::Sptr const& payload) {
+    return expect_event_updates(1, event_id, payload);
+}
+
+std::atomic<bool> const& Client_data::expect_event_updates(size_t const& count,
+                                                           Event_id const& event_id,
+                                                           Payload::Sptr const& payload) {
+    auto const check_update_count = [this, count](auto const& /*cc*/, auto /*event_id*/,
+                                                  auto const& /*payload*/) {
+        m_num_event_callback_called++;
+        if (count == m_num_event_callback_called) {
+            m_event_callback_called = true;
+        }
+    };
+
+    EXPECT_TRUE(m_event_callback_called);
+    m_event_callback_called = false;
+    m_num_event_callback_called = 0;
+    EXPECT_CALL(m_callbacks, on_event_update(_, event_id, payload))
+        .Times(count)
+        .WillRepeatedly(check_update_count);
+    return m_event_callback_called;
+}
+
+std::future<void> Client_data::expect_event_updates_min_number(
+    std::size_t const& count, ::score::socom::Event_id const& event_id,
+    ::score::socom::Payload::Sptr const& payload) {
+    std::promise<void> event_received;
+    auto future = event_received.get_future();
+
+    auto const check_update_count =
+        create_check_update_count(m_num_event_callback_called, count, std::move(event_received));
+
+    EXPECT_CALL(m_callbacks, on_event_update(_, event_id, payload))
+        .WillRepeatedly(check_update_count);
+    return future;
+}
+
+std::atomic<bool> const& Client_data::expect_requested_event_update(Event_id const& event_id,
+                                                                    Payload::Sptr const& payload) {
+    EXPECT_TRUE(m_event_request_callback_called);
+    m_event_request_callback_called = false;
+    EXPECT_CALL(m_callbacks, on_requested_event_update(_, event_id, payload))
+        .WillOnce(Assign(&m_event_request_callback_called, true));
+    return m_event_request_callback_called;
+}
+
+std::future<void> Client_data::expect_requested_event_updates_min_number(
+    std::size_t const& count, ::score::socom::Event_id const& event_id,
+    ::score::socom::Payload::Sptr const& payload) {
+    std::promise<void> event_received;
+    auto future = event_received.get_future();
+
+    auto const check_update_count =
+        create_check_update_count(m_num_event_callback_called, count, std::move(event_received));
+
+    EXPECT_CALL(m_callbacks, on_requested_event_update(_, event_id, payload))
+        .WillRepeatedly(check_update_count);
+    return future;
+}
+
+std::atomic<bool> const& Client_data::expect_and_request_event_update(
+    Event_id const& event_id, Payload::Sptr const& payload) {
+    auto const& cb_called = expect_requested_event_update(event_id, payload);
+    request_event_update(event_id);
+    return cb_called;
+}
+
+std::atomic<bool> const& Client_data::expect_and_call_method(Method_id const& method_id,
+                                                             Payload::Sptr const& payload,
+                                                             Method_result const& method_result) {
+    return expect_and_call_methods(1, method_id, payload, method_result);
+}
+
+std::atomic<bool> const& Client_data::expect_and_call_methods(size_t const& count,
+                                                              Method_id const& method_id,
+                                                              Payload::Sptr const& payload,
+                                                              Method_result const& method_result) {
+    auto const check_update_count = [this, count](auto const& /*method_result*/) {
+        m_num_method_callback_called++;
+        if (count == m_num_method_callback_called) {
+            m_method_callback_called = true;
+        }
+    };
+
+    EXPECT_TRUE(m_method_callback_called);
+    m_method_invocations.clear();
+    m_method_callback_called = false;
+    m_num_method_callback_called = 0;
+    EXPECT_CALL(m_method_callback, Call(method_result))
+        .Times(count)
+        .WillRepeatedly(check_update_count);
+    for (auto i = size_t{0}; i < count; i++) {
+        call_method(method_id, payload);
+    }
+    return m_method_callback_called;
+}
+
+Client_data::Vector Client_data::create_clients(Connector_factory& factory, size_t const& size) {
+    return create_clients(factory, size, factory.get_configuration(), factory.get_instance());
+}
+
+Client_data::Vector Client_data::create_clients(Connector_factory& factory, size_t const& size,
+                                                No_connect_helper const& no_connect) {
+    auto result = Client_data::Vector{size};
+    for (auto& item : result) {
+        item = std::make_unique<Client_data>(factory, no_connect);
+    }
+    return result;
+}
+
+Client_data::Vector Client_data::create_clients(
+    Connector_factory& factory, size_t const& size,
+    Service_interface_configuration const& configuration, Service_instance const& instance) {
+    auto result = Client_data::Vector{size};
+    for (auto& item : result) {
+        item = std::make_unique<Client_data>(factory, configuration, instance);
+    }
+    return result;
+}
+
+Callbacks_called_t Client_data::expect_event_update(Vector& clients, Event_id const event_id,
+                                                    Payload::Sptr const& payload) {
+    auto cb = Callbacks_called_t{};
+    for (auto& cc_cb : clients) {
+        if (nullptr == cc_cb) {
+            break;
+        }
+        auto const& cb_call = cc_cb->expect_event_update(event_id, payload);
+        cb.emplace_back(cb_call);
+    }
+    return cb;
+}
+
+Callbacks_called_t Client_data::expect_and_request_event_update(Vector& clients,
+                                                                Event_id const event_id,
+                                                                Payload::Sptr const& payload) {
+    auto cb_called = Callbacks_called_t{};
+    for (auto& client : clients) {
+        if (nullptr == client) {
+            break;
+        }
+        auto const& cb_call = client->expect_and_request_event_update(event_id, payload);
+        cb_called.emplace_back(cb_call);
+    }
+    return cb_called;
+}
+
+Callbacks_called_t Client_data::expect_and_call_method(Vector& clients, Method_id const method_id,
+                                                       Payload::Sptr const& payload,
+                                                       Method_result const& method_result) {
+    auto cb_called = Callbacks_called_t{};
+    for (auto& client : clients) {
+        if (nullptr == client) {
+            break;
+        }
+        auto const& cb_call = client->expect_and_call_method(method_id, payload, method_result);
+        cb_called.emplace_back(cb_call);
+    }
+    return cb_called;
+}
+
+Subscriptions Client_data::subscribe(Client_data::Vector const& clients, Event_id const& event_id) {
+    auto result = Subscriptions{};
+    result.reserve(clients.size());
+    for (auto& item : clients) {
+        result.emplace_back(item->create_event_subscription(event_id));
+    }
+    return result;
+}
+
+score::Result<Posix_credentials> Client_data::get_peer_credentials() const {
+    return m_connector->get_peer_credentials();
+}
+
+}  // namespace ac

@@ -17,11 +17,11 @@
 #include <future>
 #include <mutex>
 #include <optional>
+#include <score/socom/final_action.hpp>
 #include <score/socom/service_interface_configuration.hpp>
 #include <vector>
 
 #include "endpoint.hpp"
-#include "final_action.hpp"
 #include "messages.hpp"
 #include "runtime_registration.hpp"
 #include "score/socom/server_connector.hpp"
@@ -72,7 +72,8 @@ class Event {
     Client_connection const* m_client = nullptr;
 };
 
-class Impl final : public Disabled_server_connector, public Enabled_server_connector {
+class Impl final : virtual public Disabled_server_connector,
+                   virtual public Enabled_server_connector {
    public:
     using Listen_endpoint = Server_connector_listen_endpoint;
     using Endpoint = Server_connector_endpoint;

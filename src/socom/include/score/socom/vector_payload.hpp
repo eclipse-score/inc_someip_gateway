@@ -23,6 +23,17 @@ namespace score::socom {
 /// \brief Alias for payload data.
 using Vector_buffer = std::vector<Payload::Byte>;
 
+/// \brief Creates a Vector_buffer from a list of unsigned integral type elements.
+/// \param args List of unsigned integral type elements to be included in the Vector_buffer.
+/// \return A Vector_buffer containing the provided elements.
+template <typename... Ts>
+Vector_buffer make_vector_buffer(Ts... args) noexcept {
+    static_assert((std::is_unsigned_v<Ts> && ...),
+                  "All arguments must be unsigned integral types.");
+    // TODO check that the types are not larger than Payload::Byte
+    return {static_cast<Payload::Byte>(args)...};
+}
+
 /// \brief Creates a vector payload by moving the given data.
 /// \param buffer Payload data.
 /// \return A pointer to a Payload object.

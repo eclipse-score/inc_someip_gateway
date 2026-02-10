@@ -20,17 +20,15 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <score/socom/final_action.hpp>
 #include <tuple>
 
 #include "client_connector_impl.hpp"
-#include "final_action.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface.hpp"
 #include "server_connector_impl.hpp"
-
-using score::cpp::make_unexpected;
 
 namespace score {
 namespace socom {

@@ -45,11 +45,21 @@ using Method_call_credentials_callback = std::function<Method_invocation::Uptr(
 using Method_payload_allocate_callback =
     std::function<Payload(Enabled_server_connector&, Method_id)>;
 
+class Configuration_getter {
+   public:
+    virtual ~Configuration_getter() = default;
+
+    [[nodiscard]]
+    virtual Server_service_interface_configuration const& get_configuration() const noexcept = 0;
+    [[nodiscard]]
+    virtual Service_instance const& get_service_instance() const noexcept = 0;
+};
+
 /// \brief Interface for applications to use a service (server-role).
 /// \details This interface represents a Server_connector not visible to any Client_connector(s).
 /// After destruction no registered callbacks are called anymore.
 /// All user callbacks must not block and shall return quickly (simple algorithms only).
-class Disabled_server_connector {
+class Disabled_server_connector : public Configuration_getter {
    public:
     /// \brief Alias for an unique pointer to this interface.
     using Uptr = std::unique_ptr<Disabled_server_connector>;
@@ -104,11 +114,6 @@ class Disabled_server_connector {
     static std::unique_ptr<Enabled_server_connector> enable(
         std::unique_ptr<Disabled_server_connector> connector);
 
-    [[nodiscard]]
-    virtual Server_service_interface_configuration const& get_configuration() const noexcept = 0;
-    [[nodiscard]]
-    virtual Service_instance const& get_service_instance() const noexcept = 0;
-
    protected:
     /// \cond INTERNAL
     virtual Enabled_server_connector* enable() = 0;
@@ -130,7 +135,7 @@ class Disabled_server_connector {
 /// If the passed parameter server_id  is not valid (not contained in
 /// Server_service_interface_configuration), service API calls have no effect and return
 /// Server_connector_error::logic_error_id_out_of_range.
-class Enabled_server_connector {
+class Enabled_server_connector : public Configuration_getter {
    public:
     /// \brief Alias for an unique pointer to this interface.
     using Uptr = std::unique_ptr<Enabled_server_connector>;

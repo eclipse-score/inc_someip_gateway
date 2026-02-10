@@ -55,3 +55,22 @@ common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Onl
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 common --@score_baselibs//score/json:base_library=nlohmann
 common --@score_communication//score/mw/com/flags:tracing_library=stub
+
+# unshare /dev/shm and /tmp, needed for stable tests when using mw::com code in linux-sandbox, linux-sandbox might also be required for test stability
+test --sandbox_tmpfs_path=/dev/shm
+test --sandbox_tmpfs_path=/tmp
+test --nosandbox_default_allow_network
+
+# Build with sanitizers
+# To test with sanitizers, use:  bazel --output_base=/tmp/san-out test  --config=san //...
+build:san --copt -fsanitize=address,undefined,leak
+build:san --copt -O1
+build:san --copt -g
+build:san --strip=never
+build:san --linkopt -fsanitize=address,undefined,leak
+
+build:tsan --copt -fsanitize=thread
+build:tsan --copt -O1
+build:tsan --copt -g
+build:tsan --strip=never
+build:tsan --linkopt -fsanitize=thread

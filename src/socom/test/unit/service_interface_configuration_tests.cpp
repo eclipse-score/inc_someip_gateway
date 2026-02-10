@@ -11,16 +11,18 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
+#include "score/socom/service_interface.hpp"
+#include "score/socom/service_interface_configuration.hpp"
 
-#include <score/socom/service_interface.hpp>
-#include <score/socom/service_interface_configuration.hpp>
-#include <string_view>
-
-using ::testing::Test;
+using namespace ::testing;
 
 namespace socom = ::score::socom;
 
+using socom::Num_of_events;
+using socom::Num_of_methods;
+using socom::Server_service_interface_configuration;
+using socom::Service_instance;
 using socom::Service_interface;
 using socom::Service_interface_configuration;
 using socom::to_num_of_events;
@@ -28,7 +30,7 @@ using socom::to_num_of_methods;
 
 namespace {
 
-class Service_interface_configuration_test : public Test {
+class ServiceInterfaceConfigurationTest : public Test {
    protected:
     static constexpr std::string_view service_interface_id{"service1"};
     static constexpr std::string_view service_interface_id_2{"service2"};
@@ -50,15 +52,24 @@ class Service_interface_configuration_test : public Test {
         service_interface, to_num_of_methods(num_methods), to_num_of_events(num_events_2)};
 };
 
-constexpr std::string_view Service_interface_configuration_test::service_interface_id;
-constexpr std::string_view Service_interface_configuration_test::service_interface_id_2;
+constexpr std::string_view ServiceInterfaceConfigurationTest::service_interface_id;
+constexpr std::string_view ServiceInterfaceConfigurationTest::service_interface_id_2;
 
-TEST_F(Service_interface_configuration_test, ConfigurationEqual) {
-    /// Verify that true is returned when configs are equal otherwise false
+TEST_F(ServiceInterfaceConfigurationTest, ConfigurationEqual) {
     ASSERT_TRUE(interface_config_1 == interface_config_1);
     ASSERT_FALSE(interface_config_1 == interface_config_2);
     ASSERT_FALSE(interface_config_3 == interface_config_1);
     ASSERT_FALSE(interface_config_4 == interface_config_1);
+}
+
+TEST(ServiceInterfaceConfigurationTestInvalid, Invalid) {
+    Service_interface_configuration const expected_config{
+        Service_interface{std::string_view{""}, Service_interface::Version{0U, 0U}},
+        Num_of_methods{}, Num_of_events{}};
+
+    auto const interface_config_invalid = Server_service_interface_configuration::invalid();
+
+    ASSERT_TRUE(interface_config_invalid == expected_config);
 }
 
 }  // namespace
