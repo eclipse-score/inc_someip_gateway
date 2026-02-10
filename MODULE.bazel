@@ -79,32 +79,11 @@ bazel_dep(name = "platforms", version = "1.0.0")
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
 bazel_dep(name = "score_bazel_platforms", version = "0.0.4")
 
-# ============================================================================
-# Rust Toolchain Configuration for Multi-Architecture Support
-# ============================================================================
-# Configures rules_rust to compile for both x86_64 and aarch64 targets.
-rust = use_extension("@rules_rust//rust:extensions.bzl", "rust", dev_dependency = True)
-rust.toolchain(
-    edition = "2021",
-    extra_target_triples = [
-        "x86_64-unknown-linux-gnu",
-        "aarch64-unknown-linux-gnu",
-    ],
-    versions = ["1.83.0"],
-)
-use_repo(rust, "rust_toolchains")
-
-register_toolchains(
-    "@rust_toolchains//:all",
-    dev_dependency = True,
-)
-
-# Rust Toolchain Extension: Manages sysroot download and toolchain registration
-bazel_dep(name = "score_toolchains_rust", version = "0.1.1", dev_dependency = True)
+bazel_dep(name = "score_toolchains_rust", version = "0.7.0", dev_dependency = True)
 git_override(
     module_name = "score_toolchains_rust",
-    commit = "6651945b4ba8e7c342d9740e9cb2d37842f56261",  # Last verified: 2025-12-11
-    remote = "https://github.com/eclipse-score/toolchains_rust.git",
+    commit = "40abf2df405dc714472f72f0f8538f04a5396e0e",  # Last verified: 2026-02-10
+    remote = "https://github.com/etas-contrib/score_toolchains_rust.git",
 )
 
 # ============================================================================
@@ -165,42 +144,6 @@ register_toolchains(
 )
 
 # ============================================================================
-# Optional Toolchain Dependencies
-# ============================================================================
-# We provide a local stub to satisfy module resolution without adding QNX support.
-local_path_override(
-    module_name = "rust_qnx8_toolchain",
-    path = "bazel_stubs/rust_qnx8_toolchain",
-)
-
-# ============================================================================
-# Sysroot Management for Multi-Architecture Support
-# ============================================================================
-# Downloads and registers Debian Bullseye sysroots for both x86_64 and aarch64.
-# These sysroots are used by both LLVM (C++) and Rust toolchains for cross-compilation.
-rust_ext = use_extension(
-    "@score_toolchains_rust//extensions:rust_toolchain_ext.bzl",
-    "rust_toolchain_ext",
-    dev_dependency = True,
-)
-rust_ext.sysroot(
-    name = "sysroot_linux_x64",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
-    sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
-    strip_prefix = "",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
-)
-rust_ext.sysroot(
-    name = "sysroot_linux_aarch64",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
-    sha256 = "d303cf3faf7804c9dd24c9b6b167d0345d41d7fe4bfb7d34add3ab342f6a236c",
-    strip_prefix = "",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/906cc7c6bf47d4bd969a3221fc0602c6b3153caa/debian_bullseye_arm64_sysroot.tar.xz",
-)
-use_repo(rust_ext, "sysroot_linux_x64")
-use_repo(rust_ext, "sysroot_linux_aarch64")
-
-# ============================================================================
 # LLVM C/C++ Toolchain Configuration
 # ============================================================================
 
@@ -217,17 +160,7 @@ llvm = use_extension(
 llvm.toolchain(
     name = "llvm_toolchain",
     cxx_standard = {"": "c++17"},
-    llvm_version = "19.1.0",
-)
-llvm.sysroot(
-    name = "llvm_toolchain",
-    label = "@sysroot_linux_x64//:sysroot",
-    targets = ["linux-x86_64"],
-)
-llvm.sysroot(
-    name = "llvm_toolchain",
-    label = "@sysroot_linux_aarch64//:sysroot",
-    targets = ["linux-aarch64"],
+    llvm_version = "19.1.7",
 )
 use_repo(llvm, "llvm_toolchain")
 
@@ -283,26 +216,12 @@ git_override(
 # ============================================================================
 car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate", dev_dependency = True)
 car_window_sim_crate.spec(
-    package = "rustyrepl",
-    version = "0.2.0",
-)
-car_window_sim_crate.spec(
     package = "anyhow",
     version = "1",
 )
 car_window_sim_crate.spec(
     package = "async-trait",
     version = "0.1",
-)
-car_window_sim_crate.spec(
-    features = ["derive"],
-    package = "clap",
-    version = "4",
-)
-car_window_sim_crate.spec(
-    features = ["full"],
-    package = "tokio",
-    version = "1.10",
 )
 car_window_sim_crate.from_specs(name = "car_window_sim_crate")
 use_repo(car_window_sim_crate, "car_window_sim_crate")

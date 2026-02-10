@@ -33,22 +33,33 @@ build --tool_java_runtime_version=remotejdk_17
 #   @score_bazel_platforms//:aarch64-linux - aarch64 architecture (GNU/Linux)
 #   @score_bazel_platforms//:x86_64-qnx    - x86_64 architecture (QNX8)
 #   @score_bazel_platforms//:aarch64-qnx   - aarch64 architecture (QNX8)
+
+common:_toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux
+
+common:x86_64-linux --config=_toolchain_common
 common:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
+common:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 common:x86_64-linux --define=config=x86_64-linux
 common:x86_64-linux --repo_env=TARGET_ARCH=x86_64
 
-common:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux
+common:aarch64-linux --config=_toolchain_common
+common:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
+common:aarch64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu
 common:aarch64-linux --define=config=arm64-linux
 common:aarch64-linux --repo_env=TARGET_ARCH=aarch64
 
+common:x86_64-qnx --config=_toolchain_common
 common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
+common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
 common:x86_64-qnx --sandbox_writable_path=/var
 common:x86_64-qnx --define=config=x86_64-qnx
 common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
 common:x86_64-qnx --action_env=QNX_TARGET_ARCH=x86_64
 common:x86_64-qnx --spawn_strategy=local
 
+common:aarch64-qnx --config=_toolchain_common
 common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
+common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
 common:aarch64-qnx --sandbox_writable_path=/var/tmp
 common:aarch64-qnx --define=config=arm64-qnx
 common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
