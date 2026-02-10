@@ -27,7 +27,7 @@ class Client_connector_mock : public Client_connector {
     MOCK_METHOD(Result<Blank>, unsubscribe_event, (Event_id), (const, noexcept, override));
     MOCK_METHOD(Result<Blank>, request_event_update, (Event_id), (const, noexcept, override));
     MOCK_METHOD(Result<Method_invocation::Uptr>, call_method,
-                (Method_id, Payload::Sptr, Method_reply_callback const&),
+                (Method_id, Payload::Sptr, Method_call_reply_data_opt),
                 (const, noexcept, override));
     MOCK_METHOD(Result<std::unique_ptr<Writable_payload>>, allocate_method_payload,
                 (Method_id method_id), (noexcept, override));

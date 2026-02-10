@@ -28,6 +28,7 @@ using ::score::socom::Event_id;
 using ::score::socom::Event_mode;
 using ::score::socom::Event_state;
 using ::score::socom::Event_subscription_change_callback;
+using ::score::socom::Method_call_reply_data_opt;
 using ::score::socom::Method_id;
 using ::score::socom::Method_invocation;
 using ::score::socom::Method_reply_callback;
@@ -182,7 +183,7 @@ std::atomic<bool> const& Server_data::expect_and_respond_method_calls(size_t con
     auto const reply = [this, &result, counter](auto& /*connector*/, auto /*mid*/,
                                                 auto const& /*pl*/, auto const& cb) {
         if (cb) {
-            cb(result);
+            cb->reply_callback(result);
         }
         m_num_method_calls++;
         if (counter == m_num_method_calls) {
@@ -203,19 +204,20 @@ std::atomic<bool> const& Server_data::expect_and_respond_method_call(Method_id c
     return expect_and_respond_method_calls(1, method_id, payload, result);
 }
 
-std::future<Method_reply_callback> Server_data::expect_and_return_method_call(
+std::future<Method_call_reply_data_opt> Server_data::expect_and_return_method_call(
     Method_id const& method_id, Payload::Sptr const& payload) {
     EXPECT_TRUE(m_method_callback_called);
     m_method_callback_called = false;
 
-    auto saved_callback = std::make_shared<std::promise<Method_reply_callback>>();
-    auto const reply = [saved_callback](Enabled_server_connector& /*connector*/, auto /*mid*/,
-                                        auto const& /*pl*/,
-                                        auto const& cb) { saved_callback->set_value(cb); };
+    auto saved_callback = std::make_shared<std::promise<Method_call_reply_data_opt>>();
 
     EXPECT_CALL(m_callbacks, on_method_call(_, method_id, payload, _))
-        .WillOnce(DoAll(Assign(&m_method_callback_called, true), reply,
-                        Return(ByMove(std::make_unique<Method_invocation>()))));
+        .WillOnce(
+            [this, saved_callback](auto& /*connector*/, auto /*mid*/, auto const& /*pl*/, auto cb) {
+                m_method_callback_called = true;
+                saved_callback->set_value(std::move(cb));
+                return std::make_unique<Method_invocation>();
+            });
 
     return saved_callback->get_future();
 }

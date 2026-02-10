@@ -54,6 +54,7 @@ using socom::Event_subscription_change_callback;
 using socom::Event_subscription_change_callback_mock;
 using socom::Method_call_credentials_callback;
 using socom::Method_call_credentials_callback_mock;
+using socom::Method_call_reply_data_opt;
 using socom::Method_id;
 using socom::Method_payload_allocate_callback_mock;
 using socom::Method_reply_callback;
@@ -270,7 +271,7 @@ TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallResultsInLoggingAnd
     auto const el_failure = [this]() {
         auto const self_destruct = [this](Enabled_server_connector& /*server*/,
                                           Method_id /*method_id*/, Payload::Sptr const& /*payload*/,
-                                          Method_reply_callback const& /*reply*/) {
+                                          Method_call_reply_data_opt const& /*reply*/) {
             server.reset();
             return nullptr;
         };
@@ -285,8 +286,8 @@ TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallReplyResultsInLoggi
     auto const el_failure = [this]() {
         auto const empty_reply = [](Enabled_server_connector& /*server*/, Method_id /*method_id*/,
                                     Payload::Sptr const& /*payload*/,
-                                    Method_reply_callback const& reply) {
-            reply(Method_result{Application_return{}});
+                                    Method_call_reply_data_opt const& reply) {
+            reply->reply_callback(Method_result{Application_return{}});
             return nullptr;
         };
 

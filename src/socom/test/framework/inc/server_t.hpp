@@ -208,7 +208,7 @@ struct Server_data {
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
     /// \return Future which will return the client callback once the method is called
-    std::future<::score::socom::Method_reply_callback> expect_and_return_method_call(
+    std::future<::score::socom::Method_call_reply_data_opt> expect_and_return_method_call(
         ::score::socom::Method_id const& method_id, ::score::socom::Payload::Sptr const& payload);
 
     /// Expect minimum number of method call and return received client callback

@@ -49,7 +49,7 @@ struct Call_method {
     using Return_type = score::Result<Method_invocation::Uptr>;
     Method_id const id;
     Payload::Sptr payload;
-    Method_reply_callback const on_method_reply;
+    Method_call_reply_data_opt reply_data;
     Posix_credentials const& credentials;
 };
 

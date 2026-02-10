@@ -247,7 +247,7 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
 }
 
 message::Call_method::Return_type Impl::receive(Client_connection const& /*client*/,
-                                                message::Call_method const& message) {
+                                                message::Call_method message) {
     if (message.id >= m_configuration.get_num_methods()) {
         return MakeUnexpected(Error::logic_error_id_out_of_range);
     }
@@ -258,10 +258,7 @@ message::Call_method::Return_type Impl::receive(Client_connection const& /*clien
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
     return message::Call_method::Return_type(m_callbacks.on_method_call(
-        *this, message.id, message.payload, message.on_method_reply, message.credentials, []() {
-            assert(false && "Allocate_method_reply_payload not implemented");
-            return nullptr;
-        }));
+        *this, message.id, message.payload, std::move(message.reply_data), message.credentials));
 }
 
 message::Allocate_method_payload::Return_type Impl::receive(

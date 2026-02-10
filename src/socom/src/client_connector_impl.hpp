@@ -61,7 +61,7 @@ class Impl final : public Client_connector {
         Event_id client_id) const noexcept override;
     message::Call_method::Return_type call_method(
         Method_id client_id, Payload::Sptr payload,
-        Method_reply_callback const& on_method_reply) const noexcept override;
+        std::optional<Method_call_reply_data> reply_data) const noexcept override;
     Result<Posix_credentials> get_peer_credentials() const noexcept override;
     Service_interface_configuration const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
@@ -115,7 +115,9 @@ ReturnType Impl::lock_server(F const& on_server_locked) const {
 template <typename MessageType>
 typename MessageType::Return_type Impl::send(MessageType message) const {
     return lock_server<typename MessageType::Return_type>(
-        [&message](Server_connector_endpoint const& server) { return server.send(message); });
+        [&message](Server_connector_endpoint const& server) {
+            return server.send(std::move(message));
+        });
 }
 
 }  // namespace client_connector

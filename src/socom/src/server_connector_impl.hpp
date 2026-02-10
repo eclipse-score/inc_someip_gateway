@@ -106,7 +106,7 @@ class Impl final : virtual public Disabled_server_connector,
 
     // Connection endpoint
     message::Call_method::Return_type receive(Client_connection const& client,
-                                              message::Call_method const& message);
+                                              message::Call_method message);
     message::Posix_credentials::Return_type receive(Client_connection const& client,
                                                     message::Posix_credentials const& message);
     message::Subscribe_event::Return_type receive(Client_connection const& client,
@@ -199,7 +199,7 @@ typename MessageType::Return_type Impl::send(
 
 template <typename MessageType>
 typename MessageType::Return_type Client_connection::receive(MessageType message) const {
-    return m_impl.receive(*this, message);
+    return m_impl.receive(*this, std::move(message));
 }
 
 inline Client_connector_endpoint Client_connection::get_client_endpoint() const { return m_client; }

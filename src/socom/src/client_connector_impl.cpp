@@ -16,6 +16,7 @@
 #include <cassert>
 #include <iostream>
 
+#include "messages.hpp"
 #include "runtime_impl.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
@@ -79,11 +80,10 @@ message::Request_event_update::Return_type Impl::request_event_update(
 
 message::Call_method::Return_type Impl::call_method(
     Method_id client_id, Payload::Sptr payload,
-    Method_reply_callback const& on_method_reply) const noexcept {
-    Method_reply_callback protected_on_method_reply{};
-    if (on_method_reply) {
-        protected_on_method_reply =
-            [on_method_reply,
+    Method_call_reply_data_opt reply_data) const noexcept {
+    if (reply_data) {
+        reply_data->reply_callback =
+            [on_method_reply = std::move(reply_data->reply_callback),
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
              this,
 #endif
@@ -98,7 +98,7 @@ message::Call_method::Return_type Impl::call_method(
             };
     }
 
-    return send(message::Call_method{client_id, payload, protected_on_method_reply, m_credentials});
+    return send(message::Call_method{client_id, payload, std::move(reply_data), m_credentials});
 }
 
 Result<std::unique_ptr<Writable_payload>> Impl::allocate_method_payload(
@@ -158,8 +158,8 @@ Impl::Server_indication Impl::make_on_server_update_callback() {
     return [this, weak_stop_token = create_weak_block_token()](
                Server_connector_listen_endpoint const& listen_endpoint) {
         auto const locked_token = weak_stop_token.lock();
-        // Destroying client-connector before this callback runs is not possible with deterministic
-        // results.
+        // Destroying client-connector before this callback runs is not possible with
+        // deterministic results.
 
         if (nullptr == locked_token) {
             // Client_connector destruction detected
@@ -174,8 +174,8 @@ Impl::Server_indication Impl::make_on_server_update_callback() {
             return;
         }
 
-        // As the false condition happens on the non deterministic behavior of thread scheduling it
-        // cannot be tested reliably in unit tests and is therefore excluded in the coverage.
+        // As the false condition happens on the non deterministic behavior of thread scheduling
+        // it cannot be tested reliably in unit tests and is therefore excluded in the coverage.
 
         if (set_id_mappings_and_server(*connect_return)) {
             receive(connect_return->service_state);

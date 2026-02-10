@@ -27,6 +27,8 @@ using ::ac::Client_connector_callbacks_mock;
 using ::score::socom::Client_connector;
 using ::score::socom::Event_id;
 using ::score::socom::Event_mode;
+using ::score::socom::Method_call_reply_data;
+using ::score::socom::Method_call_reply_data_opt;
 using ::score::socom::Method_id;
 using ::score::socom::Method_invocation;
 using ::score::socom::Method_reply_callback;
@@ -147,14 +149,16 @@ score::Result<std::unique_ptr<score::socom::Writable_payload>> Client_data::allo
 }
 
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload) {
-    auto result = m_connector->call_method(method_id, payload, m_method_callback.AsStdFunction());
+    auto result = m_connector->call_method(
+        method_id, payload, Method_call_reply_data{m_method_callback.AsStdFunction(), nullptr});
     ASSERT_TRUE(result);
     m_method_invocations.emplace_back(std::move(result).value());
 }
 
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload,
                               Method_reply_callback const& reply) {
-    auto result = m_connector->call_method(method_id, payload, reply);
+    auto result =
+        m_connector->call_method(method_id, payload, Method_call_reply_data{reply, nullptr});
     ASSERT_TRUE(result);
     m_method_invocations.emplace_back(std::move(result).value());
 }
@@ -163,8 +167,7 @@ void Client_data::call_method_fire_and_forget(Method_id const& method_id,
                                               Payload::Sptr const& payload) {
     EXPECT_TRUE(m_method_callback_called);
     m_method_invocations.clear();
-    static const Method_reply_callback handler;
-    auto result = m_connector->call_method(method_id, payload, handler);
+    auto result = m_connector->call_method(method_id, payload);
     ASSERT_TRUE(result);
     m_method_invocations.emplace_back(std::move(result).value());
 }
@@ -172,8 +175,7 @@ void Client_data::call_method_fire_and_forget(Method_id const& method_id,
 score::Result<Method_invocation::Uptr>
 Client_data::call_method_fire_and_forget_and_return_invocation(Method_id const& method_id,
                                                                Payload::Sptr const& payload) {
-    static const Method_reply_callback handler;
-    return m_connector->call_method(method_id, payload, handler);
+    return m_connector->call_method(method_id, payload);
 }
 
 std::atomic<bool> const& Client_data::expect_service_state_change(Service_state const& state) {

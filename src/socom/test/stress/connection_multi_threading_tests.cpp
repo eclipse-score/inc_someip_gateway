@@ -13,6 +13,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <utility>
 
 #include "gtest/gtest.h"
 #include "multi_threaded_test_template.hpp"
@@ -41,6 +42,8 @@ using socom::Event_state;
 using socom::Event_subscription_change_callback;
 using socom::Event_update_callback;
 using socom::Method_call_credentials_callback;
+using socom::Method_call_reply_data;
+using socom::Method_call_reply_data_opt;
 using socom::Method_id;
 using socom::Method_payload_allocate_callback;
 using socom::Method_reply_callback;
@@ -84,8 +87,10 @@ void subscribe_events(Client_connector const& cc, std::size_t const num_events) 
 void call_methods(Client_connector const& cc, std::size_t const num_methods,
                   Payload::Sptr const& payload, Method_reply_callback const& on_method_reply) {
     for (std::size_t i{0}; i < num_methods; i++) {
-        auto reply_cb = 0 == i % 2 ? on_method_reply : Method_reply_callback{};
-        (void)cc.call_method(i, payload, reply_cb);
+        auto reply_cb = 0 == i % 2
+                            ? Method_call_reply_data_opt{std::in_place, on_method_reply, nullptr}
+                            : Method_call_reply_data_opt{std::nullopt};
+        (void)cc.call_method(i, payload, std::move(reply_cb));
     }
 }
 
@@ -111,9 +116,9 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
 
     Method_call_credentials_callback const on_method_call =
         [](Enabled_server_connector& /*esc*/, Method_id /* mid */, Payload::Sptr const& /* pl */,
-           Method_reply_callback const& reply, auto const& cred, auto const& reply_allocator) {
+           Method_call_reply_data_opt const& reply, auto const& cred) {
             if (reply) {
-                reply(Method_result{Application_return{}});
+                reply->reply_callback(Method_result{Application_return{}});
             }
             return nullptr;
         };

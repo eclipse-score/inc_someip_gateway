@@ -137,7 +137,7 @@ TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesCustomClientCre
     auto& credentials_callbacks_mock = server.get_credentials_callbacks();
 
     EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, input_data(), _, client_credentials, _))
+                on_method_call(_, method_id, input_data(), _, client_credentials))
         .Times(1);
 
     client.call_method(method_id, input_data());
@@ -154,7 +154,7 @@ TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesDefaultClientCr
     auto& credentials_callbacks_mock = server.get_credentials_callbacks();
 
     EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, input_data(), _, default_credentials, _))
+                on_method_call(_, method_id, input_data(), _, default_credentials))
         .Times(1);
 
     client.call_method(method_id, input_data());

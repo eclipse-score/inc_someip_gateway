@@ -31,7 +31,7 @@ class Endpoint {
 
     template <typename MessageType>
     inline typename MessageType::Return_type send(MessageType message) const {
-        return m_connector->receive(message);
+        return m_connector->receive(std::move(message));
     }
 
    private:

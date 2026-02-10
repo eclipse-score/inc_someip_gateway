@@ -40,8 +40,7 @@ struct Client_connector_callbacks_naggy_mock {
 struct Server_connector_callbacks_naggy_mock {
     MOCK_METHOD(::score::socom::Method_invocation::Uptr, on_method_call,
                 (::score::socom::Enabled_server_connector&, ::score::socom::Method_id,
-                 ::score::socom::Payload::Sptr const&,
-                 ::score::socom::Method_reply_callback const&));
+                 ::score::socom::Payload::Sptr const&, ::score::socom::Method_call_reply_data_opt));
     MOCK_METHOD(void, on_event_subscription_change,
                 (::score::socom::Enabled_server_connector&, ::score::socom::Event_id,
                  ::score::socom::Event_state));
@@ -55,9 +54,8 @@ struct Server_connector_callbacks_naggy_mock {
 struct Server_connector_credentials_callbacks_naggy_mock {
     MOCK_METHOD(::score::socom::Method_invocation::Uptr, on_method_call,
                 (::score::socom::Enabled_server_connector&, ::score::socom::Method_id,
-                 ::score::socom::Payload::Sptr const&, ::score::socom::Method_reply_callback const&,
-                 ::score::socom::Posix_credentials const&,
-                 ::score::socom::Allocate_method_reply_payload const&));
+                 ::score::socom::Payload::Sptr const&, ::score::socom::Method_call_reply_data_opt,
+                 ::score::socom::Posix_credentials const&));
     MOCK_METHOD(void, on_event_subscription_change,
                 (::score::socom::Enabled_server_connector&, ::score::socom::Event_id,
                  ::score::socom::Event_state));

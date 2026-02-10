@@ -17,6 +17,7 @@
 #include <functional>
 #include <future>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -47,6 +48,8 @@ using ::ac::Temporary_event_subscription;
 using ::ac::wait_for_atomics;
 using score::Blank;
 using score::socom::Event_payload_allocate_callback_mock;
+using score::socom::Method_call_reply_data;
+using score::socom::Method_call_reply_data_opt;
 using socom::Application_return;
 using socom::Client_connector;
 using socom::Construction_error;
@@ -96,7 +99,7 @@ bool operator==(Client_connector const& /*lhs*/, Client_connector const& /*rhs*/
 
 namespace {
 
-Method_reply_callback get_value(std::future<Method_reply_callback> reply_future) {
+Method_call_reply_data_opt get_value(std::future<Method_call_reply_data_opt> reply_future) {
     SCOPED_TRACE("get_value");
     EXPECT_TRUE(reply_future.valid());
     reply_future.wait();
@@ -328,7 +331,8 @@ TEST_P(UnconnectedClientConnectorTest, CallMethodReturnsServiceNotAvailable) {
         score::MakeUnexpected(Error::runtime_error_service_not_available);
 
     for (auto const& input : GetParam().test_method_ids) {
-        auto const result = cc->call_method(input.client_id, empty_payload(), mrcb.AsStdFunction());
+        auto const result = cc->call_method(input.client_id, empty_payload(),
+                                            Method_call_reply_data{mrcb.AsStdFunction(), nullptr});
 
         EXPECT_EQ(result, no_connection_method);
     }
@@ -393,7 +397,8 @@ TEST_P(UnavailableServerConnectorClientConnectorTest, CallMethodReturnsServiceNo
         score::MakeUnexpected(Error::runtime_error_service_not_available);
 
     for (auto const& input : GetParam().test_method_ids) {
-        auto const result = cc->call_method(input.client_id, empty_payload(), mrcb.AsStdFunction());
+        auto const result = cc->call_method(input.client_id, empty_payload(),
+                                            Method_call_reply_data{mrcb.AsStdFunction(), nullptr});
 
         EXPECT_EQ(result, no_connection_method);
     }
@@ -446,7 +451,7 @@ TEST_P(ConnectedClientConnectorTest, CallMethodWithoutReply) {
         client.call_method_fire_and_forget(input.client_id, test_values::real_payload);
 
         auto reply_callback = get_value(std::move(reply_future));
-        EXPECT_EQ(reply_callback, nullptr);
+        EXPECT_EQ(reply_callback, std::nullopt);
     }
 }
 
@@ -459,9 +464,9 @@ TEST_P(ConnectedClientConnectorTest, CallMethodWithReply) {
             input.client_id, test_values::real_payload, test_values::application_return);
 
         auto reply_callback = get_value(std::move(reply_future));
-        EXPECT_NE(reply_callback, nullptr);
+        ASSERT_NE(reply_callback, std::nullopt);
 
-        reply_callback(test_values::application_return);
+        reply_callback->reply_callback(test_values::application_return);
         wait_for_atomics(wait_reply);
     }
 }
@@ -482,7 +487,7 @@ TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
 
     client_owner = nullptr;
 
-    reply_callback(test_values::application_return);
+    reply_callback->reply_callback(test_values::application_return);
 }
 
 TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
@@ -866,9 +871,10 @@ TEST_F(ClientConnectorDeathTest, ClientDeletionByOnMethodReplyResultsInLoggingAn
     auto const el_failure = [this]() {
         auto reply_callback = server.expect_and_return_method_call(method_id, empty_payload());
         auto const delete_client = [this](Method_result const& /*eid*/) { client0.reset(); };
-        ASSERT_TRUE(client0->call_method(method_id, empty_payload(), delete_client));
+        ASSERT_TRUE(client0->call_method(method_id, empty_payload(),
+                                         Method_call_reply_data{delete_client, nullptr}));
         ASSERT_EQ(std::future_status::ready, reply_callback.wait_for(0ms));
-        reply_callback.get()(Method_result{Application_return{empty_payload()}});
+        reply_callback.get()->reply_callback(Method_result{Application_return{empty_payload()}});
     };
     EXPECT_DEATH(el_failure(), expected_message);
 }
@@ -916,7 +922,8 @@ TEST_F(ClientConnectorOutOfBoundsTest, CallMethodWithOutOfBoundsIndexReturnsOutO
 
     auto const out_of_range_method = score::MakeUnexpected(Error::logic_error_id_out_of_range);
     EXPECT_EQ(out_of_range_method,
-              (client0->call_method(max_method_id + 1, empty_payload(), mrcb.AsStdFunction())));
+              (client0->call_method(max_method_id + 1, empty_payload(),
+                                    Method_call_reply_data{mrcb.AsStdFunction(), nullptr})));
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, ResultCompareOperator) {

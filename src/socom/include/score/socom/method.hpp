@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <score/socom/error.hpp>
 #include <score/socom/payload.hpp>
 #include <variant>
@@ -125,6 +126,17 @@ inline bool operator!=(Application_error const& lhs, Application_error const& rh
 
 /// \brief Alias for the callback function of a method, in case a reply is requested.
 using Method_reply_callback = std::function<void(Method_result const&)>;
+
+/// \brief Callback and payload buffer for method call replies.
+struct Method_call_reply_data {
+    Method_reply_callback reply_callback;
+    Writable_payload::Uptr reply_payload;
+
+    Method_call_reply_data(Method_reply_callback reply_callback,
+                           Writable_payload::Uptr reply_payload);
+};
+
+using Method_call_reply_data_opt = std::optional<Method_call_reply_data>;
 
 }  // namespace score::socom
 

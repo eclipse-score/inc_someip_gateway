@@ -15,6 +15,7 @@
 #define SCORE_SOCOM_CLIENT_CONNECTOR_HPP
 
 #include <memory>
+#include <optional>
 #include <score/socom/error.hpp>
 #include <score/socom/event.hpp>
 #include <score/socom/method.hpp>
@@ -208,26 +209,26 @@ class Client_connector {
     virtual Result<Blank> request_event_update(Event_id client_id) const noexcept = 0;
 
     /// \brief Calls a method at the Server_connector side.
-    /// \details If on_method_reply is nullptr, then the Server application (of the
+    /// \details If reply_data is nullopt, then the Server application (of the
     /// Enabled_server_connector instance) and the Method_invocation object returned do not allocate
     /// any resources for this method call and callback on_method_reply() will not be called.
     ///
-    /// If on_method_reply is not nullptr, then the server application (of the
+    /// If reply_data is not nullopt, then the server application (of the
     /// Enabled_server_connector instance) returns a Method_invocation object which allocates
     /// resources required for the ongoing method invocation. Once the method invocation is
-    /// completed, the server application calls callback on_method_reply(). Discarding the
-    /// Method_invocation object cancels the method invocation.
+    /// completed, the server application calls reply_data.reply_callback().
+    /// Discarding the Method_invocation object cancels the method invocation.
     ///
     /// If the service state is Service_state::available, then the available Server_connector
-    /// instance calls the callback on_method_call(server_id, payload, on_method_reply).
+    /// instance calls the callback on_method_call(server_id, payload, reply_data).
     /// \param client_id ID of the method.
     /// \param payload Payload to be called with.
-    /// \param on_method_reply Callback function in case a reply is requested.
+    /// \param reply_data Callback and payload buffer in case a reply is requested.
     /// \return A pointer to a Method_invocation object in case of successful invocation, otherwise
     /// an error.
     [[nodiscard]] virtual Result<Method_invocation::Uptr> call_method(
         Method_id client_id, Payload::Sptr payload,
-        Method_reply_callback const& on_method_reply) const noexcept = 0;
+        Method_call_reply_data_opt reply_data = std::nullopt) const noexcept = 0;
 
     /// \brief Retrieves the peer posix credentials from the server.
     /// \details If the client connector is not connected, then an error is returned.

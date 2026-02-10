@@ -37,6 +37,8 @@ using score::socom::Find_result_change_callback_mock;
 using score::socom::Find_result_status;
 using score::socom::Method_call_credentials_callback;
 using score::socom::Method_call_credentials_callback_mock;
+using score::socom::Method_call_reply_data;
+using score::socom::Method_call_reply_data_opt;
 using score::socom::Method_payload_allocate_callback_mock;
 using score::socom::Method_reply_callback;
 using score::socom::Method_reply_callback_mock;
@@ -176,13 +178,16 @@ TEST_F(Connection_test, server_sends_event_which_is_received_by_the_client) {
 }
 
 TEST_F(Connection_test, client_calls_method_and_gets_response) {
-    Method_reply_callback pointer;
-    EXPECT_CALL(m_method_call_mock, Call(_, 0, _, _, _, _))
-        .WillOnce(DoAll(SaveArgByMove<3>(&pointer), Return(nullptr)));
-    auto const invocation =
-        client_connector->call_method(0, empty_payload(), m_method_reply_mock.AsStdFunction());
+    Method_call_reply_data_opt pointer;
+    EXPECT_CALL(m_method_call_mock, Call(_, 0, _, _, _))
+        .WillOnce([&pointer](auto&, auto, auto, auto cb_data, auto) {
+            pointer = std::move(cb_data);
+            return nullptr;
+        });
+    auto const invocation = client_connector->call_method(
+        0, empty_payload(), Method_call_reply_data{m_method_reply_mock.AsStdFunction(), nullptr});
     // ASSERT_TRUE(invocation);
 
     EXPECT_CALL(m_method_reply_mock, Call).Times(1);
-    pointer(Application_return{empty_payload()});
+    pointer->reply_callback(Application_return{empty_payload()});
 }
