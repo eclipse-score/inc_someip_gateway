@@ -209,8 +209,6 @@ TEST_F(EventTest,
     }
     wait_for_atomics(server_received_request);
 
-    // TODO(MAEG): sync
-
     server.update_requested_event(event_id, empty_payload());
     wait_for_atomics(event_reveived);
 }

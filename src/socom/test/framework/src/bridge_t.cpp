@@ -19,7 +19,6 @@ using ::score::socom::Bridge_identity;
 using ::score::socom::Construction_error;
 using ::score::socom::Find_result_status;
 using ::score::socom::Find_subscription_handle;
-using ::score::socom::Runtime;
 using ::score::socom::Service_bridge_registration;
 using ::score::socom::Service_instance;
 using ::score::socom::Service_interface;
@@ -47,7 +46,6 @@ bool enable_request_find_service(Bridge_data::Expect const& expect) {
 
 }  // namespace
 
-// TODO(lure9428) generalize or so
 class Handle_mock final : public Service_request_handle, public Find_subscription_handle {
     std::atomic<bool>& m_destroyed;
 
