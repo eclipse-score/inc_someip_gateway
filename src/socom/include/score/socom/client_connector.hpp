@@ -41,11 +41,9 @@ using Service_state_change_callback = std::function<void(
 /// \brief Function type for indicating event updates to the service user.
 using Event_update_callback = std::function<void(Client_connector const&, Event_id, Payload::Sptr)>;
 
+/// \brief Function type for allocating event payloads.
 using Event_payload_allocate_callback =
     std::function<Result<std::unique_ptr<Writable_payload>>(Client_connector const&, Event_id)>;
-
-using Method_reply_payload_allocate_callback =
-    std::function<Result<std::unique_ptr<Writable_payload>>(Client_connector const&, Method_id)>;
 
 /// \brief Interface for applications to use a service (client-role).
 /// \details Changes of service instance state are indicated by callback on_service_state_change.
@@ -94,9 +92,8 @@ class Client_connector {
         /// \brief Callback is called on a client requested event update, see
         /// Client_connector::subscribe_event() and Client_connector::request_event_update().
         Event_update_callback on_event_requested_update;
-
-        Event_payload_allocate_callback on_event_payload_allocate = {};
-        Method_reply_payload_allocate_callback on_method_reply_payload_allocate = {};
+        /// \brief Callback is called to allocate event payloads.
+        Event_payload_allocate_callback on_event_payload_allocate;
     };
 
     /// \brief Constructor.

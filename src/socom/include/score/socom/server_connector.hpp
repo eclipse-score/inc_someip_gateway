@@ -97,7 +97,8 @@ class Disabled_server_connector : public Configuration_getter {
         /// state to all clients).
         Event_request_update_callback on_event_update_request;
 
-        Method_payload_allocate_callback on_method_payload_allocate = {};
+        /// \brief Callback is called to allocate method call payloads.
+        Method_payload_allocate_callback on_method_payload_allocate;
     };
 
     /// \brief Makes the service available to clients.
