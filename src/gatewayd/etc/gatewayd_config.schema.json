@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "definitions": {
+    "score_someip_gateway_gatewayd_config_Root" : {
+      "type" : "object",
+      "description" : "Top-level element of the gateway configuration",
+      "properties" : {
+        "local_service_instances" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_someip_gateway_gatewayd_config_ServiceInstance"},
+                "description" : "The service instances hosted on this machine which shall be offered to the network."
+              },
+        "remote_service_instances" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_someip_gateway_gatewayd_config_ServiceInstance"},
+                "description" : "The external service instances that shall be made available on this machine."
+              }
+      },
+      "required" : ["local_service_instances", "remote_service_instances"],
+      "additionalProperties" : false
+    },
+    "score_someip_gateway_gatewayd_config_ServiceInstance" : {
+      "type" : "object",
+      "description" : "Each entry identifies and describes a specific SOME/IP service instance.",
+      "properties" : {
+        "someip_service_id" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "description" : "The 16-bit identifier for the service as defined in the SOME/IP specification."
+              },
+        "someip_service_version_major" : {
+                "type" : "integer", "minimum" : 0, "maximum" :255,
+                "description" : "Indicates breaking changes in the service API. Consumers and providers must match this version."
+              },
+        "someip_service_version_minor" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "description" : "Indicates non-breaking changes. A provider may have a higher version than a consumer."
+              },
+        "instance_specifier" : {
+                "type" : "string",
+                "description" : "A unique string used to differentiate between multiple instances of the same service."
+              },
+        "events" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_someip_gateway_gatewayd_config_Event"},
+                "description" : "Defines all events associated with this service instance."
+              }
+      },
+      "required" : ["instance_specifier", "events"],
+      "additionalProperties" : false
+    },
+    "score_someip_gateway_gatewayd_config_Event" : {
+      "type" : "object",
+      "description" : "Describes a single event within a service.",
+      "properties" : {
+        "someip_method_id" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "description" : "The identifier for the event within the service, corresponding to the Method ID in the SOME/IP specification."
+              },
+        "event_name" : {
+                "type" : "string",
+                "description" : "A unique, human-readable name for the event. This needs to be exactly the same name as used in the score::mw::com definition of the IPC Service."
+              }
+      },
+      "required" : ["event_name"],
+      "additionalProperties" : false
+    }
+  },
+  "$ref" : "#/definitions/score_someip_gateway_gatewayd_config_Root"
+}
