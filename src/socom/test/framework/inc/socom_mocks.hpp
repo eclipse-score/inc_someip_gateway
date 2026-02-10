@@ -32,9 +32,9 @@ struct Client_connector_callbacks_naggy_mock {
     MOCK_METHOD(void, on_requested_event_update,
                 (::score::socom::Client_connector const&, ::score::socom::Event_id,
                  ::score::socom::Payload::Sptr const&));
-    MOCK_METHOD(void, on_event_subscription_status_change,
-                (::score::socom::Client_connector const&, ::score::socom::Event_id,
-                 ::score::socom::Event_state));
+    MOCK_METHOD(score::Result<std::unique_ptr<::score::socom::Writable_payload>>,
+                on_event_payload_allocate,
+                (::score::socom::Client_connector const&, ::score::socom::Event_id));
 };
 
 struct Server_connector_callbacks_naggy_mock {

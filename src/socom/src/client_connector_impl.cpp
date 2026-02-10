@@ -141,6 +141,14 @@ message::Update_requested_event::Return_type Impl::receive(
     m_callbacks.on_event_requested_update(*this, message.id, message.payload);
 }
 
+message::Allocate_event_payload::Return_type Impl::receive(
+    message::Allocate_event_payload message) {
+#ifdef WITH_SOCOM_DEADLOCK_DETECTION
+    Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
+#endif
+    return m_callbacks.on_event_payload_allocate(*this, message.id);
+}
+
 Impl::Server_indication Impl::make_on_server_update_callback() {
     return [this, weak_stop_token = create_weak_block_token()](
                Server_connector_listen_endpoint const& listen_endpoint) {

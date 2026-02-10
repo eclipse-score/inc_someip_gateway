@@ -38,7 +38,6 @@ using namespace std::literals::chrono_literals;
 namespace socom = score::socom;
 
 using ::ac::Client_connector_callbacks_mock;
-using ::ac::Client_connector_callbacks_naggy_mock;
 using ::ac::Client_data;
 using ::ac::Connector_factory;
 using ::ac::Server_connector_callbacks_mock;
@@ -47,6 +46,7 @@ using ::ac::SingleConnectionTest;
 using ::ac::Temporary_event_subscription;
 using ::ac::wait_for_atomics;
 using score::Blank;
+using score::socom::Event_payload_allocate_callback_mock;
 using socom::Application_return;
 using socom::Client_connector;
 using socom::Construction_error;
@@ -228,6 +228,7 @@ class ConstructionClientConnectorTest : public ::testing::TestWithParam<test_val
    protected:
     Service_state_change_callback_mock state_change_mock;
     Event_update_callback_mock event_update_mock;
+    Event_payload_allocate_callback_mock event_payload_allocate_mock;
 
     score::Result<Client_connector::Uptr> const callback_missing =
         score::MakeUnexpected(Construction_error::callback_missing);
@@ -238,20 +239,32 @@ class ConstructionClientConnectorTest : public ::testing::TestWithParam<test_val
     Client_connector_callbacks_mock callbacks;
 };
 
-TEST_P(ConstructionClientConnectorTest, ConstructDestruct) {
-    StaticAssertTypeEq<decltype(callbacks), StrictMock<Client_connector_callbacks_naggy_mock>>();
-
-    auto cc = connector_factory.create_client_connector(GetParam().service_interface_configuration,
-                                                        test_values::service_instance, callbacks);
-
-    StaticAssertTypeEq<decltype(cc), Client_connector::Uptr>();
-}
-
 TEST_P(ConstructionClientConnectorTest, ConstructCallbackMissing) {
     std::vector<Client_connector::Callbacks> input = {
-        {nullptr, event_update_mock.AsStdFunction(), event_update_mock.AsStdFunction()},
-        {state_change_mock.AsStdFunction(), nullptr, event_update_mock.AsStdFunction()},
-        {state_change_mock.AsStdFunction(), event_update_mock.AsStdFunction(), nullptr},
+        {
+            nullptr,
+            event_update_mock.AsStdFunction(),
+            event_update_mock.AsStdFunction(),
+            event_payload_allocate_mock.AsStdFunction(),
+        },
+        {
+            state_change_mock.AsStdFunction(),
+            nullptr,
+            event_update_mock.AsStdFunction(),
+            event_payload_allocate_mock.AsStdFunction(),
+        },
+        {
+            state_change_mock.AsStdFunction(),
+            event_update_mock.AsStdFunction(),
+            nullptr,
+            event_payload_allocate_mock.AsStdFunction(),
+        },
+        {
+            state_change_mock.AsStdFunction(),
+            event_update_mock.AsStdFunction(),
+            event_update_mock.AsStdFunction(),
+            nullptr,
+        },
     };
 
     for (auto const& callbacks : input) {

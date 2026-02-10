@@ -88,11 +88,17 @@ bool operator==(Payload const& lhs, Payload const& rhs);
 /// \return True in case of inequality, otherwise false.
 bool operator!=(Payload const& lhs, Payload const& rhs);
 
+/// \brief Interface representing a writable payload, which can be allocated by the recipient for
+/// zero copy operations.
+///
+/// The recipient is responsible for allocating enough data for the sender.
 class Writable_payload : public Payload {
    public:
     /// \brief Alias for a shared pointer to this interface.
     using Sptr = std::shared_ptr<Writable_payload>;
 
+    /// \brief Retrieves the writable payload data.
+    /// \return Span of payload data.
     [[nodiscard]] virtual Writable_span wdata() noexcept = 0;
 };
 

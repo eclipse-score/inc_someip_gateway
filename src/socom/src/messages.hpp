@@ -85,6 +85,11 @@ struct Update_requested_event {
     Payload::Sptr payload;
 };
 
+struct Allocate_event_payload {
+    using Return_type = score::Result<std::unique_ptr<Writable_payload>>;
+    Event_id const id;
+};
+
 }  // namespace message
 }  // namespace socom
 }  // namespace score

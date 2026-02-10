@@ -29,6 +29,9 @@ class Server_connector_mock : public Disabled_server_connector, public Enabled_s
                 (noexcept, override));
     MOCK_METHOD(Result<Event_mode>, get_event_mode, (Event_id), (const, noexcept, override));
 
+    MOCK_METHOD(Result<std::unique_ptr<Writable_payload>>, allocate_event_payload,
+                (Event_id event_id), (noexcept, override));
+
     MOCK_METHOD(Server_service_interface_configuration const&, get_configuration, (),
                 (const, noexcept, override));
     MOCK_METHOD(Service_instance const&, get_service_instance, (), (const, noexcept, override));

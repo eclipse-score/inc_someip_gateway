@@ -112,6 +112,23 @@ Impl* Impl::disable() noexcept {
     return this;
 }
 
+Result<std::unique_ptr<Writable_payload>> Impl::allocate_event_payload(Event_id event_id) noexcept {
+    if (event_id >= m_configuration.get_num_events()) {
+        return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
+    }
+
+    assert(event_id < m_configuration.get_num_events());
+
+    std::unique_lock<std::mutex> lock{m_mutex};
+    // May throw std::bad_alloc: left unhandled as a design decision
+    auto const clients = m_subscriber[event_id].get_client();
+    lock.unlock();
+
+    return send(
+        clients, message::Allocate_event_payload{event_id},
+        MakeUnexpected(Server_connector_error::runtime_error_no_client_subscribed_for_event));
+}
+
 Server_service_interface_configuration const& Impl::get_configuration() const noexcept {
     return m_configuration;
 }

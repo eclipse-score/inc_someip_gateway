@@ -170,13 +170,16 @@ class Enabled_server_connector : public Configuration_getter {
     static std::unique_ptr<Disabled_server_connector> disable(
         std::unique_ptr<Enabled_server_connector> connector) noexcept;
 
-    // caveat: this only works with 1:1 connections, assumption is that it is ok because mw::com /
-    // message_passing will in S-CORE do the multiplexing
+    /// \brief Allocates a payload for the given event ID.
+    ///
+    /// This requires a Client_connector to be subscribed to the event to which payload allocation
+    /// is delegated.
+    ///
+    /// \param event_id ID of the event for which a payload should be allocated.
+    /// \return A writable payload in case of successful operation, otherwise an error.
     [[nodiscard]]
     virtual Result<std::unique_ptr<Writable_payload>> allocate_event_payload(
-        Event_id /* event_id */) noexcept {
-        return nullptr;
-    }
+        Event_id event_id) noexcept = 0;
 
     /// \brief Distributes new event data to all subscribed Client_connectors.
     /// \details Clears the list of event update requesters for the event server_id.

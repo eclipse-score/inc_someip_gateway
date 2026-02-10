@@ -41,7 +41,8 @@ score::result::Error MakeError(Error code, std::string_view user_message = "") n
 /// \brief Error conditions when using Enabled_server_connector.
 enum class Server_connector_error : score::result::ErrorCode {
     /// Event or method ID is out of range.
-    logic_error_id_out_of_range
+    logic_error_id_out_of_range,
+    runtime_error_no_client_subscribed_for_event,
 };
 
 score::result::Error MakeError(Server_connector_error code,

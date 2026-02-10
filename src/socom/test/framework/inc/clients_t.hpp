@@ -41,6 +41,7 @@ struct Client_data {
     std::atomic<bool> m_method_callback_called{true};
     std::atomic<bool> m_not_available{true};
     std::atomic<bool> m_available{true};
+    std::atomic<bool> m_event_payload_allocate_called{true};
     std::atomic<uint32_t> m_num_event_callback_called{0};
     std::atomic<uint32_t> m_num_method_callback_called{0};
     Client_connector_callbacks_mock m_callbacks;
@@ -208,6 +209,15 @@ struct Client_data {
         size_t count, ::score::socom::Service_state const& state,
         Optional_reference<::score::socom::Server_service_interface_configuration const> const&
             conf);
+
+    /// \brief Expect event payload allocation
+    ///
+    /// \param[in] event_id event which is updated
+    /// \param[in] result the return value of the callback
+    /// \return boolean reference which becomes true after the callback has been called
+    std::atomic<bool> const& expect_event_payload_allocation(
+        ::score::socom::Event_id const& event_id,
+        score::Result<std::unique_ptr<::score::socom::Writable_payload>> result);
 
     /// \brief Expect event update
     ///

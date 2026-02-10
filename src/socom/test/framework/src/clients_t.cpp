@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <future>
 
+#include "gmock/gmock.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
@@ -26,7 +27,6 @@ using ::ac::Client_connector_callbacks_mock;
 using ::score::socom::Client_connector;
 using ::score::socom::Event_id;
 using ::score::socom::Event_mode;
-using ::score::socom::Event_state;
 using ::score::socom::Method_id;
 using ::score::socom::Method_invocation;
 using ::score::socom::Method_reply_callback;
@@ -41,7 +41,8 @@ using ::score::socom::Service_state_change_callback;
 using ::testing::_;
 using ::testing::AnyNumber;
 using ::testing::Assign;
-using ::testing::Invoke;
+using testing::ByMove;
+using testing::Return;
 
 namespace ac {
 namespace {
@@ -101,7 +102,7 @@ Client_data::Client_data(Connector_factory& factory,
 Client_data::~Client_data() {
     wait_for_atomics(m_event_callback_called, m_event_request_callback_called,
                      m_method_callback_called, m_available, m_not_available,
-                     m_event_subscription_status_change_called);
+                     m_event_subscription_status_change_called, m_event_payload_allocate_called);
 }
 
 void Client_data::subscribe_event(Event_id const& event_id) {
@@ -201,6 +202,17 @@ std::atomic<bool> const& Client_data::expect_service_state_change(
             .WillRepeatedly(Assign(&atomi, true));
     }
     return atomi;
+}
+
+std::atomic<bool> const& Client_data::expect_event_payload_allocation(
+    ::score::socom::Event_id const& event_id,
+    score::Result<std::unique_ptr<::score::socom::Writable_payload>> result) {
+    EXPECT_CALL(m_callbacks, on_event_payload_allocate(_, event_id))
+        .WillOnce(DoAll(Assign(&m_event_payload_allocate_called, true),
+                        Return(ByMove(std::move(result)))));
+
+    m_event_payload_allocate_called = false;
+    return m_event_payload_allocate_called;
 }
 
 std::atomic<bool> const& Client_data::expect_event_update(Event_id const& event_id,

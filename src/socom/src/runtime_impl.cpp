@@ -240,7 +240,7 @@ bool is_only_minor_version_incompatible(Service_interface const& server,
 
 bool is_valid(Client_connector::Callbacks const& callbacks) {
     return callbacks.on_service_state_change && callbacks.on_event_update &&
-           callbacks.on_event_requested_update;
+           callbacks.on_event_requested_update && callbacks.on_event_payload_allocate;
 }
 
 bool is_valid(Disabled_server_connector::Callbacks const& callbacks) {

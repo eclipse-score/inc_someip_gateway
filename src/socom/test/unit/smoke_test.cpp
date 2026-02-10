@@ -24,6 +24,7 @@ using score::socom::Disabled_server_connector;
 using score::socom::empty_payload;
 using score::socom::Enabled_server_connector;
 using score::socom::Event_mode;
+using score::socom::Event_payload_allocate_callback_mock;
 using score::socom::Event_request_update_callback;
 using score::socom::Event_request_update_callback_mock;
 using score::socom::Event_state;
@@ -68,10 +69,12 @@ class Runtime_test : public ::testing::Test {
     Service_state_change_callback_mock m_service_state_change_mock;
     Event_update_callback_mock m_event_update_mock;
     Event_update_callback_mock m_requested_event_update_mock;
+    Event_payload_allocate_callback_mock m_event_payload_allocate_mock;
 
     Client_connector::Callbacks client_callbacks{m_service_state_change_mock.AsStdFunction(),
                                                  m_event_update_mock.AsStdFunction(),
-                                                 m_requested_event_update_mock.AsStdFunction()};
+                                                 m_requested_event_update_mock.AsStdFunction(),
+                                                 m_event_payload_allocate_mock.AsStdFunction()};
 
     // Server_connector mocks
     Event_subscription_change_callback_mock m_event_subscription_change_mock;

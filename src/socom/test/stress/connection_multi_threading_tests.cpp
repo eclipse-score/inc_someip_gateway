@@ -131,7 +131,13 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
 
     Client_connector::Callbacks create_client_callbacks(
         socom::Service_state_change_callback const& on_state_change) {
-        return {on_state_change, on_event_update, on_event_update};
+        auto fail_on_call = [](Client_connector const& /*cc*/, Event_id const& event_id) {
+            ADD_FAILURE() << "Unexpected call to on_event_payload_allocate for event_id "
+                          << event_id;
+            return score::MakeUnexpected(
+                score::socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
+        };
+        return {on_state_change, on_event_update, on_event_update, fail_on_call};
     }
 };
 

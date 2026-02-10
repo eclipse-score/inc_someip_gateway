@@ -250,4 +250,41 @@ TEST_F(EventTest, MiddlewareCachesEventUpdateRequestsUntilServerAnswers) {
     wait_for_atomics(event_requested);
 }
 
+TEST_F(EventTest, AllocateEventPayloadWithOutOfBoundsEventIdReturnsLogicErrorIdOutOfRange) {
+    Server_data server{connector_factory};
+
+    auto payload = server.get_connector().allocate_event_payload(event_id + 1);
+    EXPECT_FALSE(payload);
+    EXPECT_EQ(payload.error(), score::socom::Server_connector_error::logic_error_id_out_of_range);
+}
+
+TEST_F(EventTest,
+       AllocateEventPayloadWithoutSubscribedClientReturnsNoClientSubscribedForEventError) {
+    Server_data server{connector_factory};
+    Client_data client0{connector_factory};
+
+    auto payload = server.get_connector().allocate_event_payload(event_id);
+    EXPECT_FALSE(payload);
+    EXPECT_EQ(payload.error(),
+              score::socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
+}
+
+TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
+    Server_data server{connector_factory};
+    Client_data client0{connector_factory};
+
+    server.expect_event_subscription(event_id);
+    auto const sub = client0.create_event_subscription(event_id);
+
+    score::Result<std::unique_ptr<::score::socom::Writable_payload>> wpayload = nullptr;
+
+    auto const& expect_event_payload_allocation =
+        client0.expect_event_payload_allocation(event_id, std::move(wpayload));
+
+    auto payload = server.get_connector().allocate_event_payload(event_id);
+    EXPECT_TRUE(payload);
+    EXPECT_EQ(nullptr, payload.value());
+    wait_for_atomics(expect_event_payload_allocation);
+}
+
 }  // namespace

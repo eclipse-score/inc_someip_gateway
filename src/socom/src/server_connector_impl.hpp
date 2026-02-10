@@ -95,6 +95,8 @@ class Impl final : virtual public Disabled_server_connector,
     Result<Event_mode> get_event_mode(Event_id server_id) const noexcept override;
     Impl* enable() override;
     Impl* disable() noexcept override;
+    Result<std::unique_ptr<Writable_payload>> allocate_event_payload(
+        Event_id event_id) noexcept override;
     Server_service_interface_configuration const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
 
@@ -131,12 +133,15 @@ class Impl final : virtual public Disabled_server_connector,
     void send_all(MessageType message) const;
 
     template <typename MessageType>
-    static typename MessageType::Return_type send(Client_connector_endpoint const& client,
-                                                  MessageType message);
+    static void send(Client_connector_endpoint const& client, MessageType message);
+
+    template <typename MessageType>
+    static void send(std::optional<Client_connector_endpoint> const& client, MessageType message);
 
     template <typename MessageType>
     static typename MessageType::Return_type send(
-        std::optional<Client_connector_endpoint> const& client, MessageType message);
+        std::optional<Client_connector_endpoint> const& client, MessageType message,
+        typename MessageType::Return_type default_return_value = {});
 
     Runtime_impl& m_runtime;
     Server_service_interface_configuration const m_configuration;
@@ -169,17 +174,25 @@ void Impl::send_all(MessageType message) const {
 }
 
 template <typename MessageType>
-typename MessageType::Return_type Impl::send(Client_connector_endpoint const& client,
-                                             MessageType message) {
+void Impl::send(Client_connector_endpoint const& client, MessageType message) {
     client.send(message);
 }
 
 template <typename MessageType>
-typename MessageType::Return_type Impl::send(std::optional<Client_connector_endpoint> const& client,
-                                             MessageType message) {
+void Impl::send(std::optional<Client_connector_endpoint> const& client, MessageType message) {
     if (client) {
         client->send(message);
     }
+}
+
+template <typename MessageType>
+typename MessageType::Return_type Impl::send(
+    std::optional<Client_connector_endpoint> const& client, MessageType message,
+    typename MessageType::Return_type default_return_value) {
+    if (client) {
+        return client->send(message);
+    }
+    return default_return_value;
 }
 
 template <typename MessageType>

@@ -55,6 +55,9 @@ Client_connector::Callbacks create_client_callbacks(Client_connector_callbacks_m
         },
         [&mock](auto const& connector, auto id, auto const& payload) {
             mock.on_requested_event_update(connector, id, payload);
+        },
+        [&mock](auto const& connector, auto id) {
+            return mock.on_event_payload_allocate(connector, id);
         }};
 }
 
