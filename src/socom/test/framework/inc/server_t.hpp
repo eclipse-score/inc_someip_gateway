@@ -37,6 +37,7 @@ struct Server_data {
     std::atomic<bool> m_method_callback_called{true};
     std::atomic<bool> m_subscribed{true};
     std::atomic<bool> m_unsubscribed{true};
+    std::atomic<bool> m_method_payload_allocate_called{true};
     std::atomic<uint32_t> m_num_method_calls{0};
     Server_connector_callbacks_mock m_callbacks;
     Server_connector_credentials_callbacks_mock m_credential_callbacks;
@@ -174,10 +175,20 @@ struct Server_data {
 
     /// \brief Expect and respond to method calls
     ///
+    /// \param[in] method_id method which is expected
+    /// \param[in] result allocated payload
+    /// \return boolean reference which becomes true when the callback is called
+    std::atomic<bool> const& expect_method_allocate_payload(
+        ::score::socom::Method_id const& method_id,
+        score::Result<std::unique_ptr<::score::socom::Writable_payload>> result);
+
+    /// \brief Expect and respond to method calls
+    ///
     /// \param[in] counter number of expected method calls
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
     /// \param[in] result return of the method
+    /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_and_respond_method_calls(
         size_t counter, ::score::socom::Method_id const& method_id,
         ::score::socom::Payload::Sptr const& payload, ::score::socom::Method_result const& result);
@@ -187,6 +198,7 @@ struct Server_data {
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
     /// \param[in] result return of the method
+    /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_and_respond_method_call(
         ::score::socom::Method_id const& method_id, ::score::socom::Payload::Sptr const& payload,
         ::score::socom::Method_result const& result);

@@ -41,9 +41,9 @@ using Method_call_credentials_callback = std::function<Method_invocation::Uptr(
     Enabled_server_connector&, Method_id, Payload::Sptr, Method_reply_callback const&,
     Posix_credentials const&, Allocate_method_reply_payload const&)>;
 
-/// Function type for indicating a method call payload request to the service provider.
+/// \brief Function type for indicating a method call payload request to the service provider.
 using Method_payload_allocate_callback =
-    std::function<Payload(Enabled_server_connector&, Method_id)>;
+    std::function<score::Result<Writable_payload::Uptr>(Enabled_server_connector&, Method_id)>;
 
 class Configuration_getter {
    public:

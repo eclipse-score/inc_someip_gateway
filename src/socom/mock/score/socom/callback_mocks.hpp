@@ -37,6 +37,8 @@ using Event_subscription_change_callback_mock =
 using Event_request_update_callback_mock = ::testing::MockFunction<Event_request_update_callback>;
 using Method_call_credentials_callback_mock =
     ::testing::MockFunction<Method_call_credentials_callback>;
+using Method_payload_allocate_callback_mock =
+    ::testing::MockFunction<Method_payload_allocate_callback>;
 
 // Method callbacks
 using Method_call_credentials_callback_mock =

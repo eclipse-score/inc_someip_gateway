@@ -82,7 +82,8 @@ Server_data::Server_data(
                                             credentials)} {}
 
 Server_data::~Server_data() {
-    wait_for_atomics(m_callback_called, m_method_callback_called, m_subscribed, m_unsubscribed);
+    wait_for_atomics(m_callback_called, m_method_callback_called, m_subscribed, m_unsubscribed,
+                     m_method_payload_allocate_called);
 }
 
 Server_connector_callbacks_mock& Server_data::get_callbacks() { return m_callbacks; }
@@ -157,6 +158,17 @@ void Server_data::expect_and_respond_update_event_request(Event_id const& event_
         .WillOnce([&payload](Enabled_server_connector& connector, Event_id const& eid) {
             connector.update_requested_event(eid, payload);
         });
+}
+
+std::atomic<bool> const& Server_data::expect_method_allocate_payload(
+    ::score::socom::Method_id const& method_id,
+    score::Result<std::unique_ptr<::score::socom::Writable_payload>> result) {
+    EXPECT_CALL(m_callbacks, on_method_payload_allocate(_, method_id))
+        .WillOnce(DoAll(Assign(&m_method_payload_allocate_called, true),
+                        Return(ByMove(std::move(result)))));
+
+    m_method_payload_allocate_called = false;
+    return m_method_payload_allocate_called;
 }
 
 std::atomic<bool> const& Server_data::expect_and_respond_method_calls(size_t const counter,

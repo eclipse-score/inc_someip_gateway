@@ -143,11 +143,15 @@ class Client_connector {
     Client_connector& operator=(Client_connector const&) = delete;
     Client_connector& operator=(Client_connector&&) = delete;
 
+    /// \brief Allocate a payload for the given method ID.
+    ///
+    /// This requires a Server_connector to be connected to which payload allocation is delegated.
+    ///
+    /// \param method_id ID of the method for which a payload should be allocated.
+    /// \return A writable payload in case of successful operation, otherwise an error.
     [[nodiscard]]
     virtual Result<std::unique_ptr<Writable_payload>> allocate_method_payload(
-        Method_id /* method_id */) noexcept {
-        return nullptr;
-    }
+        Method_id method_id) noexcept = 0;
 
     /// \brief Subscribe an event to receive event updates from the Server_connector.
     /// \details The mode value Event_mode::update_and_initial_value supports the field use-case.

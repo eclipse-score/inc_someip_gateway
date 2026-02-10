@@ -55,6 +55,7 @@ using socom::Event_subscription_change_callback_mock;
 using socom::Method_call_credentials_callback;
 using socom::Method_call_credentials_callback_mock;
 using socom::Method_id;
+using socom::Method_payload_allocate_callback_mock;
 using socom::Method_reply_callback;
 using socom::Server_connector_error;
 using socom::Service_instance;
@@ -83,6 +84,7 @@ class ServerConnectorTest : public SingleConnectionTest {
     Event_subscription_change_callback_mock esccb;
     Event_request_update_callback_mock eruc;
     Method_call_credentials_callback_mock mccb;
+    Method_payload_allocate_callback_mock mpacb;
 };
 
 TEST_F(ServerConnectorTest, ConstructDestruct) {
@@ -160,27 +162,17 @@ TEST_F(ServerConnectorTest, ConstructDestructNoCallbacksReturnsCallbackMissing) 
     EXPECT_EQ(callback_missing, scd);
 }
 
-TEST_F(ServerConnectorTest, ConstructNoEventRequestUpdateCallbackReturnsCallbackMissing) {
-    auto server_callbacks =
-        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), esccb.AsStdFunction(), nullptr};
-    auto scd = connector_factory.create_server_connector_with_result(server_callbacks);
-
-    EXPECT_EQ(callback_missing, scd);
-}
-
-TEST_F(ServerConnectorTest, ConstructNoEventSubscriptionChangeCallbackReturnsCallbackMissing) {
-    auto server_callbacks =
-        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), nullptr, eruc.AsStdFunction()};
-    auto scd = connector_factory.create_server_connector_with_result(server_callbacks);
-
-    EXPECT_EQ(callback_missing, scd);
-}
-
-TEST_F(ServerConnectorTest, ConstructNoMethodReplyCallbackReturnsCallbackMissing) {
-    std::array<Disabled_server_connector::Callbacks, 3> const server_callbacks_array = {
-        Disabled_server_connector::Callbacks{nullptr, esccb.AsStdFunction(), eruc.AsStdFunction()},
-        Disabled_server_connector::Callbacks{Method_call_credentials_callback{},
-                                             esccb.AsStdFunction(), eruc.AsStdFunction()}};
+TEST_F(ServerConnectorTest, WhenCallbackMissingCreationReturnsCallbackMissing) {
+    std::array<Disabled_server_connector::Callbacks, 4> const server_callbacks_array = {
+        Disabled_server_connector::Callbacks{nullptr, esccb.AsStdFunction(), eruc.AsStdFunction(),
+                                             mpacb.AsStdFunction()},
+        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), nullptr, eruc.AsStdFunction(),
+                                             mpacb.AsStdFunction()},
+        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), esccb.AsStdFunction(), nullptr,
+                                             mpacb.AsStdFunction()},
+        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), esccb.AsStdFunction(),
+                                             eruc.AsStdFunction(), nullptr},
+    };
 
     for (auto const& server_callbacks : server_callbacks_array) {
         auto scd = connector_factory.create_server_connector_with_result(server_callbacks);

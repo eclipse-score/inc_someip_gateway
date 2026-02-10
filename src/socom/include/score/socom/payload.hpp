@@ -96,6 +96,8 @@ class Writable_payload : public Payload {
    public:
     /// \brief Alias for a shared pointer to this interface.
     using Sptr = std::shared_ptr<Writable_payload>;
+    /// \brief Alias for a unique pointer to this interface.
+    using Uptr = std::unique_ptr<Writable_payload>;
 
     /// \brief Retrieves the writable payload data.
     /// \return Span of payload data.

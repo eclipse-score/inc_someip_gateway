@@ -141,6 +141,11 @@ void Client_data::request_event_update(Event_id const& event_id) const {
     m_connector->request_event_update(event_id);
 }
 
+score::Result<std::unique_ptr<score::socom::Writable_payload>> Client_data::allocate_method_payload(
+    score::socom::Method_id method_id) {
+    return m_connector->allocate_method_payload(method_id);
+}
+
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload) {
     auto result = m_connector->call_method(method_id, payload, m_method_callback.AsStdFunction());
     ASSERT_TRUE(result);

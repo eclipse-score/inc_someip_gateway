@@ -47,6 +47,9 @@ struct Server_connector_callbacks_naggy_mock {
                  ::score::socom::Event_state));
     MOCK_METHOD(void, on_event_update_request,
                 (::score::socom::Enabled_server_connector&, ::score::socom::Event_id));
+    MOCK_METHOD(score::Result<std::unique_ptr<::score::socom::Writable_payload>>,
+                on_method_payload_allocate,
+                (::score::socom::Enabled_server_connector&, ::score::socom::Method_id));
 };
 
 struct Server_connector_credentials_callbacks_naggy_mock {
@@ -60,6 +63,9 @@ struct Server_connector_credentials_callbacks_naggy_mock {
                  ::score::socom::Event_state));
     MOCK_METHOD(void, on_event_update_request,
                 (::score::socom::Enabled_server_connector&, ::score::socom::Event_id));
+    MOCK_METHOD(score::Result<std::unique_ptr<::score::socom::Writable_payload>>,
+                on_method_payload_allocate,
+                (::score::socom::Enabled_server_connector&, ::score::socom::Method_id));
 };
 
 using Server_connector_callbacks_mock =

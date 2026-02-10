@@ -152,6 +152,13 @@ struct Client_data {
     /// \param[in] event_id event to request update for
     void request_event_update(::score::socom::Event_id const& event_id) const;
 
+    /// \brief Allocate a payload for the given method ID.
+    ///
+    /// \param method_id ID of the method for which a payload should be allocated.
+    /// \return A writable payload in case of successful operation, otherwise an error.
+    score::Result<std::unique_ptr<score::socom::Writable_payload>> allocate_method_payload(
+        score::socom::Method_id method_id);
+
     /// \brief Call method method_id with payload
     ///
     /// \param[in] method_id method to call

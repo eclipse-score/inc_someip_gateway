@@ -26,16 +26,14 @@ using ::ac::SingleConnectionTest;
 using ::ac::wait_for_atomics;
 using ::score::socom::Application_error;
 using ::score::socom::Application_return;
-using score::socom::empty_payload;
-using score::socom::Error;
+using ::score::socom::empty_payload;
 using ::score::socom::Error;
 using ::score::socom::make_vector_buffer;
 using ::score::socom::make_vector_payload;
 using ::score::socom::Method_result;
-using score::socom::Method_result;
-using score::socom::Posix_credentials;
+using ::score::socom::Posix_credentials;
 using ::score::socom::Vector_buffer;
-using score::socom::Vector_buffer;
+using ::score::socom::Writable_payload;
 using ::testing::_;
 using ::testing::Values;
 using ::testing::WithParamInterface;
@@ -160,6 +158,41 @@ TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesDefaultClientCr
         .Times(1);
 
     client.call_method(method_id, input_data());
+}
+
+using AllocateMethodPayloadTest = SingleConnectionTest;
+
+TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithOutOfBoundsMethodIdReturnsLogicError) {
+    Server_data server{connector_factory};
+    Client_data client{connector_factory};
+
+    auto payload = client.allocate_method_payload(method_id + 1);
+    EXPECT_FALSE(payload);
+    EXPECT_EQ(payload.error(), Error::logic_error_id_out_of_range);
+}
+
+TEST_F(AllocateMethodPayloadTest,
+       AllocateMethodPayloadWithoutConnectedServerReturnsServiceNotAvailableError) {
+    Client_data client{connector_factory, Client_data::no_connect};
+
+    auto payload = client.allocate_method_payload(method_id);
+    EXPECT_FALSE(payload);
+    EXPECT_EQ(payload.error(), Error::runtime_error_service_not_available);
+}
+
+TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturnsPayload) {
+    Server_data server{connector_factory};
+    Client_data client{connector_factory};
+
+    score::Result<std::unique_ptr<Writable_payload>> wpayload = nullptr;
+
+    auto const& expect_method_payload_allocation =
+        server.expect_method_allocate_payload(method_id, std::move(wpayload));
+
+    auto payload = client.allocate_method_payload(method_id);
+    EXPECT_TRUE(payload);
+    EXPECT_EQ(nullptr, payload.value());
+    wait_for_atomics(expect_method_payload_allocation);
 }
 
 }  // namespace

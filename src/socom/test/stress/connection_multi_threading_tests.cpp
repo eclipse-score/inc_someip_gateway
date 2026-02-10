@@ -35,17 +35,20 @@ using socom::Disabled_server_connector;
 using socom::Enabled_server_connector;
 using socom::Event_id;
 using socom::Event_mode;
+using socom::Event_payload_allocate_callback;
 using socom::Event_request_update_callback;
 using socom::Event_state;
 using socom::Event_subscription_change_callback;
 using socom::Event_update_callback;
 using socom::Method_call_credentials_callback;
 using socom::Method_id;
+using socom::Method_payload_allocate_callback;
 using socom::Method_reply_callback;
 using socom::Method_result;
 using socom::Payload;
 using socom::Service_interface_configuration;
 using socom::Service_state;
+using socom::Writable_payload;
 
 namespace {
 
@@ -98,6 +101,14 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
         [this](Client_connector const& /*cc*/, Event_id const& /*eid*/,
                Payload::Sptr const& /*pl*/) { counter.event_received(); };
 
+    Event_payload_allocate_callback const event_payload_allocate_fail_on_call =
+        [](Client_connector const& /*cc*/, Event_id const& event_id) {
+            ADD_FAILURE() << "Unexpected call to on_event_payload_allocate for event_id "
+                          << event_id;
+            return score::MakeUnexpected(
+                score::socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
+        };
+
     Method_call_credentials_callback const on_method_call =
         [](Enabled_server_connector& /*esc*/, Method_id /* mid */, Payload::Sptr const& /* pl */,
            Method_reply_callback const& reply, auto const& cred, auto const& reply_allocator) {
@@ -117,8 +128,17 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
             esc.update_event(eid, real_payload);
         };
 
+    Method_payload_allocate_callback const method_payload_allocate_fail_on_call =
+        [](Enabled_server_connector& /*esc*/,
+           Method_id const& /* mid */) -> score::Result<Writable_payload::Uptr> {
+        ADD_FAILURE() << "Unexpected call to on_method_payload_allocate for method_id " << event_id;
+        return score::MakeUnexpected(
+            score::socom::Server_connector_error::logic_error_id_out_of_range);
+    };
+
     Disabled_server_connector::Callbacks const sc_callbacks{
-        on_method_call, on_event_subscription_change, on_event_update_request};
+        on_method_call, on_event_subscription_change, on_event_update_request,
+        method_payload_allocate_fail_on_call};
 
     std::function<void()> const server_thread = [this]() {
         auto esc = Disabled_server_connector::enable(
@@ -131,13 +151,8 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
 
     Client_connector::Callbacks create_client_callbacks(
         socom::Service_state_change_callback const& on_state_change) {
-        auto fail_on_call = [](Client_connector const& /*cc*/, Event_id const& event_id) {
-            ADD_FAILURE() << "Unexpected call to on_event_payload_allocate for event_id "
-                          << event_id;
-            return score::MakeUnexpected(
-                score::socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
-        };
-        return {on_state_change, on_event_update, on_event_update, fail_on_call};
+        return {on_state_change, on_event_update, on_event_update,
+                event_payload_allocate_fail_on_call};
     }
 };
 

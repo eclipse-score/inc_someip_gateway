@@ -245,7 +245,7 @@ bool is_valid(Client_connector::Callbacks const& callbacks) {
 
 bool is_valid(Disabled_server_connector::Callbacks const& callbacks) {
     return callbacks.on_method_call && callbacks.on_event_update_request &&
-           callbacks.on_event_subscription_change;
+           callbacks.on_event_subscription_change && callbacks.on_method_payload_allocate;
 }
 
 // actually understandable and easily reviewed, a code change is not justified.
