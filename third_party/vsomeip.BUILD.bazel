@@ -56,7 +56,7 @@ cmake(
 # ============================================================================
 cmake(
     name = "boost_aarch64",
-    build_args = ["-j"],
+    build_args = ["-j8"],
     cache_entries = {
         "BOOST_INCLUDE_LIBRARIES": "algorithm;array;asio;exception;filesystem;foreach;functional;icl;optional;property_tree;shared_ptr;stacktrace;system;thread;utility",
         "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
@@ -97,7 +97,7 @@ alias(
 # ============================================================================
 cmake(
     name = "vsomeip_x86_64_linux",
-    build_args = ["-j"],
+    build_args = ["-j8"],
     cache_entries = {
         "ENABLE_SIGNAL_HANDLING": "ON",
     },

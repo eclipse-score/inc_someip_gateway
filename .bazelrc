@@ -11,10 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-
-common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
-common --registry=https://bcr.bazel.build
-
 # Java Language Configuration
 build --java_language_version=17
 build --tool_java_language_version=17
@@ -62,24 +58,8 @@ common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
 
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 
+common --action_env=QNXLM_LICENSE_FILE="6287@rb-lic-qnxlm.de.bosch.com" #to be removed
 
-build:_common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
-build:_common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
-build:_common --@score_baselibs//score/json:base_library=nlohmann
-build:_common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
-build:_common --@score_communication//score/mw/com/flags:tracing_library=stub
-build:_common --cxxopt=-Wno-error=mismatched-new-delete
-
-build:x86_64-qnx --config=_common
-build:x86_64-qnx --noexperimental_merged_skyframe_analysis_execution
-build:x86_64-qnx --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
-
-common --action_env=QNXLM_LICENSE_FILE="6287@rb-lic-qnxlm.de.bosch.com"
-
-build:x86_64-qnx --incompatible_enable_cc_toolchain_resolution
-build:x86_64-qnx --incompatible_strict_action_env
-build:x86_64-qnx --platforms=@score_toolchains_qnx//platforms:x86_64-qnx
-build:x86_64-qnx --sandbox_writable_path=/var/tmp
 
 test --test_output=errors
 build --incompatible_strict_action_env
@@ -91,7 +71,7 @@ common --registry=https://bcr.bazel.build
 # Integration Test Framework Configuration
 # ============================================================================
 
-build:qemu-linux --run_under=@itf//scripts:run_under_qemu
+build:qemu-linux --run_under=@score_itf//scripts:run_under_qemu
 build:qemu-linux --test_arg="--qemu"
 build:qemu-linux --test_arg="--os=linux"
 
@@ -108,7 +88,3 @@ common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 common --@score_communication//score/mw/com/flags:tracing_library=stub
-
-#force this temporary to REALLY know if the license works
-# build --nouse_action_cache
-# test --nocache_test_results
