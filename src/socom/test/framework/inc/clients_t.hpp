@@ -175,6 +175,15 @@ struct Client_data {
                      ::score::socom::Payload::Sptr const& payload,
                      ::score::socom::Method_reply_callback const& reply);
 
+    /// \brief Call method method_id with payload and reply callback
+    ///
+    /// \param[in] method_id method to call
+    /// \param[in] payload payload of method
+    /// \param[in] reply reply callback
+    void call_method(::score::socom::Method_id const& method_id,
+                     ::score::socom::Payload::Sptr const& payload,
+                     ::score::socom::Method_call_reply_data reply);
+
     /// \brief Call method without callback and without expecting a response
     ///
     /// \param[in] method_id method to call

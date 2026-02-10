@@ -157,8 +157,13 @@ void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& p
 
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload,
                               Method_reply_callback const& reply) {
-    auto result =
-        m_connector->call_method(method_id, payload, Method_call_reply_data{reply, nullptr});
+    call_method(method_id, payload, Method_call_reply_data{reply, nullptr});
+}
+
+void Client_data::call_method(::score::socom::Method_id const& method_id,
+                              ::score::socom::Payload::Sptr const& payload,
+                              ::score::socom::Method_call_reply_data reply) {
+    auto result = m_connector->call_method(method_id, payload, std::move(reply));
     ASSERT_TRUE(result);
     m_method_invocations.emplace_back(std::move(result).value());
 }

@@ -30,7 +30,10 @@ using ::score::socom::empty_payload;
 using ::score::socom::Error;
 using ::score::socom::make_vector_buffer;
 using ::score::socom::make_vector_payload;
+using ::score::socom::Method_call_reply_data;
+using ::score::socom::Method_reply_callback_mock;
 using ::score::socom::Method_result;
+using ::score::socom::Payload;
 using ::score::socom::Posix_credentials;
 using ::score::socom::Vector_buffer;
 using ::score::socom::Writable_payload;
@@ -193,6 +196,57 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturn
     EXPECT_TRUE(payload);
     EXPECT_EQ(nullptr, payload.value());
     wait_for_atomics(expect_method_payload_allocation);
+}
+
+class My_writable_payload : public Writable_payload {
+   public:
+    Span data() const noexcept override { return {}; }
+
+    Span header() const noexcept override { return {}; }
+
+    Writable_span header() noexcept override { return {}; }
+
+    Writable_span wdata() noexcept override { return {}; }
+};
+
+TEST_F(AllocateMethodPayloadTest, payload_allocation_for_reply_and_reply) {
+    Server_data server{connector_factory};
+    Client_data client{connector_factory};
+
+    score::Result<std::unique_ptr<Writable_payload>> call_payload =
+        std::make_unique<My_writable_payload>();
+    auto const* const call_ptr = call_payload.value().get();
+    std::unique_ptr<Writable_payload> reply_payload = std::make_unique<My_writable_payload>();
+    auto const* const reply_ptr = reply_payload.get();
+
+    auto const& expect_method_payload_allocation =
+        server.expect_method_allocate_payload(method_id, std::move(call_payload));
+
+    auto payload = client.allocate_method_payload(method_id);
+    ASSERT_TRUE(payload);
+    EXPECT_EQ(call_ptr, payload.value().get());
+    wait_for_atomics(expect_method_payload_allocation);
+
+    Payload::Sptr shared_call_payload = std::move(payload).value();
+
+    Method_reply_callback_mock method_reply_callback_mock;
+
+    auto reply_data_fut = server.expect_and_return_method_call(method_id, shared_call_payload);
+    client.call_method(method_id, shared_call_payload,
+                       Method_call_reply_data{method_reply_callback_mock.AsStdFunction(),
+                                              std::move(reply_payload)});
+
+    auto reply_data = reply_data_fut.get();
+    ASSERT_TRUE(reply_data);
+    EXPECT_EQ(reply_ptr, reply_data->reply_payload.get());
+
+    EXPECT_CALL(method_reply_callback_mock, Call(_)).WillOnce([reply_ptr](auto const& mr) {
+        ASSERT_TRUE(std::holds_alternative<Application_return>(mr));
+        auto const& ar = std::get<Application_return>(mr);
+        EXPECT_EQ(reply_ptr, ar.payload.get());
+    });
+    reply_data->reply_callback(
+        Method_result{Application_return{std::move(reply_data->reply_payload)}});
 }
 
 }  // namespace

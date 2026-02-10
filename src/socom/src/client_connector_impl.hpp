@@ -61,7 +61,7 @@ class Impl final : public Client_connector {
         Event_id client_id) const noexcept override;
     message::Call_method::Return_type call_method(
         Method_id client_id, Payload::Sptr payload,
-        std::optional<Method_call_reply_data> reply_data) const noexcept override;
+        Method_call_reply_data_opt reply_data) const noexcept override;
     Result<Posix_credentials> get_peer_credentials() const noexcept override;
     Service_interface_configuration const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;

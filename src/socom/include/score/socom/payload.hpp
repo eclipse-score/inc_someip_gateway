@@ -68,8 +68,6 @@ class Payload {
     /// \brief Retrieves the header data.
     /// \return Writable span of header data.
     [[nodiscard]] virtual Writable_span header() noexcept = 0;
-
-    [[nodiscard]] virtual void const* get_internal_id() noexcept { return nullptr; }
 };
 
 /// \brief An empty payload instance, which may be used as default value for the payload parameter.
