@@ -1,0 +1,119 @@
+###############################################################################
+#
+# QNX IFS image for SOME/IP Gateway — x86_64 (QEMU)
+#
+# This mkifs build file produces a bootable IFS containing:
+#   - QNX 8.0 kernel (procnto-smp-instr)
+#   - someipd daemon
+#   - gatewayd daemon
+#   - Minimal shell environment (ksh, pidin, toybox)
+#
+# Build:
+#   bazel build //deployment/qemu:someip_gateway_ifs --config=x86_64-qnx
+#
+# Run in QEMU:
+#   bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
+#
+###############################################################################
+
+[image=0x400000]
+[virtual=x86_64,multiboot] boot = {
+    startup-x86 -v -D8250..115200 -zz
+    PATH=/proc/boot
+    LD_LIBRARY_PATH=/proc/boot
+    procnto-smp-instr
+}
+
+[+script] startup-script = {
+    display_msg Welcome to QNX 8.0 — SOME/IP Gateway (x86_64)
+
+    # Environment inherited by all subsequent processes
+    SYSNAME=nto
+    TERM=qansi
+
+    # Start serial driver
+    devc-ser8250 &
+    reopen /dev/ser1
+
+    # Start system services
+    slogger2 &
+    waitfor /dev/slog2
+    pipe &
+    waitfor /dev/pipe
+
+    # Start File System Event Manager (required for inotify on QNX)
+    fsevmgr &
+
+    # Create a RAM-backed writable filesystem for LoLa service discovery.
+    # /dev/shmem does NOT support mkdir or inotify, so we use devb-ram + QNX6 FS.
+    devb-ram ram capacity=1 blk ramdisk=4m,cache=512k,vnode=256 &
+    waitfor /dev/ram0 5
+    ksh -c "echo y | mkqnx6fs /dev/ram0"
+    mount -w /dev/ram0 /tmp_discovery
+
+    # Start the SOME/IP gateway daemons
+    # /usr/bin/someipd &
+    # /usr/bin/gatewayd -config_file /etc/gatewayd/gatewayd_config.bin --service_instance_manifest /etc/gatewayd/mw_com_config.json &
+
+    # Interactive shell
+    [+session] /bin/sh &
+}
+
+# ===========================================================================
+# QNX shared libraries (from SDP /proc/boot)
+# ===========================================================================
+/usr/lib/ldqnx-64.so.2=ldqnx-64.so.2
+libc.so
+libfsnotify.so.1
+libgcc_s.so.1
+libm.so
+libsecpol.so.1
+libtracelog.so.1
+libz.so
+libc++.so
+libsocket.so
+libslog2.so.1
+libqh.so.1
+libcam.so.2
+cam-disk.so
+io-blk.so
+fs-qnx6.so
+
+# ===========================================================================
+# Standard tools
+# ===========================================================================
+ksh
+pidin
+shutdown
+toybox
+
+# Drivers
+devc-ser8250
+fsevmgr
+slogger2
+pipe
+waitfor
+devb-ram
+mkqnx6fs
+mount
+
+# Symlinks
+[type=link] /bin/sh=/proc/boot/ksh
+[type=link] /tmp=/dev/shmem
+[type=dir] /tmp_discovery
+[type=link] cat=toybox
+[type=link] chmod=toybox
+[type=link] dd=toybox
+[type=link] echo=toybox
+[type=link] grep=toybox
+[type=link] ln=toybox
+[type=link] ls=toybox
+[type=link] rm=toybox
+[type=link] mkdir=toybox
+[type=link] env=toybox
+
+# ===========================================================================
+# Application binaries (injected via pkg_tar → tars attribute)
+# ===========================================================================
+/usr/bin=${GATEWAY_BINS}
+/etc/gatewayd=${GATEWAY_CONFIGS}

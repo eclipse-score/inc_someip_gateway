@@ -163,7 +163,7 @@ toolchains_qnx = use_extension(
 toolchains_qnx.sdp(
     url = "file:///home/bot6abt/QNX8KIT/QNX8LINUX/installation.tgz",
     sha256 = "",
-    strip_prefix = "",
+    strip_prefix = "installation",
     version = "8.0.0",
 )
 

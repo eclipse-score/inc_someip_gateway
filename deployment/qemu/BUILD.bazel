@@ -1,0 +1,84 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# =============================================================================
+# QNX QEMU Image for SOME/IP Gateway
+#
+# Builds a bootable QNX IFS (Image File System) containing the someipd and
+# gatewayd daemons, then provides a target to run it under QEMU.
+#
+# Usage:
+#   # Build the IFS image
+#   bazel build //deployment/qemu:someip_gateway_ifs --config=x86_64-qnx
+#
+#   # Run in QEMU (requires qemu-system-x86_64 + KVM on host)
+#   bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
+# =============================================================================
+
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@score_toolchains_qnx//rules/fs:ifs.bzl", "qnx_ifs")
+
+# ---------------------------------------------------------------------------
+# Package all gateway binaries + configs into a single tar for IFS inclusion
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "gateway_binaries_pkg",
+    srcs = [
+        "//src/gatewayd",
+        "//src/someipd",
+        "@vsomeip",
+    ],
+    include_runfiles = True,
+    package_dir = "/",
+)
+
+# ---------------------------------------------------------------------------
+# Package gateway config files for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "gateway_configs_pkg",
+    srcs = [
+        "//src/gatewayd:config_file",
+        "//src/gatewayd:etc/mw_com_config.json",
+    ],
+    strip_prefix = "/src/gatewayd/etc",
+)
+
+# ---------------------------------------------------------------------------
+# QNX IFS image: boots QNX 8.0 with someipd + gatewayd inside
+# ---------------------------------------------------------------------------
+qnx_ifs(
+    name = "someip_gateway_ifs",
+    build_file = "init_x86_64.build",
+    out = "someip_gateway_x86_64.ifs",
+    tars = {
+        "GATEWAY_BINS": ":gateway_binaries_pkg",
+        "GATEWAY_CONFIGS": ":gateway_configs_pkg",
+    },
+    visibility = ["//visibility:public"],
+)
+
+# ---------------------------------------------------------------------------
+# Launch QEMU with the built IFS
+# ---------------------------------------------------------------------------
+sh_binary(
+    name = "run_qemu",
+    srcs = ["run_qemu.sh"],
+    args = [
+        "$(location :someip_gateway_ifs)",
+    ],
+    data = [
+        ":someip_gateway_ifs",
+    ],
+    visibility = ["//visibility:public"],
+)

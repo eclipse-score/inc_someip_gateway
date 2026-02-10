@@ -34,6 +34,16 @@ exports_files(
 cc_binary(
     name = "gatewayd",
     srcs = ["main.cpp"],
+    args = [
+        "-config_file",
+        "$(rootpath :config_file)",
+        "-service_instance_manifest",
+        "$(rootpath etc/mw_com_config.json)",
+    ],
+    data = [
+        "etc/mw_com_config.json",
+        ":config_file",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":config_flatbuffers",
@@ -70,6 +80,16 @@ cc_library(
 flatbuffer_cc_library(
     name = "config_flatbuffers",
     srcs = ["etc/gatewayd_config.fbs"],
+)
+
+exports_files(
+    ["etc/mw_com_config.json"],
+    visibility = ["//deployment:__subpackages__"],
+)
+
+exports_files(
+    ["etc/mw_com_config.json"],
+    visibility = ["//deployment:__subpackages__"],
 )
 
 generate_someip_config_bin(
