@@ -99,7 +99,7 @@ struct Client_data {
     Client_data& operator=(Client_data const&) = delete;
     Client_data& operator=(Client_data&&) = delete;
 
-    /// \brief Call subscribe_event() with cara::socom::Event_mode::update
+    /// \brief Call subscribe_event() with score::socom::Event_mode::update
     ///
     /// \param[in] event_id event to subscribe to
     void subscribe_event(::score::socom::Event_id const& event_id);
@@ -109,7 +109,7 @@ struct Client_data {
     /// \param[in] event_id event to unsubscribe from
     void unsubscribe_event(::score::socom::Event_id const& event_id);
 
-    /// \brief Create event subscription for event_id with cara::socom::Event_mode::update
+    /// \brief Create event subscription for event_id with score::socom::Event_mode::update
     ///
     /// \param[in] event_id event to subscribe to
     /// \return RAII object holding the subscription

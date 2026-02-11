@@ -34,11 +34,6 @@ using score::Result;
 using ::testing::_;
 using ::testing::StaticAssertTypeEq;
 
-// AXIVION DISABLE Style AutosarC++18_10-A16.0.1: Pre-processsor is required to save on memory.
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-#endif
-// AXIVION ENABLE Style AutosarC++18_10-A16.0.1
-
 namespace score::socom {
 
 class ServerConnectorTest : public SingleConnectionTest {
@@ -174,7 +169,6 @@ class ServerConnectorDeathTest : public ServerConnectorTest {
     ~ServerConnectorDeathTest() override { server.reset(); }
 };
 
-// AXIVION DISABLE Style AutosarC++18_10-A16.0.1: Pre-processsor is required to save on memory.
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
 
 TEST_F(ServerConnectorDeathTest,
@@ -270,7 +264,6 @@ TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallReplyResultsInLoggi
 }
 
 #endif
-// AXIVION ENABLE Style AutosarC++18_10-A16.0.1
 
 class ServerConnectorGetEventModeTest : public SingleConnectionTest {
    protected:

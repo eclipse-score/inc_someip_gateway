@@ -61,7 +61,6 @@ Method_call_reply_data_opt get_value(std::future<Method_call_reply_data_opt> rep
     return reply_future.get();
 }
 
-// AXIVION DISABLE Style AutosarC++18_10-A16.0.1: Pre-processsor is required to save on memory.
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
 
 Client_connector::Uptr create_connected_client_with_event_subscription(
@@ -97,7 +96,6 @@ delete_client(std::unique_ptr<Client_connector>& client0) {
 }
 
 #endif
-// AXIVION ENABLE Style AutosarC++18_10-A16.0.1
 
 namespace test_values {
 
@@ -755,7 +753,6 @@ TEST_F(ClientConnectorTest, GetPeerCredentialsWithoutServerReturnsServiceNotAvai
 
 using ClientConnectorStartingConnectionDeathTest = ClientConnectorTest;
 
-// AXIVION DISABLE Style AutosarC++18_10-A16.0.1: Pre-processsor is required to save on memory.
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
 
 TEST_F(ClientConnectorStartingConnectionDeathTest,
@@ -834,7 +831,6 @@ TEST_F(ClientConnectorDeathTest, ClientDeletionByOnMethodReplyResultsInLoggingAn
 }
 
 #endif
-// AXIVION ENABLE Style AutosarC++18_10-A16.0.1
 
 class ClientConnectorOutOfBoundsTest : public SingleConnectionTest {
    protected:
