@@ -17,8 +17,8 @@
 #include <score/socom/callback_mocks.hpp>
 #include <score/socom/runtime.hpp>
 
-using testing::_;
-using testing::MockFunction;
+using ::testing::_;
+using ::testing::MockFunction;
 
 namespace score::socom {
 

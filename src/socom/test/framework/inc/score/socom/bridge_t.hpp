@@ -55,8 +55,6 @@ class Bridge_data {
     /// the runtime
     enum Creation_sequence { bridge_then_expect, expect_then_bridge };
 
-    using Subscribe_find_service_function = Subscribe_find_service_function;
-
     static Subscribe_find_service_function sfs_do_nothing();
 
     /// \brief Create new Bridge facade

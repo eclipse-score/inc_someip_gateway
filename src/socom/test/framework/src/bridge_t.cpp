@@ -94,7 +94,7 @@ void Bridge_data::expect_callbacks(Expect const& expect, Connector_factory const
     }
 }
 
-Bridge_data::Subscribe_find_service_function Bridge_data::sfs_do_nothing() {
+Subscribe_find_service_function Bridge_data::sfs_do_nothing() {
     return [](auto /*unused*/, auto /*unused*/, auto /*unused*/) {
         return std::make_unique<Find_subscription_handle>();
     };

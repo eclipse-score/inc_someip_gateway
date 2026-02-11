@@ -26,8 +26,8 @@
 using ::testing::_;
 using ::testing::AnyNumber;
 using ::testing::Assign;
-using testing::ByMove;
-using testing::Return;
+using ::testing::ByMove;
+using ::testing::Return;
 
 namespace score::socom {
 namespace {
