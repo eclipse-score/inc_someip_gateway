@@ -156,7 +156,7 @@ std::atomic<bool> const& Server_data::expect_update_event_requests(
 void Server_data::expect_and_respond_update_event_request(Event_id const& event_id,
                                                           Payload::Sptr const& payload) {
     EXPECT_CALL(m_callbacks, on_event_update_request(_, event_id))
-        .WillOnce([&payload](Enabled_server_connector& connector, Event_id const& eid) {
+        .WillOnce([payload](Enabled_server_connector& connector, Event_id const& eid) {
             connector.update_requested_event(eid, payload);
         });
 }
