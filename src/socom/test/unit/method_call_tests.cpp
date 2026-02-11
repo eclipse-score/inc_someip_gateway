@@ -13,6 +13,7 @@
 
 #include "clients_t.hpp"
 #include "gtest/gtest.h"
+#include "score/socom/payload_mock.hpp"
 #include "server_t.hpp"
 #include "single_connection_test_fixture.hpp"
 #include "utilities.hpp"
@@ -37,6 +38,7 @@ using ::score::socom::Payload;
 using ::score::socom::Posix_credentials;
 using ::score::socom::Vector_buffer;
 using ::score::socom::Writable_payload;
+using ::score::socom::Writable_payload_mock;
 using ::testing::_;
 using ::testing::Values;
 using ::testing::WithParamInterface;
@@ -187,52 +189,30 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturn
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    score::Result<std::unique_ptr<Writable_payload>> wpayload = nullptr;
+    score::Result<std::unique_ptr<Writable_payload>> wpayload =
+        std::make_unique<Writable_payload_mock>();
+    auto const* const wpayload_ptr = wpayload.value().get();
 
     auto const& expect_method_payload_allocation =
         server.expect_method_allocate_payload(method_id, std::move(wpayload));
 
     auto payload = client.allocate_method_payload(method_id);
     EXPECT_TRUE(payload);
-    EXPECT_EQ(nullptr, payload.value());
+    EXPECT_EQ(wpayload_ptr, payload.value().get());
     wait_for_atomics(expect_method_payload_allocation);
 }
 
-class My_writable_payload : public Writable_payload {
-   public:
-    Span data() const noexcept override { return {}; }
-
-    Span header() const noexcept override { return {}; }
-
-    Writable_span header() noexcept override { return {}; }
-
-    Writable_span wdata() noexcept override { return {}; }
-};
-
-TEST_F(AllocateMethodPayloadTest, payload_allocation_for_reply_and_reply) {
+TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodCall) {
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    score::Result<std::unique_ptr<Writable_payload>> call_payload =
-        std::make_unique<My_writable_payload>();
-    auto const* const call_ptr = call_payload.value().get();
-    std::unique_ptr<Writable_payload> reply_payload = std::make_unique<My_writable_payload>();
+    std::unique_ptr<Writable_payload> reply_payload = std::make_unique<Writable_payload_mock>();
     auto const* const reply_ptr = reply_payload.get();
-
-    auto const& expect_method_payload_allocation =
-        server.expect_method_allocate_payload(method_id, std::move(call_payload));
-
-    auto payload = client.allocate_method_payload(method_id);
-    ASSERT_TRUE(payload);
-    EXPECT_EQ(call_ptr, payload.value().get());
-    wait_for_atomics(expect_method_payload_allocation);
-
-    Payload::Sptr shared_call_payload = std::move(payload).value();
 
     Method_reply_callback_mock method_reply_callback_mock;
 
-    auto reply_data_fut = server.expect_and_return_method_call(method_id, shared_call_payload);
-    client.call_method(method_id, shared_call_payload,
+    auto reply_data_fut = server.expect_and_return_method_call(method_id, input_data());
+    client.call_method(method_id, input_data(),
                        Method_call_reply_data{method_reply_callback_mock.AsStdFunction(),
                                               std::move(reply_payload)});
 

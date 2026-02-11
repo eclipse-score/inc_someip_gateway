@@ -14,6 +14,7 @@
 #include "clients_t.hpp"
 #include "gtest/gtest.h"
 #include "score/socom/event.hpp"
+#include "score/socom/payload_mock.hpp"
 #include "score/socom/server_connector.hpp"
 #include "server_t.hpp"
 #include "single_connection_test_fixture.hpp"
@@ -32,6 +33,7 @@ using score::socom::Event_id;
 using score::socom::Event_mode;
 using score::socom::Event_state;
 using score::socom::Payload;
+using score::socom::Writable_payload_mock;
 using ::testing::_;
 
 namespace {
@@ -276,14 +278,16 @@ TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
     server.expect_event_subscription(event_id);
     auto const sub = client0.create_event_subscription(event_id);
 
-    score::Result<std::unique_ptr<::score::socom::Writable_payload>> wpayload = nullptr;
+    score::Result<std::unique_ptr<::score::socom::Writable_payload>> wpayload =
+        std::make_unique<Writable_payload_mock>();
+    auto const* const wpayload_ptr = wpayload.value().get();
 
     auto const& expect_event_payload_allocation =
         client0.expect_event_payload_allocation(event_id, std::move(wpayload));
 
     auto payload = server.get_connector().allocate_event_payload(event_id);
     EXPECT_TRUE(payload);
-    EXPECT_EQ(nullptr, payload.value());
+    EXPECT_EQ(wpayload_ptr, payload.value().get());
     wait_for_atomics(expect_event_payload_allocation);
 }
 

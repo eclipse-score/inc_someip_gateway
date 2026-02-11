@@ -27,6 +27,14 @@ class Payload_mock : public Payload {
     MOCK_METHOD(Writable_span, header, (), (noexcept, override));
 };
 
+class Writable_payload_mock : public score::socom::Writable_payload {
+   public:
+    MOCK_METHOD(Span, data, (), (const, noexcept, override));
+    MOCK_METHOD(Span, header, (), (const, noexcept, override));
+    MOCK_METHOD(Writable_span, header, (), (noexcept, override));
+    MOCK_METHOD(Writable_span, wdata, (), (noexcept, override));
+};
+
 }  // namespace score::socom
 
 #endif  // SCORE_SOCOM_PAYLOAD_MOCK_HPP
