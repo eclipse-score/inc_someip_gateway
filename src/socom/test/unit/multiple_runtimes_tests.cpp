@@ -21,22 +21,7 @@
 #include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/vector_payload.hpp"
 
-using score::socom::Application_return;
-using ::score::socom::Client_data;
-using ::score::socom::Connector_factory;
-using score::socom::Event_id;
-using score::socom::make_vector_buffer;
-using score::socom::make_vector_payload;
-using score::socom::Method_id;
-using score::socom::Method_result;
-using score::socom::Payload;
-using ::score::socom::Server_data;
-using score::socom::Service_instance;
-using score::socom::Service_interface;
-using score::socom::to_num_of_events;
-using score::socom::to_num_of_methods;
-
-namespace {
+namespace score::socom {
 
 struct Client_server {
     Server_data server;
@@ -180,4 +165,4 @@ TEST_F(MultipleRuntimesTest, BothRuntimesHaveSameInstanceIdAndConfigurationButAr
     pair1.client.expect_and_call_method(method0, real_payload, result1);
 }
 
-}  // namespace
+}  // namespace score::socom

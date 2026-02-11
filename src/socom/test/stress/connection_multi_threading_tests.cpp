@@ -25,34 +25,7 @@
 #include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 
-namespace socom = score::socom;
-
-using ::score::socom::multi_threaded_test_template;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::Stop_condition;
-using socom::Application_return;
-using socom::Client_connector;
-using socom::Disabled_server_connector;
-using socom::Enabled_server_connector;
-using socom::Event_id;
-using socom::Event_mode;
-using socom::Event_payload_allocate_callback;
-using socom::Event_request_update_callback;
-using socom::Event_state;
-using socom::Event_subscription_change_callback;
-using socom::Event_update_callback;
-using socom::Method_call_credentials_callback;
-using socom::Method_call_reply_data_opt;
-using socom::Method_id;
-using socom::Method_payload_allocate_callback;
-using socom::Method_reply_callback;
-using socom::Method_result;
-using socom::Payload;
-using socom::Service_interface_configuration;
-using socom::Service_state;
-using socom::Writable_payload;
-
-namespace {
+namespace score::socom {
 
 class Event_method_counter {
     std::size_t const m_min_events_received = 1000;
@@ -110,7 +83,7 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
             ADD_FAILURE() << "Unexpected call to on_event_payload_allocate for event_id "
                           << event_id;
             return score::MakeUnexpected(
-                score::socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
+                Server_connector_error::runtime_error_no_client_subscribed_for_event);
         };
 
     Method_call_credentials_callback const on_method_call =
@@ -136,8 +109,7 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
         [](Enabled_server_connector& /*esc*/,
            Method_id const& /* mid */) -> score::Result<Writable_payload::Uptr> {
         ADD_FAILURE() << "Unexpected call to on_method_payload_allocate for method_id " << event_id;
-        return score::MakeUnexpected(
-            score::socom::Server_connector_error::logic_error_id_out_of_range);
+        return score::MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     };
 
     Disabled_server_connector::Callbacks const sc_callbacks{
@@ -288,4 +260,4 @@ TEST_F(ConnectionMultiThreadingTest,
     });
 }
 
-}  // namespace
+}  // namespace score::socom

@@ -31,45 +31,8 @@
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
 
-namespace socom = score::socom;
 using namespace std::chrono_literals;
 
-using ::score::socom::append;
-using ::score::socom::Bridge_data;
-using ::score::socom::Client_connector_callbacks_mock;
-using ::score::socom::Client_data;
-using ::score::socom::Connector_factory;
-using ::score::socom::create_instances;
-using ::score::socom::create_service_instance;
-using ::score::socom::create_service_interface_configuration;
-using ::score::socom::create_service_interfaces;
-using ::score::socom::Server_connector_callbacks_mock;
-using ::score::socom::Server_data;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::wait_for_atomics;
-using socom::Bridge_identity;
-using socom::Client_connector;
-using socom::Construction_error;
-using socom::create_runtime;
-using socom::Disabled_server_connector;
-using socom::Find_result_change_callback;
-using socom::Find_result_change_callback_mock;
-using socom::Find_result_container;
-using socom::Find_result_status;
-using socom::Find_subscription;
-using socom::Find_subscription_handle;
-using socom::Legacy_find_result_callback_mock;
-using socom::Request_service_function;
-using socom::Request_service_function_mock;
-using socom::Runtime;
-using socom::Service_bridge_registration;
-using socom::Service_instance;
-using socom::Service_interface;
-using socom::Service_interface_configuration;
-using socom::Service_state;
-using socom::Service_state_change_callback_mock;
-using socom::Subscribe_find_service_function;
-using socom::Subscribe_find_service_function_mock;
 using ::testing::_;
 using ::testing::Assign;
 using ::testing::Bool;
@@ -83,7 +46,7 @@ using ::testing::TestParamInfo;
 using ::testing::Values;
 using ::testing::WithParamInterface;
 
-namespace {
+namespace score::socom {
 
 enum class Destruction_order { requests_first, bridges_first };
 using Bridge_param_tuple = std::tuple<size_t, size_t, size_t, Destruction_order, bool, bool>;
@@ -1529,4 +1492,4 @@ INSTANTIATE_TEST_SUITE_P(Bridge, RuntimeBridgeTest,
                                  Bool(), Bool()),
                          readable_test_names_bridge);
 
-}  // namespace
+}  // namespace score::socom

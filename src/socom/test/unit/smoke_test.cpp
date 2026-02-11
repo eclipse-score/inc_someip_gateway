@@ -17,42 +17,10 @@
 #include <score/socom/callback_mocks.hpp>
 #include <score/socom/runtime.hpp>
 
-using score::socom::Application_return;
-using score::socom::Client_connector;
-using score::socom::create_runtime;
-using score::socom::Disabled_server_connector;
-using score::socom::empty_payload;
-using score::socom::Enabled_server_connector;
-using score::socom::Event_mode;
-using score::socom::Event_payload_allocate_callback_mock;
-using score::socom::Event_request_update_callback;
-using score::socom::Event_request_update_callback_mock;
-using score::socom::Event_state;
-using score::socom::Event_subscription_change_callback;
-using score::socom::Event_subscription_change_callback_mock;
-using score::socom::Event_update_callback;
-using score::socom::Event_update_callback_mock;
-using score::socom::Find_result_change_callback;
-using score::socom::Find_result_change_callback_mock;
-using score::socom::Find_result_status;
-using score::socom::Method_call_credentials_callback;
-using score::socom::Method_call_credentials_callback_mock;
-using score::socom::Method_call_reply_data;
-using score::socom::Method_call_reply_data_opt;
-using score::socom::Method_payload_allocate_callback_mock;
-using score::socom::Method_reply_callback;
-using score::socom::Method_reply_callback_mock;
-using score::socom::Runtime;
-using score::socom::Server_service_interface_configuration;
-using score::socom::Service_instance;
-using score::socom::Service_interface;
-using score::socom::Service_state;
-using score::socom::Service_state_change_callback;
-using score::socom::Service_state_change_callback_mock;
-using score::socom::to_num_of_events;
-using score::socom::to_num_of_methods;
 using testing::_;
 using testing::MockFunction;
+
+namespace score::socom {
 
 class Runtime_test : public ::testing::Test {
    protected:
@@ -188,3 +156,5 @@ TEST_F(Connection_test, client_calls_method_and_gets_response) {
     EXPECT_CALL(m_method_reply_mock, Call).Times(1);
     pointer->reply_callback(Application_return{empty_payload()});
 }
+
+}  // namespace score::socom

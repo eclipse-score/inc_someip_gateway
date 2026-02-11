@@ -29,50 +29,17 @@
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
 
-namespace socom = score::socom;
-
 using score::Blank;
 using score::Result;
-using ::score::socom::Client_data;
-using ::score::socom::Optional_reference;
-using ::score::socom::Server_connector_callbacks_mock;
-using ::score::socom::Server_data;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::Temporary_event_subscription;
-using ::score::socom::wait_for_atomics;
-using socom::Application_return;
-using socom::Construction_error;
-using socom::Disabled_server_connector;
-using socom::empty_payload;
-using socom::Enabled_server_connector;
-using socom::Event_id;
-using socom::Event_mode;
-using socom::Event_request_update_callback;
-using socom::Event_request_update_callback_mock;
-using socom::Event_state;
-using socom::Event_subscription_change_callback;
-using socom::Event_subscription_change_callback_mock;
-using socom::Method_call_credentials_callback;
-using socom::Method_call_credentials_callback_mock;
-using socom::Method_call_reply_data_opt;
-using socom::Method_id;
-using socom::Method_payload_allocate_callback_mock;
-using socom::Method_reply_callback;
-using socom::Server_connector_error;
-using socom::Service_instance;
-using socom::Service_interface;
-using socom::Service_state;
 using ::testing::_;
 using ::testing::StaticAssertTypeEq;
 
 // AXIVION DISABLE Style AutosarC++18_10-A16.0.1: Pre-processsor is required to save on memory.
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
-using socom::Method_result;
-using socom::Payload;
 #endif
 // AXIVION ENABLE Style AutosarC++18_10-A16.0.1
 
-namespace {
+namespace score::socom {
 
 class ServerConnectorTest : public SingleConnectionTest {
    protected:
@@ -358,4 +325,4 @@ TEST_F(ServerConnectorOutOfBoundsTest, OutOfBoundsIndexReturnsOutOfRange) {
     EXPECT_EQ(out_of_range, (server->get_event_mode(max_event_id + 1)));
 }
 
-}  // namespace
+}  // namespace score::socom

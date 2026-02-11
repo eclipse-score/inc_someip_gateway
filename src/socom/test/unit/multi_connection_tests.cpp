@@ -18,19 +18,7 @@
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
 
-using score::socom::Application_return;
-using ::score::socom::Client_data;
-using score::socom::empty_payload;
-using score::socom::Event_id;
-using score::socom::Method_result;
-using ::score::socom::Server_data;
-using score::socom::Server_service_interface_configuration;
-using score::socom::Service_instance;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::Subscriptions;
-using ::score::socom::wait_for_atomics;
-
-namespace {
+namespace score::socom {
 
 using Conf_instance = std::pair<Server_service_interface_configuration, Service_instance>;
 
@@ -108,4 +96,4 @@ TEST_F(MultiConnectionTest, ClientAndServerCreatedInDifferentThreadsCommunicateR
     auto const client_return = std::async(std::launch::async, client_thread);
 }
 
-}  // namespace
+}  // namespace score::socom

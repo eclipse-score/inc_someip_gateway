@@ -21,22 +21,9 @@
 #include "score/socom/temporary_event_subscription.hpp"
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Client_data;
-using score::socom::empty_payload;
-using score::socom::Enabled_server_connector;
-using score::socom::Event_id;
-using score::socom::Event_mode;
-using score::socom::Event_state;
-using score::socom::Payload;
-using ::score::socom::Server_connector_callbacks_mock;
-using ::score::socom::Server_data;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::Temporary_event_subscription;
-using ::score::socom::wait_for_atomics;
-using score::socom::Writable_payload_mock;
 using ::testing::_;
 
-namespace {
+namespace score::socom {
 
 using EventTest = SingleConnectionTest;
 
@@ -257,7 +244,7 @@ TEST_F(EventTest, AllocateEventPayloadWithOutOfBoundsEventIdReturnsLogicErrorIdO
 
     auto payload = server.get_connector().allocate_event_payload(event_id + 1);
     EXPECT_FALSE(payload);
-    EXPECT_EQ(payload.error(), score::socom::Server_connector_error::logic_error_id_out_of_range);
+    EXPECT_EQ(payload.error(), Server_connector_error::logic_error_id_out_of_range);
 }
 
 TEST_F(EventTest,
@@ -268,7 +255,7 @@ TEST_F(EventTest,
     auto payload = server.get_connector().allocate_event_payload(event_id);
     EXPECT_FALSE(payload);
     EXPECT_EQ(payload.error(),
-              score::socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
+              Server_connector_error::runtime_error_no_client_subscribed_for_event);
 }
 
 TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
@@ -278,7 +265,7 @@ TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
     server.expect_event_subscription(event_id);
     auto const sub = client0.create_event_subscription(event_id);
 
-    score::Result<std::unique_ptr<::score::socom::Writable_payload>> wpayload =
+    score::Result<std::unique_ptr<Writable_payload>> wpayload =
         std::make_unique<Writable_payload_mock>();
     auto const* const wpayload_ptr = wpayload.value().get();
 
@@ -291,4 +278,4 @@ TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
     wait_for_atomics(expect_event_payload_allocation);
 }
 
-}  // namespace
+}  // namespace score::socom

@@ -36,48 +36,7 @@
 
 using namespace std::literals::chrono_literals;
 
-namespace socom = score::socom;
-
 using score::Blank;
-using ::score::socom::Client_connector_callbacks_mock;
-using ::score::socom::Client_data;
-using ::score::socom::Connector_factory;
-using score::socom::Event_payload_allocate_callback_mock;
-using score::socom::Method_call_reply_data;
-using score::socom::Method_call_reply_data_opt;
-using ::score::socom::Server_connector_callbacks_mock;
-using ::score::socom::Server_data;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::Temporary_event_subscription;
-using ::score::socom::wait_for_atomics;
-using socom::Application_return;
-using socom::Client_connector;
-using socom::Construction_error;
-using socom::Disabled_server_connector;
-using socom::empty_payload;
-using socom::Error;
-using socom::Event_id;
-using socom::Event_mode;
-using socom::Event_request_update_callback_mock;
-using socom::Event_state;
-using socom::Event_update_callback_mock;
-using socom::make_vector_buffer;
-using socom::make_vector_payload;
-using socom::Method_id;
-using socom::Method_invocation;
-using socom::Method_reply_callback;
-using socom::Method_reply_callback_mock;
-using socom::Method_result;
-using socom::Payload;
-using socom::Server_service_interface_configuration;
-using socom::Service_instance;
-using socom::Service_interface;
-using socom::Service_interface_configuration;
-using socom::Service_state;
-using socom::Service_state_change_callback;
-using socom::Service_state_change_callback_mock;
-using socom::to_num_of_events;
-using socom::to_num_of_methods;
 using ::testing::_;
 using ::testing::Assign;
 using ::testing::ByMove;
@@ -88,16 +47,11 @@ using ::testing::StrictMock;
 using ::testing::TestWithParam;
 using ::testing::Values;
 
-namespace cara {
-namespace socom {
+namespace score::socom {
 bool operator==(Client_connector const& /*lhs*/, Client_connector const& /*rhs*/) {
     ADD_FAILURE();
     return false;
 }
-}  // namespace socom
-}  // namespace cara
-
-namespace {
 
 Method_call_reply_data_opt get_value(std::future<Method_call_reply_data_opt> reply_future) {
     SCOPED_TRACE("get_value");
@@ -946,4 +900,4 @@ TEST_F(ClientConnectorOutOfBoundsTest, ResultCompareOperatorWithVoid) {
     EXPECT_FALSE(result_error_void == result_value_void);
 }
 
-}  // namespace
+}  // namespace score::socom

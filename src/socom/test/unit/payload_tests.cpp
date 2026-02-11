@@ -23,19 +23,11 @@
 #include <type_traits>
 #include <vector>
 
-namespace socom = ::score::socom;
-
-using ::score::socom::increase_and_fill;
-using ::score::socom::make_vector_buffer;
-using socom::empty_payload;
-using socom::make_vector_payload;
-using socom::Payload;
-using socom::Vector_buffer;
 using ::testing::Combine;
 using ::testing::TestWithParam;
 using ::testing::Values;
 
-namespace {
+namespace score::socom {
 
 static_assert(!std::is_move_assignable<Payload>::value, "");
 static_assert(!std::is_move_constructible<Payload>::value, "");
@@ -235,4 +227,4 @@ TEST(Payload, OperatorEqual) {
     EXPECT_NE(*payload2, *payload3);
 }
 
-}  // namespace
+}  // namespace score::socom

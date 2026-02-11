@@ -23,19 +23,10 @@
 #include "score/socom/service_interface.hpp"
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Client_data;
-using ::score::socom::Connector_factory;
-using score::socom::Final_action;
-using ::score::socom::Server_data;
-using score::socom::Server_service_interface_configuration;
-using score::socom::Service_instance;
-using score::socom::Service_interface;
-using score::socom::Service_state;
-using ::score::socom::wait_for_atomics;
 using ::testing::TestParamInfo;
 using ::testing::Values;
 
-namespace {
+namespace score::socom {
 
 enum class Expectation { connect, no_connect };
 
@@ -213,4 +204,4 @@ INSTANTIATE_TEST_SUITE_P(
                        Expectation::connect)),
     readable_test_names);
 
-}  // namespace
+}  // namespace score::socom

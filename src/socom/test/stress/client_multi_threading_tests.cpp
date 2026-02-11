@@ -21,16 +21,9 @@
 #include "score/socom/server_t.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 
-namespace socom = score::socom;
 using namespace std::chrono_literals;
 
-using ::score::socom::Client_data;
-using ::score::socom::multi_threaded_test_template;
-using ::score::socom::Server_data;
-using ::score::socom::SingleConnectionTest;
-using socom::empty_payload;
-
-namespace {
+namespace score::socom {
 
 bool always_successful() { return true; }
 
@@ -107,4 +100,4 @@ TEST_F(ClientMultiThreadingTest, GetPeerCredentialsIsCalledByTwoThreadsWithoutRa
     multi_threaded_test_template({get_peer_credentials, get_peer_credentials}, always_successful);
 }
 
-}  // namespace
+}  // namespace score::socom

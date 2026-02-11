@@ -17,18 +17,7 @@
 
 using namespace ::testing;
 
-namespace socom = ::score::socom;
-
-using socom::Num_of_events;
-using socom::Num_of_methods;
-using socom::Server_service_interface_configuration;
-using socom::Service_instance;
-using socom::Service_interface;
-using socom::Service_interface_configuration;
-using socom::to_num_of_events;
-using socom::to_num_of_methods;
-
-namespace {
+namespace score::socom {
 
 class ServiceInterfaceConfigurationTest : public Test {
    protected:
@@ -72,4 +61,4 @@ TEST(ServiceInterfaceConfigurationTestInvalid, Invalid) {
     ASSERT_TRUE(interface_config_invalid == expected_config);
 }
 
-}  // namespace
+}  // namespace score::socom

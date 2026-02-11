@@ -21,21 +21,9 @@
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Client_data;
-using score::socom::Disabled_server_connector;
-using score::socom::Enabled_server_connector;
-using score::socom::Event_id;
-using score::socom::Event_state;
-using ::score::socom::Optional_reference;
-using score::socom::Posix_credentials;
-using ::score::socom::Server_connector_callbacks_mock;
-using ::score::socom::Server_data;
-using score::socom::Service_state;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::wait_for_atomics;
 using ::testing::_;
 
-namespace {
+namespace score::socom {
 
 TEST_F(SingleConnectionTest, SCOffered) {
     Server_data server{connector_factory};
@@ -162,4 +150,4 @@ TEST_F(SingleConnectionTest, ClientRetrievesDefaultCredentialsFromServer) {
     EXPECT_EQ(credentials.gid, ::getgid());
 }
 
-}  // namespace
+}  // namespace score::socom

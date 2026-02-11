@@ -14,10 +14,9 @@
 #include "gtest/gtest.h"
 #include "score/socom/runtime.hpp"
 
-using ::score::socom::Bridge_identity;
 using namespace ::testing;
 
-namespace {
+namespace score::socom {
 
 struct Some_type {};
 
@@ -44,4 +43,4 @@ TEST_F(IdentityTest, CompareNotEqual) {
     EXPECT_TRUE(identity_1 != identity_2);
 }
 
-}  // namespace
+}  // namespace score::socom

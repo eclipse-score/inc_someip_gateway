@@ -18,38 +18,17 @@
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Application_error;
-using ::score::socom::Application_return;
-using ::score::socom::Client_connector_callbacks_mock;
-using ::score::socom::Client_data;
-using ::score::socom::empty_payload;
-using ::score::socom::Error;
-using ::score::socom::error_data;
-using ::score::socom::input_data;
-using ::score::socom::make_vector_buffer;
-using ::score::socom::make_vector_payload;
-using ::score::socom::Method_call_reply_data;
-using ::score::socom::Method_reply_callback_mock;
-using ::score::socom::Method_result;
-using ::score::socom::Payload;
-using ::score::socom::Posix_credentials;
-using ::score::socom::Server_data;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::Vector_buffer;
-using ::score::socom::wait_for_atomics;
-using ::score::socom::Writable_payload;
-using ::score::socom::Writable_payload_mock;
 using ::testing::_;
 using ::testing::Values;
 using ::testing::WithParamInterface;
 
 using namespace std::chrono_literals;
 
-namespace {
+namespace score::socom {
 
 using Me = Error;
-using Ar = score::socom::Application_return;
-using Ae = score::socom::Application_error;
+using Ar = Application_return;
+using Ae = Application_error;
 using Input_expected = std::tuple<Method_result, Method_result>;
 
 template <typename T, typename U>
@@ -229,4 +208,4 @@ TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodC
         Method_result{Application_return{std::move(reply_data->reply_payload)}});
 }
 
-}  // namespace
+}  // namespace score::socom

@@ -18,35 +18,11 @@
 #include "score/socom/multi_threaded_test_template.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 
-using score::socom::Bridge_identity;
-using ::score::socom::Client_connector_callbacks_mock;
-using ::score::socom::Client_data;
-using ::score::socom::Connector_factory;
-using score::socom::Find_result_change_callback_mock;
-using score::socom::Find_result_status;
-using score::socom::Find_subscription;
-using ::score::socom::Loop_function_t;
-using ::score::socom::multi_threaded_test_template;
-using score::socom::Request_service_function;
-using score::socom::Request_service_function_mock;
-using ::score::socom::Server_data;
-using score::socom::Server_service_interface_configuration;
-using score::socom::Service_bridge_registration;
-using score::socom::Service_instance;
-using score::socom::Service_state;
-using score::socom::Service_state_change_callback;
-using score::socom::Service_state_change_callback_mock;
-using ::score::socom::SingleConnectionTest;
-using ::score::socom::Stop_condition;
-using score::socom::Subscribe_find_service_function;
-using score::socom::Subscribe_find_service_function_mock;
-using score::socom::to_num_of_events;
-using score::socom::to_num_of_methods;
 using ::testing::_;
 using ::testing::AnyNumber;
 using ::testing::Assign;
 
-namespace {
+namespace score::socom {
 
 struct State_data {
     // State_data can be updated concurrently by Server_connector and Client_connector
@@ -307,4 +283,4 @@ TEST_F(RuntimeMultiThreadingTest, BridgesAndSubscribeFindServiceHaveNoRaceCondit
                                  });
 }
 
-}  // namespace
+}  // namespace score::socom
