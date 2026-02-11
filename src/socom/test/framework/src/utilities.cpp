@@ -25,15 +25,6 @@
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 
-using ::score::socom::Construction_error;
-using ::score::socom::Method_result;
-using ::score::socom::Payload;
-using ::score::socom::Server_service_interface_configuration;
-using ::score::socom::Service_instance;
-using ::score::socom::Service_interface;
-using ::score::socom::Service_interface_configuration;
-using ::score::socom::Service_state;
-
 namespace score::socom {
 
 void wait_for_atomics_cont(std::vector<std::atomic<bool>> const& stati) {
@@ -65,7 +56,7 @@ Destructor_printor::~Destructor_printor() {
     std::cout << diff_s(m_start) << " " << m_message << std::endl;
 }
 
-void increase_and_fill(::score::socom::Vector_buffer& data, std::size_t const new_size) {
+void increase_and_fill(Vector_buffer& data, std::size_t const new_size) {
     auto const old_size = data.size();
     if (new_size <= old_size) {
         return;

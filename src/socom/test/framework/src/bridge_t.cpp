@@ -15,15 +15,6 @@
 
 #include "score/socom/runtime.hpp"
 
-using ::score::socom::Bridge_identity;
-using ::score::socom::Construction_error;
-using ::score::socom::Find_result_status;
-using ::score::socom::Find_subscription_handle;
-using ::score::socom::Service_bridge_registration;
-using ::score::socom::Service_instance;
-using ::score::socom::Service_interface;
-using ::score::socom::Service_interface_configuration;
-using ::score::socom::Service_request_handle;
 using ::testing::_;
 using ::testing::Assign;
 using ::testing::ByMove;

@@ -23,23 +23,6 @@
 #include "score/socom/method.hpp"
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Client_connector;
-using ::score::socom::Client_connector_callbacks_mock;
-using ::score::socom::Event_id;
-using ::score::socom::Event_mode;
-using ::score::socom::Method_call_reply_data;
-using ::score::socom::Method_call_reply_data_opt;
-using ::score::socom::Method_id;
-using ::score::socom::Method_invocation;
-using ::score::socom::Method_reply_callback;
-using ::score::socom::Method_result;
-using ::score::socom::Payload;
-using ::score::socom::Posix_credentials;
-using ::score::socom::Server_service_interface_configuration;
-using ::score::socom::Service_instance;
-using ::score::socom::Service_interface_configuration;
-using ::score::socom::Service_state;
-using ::score::socom::Service_state_change_callback;
 using ::testing::_;
 using ::testing::AnyNumber;
 using ::testing::Assign;
@@ -143,8 +126,8 @@ void Client_data::request_event_update(Event_id const& event_id) const {
     m_connector->request_event_update(event_id);
 }
 
-score::Result<std::unique_ptr<score::socom::Writable_payload>> Client_data::allocate_method_payload(
-    score::socom::Method_id method_id) {
+score::Result<std::unique_ptr<Writable_payload>> Client_data::allocate_method_payload(
+    Method_id method_id) {
     return m_connector->allocate_method_payload(method_id);
 }
 
@@ -160,9 +143,8 @@ void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& p
     call_method(method_id, payload, Method_call_reply_data{reply, nullptr});
 }
 
-void Client_data::call_method(::score::socom::Method_id const& method_id,
-                              ::score::socom::Payload::Sptr const& payload,
-                              ::score::socom::Method_call_reply_data reply) {
+void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload,
+                              Method_call_reply_data reply) {
     auto result = m_connector->call_method(method_id, payload, std::move(reply));
     ASSERT_TRUE(result);
     m_method_invocations.emplace_back(std::move(result).value());
@@ -217,8 +199,7 @@ std::atomic<bool> const& Client_data::expect_service_state_change(
 }
 
 std::atomic<bool> const& Client_data::expect_event_payload_allocation(
-    ::score::socom::Event_id const& event_id,
-    score::Result<std::unique_ptr<::score::socom::Writable_payload>> result) {
+    Event_id const& event_id, score::Result<std::unique_ptr<Writable_payload>> result) {
     EXPECT_CALL(m_callbacks, on_event_payload_allocate(_, event_id))
         .WillOnce(DoAll(Assign(&m_event_payload_allocate_called, true),
                         Return(ByMove(std::move(result)))));
@@ -252,9 +233,9 @@ std::atomic<bool> const& Client_data::expect_event_updates(size_t const& count,
     return m_event_callback_called;
 }
 
-std::future<void> Client_data::expect_event_updates_min_number(
-    std::size_t const& count, ::score::socom::Event_id const& event_id,
-    ::score::socom::Payload::Sptr const& payload) {
+std::future<void> Client_data::expect_event_updates_min_number(std::size_t const& count,
+                                                               Event_id const& event_id,
+                                                               Payload::Sptr const& payload) {
     std::promise<void> event_received;
     auto future = event_received.get_future();
 
@@ -276,8 +257,7 @@ std::atomic<bool> const& Client_data::expect_requested_event_update(Event_id con
 }
 
 std::future<void> Client_data::expect_requested_event_updates_min_number(
-    std::size_t const& count, ::score::socom::Event_id const& event_id,
-    ::score::socom::Payload::Sptr const& payload) {
+    std::size_t const& count, Event_id const& event_id, Payload::Sptr const& payload) {
     std::promise<void> event_received;
     auto future = event_received.get_future();
 

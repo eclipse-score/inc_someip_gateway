@@ -32,20 +32,20 @@ class Bridge_data {
     enum Expect { nothing, subscribe_find_service, request_service_function, both };
 
    private:
-    ::score::socom::Bridge_identity m_identity{::score::socom::Bridge_identity::make(*this)};
-    score::socom::Subscribe_find_service_function_mock m_sfsf_mock;
-    score::socom::Request_service_function_mock m_rsf_mock;
+    Bridge_identity m_identity{Bridge_identity::make(*this)};
+    Subscribe_find_service_function_mock m_sfsf_mock;
+    Request_service_function_mock m_rsf_mock;
 
-    ::score::socom::Find_result_change_callback m_find_result_callback;
+    Find_result_change_callback m_find_result_callback;
 
     std::atomic<bool> m_subscribe_find_service_created{false};
     std::atomic<bool> m_subscribe_find_service_destroyed{true};
     std::atomic<bool> m_request_find_service_created{false};
     std::atomic<bool> m_request_find_service_destroyed{true};
 
-    ::score::socom::Service_bridge_registration m_bridge_registration{nullptr};
+    Service_bridge_registration m_bridge_registration{nullptr};
 
-    ::score::Result<::score::socom::Service_bridge_registration> register_at_runtime(
+    ::score::Result<Service_bridge_registration> register_at_runtime(
         Connector_factory& connector_factory);
 
    public:
@@ -55,7 +55,7 @@ class Bridge_data {
     /// the runtime
     enum Creation_sequence { bridge_then_expect, expect_then_bridge };
 
-    using Subscribe_find_service_function = ::score::socom::Subscribe_find_service_function;
+    using Subscribe_find_service_function = Subscribe_find_service_function;
 
     static Subscribe_find_service_function sfs_do_nothing();
 
@@ -97,9 +97,8 @@ class Bridge_data {
     /// \param[in] interface the interface to be reported
     /// \param[in] instance the instance to be reported
     /// \param[in] status the status of the reported service
-    void find_service(::score::socom::Service_interface const& interface,
-                      ::score::socom::Service_instance const& instance,
-                      ::score::socom::Find_result_status const& status) const;
+    void find_service(Service_interface const& interface, Service_instance const& instance,
+                      Find_result_status const& status) const;
 
     /// \brief Expect call to subscribe_find_service()
     ///
@@ -107,8 +106,7 @@ class Bridge_data {
     /// \param[in] instance
     /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
     void expect_subscribe_find_service(
-        ::score::socom::Service_interface const& interface,
-        std::optional<::score::socom::Service_instance> instance,
+        Service_interface const& interface, std::optional<Service_instance> instance,
         Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
 
     /// \brief Expect call to subscribe_find_service(), callback only, for use with additional
@@ -118,8 +116,7 @@ class Bridge_data {
     /// \param[in] instance
     /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
     void expect_another_subscribe_find_service(
-        ::score::socom::Service_interface const& interface,
-        std::optional<::score::socom::Service_instance> instance,
+        Service_interface const& interface, std::optional<Service_instance> instance,
         Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
 
     /// \brief Expect call to request_find_service()
@@ -128,10 +125,8 @@ class Bridge_data {
     /// \param[in] instance
     /// \param[in] rsf Function to call when configured request_find_service() is called
     void expect_request_find_service(
-        ::score::socom::Service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
-        std::function<void(::score::socom::Service_interface_configuration const&,
-                           ::score::socom::Service_instance const&)>&& rsf =
+        Service_interface_configuration const& configuration, Service_instance const& instance,
+        std::function<void(Service_interface_configuration const&, Service_instance const&)>&& rsf =
             [](auto const& /*configuration*/, auto const& /*instance*/) {});
 
     /// \return atomic to check if runtime called request_find_service
@@ -146,7 +141,7 @@ class Bridge_data {
     /// \return atomic to check if subscribe_find_service handle was destroyed by the runtime
     std::atomic<bool> const& get_subscribe_find_service_destroyed() const;
 
-    std::optional<::score::socom::Bridge_identity> get_identity() const;
+    std::optional<Bridge_identity> get_identity() const;
 };
 
 }  // namespace score::socom

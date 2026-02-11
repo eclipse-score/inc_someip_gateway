@@ -15,11 +15,6 @@
 
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Client_connector;
-using ::score::socom::Enabled_server_connector;
-using ::score::socom::Event_id;
-using ::score::socom::Event_mode;
-using ::score::socom::Payload;
 using ::testing::_;
 using ::testing::Assign;
 

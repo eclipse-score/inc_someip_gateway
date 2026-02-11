@@ -148,33 +148,31 @@ void append(std::vector<T>& dst, std::vector<T>&& src) {
 ///
 /// \param[in] data vector with random data
 /// \param[in] new_size size to which the vector shall be increased
-void increase_and_fill(::score::socom::Vector_buffer& data, std::size_t new_size);
+void increase_and_fill(Vector_buffer& data, std::size_t new_size);
 
 /// \brief Create interfaces without events and methods but with unique names
 ///
 /// \param[in] num number of interfaces to create
 /// \return the created interfaces
-std::vector<::score::socom::Server_service_interface_configuration> create_service_interfaces(
-    std::size_t num);
+std::vector<Server_service_interface_configuration> create_service_interfaces(std::size_t num);
 
 /// \brief Create interface configuration without events and methods but with name including the
 /// interface id
 ///
 /// \param[in] interface_id interface id to identify the service
 /// \return the created service interface
-::score::socom::Server_service_interface_configuration create_service_interface_configuration(
-    size_t interface_id);
+Server_service_interface_configuration create_service_interface_configuration(size_t interface_id);
 
 /// \brief Create Service_instances with unique names
 /// \param[in] num the number of instances to create
 /// \return the created instances
-std::vector<::score::socom::Service_instance> create_instances(std::size_t num);
+std::vector<Service_instance> create_instances(std::size_t num);
 
 /// \brief create one Service_instance with instance_id
 ///
 /// \param[in] instance_id instance id to identify the service
 /// \return the created service_instance
-::score::socom::Service_instance create_service_instance(size_t instance_id);
+Service_instance create_service_instance(size_t instance_id);
 
 /// Set promise after count calls of callback.
 ///
@@ -208,17 +206,15 @@ std::ostream& operator<<(std::ostream& out, std::function<RET(ARGS...)> const& /
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, ::score::socom::Method_result const& /*unused*/);
+std::ostream& operator<<(std::ostream& out, Method_result const& /*unused*/);
 
-std::ostream& operator<<(std::ostream& out,
-                         ::score::socom::Service_interface_configuration const& /*unused*/);
+std::ostream& operator<<(std::ostream& out, Service_interface_configuration const& /*unused*/);
 
-std::ostream& operator<<(std::ostream& out,
-                         ::score::socom::Server_service_interface_configuration const& conf);
+std::ostream& operator<<(std::ostream& out, Server_service_interface_configuration const& conf);
 
-std::ostream& operator<<(std::ostream& out, ::score::socom::Service_state const& state);
+std::ostream& operator<<(std::ostream& out, Service_state const& state);
 
-std::ostream& operator<<(std::ostream& out, ::score::socom::Construction_error const& error);
+std::ostream& operator<<(std::ostream& out, Construction_error const& error);
 
 bool operator==(Disabled_server_connector const& /*lhs*/, Disabled_server_connector const& /*rhs*/);
 

@@ -13,12 +13,6 @@
 
 #include "score/socom/single_connection_test_fixture.hpp"
 
-using ::score::socom::Event_id;
-using ::score::socom::make_vector_buffer;
-using ::score::socom::make_vector_payload;
-using ::score::socom::Method_id;
-using ::score::socom::Payload;
-
 namespace score::socom {
 
 Payload::Sptr const& input_data() {

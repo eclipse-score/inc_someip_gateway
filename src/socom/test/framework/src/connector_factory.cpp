@@ -18,25 +18,6 @@
 #include "gtest/gtest.h"
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Bridge_identity;
-using ::score::socom::Client_connector;
-using ::score::socom::Disabled_server_connector;
-using ::score::socom::Enabled_server_connector;
-using ::score::socom::Find_result_callback;
-using ::score::socom::Find_result_change_callback;
-using ::score::socom::Find_subscription;
-using ::score::socom::Num_of_events;
-using ::score::socom::Num_of_methods;
-using ::score::socom::Posix_credentials;
-using ::score::socom::Request_service_function;
-using ::score::socom::Runtime;
-using ::score::socom::Server_service_interface_configuration;
-using ::score::socom::Service_bridge_registration;
-using ::score::socom::Service_instance;
-using ::score::socom::Service_interface;
-using ::score::socom::Service_interface_configuration;
-using ::score::socom::Service_state;
-using ::score::socom::Subscribe_find_service_function;
 using ::testing::_;
 using ::testing::Assign;
 using ::testing::DoAll;
@@ -45,7 +26,7 @@ namespace score::socom {
 
 Connector_factory::Connector_factory(Server_service_interface_configuration configuration,
                                      Service_instance instance)
-    : m_runtime{score::socom::create_runtime()},
+    : m_runtime{create_runtime()},
       m_configuration{std::move(configuration)},
       m_instance{instance} {}
 
@@ -55,7 +36,7 @@ Connector_factory::Connector_factory(Service_interface const& sif, Num_of_method
                         instance} {}
 
 Connector_factory::Connector_factory(Connector_factory const& con_fac)
-    : m_runtime{score::socom::create_runtime()},
+    : m_runtime{create_runtime()},
       m_configuration{con_fac.get_configuration()},
       m_instance{con_fac.get_instance()} {}
 

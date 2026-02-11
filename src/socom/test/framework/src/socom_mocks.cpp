@@ -13,16 +13,13 @@
 
 #include "score/socom/socom_mocks.hpp"
 
-using ::score::socom::Client_connector;
-using ::score::socom::Disabled_server_connector;
-
 namespace score::socom {
 
 Disabled_server_connector::Callbacks create_server_callbacks(
     Server_connector_callbacks_mock& mock) {
     return Disabled_server_connector::Callbacks{
         [&mock](auto& connector, auto mid, auto const& payload,
-                score::socom::Method_call_reply_data_opt reply_callback, auto cred) {
+                Method_call_reply_data_opt reply_callback, auto cred) {
             return mock.on_method_call(connector, mid, payload, std::move(reply_callback));
         },
         [&mock](auto& connector, auto eid, auto state) {
@@ -38,7 +35,7 @@ Disabled_server_connector::Callbacks create_server_callbacks(
     Server_connector_credentials_callbacks_mock& mock) {
     return Disabled_server_connector::Callbacks{
         [&mock](auto& connector, auto mid, auto const& payload,
-                score::socom::Method_call_reply_data_opt reply_callback, auto const& credentials) {
+                Method_call_reply_data_opt reply_callback, auto const& credentials) {
             return mock.on_method_call(connector, mid, payload, std::move(reply_callback),
                                        credentials);
         },

@@ -41,7 +41,7 @@ struct Server_data {
     std::atomic<uint32_t> m_num_method_calls{0};
     Server_connector_callbacks_mock m_callbacks;
     Server_connector_credentials_callbacks_mock m_credential_callbacks;
-    ::score::socom::Enabled_server_connector::Uptr m_connector;
+    Enabled_server_connector::Uptr m_connector;
 
    public:
     /// \brief Create a new instance with the configuration stored in factory
@@ -54,8 +54,8 @@ struct Server_data {
     /// \param[in] factory factory to create server connector with
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
-    Server_data(Connector_factory& factory, ::score::socom::Method_id method_id,
-                ::score::socom::Payload::Sptr const& expected_payload);
+    Server_data(Connector_factory& factory, Method_id method_id,
+                Payload::Sptr const& expected_payload);
 
     /// \brief Create a new instance with the configuration stored in factory
     ///
@@ -63,8 +63,8 @@ struct Server_data {
     /// \param[in] configuration use this instead of the one stored in factory
     /// \param[in] instance use this instead of the one stored in factory
     Server_data(Connector_factory& factory,
-                ::score::socom::Server_service_interface_configuration const& configuration,
-                ::score::socom::Service_instance const& instance);
+                Server_service_interface_configuration const& configuration,
+                Service_instance const& instance);
 
     /// \brief Create a new instance with the configuration stored in factory and POSIX credentials
     ///
@@ -73,9 +73,8 @@ struct Server_data {
     /// \param[in] instance use this instead of the one stored in factory
     /// \param[in] credentials use POSIX credentials
     Server_data(Connector_factory& factory,
-                ::score::socom::Server_service_interface_configuration const& configuration,
-                ::score::socom::Service_instance const& instance,
-                ::score::socom::Posix_credentials const& credentials);
+                Server_service_interface_configuration const& configuration,
+                Service_instance const& instance, Posix_credentials const& credentials);
 
     Server_data(Server_data const&) = delete;
     Server_data(Server_data&&) = delete;
@@ -99,7 +98,7 @@ struct Server_data {
     /// \brief Return server connector
     ///
     /// \return server connector
-    ::score::socom::Enabled_server_connector& get_connector();
+    Enabled_server_connector& get_connector();
 
     /// \brief Disable server connector and move it out of Server_data
     ///
@@ -108,7 +107,7 @@ struct Server_data {
     /// server connector.
     ///
     /// \return disabled server connector
-    ::score::socom::Disabled_server_connector::Uptr disable();
+    Disabled_server_connector::Uptr disable();
 
     /// \brief Enable server connector and move it into Server_data
     ///
@@ -116,21 +115,19 @@ struct Server_data {
     /// disable(). Otherwise strange effects with configuring mocks will happen.
     ///
     /// \param[in] disabled_connector connector to be enabled
-    void enable(::score::socom::Disabled_server_connector::Uptr disabled_connector);
+    void enable(Disabled_server_connector::Uptr disabled_connector);
 
     /// \brief Send event update to subscribed clients
     ///
     /// \param[in] event_id the event update
     /// \param[in] payload the data to send
-    void update_event(::score::socom::Event_id const& event_id,
-                      ::score::socom::Payload::Sptr const& payload);
+    void update_event(Event_id const& event_id, Payload::Sptr const& payload);
 
     /// \brief Send requested event update to subscribed and requesting clients
     ///
     /// \param[in] event_id the event update
     /// \param[in] payload the data to send
-    void update_requested_event(::score::socom::Event_id const& event_id,
-                                ::score::socom::Payload::Sptr const& payload);
+    void update_requested_event(Event_id const& event_id, Payload::Sptr const& payload);
 
     /// \brief Expect a call to the on_event_subscription_change callback
     ///
@@ -140,22 +137,22 @@ struct Server_data {
     /// fulfilled
     /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_on_event_subscription_change(
-        ::score::socom::Event_id const& event_id, ::score::socom::Event_state const& state,
-        ::score::socom::Event_subscription_change_callback subscription_change_callback = {});
+        Event_id const& event_id, Event_state const& state,
+        Event_subscription_change_callback subscription_change_callback = {});
 
     /// \brief Expect (nonblocking) the subscription/unsubscription of an event
-    void expect_event_subscription(::score::socom::Event_id const& event_id);
+    void expect_event_subscription(Event_id const& event_id);
 
     /// \brief Expect a call to the on_event_subscription_change callback - without synchronization
     /// return
-    void expect_on_event_subscription_change_nosync(::score::socom::Event_id const& event_id,
-                                                    ::score::socom::Event_state const& state);
+    void expect_on_event_subscription_change_nosync(Event_id const& event_id,
+                                                    Event_state const& state);
 
     /// \brief Expect but not respond to an update event request
     ///
     /// \param[in] event_id event for which a update is requested
     /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_update_event_request(::score::socom::Event_id const& event_id);
+    std::atomic<bool> const& expect_update_event_request(Event_id const& event_id);
 
     /// Expect but not respond to an update event request
     ///
@@ -164,14 +161,14 @@ struct Server_data {
     ///
     /// \param[in] event_id event for which a update is requested
     /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_update_event_requests(::score::socom::Event_id const& event_id);
+    std::atomic<bool> const& expect_update_event_requests(Event_id const& event_id);
 
     /// \brief Expect and respond to an update event request
     ///
     /// \param[in] event_id event for which a update is requested
     /// \param[in] payload the data to send
-    void expect_and_respond_update_event_request(::score::socom::Event_id const& event_id,
-                                                 ::score::socom::Payload::Sptr const& payload);
+    void expect_and_respond_update_event_request(Event_id const& event_id,
+                                                 Payload::Sptr const& payload);
 
     /// \brief Expect and respond to method calls
     ///
@@ -179,8 +176,7 @@ struct Server_data {
     /// \param[in] result allocated payload
     /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_method_allocate_payload(
-        ::score::socom::Method_id const& method_id,
-        score::Result<std::unique_ptr<::score::socom::Writable_payload>> result);
+        Method_id const& method_id, score::Result<std::unique_ptr<Writable_payload>> result);
 
     /// \brief Expect and respond to method calls
     ///
@@ -189,9 +185,10 @@ struct Server_data {
     /// \param[in] payload input of the method
     /// \param[in] result return of the method
     /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_and_respond_method_calls(
-        size_t counter, ::score::socom::Method_id const& method_id,
-        ::score::socom::Payload::Sptr const& payload, ::score::socom::Method_result const& result);
+    std::atomic<bool> const& expect_and_respond_method_calls(size_t counter,
+                                                             Method_id const& method_id,
+                                                             Payload::Sptr const& payload,
+                                                             Method_result const& result);
 
     /// \brief Expect and respond to a method call
     ///
@@ -199,32 +196,31 @@ struct Server_data {
     /// \param[in] payload input of the method
     /// \param[in] result return of the method
     /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_and_respond_method_call(
-        ::score::socom::Method_id const& method_id, ::score::socom::Payload::Sptr const& payload,
-        ::score::socom::Method_result const& result);
+    std::atomic<bool> const& expect_and_respond_method_call(Method_id const& method_id,
+                                                            Payload::Sptr const& payload,
+                                                            Method_result const& result);
 
     /// \brief Expect method call and return received client callback
     ///
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
     /// \return Future which will return the client callback once the method is called
-    std::future<::score::socom::Method_call_reply_data_opt> expect_and_return_method_call(
-        ::score::socom::Method_id const& method_id, ::score::socom::Payload::Sptr const& payload);
+    std::future<Method_call_reply_data_opt> expect_and_return_method_call(
+        Method_id const& method_id, Payload::Sptr const& payload);
 
     /// Expect minimum number of method call and return received client callback
     ///
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
     /// \return Future which will return the client callback once the method is called
-    std::future<void> expect_method_calls(std::size_t const& min_num,
-                                          ::score::socom::Method_id const& method_id,
-                                          ::score::socom::Payload::Sptr const& payload);
+    std::future<void> expect_method_calls(std::size_t const& min_num, Method_id const& method_id,
+                                          Payload::Sptr const& payload);
 
     /// \brief Return event mode
     ///
     /// \param[in] server_id event for which the mode is requested
     /// \return the mode of the event
-    ::score::socom::Event_mode get_event_mode(::score::socom::Event_id server_id) const;
+    Event_mode get_event_mode(Event_id server_id) const;
 };
 
 }  // namespace score::socom

@@ -26,19 +26,19 @@ namespace score::socom {
 
 /// \brief Creates client and server connectors with default values
 class Connector_factory {
-    ::score::socom::Runtime::Uptr m_runtime;
-    ::score::socom::Server_service_interface_configuration m_configuration;
-    ::score::socom::Service_instance m_instance;
+    Runtime::Uptr m_runtime;
+    Server_service_interface_configuration m_configuration;
+    Service_instance m_instance;
 
-    ::score::socom::Runtime& get_runtime();
+    Runtime& get_runtime();
 
    public:
     /// \brief Creates a Connector_factory with default configuration
     ///
     /// \param[in] configuration default configuration for created server and clients
     /// \param[in] instance default intance for created server and clients
-    Connector_factory(::score::socom::Server_service_interface_configuration configuration,
-                      ::score::socom::Service_instance instance);
+    Connector_factory(Server_service_interface_configuration configuration,
+                      Service_instance instance);
 
     /// \brief Creates a Connector_factory with default configuration
     ///
@@ -47,10 +47,8 @@ class Connector_factory {
     /// \param[in] methods Number of Methods
     /// \param[in] events Number of Events
     /// \param[in] instance default intance for created server and clients
-    Connector_factory(::score::socom::Service_interface const& sif,
-                      ::score::socom::Num_of_methods num_methods,
-                      ::score::socom::Num_of_events num_events,
-                      ::score::socom::Service_instance instance);
+    Connector_factory(Service_interface const& sif, Num_of_methods num_methods,
+                      Num_of_events num_events, Service_instance instance);
 
     /// \brief Copy constructor which copies the configuraton of con_fac
     ///
@@ -65,7 +63,7 @@ class Connector_factory {
     Connector_factory& operator=(Connector_factory&&) = delete;
 
     /// \return Service_finder instance of the internal runtime object
-    ::score::socom::Runtime& get_service_finder();
+    Runtime& get_service_finder();
 
     /// \brief Subscribe to availability changes of running servers/services
     ///
@@ -78,10 +76,9 @@ class Connector_factory {
     /// \param[in] on_result_change callback which is called when service state changes
     /// \param[in] instance filter for a specific service instance
     /// \return RAII object which keeps the subscription alive until it is destroyed
-    ::score::socom::Find_subscription subscribe_find_service(
-        ::score::socom::Find_result_change_callback on_result_change,
-        std::optional<::score::socom::Service_instance> instance = {},
-        std::optional<::score::socom::Bridge_identity> identity = {});
+    Find_subscription subscribe_find_service(Find_result_change_callback on_result_change,
+                                             std::optional<Service_instance> instance = {},
+                                             std::optional<Bridge_identity> identity = {});
 
     /// \brief Legacy subscribe to availability changes of running servers/services
     ///
@@ -94,9 +91,8 @@ class Connector_factory {
     /// \param[in] on_result_set_change callback which is called when service state changes
     /// \param[in] instance filter for a specific service instance
     /// \return RAII object which keeps the subscription alive until it is destroyed
-    ::score::socom::Find_subscription subscribe_find_service(
-        ::score::socom::Find_result_callback on_result_set_change,
-        std::optional<::score::socom::Service_instance> instance = {});
+    Find_subscription subscribe_find_service(Find_result_callback on_result_set_change,
+                                             std::optional<Service_instance> instance = {});
 
     /// \brief Subscribe to availability changes of running servers/services
     ///
@@ -111,8 +107,7 @@ class Connector_factory {
     ///
     /// \param[in] on_result_change callback which is called when service state changes
     /// \return RAII object which keeps the subscription alive until it is destroyed
-    ::score::socom::Find_subscription subscribe_find_service_wildcard(
-        ::score::socom::Find_result_change_callback on_result_change);
+    Find_subscription subscribe_find_service_wildcard(Find_result_change_callback on_result_change);
 
     /// \brief Registers bridge callbacks at the runtime until registration is destroyed
     ///
@@ -122,39 +117,36 @@ class Connector_factory {
     /// \param[in] subscribe_find_service Callback to call to search for services
     /// \param[in] request_service
     /// \return RAII object which keeps the registration alive until it is destroyed
-    ::score::Result<::score::socom::Service_bridge_registration> register_service_bridge(
-        ::score::socom::Bridge_identity identity,
-        ::score::socom::Subscribe_find_service_function subscribe_find_service,
-        ::score::socom::Request_service_function request_service);
+    ::score::Result<Service_bridge_registration> register_service_bridge(
+        Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
+        Request_service_function request_service);
 
     /// \brief Create server connector with default configuration
     ///
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \return server connector
-    ::score::socom::Disabled_server_connector::Uptr create_server_connector(
+    Disabled_server_connector::Uptr create_server_connector(
         Optional_reference<Server_connector_callbacks_mock> sc_callbacks);
 
     /// \brief Create server connector with default configuration
     ///
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \return server connector factory result
-    ::score::socom::Disabled_server_connector::Uptr create_server_connector(
-        ::score::socom::Disabled_server_connector::Callbacks sc_callbacks);
+    Disabled_server_connector::Uptr create_server_connector(
+        Disabled_server_connector::Callbacks sc_callbacks);
 
     /// \brief Create server connector with default configuration
     ///
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \return server connector factory result
-    ::score::Result<::score::socom::Disabled_server_connector::Uptr>
-    create_server_connector_with_result(
-        ::score::socom::Disabled_server_connector::Callbacks sc_callbacks);
+    ::score::Result<Disabled_server_connector::Uptr> create_server_connector_with_result(
+        Disabled_server_connector::Callbacks sc_callbacks);
 
     /// \brief Create server connector with default configuration
     ///
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \return server connector factory result
-    ::score::Result<::score::socom::Disabled_server_connector::Uptr>
-    create_server_connector_with_result(
+    ::score::Result<Disabled_server_connector::Uptr> create_server_connector_with_result(
         Optional_reference<Server_connector_callbacks_mock> sc_callbacks);
 
     /// \brief Create server connector with custom configuration
@@ -163,9 +155,9 @@ class Connector_factory {
     /// \param[in] instance other instance
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \return server connector
-    ::score::socom::Disabled_server_connector::Uptr create_server_connector(
-        ::score::socom::Server_service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    Disabled_server_connector::Uptr create_server_connector(
+        Server_service_interface_configuration const& configuration,
+        Service_instance const& instance,
         Optional_reference<Server_connector_callbacks_mock> sc_callbacks);
 
     /// \brief Create server connector with custom configuration and POSIX credentials
@@ -175,17 +167,17 @@ class Connector_factory {
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \param[in] credentials POSIX credentials
     /// \return server connector
-    ::score::socom::Disabled_server_connector::Uptr create_server_connector(
-        ::score::socom::Server_service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    Disabled_server_connector::Uptr create_server_connector(
+        Server_service_interface_configuration const& configuration,
+        Service_instance const& instance,
         Optional_reference<Server_connector_credentials_callbacks_mock> sc_callbacks,
-        ::score::socom::Posix_credentials const& credentials);
+        Posix_credentials const& credentials);
 
     /// \brief Create and enable server connector with default configuration
     ///
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \return enabled server connector
-    ::score::socom::Enabled_server_connector::Uptr create_and_enable(
+    Enabled_server_connector::Uptr create_and_enable(
         Optional_reference<Server_connector_callbacks_mock> sc_callbacks);
 
     /// \brief Create and enable server connector with custom configuration
@@ -194,9 +186,9 @@ class Connector_factory {
     /// \param[in] instance other instance
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \return enabled server connector
-    ::score::socom::Enabled_server_connector::Uptr create_and_enable(
-        ::score::socom::Server_service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    Enabled_server_connector::Uptr create_and_enable(
+        Server_service_interface_configuration const& configuration,
+        Service_instance const& instance,
         Optional_reference<Server_connector_callbacks_mock> sc_callbacks);
 
     /// \brief Create and enable server connector with custom configuration and POSIX credentials
@@ -206,25 +198,24 @@ class Connector_factory {
     /// \param[in] sc_callbacks callbacks for the server connector
     /// \param[in] credentials POSIX credentials
     /// \return enabled server connector
-    ::score::socom::Enabled_server_connector::Uptr create_and_enable(
-        ::score::socom::Server_service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    Enabled_server_connector::Uptr create_and_enable(
+        Server_service_interface_configuration const& configuration,
+        Service_instance const& instance,
         Optional_reference<Server_connector_credentials_callbacks_mock> sc_callbacks,
-        ::score::socom::Posix_credentials const& credentials);
+        Posix_credentials const& credentials);
 
     /// \brief Create client connector with default configuration
     ///
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \return client connector
-    ::score::socom::Client_connector::Uptr create_client_connector(
+    Client_connector::Uptr create_client_connector(
         Optional_reference<Client_connector_callbacks_mock> cc_callbacks);
 
     /// \brief Create client connector with default configuration
     ///
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \return client connector
-    ::score::socom::Client_connector::Uptr create_client_connector(
-        ::score::socom::Client_connector::Callbacks cc_callbacks);
+    Client_connector::Uptr create_client_connector(Client_connector::Callbacks cc_callbacks);
 
     /// \brief Create client connector with custom configuration
     ///
@@ -232,9 +223,8 @@ class Connector_factory {
     /// \param[in] instance other instance
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \return client connector
-    ::score::socom::Client_connector::Uptr create_client_connector(
-        ::score::socom::Service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    Client_connector::Uptr create_client_connector(
+        Service_interface_configuration const& configuration, Service_instance const& instance,
         Optional_reference<Client_connector_callbacks_mock> cc_callbacks);
 
     /// \brief Create client connector with custom configuration and POSIX credentials
@@ -244,11 +234,10 @@ class Connector_factory {
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \param[in] credentials POSIX credentials
     /// \return client connector
-    ::score::socom::Client_connector::Uptr create_client_connector(
-        ::score::socom::Service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    Client_connector::Uptr create_client_connector(
+        Service_interface_configuration const& configuration, Service_instance const& instance,
         Optional_reference<Client_connector_callbacks_mock> cc_callbacks,
-        ::score::socom::Posix_credentials const& credentials);
+        Posix_credentials const& credentials);
 
     /// \brief Create client connector with custom configuration and POSIX credentials
     ///
@@ -257,11 +246,10 @@ class Connector_factory {
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \param[in] credentials POSIX credentials
     /// \return client connector
-    ::score::Result<::score::socom::Client_connector::Uptr> create_client_connector_with_result(
-        ::score::socom::Service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    ::score::Result<Client_connector::Uptr> create_client_connector_with_result(
+        Service_interface_configuration const& configuration, Service_instance const& instance,
         Optional_reference<Client_connector_callbacks_mock> cc_callbacks,
-        std::optional<::score::socom::Posix_credentials> const& credentials);
+        std::optional<Posix_credentials> const& credentials);
 
     /// \brief Create client connector with custom configuration
     ///
@@ -269,10 +257,9 @@ class Connector_factory {
     /// \param[in] instance other instance
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \return client connector
-    ::score::Result<::score::socom::Client_connector::Uptr> create_client_connector_with_result(
-        ::score::socom::Service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
-        ::score::socom::Client_connector::Callbacks cc_callbacks);
+    ::score::Result<Client_connector::Uptr> create_client_connector_with_result(
+        Service_interface_configuration const& configuration, Service_instance const& instance,
+        Client_connector::Callbacks cc_callbacks);
 
     /// \brief Create client connector with custom configuration and POSIX credentials
     ///
@@ -281,17 +268,15 @@ class Connector_factory {
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \param[in] credentials POSIX credentials
     /// \return client connector
-    ::score::Result<::score::socom::Client_connector::Uptr> create_client_connector_with_result(
-        ::score::socom::Service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
-        ::score::socom::Client_connector::Callbacks cc_callbacks,
-        ::score::socom::Posix_credentials const& credentials);
+    ::score::Result<Client_connector::Uptr> create_client_connector_with_result(
+        Service_interface_configuration const& configuration, Service_instance const& instance,
+        Client_connector::Callbacks cc_callbacks, Posix_credentials const& credentials);
 
     /// \brief Create and connect client connector with default configuration
     ///
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \return connected client connector
-    ::score::socom::Client_connector::Uptr create_and_connect(
+    Client_connector::Uptr create_and_connect(
         Optional_reference<Client_connector_callbacks_mock> cc_callbacks);
 
     /// \brief Create and connect client connector with custom configuration
@@ -301,17 +286,16 @@ class Connector_factory {
     /// \param[in] cc_callbacks callbacks for the client connector
     /// \param[in] credentials optional POSIX credentials
     /// \return connected client connector
-    ::score::socom::Client_connector::Uptr create_and_connect(
-        ::score::socom::Service_interface_configuration const& configuration,
-        ::score::socom::Service_instance const& instance,
+    Client_connector::Uptr create_and_connect(
+        Service_interface_configuration const& configuration, Service_instance const& instance,
         Optional_reference<Client_connector_callbacks_mock> cc_callbacks,
-        std::optional<::score::socom::Posix_credentials> const& credentials);
+        std::optional<Posix_credentials> const& credentials);
 
     /// \return default configuration for server and client connector
-    ::score::socom::Server_service_interface_configuration const& get_configuration() const;
+    Server_service_interface_configuration const& get_configuration() const;
 
     /// \return default instance for server and client connector
-    ::score::socom::Service_instance const& get_instance() const;
+    Service_instance const& get_instance() const;
 
     /// \return method names in same order as used by server and client
     std::size_t get_num_methods() const noexcept;

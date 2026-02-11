@@ -22,8 +22,8 @@ namespace score::socom {
 /// \brief Temporary_event_subscriptions keeps a client to an event subscribed
 ///         until destruction
 class Temporary_event_subscription {
-    ::score::socom::Event_id m_event_id;
-    ::score::socom::Client_connector& m_cc;
+    Event_id m_event_id;
+    Client_connector& m_cc;
 
    public:
     /// \brief Behave in ways not expected by the middleware
@@ -44,11 +44,10 @@ class Temporary_event_subscription {
     /// \param[in] cc_callbacks callbacks of cc
     /// \param[in] event_id the event to which shall be subscribed
     /// \param[in] payload data which may be sent with the answer to the update event request
-    Temporary_event_subscription(::score::socom::Client_connector& cc,
+    Temporary_event_subscription(Client_connector& cc,
                                  Server_connector_callbacks_mock& sc_callbacks,
                                  Client_connector_callbacks_mock& cc_callbacks,
-                                 ::score::socom::Event_id const& event_id,
-                                 ::score::socom::Payload::Sptr const& payload);
+                                 Event_id const& event_id, Payload::Sptr const& payload);
 
     /// \brief Subscribe with Event_mode::update_and_initial_value but without server_response
     ///
@@ -56,17 +55,15 @@ class Temporary_event_subscription {
     /// \param[in] sc_callbacks callbacks of the server connector providing the event
     /// \param[in] event_id the event to which shall be subscribed
     /// \param[in] brokeness behave in ways not expected by the middleware
-    Temporary_event_subscription(::score::socom::Client_connector& cc,
+    Temporary_event_subscription(Client_connector& cc,
                                  Server_connector_callbacks_mock& sc_callbacks,
-                                 ::score::socom::Event_id const& event_id,
-                                 Brokenness const& brokenness);
+                                 Event_id const& event_id, Brokenness const& brokenness);
 
     /// \brief Subscribe with Event_mode::update
     ///
     /// \param[in] cc client connector which subscribes to an event
     /// \param[in] event_id the event to which shall be subscribed
-    Temporary_event_subscription(::score::socom::Client_connector& cc,
-                                 ::score::socom::Event_id const& event_id);
+    Temporary_event_subscription(Client_connector& cc, Event_id const& event_id);
 
     Temporary_event_subscription(Temporary_event_subscription const&) = delete;
     Temporary_event_subscription(Temporary_event_subscription&&) = delete;

@@ -22,20 +22,6 @@
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
 
-using ::score::socom::Disabled_server_connector;
-using ::score::socom::Enabled_server_connector;
-using ::score::socom::Event_id;
-using ::score::socom::Event_mode;
-using ::score::socom::Event_state;
-using ::score::socom::Event_subscription_change_callback;
-using ::score::socom::Method_call_reply_data_opt;
-using ::score::socom::Method_id;
-using ::score::socom::Method_invocation;
-using ::score::socom::Method_reply_callback;
-using ::score::socom::Method_result;
-using ::score::socom::Payload;
-using ::score::socom::Server_service_interface_configuration;
-using ::score::socom::Service_instance;
 using ::testing::_;
 using ::testing::Assign;
 using ::testing::ByMove;
@@ -43,10 +29,11 @@ using ::testing::DoAll;
 using ::testing::InvokeWithoutArgs;
 using ::testing::Return;
 
+namespace score::socom {
 namespace {
-::score::socom::Server_connector_callbacks_mock& expect_method_call(
-    ::score::socom::Server_connector_callbacks_mock& sc_callbacks, Method_id const& method_id,
-    Payload::Sptr const& expected_payload) {
+Server_connector_callbacks_mock& expect_method_call(Server_connector_callbacks_mock& sc_callbacks,
+                                                    Method_id const& method_id,
+                                                    Payload::Sptr const& expected_payload) {
     EXPECT_CALL(sc_callbacks, on_method_call(_, method_id, expected_payload, _));
     return sc_callbacks;
 }
@@ -56,8 +43,6 @@ auto ignore_call() {
 }
 
 }  // namespace
-
-namespace score::socom {
 
 static_assert(!std::is_default_constructible<Server_data>::value, "");
 
@@ -74,11 +59,9 @@ Server_data::Server_data(Connector_factory& factory,
                          Service_instance const& instance)
     : m_connector{factory.create_and_enable(configuration, instance, m_callbacks)} {}
 
-Server_data::Server_data(
-    Connector_factory& factory,
-    ::score::socom::Server_service_interface_configuration const& configuration,
-    ::score::socom::Service_instance const& instance,
-    ::score::socom::Posix_credentials const& credentials)
+Server_data::Server_data(Connector_factory& factory,
+                         Server_service_interface_configuration const& configuration,
+                         Service_instance const& instance, Posix_credentials const& credentials)
     : m_connector{factory.create_and_enable(configuration, instance, m_credential_callbacks,
                                             credentials)} {}
 
@@ -143,8 +126,7 @@ std::atomic<bool> const& Server_data::expect_update_event_request(Event_id const
     return m_callback_called;
 }
 
-std::atomic<bool> const& Server_data::expect_update_event_requests(
-    ::score::socom::Event_id const& event_id) {
+std::atomic<bool> const& Server_data::expect_update_event_requests(Event_id const& event_id) {
     EXPECT_TRUE(m_callback_called);
     m_callback_called = false;
     EXPECT_CALL(m_callbacks, on_event_update_request(_, event_id))
@@ -162,8 +144,7 @@ void Server_data::expect_and_respond_update_event_request(Event_id const& event_
 }
 
 std::atomic<bool> const& Server_data::expect_method_allocate_payload(
-    ::score::socom::Method_id const& method_id,
-    score::Result<std::unique_ptr<::score::socom::Writable_payload>> result) {
+    Method_id const& method_id, score::Result<std::unique_ptr<Writable_payload>> result) {
     EXPECT_CALL(m_callbacks, on_method_payload_allocate(_, method_id))
         .WillOnce(DoAll(Assign(&m_method_payload_allocate_called, true),
                         Return(ByMove(std::move(result)))));
@@ -223,8 +204,8 @@ std::future<Method_call_reply_data_opt> Server_data::expect_and_return_method_ca
 }
 
 std::future<void> Server_data::expect_method_calls(std::size_t const& min_num,
-                                                   ::score::socom::Method_id const& method_id,
-                                                   ::score::socom::Payload::Sptr const& payload) {
+                                                   Method_id const& method_id,
+                                                   Payload::Sptr const& payload) {
     std::promise<void> methods_called;
     auto methods_called_future = methods_called.get_future();
 
