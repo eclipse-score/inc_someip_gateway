@@ -11,16 +11,16 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "multi_threaded_test_template.hpp"
+#include "score/socom/multi_threaded_test_template.hpp"
 
 #include <future>
 #include <thread>
 
-#include "utilities.hpp"
+#include "score/socom/utilities.hpp"
 
 using namespace std::chrono_literals;
 
-namespace ac {
+namespace score::socom {
 
 using Thread_function_t =
     std::function<void(Stop_condition, std::atomic<bool>&, std::atomic<bool> const&)>;
@@ -86,4 +86,4 @@ void multi_threaded_test_template(std::vector<Loop_function_t> const& thread_fun
     results.clear();
 }
 
-}  // namespace ac
+}  // namespace score::socom

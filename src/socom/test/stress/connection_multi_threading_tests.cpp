@@ -16,20 +16,20 @@
 #include <utility>
 
 #include "gtest/gtest.h"
-#include "multi_threaded_test_template.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
+#include "score/socom/multi_threaded_test_template.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_configuration.hpp"
-#include "single_connection_test_fixture.hpp"
+#include "score/socom/single_connection_test_fixture.hpp"
 
 namespace socom = score::socom;
 
-using ::ac::multi_threaded_test_template;
-using ::ac::SingleConnectionTest;
-using ::ac::Stop_condition;
+using ::score::socom::multi_threaded_test_template;
+using ::score::socom::SingleConnectionTest;
+using ::score::socom::Stop_condition;
 using socom::Application_return;
 using socom::Client_connector;
 using socom::Disabled_server_connector;
@@ -42,7 +42,6 @@ using socom::Event_state;
 using socom::Event_subscription_change_callback;
 using socom::Event_update_callback;
 using socom::Method_call_credentials_callback;
-using socom::Method_call_reply_data;
 using socom::Method_call_reply_data_opt;
 using socom::Method_id;
 using socom::Method_payload_allocate_callback;

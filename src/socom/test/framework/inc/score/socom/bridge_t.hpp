@@ -11,16 +11,16 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SOCOM_BRIDGE_T_HPP
-#define SOCOM_BRIDGE_T_HPP
+#ifndef SRC_SOCOM_TEST_FRAMEWORK_INC_SCORE_SOCOM_BRIDGE_T
+#define SRC_SOCOM_TEST_FRAMEWORK_INC_SCORE_SOCOM_BRIDGE_T
 
 #include <atomic>
 #include <optional>
 
-#include "connector_factory.hpp"
-#include "socom_mocks.hpp"
+#include "score/socom/connector_factory.hpp"
+#include "score/socom/socom_mocks.hpp"
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Facade for simple bridge behaviour and callbacks in tests
 ///
@@ -149,6 +149,6 @@ class Bridge_data {
     std::optional<::score::socom::Bridge_identity> get_identity() const;
 };
 
-}  // namespace ac
+}  // namespace score::socom
 
-#endif
+#endif  // SRC_SOCOM_TEST_FRAMEWORK_INC_SCORE_SOCOM_BRIDGE_T

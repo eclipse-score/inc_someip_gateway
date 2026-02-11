@@ -19,10 +19,10 @@
 #include "score/socom/runtime.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_configuration.hpp"
-#include "socom_mocks.hpp"
-#include "utilities.hpp"
+#include "score/socom/socom_mocks.hpp"
+#include "score/socom/utilities.hpp"
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Creates client and server connectors with default values
 class Connector_factory {
@@ -320,6 +320,6 @@ class Connector_factory {
     std::size_t get_num_events() const noexcept;
 };
 
-}  // namespace ac
+}  // namespace score::socom
 
 #endif

@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "bridge_t.hpp"
+#include "score/socom/bridge_t.hpp"
 
 #include "score/socom/runtime.hpp"
 
@@ -30,7 +30,7 @@ using ::testing::ByMove;
 using ::testing::Return;
 using ::testing::SaveArg;
 
-namespace ac {
+namespace score::socom {
 
 namespace {
 
@@ -167,4 +167,4 @@ std::optional<Bridge_identity> Bridge_data::get_identity() const {
     return std::optional<Bridge_identity>{m_identity};
 }
 
-}  // namespace ac
+}  // namespace score::socom

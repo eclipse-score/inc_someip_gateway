@@ -11,9 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "temporary_event_subscription.hpp"
+#include "score/socom/temporary_event_subscription.hpp"
 
-#include "utilities.hpp"
+#include "score/socom/utilities.hpp"
 
 using ::score::socom::Client_connector;
 using ::score::socom::Enabled_server_connector;
@@ -23,7 +23,7 @@ using ::score::socom::Payload;
 using ::testing::_;
 using ::testing::Assign;
 
-namespace ac {
+namespace score::socom {
 
 Temporary_event_subscription::Temporary_event_subscription(
     Client_connector& cc, Server_connector_callbacks_mock& sc_callbacks,
@@ -67,4 +67,4 @@ Temporary_event_subscription::~Temporary_event_subscription() {
     m_cc.unsubscribe_event(m_event_id);
 }
 
-}  // namespace ac
+}  // namespace score::socom

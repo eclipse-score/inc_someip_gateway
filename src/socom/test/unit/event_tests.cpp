@@ -11,28 +11,28 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "clients_t.hpp"
 #include "gtest/gtest.h"
+#include "score/socom/clients_t.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/payload_mock.hpp"
 #include "score/socom/server_connector.hpp"
-#include "server_t.hpp"
-#include "single_connection_test_fixture.hpp"
-#include "temporary_event_subscription.hpp"
-#include "utilities.hpp"
+#include "score/socom/server_t.hpp"
+#include "score/socom/single_connection_test_fixture.hpp"
+#include "score/socom/temporary_event_subscription.hpp"
+#include "score/socom/utilities.hpp"
 
-using ::ac::Client_data;
-using ::ac::Server_connector_callbacks_mock;
-using ::ac::Server_data;
-using ::ac::SingleConnectionTest;
-using ::ac::Temporary_event_subscription;
-using ::ac::wait_for_atomics;
+using ::score::socom::Client_data;
 using score::socom::empty_payload;
 using score::socom::Enabled_server_connector;
 using score::socom::Event_id;
 using score::socom::Event_mode;
 using score::socom::Event_state;
 using score::socom::Payload;
+using ::score::socom::Server_connector_callbacks_mock;
+using ::score::socom::Server_data;
+using ::score::socom::SingleConnectionTest;
+using ::score::socom::Temporary_event_subscription;
+using ::score::socom::wait_for_atomics;
 using score::socom::Writable_payload_mock;
 using ::testing::_;
 

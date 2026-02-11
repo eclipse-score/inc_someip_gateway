@@ -15,23 +15,23 @@
 #include <sstream>
 #include <string_view>
 
-#include "clients_t.hpp"
-#include "connector_factory.hpp"
 #include "gtest/gtest.h"
+#include "score/socom/clients_t.hpp"
+#include "score/socom/connector_factory.hpp"
 #include "score/socom/final_action.hpp"
+#include "score/socom/server_t.hpp"
 #include "score/socom/service_interface.hpp"
-#include "server_t.hpp"
-#include "utilities.hpp"
+#include "score/socom/utilities.hpp"
 
-using ::ac::Client_data;
-using ::ac::Connector_factory;
-using ::ac::Server_data;
-using ::ac::wait_for_atomics;
+using ::score::socom::Client_data;
+using ::score::socom::Connector_factory;
 using score::socom::Final_action;
+using ::score::socom::Server_data;
 using score::socom::Server_service_interface_configuration;
 using score::socom::Service_instance;
 using score::socom::Service_interface;
 using score::socom::Service_state;
+using ::score::socom::wait_for_atomics;
 using ::testing::TestParamInfo;
 using ::testing::Values;
 

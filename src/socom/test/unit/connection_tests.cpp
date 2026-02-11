@@ -11,28 +11,28 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "clients_t.hpp"
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/clients_t.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/posix_credentials.hpp"
 #include "score/socom/server_connector.hpp"
-#include "server_t.hpp"
-#include "single_connection_test_fixture.hpp"
-#include "utilities.hpp"
+#include "score/socom/server_t.hpp"
+#include "score/socom/single_connection_test_fixture.hpp"
+#include "score/socom/utilities.hpp"
 
-using ::ac::Client_data;
-using ::ac::Optional_reference;
-using ::ac::Server_connector_callbacks_mock;
-using ::ac::Server_data;
-using ::ac::SingleConnectionTest;
-using ::ac::wait_for_atomics;
+using ::score::socom::Client_data;
 using score::socom::Disabled_server_connector;
 using score::socom::Enabled_server_connector;
 using score::socom::Event_id;
 using score::socom::Event_state;
+using ::score::socom::Optional_reference;
 using score::socom::Posix_credentials;
+using ::score::socom::Server_connector_callbacks_mock;
+using ::score::socom::Server_data;
 using score::socom::Service_state;
+using ::score::socom::SingleConnectionTest;
+using ::score::socom::wait_for_atomics;
 using ::testing::_;
 
 namespace {

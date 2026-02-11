@@ -16,15 +16,15 @@
 
 #include <cstddef>
 
-#include "connector_factory.hpp"
+#include "score/socom/connector_factory.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/posix_credentials.hpp"
 #include "score/socom/server_connector.hpp"
-#include "socom_mocks.hpp"
+#include "score/socom/socom_mocks.hpp"
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Facade for the server connector and callback mocks.
 ///
@@ -227,6 +227,6 @@ struct Server_data {
     ::score::socom::Event_mode get_event_mode(::score::socom::Event_id server_id) const;
 };
 
-}  // namespace ac
+}  // namespace score::socom
 
 #endif

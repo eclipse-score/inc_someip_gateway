@@ -19,7 +19,7 @@
 #include <functional>
 #include <vector>
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Function is called in a tight loop
 using Loop_function_t = std::function<void()>;
@@ -64,6 +64,6 @@ struct Or_stop {
 void multi_threaded_test_template(std::vector<Loop_function_t> const& thread_functions,
                                   Stop_condition const& caller_stop_condition);
 
-}  // namespace ac
+}  // namespace score::socom
 
 #endif  // MULTI_THREADED_TEST_TEMPLATE_HPP

@@ -20,7 +20,7 @@
 #include "score/socom/event.hpp"
 #include "score/socom/server_connector.hpp"
 
-namespace ac {
+namespace score::socom {
 
 struct Client_connector_callbacks_naggy_mock {
     MOCK_METHOD(void, on_service_state_change,
@@ -91,6 +91,6 @@ using Client_connector_callbacks_mock =
 ::score::socom::Client_connector::Callbacks create_client_callbacks(
     Client_connector_callbacks_mock& mock);
 
-}  // namespace ac
+}  // namespace score::socom
 
 #endif

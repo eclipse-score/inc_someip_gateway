@@ -14,20 +14,20 @@
 #include <cstddef>
 #include <future>
 
-#include "clients_t.hpp"
 #include "gtest/gtest.h"
-#include "multi_threaded_test_template.hpp"
+#include "score/socom/clients_t.hpp"
+#include "score/socom/multi_threaded_test_template.hpp"
 #include "score/socom/payload.hpp"
-#include "server_t.hpp"
-#include "single_connection_test_fixture.hpp"
+#include "score/socom/server_t.hpp"
+#include "score/socom/single_connection_test_fixture.hpp"
 
 namespace socom = score::socom;
 using namespace std::chrono_literals;
 
-using ::ac::Client_data;
-using ::ac::multi_threaded_test_template;
-using ::ac::Server_data;
-using ::ac::SingleConnectionTest;
+using ::score::socom::Client_data;
+using ::score::socom::multi_threaded_test_template;
+using ::score::socom::Server_data;
+using ::score::socom::SingleConnectionTest;
 using socom::empty_payload;
 
 namespace {

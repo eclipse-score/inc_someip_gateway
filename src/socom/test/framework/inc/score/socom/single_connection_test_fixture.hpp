@@ -14,15 +14,15 @@
 #ifndef SRC_SOCOM_TEST_UNIT2_FRAMEWORK_INC_SINGLE_CONNECTION_TEST_FIXTURE
 #define SRC_SOCOM_TEST_UNIT2_FRAMEWORK_INC_SINGLE_CONNECTION_TEST_FIXTURE
 
-#include "connector_factory.hpp"
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/connector_factory.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_configuration.hpp"
+#include "score/socom/socom_mocks.hpp"
 #include "score/socom/vector_payload.hpp"
-#include "socom_mocks.hpp"
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Small payload
 ::score::socom::Payload::Sptr const& input_data();
@@ -54,6 +54,6 @@ class SingleConnectionTest : public ::testing::Test {
         ::score::socom::make_vector_payload(::score::socom::make_vector_buffer(1U, 2U, 3U, 4U));
 };
 
-}  // namespace ac
+}  // namespace score::socom
 
 #endif  // SRC_SOCOM_TEST_UNIT2_FRAMEWORK_INC_SINGLE_CONNECTION_TEST_FIXTURE

@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "utilities.hpp"
+#include "score/socom/utilities.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -34,7 +34,7 @@ using ::score::socom::Service_interface;
 using ::score::socom::Service_interface_configuration;
 using ::score::socom::Service_state;
 
-namespace ac {
+namespace score::socom {
 
 void wait_for_atomics_cont(std::vector<std::atomic<bool>> const& stati) {
     for (auto const& status : stati) {
@@ -116,7 +116,7 @@ std::vector<Service_instance> create_instances(size_t const num) {
     return instances;
 }
 
-}  // namespace ac
+}  // namespace score::socom
 
 namespace score {
 namespace socom {

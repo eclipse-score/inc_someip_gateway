@@ -13,24 +13,24 @@
 
 #include <string_view>
 
-#include "clients_t.hpp"
-#include "connector_factory.hpp"
 #include "gtest/gtest.h"
+#include "score/socom/clients_t.hpp"
+#include "score/socom/connector_factory.hpp"
 #include "score/socom/payload.hpp"
+#include "score/socom/server_t.hpp"
 #include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/vector_payload.hpp"
-#include "server_t.hpp"
 
-using ::ac::Client_data;
-using ::ac::Connector_factory;
-using ::ac::Server_data;
 using score::socom::Application_return;
+using ::score::socom::Client_data;
+using ::score::socom::Connector_factory;
 using score::socom::Event_id;
 using score::socom::make_vector_buffer;
 using score::socom::make_vector_payload;
 using score::socom::Method_id;
 using score::socom::Method_result;
 using score::socom::Payload;
+using ::score::socom::Server_data;
 using score::socom::Service_instance;
 using score::socom::Service_interface;
 using score::socom::to_num_of_events;

@@ -52,10 +52,7 @@ using score::socom::Service_state_change_callback_mock;
 using score::socom::to_num_of_events;
 using score::socom::to_num_of_methods;
 using testing::_;
-using testing::DoAll;
 using testing::MockFunction;
-using testing::Return;
-using testing::SaveArgByMove;
 
 class Runtime_test : public ::testing::Test {
    protected:

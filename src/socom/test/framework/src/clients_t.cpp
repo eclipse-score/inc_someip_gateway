@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "clients_t.hpp"
+#include "score/socom/clients_t.hpp"
 
 #include <atomic>
 #include <cstddef>
@@ -21,10 +21,10 @@
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
-#include "utilities.hpp"
+#include "score/socom/utilities.hpp"
 
-using ::ac::Client_connector_callbacks_mock;
 using ::score::socom::Client_connector;
+using ::score::socom::Client_connector_callbacks_mock;
 using ::score::socom::Event_id;
 using ::score::socom::Event_mode;
 using ::score::socom::Method_call_reply_data;
@@ -46,7 +46,7 @@ using ::testing::Assign;
 using testing::ByMove;
 using testing::Return;
 
-namespace ac {
+namespace score::socom {
 namespace {
 
 void maybe_connect(Client_connector_callbacks_mock& callbacks,
@@ -403,4 +403,4 @@ score::Result<Posix_credentials> Client_data::get_peer_credentials() const {
     return m_connector->get_peer_credentials();
 }
 
-}  // namespace ac
+}  // namespace score::socom

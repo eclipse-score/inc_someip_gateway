@@ -24,10 +24,10 @@
 
 #include "score/socom/payload.hpp"
 #include "score/socom/server_connector.hpp"
+#include "score/socom/socom_mocks.hpp"
 #include "score/socom/vector_payload.hpp"
-#include "socom_mocks.hpp"
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Vector referencing atomic<bool> objects
 using Callbacks_called_t = std::vector<std::reference_wrapper<std::atomic<bool> const>>;
@@ -195,7 +195,7 @@ inline auto create_check_update_count(std::atomic<std::uint32_t>& num_callback_c
         });
 }
 
-}  // namespace ac
+}  // namespace score::socom
 
 namespace score {
 namespace socom {

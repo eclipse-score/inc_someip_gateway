@@ -21,35 +21,35 @@
 #include <string>
 #include <string_view>
 
-#include "clients_t.hpp"
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/clients_t.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
+#include "score/socom/server_t.hpp"
 #include "score/socom/service_interface_configuration.hpp"
-#include "server_t.hpp"
-#include "single_connection_test_fixture.hpp"
-#include "socom_mocks.hpp"
-#include "temporary_event_subscription.hpp"
-#include "utilities.hpp"
+#include "score/socom/single_connection_test_fixture.hpp"
+#include "score/socom/socom_mocks.hpp"
+#include "score/socom/temporary_event_subscription.hpp"
+#include "score/socom/utilities.hpp"
 
 using namespace std::literals::chrono_literals;
 
 namespace socom = score::socom;
 
-using ::ac::Client_connector_callbacks_mock;
-using ::ac::Client_data;
-using ::ac::Connector_factory;
-using ::ac::Server_connector_callbacks_mock;
-using ::ac::Server_data;
-using ::ac::SingleConnectionTest;
-using ::ac::Temporary_event_subscription;
-using ::ac::wait_for_atomics;
 using score::Blank;
+using ::score::socom::Client_connector_callbacks_mock;
+using ::score::socom::Client_data;
+using ::score::socom::Connector_factory;
 using score::socom::Event_payload_allocate_callback_mock;
 using score::socom::Method_call_reply_data;
 using score::socom::Method_call_reply_data_opt;
+using ::score::socom::Server_connector_callbacks_mock;
+using ::score::socom::Server_data;
+using ::score::socom::SingleConnectionTest;
+using ::score::socom::Temporary_event_subscription;
+using ::score::socom::wait_for_atomics;
 using socom::Application_return;
 using socom::Client_connector;
 using socom::Construction_error;

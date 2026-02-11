@@ -19,14 +19,14 @@
 #include <optional>
 #include <vector>
 
-#include "connector_factory.hpp"
 #include "score/socom/client_connector.hpp"
-#include "server_t.hpp"
-#include "socom_mocks.hpp"
-#include "temporary_event_subscription.hpp"
-#include "utilities.hpp"
+#include "score/socom/connector_factory.hpp"
+#include "score/socom/server_t.hpp"
+#include "score/socom/socom_mocks.hpp"
+#include "score/socom/temporary_event_subscription.hpp"
+#include "score/socom/utilities.hpp"
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Facade for the client connector and callback mocks.
 ///
@@ -388,6 +388,6 @@ struct Client_data {
     score::Result<::score::socom::Posix_credentials> get_peer_credentials() const;
 };
 
-}  // namespace ac
+}  // namespace score::socom
 
 #endif

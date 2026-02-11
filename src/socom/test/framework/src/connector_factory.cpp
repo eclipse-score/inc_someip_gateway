@@ -11,12 +11,12 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "connector_factory.hpp"
+#include "score/socom/connector_factory.hpp"
 
 #include <optional>
 
 #include "gtest/gtest.h"
-#include "utilities.hpp"
+#include "score/socom/utilities.hpp"
 
 using ::score::socom::Bridge_identity;
 using ::score::socom::Client_connector;
@@ -41,7 +41,7 @@ using ::testing::_;
 using ::testing::Assign;
 using ::testing::DoAll;
 
-namespace ac {
+namespace score::socom {
 
 Connector_factory::Connector_factory(Server_service_interface_configuration configuration,
                                      Service_instance instance)
@@ -268,4 +268,4 @@ std::size_t Connector_factory::get_num_events() const noexcept {
     return m_configuration.get_num_events();
 }
 
-}  // namespace ac
+}  // namespace score::socom

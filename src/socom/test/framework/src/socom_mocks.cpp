@@ -11,12 +11,12 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "socom_mocks.hpp"
+#include "score/socom/socom_mocks.hpp"
 
 using ::score::socom::Client_connector;
 using ::score::socom::Disabled_server_connector;
 
-namespace ac {
+namespace score::socom {
 
 Disabled_server_connector::Callbacks create_server_callbacks(
     Server_connector_callbacks_mock& mock) {
@@ -67,4 +67,4 @@ Client_connector::Callbacks create_client_callbacks(Client_connector_callbacks_m
         }};
 }
 
-}  // namespace ac
+}  // namespace score::socom

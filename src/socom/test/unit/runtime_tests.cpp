@@ -20,33 +20,33 @@
 #include <stdexcept>
 #include <string>
 
-#include "bridge_t.hpp"
-#include "clients_t.hpp"
-#include "connector_factory.hpp"
+#include "score/socom/bridge_t.hpp"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/clients_t.hpp"
+#include "score/socom/connector_factory.hpp"
 #include "score/socom/runtime.hpp"
+#include "score/socom/server_t.hpp"
 #include "score/socom/service_interface_configuration.hpp"
-#include "server_t.hpp"
-#include "single_connection_test_fixture.hpp"
-#include "socom_mocks.hpp"
-#include "utilities.hpp"
+#include "score/socom/single_connection_test_fixture.hpp"
+#include "score/socom/socom_mocks.hpp"
+#include "score/socom/utilities.hpp"
 
 namespace socom = score::socom;
 using namespace std::chrono_literals;
 
-using ::ac::append;
-using ::ac::Bridge_data;
-using ::ac::Client_connector_callbacks_mock;
-using ::ac::Client_data;
-using ::ac::Connector_factory;
-using ::ac::create_instances;
-using ac::create_service_instance;
-using ac::create_service_interface_configuration;
-using ::ac::create_service_interfaces;
-using ::ac::Server_connector_callbacks_mock;
-using ::ac::Server_data;
-using ::ac::SingleConnectionTest;
-using ::ac::wait_for_atomics;
+using ::score::socom::append;
+using ::score::socom::Bridge_data;
+using ::score::socom::Client_connector_callbacks_mock;
+using ::score::socom::Client_data;
+using ::score::socom::Connector_factory;
+using ::score::socom::create_instances;
+using ::score::socom::create_service_instance;
+using ::score::socom::create_service_interface_configuration;
+using ::score::socom::create_service_interfaces;
+using ::score::socom::Server_connector_callbacks_mock;
+using ::score::socom::Server_data;
+using ::score::socom::SingleConnectionTest;
+using ::score::socom::wait_for_atomics;
 using socom::Bridge_identity;
 using socom::Client_connector;
 using socom::Construction_error;

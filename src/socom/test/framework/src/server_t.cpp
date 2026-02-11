@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "server_t.hpp"
+#include "score/socom/server_t.hpp"
 
 #include <atomic>
 #include <future>
@@ -19,8 +19,8 @@
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_connector.hpp"
-#include "socom_mocks.hpp"
-#include "utilities.hpp"
+#include "score/socom/socom_mocks.hpp"
+#include "score/socom/utilities.hpp"
 
 using ::score::socom::Disabled_server_connector;
 using ::score::socom::Enabled_server_connector;
@@ -44,8 +44,8 @@ using ::testing::InvokeWithoutArgs;
 using ::testing::Return;
 
 namespace {
-::ac::Server_connector_callbacks_mock& expect_method_call(
-    ::ac::Server_connector_callbacks_mock& sc_callbacks, Method_id const& method_id,
+::score::socom::Server_connector_callbacks_mock& expect_method_call(
+    ::score::socom::Server_connector_callbacks_mock& sc_callbacks, Method_id const& method_id,
     Payload::Sptr const& expected_payload) {
     EXPECT_CALL(sc_callbacks, on_method_call(_, method_id, expected_payload, _));
     return sc_callbacks;
@@ -57,7 +57,7 @@ auto ignore_call() {
 
 }  // namespace
 
-namespace ac {
+namespace score::socom {
 
 static_assert(!std::is_default_constructible<Server_data>::value, "");
 
@@ -247,4 +247,4 @@ void Server_data::expect_event_subscription(Event_id const& event_id) {
     expect_on_event_subscription_change_nosync(event_id, Event_state::unsubscribed);
 }
 
-}  // namespace ac
+}  // namespace score::socom

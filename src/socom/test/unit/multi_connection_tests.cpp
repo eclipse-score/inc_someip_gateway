@@ -11,24 +11,24 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "clients_t.hpp"
 #include "gtest/gtest.h"
+#include "score/socom/clients_t.hpp"
+#include "score/socom/server_t.hpp"
 #include "score/socom/service_interface_configuration.hpp"
-#include "server_t.hpp"
-#include "single_connection_test_fixture.hpp"
-#include "utilities.hpp"
+#include "score/socom/single_connection_test_fixture.hpp"
+#include "score/socom/utilities.hpp"
 
-using ::ac::Client_data;
-using ::ac::Server_data;
-using ::ac::SingleConnectionTest;
-using ::ac::Subscriptions;
-using ::ac::wait_for_atomics;
 using score::socom::Application_return;
+using ::score::socom::Client_data;
 using score::socom::empty_payload;
 using score::socom::Event_id;
 using score::socom::Method_result;
+using ::score::socom::Server_data;
 using score::socom::Server_service_interface_configuration;
 using score::socom::Service_instance;
+using ::score::socom::SingleConnectionTest;
+using ::score::socom::Subscriptions;
+using ::score::socom::wait_for_atomics;
 
 namespace {
 

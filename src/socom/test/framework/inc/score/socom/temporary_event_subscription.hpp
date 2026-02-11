@@ -15,9 +15,9 @@
 #define SOCOM_TEMPORARY_EVENT_SUBSCRIPTION_HPP
 
 #include "score/socom/client_connector.hpp"
-#include "socom_mocks.hpp"
+#include "score/socom/socom_mocks.hpp"
 
-namespace ac {
+namespace score::socom {
 
 /// \brief Temporary_event_subscriptions keeps a client to an event subscribed
 ///         until destruction
@@ -80,6 +80,6 @@ class Temporary_event_subscription {
 
 using Subscriptions = std::vector<std::unique_ptr<Temporary_event_subscription>>;
 
-}  // namespace ac
+}  // namespace score::socom
 
 #endif

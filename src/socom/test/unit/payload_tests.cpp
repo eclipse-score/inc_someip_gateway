@@ -18,14 +18,14 @@
 #include <iterator>
 #include <memory>
 #include <score/socom/payload.hpp>
+#include <score/socom/utilities.hpp>
 #include <score/socom/vector_payload.hpp>
 #include <type_traits>
-#include <utilities.hpp>
 #include <vector>
 
 namespace socom = ::score::socom;
 
-using ac::increase_and_fill;
+using ::score::socom::increase_and_fill;
 using ::score::socom::make_vector_buffer;
 using socom::empty_payload;
 using socom::make_vector_payload;
