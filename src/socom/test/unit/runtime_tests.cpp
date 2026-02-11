@@ -40,6 +40,8 @@ using ::ac::Client_connector_callbacks_mock;
 using ::ac::Client_data;
 using ::ac::Connector_factory;
 using ::ac::create_instances;
+using ac::create_service_instance;
+using ac::create_service_interface_configuration;
 using ::ac::create_service_interfaces;
 using ::ac::Server_connector_callbacks_mock;
 using ::ac::Server_data;
@@ -56,6 +58,7 @@ using socom::Find_result_container;
 using socom::Find_result_status;
 using socom::Find_subscription;
 using socom::Find_subscription_handle;
+using socom::Legacy_find_result_callback_mock;
 using socom::Request_service_function;
 using socom::Request_service_function_mock;
 using socom::Runtime;
@@ -365,6 +368,7 @@ class RuntimeTest : public SingleConnectionTest {
 
     std::atomic<bool> subscribe_find_service_cb_called{false};
     Find_result_change_callback_mock fsus_mock;
+    Legacy_find_result_callback_mock legacy_fsus_mock;
 
     Subscribe_find_service_function_mock sfsf_mock;
     Request_service_function_mock rsf_mock;
@@ -374,6 +378,8 @@ class RuntimeTest : public SingleConnectionTest {
             .WillByDefault(Assign(&subscribe_find_service_cb_called, true));
     }
 };
+
+class RuntimeLegacySubscribeFindServiceTest : public RuntimeTest {};
 
 // NOLINTNEXTLINE(readability-redundant-string-init)
 MATCHER_P(Multi_set_equal, expected, "") {
@@ -1227,6 +1233,193 @@ INSTANTIATE_TEST_SUITE_P(Wildcard, RuntimeSubscribeFindServiceTest,
                          Combine(Values(0, 1, 10), Values(1, 10), Values(0, 1, 10),
                                  Values(0, 1, 10), Bool()),
                          readable_test_names_wildcard);
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, SubscriptionTriggersCallback) {
+    std::size_t const interface_id{0};
+    auto const interface = create_service_interface_configuration(interface_id);
+
+    std::size_t const instance_id{0};
+    auto const instance = create_service_instance(instance_id);
+
+    Server_data const server{connector_factory, interface, instance};
+
+    Find_result_container expected_container{instance};
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(expected_container))).Times(1);
+    (void)connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), instance);
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, SubscriptionTriggersCallbackForMultipleInstances) {
+    std::size_t const interface_id{0};
+    auto const interface = create_service_interface_configuration(interface_id);
+    std::size_t const instance_id0{0};
+    auto const instance0 = create_service_instance(instance_id0);
+    std::size_t const instance_id1{1};
+    auto const instance1 = create_service_instance(instance_id1);
+    std::size_t const instance_id2{2};
+    auto const instance2 = create_service_instance(instance_id2);
+
+    Server_data const server0{connector_factory, interface, instance0};
+    Server_data const server1{connector_factory, interface, instance1};
+    Server_data const server2{connector_factory, interface, instance2};
+
+    Find_result_container expected_container{instance0, instance1, instance2};
+
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(expected_container))).Times(1);
+    (void)connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), {});
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, SubscriptionTriggersCallbackForMultipleInterfaces) {
+    std::size_t const interface_id0{0};
+    auto const interface0 = create_service_interface_configuration(interface_id0);
+    std::size_t const interface_id1{1};
+    auto const interface1 = create_service_interface_configuration(interface_id1);
+    std::size_t const interface_id2{2};
+    auto const interface2 = create_service_interface_configuration(interface_id2);
+
+    std::size_t const instance_id{0};
+    auto const instance = create_service_instance(instance_id);
+
+    Server_data const server0{connector_factory, interface0, instance};
+    Server_data const server1{connector_factory, interface1, instance};
+    Server_data const server2{connector_factory, interface2, instance};
+
+    Find_result_container expected_container{instance};
+
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(expected_container))).Times(3);
+    (void)connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface0.get_interface(), instance);
+    (void)connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface1.get_interface(), instance);
+    (void)connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface2.get_interface(), instance);
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, EachSubscriptionTriggersCallback) {
+    std::size_t const interface_id{0};
+    auto const interface = create_service_interface_configuration(interface_id);
+
+    std::size_t const instance_id{0};
+    auto const instance = create_service_instance(instance_id);
+
+    Server_data const server{connector_factory, interface, instance};
+
+    Find_result_container expected_container{instance};
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(expected_container))).Times(2);
+
+    auto subscription0 = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), instance);
+    auto subscription1 = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), instance);
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, ServerCreationTriggersCallback) {
+    std::size_t const interface_id{0};
+    auto const interface = create_service_interface_configuration(interface_id);
+    std::size_t const instance_id{0};
+    auto const instance = create_service_instance(instance_id);
+
+    auto subscription = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), instance);
+    Find_result_container const expected_container{instance};
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(expected_container))).Times(1);
+
+    Server_data const server{connector_factory, interface, instance};
+
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{}))).Times(1);
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest,
+       EmptyInstanceSetWontTriggerCallbackAtServerDestruction) {
+    auto const interface = create_service_interface_configuration(0);
+    auto const instance = create_service_instance(0);
+
+    auto subscription = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), instance);
+
+    {
+        EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{instance})))
+            .WillOnce([](Find_result_container const& result) {
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+                const_cast<Find_result_container&>(result).clear();
+            });
+
+        Server_data const server{connector_factory, interface, instance};
+
+        EXPECT_CALL(legacy_fsus_mock, Call(_)).Times(0);
+    }
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, ServerCreationTriggersCallbackForMultipleInstances) {
+    std::size_t const interface_id{0};
+    auto const interface = create_service_interface_configuration(interface_id);
+
+    std::size_t const instance_id0{0};
+    auto const instance0 = create_service_instance(instance_id0);
+    std::size_t const instance_id1{1};
+    auto const instance1 = create_service_instance(instance_id1);
+
+    auto subscription = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), {});
+
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{instance0})));
+
+    std::vector<std::unique_ptr<Server_data>> servers;
+    servers.emplace_back(std::make_unique<Server_data>(connector_factory, interface, instance0));
+    // callback is invoked for the second server
+    EXPECT_CALL(legacy_fsus_mock,
+                Call(Multi_set_equal(Find_result_container{instance0, instance1})));
+    servers.emplace_back(std::make_unique<Server_data>(connector_factory, interface, instance1));
+
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{instance1})));
+    servers.erase(std::begin(servers));
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{})));
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, ServerCreationTriggersCallbackForMultipleInterfaces) {
+    std::size_t const interface_id0{0};
+    auto const interface0 = create_service_interface_configuration(interface_id0);
+    std::size_t const interface_id1{1};
+    auto const interface1 = create_service_interface_configuration(interface_id1);
+
+    std::size_t const instance_id{0};
+    auto const instance = create_service_instance(instance_id);
+
+    auto subscription0 = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface0.get_interface(), {});
+    auto subscription1 = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface1.get_interface(), {});
+
+    std::vector<std::unique_ptr<Server_data>> servers;
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{instance})));
+    servers.emplace_back(std::make_unique<Server_data>(connector_factory, interface0, instance));
+
+    // callback is invoked for second server
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{instance})));
+    servers.emplace_back(std::make_unique<Server_data>(connector_factory, interface1, instance));
+
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{}))).Times(2);
+}
+
+TEST_F(RuntimeLegacySubscribeFindServiceTest, CreateServerTriggersCallbackForEachSubscription) {
+    std::size_t const interface_id{0};
+    auto const interface = create_service_interface_configuration(interface_id);
+
+    std::size_t const instance_id{0};
+    auto const instance = create_service_instance(instance_id);
+
+    auto subscription0 = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), {});
+    auto subscription1 = connector_factory.get_service_finder().subscribe_find_service(
+        legacy_fsus_mock.AsStdFunction(), interface.get_interface(), {});
+
+    Find_result_container expected_container{instance};
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(expected_container))).Times(2);
+
+    Server_data const server{connector_factory, interface, instance};
+    EXPECT_CALL(legacy_fsus_mock, Call(Multi_set_equal(Find_result_container{}))).Times(2);
+}
 
 class RuntimeBridgeTest : public RuntimeTest, public WithParamInterface<Bridge_param_tuple> {
    protected:

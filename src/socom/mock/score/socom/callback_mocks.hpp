@@ -24,6 +24,7 @@ namespace score::socom {
 
 // Runtime callbacks
 using Find_result_change_callback_mock = ::testing::MockFunction<Find_result_change_callback>;
+using Legacy_find_result_callback_mock = ::testing::MockFunction<Find_result_callback>;
 
 // Client_connector callbacks
 using Service_state_change_callback_mock = ::testing::MockFunction<Service_state_change_callback>;
@@ -52,4 +53,4 @@ using Request_service_function_mock = ::testing::MockFunction<Request_service_fu
 
 }  // namespace score::socom
 
-#endif  // SCORE_SOCOM_CLIENT_CONNECTOR_MOCK_HPP
+#endif  // SCORE_SOCOM_CALLBACK_MOCKS_HPP
