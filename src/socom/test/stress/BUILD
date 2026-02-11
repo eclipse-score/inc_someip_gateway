@@ -16,6 +16,10 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 cc_test(
     name = "socom_stress_test",
     srcs = glob(include = ["*.cpp"]),
+    data = ["tsan.supp"],
+    env = {
+        "TSAN_OPTIONS": "suppressions=$(location tsan.supp)",
+    },
     deps = [
         "//src/socom/test/framework:socom_test_framework",
         "@googletest//:gtest",
