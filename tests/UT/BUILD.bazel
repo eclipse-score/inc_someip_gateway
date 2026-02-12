@@ -10,10 +10,18 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-import pytest
 
+load("@score_itf//:defs.bzl", "py_itf_test")
 
-@pytest.fixture()
-def dummy_fixture():
-    """A simple fixture to verify ITF conftest works."""
-    yield 42
+# ---------------------------------------------------------------------------
+# C++ unit test execution on QNX QEMU image
+# Requires QEMU to be running: bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
+# Then run: bazel test //tests/UT:test_ut --test_output=all
+# ---------------------------------------------------------------------------
+py_itf_test(
+    name = "test_ut",
+    srcs = [
+        "conftest.py",
+        "test_ut.py",
+    ],
+)

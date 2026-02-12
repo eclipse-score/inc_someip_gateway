@@ -16,13 +16,15 @@ Integration Tests
 """
 
 load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
+load("@score_itf//:defs.bzl", "py_itf_test")
 
 py_pytest(
     name = "integration",
     size = "medium",
     srcs = glob(
         ["test_*.py"],
-        exclude = ["test_qemu_*.py"],
+        exclude = ["test_qemu_*.py", "test_ssh.py"],
+        allow_empty = True,
     ) + ["conftest.py"],
     data = ["vsomeip-local.json"],
     # Restrict the test execution to Linux for the moment due to dependency on Python
@@ -32,21 +34,18 @@ py_pytest(
         "@someip_pip//pytest",
         "@someip_pip//someip",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
 )
 
-py_pytest(
-    name = "integration_qemu",
-    size = "large",
-    srcs = glob(["test_qemu_*.py"]) + ["conftest.py"],
-    args = ["-m", "qemu"],
-    tags = [
-        "exclusive",  # only one QEMU instance at a time
-        "manual",  # don't run in wildcard test sweeps
-        "qemu",
-        "requires-kvm",
-    ],
-    timeout = "long",
-    deps = [
-        "@someip_pip//pytest",
+# ---------------------------------------------------------------------------
+# SSH connectivity test for QNX QEMU image
+# Requires QEMU to be running: bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
+# Then run: bazel test //tests/integration:test_ssh --test_output=all
+# ---------------------------------------------------------------------------
+py_itf_test(
+    name = "test_ssh",
+    srcs = [
+        "conftest.py",
+        "test_ssh.py",
     ],
 )

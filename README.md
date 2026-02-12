@@ -1,4 +1,3 @@
-
 # SOME/IP Gateway
 
 The gateway is divided into a gateway daemon (gatewayd) which contains the network-independent logic (payload serialization, etc.) and the SOME/IP daemon (someipd) which binds to the concrete SOME/IP stack.
@@ -161,3 +160,31 @@ If you use a license server then add the following in in your `~/.bazelrc`:
     common --action_env=QNXLM_LICENSE_FILE=<port>@<license_server_host>
 
 > :warning: Getting license from server not yet supported within devcontainer. Need to figure out how to adjust user & hostname properly.
+
+### QNX x86_64 Testing
+
+To run the tests for QNX on x86_64, follow these steps:
+
+1.  **Build the QEMU image:**
+
+    ```sh
+    bazel build //deployment/qemu:run_qemu --config=x86_64-qnx
+    ```
+
+2.  **Run the QEMU image:**
+
+    ```sh
+    bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
+    ```
+
+3.  **Run a basic test to check networking**
+
+    ```sh
+    bazel test //tests/integration:test_ssh --test_output=all --cache_test_results=no
+    ```
+
+4.  **Run unit tests:**
+
+    ```sh
+    bazel test //tests/UT:test_ut --test_output=all --cache_test_results=no
+    ```

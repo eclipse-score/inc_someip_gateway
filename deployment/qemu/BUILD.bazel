@@ -43,6 +43,19 @@ pkg_tar(
 )
 
 # ---------------------------------------------------------------------------
+# Package C++ unit test binaries for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "test_binaries_pkg",
+    srcs = [
+        "//tests/UT/UnitTest_UT:cpp_test_main",
+    ],
+    include_runfiles = True,
+    package_dir = "/",
+    testonly = True,
+)
+
+# ---------------------------------------------------------------------------
 # Package gateway config files for the IFS
 # ---------------------------------------------------------------------------
 pkg_tar(
@@ -55,16 +68,21 @@ pkg_tar(
 )
 
 # ---------------------------------------------------------------------------
-# QNX IFS image: boots QNX 8.0 with someipd + gatewayd inside
+# QNX IFS image: boots QNX 8.0 with someipd + gatewayd inside with networking
 # ---------------------------------------------------------------------------
 qnx_ifs(
     name = "someip_gateway_ifs",
     build_file = "init_x86_64.build",
     out = "someip_gateway_x86_64.ifs",
+    srcs = [
+        "//deployment/qemu/configs:network_configs",
+    ],
     tars = {
         "GATEWAY_BINS": ":gateway_binaries_pkg",
         "GATEWAY_CONFIGS": ":gateway_configs_pkg",
+        "TEST_BINS": ":test_binaries_pkg",
     },
+    testonly = True,
     visibility = ["//visibility:public"],
 )
 
@@ -80,5 +98,6 @@ sh_binary(
     data = [
         ":someip_gateway_ifs",
     ],
+    testonly = True,
     visibility = ["//visibility:public"],
 )
