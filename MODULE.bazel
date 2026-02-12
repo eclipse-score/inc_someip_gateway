@@ -231,6 +231,11 @@ use_repo(car_window_sim_crate, "car_window_sim_crate")
 # ============================================================================
 # Rules for Foreign/C/C++/CMake integration
 bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
+single_version_override(
+    module_name = "rules_foreign_cc",
+    patch_strip = 1,
+    patches = ["//:third_party/rules_foreign_cc-fix_proc_self_cwd.patch"],
+)
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -255,7 +260,7 @@ http_archive(
     build_file = "@//:third_party/vsomeip.BUILD.bazel",
     integrity = "sha256-hMjkJs3fQ14MVtpwupfno/UbK+rxV+1zih9632bO5Sk=",
     patch_strip = 1,
-    patches = ["//:third_party/vsomeip_qnx8.patch"],
+    patches = ["//:third_party/vsomeip-qnx8.patch"],
     strip_prefix = "vsomeip-3.6.1",
     urls = [
         "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
