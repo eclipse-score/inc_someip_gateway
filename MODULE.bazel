@@ -234,7 +234,10 @@ bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
 single_version_override(
     module_name = "rules_foreign_cc",
     patch_strip = 1,
-    patches = ["//:third_party/rules_foreign_cc-fix_proc_self_cwd.patch"],
+    patches = [
+        "//:third_party/rules_foreign_cc-dont_block_network.patch",
+        "//:third_party/rules_foreign_cc-fix_proc_self_cwd.patch",
+    ],
 )
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")

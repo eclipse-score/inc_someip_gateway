@@ -1,5 +1,5 @@
 diff --git a/foreign_cc/private/framework.bzl b/foreign_cc/private/framework.bzl
-index 76192ef..5825958 100644
+index acc0254..3d401e3 100644
 --- a/foreign_cc/private/framework.bzl
 +++ b/foreign_cc/private/framework.bzl
 @@ -353,6 +353,11 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):

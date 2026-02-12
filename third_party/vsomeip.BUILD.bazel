@@ -54,6 +54,8 @@ filegroup(
 
 cmake(
     name = "vsomeip",
+    # vsomeip generates a file to its source dir
+    tags = ["local"],
     build_args = ["-j"],
     cache_entries = {
         "BOOST_ROOT": "$$EXT_BUILD_DEPS/boost",
