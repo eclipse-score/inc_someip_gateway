@@ -22,7 +22,6 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 # ============================================================================
 cmake(
     name = "boost",
-    build_args = ["-j"],
     cache_entries = {
         "BOOST_INCLUDE_LIBRARIES": "algorithm;array;asio;exception;filesystem;foreach;functional;icl;optional;property_tree;shared_ptr;stacktrace;system;thread;utility",
         "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
@@ -31,6 +30,7 @@ cmake(
         "@platforms//os:qnx": {"CMAKE_SYSTEM_NAME": "QNX"},
         "//conditions:default": {},
     }),
+    generate_args = ["-GNinja"],
     lib_source = "@boost//:all_srcs",
     # Building Boost as static libraries in order to avoid conflicts with other versions
     out_static_libs = [
@@ -54,9 +54,6 @@ filegroup(
 
 cmake(
     name = "vsomeip",
-    # vsomeip generates a file to its source dir
-    tags = ["local"],
-    build_args = ["-j"],
     cache_entries = {
         "BOOST_ROOT": "$$EXT_BUILD_DEPS/boost",
         "Boost_NO_SYSTEM_PATHS": "ON",
@@ -67,6 +64,7 @@ cmake(
         "@platforms//os:qnx": {"CMAKE_SYSTEM_NAME": "QNX"},
         "//conditions:default": {},
     }),
+    generate_args = ["-GNinja"],
     lib_source = ":all_srcs",
     out_shared_libs = [
         "libvsomeip3.so.3",
