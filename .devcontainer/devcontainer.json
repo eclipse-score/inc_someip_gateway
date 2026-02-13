@@ -16,10 +16,10 @@
             "type": "bind"
         }
     ],
-    "initializeCommand": [
-        "touch -a ~/.qnx/license/licenses",
-        "touch -a ~/.netrc"
-    ],
+    "initializeCommand": {
+        "Make sure QNX licenses exists": "touch -a ~/.qnx/license/licenses",
+        "Make sure .netrc exists": "touch -a ~/.netrc"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
