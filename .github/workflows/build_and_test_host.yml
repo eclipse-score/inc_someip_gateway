@@ -24,8 +24,7 @@ jobs:
   build_and_test_host:
     runs-on: ubuntu-24.04
     steps:
-      - name: Clean up disk space
-        uses: ./.github/actions/free_disk_space
+      - uses: eclipse-score/more-disk-space@v1
       - name: Create Bazel output base directory
         run: |
           sudo mkdir -p /mnt/.bazel
