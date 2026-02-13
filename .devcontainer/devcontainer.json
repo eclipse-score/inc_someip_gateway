@@ -16,6 +16,10 @@
             "type": "bind"
         }
     ],
+    "initializeCommand": [
+        "touch -a ~/.qnx/license/licenses",
+        "touch -a ~/.netrc"
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
