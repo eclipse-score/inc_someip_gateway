@@ -16,7 +16,7 @@
 
 name: Build & Test module (cross compilation)
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
@@ -26,18 +26,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        bazel-config: ["x86_64-qnx", "aarch64-qnx", "aarch64-linux"]
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@main
-    permissions:
-      contents: read
-      pull-requests: read
-    with:
-      # TODO: build all targets ( //... ) once python toolchain issue is resolved.
-      bazel-target: "//src/... //tests/... //examples/..."
-      bazel-config: ${{ matrix.bazel-config }}
-      credential-helper: ".github/tools/qnx_credential_helper.py"
-      bazel-disk-cache: ${{ matrix.bazel-config }}
-    secrets:
-      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
-      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
-      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+        bazel-config: ["x86_64-linux", "aarch64-linux"]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: eclipse-score/more-disk-space@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+      - name: Create Bazel output base directory
+        run: |
+          sudo mkdir -p /mnt/.bazel
+          sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          output-base: /mnt/.bazel
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
+          repository-cache: true
+          # Cache external/
+          external-cache: true
+      - name: Allow linux-sandbox
+        uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
+      - run: df -h
+      - name: Bazel build targets
+        # TODO: build all targets ( //... ) once python toolchain issue is resolved.
+        run: |
+          bazel build --config ${{ matrix.bazel-config }} //src/... //tests/... //examples/...
+      - run: df -h
+        if: always()
+        # TODO Run tests on QEMU
