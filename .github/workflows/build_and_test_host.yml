@@ -20,11 +20,14 @@ on:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
+  workflow_call:
 jobs:
   build_and_test_host:
     runs-on: ubuntu-24.04
     steps:
       - uses: eclipse-score/more-disk-space@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
       - name: Create Bazel output base directory
         run: |
           sudo mkdir -p /mnt/.bazel
@@ -43,8 +46,6 @@ jobs:
           external-cache: true
       - name: Allow linux-sandbox
         uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
-      - name: Checkout repository
-        uses: actions/checkout@v4.2.2
       - run: df -h
       - name: Bazel build targets
         run: |
