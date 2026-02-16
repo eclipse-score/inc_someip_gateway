@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -11,17 +11,4 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-
-# Export vsomeip config for QEMU deployment
-exports_files(
-    ["vsomeip.json"],
-    visibility = ["//visibility:public"],
-)
-
-cc_binary(
-    name = "sample_client",
-    srcs = ["sample_client.cpp"],
-    visibility = ["//visibility:public"],
-    deps = ["@vsomeip"],
-)
+"""Tests package."""

@@ -28,6 +28,15 @@
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@score_toolchains_qnx//rules/fs:ifs.bzl", "qnx_ifs")
 
+# Export scripts for use as data dependencies in tests
+exports_files(
+    [
+        "run_qemu.sh",
+        "setup_bridge.sh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # ---------------------------------------------------------------------------
 # Package all gateway binaries + configs into a single tar for IFS inclusion
 # ---------------------------------------------------------------------------
@@ -36,6 +45,7 @@ pkg_tar(
     srcs = [
         "//src/gatewayd",
         "//src/someipd",
+        "//tests/integration/sample_client",
         "@vsomeip",
     ],
     include_runfiles = True,
@@ -68,6 +78,34 @@ pkg_tar(
 )
 
 # ---------------------------------------------------------------------------
+# Package someipd config files for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "someipd_configs_pkg",
+    srcs = [
+        "//src/someipd:etc/mw_com_config.json",
+        "//tests/integration:vsomeip.json",
+    ],
+    remap_paths = {
+        "/src/someipd/etc/mw_com_config.json": "mw_com_config.json",
+        "/tests/integration/vsomeip.json": "vsomeip.json",
+    },
+)
+
+# ---------------------------------------------------------------------------
+# Package sample_client config files for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "sample_client_configs_pkg",
+    srcs = [
+        "//tests/integration/sample_client:vsomeip.json",
+    ],
+    remap_paths = {
+        "/tests/integration/sample_client/vsomeip.json": "vsomeip.json",
+    },
+)
+
+# ---------------------------------------------------------------------------
 # QNX IFS image: boots QNX 8.0 with someipd + gatewayd inside with networking
 # ---------------------------------------------------------------------------
 qnx_ifs(
@@ -80,6 +118,8 @@ qnx_ifs(
     tars = {
         "GATEWAY_BINS": ":gateway_binaries_pkg",
         "GATEWAY_CONFIGS": ":gateway_configs_pkg",
+        "SOMEIPD_CONFIGS": ":someipd_configs_pkg",
+        "SAMPLE_CLIENT_CONFIGS": ":sample_client_configs_pkg",
         "TEST_BINS": ":test_binaries_pkg",
     },
     testonly = True,
@@ -87,17 +127,37 @@ qnx_ifs(
 )
 
 # ---------------------------------------------------------------------------
-# Launch QEMU with the built IFS
+# Launch QEMU Instance 1 (SSH: 2222, qconn: 8000, dual networking)
 # ---------------------------------------------------------------------------
 sh_binary(
-    name = "run_qemu",
+    name = "run_qemu_1",
     srcs = ["run_qemu.sh"],
     args = [
         "$(location :someip_gateway_ifs)",
+        "1",
     ],
     data = [
         ":someip_gateway_ifs",
     ],
+    env = {"QEMU_NET_MODE": "dual"},
+    testonly = True,
+    visibility = ["//visibility:public"],
+)
+
+# ---------------------------------------------------------------------------
+# Launch QEMU Instance 2 (SSH: 2223, qconn: 8001, dual networking)
+# ---------------------------------------------------------------------------
+sh_binary(
+    name = "run_qemu_2",
+    srcs = ["run_qemu.sh"],
+    args = [
+        "$(location :someip_gateway_ifs)",
+        "2",
+    ],
+    data = [
+        ":someip_gateway_ifs",
+    ],
+    env = {"QEMU_NET_MODE": "dual"},
     testonly = True,
     visibility = ["//visibility:public"],
 )

@@ -23,12 +23,14 @@
 [virtual=x86_64,multiboot] boot = {
     startup-x86 -v -D8250..115200 -zz
     PATH=/proc/boot
-    LD_LIBRARY_PATH=/proc/boot
+    LD_LIBRARY_PATH=/proc/boot:/usr/bin
     [+keeplinked] procnto-smp-instr
 }
 
 [+script] startup-script = {
-    display_msg Welcome to QNX 8.0 — SOME/IP Gateway (x86_64)
+    procmgr_symlink /dev/shmem /tmp
+
+    display_msg Welcome to QNX 8.0 — SOME/IP Gateway (x86_64) with Networking
 
     # Environment inherited by all subsequent processes
     SYSNAME=nto
@@ -139,6 +141,7 @@ on
 ksh
 pidin
 shutdown
+qconn                                    # QNX target agent for IDE debugging/deployment
 toybox
 awk
 random
@@ -150,6 +153,7 @@ slog2info
 # Drivers
 # ===========================================================================
 devc-ser8250
+devc-pty                                 # Pseudo-terminal driver (required for SSH sessions)
 fsevmgr
 slogger2
 pipe
@@ -162,6 +166,7 @@ mount
 # ===========================================================================
 [type=dir] /tmp_discovery
 [type=dir] /tmp_ram
+[type=dir] /var
 [type=dir] /var/db
 [type=dir] /var/run/dhcpcd
 [gid=0 uid=0 dperms=755 type=dir] /var/chroot/sshd              # SSH chroot directory (privilege separation)
@@ -172,7 +177,6 @@ mount
 # ===========================================================================
 [type=link] /bin/sh=/proc/boot/ksh
 [type=link] /bin/ls=/proc/boot/ls
-[type=link] /tmp=/dev/shmem
 [type=link] cat=toybox
 [type=link] chmod=toybox
 [type=link] cp=toybox
@@ -228,4 +232,6 @@ mount
 # ===========================================================================
 /usr/bin=${GATEWAY_BINS}
 /etc/gatewayd=${GATEWAY_CONFIGS}
+/etc/someipd=${SOMEIPD_CONFIGS}
+/etc/sample_client=${SAMPLE_CLIENT_CONFIGS}
 /usr/bin/tests=${TEST_BINS}

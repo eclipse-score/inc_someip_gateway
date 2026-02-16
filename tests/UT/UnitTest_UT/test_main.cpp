@@ -31,7 +31,6 @@ TEST(AdditionTest, HandlesZero) {
     EXPECT_EQ(add(0, 5), 5);
     EXPECT_EQ(add(5, 0), 5);
 }
-
 // Main function for running tests
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

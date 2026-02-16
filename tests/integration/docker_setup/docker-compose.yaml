@@ -42,6 +42,7 @@ x-common: &common
   volumes:
     - ${SOURCE_DIR:-../../..}:/home/source
     - bazel-cache:/var/cache/bazel
+    - ${HOME}/.cache/bazel:${HOME}/.cache/bazel:ro
 
 volumes:
   bazel-cache:

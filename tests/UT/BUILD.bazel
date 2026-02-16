@@ -15,13 +15,20 @@ load("@score_itf//:defs.bzl", "py_itf_test")
 
 # ---------------------------------------------------------------------------
 # C++ unit test execution on QNX QEMU image
-# Requires QEMU to be running: bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
-# Then run: bazel test //tests/UT:test_ut --test_output=all
+# Uses ITF SSH to connect to a running QEMU instance
+#
+# Prerequisites:
+#   Start QEMU first:
+#     bazel run //deployment/qemu:run_qemu_1 --config=x86_64-qnx
+#
+#   Then run:
+#     bazel test //tests/UT:test_ut --test_output=all --cache_test_results=no
 # ---------------------------------------------------------------------------
 py_itf_test(
     name = "test_ut",
-    srcs = [
-        "conftest.py",
-        "test_ut.py",
+    srcs = ["test_ut.py"],
+    tags = [
+        "manual",  # Requires pre-started QEMU
+        "qemu",
     ],
 )

@@ -18,6 +18,12 @@ This daemon contains the SOME/IP communication stack and is QM
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
+# Export config files for deployment
+exports_files(
+    ["etc/mw_com_config.json"],
+    visibility = ["//visibility:public"],
+)
+
 # ============================================================================
 # Main Binary
 # ============================================================================
