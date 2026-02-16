@@ -183,7 +183,7 @@ register_toolchains(
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
-bazel_dep(name = "aspect_rules_lint", version = "1.10.2", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "2.1.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
 
 # ============================================================================
