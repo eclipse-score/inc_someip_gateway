@@ -35,7 +35,7 @@ jobs:
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.15.0
+        uses: bazel-contrib/setup-bazel@0.18.0
         with:
           output-base: /mnt/.bazel
           # Avoid downloading Bazel every time.
