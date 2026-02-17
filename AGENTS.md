@@ -106,8 +106,6 @@ Reference [car_window.rs](examples/car_window_sim/src/car_window.rs#L27) for win
 
 The IPC boundary between gatewayd and someipd enforces **ASIL/QM context separation**—this is a critical architectural boundary. Changes affecting message transfer across this boundary require careful review.
 
-**No direct ASIL/QM security features documented;** this is a QM-level project ([project_config.bzl](project_config.bzl)).
-
 ## Contributing
 
 Follow [CONTRIBUTION.md](CONTRIBUTION.md):
