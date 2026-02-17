@@ -39,5 +39,5 @@ jobs:
 
     with:
       # the bazel-target depends on your repo specific docs_targets configuration (e.g. "suffix")
-      bazel-target: "//:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
+      bazel-target: "--extra_toolchains=@local_config_cc_toolchains//:all //:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
       retention-days: 3

@@ -170,6 +170,14 @@ register_toolchains(
 )
 
 # ============================================================================
+# Local C/C++ Toolchain Configuration
+# ============================================================================
+# Local C/C++ Toolchain: Uses system compiler for local development builds and is only here to
+# to reduce dependency download on workflow runs that do not require hermetic builds.
+cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure_extension")
+use_repo(cc_configure, "local_config_cc", "local_config_cc_toolchains")
+
+# ============================================================================
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
