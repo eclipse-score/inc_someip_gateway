@@ -23,23 +23,43 @@ build --tool_java_runtime_version=remotejdk_17
 # These configs enable building for different target architectures.
 #
 # Usage:
-#   bazel build //... --config=x86_64-linux    # Build for x86_64 (native on x86_64 host)
-#   bazel build //... --config=arm64-linux     # Build for ARM64/aarch64 (cross-compile)
+#   bazel build //... --config=x86_64-linux  # Build for x86_64 (native on x86_64 host)
+#   bazel build //... --config=aarch64-linux # Build for aarch64 (cross-compile)
+#   bazel build //... --config=x86_64-qnx    # Build for x86_64 (native on x86_64 QNX8)
+#   bazel build //... --config=aarch64-qnx   # Build for aarch64 (cross-compile QNX8)
 #
 # Platform Definitions:
 #   @score_bazel_platforms//:x86_64-linux  - x86_64 architecture (GNU/Linux)
-#   @score_bazel_platforms//:arm64-linux   - ARM64/aarch64 architecture (GNU/Linux)
-build:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
-build:x86_64-linux --define=config=x86_64-linux
-build:x86_64-linux --repo_env=TARGET_ARCH=x86_64
+#   @score_bazel_platforms//:aarch64-linux - aarch64 architecture (GNU/Linux)
+#   @score_bazel_platforms//:x86_64-qnx    - x86_64 architecture (QNX8)
+#   @score_bazel_platforms//:aarch64-qnx   - aarch64 architecture (QNX8)
 
-build:arm64-linux --platforms=@score_bazel_platforms//:arm64-linux
-build:arm64-linux --extra_toolchains=@llvm_toolchain//:cc-toolchain-aarch64-linux
-build:arm64-linux --incompatible_enable_cc_toolchain_resolution
-build:arm64-linux --define=config=arm64-linux
-build:arm64-linux --repo_env=TARGET_ARCH=aarch64
+common:_toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux
+
+common:x86_64-linux --config=_toolchain_common
+common:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
+common:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
+common:x86_64-linux --repo_env=TARGET_ARCH=x86_64
+
+common:aarch64-linux --config=_toolchain_common
+common:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
+common:aarch64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu
+common:aarch64-linux --repo_env=TARGET_ARCH=aarch64
+
+common:x86_64-qnx --config=_toolchain_common
+common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
+common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
+common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
+
+common:aarch64-qnx --config=_toolchain_common
+common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
+common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
+common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
+
+common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 
 test --test_output=errors
+build --incompatible_strict_action_env
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
@@ -51,9 +71,10 @@ common --features=-treat_warnings_as_errors
 common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration
+common --@score_baselibs//score/json:base_library=nlohmann
+common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
-common --@score_baselibs//score/json:base_library=nlohmann
 common --@score_communication//score/mw/com/flags:tracing_library=stub
 
 # unshare /dev/shm and /tmp, needed for stable tests when using mw::com code in linux-sandbox, linux-sandbox might also be required for test stability

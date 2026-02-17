@@ -1,0 +1,46 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Workflow configuration for S-CORE CI - Bazel Build & Test module
+# This workflow runs Bazel build and test when triggered by specific pull request events.
+
+name: Build & Test module (cross compilation for QNX)
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
+  merge_group:
+    types: [checks_requested]
+  workflow_call:
+jobs:
+  build_and_test_qnx:
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel-config: ["x86_64-qnx", "aarch64-qnx"]
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@main
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      # TODO: build all targets ( //... ) once python toolchain issue is resolved.
+      bazel-target: "//src/... //tests/... //examples/..."
+      bazel-config: ${{ matrix.bazel-config }}
+      credential-helper: ".github/tools/qnx_credential_helper.py"
+      bazel-disk-cache: ${{ matrix.bazel-config }}
+    secrets:
+      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
+      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}

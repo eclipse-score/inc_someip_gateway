@@ -1,0 +1,16 @@
+diff --git a/foreign_cc/private/framework.bzl b/foreign_cc/private/framework.bzl
+index acc0254..3d401e3 100644
+--- a/foreign_cc/private/framework.bzl
++++ b/foreign_cc/private/framework.bzl
+@@ -353,6 +353,11 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
+             "export CMAKE_OSX_ARCHITECTURES={}".format(ctx.fragments.apple.single_arch_cpu),
+         ])
+ 
++    for var, value in cc_env.items():
++        CWD_PATH = "/proc/self/cwd/"
++        if value.startswith(CWD_PATH):
++            env[var] = "$$EXT_BUILD_ROOT$$/" + value[len(CWD_PATH):]
++
+     # Add all user defined variables
+     user_vars = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data_dependencies)
+     env.update(user_vars)
