@@ -111,7 +111,6 @@ The IPC boundary between gatewayd and someipd enforces **ASIL/QM context separat
 ## Contributing
 
 Follow [CONTRIBUTION.md](CONTRIBUTION.md):
-- Sign ECA and DCO
 - Use provided PR templates (bug_fix.md, improvement.md)
 - All commits must follow Eclipse Foundation rules
 - Code review via CODEOWNERS
