@@ -14,9 +14,11 @@
 #ifndef SCORE_SOCOM_ERROR_HPP
 #define SCORE_SOCOM_ERROR_HPP
 
-#include <score/result/error_code.h>
-#include <score/result/error_domain.h>
-#include <score/result/result.h>
+#include <string_view>
+
+#include "score/result/error_code.h"
+#include "score/result/error_domain.h"
+#include "score/result/result.h"
 
 namespace score::socom {
 
