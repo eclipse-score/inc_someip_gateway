@@ -7,3 +7,8 @@ repos:
       - id: trailing-whitespace
       - id: check-shebang-scripts-are-executable
       - id: check-executables-have-shebangs
+
+  # - repo: https://github.com/elektrobit-contrib/eclipse-score_devcontainer
+  #   rev: c2a743cb05d841eb2236daba55c3458c0a217197
+  #   hooks:
+  #     - id: reuse-annotate
