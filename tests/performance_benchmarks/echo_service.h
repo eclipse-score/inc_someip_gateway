@@ -1,5 +1,6 @@
-/********************************************************************************
- * Copyright (c) 2025 Contributors to the Eclipse Foundation
+/*
+ * *******************************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -8,8 +9,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
+ * SPDX-FileCopyrightText: 2025, 2026 Contributors to the Eclipse Foundation
  * SPDX-License-Identifier: Apache-2.0
- ********************************************************************************/
+ * *******************************************************************************
+ */
 #ifndef TESTS_PERFORMANCE_BENCHMARKS_ECHO_SERVICE
 #define TESTS_PERFORMANCE_BENCHMARKS_ECHO_SERVICE
 
