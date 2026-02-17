@@ -1,0 +1,5 @@
+# ThreadSanitizer suppressions for inc_someip_gateway
+
+# Suppress benign data races in std::shared_ptr and std::weak_ptr destruction
+# shared_ptr and weak_ptr destruction is supposed to be race free, thus it is either a false positive or a bug in the library
+race:std::__1::__shared_weak_count
