@@ -194,7 +194,7 @@ void Impl::unsubscribe_event(Client_connection const& client) {
     }
 }
 
-void Impl::unsubscribe_event(Client_connection const& client, Event_id id) {
+void Impl::unsubscribe_event(Client_connection const& /* client */, Event_id id) {
     assert(id < m_subscriber.size());
     assert(id < m_update_requester.size());
     assert(id < m_event_infos.size());

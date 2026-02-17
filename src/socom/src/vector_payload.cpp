@@ -46,12 +46,12 @@ class Vector_payload final : public Payload {
 
     [[nodiscard]] Writable_span header() noexcept override {
         Writable_span const span{m_buffer};
-        return span.subspan(static_cast<Span::size_type>(m_lead_offset), m_header_size);
+        return span.subspan(m_lead_offset, m_header_size);
     }
 
     [[nodiscard]] Span header() const noexcept override {
         Span const span{m_buffer};
-        return span.subspan(static_cast<Span::size_type>(m_lead_offset), m_header_size);
+        return span.subspan(m_lead_offset, m_header_size);
     }
 };
 
