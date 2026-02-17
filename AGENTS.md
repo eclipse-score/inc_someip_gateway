@@ -13,7 +13,7 @@ The gateway also includes Rust examples and comprehensive Python integration tes
 **All source files must include Apache 2.0 license headers:**
 ```cpp
 /********************************************************************************
- * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
