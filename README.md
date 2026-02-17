@@ -76,7 +76,8 @@ Finally start the benchmark on the someipd-1 container in a third shell:
 docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/performance_benchmarks/ipc_benchmarks
 ```
 
-#### 📝 Configuration
+
+## 📝 Configuration
 
 ### Gatewayd Config Schema Validation
 
@@ -143,3 +144,20 @@ When using the `generate_someip_config_bin` macro a validation test is automatic
 ```bash
 bazel test //:<generation_rule_name>_test # if the macro has been added to root BUILD.bazel
 ```
+
+
+## QNX Build
+
+Either use a `.netrc` file to provide the login credentials for your myQNX account or provide them as environment variables `SCORE_QNX_USER` and `SCORE_QNX_PASSWORD`.
+You can use an extension like `pomdtr.secrets` to manage the secrets or inject it via environment.
+
+The QNX toolchain is automatically downloaded when building for QNX.
+If the automatic download via bazel fails for some reason you can also provide the manually downloaded file in a directory which you then pass via the `--distdir` command line option.
+
+Make sure your qnx license file is available as `/opt/score_qnx/license/licenses` (e.g. by copying it from your `~/.qnx/license/licenses`)
+
+If you use a license server then add the following in in your `~/.bazelrc`:
+
+    common --action_env=QNXLM_LICENSE_FILE=<port>@<license_server_host>
+
+> :warning: Getting license from server not yet supported within devcontainer. Need to figure out how to adjust user & hostname properly.

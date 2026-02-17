@@ -77,71 +77,71 @@ bazel_dep(name = "platforms", version = "1.0.0")
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.0.3")
+bazel_dep(name = "score_bazel_platforms", version = "0.0.4")
 
-# ============================================================================
-# Rust Toolchain Configuration for Multi-Architecture Support
-# ============================================================================
-# Configures rules_rust to compile for both x86_64 and aarch64 targets.
-rust = use_extension("@rules_rust//rust:extensions.bzl", "rust", dev_dependency = True)
-rust.toolchain(
-    edition = "2021",
-    extra_target_triples = [
-        "x86_64-unknown-linux-gnu",
-        "aarch64-unknown-linux-gnu",
-    ],
-    versions = ["1.83.0"],
-)
-use_repo(rust, "rust_toolchains")
-
-register_toolchains(
-    "@rust_toolchains//:all",
-    dev_dependency = True,
-)
-
-# Rust Toolchain Extension: Manages sysroot download and toolchain registration
-bazel_dep(name = "score_toolchains_rust", version = "0.1.1", dev_dependency = True)
+bazel_dep(name = "score_toolchains_rust", version = "0.7.0", dev_dependency = True)
 git_override(
     module_name = "score_toolchains_rust",
-    commit = "6651945b4ba8e7c342d9740e9cb2d37842f56261",  # Last verified: 2025-12-11
-    remote = "https://github.com/eclipse-score/toolchains_rust.git",
+    commit = "40abf2df405dc714472f72f0f8538f04a5396e0e",  # Last verified: 2026-02-10
+    remote = "https://github.com/etas-contrib/score_toolchains_rust.git",
 )
 
 # ============================================================================
-# Optional Toolchain Dependencies
+# QNX8 Toolchain Configuration
 # ============================================================================
-# We provide a local stub to satisfy module resolution without adding QNX support.
-local_path_override(
-    module_name = "rust_qnx8_toolchain",
-    path = "bazel_stubs/rust_qnx8_toolchain",
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.2.2", dev_dependency = True)
+git_override(
+    module_name = "score_bazel_cpp_toolchains",
+    commit = "bef681a4bf751060d756d9ac21c2afb7981c9204",  # Last verified: 2026-02-09
+    remote = "https://github.com/etas-contrib/score_bazel_cpp_toolchains.git",
 )
 
-# ============================================================================
-# Sysroot Management for Multi-Architecture Support
-# ============================================================================
-# Downloads and registers Debian Bullseye sysroots for both x86_64 and aarch64.
-# These sysroots are used by both LLVM (C++) and Rust toolchains for cross-compilation.
-rust_ext = use_extension(
-    "@score_toolchains_rust//extensions:rust_toolchain_ext.bzl",
-    "rust_toolchain_ext",
+gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
+gcc.toolchain(
+    name = "score_gcc_x86_64_toolchain",
+    target_cpu = "x86_64",
+    target_os = "linux",
+    use_default_package = True,
+    version = "12.2.0",
+)
+gcc.toolchain(
+    name = "score_gcc_aarch64_toolchain",
+    target_cpu = "aarch64",
+    target_os = "linux",
+    use_default_package = True,
+    version = "12.2.0",
+)
+gcc.toolchain(
+    name = "score_qcc_x86_64_toolchain",
+    sdp_version = "8.0.0",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    use_default_package = True,
+    version = "12.2.0",
+)
+gcc.toolchain(
+    name = "score_qcc_aarch64_toolchain",
+    sdp_version = "8.0.0",
+    target_cpu = "aarch64",
+    target_os = "qnx",
+    use_default_package = True,
+    version = "12.2.0",
+)
+use_repo(
+    gcc,
+    "score_gcc_aarch64_toolchain",
+    "score_gcc_x86_64_toolchain",
+    "score_qcc_aarch64_toolchain",
+    "score_qcc_x86_64_toolchain",
+)
+
+register_toolchains(
+    "@score_gcc_x86_64_toolchain//:all",
+    "@score_gcc_aarch64_toolchain//:all",
+    "@score_qcc_x86_64_toolchain//:all",
+    "@score_qcc_aarch64_toolchain//:all",
     dev_dependency = True,
 )
-rust_ext.sysroot(
-    name = "sysroot_linux_x64",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
-    sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
-    strip_prefix = "",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
-)
-rust_ext.sysroot(
-    name = "sysroot_linux_aarch64",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
-    sha256 = "d303cf3faf7804c9dd24c9b6b167d0345d41d7fe4bfb7d34add3ab342f6a236c",
-    strip_prefix = "",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/906cc7c6bf47d4bd969a3221fc0602c6b3153caa/debian_bullseye_arm64_sysroot.tar.xz",
-)
-use_repo(rust_ext, "sysroot_linux_x64")
-use_repo(rust_ext, "sysroot_linux_aarch64")
 
 # ============================================================================
 # LLVM C/C++ Toolchain Configuration
@@ -160,17 +160,7 @@ llvm = use_extension(
 llvm.toolchain(
     name = "llvm_toolchain",
     cxx_standard = {"": "c++17"},
-    llvm_version = "19.1.0",
-)
-llvm.sysroot(
-    name = "llvm_toolchain",
-    label = "@sysroot_linux_x64//:sysroot",
-    targets = ["linux-x86_64"],
-)
-llvm.sysroot(
-    name = "llvm_toolchain",
-    label = "@sysroot_linux_aarch64//:sysroot",
-    targets = ["linux-aarch64"],
+    llvm_version = "19.1.7",
 )
 use_repo(llvm, "llvm_toolchain")
 
@@ -226,26 +216,12 @@ git_override(
 # ============================================================================
 car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate", dev_dependency = True)
 car_window_sim_crate.spec(
-    package = "rustyrepl",
-    version = "0.2.0",
-)
-car_window_sim_crate.spec(
     package = "anyhow",
     version = "1",
 )
 car_window_sim_crate.spec(
     package = "async-trait",
     version = "0.1",
-)
-car_window_sim_crate.spec(
-    features = ["derive"],
-    package = "clap",
-    version = "4",
-)
-car_window_sim_crate.spec(
-    features = ["full"],
-    package = "tokio",
-    version = "1.10",
 )
 car_window_sim_crate.from_specs(name = "car_window_sim_crate")
 use_repo(car_window_sim_crate, "car_window_sim_crate")
@@ -255,6 +231,14 @@ use_repo(car_window_sim_crate, "car_window_sim_crate")
 # ============================================================================
 # Rules for Foreign/C/C++/CMake integration
 bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
+single_version_override(
+    module_name = "rules_foreign_cc",
+    patch_strip = 1,
+    patches = [
+        "//:third_party/rules_foreign_cc-dont_block_network.patch",
+        "//:third_party/rules_foreign_cc-fix_proc_self_cwd.patch",
+    ],
+)
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -267,6 +251,8 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 """,
+    patch_strip = 1,
+    patches = ["//:third_party/boost-asio_qnx.patch"],
     sha256 = "7da75f171837577a52bbf217e17f8ea576c7c246e4594d617bfde7fafd408be5",
     strip_prefix = "boost-1.87.0",
     urls = ["https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.tar.xz"],
@@ -275,10 +261,12 @@ filegroup(
 http_archive(
     name = "vsomeip",
     build_file = "@//:third_party/vsomeip.BUILD.bazel",
-    integrity = "sha256-lXdZnBQt+J6gfEMKfTLBFmf9BlDJOsz+FxATmqFFzr4=",
-    strip_prefix = "vsomeip-3.6.0",
+    integrity = "sha256-hMjkJs3fQ14MVtpwupfno/UbK+rxV+1zih9632bO5Sk=",
+    patch_strip = 1,
+    patches = ["//:third_party/vsomeip-qnx8.patch"],
+    strip_prefix = "vsomeip-3.6.1",
     urls = [
-        "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.0.tar.gz",
+        "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
     ],
 )
 
