@@ -17,6 +17,10 @@
 # SOME/IP Gateway System Startup Script
 # Executed during system initialization to start essential services
 # *******************************************************************************
+
+# Set PATH for system tools
+export PATH=/proc/boot:/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+
 echo "---> Starting slogger2"
 slogger2 -s 4096                       # Start system logger with 4KB buffer size for log messages
 waitfor /dev/slog                      # Wait for system log device to become available

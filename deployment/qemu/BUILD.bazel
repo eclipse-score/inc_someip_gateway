@@ -32,7 +32,6 @@ load("@score_toolchains_qnx//rules/fs:ifs.bzl", "qnx_ifs")
 exports_files(
     [
         "run_qemu.sh",
-        "setup_bridge.sh",
     ],
     visibility = ["//visibility:public"],
 )
