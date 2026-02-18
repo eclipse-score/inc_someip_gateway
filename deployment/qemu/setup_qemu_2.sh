@@ -12,12 +12,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# Setup QEMU Instance 2 with sample_client
 # This script starts QEMU 2 and runs the SOME/IP sample client
-#
-# Prerequisites:
-#   - Run 'sudo ./setup_bridge.sh' first to create the bridge network
-#   - Run './setup_qemu_1.sh' to start the gateway services
 
 set -e
 
@@ -36,7 +31,6 @@ echo ""
 # Check if bridge exists
 if ! ip link show virbr0 &>/dev/null; then
     echo "[ERROR] Bridge virbr0 does not exist!"
-    echo "        Run: sudo ./setup_bridge.sh"
     exit 1
 fi
 
@@ -54,7 +48,7 @@ fi
 # Wait for SSH to become available
 echo "[INFO] Waiting for SSH on ${GUEST_IP}..."
 RETRY=0
-MAX_RETRIES=60
+MAX_RETRIES=10
 while [ $RETRY -lt $MAX_RETRIES ]; do
     if ssh ${SSH_OPTS} ${SSH_USER}@${SSH_HOST} "echo ready" 2>/dev/null; then
         echo "[INFO] SSH is ready"
@@ -68,11 +62,6 @@ if [ $RETRY -eq $MAX_RETRIES ]; then
     echo "[ERROR] Timeout waiting for SSH"
     exit 1
 fi
-
-echo ""
-echo "[INFO] Starting sample_client..."
-echo "[INFO] This will connect to someipd on 192.168.87.2 via SOME/IP"
-echo ""
 
 # Run sample_client interactively (foreground)
 ssh ${SSH_OPTS} ${SSH_USER}@${SSH_HOST} \

@@ -37,9 +37,19 @@ INSTANCE_ID=1
 
 echo "---> Starting Networking"
 io-sock -m phy -m pci -d vtnet_pci    # Start network stack with PHY and PCI modules, load VirtIO network driver
-echo "---> Waiting for socket device..."
-waitfor /dev/socket
 
+echo "---> Waiting for socket device..."
+RETRY=0
+while [ $RETRY -lt 10 ] && [ ! -e /dev/socket ]; do
+    sleep 1
+    RETRY=$((RETRY + 1))
+done
+
+if [ ! -e /dev/socket ]; then
+    echo "---> ERROR: /dev/socket not available after 10 seconds"
+    exit 1
+fi
+echo "---> Socket device ready"
 
 # Bring up vtnet0
 echo "---> Bringing up vtnet0"

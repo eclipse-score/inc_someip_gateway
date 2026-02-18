@@ -64,8 +64,12 @@ libc++.so.2
 [type=link] libc++.so=libc++.so.2
 libsocket.so.4
 [type=link] libsocket.so=libsocket.so.4
+libxo.so.0
+[type=link] libxo.so=libxo.so.0
 libslog2.so.1
 [type=link] libslog2.so=libslog2.so.1
+libslog2parse.so.1
+[type=link] libslog2parse.so=libslog2parse.so.1
 libqh.so.1
 [type=link] libqh.so=libqh.so.1
 libcam.so.2
@@ -226,6 +230,7 @@ mount
 [uid=0 gid=0 perms=0444] /var/ssh/ssh_host_rsa_key.pub = ${MAIN_BUILD_FILE_DIR}/configs/ssh_host_rsa_key.pub
 [perms=0644] /etc/passwd = ${MAIN_BUILD_FILE_DIR}/configs/passwd
 [perms=0644] /etc/group = ${MAIN_BUILD_FILE_DIR}/configs/group
+[perms=0644] /etc/profile = ${MAIN_BUILD_FILE_DIR}/configs/profile
 
 # ===========================================================================
 # Application binaries (injected via pkg_tar → tars attribute)

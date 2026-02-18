@@ -15,9 +15,6 @@
 # Setup QEMU Instance 1 with gatewayd and someipd
 # This script starts QEMU 1 and launches the gateway services
 #
-# Prerequisites:
-#   - Run 'sudo ./setup_bridge.sh' first to create the bridge network
-
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,7 +32,6 @@ echo ""
 # Check if bridge exists
 if ! ip link show virbr0 &>/dev/null; then
     echo "[ERROR] Bridge virbr0 does not exist!"
-    echo "        Run: sudo ./setup_bridge.sh"
     exit 1
 fi
 
@@ -80,13 +76,3 @@ ssh ${SSH_OPTS} ${SSH_USER}@${SSH_HOST} \
     'export VSOMEIP_CONFIGURATION=/etc/someipd/vsomeip.json && /usr/bin/someipd --service_instance_manifest /etc/someipd/mw_com_config.json &' &
 
 sleep 2
-
-echo ""
-echo "=== QEMU Instance 1 Ready ==="
-echo "Services running on ${GUEST_IP}:"
-echo "  - gatewayd"
-echo "  - someipd"
-echo ""
-echo "To SSH manually: ssh ${SSH_OPTS} ${SSH_USER}@${SSH_HOST}"
-echo ""
-echo "Now run setup_qemu_2.sh to start the client on instance 2"

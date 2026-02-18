@@ -40,39 +40,36 @@ bazel run //examples/car_window_sim:car_window_controller
 If you type `open` or `close` the command will be sent via network.
 
 
-### Dockerized integration test POC
+### QEMU x86_64 - based integration test POC
 
-For integration tests, a docker based approach was taken.
-As a proof of concept `docker compose` can be used to build, setup and run the containers.
-In the future a pytest based setup can be implemented to orchestrate the containers.
+For integration tests, a QEMU based approach was taken.
+A pytest based setup has been implemented connect to the QEMU instances and run integration and unit tests.
+For unit tests one QEMU instance is sufficient, for integration tests two instances are used to test the communication between two SOME/IP stacks via the gateway.A host bridge network is used to connect the QEMU instances with the host and with each other.
 
-Build the docker containers:
+Build the QEMU images and the dependant c++ binaries/ libraries / configuration files. Any change will be automatically detected.
 
 ```sh
-docker compose --project-directory tests/integration/docker_setup/ build
+bazel build //deployment/qemu:someip_gateway_ifs --config=x86_64-qnx
 ```
 
-Start up the containers:
+The QEMU instances can be started manually if needed for debugging or development purposes.
 
 ```sh
-docker compose --project-directory tests/integration/docker_setup/ up
+bazel run //deployment/qemu:run_qemu_1 --config=x86_64-qnx
+bazel run //deployment/qemu:run_qemu_2 --config=x86_64-qnx
 ```
 
-Those containers are pre-configured (IP adresses, multicast route, ...).
-The someipd-1 container already starts up the `gatewayd` and the `someipd`.
-
-In Wireshark the network traffic can be seen by capturing on `any` with `ip.addr== 192.168.87.2 || ip.addr ==192.168.87.3`.
-
-On the client side, start up the `sample_client` in another shell:
-
+SSH into each instance is available:
 ```sh
-docker exec -it --env VSOMEIP_CONFIGURATION=/home/source/tests/integration/sample_client/vsomeip.json docker_setup-client-1 /home/source/bazel-bin/tests/integration/sample_client/sample_client
+ssh root@192.168.87.2 -o StrictHostKeyChecking=no
+ssh root@192.168.87.3 -o StrictHostKeyChecking=no
 ```
 
-Finally start the benchmark on the someipd-1 container in a third shell:
+Those QEMU instances are pre-configured (IP addresses, multicast route, ...). The tests will start thhe required processes (gatewayd, someipd, example app) and then run the test logic.
 
+The network traffic can be seen on the host via tcpdump on the host `virbr0` interface:
 ```sh
-docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/performance_benchmarks/ipc_benchmarks
+sudo tcpdump -i virbr0 -w someip_capture.pcap "host 192.168.87.2 or host 192.168.87.3"
 ```
 
 
@@ -160,31 +157,3 @@ If you use a license server then add the following in in your `~/.bazelrc`:
     common --action_env=QNXLM_LICENSE_FILE=<port>@<license_server_host>
 
 > :warning: Getting license from server not yet supported within devcontainer. Need to figure out how to adjust user & hostname properly.
-
-### QNX x86_64 Testing
-
-To run the tests for QNX on x86_64, follow these steps:
-
-1.  **Build the QEMU image:**
-
-    ```sh
-    bazel build //deployment/qemu:run_qemu --config=x86_64-qnx
-    ```
-
-2.  **Run the QEMU image:**
-
-    ```sh
-    bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
-    ```
-
-3.  **Run a basic test to check networking**
-
-    ```sh
-    bazel test //tests/integration:test_ssh --test_output=all --cache_test_results=no
-    ```
-
-4.  **Run unit tests:**
-
-    ```sh
-    bazel test //tests/UT:test_ut --test_output=all --cache_test_results=no
-    ```

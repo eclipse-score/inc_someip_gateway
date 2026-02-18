@@ -27,6 +27,10 @@ import pytest
 # ITF imports (score_itf 0.1.0)
 from itf.plugins.com.ssh import Ssh, execute_command_output
 
+# ---------------------------------------------------------------------------
+# Configuration for connecting to existing QEMU
+# ---------------------------------------------------------------------------
+
 QEMU_SSH_HOST = "192.168.87.2"
 QEMU_SSH_PORT = 22
 QEMU_SSH_USER = "root"

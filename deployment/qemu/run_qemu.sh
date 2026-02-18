@@ -14,15 +14,8 @@
 #
 # Launch a QNX x86_64 IFS image under QEMU with bridge networking.
 #
-# Usage (standalone):
-#   ./run_qemu.sh <IFS_IMAGE> [INSTANCE_ID]
-#
 # Usage (via Bazel):
 #   bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
-#
-# Prerequisites:
-#   - Run 'sudo ./setup_bridge.sh' first to create virbr0 bridge
-#   - QEMU bridge helper must be configured (done by setup_bridge.sh)
 #
 # Environment variables:
 #   QEMU_INSTANCE_ID  - Instance ID (1 or 2) for multi-instance setups (default: 1)
@@ -32,9 +25,6 @@
 #   Instance 1:    192.168.87.2 (MAC: 52:54:00:12:34:01)
 #   Instance 2:    192.168.87.3 (MAC: 52:54:00:12:34:02)
 #   Gateway:       192.168.87.1 (host)
-#
-# Both instances share the same L2 network for direct communication,
-# including SOME/IP multicast traffic.
 #
 
 set -euo pipefail
@@ -64,7 +54,6 @@ echo "  Gateway:      192.168.87.1"
 if ! ip link show "${BRIDGE_NAME}" &>/dev/null; then
     echo ""
     echo "ERROR: Bridge ${BRIDGE_NAME} does not exist!"
-    echo "Run: sudo ./setup_bridge.sh"
     exit 1
 fi
 
