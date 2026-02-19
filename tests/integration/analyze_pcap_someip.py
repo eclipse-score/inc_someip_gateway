@@ -16,7 +16,6 @@ import subprocess
 import re
 import sys
 import os
-from pathlib import Path
 from collections import defaultdict
 
 # --- Configuration ---
@@ -192,7 +191,6 @@ def print_summary(ip, name, data):
     if data['offers']:
         print("OFFERS:")
         sorted_offers = sorted(list(data['offers']))
-        count = len(sorted_offers)
         for svc, inst, eg in sorted_offers:
             eg_str = f" with eventgroup 0x{eg:04x}" if eg else ""
             print(f"            Service 0x{svc:04x}.0x{inst:04x}{eg_str}")

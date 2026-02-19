@@ -40,19 +40,17 @@ bazel run //examples/car_window_sim:car_window_controller
 If you type `open` or `close` the command will be sent via network.
 
 
-### QEMU x86_64 - based integration test POC
+### QEMU x86_64 - based integration test and unit tests
 
-For integration tests, a QEMU based approach was taken.
-A pytest based setup has been implemented connect to the QEMU instances and run integration and unit tests.
-For unit tests one QEMU instance is sufficient, for integration tests two instances are used to test the communication between two SOME/IP stacks via the gateway.A host bridge network is used to connect the QEMU instances with the host and with each other.
+For integration tests and unit tests, ITF framework is used, main branch commit e994cb6.
+For integration tests where the communication between two QEMU instances is required, a custom implementation is used to start and manage the QEMU instances within the test logic. This is because ITF does not support starting multiple QEMU instances in parallel yet.
 
-Build the QEMU images and the dependant c++ binaries/ libraries / configuration files. Any change will be automatically detected.
+Start by  building the QEMU images and the dependant c++ binaries/ libraries / configuration files. Any change will be automatically detected.
 
 ```sh
 bazel build //deployment/qemu:someip_gateway_ifs --config=x86_64-qnx
 ```
-
-The QEMU instances can be started manually if needed for debugging or development purposes.
+For the QEMU QNX x864 image to run on host please run the script deployment/qemu/setup_bridge.sh with sudo privileges to setup the required network bridge and tap interfaces.The QEMU instances can be started manually if needed for debugging or development purposes.
 
 ```sh
 bazel run //deployment/qemu:run_qemu_1 --config=x86_64-qnx
@@ -65,12 +63,41 @@ ssh root@192.168.87.2 -o StrictHostKeyChecking=no
 ssh root@192.168.87.3 -o StrictHostKeyChecking=no
 ```
 
-Those QEMU instances are pre-configured (IP addresses, multicast route, ...). The tests will start thhe required processes (gatewayd, someipd, example app) and then run the test logic.
+Those QEMU instances are pre-configured (IP addresses, multicast route, ...). The tests will start the required processes (gatewayd, someipd, example app) and then run the test logic.
 
-The network traffic can be seen on the host via tcpdump on the host `virbr0` interface:
+Unit tests are defined by the bazel `test_ut` target:
+
+```sh
+bazel test //tests/UT:test_ut --test_output=all  --config=x86_64-qnx
+```
+
+For Integration tests Host to QEMU communication:
+
+```sh
+bazel test //tests/integration:test_qemu_network_single --test_output=all --config=x86_64-qnx
+```
+For integration tests QEMU to QEMU communication (dual instance test):
+
+```sh
+bazel test //tests/integration:test_qemu_network_dual --test_output=all  --config=x86_64-qnx
+```
+Execute SOMEIP SD tests:
+Execute in seperate terminals for each instance:
+
+```sh
+deployment/qemu/setup_qemu_1.sh
+deployment/qemu/setup_qemu_2.sh
+```
+
+Save the SOMEIP SD communication via tcpdump on the host `virbr0` interface:
+
 ```sh
 sudo tcpdump -i virbr0 -w someip_capture.pcap "host 192.168.87.2 or host 192.168.87.3"
 ```
+Use Wireshark or provided utility analyze_pcap_someip.py to oberve the SOMEIP SD communication in the capture file.
+When finished use `pkill -9 qemu-system` to stop the QEMU instances.
+
+//TODO: add python test to automatically check the SOMEIP SD communication in the pcap file and validate the expected behavior (e.g. correct service discovery, ...)
 
 
 ## 📝 Configuration

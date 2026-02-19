@@ -63,6 +63,13 @@ bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 bazel_dep(name = "google_benchmark", version = "1.9.4", dev_dependency = True)
 
 bazel_dep(name = "score_itf", version = "0.1.0")
+git_override(
+    module_name = "score_itf",
+    commit = "e994cb6",  # Main branch with simplified QEMU plugin
+    patch_strip = 1,
+    patches = ["//third_party:score_itf_oci_conflict.patch"],
+    remote = "https://github.com/eclipse-score/itf.git",
+)
 
 # ============================================================================
 # Build System Rules

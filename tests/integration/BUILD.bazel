@@ -11,12 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-"""
-Integration Tests
-"""
-
-load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@score_itf//:defs.bzl", "py_itf_test")
+load("@score_itf//score/itf/plugins:plugins.bzl", "qemu")
 
 # Export vsomeip config for QEMU deployment
 exports_files(
@@ -71,31 +67,38 @@ py_itf_test(
 py_itf_test(
     name = "test_qemu_network_single",
     srcs = [
+        "conftest.py",
         "test_qemu_network.py",
         "//tests/itf_updates:qemu_utils.py",
     ],
-    args = ["-k", "TestSingleInstanceNetwork"],
-    data = [
-        "//deployment/qemu:someip_gateway_ifs",
-        "//deployment/qemu:run_qemu.sh",
+    args = [
+        "-k", "TestSingleInstanceNetwork",
+        "--qemu-config=$(location qemu_config.json)",
+        "--qemu-image=$(location //deployment/qemu:someip_gateway_ifs)",
     ],
+    data = [
+        "qemu_config.json",
+        "//deployment/qemu:someip_gateway_ifs",
+    ],
+    plugins = [qemu],
     tags = ["qemu"],
 )
 
-# ---------------------------------------------------------------------------
-# Dual QEMU instance network test (socket inter-QEMU)
-# Tests communication between two QEMU instances
-# ---------------------------------------------------------------------------
+# Dual instance test - ITF cannot start 2 instances in parallel, so uses qemu_utils.py to manage both instances within a single test
 py_itf_test(
     name = "test_qemu_network_dual",
     srcs = [
+        "conftest.py",
         "test_qemu_network.py",
         "//tests/itf_updates:qemu_utils.py",
     ],
-    args = ["-k", "TestDualInstanceNetwork"],
+    args = [
+        "-k", "TestDualInstanceNetwork",
+    ],
     data = [
         "//deployment/qemu:someip_gateway_ifs",
         "//deployment/qemu:run_qemu.sh",
     ],
+    plugins = [],  # No qemu plugin - uses qemu_utils.py for dual instance management
     tags = ["qemu"],
 )
