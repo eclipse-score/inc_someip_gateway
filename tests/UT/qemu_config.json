@@ -1,0 +1,12 @@
+{
+    "networks": [
+        {
+            "name": "tap-qemu1",
+            "ip_address": "192.168.87.2",
+            "gateway": "192.168.87.1"
+        }
+    ],
+    "ssh_port": 22,
+    "qemu_num_cores": 2,
+    "qemu_ram_size": "1G"
+}

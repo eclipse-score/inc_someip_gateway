@@ -66,59 +66,49 @@ class TestSingleInstanceNetwork:
 class TestDualInstanceNetwork:
     """Tests for two QEMU instances communicating via bridge networking."""
 
-    def test_both_instances_have_bridge_interface(self, qemu_dual_instances):
+    def test_both_instances_have_bridge_interface(self, dual_ssh_clients):
         """Verify both instances have vtnet0 (bridge) interface configured."""
-        instance1, instance2 = qemu_dual_instances
+        client1, client2 = dual_ssh_clients
 
         # Check instance 1
-        client1 = instance1.get_ssh_client()
         _, stdout, _ = client1.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo 'NO_VTNET0'")
         output1 = stdout.read().decode().strip()
-        client1.close()
 
         # Check instance 2
-        client2 = instance2.get_ssh_client()
         _, stdout, _ = client2.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo 'NO_VTNET0'")
         output2 = stdout.read().decode().strip()
-        client2.close()
 
         assert "NO_VTNET0" not in output1, f"Instance 1 missing vtnet0: {output1}"
         assert "NO_VTNET0" not in output2, f"Instance 2 missing vtnet0: {output2}"
         assert "192.168.87.2" in output1, f"Instance 1 wrong IP: {output1}"
         assert "192.168.87.3" in output2, f"Instance 2 wrong IP: {output2}"
 
-    def test_instance1_can_ping_instance2(self, qemu_dual_instances):
+    def test_instance1_can_ping_instance2(self, dual_ssh_clients):
         """Verify instance 1 can ping instance 2 via bridge network."""
-        instance1, _ = qemu_dual_instances
+        client1, _ = dual_ssh_clients
 
-        client = instance1.get_ssh_client()
-        _, stdout, stderr = client.exec_command("/proc/boot/ping -c 3 192.168.87.3")
+        _, stdout, stderr = client1.exec_command("/proc/boot/ping -c 3 192.168.87.3")
         exit_code = stdout.channel.recv_exit_status()
         output = stdout.read().decode().strip()
-        client.close()
 
         assert exit_code == 0, f"Instance 1 cannot ping instance 2: {stderr.read().decode()}\n{output}"
 
-    def test_instance2_can_ping_instance1(self, qemu_dual_instances):
+    def test_instance2_can_ping_instance1(self, dual_ssh_clients):
         """Verify instance 2 can ping instance 1 via bridge network."""
-        _, instance2 = qemu_dual_instances
+        _, client2 = dual_ssh_clients
 
-        client = instance2.get_ssh_client()
-        _, stdout, stderr = client.exec_command("/proc/boot/ping -c 3 192.168.87.2")
+        _, stdout, stderr = client2.exec_command("/proc/boot/ping -c 3 192.168.87.2")
         exit_code = stdout.channel.recv_exit_status()
         output = stdout.read().decode().strip()
-        client.close()
 
         assert exit_code == 0, f"Instance 2 cannot ping instance 1: {stderr.read().decode()}\n{output}"
 
-    def test_both_instances_can_reach_host(self, qemu_dual_instances):
+    def test_both_instances_can_reach_host(self, dual_ssh_clients):
         """Verify both instances can reach host via bridge (192.168.87.1)."""
-        instance1, instance2 = qemu_dual_instances
+        client1, client2 = dual_ssh_clients
 
-        for i, instance in enumerate([instance1, instance2], 1):
-            client = instance.get_ssh_client()
+        for i, client in enumerate([client1, client2], 1):
             _, stdout, stderr = client.exec_command("/proc/boot/ping -c 1 192.168.87.1")
             exit_code = stdout.channel.recv_exit_status()
-            client.close()
 
             assert exit_code == 0, f"Instance {i} cannot reach host via bridge"

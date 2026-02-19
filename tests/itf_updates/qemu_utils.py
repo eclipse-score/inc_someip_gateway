@@ -42,7 +42,7 @@ logging.getLogger("paramiko").setLevel(logging.CRITICAL)
 BRIDGE_SUBNET = "192.168.87"
 SSH_USER = "root"
 SSH_PORT = 22  # Direct SSH to guest (no port forwarding)
-SSH_TIMEOUT = 30
+SSH_TIMEOUT = 10  # SSH connection timeout in seconds
 
 # Boot timeout
 QEMU_BOOT_TIMEOUT = 60  # seconds
@@ -98,9 +98,6 @@ def get_runfile_path(relative_path: str) -> Optional[Path]:
 def wait_for_ssh(host: str, port: int, user: str, timeout: int = 60) -> bool:
     """Wait for SSH to be fully ready (not just port open).
 
-    QEMU SLIRP opens the forwarded port immediately, but the SSH daemon
-    inside the guest takes longer to start. This function actually tries
-    to establish an SSH connection with exponential backoff.
 
     Args:
         host: SSH hostname to connect to.
@@ -319,24 +316,6 @@ def qemu_run_script() -> Path:
 
 
 @pytest.fixture(scope="module")
-def qemu_instance(qemu_ifs_image: Path, qemu_run_script: Path) -> Generator[QEMUInstance, None, None]:
-    """Start a single QEMU instance for testing.
-
-    This fixture automatically starts QEMU before tests and stops it after.
-    """
-    instance = start_qemu(
-        ifs_image=qemu_ifs_image,
-        run_script=qemu_run_script,
-        instance_id=1,
-        net_mode="bridge",
-    )
-
-    yield instance
-
-    instance.stop()
-
-
-@pytest.fixture(scope="module")
 def qemu_dual_instances(
     qemu_ifs_image: Path, qemu_run_script: Path
 ) -> Generator[tuple[QEMUInstance, QEMUInstance], None, None]:
@@ -363,14 +342,3 @@ def qemu_dual_instances(
 
     instance1.stop()
     instance2.stop()
-
-
-@pytest.fixture(scope="module")
-def ssh_client(qemu_instance: QEMUInstance) -> Generator[paramiko.SSHClient, None, None]:
-    """Create SSH connection to QEMU guest.
-
-    This fixture depends on qemu_instance, so QEMU is automatically started.
-    """
-    client = qemu_instance.get_ssh_client()
-    yield client
-    client.close()
