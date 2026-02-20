@@ -11,17 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
-# Export vsomeip config for QEMU deployment
-exports_files(
-    ["vsomeip.json"],
-    visibility = ["//visibility:public"],
-)
-
-cc_binary(
-    name = "sample_client",
-    srcs = ["sample_client.cpp"],
-    visibility = ["//visibility:public"],
-    deps = ["@vsomeip"],
+cc_test(
+    name = "cpp_test_main2",
+    srcs = ["test_main.cpp"],
+    visibility = ["//deployment/qemu:__pkg__"],
+    deps = [
+        "@googletest//:gtest_main",  # GoogleTest dependency via Bazel Modules
+    ],
 )

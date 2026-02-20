@@ -50,19 +50,37 @@ common:x86_64-qnx --config=_toolchain_common
 common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
 common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
+common:x86_64-qnx --sandbox_writable_path=/var
+common:x86_64-qnx --action_env=QNX_TARGET_ARCH=x86_64
+common:x86_64-qnx --spawn_strategy=local
 
 common:aarch64-qnx --config=_toolchain_common
 common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
 common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
+common:aarch64-qnx --sandbox_writable_path=/var/tmp
+common:aarch64-qnx --action_env=QNX_TARGET_ARCH=aarch64le
+common:aarch64-qnx --spawn_strategy=local
 
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
+
+common --action_env=QNXLM_LICENSE_FILE="6287@rb-lic-qnxlm.de.bosch.com" #to be removed
+
 
 test --test_output=errors
 build --incompatible_strict_action_env
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
+
+# ============================================================================
+# Integration Test Framework Configuration
+# ============================================================================
+
+build:qemu-linux --run_under=@score_itf//scripts:run_under_qemu
+build:qemu-linux --test_arg="--qemu"
+build:qemu-linux --test_arg="--os=linux"
+
 
 # ============================================================================
 # Feature Flags & S-CORE Configuration

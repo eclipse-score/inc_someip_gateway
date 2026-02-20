@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -10,48 +10,77 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+"""Pytest fixtures for integration tests using ITF.
 
-"""
-Pytest configuration and fixtures for integration tests.
+Single instance tests:
+  Uses ITF's native QemuTarget with QEMU plugin for full QEMU lifecycle management.
+  ITF starts QEMU using pre-created TAP devices (tap-qemu1) attached to virbr0.
+
+Dual instance tests:
+  Uses qemu_utils.py to automatically start two QEMU instances via run_qemu.sh.
+  Both instances are started before tests and stopped after.
+
+Setup:
+  sudo ./deployment/qemu/setup_bridge.sh setup  # Creates tap-qemu1 on virbr0
 """
 
 import pytest
-from typing import Generator
-import subprocess
-from pathlib import Path
+
+# ITF imports for SSH
+from score.itf.core.com.ssh import Ssh
+
+# Import qemu_utils fixtures for dual instance tests
+# These are re-exported so pytest can discover them
+from tests.itf_updates.qemu_utils import (
+    qemu_ifs_image,
+    qemu_run_script,
+    qemu_dual_instances,
+)
 
 
-@pytest.fixture(scope="class")
-def someipd_config() -> Path:
-    """Provide SOME/IP configuration parameters."""
-    # TODO: We probably should have a way to add more configuration from fixtures in the tests
-    return Path("vsomeip-local.json")
+# ---------------------------------------------------------------------------
+# ITF SSH Fixtures - wrap ITF's target fixture for test compatibility
+# ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="class")
-def someipd(someipd_config) -> Generator[None, None, None]:
-    """Start someipd before tests and stop it after."""
-    someipd = subprocess.Popen(
-        ["src/someipd/someipd"],
-        env={"VSOMEIP_CONFIGURATION": str(someipd_config.absolute())},
+@pytest.fixture
+def ssh_client(target):
+    """Create ITF SSH connection to QEMU guest.
+
+    Uses ITF's target fixture (from qemu plugin) which automatically
+    starts QEMU with the configured TAP devices.
+    """
+    with target.ssh() as connection:
+        yield connection
+
+
+@pytest.fixture
+def dual_ssh_clients(qemu_dual_instances):
+    """Create ITF SSH connections to both QEMU instances.
+
+    Uses qemu_utils.py to automatically start two QEMUs via run_qemu.sh.
+    Depends on qemu_dual_instances which handles QEMU lifecycle.
+    """
+    instance1, instance2 = qemu_dual_instances
+
+    ssh1 = Ssh(
+        target_ip=instance1.ssh_host,
+        port=22,
+        timeout=15,
+        n_retries=5,
+        retry_interval=2,
+        username="root",
+        password="",
     )
-    yield
-    someipd.terminate()
-    someipd.wait()
+    ssh2 = Ssh(
+        target_ip=instance2.ssh_host,
+        port=22,
+        timeout=15,
+        n_retries=5,
+        retry_interval=2,
+        username="root",
+        password="",
+    )
 
-
-# Pytest configuration
-def pytest_configure(config: pytest.Config) -> None:
-    """Pytest configuration hook."""
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "slow: mark test as slow running")
-    config.addinivalue_line("markers", "network: mark test as requiring network access")
-
-
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
-    """Modify test items during collection."""
-    for item in items:
-        # Auto-mark all tests in this directory as integration tests
-        item.add_marker(pytest.mark.integration)
+    with ssh1 as client1, ssh2 as client2:
+        yield client1, client2
