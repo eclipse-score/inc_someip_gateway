@@ -18,15 +18,7 @@ Bazel rules for building the vsomeip SOME/IP stack
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 # ============================================================================
-# vsomeip source files
-# ============================================================================
-filegroup(
-    name = "all_srcs",
-    srcs = glob(["**"]),
-)
-
-# ============================================================================
-# Boost - x86_64 variant
+# Boost
 # ============================================================================
 cmake(
     name = "boost",
@@ -52,68 +44,14 @@ cmake(
 )
 
 # ============================================================================
-# Boost - aarch64 variant
+# vsomeip SOME/IP Stack
 # ============================================================================
-cmake(
-    name = "boost_aarch64",
-    build_args = ["-j8"],
-    cache_entries = {
-        "BOOST_INCLUDE_LIBRARIES": "algorithm;array;asio;exception;filesystem;foreach;functional;icl;optional;property_tree;shared_ptr;stacktrace;system;thread;utility",
-        "CMAKE_POSITION_INDEPENDENT_CODE": "ON",
-    },
-    env = {
-        "QNX_HOST": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_aarch64_toolchain_pkg/host/linux/x86_64",
-        "QNX_TARGET": "$$EXT_BUILD_ROOT/external/score_bazel_cpp_toolchains++gcc+score_qcc_aarch64_toolchain_pkg/target/qnx",
-    },
-    generate_args = [
-        "-DCMAKE_SYSTEM_NAME=QNX",
-        "-DCMAKE_SYSTEM_PROCESSOR=aarch64",
-    ],
-    lib_source = "@boost//:all_srcs",
-    # Building Boost as static libraries in order to avoid conflicts with other versions
-    out_static_libs = [
-        "libboost_atomic.a",
-        "libboost_chrono.a",
-        "libboost_container.a",
-        "libboost_date_time.a",
-        "libboost_filesystem.a",
-        "libboost_thread.a",
-    ],
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
 )
 
-# ============================================================================
-# Boost - alias to select the right variant
-# ============================================================================
-alias(
-    name = "boost",
-    actual = select({
-        "@platforms//cpu:arm64": ":boost_aarch64",
-        "//conditions:default": ":boost_x86_64",
-    }),
-)
-
-# ============================================================================
-# vsomeip SOME/IP Stack - x86_64 Linux variant
-# ============================================================================
-cmake(
-    name = "vsomeip_x86_64_linux",
-    build_args = ["-j8"],
-    cache_entries = {
-        "ENABLE_SIGNAL_HANDLING": "ON",
-    },
-    lib_source = ":all_srcs",
-    out_shared_libs = [
-        "libvsomeip3.so.3",
-        "libvsomeip3-cfg.so.3",
-        "libvsomeip3-e2e.so.3",
-        "libvsomeip3-sd.so.3",
-    ],
-    deps = [":boost"],
-)
-
-# ============================================================================
-# vsomeip SOME/IP Stack - x86_64 QNX variant
-# ============================================================================
 cmake(
     name = "vsomeip",
     cache_entries = {
@@ -134,43 +72,6 @@ cmake(
         "libvsomeip3-e2e.so.3",
         "libvsomeip3-sd.so.3",
     ],
-    deps = [":boost"],
-)
-
-# ============================================================================
-# Config settings for platform detection
-# ============================================================================
-config_setting(
-    name = "x86_64_linux",
-    values = {"define": "config=x86_64-linux"},
-)
-
-config_setting(
-    name = "aarch64_linux",
-    values = {"define": "config=arm64-linux"},
-)
-
-config_setting(
-    name = "x86_64_qnx",
-    values = {"define": "config=x86_64-qnx"},
-)
-
-config_setting(
-    name = "aarch64_qnx",
-    values = {"define": "config=arm64-qnx"},
-)
-
-# ============================================================================
-# vsomeip - alias to select the right variant
-# ============================================================================
-alias(
-    name = "vsomeip",
-    actual = select({
-        ":x86_64_linux": ":vsomeip_x86_64_linux",
-        ":aarch64_linux": ":vsomeip_aarch64_linux",
-        ":x86_64_qnx": ":vsomeip_x86_64_qnx",
-        ":aarch64_qnx": ":vsomeip_aarch64_qnx",
-        "//conditions:default": ":vsomeip_x86_64_linux",
-    }),
     visibility = ["//visibility:public"],
+    deps = [":boost"],
 )

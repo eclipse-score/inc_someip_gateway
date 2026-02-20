@@ -88,6 +88,8 @@ check_prerequisites() {
 setup_bridge() {
     echo "=== Setting up bridge network: ${BRIDGE_NAME} ==="
 
+    setcap cap_net_raw,cap_net_admin=eip $(which tcpdump)
+
     # Check if bridge already exists
     if ip link show "${BRIDGE_NAME}" &>/dev/null; then
         echo "[INFO] Bridge ${BRIDGE_NAME} already exists, skipping creation"

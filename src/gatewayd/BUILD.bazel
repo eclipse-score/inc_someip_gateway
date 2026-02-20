@@ -87,15 +87,12 @@ exports_files(
     visibility = ["//deployment:__subpackages__"],
 )
 
-exports_files(
-    ["etc/mw_com_config.json"],
-    visibility = ["//deployment:__subpackages__"],
-)
 
 generate_someip_config_bin(
     name = "config_file",
     json = "etc/gatewayd_config.json",
     output = "etc/gatewayd_config.bin",
+    visibility = ["//deployment:__subpackages__"],
 )
 
 validate_json_schema_test(

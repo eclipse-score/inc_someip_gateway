@@ -23,6 +23,7 @@ exports_files([
     "ssh_host_rsa_key.pub",
     "passwd",
     "group",
+    "profile",
 ])
 
 filegroup(
@@ -46,6 +47,7 @@ filegroup(
         "ssh_host_rsa_key.pub",
         "passwd",
         "group",
+        "profile",
     ],
     visibility = ["//visibility:public"],
 )

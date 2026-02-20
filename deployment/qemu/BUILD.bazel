@@ -114,6 +114,7 @@ qnx_ifs(
     out = "someip_gateway_x86_64.ifs",
     srcs = [
         "//deployment/qemu/configs:network_configs",
+        "//deployment/qemu/configs:ssh_configs",
     ],
     tars = {
         "GATEWAY_BINS": ":gateway_binaries_pkg",

@@ -11,6 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+
+load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@score_itf//:defs.bzl", "py_itf_test")
 load("@score_itf//score/itf/plugins:plugins.bzl", "qemu")
 
@@ -20,50 +22,6 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
-py_pytest(
-    name = "integration",
-    size = "medium",
-    srcs = glob(
-        ["test_*.py"],
-        exclude = ["test_qemu_*.py", "test_ssh.py"],
-        allow_empty = True,
-    ),
-    data = ["vsomeip-local.json"],
-    # Restrict the test execution to Linux for the moment due to dependency on Python
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = [
-        "//src/someipd",
-        "@someip_pip//pytest",
-        "@someip_pip//someip",
-    ],
-    target_compatible_with = ["@platforms//os:linux"],
-)
-
-# ---------------------------------------------------------------------------
-# SSH connectivity test for QNX QEMU image
-# QEMU is automatically started by the test fixture
-# Run: bazel test //tests/integration:test_ssh --test_output=all
-#
-# NOTE: py_itf_test doesn't support 'deps', so common modules are included via srcs.
-# See: https://github.com/bazelbuild/rules_python/blob/main/python/runfiles/README.md
-# ---------------------------------------------------------------------------
-py_itf_test(
-    name = "test_ssh",
-    srcs = [
-        "test_ssh.py",
-        "//tests/itf_updates:qemu_utils.py",
-    ],
-    data = [
-        "//deployment/qemu:someip_gateway_ifs",
-        "//deployment/qemu:run_qemu.sh",
-    ],
-    tags = ["qemu"],
-)
-
-# ---------------------------------------------------------------------------
-# Single QEMU instance network test (SLIRP)
-# Tests host connectivity via SLIRP networking
-# ---------------------------------------------------------------------------
 py_itf_test(
     name = "test_qemu_network_single",
     srcs = [
@@ -84,7 +42,7 @@ py_itf_test(
     tags = ["qemu"],
 )
 
-# Dual instance test - ITF cannot start 2 instances in parallel, so uses qemu_utils.py to manage both instances within a single test
+# Dual instance test - automatically starts two QEMU instances via qemu_utils.py
 py_itf_test(
     name = "test_qemu_network_dual",
     srcs = [
@@ -96,6 +54,27 @@ py_itf_test(
         "-k", "TestDualInstanceNetwork",
     ],
     data = [
+        "//deployment/qemu:someip_gateway_ifs",
+        "//deployment/qemu:run_qemu.sh",
+    ],
+    plugins = [],  # No qemu plugin - uses qemu_utils.py for dual instance management
+    tags = ["qemu"],
+)
+
+# SOME/IP Service Discovery test - captures traffic and verifies SD offers/finds/subscriptions
+py_itf_test(
+    name = "test_someip_sd",
+    srcs = [
+        "conftest.py",
+        "test_qemu_network.py",
+        "//tests/itf_updates:qemu_utils.py",
+    ],
+    args = [
+        "-k", "TestSomeIPSD",
+        "-s",
+    ],
+    data = [
+        "analyze_pcap_someip.py",
         "//deployment/qemu:someip_gateway_ifs",
         "//deployment/qemu:run_qemu.sh",
     ],
