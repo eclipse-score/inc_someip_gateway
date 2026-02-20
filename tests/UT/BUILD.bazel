@@ -11,31 +11,23 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-
-
-load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@score_itf//:defs.bzl", "py_itf_test")
 load("@score_itf//score/itf/plugins:plugins.bzl", "qemu")
-load("@score_toolchains_qnx//rules/fs:ifs.bzl", "qnx_ifs")
 
-# py_itf_test(
-#     name = "test_ut",
-#     srcs = ["test_ut.py"],
-#     tags = [
-#         "manual",  # Requires pre-started QEMU
-#         "qemu",
-#     ],
-# )
-
-
+# ---------------------------------------------------------------------------
+# C++ unit test execution on QNX QEMU image
+# Uses ITF SSH to connect to a running QEMU instance
+#
+# Prerequisites:
+#   Start QEMU first:
+#     bazel run //deployment/qemu:run_qemu_1 --config=x86_64-qnx
+#
+#   Then run:
+#     bazel test //tests/UT:test_ut --test_output=all --cache_test_results=no
+# ---------------------------------------------------------------------------
 py_itf_test(
     name = "test_ut",
-    srcs = [
-        # "conftest.py",
-        "test_ut.py",
-        # "test_qemu_network",
-        # "//tests/itf_updates:qemu_utils.py",
-    ],
+    srcs = ["test_ut.py"],
     args = [
         "--qemu-config=$(location qemu_config.json)",
         "--qemu-image=$(location //deployment/qemu:someip_gateway_ifs)",
@@ -45,5 +37,8 @@ py_itf_test(
         "//deployment/qemu:someip_gateway_ifs",
     ],
     plugins = [qemu],
-    tags = ["qemu"],
+    tags = [
+        "manual",  # Requires pre-started QEMU
+        "qemu",
+    ],
 )

@@ -101,6 +101,7 @@ libpam.so.2
 # SSH server components
 # ===========================================================================
 sshd                                                                            # SSH daemon for remote access
+# /usr/libexec/sshd-session=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sshd-session # uncomment this for QNX > 8.0
 ssh                                                                             # SSH client for remote connections
 ssh-keygen                                                                      # SSH key generation utility
 /usr/lib/ssh/sftp-server=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sftp-server     # SFTP server for scp

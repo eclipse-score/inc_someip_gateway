@@ -131,6 +131,7 @@ gcc.toolchain(
     use_default_package = True,
     version = "12.2.0",
 )
+
 gcc.toolchain(
     name = "score_qcc_aarch64_toolchain",
     sdp_version = "8.0.0",
@@ -152,14 +153,13 @@ register_toolchains(
     "@score_gcc_aarch64_toolchain//:all",
     "@score_qcc_x86_64_toolchain//:all",
     "@score_qcc_aarch64_toolchain//:all",
+    "@toolchains_qnx_ifs//:all",
     dev_dependency = True,
 )
 
 # ============================================================================
 # QNX IFS Image Toolchain (for building QEMU filesystem images via mkifs)
 # ============================================================================
-# We use score_toolchains_qnx ONLY for the IFS/mkifs toolchain.
-# The QCC compiler toolchain is already provided by score_bazel_cpp_toolchains above.
 bazel_dep(name = "score_toolchains_qnx", version = "0.0.7", dev_dependency = True)
 
 toolchains_qnx = use_extension(
@@ -168,57 +168,15 @@ toolchains_qnx = use_extension(
     dev_dependency = True,
 )
 toolchains_qnx.sdp(
-    url = "file:///home/bot6abt/QNX8KIT/QNX8LINUX/installation.tgz",
-    sha256 = "",
+    sha256 = "f2e0cb21c6baddbcb65f6a70610ce498e7685de8ea2e0f1648f01b327f6bac63",
     strip_prefix = "installation",
-    version = "8.0.0",
+    url = "https://www.qnx.com/download/download/79858/installation.tgz",
 )
-
-# Only import SDP and IFS repos — QCC compiler comes from score_bazel_cpp_toolchains
-use_repo(toolchains_qnx, "toolchains_qnx_sdp")
 use_repo(toolchains_qnx, "toolchains_qnx_ifs")
-
-# Register only the IFS filesystem toolchain (not the QCC compiler toolchain)
-register_toolchains(
-    "@toolchains_qnx_ifs//:ifs_x86_64",
-    dev_dependency = True,
-)
-
-# ============================================================================
-# Optional Toolchain Dependencies
-# ============================================================================
-# We provide a local stub to satisfy module resolution without adding QNX support.
-local_path_override(
-    module_name = "rust_qnx8_toolchain",
-    path = "bazel_stubs/rust_qnx8_toolchain",
-)
-
-# ============================================================================
-# Sysroot Management for Multi-Architecture Support
-# ============================================================================
-# Downloads and registers Debian Bullseye sysroots for both x86_64 and aarch64.
-# These sysroots are used by both LLVM (C++) and Rust toolchains for cross-compilation.
-rust_ext = use_extension(
-    "@score_toolchains_rust//extensions:rust_toolchain_ext.bzl",
-    "rust_toolchain_ext",
-    dev_dependency = True,
-)
-rust_ext.sysroot(
-    name = "sysroot_linux_x64",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
-    sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
-    strip_prefix = "",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
-)
-rust_ext.sysroot(
-    name = "sysroot_linux_aarch64",
-    build_file = "@score_toolchains_rust//sysroot:BUILD.bazel",
-    sha256 = "d303cf3faf7804c9dd24c9b6b167d0345d41d7fe4bfb7d34add3ab342f6a236c",
-    strip_prefix = "",
-    url = "https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/906cc7c6bf47d4bd969a3221fc0602c6b3153caa/debian_bullseye_arm64_sysroot.tar.xz",
-)
-use_repo(rust_ext, "sysroot_linux_x64")
-use_repo(rust_ext, "sysroot_linux_aarch64")
+# register_toolchains(
+#     "@toolchains_qnx_ifs//:ifs_x86_64",
+#     dev_dependency = True,
+# )
 
 # ============================================================================
 # LLVM C/C++ Toolchain Configuration
@@ -330,8 +288,6 @@ filegroup(
 """,
     patch_strip = 1,
     patches = ["//:third_party/boost-asio_qnx.patch"],
-    patch_strip = 1,
-    patches = ["//:third_party/boost-asio_qnx.patch"],
     sha256 = "7da75f171837577a52bbf217e17f8ea576c7c246e4594d617bfde7fafd408be5",
     strip_prefix = "boost-1.87.0",
     urls = ["https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.tar.xz"],
@@ -341,10 +297,6 @@ http_archive(
     name = "vsomeip",
     build_file = "@//:third_party/vsomeip.BUILD.bazel",
     integrity = "sha256-hMjkJs3fQ14MVtpwupfno/UbK+rxV+1zih9632bO5Sk=",
-    patch_strip = 1,
-    patches = ["//:third_party/vsomeip-qnx8.patch"],
-    strip_prefix = "vsomeip-3.6.1",
-    integrity = "sha256-lXdZnBQt+J6gfEMKfTLBFmf9BlDJOsz+FxATmqFFzr4=",
     patch_strip = 1,
     patches = ["//:third_party/vsomeip_qnx8.patch"],
     strip_prefix = "vsomeip-3.6.1",
