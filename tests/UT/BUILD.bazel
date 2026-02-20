@@ -1,0 +1,44 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@score_itf//:defs.bzl", "py_itf_test")
+load("@score_itf//score/itf/plugins:plugins.bzl", "qemu")
+
+# ---------------------------------------------------------------------------
+# C++ unit test execution on QNX QEMU image
+# Uses ITF SSH to connect to a running QEMU instance
+#
+# Prerequisites:
+#   Start QEMU first:
+#     bazel run //deployment/qemu:run_qemu_1 --config=x86_64-qnx
+#
+#   Then run:
+#     bazel test //tests/UT:test_ut --test_output=all --cache_test_results=no
+# ---------------------------------------------------------------------------
+py_itf_test(
+    name = "test_ut",
+    srcs = ["test_ut.py"],
+    args = [
+        "--qemu-config=$(location qemu_config.json)",
+        "--qemu-image=$(location //deployment/qemu:someip_gateway_ifs)",
+    ],
+    data = [
+        "qemu_config.json",
+        "//deployment/qemu:someip_gateway_ifs",
+    ],
+    plugins = [qemu],
+    tags = [
+        "manual",  # Requires pre-started QEMU
+        "qemu",
+    ],
+)

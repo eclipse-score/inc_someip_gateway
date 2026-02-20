@@ -1,0 +1,21 @@
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -87,17 +87,7 @@ bazel_dep(name = "rules_oci", version = "1.8.0")
+ 
+ oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+ 
+-# Declare external images you need to pull, for example:
+-oci.pull(
+-    name = "ubuntu_24_04",
+-    digest = "sha256:2e863c44b718727c860746568e1d54afd13b2fa71b160f5cd9058fc436217b30",
+-    image = "ubuntu",
+-    platforms = ["linux/amd64"],
+-    tag = "24.04",
+-)
+-
+-# For each oci.pull call, repeat the "name" here to expose them as dependencies.
+-use_repo(oci, "ubuntu_24_04")
++# OCI images disabled - conflicts with score_tooling ubuntu_24_04_linux_amd64
+ 
+ ###############################################################################
+ #

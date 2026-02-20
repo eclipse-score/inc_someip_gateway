@@ -11,17 +11,43 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+exports_files([
+    "pci_server.cfg",
+    "pci_hw.cfg",
+    "dhcpcd.conf",
+    "network_setup.sh",
+    "startup.sh",
+    "qcrypto.conf",
+    "sshd_config",
+    "ssh_host_rsa_key",
+    "ssh_host_rsa_key.pub",
+    "passwd",
+    "group",
+    "profile",
+])
 
-# Export vsomeip config for QEMU deployment
-exports_files(
-    ["vsomeip.json"],
+filegroup(
+    name = "network_configs",
+    srcs = [
+        "dhcpcd.conf",
+        "network_setup.sh",
+        "pci_hw.cfg",
+        "pci_server.cfg",
+        "qcrypto.conf",
+        "startup.sh",
+    ],
     visibility = ["//visibility:public"],
 )
 
-cc_binary(
-    name = "sample_client",
-    srcs = ["sample_client.cpp"],
+filegroup(
+    name = "ssh_configs",
+    srcs = [
+        "sshd_config",
+        "ssh_host_rsa_key",
+        "ssh_host_rsa_key.pub",
+        "passwd",
+        "group",
+        "profile",
+    ],
     visibility = ["//visibility:public"],
-    deps = ["@vsomeip"],
 )
