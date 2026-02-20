@@ -154,6 +154,7 @@ register_toolchains(
     "@score_qcc_x86_64_toolchain//:all",
     "@score_qcc_aarch64_toolchain//:all",
     "@toolchains_qnx_ifs//:all",
+    "@score_toolchains_qnx+//toolchains/fs/ifs:all",
     dev_dependency = True,
 )
 
