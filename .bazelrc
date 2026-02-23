@@ -67,23 +67,11 @@ common:aarch64-qnx --spawn_strategy=local
 
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 
-common --action_env=QNXLM_LICENSE_FILE="6287@rb-lic-qnxlm.de.bosch.com" #to be removed
-
-
 test --test_output=errors
 build --incompatible_strict_action_env
 
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
-
-# ============================================================================
-# Integration Test Framework Configuration
-# ============================================================================
-
-build:qemu-linux --run_under=@score_itf//scripts:run_under_qemu
-build:qemu-linux --test_arg="--qemu"
-build:qemu-linux --test_arg="--os=linux"
-
 
 # ============================================================================
 # Feature Flags & S-CORE Configuration

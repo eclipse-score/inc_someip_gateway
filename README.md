@@ -54,11 +54,13 @@ bazel test  //tests/...  --test_output=all --nocache_test_results --config=x86_6
 ```
 
 Unit tests are defined by the bazel `test_ut` target:
+
 ```sh
 bazel test //tests/UT:test_ut --test_output=all  --config=x86_64-qnx
 ```
 
-For Integration tests Host to QEMU communication:
+For Integration SOMEIP Service Discovery tests:
+
 ```sh
 bazel test //tests/integration/... --test_output=all --config=x86_64-qnx
 ```
@@ -66,7 +68,7 @@ bazel test //tests/integration/... --test_output=all --config=x86_64-qnx
 Run a specific integration test `test_negative_only_qemu1_with_services` for SOMEIP Service Discovery test suite:
 
 ```sh
-bazel test //tests/integration:test_someip_sd --test_output=all --config=x86_64-qnx --test_arg='-k' --test_arg='test_negative_only_qemu1_with_services
+bazel test //tests/integration:test_someip_sd --test_output=all --config=x86_64-qnx --test_arg='-k' --test_arg='test_negative_only_qemu1_with_services'
 ```
 
 

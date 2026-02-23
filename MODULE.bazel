@@ -220,13 +220,8 @@ bazel_dep(name = "score_docs_as_code", version = "2.3.0", dev_dependency = True)
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.1.2")
-# Patch note: score_communication-cchar.patch fixes the FFI declaration in proxy_bridge.rs
-# to use c_char instead of i8. On aarch64 (ARM), C's char is unsigned (u8), but
-# the FFI binding hardcodes i8. CString::as_ptr() returns *const c_char, causing
-# a type mismatch on aarch64 targets.
-# Fixed upstream on main by commit fa968f902660f64a1d04dd65a425dad40fe41c1c
-# ("Rust/com: Fix data type on FFI boundary", Feb 4, 2026).
-# Remove this patch once score_communication > 0.1.2 is released with that fix.
+# On aarch64 (ARM), C's char is unsigned (u8)
+# Fixed upstream on main by commit b9efce9702d108fd63be806738db50c14d354302
 single_version_override(
     module_name = "score_communication",
     patch_strip = 1,
