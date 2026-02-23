@@ -51,17 +51,21 @@ waitfor /dev/ram0                       # Wait for filesystem creation to comple
 mount -w /dev/ram0 /tmp_discovery        # Mount writable RAM disk at /tmp_discovery (required by LoLa)
 
 echo "---> Setting up writable /var for vsomeip"
-# Save SSH configs before mounting over /var (IFS /var is read-only)
+# Save sshd_config before mounting over /var (IFS /var is read-only)
 mkdir -p /tmp/var_backup
-cp -r /var/ssh /tmp/var_backup/ 2>/dev/null || true
+cp /var/ssh/sshd_config /tmp/var_backup/ 2>/dev/null || true
 # Mount RAM disk for writable /var
 devb-ram ram capacity=2 blk ramdisk=5m,cache=256k,vnode=64 2>/dev/null
 waitfor /dev/ram1 2
 mkqnx6fs -q /dev/ram1
 mount -w /dev/ram1 /var
-# Restore SSH configs
-cp -r /tmp/var_backup/ssh /var/ 2>/dev/null || true
-mkdir -p /var/run
+# Restore sshd_config and generate host key
+mkdir -p /var/ssh /var/run
+cp /tmp/var_backup/sshd_config /var/ssh/ 2>/dev/null || true
+
+echo "---> Generating SSH host key"
+ssh-keygen -t rsa -f /var/ssh/ssh_host_rsa_key -N "" -q
+chmod 400 /var/ssh/ssh_host_rsa_key
 
 echo "---> Configuring network"
 /etc/network_setup.sh                   # Execute network configuration script
@@ -73,14 +77,4 @@ waitfor /dev/ptyp0 5 2>/dev/null || true  # Wait up to 5 seconds for PTY device
 echo "---> Starting SSH daemon"
 /proc/boot/sshd -f /var/ssh/sshd_config  # Start SSH daemon for remote access
 
-echo "---> Starting qconn (QNX target agent)"
-qconn &                                 # Start QNX connection manager for IDE integration
-
 echo "---> SOME/IP Gateway system ready"
-echo "---> You can now start:"
-echo "    /usr/bin/someipd --service_instance_manifest /etc/someipd/mw_com_config.json"
-echo "    /usr/bin/gatewayd -config_file /etc/gatewayd/gatewayd_config.bin --service_instance_manifest /etc/gatewayd/mw_com_config.json"
-echo ""
-echo "---> On QEMU instance 2 (192.168.87.3), run sample_client:"
-echo "    export VSOMEIP_CONFIGURATION=/etc/sample_client/vsomeip.json"
-echo "    /usr/bin/sample_client"

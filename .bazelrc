@@ -44,11 +44,13 @@ common:x86_64-linux --repo_env=TARGET_ARCH=x86_64
 common:aarch64-linux --config=_toolchain_common
 common:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
 common:aarch64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu
+common:aarch64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 common:aarch64-linux --repo_env=TARGET_ARCH=aarch64
 
 common:x86_64-qnx --config=_toolchain_common
 common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
+common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
 common:x86_64-qnx --sandbox_writable_path=/var
 common:x86_64-qnx --action_env=QNX_TARGET_ARCH=x86_64
@@ -57,6 +59,7 @@ common:x86_64-qnx --spawn_strategy=local
 common:aarch64-qnx --config=_toolchain_common
 common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
+common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
 common:aarch64-qnx --sandbox_writable_path=/var/tmp
 common:aarch64-qnx --action_env=QNX_TARGET_ARCH=aarch64le

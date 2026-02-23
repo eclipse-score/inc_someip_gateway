@@ -25,5 +25,8 @@ py_library(
     srcs = [
         "qemu_utils.py",
     ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
     visibility = ["//tests:__subpackages__"],
 )

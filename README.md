@@ -47,6 +47,12 @@ For integration tests where the communication between two QEMU instances is requ
 For the QEMU QNX x864 image to run on host please run the script deployment/qemu/setup_bridge.sh with sudo privileges to setup the required network bridge and tap interfaces.
 It is stronly recommended to run all tests with `--nocache_test_results` which is the best way on development cycles to ensure you are always running the latest version of the tests and not accidentally running cached results.
 
+Tu run all tests (will take around 2 minutes)
+
+```sh
+bazel test  //tests/...  --test_output=all --nocache_test_results --config=x86_64-qnx
+```
+
 Unit tests are defined by the bazel `test_ut` target:
 ```sh
 bazel test //tests/UT:test_ut --test_output=all  --config=x86_64-qnx
@@ -54,18 +60,13 @@ bazel test //tests/UT:test_ut --test_output=all  --config=x86_64-qnx
 
 For Integration tests Host to QEMU communication:
 ```sh
-bazel test //tests/integration:test_qemu_network_single --test_output=all --config=x86_64-qnx
+bazel test //tests/integration/... --test_output=all --config=x86_64-qnx
 ```
 
-For integration tests QEMU to QEMU communication (dual instance test):
-```sh
-bazel test //tests/integration:test_qemu_network_dual --test_output=all  --config=x86_64-qnx
-```
-
-For integration tests SOMEIP Service Discovery:
+Run a specific integration test `test_negative_only_qemu1_with_services` for SOMEIP Service Discovery test suite:
 
 ```sh
-bazel test //tests/integration:test_someip_sd --test_output=all  --config=x86_64-qnx
+bazel test //tests/integration:test_someip_sd --test_output=all --config=x86_64-qnx --test_arg='-k' --test_arg='test_negative_only_qemu1_with_services
 ```
 
 

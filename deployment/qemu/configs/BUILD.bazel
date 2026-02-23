@@ -14,13 +14,10 @@
 exports_files([
     "pci_server.cfg",
     "pci_hw.cfg",
-    "dhcpcd.conf",
     "network_setup.sh",
     "startup.sh",
     "qcrypto.conf",
     "sshd_config",
-    "ssh_host_rsa_key",
-    "ssh_host_rsa_key.pub",
     "passwd",
     "group",
     "profile",
@@ -29,7 +26,6 @@ exports_files([
 filegroup(
     name = "network_configs",
     srcs = [
-        "dhcpcd.conf",
         "network_setup.sh",
         "pci_hw.cfg",
         "pci_server.cfg",
@@ -43,8 +39,6 @@ filegroup(
     name = "ssh_configs",
     srcs = [
         "sshd_config",
-        "ssh_host_rsa_key",
-        "ssh_host_rsa_key.pub",
         "passwd",
         "group",
         "profile",

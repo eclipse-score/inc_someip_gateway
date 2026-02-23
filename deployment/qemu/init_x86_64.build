@@ -118,7 +118,6 @@ io-sock                                  # Network socket manager
 if_up                                    # Network interface configuration
 ifconfig                                 # Network interface configuration tool
 route                                    # Routing table management
-dhcpcd                                   # DHCP client daemon
 sysctl                                   # Configure kernel parameters at runtime
 ping                                     # Network connectivity test
 netstat                                  # Network statistics
@@ -146,7 +145,6 @@ on
 ksh
 pidin
 shutdown
-qconn                                    # QNX target agent for IDE debugging/deployment
 toybox
 awk
 random
@@ -173,7 +171,6 @@ mount
 [type=dir] /tmp_ram
 [type=dir] /var
 [type=dir] /var/db
-[type=dir] /var/run/dhcpcd
 [gid=0 uid=0 dperms=755 type=dir] /var/chroot/sshd              # SSH chroot directory (privilege separation)
 [gid=0 uid=0 dperms=700 type=dir] /var/ssh                      # SSH configuration and key storage
 
@@ -221,14 +218,11 @@ mount
 [perms=0444] pci_server.cfg = ${MAIN_BUILD_FILE_DIR}/configs/pci_server.cfg
 [perms=0444] pci_hw.cfg = ${MAIN_BUILD_FILE_DIR}/configs/pci_hw.cfg
 [perms=0444] qcrypto.conf = ${MAIN_BUILD_FILE_DIR}/configs/qcrypto.conf
-[perms=0644] /etc/dhcpcd.conf = ${MAIN_BUILD_FILE_DIR}/configs/dhcpcd.conf
 [perms=0700] /etc/startup.sh = ${MAIN_BUILD_FILE_DIR}/configs/startup.sh
 [perms=0700] /etc/network_setup.sh = ${MAIN_BUILD_FILE_DIR}/configs/network_setup.sh
 
 # SSH configuration files
 [perms=0444] /var/ssh/sshd_config = ${MAIN_BUILD_FILE_DIR}/configs/sshd_config
-[uid=0 gid=0 perms=0400] /var/ssh/ssh_host_rsa_key = ${MAIN_BUILD_FILE_DIR}/configs/ssh_host_rsa_key
-[uid=0 gid=0 perms=0444] /var/ssh/ssh_host_rsa_key.pub = ${MAIN_BUILD_FILE_DIR}/configs/ssh_host_rsa_key.pub
 [perms=0644] /etc/passwd = ${MAIN_BUILD_FILE_DIR}/configs/passwd
 [perms=0644] /etc/group = ${MAIN_BUILD_FILE_DIR}/configs/group
 [perms=0644] /etc/profile = ${MAIN_BUILD_FILE_DIR}/configs/profile

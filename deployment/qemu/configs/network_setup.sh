@@ -20,11 +20,11 @@
 # Both QEMU instances are on the same L2 network (virbr0 bridge).
 #
 # Network layout:
-#   Bridge (host): virbr0 - 192.168.122.1/24
+#   Bridge (host): virbr0 - 192.168.87.1/24
 #   vtnet0:
-#     Instance 1:  192.168.122.2 (MAC: 52:54:00:12:34:01)
-#     Instance 2:  192.168.122.3 (MAC: 52:54:00:12:34:02)
-#     Gateway:     192.168.122.1
+#     Instance 1:  192.168.87.2 (MAC: 52:54:00:12:34:01)
+#     Instance 2:  192.168.87.3 (MAC: 52:54:00:12:34:02)
+#     Gateway:     192.168.87.1
 #     Netmask:     255.255.255.0
 #
 # Both instances can communicate directly on the same L2 network,

@@ -21,370 +21,461 @@ Dual instance tests (bridge inter-QEMU):
   bazel test //tests/integration:test_qemu_network_dual --test_output=all --config=x86_64-qnx
 """
 
+from __future__ import annotations
+
 import os
 import signal
 import subprocess
-import tempfile
 import time
+from contextlib import contextmanager
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterator
 
+import pytest
+from score.itf.core.com.ssh import Ssh
+
+from tests.itf_updates.qemu_utils import (
+    qemu_ifs_image,
+    qemu_run_script,
+    qemu_dual_instances,
+    start_qemu,
+)
+
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+TCPDUMP_INTERFACE = "virbr0"
+QEMU1_IP = "192.168.87.2"
+QEMU2_IP = "192.168.87.3"
+SERVICE_SETTLE_TIME = 20  # seconds to let SD exchange complete
+
+SSH_OPTS = [
+    "-o", "StrictHostKeyChecking=no",
+    "-o", "UserKnownHostsFile=/dev/null",
+    "-o", "LogLevel=ERROR",
+]
+
+# Service commands
+GATEWAYD_CMD = (
+    "/usr/bin/gatewayd -config_file /etc/gatewayd/gatewayd_config.bin "
+    "--service_instance_manifest /etc/gatewayd/mw_com_config.json"
+)
+SOMEIPD_CMD = (
+    "export VSOMEIP_CONFIGURATION=/etc/someipd/vsomeip.json && "
+    "/usr/bin/someipd --service_instance_manifest /etc/someipd/mw_com_config.json"
+)
+SAMPLE_CLIENT_CMD = (
+    "export VSOMEIP_CONFIGURATION=/etc/sample_client/vsomeip.json && "
+    "/usr/bin/sample_client"
+)
+
+
+# ---------------------------------------------------------------------------
+# Data Classes
+# ---------------------------------------------------------------------------
+
+@dataclass
+class SDExpectation:
+    """Expected SOME/IP-SD state for a host."""
+    name: str
+    offers: set[str]
+    finds: set[str]
+    subscribed: set[str]
+
+
+@dataclass
+class SDResult:
+    """Parsed SOME/IP-SD result for a host."""
+    offers: set[str]
+    finds: set[str]
+    subscribed: set[str]
+
+
+# Expected SOME/IP-SD state per host
+EXPECTED_SD = {
+    QEMU1_IP: SDExpectation(
+        name="someipd",
+        offers={"Service 0x1234.0x5678"},
+        finds={"Service 0x4321.0x5678"},
+        subscribed={"Service 0x4321.0x5678, eventgroup 0x4465"},
+    ),
+    QEMU2_IP: SDExpectation(
+        name="sample_client",
+        offers={"Service 0x4321.0x5678"},
+        finds={"Service 0x1234.0x5678"},
+        subscribed={"Service 0x1234.0x5678, eventgroup 0x4465"},
+    ),
+}
+
+
+# ---------------------------------------------------------------------------
+# Helper Functions
+# ---------------------------------------------------------------------------
+
+def get_tmp_dir() -> Path:
+    """Get temp directory (Bazel sandbox if available)."""
+    return Path(os.environ.get("TEST_TMPDIR", "/tmp"))
+
+
+def get_workspace_root() -> Path:
+    """Get workspace root directory."""
+    return Path(__file__).parent.parent.parent
+
+
+def get_analyze_script() -> Path:
+    """Get path to analyze_pcap_someip.py script."""
+    return get_workspace_root() / "tests/integration/analyze_pcap_someip.py"
+
+
+def ssh_run_bg(host: str, cmd: str) -> None:
+    """Fire-and-forget a command on host via SSH."""
+    subprocess.Popen(
+        ["ssh", *SSH_OPTS, f"root@{host}", cmd],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def kill_stale_qemu_instances() -> None:
+    """Kill any stale QEMU instances from previous runs."""
+    for instance_id in (1, 2):
+        pid_file = Path(f"/tmp/qemu-someip-gateway-{instance_id}.pid")
+        if pid_file.exists():
+            try:
+                old_pid = int(pid_file.read_text().strip())
+                os.kill(old_pid, signal.SIGTERM)
+                print(f"Killed stale QEMU instance {instance_id} (PID {old_pid})")
+                time.sleep(1)
+                pid_file.unlink(missing_ok=True)
+            except (ProcessLookupError, ValueError):
+                pass
+    subprocess.run(["pkill", "-f", "qemu-system"], capture_output=True)
+    time.sleep(2)
+
+
+def parse_analyze_output(output: str) -> dict[str, SDResult]:
+    """Parse analyze_pcap_someip.py output into per-IP SDResult dict."""
+    result: dict[str, SDResult] = {}
+    current_ip: str | None = None
+    current_section: str | None = None
+
+    for line in output.splitlines():
+        stripped = line.strip()
+
+        # Detect SUMMARY header: "SUMMARY: someipd (192.168.87.2)"
+        if stripped.startswith("SUMMARY:"):
+            if (start := stripped.rfind("(")) != -1 and (end := stripped.rfind(")")) != -1:
+                current_ip = stripped[start + 1:end]
+                result[current_ip] = SDResult(offers=set(), finds=set(), subscribed=set())
+                current_section = None
+            continue
+
+        if current_ip is None:
+            continue
+
+        # Detect section headers
+        if stripped == "OFFERS:":
+            current_section = "offers"
+        elif stripped == "FINDS:":
+            current_section = "finds"
+        elif stripped.startswith("SUBSCRIBED SUCCESSFULLY TO:"):
+            current_section = "subscribed"
+        elif current_section and stripped.startswith("Service"):
+            getattr(result[current_ip], current_section).add(stripped)
+
+    return result
+
+
+def analyze_pcap(pcap_file: Path) -> dict[str, SDResult]:
+    """Run analyze_pcap_someip.py and return parsed results."""
+    proc = subprocess.run(
+        ["python3", str(get_analyze_script()), str(pcap_file)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert proc.returncode == 0, f"analyze_pcap_someip.py failed:\n{proc.stderr}"
+    return parse_analyze_output(proc.stdout)
+
+
+@contextmanager
+def tcpdump_capture(pcap_file: Path, log_file: Path) -> Iterator[subprocess.Popen]:
+    """Context manager for tcpdump packet capture."""
+    with open(log_file, "w") as log_fh:
+        proc = subprocess.Popen(
+            [
+                "tcpdump", "-i", TCPDUMP_INTERFACE,
+                "-w", str(pcap_file),
+                f"host {QEMU1_IP} or host {QEMU2_IP}",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=log_fh,
+        )
+        time.sleep(2)  # Give tcpdump time to initialize
+        assert proc.poll() is None, f"tcpdump exited early: {log_file.read_text()}"
+
+        try:
+            yield proc
+        finally:
+            proc.send_signal(signal.SIGINT)
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
+
+
+def start_qemu1_services(host: str) -> None:
+    """Start gatewayd and someipd on QEMU 1."""
+    ssh_run_bg(host, GATEWAYD_CMD)
+    time.sleep(3)
+    ssh_run_bg(host, SOMEIPD_CMD)
+    time.sleep(2)
+
+
+def start_qemu2_services(host: str) -> None:
+    """Start sample_client on QEMU 2."""
+    ssh_run_bg(host, SAMPLE_CLIENT_CMD)
+
+
+def verify_sd_match(ip: str, expected: SDExpectation, actual: SDResult) -> None:
+    """Verify SD offers/finds/subscriptions match expected values."""
+    print("-" * 80)
+    print(f"CHECKING: {expected.name} ({ip})")
+    print("-" * 80)
+
+    for field in ("offers", "finds", "subscribed"):
+        exp_val = getattr(expected, field)
+        act_val = getattr(actual, field)
+        label = "SUBSCRIBED SUCCESSFULLY TO" if field == "subscribed" else field.upper()
+        print(f"  {label}:")
+        print(f"    expected: {sorted(exp_val)}")
+        print(f"    actual:   {sorted(act_val)}")
+        assert exp_val == act_val, f"[{expected.name}] {label} mismatch"
+        print("    -> OK")
+
+
+def verify_partial_sd(ip: str, parsed: dict[str, SDResult], output: str) -> None:
+    """Verify partial SD behavior (offers/finds present, no subscriptions)."""
+    assert ip in parsed, f"No SOME/IP-SD data for {ip}.\nOutput:\n{output}"
+    actual = parsed[ip]
+
+    print(f"  OFFERS: {sorted(actual.offers)}")
+    assert actual.offers, f"Should have offers, got: {actual.offers}"
+    print("    -> OK (has offers)")
+
+    print(f"  FINDS: {sorted(actual.finds)}")
+    assert actual.finds, f"Should have finds, got: {actual.finds}"
+    print("    -> OK (has finds)")
+
+    print(f"  SUBSCRIBED: {sorted(actual.subscribed)}")
+    assert not actual.subscribed, f"Should have no subscriptions, got: {actual.subscribed}"
+    print("    -> OK (no subscriptions as expected)")
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def ssh_client(target):
+    """Create ITF SSH connection to QEMU guest."""
+    with target.ssh() as connection:
+        yield connection
+
+
+@pytest.fixture
+def dual_ssh_clients(qemu_dual_instances):
+    """Create ITF SSH connections to both QEMU instances."""
+    instance1, instance2 = qemu_dual_instances
+
+    def make_ssh(host: str) -> Ssh:
+        return Ssh(
+            target_ip=host, port=22, timeout=15,
+            n_retries=5, retry_interval=2,
+            username="root", password="",
+        )
+
+    with make_ssh(instance1.ssh_host) as c1, make_ssh(instance2.ssh_host) as c2:
+        yield c1, c2
+
+
+# ---------------------------------------------------------------------------
+# Test Classes
+# ---------------------------------------------------------------------------
 
 class TestSingleInstanceNetwork:
     """Tests for single QEMU instance with bridge networking."""
 
     def test_ssh_connection(self, ssh_client):
         """Test basic SSH connectivity to QNX QEMU as root user."""
-        # Use full path since SSH session may not have /proc/boot in PATH
         _, stdout, stderr = ssh_client.exec_command("/proc/boot/uname -a && /proc/boot/whoami")
         output = stdout.read().decode().strip()
 
-        assert stdout.channel.recv_exit_status() == 0, f"Command failed: {stderr.read().decode()}"
-        assert "QNX" in output and "root" in output, f"Expected QNX and root, got: {output}"
+        assert stdout.channel.recv_exit_status() == 0, f"Failed: {stderr.read().decode()}"
+        assert "QNX" in output and "root" in output, f"Expected QNX/root, got: {output}"
 
     def test_bridge_interface_configured(self, ssh_client):
-        """Verify vtnet0 (bridge) interface is configured with 192.168.87.2."""
+        """Verify vtnet0 interface is configured with 192.168.87.2."""
         _, stdout, stderr = ssh_client.exec_command("/proc/boot/ifconfig vtnet0")
-        exit_code = stdout.channel.recv_exit_status()
-        output = stdout.read().decode().strip()
-
-        assert exit_code == 0, f"ifconfig vtnet0 failed: {stderr.read().decode()}"
-        assert "192.168.87.2" in output, f"Expected 192.168.87.2, got: {output}"
+        assert stdout.channel.recv_exit_status() == 0, f"Failed: {stderr.read().decode()}"
+        assert "192.168.87.2" in stdout.read().decode()
 
     def test_bridge_gateway_reachable(self, ssh_client):
-        """Verify guest can ping the bridge gateway (host at 192.168.87.1)."""
+        """Verify guest can ping the bridge gateway (192.168.87.1)."""
         _, stdout, stderr = ssh_client.exec_command("/proc/boot/ping -c 3 192.168.87.1")
-        exit_code = stdout.channel.recv_exit_status()
-        output = stdout.read().decode().strip()
-
-        assert exit_code == 0, f"Cannot ping gateway: {stderr.read().decode()}"
-        assert "3 packets transmitted" in output or "3 received" in output.lower() or "0% packet loss" in output
+        output = stdout.read().decode()
+        assert stdout.channel.recv_exit_status() == 0, f"Cannot ping: {stderr.read().decode()}"
+        assert any(x in output for x in ["3 packets transmitted", "0% packet loss"])
 
     def test_bridge_default_route(self, ssh_client):
         """Verify default route points to 192.168.87.1."""
-        # QNX route uses 'get default' to show default route info
-        _, stdout, stderr = ssh_client.exec_command("/proc/boot/route get default 2>&1")
-        exit_code = stdout.channel.recv_exit_status()
-        output = stdout.read().decode().strip()
-
-        # Default route should go through gateway 192.168.87.1
-        assert "192.168.87.1" in output, f"Default route not via 192.168.87.1: {output}"
+        _, stdout, _ = ssh_client.exec_command("/proc/boot/route get default 2>&1")
+        assert "192.168.87.1" in stdout.read().decode()
 
 
 class TestDualInstanceNetwork:
     """Tests for two QEMU instances communicating via bridge networking."""
 
     def test_both_instances_have_bridge_interface(self, dual_ssh_clients):
-        """Verify both instances have vtnet0 (bridge) interface configured."""
+        """Verify both instances have vtnet0 interface configured."""
         client1, client2 = dual_ssh_clients
 
-        # Check instance 1
-        _, stdout, _ = client1.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo 'NO_VTNET0'")
-        output1 = stdout.read().decode().strip()
+        _, out1, _ = client1.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo NO_VTNET0")
+        _, out2, _ = client2.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo NO_VTNET0")
+        output1, output2 = out1.read().decode(), out2.read().decode()
 
-        # Check instance 2
-        _, stdout, _ = client2.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo 'NO_VTNET0'")
-        output2 = stdout.read().decode().strip()
-
-        assert "NO_VTNET0" not in output1, f"Instance 1 missing vtnet0: {output1}"
-        assert "NO_VTNET0" not in output2, f"Instance 2 missing vtnet0: {output2}"
-        assert "192.168.87.2" in output1, f"Instance 1 wrong IP: {output1}"
-        assert "192.168.87.3" in output2, f"Instance 2 wrong IP: {output2}"
+        assert "NO_VTNET0" not in output1 and "192.168.87.2" in output1
+        assert "NO_VTNET0" not in output2 and "192.168.87.3" in output2
 
     def test_instance1_can_ping_instance2(self, dual_ssh_clients):
-        """Verify instance 1 can ping instance 2 via bridge network."""
+        """Verify instance 1 can ping instance 2."""
         client1, _ = dual_ssh_clients
-
         _, stdout, stderr = client1.exec_command("/proc/boot/ping -c 3 192.168.87.3")
-        exit_code = stdout.channel.recv_exit_status()
-        output = stdout.read().decode().strip()
-
-        assert exit_code == 0, f"Instance 1 cannot ping instance 2: {stderr.read().decode()}\n{output}"
+        assert stdout.channel.recv_exit_status() == 0, f"Ping failed: {stderr.read().decode()}"
 
     def test_instance2_can_ping_instance1(self, dual_ssh_clients):
-        """Verify instance 2 can ping instance 1 via bridge network."""
+        """Verify instance 2 can ping instance 1."""
         _, client2 = dual_ssh_clients
-
         _, stdout, stderr = client2.exec_command("/proc/boot/ping -c 3 192.168.87.2")
-        exit_code = stdout.channel.recv_exit_status()
-        output = stdout.read().decode().strip()
-
-        assert exit_code == 0, f"Instance 2 cannot ping instance 1: {stderr.read().decode()}\n{output}"
+        assert stdout.channel.recv_exit_status() == 0, f"Ping failed: {stderr.read().decode()}"
 
     def test_both_instances_can_reach_host(self, dual_ssh_clients):
-        """Verify both instances can reach host via bridge (192.168.87.1)."""
-        client1, client2 = dual_ssh_clients
-
-        for i, client in enumerate([client1, client2], 1):
-            _, stdout, stderr = client.exec_command("/proc/boot/ping -c 1 192.168.87.1")
-            exit_code = stdout.channel.recv_exit_status()
-
-            assert exit_code == 0, f"Instance {i} cannot reach host via bridge"
+        """Verify both instances can reach host (192.168.87.1)."""
+        for i, client in enumerate(dual_ssh_clients, 1):
+            _, stdout, _ = client.exec_command("/proc/boot/ping -c 1 192.168.87.1")
+            assert stdout.channel.recv_exit_status() == 0, f"Instance {i} cannot reach host"
 
 
 class TestSomeIPSD:
     """Tests for SOME/IP Service Discovery between two QEMU instances.
 
-    Starts tcpdump to capture traffic, launches both QEMU instances with
-    their respective services (gatewayd/someipd on QEMU 1, sample_client
-    on QEMU 2), waits for service discovery to complete, then analyzes
-    the captured pcap to verify offers, finds, and subscriptions.
-
-     OFFERS:
-      What the  service is offered by the host's someipd configuration.
-
-      FINDS:
-        What service is looking for.
-
-      SUBSCRIBED SUCCESSFULLY TO::
-        A subscription succeeds only if the remote side offers the
-        matching service.
+    OFFERS: Services offered by the host's someipd configuration.
+    FINDS: Services the host is looking for.
+    SUBSCRIBED: Successful subscriptions (requires matching offer from remote).
     """
 
-    TCPDUMP_INTERFACE = "virbr0"
-    QEMU1_IP = "192.168.87.2"
-    QEMU2_IP = "192.168.87.3"
-    SERVICE_SETTLE_TIME = 20  # seconds to let SD exchange complete
-
-    SSH_OPTS = [
-        "-o", "StrictHostKeyChecking=no",
-        "-o", "UserKnownHostsFile=/dev/null",
-        "-o", "LogLevel=ERROR",
-    ]
-
-    # Expected SOME/IP-SD state per host
-    EXPECTED = {
-        "192.168.87.2": {
-            "name": "someipd",
-            "offers": {"Service 0x1234.0x5678"},
-            "finds": {"Service 0x4321.0x5678"},
-            "subscribed": {"Service 0x4321.0x5678, eventgroup 0x4465"},
-        },
-        "192.168.87.3": {
-            "name": "sample_client",
-            "offers": {"Service 0x4321.0x5678"},
-            "finds": {"Service 0x1234.0x5678"},
-            "subscribed": {"Service 0x1234.0x5678, eventgroup 0x4465"},
-        },
-    }
-
-    @staticmethod
-    def _get_script_path(relative_path: str) -> str:
-        """Resolve a path relative to the workspace root."""
-        workspace_root = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "..")
-        )
-        return os.path.join(workspace_root, relative_path)
-
-    @staticmethod
-    def _wait_for_ssh(host: str, timeout: int = 60) -> bool:
-        """Poll until SSH is accepting connections on *host*."""
-        deadline = time.time() + timeout
-        while time.time() < deadline:
-            try:
-                result = subprocess.run(
-                    ["ssh"] + TestSomeIPSD.SSH_OPTS + [f"root@{host}", "echo ready"],
-                    capture_output=True,
-                    timeout=5,
-                )
-                if result.returncode == 0:
-                    return True
-            except subprocess.TimeoutExpired:
-                pass
-            time.sleep(2)
-        return False
-
-    @staticmethod
-    def _ssh_run_bg(host: str, cmd: str) -> None:
-        """Fire-and-forget a command on *host* via SSH."""
-        subprocess.Popen(
-            ["ssh"] + TestSomeIPSD.SSH_OPTS + [f"root@{host}", cmd],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-
-    @staticmethod
-    def _parse_analyze_output(output: str) -> dict:
-        """Parse the output of analyze_pcap_someip.py into a per-IP dict.
-
-        Returns a dict keyed by IP with sub-keys 'offers', 'finds',
-        'subscribed', each a set of stripped entry strings.
-        """
-        result = {}
-        current_ip = None
-        current_section = None
-
-        for line in output.splitlines():
-            line_stripped = line.strip()
-
-            # Detect SUMMARY header  →  "SUMMARY: someipd (192.168.87.2)"
-            if line_stripped.startswith("SUMMARY:"):
-                ip_start = line_stripped.rfind("(")
-                ip_end = line_stripped.rfind(")")
-                if ip_start != -1 and ip_end != -1:
-                    current_ip = line_stripped[ip_start + 1 : ip_end]
-                    result[current_ip] = {
-                        "offers": set(),
-                        "finds": set(),
-                        "subscribed": set(),
-                    }
-                    current_section = None
-                continue
-
-            if current_ip is None:
-                continue
-
-            # Detect section headers
-            if line_stripped == "OFFERS:":
-                current_section = "offers"
-                continue
-            elif line_stripped == "FINDS:":
-                current_section = "finds"
-                continue
-            elif line_stripped.startswith("SUBSCRIBED SUCCESSFULLY TO:"):
-                current_section = "subscribed"
-                continue
-
-            # Collect entry lines (indented with "Service …")
-            if current_section and line_stripped.startswith("Service"):
-                result[current_ip][current_section].add(line_stripped)
-
-        return result
-
     def test_someip_sd_offers_finds_subscriptions(self, qemu_dual_instances):
-        """Verify SOME/IP-SD offers, finds, and subscriptions between QEMUs.
-
-        1. Start tcpdump on virbr0 capturing SOME/IP traffic.
-        2. Start gatewayd + someipd on QEMU 1 and sample_client on QEMU 2.
-        3. Wait for service discovery to settle.
-        4. Stop the services and tcpdump.
-        5. Run analyze_pcap_someip.py on the capture.
-        6. Assert expected offers / finds / subscriptions per host.
-        """
+        """Verify SOME/IP-SD offers, finds, and subscriptions between QEMUs."""
         instance1, instance2 = qemu_dual_instances
+        tmp = get_tmp_dir()
+        pcap = tmp / "someip_sd_test.pcap"
 
-        # Use TEST_TMPDIR (Bazel sandbox) if available, else /tmp
-        tmp_dir = os.environ.get("TEST_TMPDIR", tempfile.gettempdir())
-        pcap_file = os.path.join(tmp_dir, "someip_sd_test.pcap")
-        analyze_script = self._get_script_path(
-            "tests/integration/analyze_pcap_someip.py"
-        )
+        with tcpdump_capture(pcap, tmp / "tcpdump.log"):
+            start_qemu1_services(instance1.ssh_host)
+            start_qemu2_services(instance2.ssh_host)
+            time.sleep(SERVICE_SETTLE_TIME)
 
-        # --- 1. Start tcpdump ------------------------------------------------
-        tcpdump_log = os.path.join(tmp_dir, "tcpdump_stderr.log")
-        tcpdump_log_fh = open(tcpdump_log, "w")
-        tcpdump_proc = subprocess.Popen(
-            [
-                "tcpdump",
-                "-i", self.TCPDUMP_INTERFACE,
-                "-w", pcap_file,
-                f"host {self.QEMU1_IP} or host {self.QEMU2_IP}",
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=tcpdump_log_fh,
-        )
-        # Give tcpdump a moment to initialise the capture
-        time.sleep(2)
-        assert tcpdump_proc.poll() is None, (
-            f"tcpdump exited early (rc={tcpdump_proc.returncode}). "
-            f"stderr: {open(tcpdump_log).read()}"
-        )
+        assert pcap.exists(), f"pcap not created at {pcap}"
+        parsed = analyze_pcap(pcap)
 
+        for ip, expected in EXPECTED_SD.items():
+            assert ip in parsed, f"No SD data for {expected.name} ({ip})"
+            verify_sd_match(ip, expected, parsed[ip])
+
+    def test_negative_no_qemu_only_tcpdump(self):
+        """Negative: No QEMUs running - no traffic expected."""
+        kill_stale_qemu_instances()
+
+        tmp = get_tmp_dir()
+        pcap = tmp / "negative_no_qemu.pcap"
+
+        with tcpdump_capture(pcap, tmp / "tcpdump_no_qemu.log"):
+            time.sleep(5)
+
+        parsed = analyze_pcap(pcap)
+        assert not parsed, f"Expected no SD data, found: {list(parsed.keys())}"
+        print("PASS: No SOME/IP-SD traffic when no QEMU instances running")
+
+    def test_negative_both_qemus_no_services(self, qemu_dual_instances):
+        """Negative: Both QEMUs running but no services - no traffic expected."""
+        instance1, instance2 = qemu_dual_instances
+        tmp = get_tmp_dir()
+        pcap = tmp / "negative_no_services.pcap"
+
+        print(f"QEMU 1: {instance1.ssh_host}, QEMU 2: {instance2.ssh_host}")
+        print("Waiting 10 seconds without starting services...")
+
+        with tcpdump_capture(pcap, tmp / "tcpdump_no_services.log"):
+            time.sleep(10)
+
+        parsed = analyze_pcap(pcap)
+        assert not parsed, f"Expected no SD data, found: {list(parsed.keys())}"
+        print("PASS: No SOME/IP-SD traffic when QEMUs running without services")
+
+    def test_negative_only_qemu1_with_services(self, qemu_ifs_image, qemu_run_script):
+        """Negative: Only QEMU 1 with services - offers/finds but no subscriptions."""
+        kill_stale_qemu_instances()
+        tmp = get_tmp_dir()
+        pcap = tmp / "negative_only_qemu1.pcap"
+
+        instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=1, net_mode="dual")
         try:
-            # --- 2. Launch services on both QEMUs -----------------------------
-
-            # QEMU 1 – gatewayd then someipd (mirrors setup_qemu_1.sh)
-            self._ssh_run_bg(
-                instance1.ssh_host,
-                "/usr/bin/gatewayd -config_file /etc/gatewayd/gatewayd_config.bin "
-                "--service_instance_manifest /etc/gatewayd/mw_com_config.json",
-            )
-            time.sleep(3)
-            self._ssh_run_bg(
-                instance1.ssh_host,
-                "export VSOMEIP_CONFIGURATION=/etc/someipd/vsomeip.json && "
-                "/usr/bin/someipd --service_instance_manifest /etc/someipd/mw_com_config.json",
-            )
-            time.sleep(2)
-
-            # QEMU 2 – sample_client (mirrors setup_qemu_2.sh)
-            self._ssh_run_bg(
-                instance2.ssh_host,
-                "export VSOMEIP_CONFIGURATION=/etc/sample_client/vsomeip.json && "
-                "/usr/bin/sample_client",
-            )
-
-            # --- 3. Wait for service discovery to settle ----------------------
-            time.sleep(self.SERVICE_SETTLE_TIME)
-
+            with tcpdump_capture(pcap, tmp / "tcpdump_qemu1.log"):
+                print(f"Starting services on QEMU 1 ({instance.ssh_host})...")
+                start_qemu1_services(instance.ssh_host)
+                print(f"Waiting {SERVICE_SETTLE_TIME}s for SD exchanges...")
+                time.sleep(SERVICE_SETTLE_TIME)
         finally:
-            # --- 4. Stop tcpdump ---------------------------------------------
-            tcpdump_proc.send_signal(signal.SIGINT)
-            try:
-                tcpdump_proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                tcpdump_proc.kill()
-                tcpdump_proc.wait()
-            tcpdump_log_fh.close()
+            instance.stop()
 
-        # --- 5. Analyse the pcap file -----------------------------------------
-        result = subprocess.run(
-            ["python3", analyze_script, pcap_file],
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        output = result.stdout
-        assert os.path.exists(pcap_file), (
-            f"pcap file was not created at {pcap_file}. "
-            f"tcpdump log: {open(tcpdump_log).read()}"
-        )
-        assert result.returncode == 0, (
-            f"analyze_pcap_someip.py failed (rc={result.returncode}):\n"
-            f"{result.stderr}\n{output}"
-        )
+        parsed = analyze_pcap(pcap)
 
-        parsed = self._parse_analyze_output(output)
+        print("-" * 80)
+        print("CHECKING: Only QEMU 1 running with services")
+        print("-" * 80)
 
-        # --- 6. Verify per host -----------------------------------------------
-        for ip, expected in self.EXPECTED.items():
-            host_name = expected["name"]
+        verify_partial_sd(QEMU1_IP, parsed, str(pcap))
+        assert QEMU2_IP not in parsed, f"QEMU 2 should not be present"
+        print("  QEMU 2: Not present (as expected)")
+        print("PASS: Only QEMU 1 - offers/finds present, no subscriptions")
 
-            print("-" * 80)
-            print(f"CHECKING: {host_name} ({ip})")
-            print("-" * 80)
+    def test_negative_only_qemu2_with_services(self, qemu_ifs_image, qemu_run_script):
+        """Negative: Only QEMU 2 with services - offers/finds but no subscriptions."""
+        kill_stale_qemu_instances()
+        tmp = get_tmp_dir()
+        pcap = tmp / "negative_only_qemu2.pcap"
 
-            assert ip in parsed, (
-                f"No SOME/IP-SD data found for {host_name} ({ip}).\n"
-                f"Full output:\n{output}"
-            )
+        instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=2, net_mode="dual")
+        try:
+            with tcpdump_capture(pcap, tmp / "tcpdump_qemu2.log"):
+                print(f"Starting sample_client on QEMU 2 ({instance.ssh_host})...")
+                start_qemu2_services(instance.ssh_host)
+                print(f"Waiting {SERVICE_SETTLE_TIME}s for SD exchanges...")
+                time.sleep(SERVICE_SETTLE_TIME)
+        finally:
+            instance.stop()
 
-            actual = parsed[ip]
+        parsed = analyze_pcap(pcap)
 
-            print(f"  OFFERS:")
-            print(f"    expected: {sorted(expected['offers'])}")
-            print(f"    actual:   {sorted(actual['offers'])}")
-            assert expected["offers"] == actual["offers"], (
-                f"[{host_name}] OFFERS mismatch.\n"
-                f"  expected: {expected['offers']}\n"
-                f"  actual:   {actual['offers']}"
-            )
-            print(f"    -> OK")
+        print("-" * 80)
+        print("CHECKING: Only QEMU 2 running with services")
+        print("-" * 80)
 
-            print(f"  FINDS:")
-            print(f"    expected: {sorted(expected['finds'])}")
-            print(f"    actual:   {sorted(actual['finds'])}")
-            assert expected["finds"] == actual["finds"], (
-                f"[{host_name}] FINDS mismatch.\n"
-                f"  expected: {expected['finds']}\n"
-                f"  actual:   {actual['finds']}"
-            )
-            print(f"    -> OK")
-
-            print(f"  SUBSCRIBED SUCCESSFULLY TO:")
-            print(f"    expected: {sorted(expected['subscribed'])}")
-            print(f"    actual:   {sorted(actual['subscribed'])}")
-            assert expected["subscribed"] == actual["subscribed"], (
-                f"[{host_name}] SUBSCRIBED SUCCESSFULLY TO mismatch.\n"
-                f"  expected: {expected['subscribed']}\n"
-                f"  actual:   {actual['subscribed']}"
-            )
-            print(f"    -> OK")
+        verify_partial_sd(QEMU2_IP, parsed, str(pcap))
+        assert QEMU1_IP not in parsed, f"QEMU 1 should not be present"
+        print("  QEMU 1: Not present (as expected)")
+        print("PASS: Only QEMU 2 - offers/finds present, no subscriptions")

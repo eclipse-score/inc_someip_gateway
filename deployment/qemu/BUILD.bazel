@@ -20,9 +20,6 @@
 # Usage:
 #   # Build the IFS image
 #   bazel build //deployment/qemu:someip_gateway_ifs --config=x86_64-qnx
-#
-#   # Run in QEMU (requires qemu-system-x86_64 + KVM on host)
-#   bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
 # =============================================================================
 
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
@@ -123,42 +120,10 @@ qnx_ifs(
         "SAMPLE_CLIENT_CONFIGS": ":sample_client_configs_pkg",
         "TEST_BINS": ":test_binaries_pkg",
     },
-    testonly = True,
-    visibility = ["//visibility:public"],
-)
-
-# ---------------------------------------------------------------------------
-# Launch QEMU Instance 1 (SSH: 2222, qconn: 8000, dual networking)
-# ---------------------------------------------------------------------------
-sh_binary(
-    name = "run_qemu_1",
-    srcs = ["run_qemu.sh"],
-    args = [
-        "$(location :someip_gateway_ifs)",
-        "1",
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:qnx",
     ],
-    data = [
-        ":someip_gateway_ifs",
-    ],
-    env = {"QEMU_NET_MODE": "dual"},
-    testonly = True,
-    visibility = ["//visibility:public"],
-)
-
-# ---------------------------------------------------------------------------
-# Launch QEMU Instance 2 (SSH: 2223, qconn: 8001, dual networking)
-# ---------------------------------------------------------------------------
-sh_binary(
-    name = "run_qemu_2",
-    srcs = ["run_qemu.sh"],
-    args = [
-        "$(location :someip_gateway_ifs)",
-        "2",
-    ],
-    data = [
-        ":someip_gateway_ifs",
-    ],
-    env = {"QEMU_NET_MODE": "dual"},
     testonly = True,
     visibility = ["//visibility:public"],
 )

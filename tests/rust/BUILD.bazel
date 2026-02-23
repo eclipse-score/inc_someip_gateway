@@ -15,4 +15,8 @@ load("@rules_rust//rust:defs.bzl", "rust_test")
 rust_test(
     name = "rust_hello_test",
     srcs = ["test_main.rs"],
+    # This is a host-only test; cross-compiled QNX binaries cannot execute on Linux.
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
 )

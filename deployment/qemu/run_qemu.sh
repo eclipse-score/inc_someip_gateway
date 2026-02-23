@@ -13,10 +13,7 @@
 # *******************************************************************************
 #
 # Launch a QNX x86_64 IFS image under QEMU with bridge networking.
-#
-# Usage (via Bazel):
-#   bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
-#
+
 # Environment variables:
 #   QEMU_INSTANCE_ID  - Instance ID (1 or 2) for multi-instance setups (default: 1)
 #

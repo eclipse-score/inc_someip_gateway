@@ -25,7 +25,6 @@ exports_files(
 py_itf_test(
     name = "test_qemu_network_single",
     srcs = [
-        "conftest.py",
         "test_qemu_network.py",
         "//tests/itf_updates:qemu_utils.py",
     ],
@@ -39,14 +38,13 @@ py_itf_test(
         "//deployment/qemu:someip_gateway_ifs",
     ],
     plugins = [qemu],
-    tags = ["qemu"],
+    tags = ["qemu", "qemu-x86_64", "exclusive"],
 )
 
 # Dual instance test - automatically starts two QEMU instances via qemu_utils.py
 py_itf_test(
     name = "test_qemu_network_dual",
     srcs = [
-        "conftest.py",
         "test_qemu_network.py",
         "//tests/itf_updates:qemu_utils.py",
     ],
@@ -58,14 +56,13 @@ py_itf_test(
         "//deployment/qemu:run_qemu.sh",
     ],
     plugins = [],  # No qemu plugin - uses qemu_utils.py for dual instance management
-    tags = ["qemu"],
+    tags = ["qemu", "qemu-x86_64", "exclusive"],
 )
 
 # SOME/IP Service Discovery test - captures traffic and verifies SD offers/finds/subscriptions
 py_itf_test(
     name = "test_someip_sd",
     srcs = [
-        "conftest.py",
         "test_qemu_network.py",
         "//tests/itf_updates:qemu_utils.py",
     ],
@@ -79,5 +76,5 @@ py_itf_test(
         "//deployment/qemu:run_qemu.sh",
     ],
     plugins = [],  # No qemu plugin - uses qemu_utils.py for dual instance management
-    tags = ["qemu"],
+    tags = ["qemu", "qemu-x86_64", "exclusive"],
 )

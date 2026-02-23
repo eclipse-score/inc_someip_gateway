@@ -221,11 +221,6 @@ show_status() {
         fi
     done
 
-    echo ""
-    echo "To run QEMU with bridge networking:"
-    echo "  ./run_qemu.sh <IFS_IMAGE> 1"
-    echo "  ./run_qemu.sh <IFS_IMAGE> 2"
-    echo ""
     echo "To use with ITF, configure network_adapters in your JSON:"
     echo '  "networks": [{"name": "tap-qemu1", ...}]'
 }

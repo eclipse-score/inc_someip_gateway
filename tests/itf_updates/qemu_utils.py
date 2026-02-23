@@ -45,7 +45,7 @@ SSH_PORT = 22  # Direct SSH to guest (no port forwarding)
 SSH_TIMEOUT = 10  # SSH connection timeout in seconds
 
 # Boot timeout
-QEMU_BOOT_TIMEOUT = 60  # seconds
+QEMU_BOOT_TIMEOUT = 15  # seconds
 
 
 def get_guest_ip(instance_id: int) -> str:
@@ -155,7 +155,6 @@ class QEMUInstance:
         process: The subprocess.Popen object for the QEMU process.
         instance_id: Unique identifier for this instance (1, 2, etc.).
         ssh_host: SSH hostname/IP for this instance (192.168.87.2 for id=1, etc.).
-        qconn_port: QConn port for this instance (8000 for id=1, 8001 for id=2).
         log_file: Path to the QEMU log file.
         pid_file: Path to the PID file for cleanup.
     """
@@ -163,7 +162,6 @@ class QEMUInstance:
     process: subprocess.Popen
     instance_id: int
     ssh_host: str
-    qconn_port: int
     log_file: Path
     pid_file: Path
 
@@ -233,7 +231,6 @@ def start_qemu(
         pytest.fail: If QEMU fails to boot or SSH is not ready.
     """
     ssh_host = get_guest_ip(instance_id)
-    qconn_port = 7999 + instance_id
 
     # Create log file
     log_dir = Path(tempfile.gettempdir()) / "qemu-test"
@@ -269,7 +266,6 @@ def start_qemu(
         process=process,
         instance_id=instance_id,
         ssh_host=ssh_host,
-        qconn_port=qconn_port,
         log_file=log_file,
         pid_file=pid_file,
     )
