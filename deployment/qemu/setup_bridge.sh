@@ -88,8 +88,6 @@ check_prerequisites() {
 setup_bridge() {
     echo "=== Setting up bridge network: ${BRIDGE_NAME} ==="
 
-    setcap cap_net_raw,cap_net_admin=eip $(which tcpdump)
-
     # Check if bridge already exists
     if ip link show "${BRIDGE_NAME}" &>/dev/null; then
         echo "[INFO] Bridge ${BRIDGE_NAME} already exists, skipping creation"
@@ -117,7 +115,7 @@ setup_bridge() {
 
     # Set bridge helper permissions (needs setuid for non-root QEMU)
     if [[ -f "${QEMU_BRIDGE_HELPER}" ]]; then
-        chmod u+s "${QEMU_BRIDGE_HELPER}"
+        chmod u+s "${QEMU_BRIDGE_HELPER}" #on a native Linux host it might be required "chmod 777" but this will not work in WSL2
         echo "[INFO] Set setuid on ${QEMU_BRIDGE_HELPER}"
     else
         echo "[WARNING] QEMU bridge helper not found at ${QEMU_BRIDGE_HELPER}"
@@ -152,6 +150,12 @@ setup_bridge() {
         fi
     done
 
+    # allow tcpdump to capture on bridge interfaces without running as root
+    setcap cap_net_raw,cap_net_admin=eip $(which tcpdump)
+
+    # Allow traffic forwarding between bridge interfaces (eg qemu1 can ping qemu2)
+    iptables -I FORWARD -i "${BRIDGE_NAME}" -o "${BRIDGE_NAME}" -j ACCEPT
+
     echo ""
     echo "=== Bridge setup complete ==="
     show_status
@@ -172,6 +176,11 @@ teardown_bridge() {
 
     # Remove multicast route
     ip route del 224.0.0.0/4 dev "${BRIDGE_NAME}" 2>/dev/null || true
+
+    iptables -D FORWARD -i "${BRIDGE_NAME}" -o "${BRIDGE_NAME}" -j ACCEPT
+
+    # remove tcpdump sudo permissions to capture on the bridge interfaces
+    sudo setcap -r $(which tcpdump)
 
     # Remove bridge
     if ip link show "${BRIDGE_NAME}" &>/dev/null; then

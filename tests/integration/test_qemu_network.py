@@ -432,7 +432,7 @@ class TestSomeIPSD:
         tmp = get_tmp_dir()
         pcap = tmp / "negative_only_qemu1.pcap"
 
-        instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=1, net_mode="dual")
+        instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=1)
         try:
             with tcpdump_capture(pcap, tmp / "tcpdump_qemu1.log"):
                 print(f"Starting services on QEMU 1 ({instance.ssh_host})...")
@@ -459,7 +459,7 @@ class TestSomeIPSD:
         tmp = get_tmp_dir()
         pcap = tmp / "negative_only_qemu2.pcap"
 
-        instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=2, net_mode="dual")
+        instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=2)
         try:
             with tcpdump_capture(pcap, tmp / "tcpdump_qemu2.log"):
                 print(f"Starting sample_client on QEMU 2 ({instance.ssh_host})...")

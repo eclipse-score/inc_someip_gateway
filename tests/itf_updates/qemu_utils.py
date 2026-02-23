@@ -213,8 +213,7 @@ class QEMUInstance:
 def start_qemu(
     ifs_image: Path,
     run_script: Path,
-    instance_id: int = 1,
-    net_mode: str = "slirp",
+    instance_id: int = 1
 ) -> QEMUInstance:
     """Start a QEMU instance and wait for it to boot.
 
@@ -222,7 +221,6 @@ def start_qemu(
         ifs_image: Path to the QNX IFS image.
         run_script: Path to the run_qemu.sh script.
         instance_id: Unique identifier for this instance (default: 1).
-        net_mode: Network mode - "bridge" for bridge networking.
 
     Returns:
         QEMUInstance representing the running QEMU.
@@ -250,7 +248,6 @@ def start_qemu(
 
     # Start QEMU
     env = os.environ.copy()
-    env["QEMU_NET_MODE"] = net_mode
     env["QEMU_INSTANCE_ID"] = str(instance_id)
 
     with open(log_file, "w") as log:
@@ -323,15 +320,13 @@ def qemu_dual_instances(
     instance1 = start_qemu(
         ifs_image=qemu_ifs_image,
         run_script=qemu_run_script,
-        instance_id=1,
-        net_mode="dual",
+        instance_id=1
     )
 
     instance2 = start_qemu(
         ifs_image=qemu_ifs_image,
         run_script=qemu_run_script,
-        instance_id=2,
-        net_mode="dual",
+        instance_id=2
     )
 
     yield instance1, instance2
