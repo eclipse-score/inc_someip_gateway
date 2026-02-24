@@ -38,10 +38,10 @@ filegroup(
 filegroup(
     name = "ssh_configs",
     srcs = [
-        "sshd_config",
-        "passwd",
         "group",
+        "passwd",
         "profile",
+        "sshd_config",
     ],
     visibility = ["//visibility:public"],
 )

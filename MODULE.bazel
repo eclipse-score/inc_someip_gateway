@@ -131,7 +131,6 @@ gcc.toolchain(
     use_default_package = True,
     version = "12.2.0",
 )
-
 gcc.toolchain(
     name = "score_qcc_aarch64_toolchain",
     sdp_version = "8.0.0",
@@ -220,6 +219,7 @@ bazel_dep(name = "score_docs_as_code", version = "2.3.0", dev_dependency = True)
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.1.2")
+
 # On aarch64 (ARM), C's char is unsigned (u8)
 # Fixed upstream on main by commit b9efce9702d108fd63be806738db50c14d354302
 single_version_override(

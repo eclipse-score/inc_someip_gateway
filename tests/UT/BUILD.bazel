@@ -27,8 +27,8 @@ py_itf_test(
     ],
     plugins = [qemu],
     tags = [
+        "exclusive",
         "qemu",
         "qemu-x86_64",
-        "exclusive",
     ],
 )

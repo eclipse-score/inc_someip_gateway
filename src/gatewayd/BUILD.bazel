@@ -87,7 +87,6 @@ exports_files(
     visibility = ["//deployment:__subpackages__"],
 )
 
-
 generate_someip_config_bin(
     name = "config_file",
     json = "etc/gatewayd_config.json",

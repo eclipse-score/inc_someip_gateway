@@ -53,13 +53,13 @@ pkg_tar(
 # ---------------------------------------------------------------------------
 pkg_tar(
     name = "test_binaries_pkg",
+    testonly = True,
     srcs = [
         "//tests/UT/UnitTest_UT1:cpp_test_main1",
         "//tests/UT/UnitTest_UT2:cpp_test_main2",
     ],
     include_runfiles = True,
     package_dir = "/",
-    testonly = True,
 )
 
 # ---------------------------------------------------------------------------
@@ -107,11 +107,16 @@ pkg_tar(
 # ---------------------------------------------------------------------------
 qnx_ifs(
     name = "someip_gateway_ifs",
-    build_file = "init_x86_64.build",
-    out = "someip_gateway_x86_64.ifs",
+    testonly = True,
     srcs = [
         "//deployment/qemu/configs:network_configs",
         "//deployment/qemu/configs:ssh_configs",
+    ],
+    out = "someip_gateway_x86_64.ifs",
+    build_file = "init_x86_64.build",
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:qnx",
     ],
     tars = {
         "GATEWAY_BINS": ":gateway_binaries_pkg",
@@ -120,10 +125,5 @@ qnx_ifs(
         "SAMPLE_CLIENT_CONFIGS": ":sample_client_configs_pkg",
         "TEST_BINS": ":test_binaries_pkg",
     },
-    target_compatible_with = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:qnx",
-    ],
-    testonly = True,
     visibility = ["//visibility:public"],
 )
