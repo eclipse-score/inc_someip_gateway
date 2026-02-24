@@ -54,9 +54,12 @@ QEMU2_IP = "192.168.87.3"
 SERVICE_SETTLE_TIME = 20  # seconds to let SD exchange complete
 
 SSH_OPTS = [
-    "-o", "StrictHostKeyChecking=no",
-    "-o", "UserKnownHostsFile=/dev/null",
-    "-o", "LogLevel=ERROR",
+    "-o",
+    "StrictHostKeyChecking=no",
+    "-o",
+    "UserKnownHostsFile=/dev/null",
+    "-o",
+    "LogLevel=ERROR",
 ]
 
 # Service commands
@@ -78,9 +81,11 @@ SAMPLE_CLIENT_CMD = (
 # Data Classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SDExpectation:
     """Expected SOME/IP-SD state for a host."""
+
     name: str
     offers: set[str]
     finds: set[str]
@@ -90,6 +95,7 @@ class SDExpectation:
 @dataclass
 class SDResult:
     """Parsed SOME/IP-SD result for a host."""
+
     offers: set[str]
     finds: set[str]
     subscribed: set[str]
@@ -115,6 +121,7 @@ EXPECTED_SD = {
 # ---------------------------------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------------------------------
+
 
 def get_tmp_dir() -> Path:
     """Get temp directory (Bazel sandbox if available)."""
@@ -168,9 +175,13 @@ def parse_analyze_output(output: str) -> dict[str, SDResult]:
 
         # Detect SUMMARY header: "SUMMARY: someipd (192.168.87.2)"
         if stripped.startswith("SUMMARY:"):
-            if (start := stripped.rfind("(")) != -1 and (end := stripped.rfind(")")) != -1:
-                current_ip = stripped[start + 1:end]
-                result[current_ip] = SDResult(offers=set(), finds=set(), subscribed=set())
+            if (start := stripped.rfind("(")) != -1 and (
+                end := stripped.rfind(")")
+            ) != -1:
+                current_ip = stripped[start + 1 : end]
+                result[current_ip] = SDResult(
+                    offers=set(), finds=set(), subscribed=set()
+                )
                 current_section = None
             continue
 
@@ -208,8 +219,11 @@ def tcpdump_capture(pcap_file: Path, log_file: Path) -> Iterator[subprocess.Pope
     with open(log_file, "w") as log_fh:
         proc = subprocess.Popen(
             [
-                "tcpdump", "-i", TCPDUMP_INTERFACE,
-                "-w", str(pcap_file),
+                "tcpdump",
+                "-i",
+                TCPDUMP_INTERFACE,
+                "-w",
+                str(pcap_file),
                 f"host {QEMU1_IP} or host {QEMU2_IP}",
             ],
             stdout=subprocess.DEVNULL,
@@ -273,13 +287,16 @@ def verify_partial_sd(ip: str, parsed: dict[str, SDResult], output: str) -> None
     print("    -> OK (has finds)")
 
     print(f"  SUBSCRIBED: {sorted(actual.subscribed)}")
-    assert not actual.subscribed, f"Should have no subscriptions, got: {actual.subscribed}"
+    assert not actual.subscribed, (
+        f"Should have no subscriptions, got: {actual.subscribed}"
+    )
     print("    -> OK (no subscriptions as expected)")
 
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def ssh_client(target):
@@ -295,9 +312,13 @@ def dual_ssh_clients(qemu_dual_instances):
 
     def make_ssh(host: str) -> Ssh:
         return Ssh(
-            target_ip=host, port=22, timeout=15,
-            n_retries=5, retry_interval=2,
-            username="root", password="",
+            target_ip=host,
+            port=22,
+            timeout=15,
+            n_retries=5,
+            retry_interval=2,
+            username="root",
+            password="",
         )
 
     with make_ssh(instance1.ssh_host) as c1, make_ssh(instance2.ssh_host) as c2:
@@ -308,28 +329,37 @@ def dual_ssh_clients(qemu_dual_instances):
 # Test Classes
 # ---------------------------------------------------------------------------
 
+
 class TestSingleInstanceNetwork:
     """Tests for single QEMU instance with bridge networking."""
 
     def test_ssh_connection(self, ssh_client):
         """Test basic SSH connectivity to QNX QEMU as root user."""
-        _, stdout, stderr = ssh_client.exec_command("/proc/boot/uname -a && /proc/boot/whoami")
+        _, stdout, stderr = ssh_client.exec_command(
+            "/proc/boot/uname -a && /proc/boot/whoami"
+        )
         output = stdout.read().decode().strip()
 
-        assert stdout.channel.recv_exit_status() == 0, f"Failed: {stderr.read().decode()}"
+        assert stdout.channel.recv_exit_status() == 0, (
+            f"Failed: {stderr.read().decode()}"
+        )
         assert "QNX" in output and "root" in output, f"Expected QNX/root, got: {output}"
 
     def test_bridge_interface_configured(self, ssh_client):
         """Verify vtnet0 interface is configured with 192.168.87.2."""
         _, stdout, stderr = ssh_client.exec_command("/proc/boot/ifconfig vtnet0")
-        assert stdout.channel.recv_exit_status() == 0, f"Failed: {stderr.read().decode()}"
+        assert stdout.channel.recv_exit_status() == 0, (
+            f"Failed: {stderr.read().decode()}"
+        )
         assert "192.168.87.2" in stdout.read().decode()
 
     def test_bridge_gateway_reachable(self, ssh_client):
         """Verify guest can ping the bridge gateway (192.168.87.1)."""
         _, stdout, stderr = ssh_client.exec_command("/proc/boot/ping -c 3 192.168.87.1")
         output = stdout.read().decode()
-        assert stdout.channel.recv_exit_status() == 0, f"Cannot ping: {stderr.read().decode()}"
+        assert stdout.channel.recv_exit_status() == 0, (
+            f"Cannot ping: {stderr.read().decode()}"
+        )
         assert any(x in output for x in ["3 packets transmitted", "0% packet loss"])
 
     def test_bridge_default_route(self, ssh_client):
@@ -345,8 +375,12 @@ class TestDualInstanceNetwork:
         """Verify both instances have vtnet0 interface configured."""
         client1, client2 = dual_ssh_clients
 
-        _, out1, _ = client1.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo NO_VTNET0")
-        _, out2, _ = client2.exec_command("/proc/boot/ifconfig vtnet0 2>/dev/null || echo NO_VTNET0")
+        _, out1, _ = client1.exec_command(
+            "/proc/boot/ifconfig vtnet0 2>/dev/null || echo NO_VTNET0"
+        )
+        _, out2, _ = client2.exec_command(
+            "/proc/boot/ifconfig vtnet0 2>/dev/null || echo NO_VTNET0"
+        )
         output1, output2 = out1.read().decode(), out2.read().decode()
 
         assert "NO_VTNET0" not in output1 and "192.168.87.2" in output1
@@ -356,19 +390,25 @@ class TestDualInstanceNetwork:
         """Verify instance 1 can ping instance 2."""
         client1, _ = dual_ssh_clients
         _, stdout, stderr = client1.exec_command("/proc/boot/ping -c 3 192.168.87.3")
-        assert stdout.channel.recv_exit_status() == 0, f"Ping failed: {stderr.read().decode()}"
+        assert stdout.channel.recv_exit_status() == 0, (
+            f"Ping failed: {stderr.read().decode()}"
+        )
 
     def test_instance2_can_ping_instance1(self, dual_ssh_clients):
         """Verify instance 2 can ping instance 1."""
         _, client2 = dual_ssh_clients
         _, stdout, stderr = client2.exec_command("/proc/boot/ping -c 3 192.168.87.2")
-        assert stdout.channel.recv_exit_status() == 0, f"Ping failed: {stderr.read().decode()}"
+        assert stdout.channel.recv_exit_status() == 0, (
+            f"Ping failed: {stderr.read().decode()}"
+        )
 
     def test_both_instances_can_reach_host(self, dual_ssh_clients):
         """Verify both instances can reach host (192.168.87.1)."""
         for i, client in enumerate(dual_ssh_clients, 1):
             _, stdout, _ = client.exec_command("/proc/boot/ping -c 1 192.168.87.1")
-            assert stdout.channel.recv_exit_status() == 0, f"Instance {i} cannot reach host"
+            assert stdout.channel.recv_exit_status() == 0, (
+                f"Instance {i} cannot reach host"
+            )
 
 
 class TestSomeIPSD:

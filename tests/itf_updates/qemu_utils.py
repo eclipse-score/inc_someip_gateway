@@ -55,6 +55,7 @@ def get_guest_ip(instance_id: int) -> str:
     """
     return f"{BRIDGE_SUBNET}.{1 + instance_id}"
 
+
 # Bazel workspace name in runfiles (bzlmod uses "_main" for the root module)
 WORKSPACE_NAME = "_main"
 
@@ -128,7 +129,12 @@ def wait_for_ssh(host: str, port: int, user: str, timeout: int = 60) -> bool:
             stdout.channel.recv_exit_status()
             client.close()
             return True
-        except (paramiko.SSHException, socket.error, EOFError, ConnectionResetError) as e:
+        except (
+            paramiko.SSHException,
+            socket.error,
+            EOFError,
+            ConnectionResetError,
+        ) as e:
             last_error = e
             # Exponential backoff: 1s, 2s, 3s... up to 5s max
             backoff = min(attempt, 5)
@@ -189,11 +195,18 @@ class QEMUInstance:
                     banner_timeout=15,
                 )
                 return client
-            except (paramiko.SSHException, socket.error, EOFError, ConnectionResetError) as e:
+            except (
+                paramiko.SSHException,
+                socket.error,
+                EOFError,
+                ConnectionResetError,
+            ) as e:
                 last_error = e
                 if attempt < retries - 1:
                     time.sleep(2)
-        raise paramiko.SSHException(f"Failed to connect after {retries} attempts: {last_error}")
+        raise paramiko.SSHException(
+            f"Failed to connect after {retries} attempts: {last_error}"
+        )
 
     def stop(self):
         """Stop this QEMU instance gracefully."""
@@ -206,11 +219,7 @@ class QEMUInstance:
                 self.process.wait()
 
 
-def start_qemu(
-    ifs_image: Path,
-    run_script: Path,
-    instance_id: int = 1
-) -> QEMUInstance:
+def start_qemu(ifs_image: Path, run_script: Path, instance_id: int = 1) -> QEMUInstance:
     """Start a QEMU instance and wait for it to boot.
 
     Args:
@@ -314,15 +323,11 @@ def qemu_dual_instances(
     Instance 2: 192.168.87.3:22 (direct bridge access)
     """
     instance1 = start_qemu(
-        ifs_image=qemu_ifs_image,
-        run_script=qemu_run_script,
-        instance_id=1
+        ifs_image=qemu_ifs_image, run_script=qemu_run_script, instance_id=1
     )
 
     instance2 = start_qemu(
-        ifs_image=qemu_ifs_image,
-        run_script=qemu_run_script,
-        instance_id=2
+        ifs_image=qemu_ifs_image, run_script=qemu_run_script, instance_id=2
     )
 
     yield instance1, instance2

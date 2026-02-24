@@ -18,9 +18,9 @@ Runs C++ GoogleTest binaries on the QEMU guest and validates results.
 """
 
 import pytest
+
 # ITF imports (score_itf main branch e994cb6 + OCI conflict patch)
 from score.itf.core.com.ssh import execute_command_output
-
 
 
 @pytest.fixture
@@ -33,13 +33,11 @@ def ssh_client(target):
     with target.ssh() as connection:
         yield connection
 
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
-commands = [
-        "/usr/bin/tests/cpp_test_main1",
-        "/usr/bin/tests/cpp_test_main2"
-    ]
+commands = ["/usr/bin/tests/cpp_test_main1", "/usr/bin/tests/cpp_test_main2"]
 
 
 def test_cpp_unit_tests_on_qemu(ssh_client):
@@ -53,7 +51,6 @@ def test_cpp_unit_tests_on_qemu(ssh_client):
             cmd,
             timeout=10,
             max_exec_time=120,
-
             verbose=True,
         )
 
@@ -61,7 +58,9 @@ def test_cpp_unit_tests_on_qemu(ssh_client):
         error_output = "".join(stderr_lines)
 
         # Save the logs so you can see what happened later
-        run_logs.append(f"=== Logs for {cmd} ===\nSTDOUT:\n{output}\nSTDERR:\n{error_output}\n")
+        run_logs.append(
+            f"=== Logs for {cmd} ===\nSTDOUT:\n{output}\nSTDERR:\n{error_output}\n"
+        )
 
         # Record failures but keep the loop going
         if exit_code != 0:
@@ -69,4 +68,6 @@ def test_cpp_unit_tests_on_qemu(ssh_client):
 
     # Now that all tests have run, assert if any of them failed
     full_log_output = "\n".join(run_logs)
-    assert len(failed_tests) == 0, f"C++ tests failed!\nFailed binaries: {failed_tests}\n\n{full_log_output}"
+    assert len(failed_tests) == 0, (
+        f"C++ tests failed!\nFailed binaries: {failed_tests}\n\n{full_log_output}"
+    )
