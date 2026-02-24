@@ -1,0 +1,1 @@
+FROM ghcr.io/eclipse-score/devcontainer:v1.1.0
