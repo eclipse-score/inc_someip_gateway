@@ -37,7 +37,9 @@ updates:
           - "patch"
 
   - package-ecosystem: docker
-    directory: /
+    directories:
+      - /.devcontainer
+      - /tests/integration/docker_setup
     schedule:
       interval: daily
     groups:
