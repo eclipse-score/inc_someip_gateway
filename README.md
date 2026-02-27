@@ -70,7 +70,20 @@ Run a specific integration test `test_negative_only_qemu1_with_services` for SOM
 ```sh
 bazel test //tests/integration:test_someip_sd --test_output=all --config=x86_64-qnx --test_arg='-k' --test_arg='test_negative_only_qemu1_with_services'
 ```
+To run the QNX tests using dev containers please add the changes to devcontainer.json:
 
+```json
+"runArgs": {
+    "--device=/dev/kvm"
+}
+"postCreateCommand": "sudo apt-get update && sudo apt-get install -y software-properties-common && sudo add-apt-repository -y universe && sudo apt-get update && sudo apt-get install -y qemu-system-x86 iputils-ping && sudo apt-get install -y tcpdump && sudo apt install -y iptables",
+"postStartCommand": "sudo chmod 666 /dev/kvm"
+```
+When the docker container is running is please execute the shell command:
+
+```sh
+sudo deployment/qemu/setup_bridge.sh
+```
 
 ## 📝 Configuration
 
