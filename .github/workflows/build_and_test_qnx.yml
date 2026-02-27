@@ -16,8 +16,8 @@
 
 name: Build & Test module (cross compilation for QNX)
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize]
+  # pull_request_target:
+  #   types: [opened, reopened, synchronize]
   push:
     branches:
       - main
