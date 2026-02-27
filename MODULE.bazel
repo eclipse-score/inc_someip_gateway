@@ -18,7 +18,7 @@ module(name = "score_someip_gateway")
 # ============================================================================
 # Python Configuration
 # ============================================================================
-bazel_dep(name = "rules_python", version = "1.4.1", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "1.9.0-rc1", dev_dependency = True)
 
 # rules_python 1.5.0 breaks score_docs_as_code; pin to 1.4.1 until resolved.
 single_version_override(
@@ -60,14 +60,14 @@ use_repo(pip, "someip_pip")
 # Testing & Performance Measurement
 # ============================================================================
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
-bazel_dep(name = "google_benchmark", version = "1.9.4", dev_dependency = True)
+bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 
 # ============================================================================
 # Build System Rules
 # ============================================================================
-bazel_dep(name = "rules_cc", version = "0.2.14")
-bazel_dep(name = "rules_rust", version = "0.63.0")
-bazel_dep(name = "rules_pkg", version = "1.1.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "rules_rust", version = "0.69.0")
+bazel_dep(name = "rules_pkg", version = "1.2.0")
 
 # Platforms: Standard constraint values and platform definitions
 # Required for select() expressions that use @platforms//cpu:* and @platforms//os:*
@@ -149,7 +149,7 @@ register_toolchains(
 
 # LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
 # Integrates with LLVM 19.1.0 and Debian Bullseye sysroots
-bazel_dep(name = "toolchains_llvm", version = "1.5.0", dev_dependency = True)
+bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
 
 # Configures LLVM 19.1.0 for C/C++ compilation with cross-architecture support.
 llvm = use_extension(
@@ -174,7 +174,7 @@ register_toolchains(
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
 bazel_dep(name = "aspect_rules_lint", version = "1.10.2", dev_dependency = True)
-bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.1.2", dev_dependency = True)
 
 # ============================================================================
 # Documentation
@@ -202,7 +202,7 @@ single_version_override(
 # ============================================================================
 # Code Generation - FlatBuffers
 # ============================================================================
-bazel_dep(name = "flatbuffers", version = "25.2.10")
+bazel_dep(name = "flatbuffers", version = "25.12.19")
 
 # TRLC: Traceability Language Compiler for requirements management
 git_override(
@@ -273,6 +273,6 @@ http_archive(
 # ============================================================================
 # JSON Schema generation, validation and handling (e.g. write_source_files)
 # ============================================================================
-bazel_dep(name = "bazel_lib", version = "3.1.0", dev_dependency = True)
+bazel_dep(name = "bazel_lib", version = "3.2.1", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
