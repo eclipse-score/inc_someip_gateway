@@ -1,0 +1,19 @@
+--- a/score/mw/com/impl/rust/proxy_bridge.rs
++++ b/score/mw/com/impl/rust/proxy_bridge.rs
+@@ -38,6 +38,7 @@
+ mod ffi {
+     use std::marker::PhantomData;
+     use std::mem::transmute;
++    use std::os::raw::c_char;
+ 
+     /// This type represents score::mw::com::InstanceSpecifier as an opaque struct.
+     /// Note that this struct is empty as we only use references to it on Rust side.
+@@ -133,7 +134,7 @@
+             container: *const NativeHandleContainer,
+             pos: u32,
+         ) -> *const HandleType;
+-        pub(super) fn mw_com_impl_initialize(options: *mut *const i8, len: i32);
++        pub(super) fn mw_com_impl_initialize(options: *mut *const c_char, len: i32);
+         pub(super) fn mw_com_impl_sample_ptr_get_size() -> u32;
+         pub(super) fn mw_com_impl_proxy_event_subscribe(
+             proxy_event: *mut ProxyEventBase,

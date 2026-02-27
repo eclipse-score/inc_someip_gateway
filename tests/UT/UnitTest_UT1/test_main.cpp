@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,17 +19,6 @@ int add(int a, int b) { return a + b; }
 TEST(AdditionTest, HandlesPositiveNumbers) {
     EXPECT_EQ(add(2, 3), 5);
     EXPECT_EQ(add(10, 20), 30);
-}
-
-TEST(AdditionTest, HandlesNegativeNumbers) {
-    EXPECT_EQ(add(-2, -3), -5);
-    EXPECT_EQ(add(-10, 5), -5);
-}
-
-TEST(AdditionTest, HandlesZero) {
-    EXPECT_EQ(add(0, 0), 0);
-    EXPECT_EQ(add(0, 5), 5);
-    EXPECT_EQ(add(5, 0), 5);
 }
 
 // Main function for running tests

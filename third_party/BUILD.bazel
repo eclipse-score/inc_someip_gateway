@@ -10,13 +10,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_rust//rust:defs.bzl", "rust_test")
 
-rust_test(
-    name = "rust_hello_test",
-    srcs = ["test_main.rs"],
-    # This is a host-only test; cross-compiled QNX binaries cannot execute on Linux.
-    target_compatible_with = [
-        "@platforms//os:linux",
-    ],
-)
+exports_files([
+    "baselibs-multiarch.patch",
+    "boost-asio_qnx.patch",
+    "score_itf_oci_conflict.patch",
+    "vsomeip.BUILD.bazel",
+    "vsomeip_qnx8.patch",
+])

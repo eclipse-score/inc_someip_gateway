@@ -10,13 +10,25 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_rust//rust:defs.bzl", "rust_test")
 
-rust_test(
-    name = "rust_hello_test",
-    srcs = ["test_main.rs"],
-    # This is a host-only test; cross-compiled QNX binaries cannot execute on Linux.
-    target_compatible_with = [
-        "@platforms//os:linux",
+load("@score_itf//:defs.bzl", "py_itf_test")
+load("@score_itf//score/itf/plugins:plugins.bzl", "qemu")
+
+py_itf_test(
+    name = "test_ut",
+    srcs = ["test_ut.py"],
+    args = [
+        "--qemu-config=$(location qemu_config.json)",
+        "--qemu-image=$(location //deployment/qemu:someip_gateway_ifs)",
+    ],
+    data = [
+        "qemu_config.json",
+        "//deployment/qemu:someip_gateway_ifs",
+    ],
+    plugins = [qemu],
+    tags = [
+        "exclusive",
+        "qemu",
+        "qemu-x86_64",
     ],
 )

@@ -10,13 +10,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_rust//rust:defs.bzl", "rust_test")
 
-rust_test(
-    name = "rust_hello_test",
-    srcs = ["test_main.rs"],
-    # This is a host-only test; cross-compiled QNX binaries cannot execute on Linux.
-    target_compatible_with = [
-        "@platforms//os:linux",
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_test(
+    name = "cpp_test_main2",
+    srcs = ["test_main.cpp"],
+    tags = ["manual"],
+    visibility = ["//deployment/qemu:__pkg__"],
+    deps = [
+        "@googletest//:gtest_main",  # GoogleTest dependency via Bazel Modules
     ],
 )

@@ -1,7 +1,5 @@
-#!/bin/bash
-
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -13,15 +11,20 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-set -e
+exports_files(
+    [
+        "qemu_utils.py",
+    ],
+    visibility = ["//tests:__subpackages__"],
+)
 
-echo "Container for sample_client started"
-
-# Add multicast route
-route add -net 224.0.0.0/4 dev eth0
-
-# Manually start up the sample_client application when the car_window_controller and gatewayd are already running
-# export VSOMEIP_CONFIGURATION=$(pwd)/tests/integration/sample_client/vsomeip.json
-# /home/source/bazel-bin/tests/integration/sample_client/sample_client
-
-sleep infinity
+py_library(
+    name = "itf_updates",
+    srcs = [
+        "qemu_utils.py",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+    visibility = ["//tests:__subpackages__"],
+)

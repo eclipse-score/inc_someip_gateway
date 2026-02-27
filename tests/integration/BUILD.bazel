@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -11,22 +11,84 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-"""
-Integration Tests
-"""
-
 load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
+load("@score_itf//:defs.bzl", "py_itf_test")
+load("@score_itf//score/itf/plugins:plugins.bzl", "qemu")
 
-py_pytest(
-    name = "integration",
-    size = "medium",
-    srcs = glob(["test_*.py"]) + ["conftest.py"],
-    data = ["vsomeip-local.json"],
-    # Restrict the test execution to Linux for the moment due to dependency on Python
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = [
-        "//src/someipd",
-        "@someip_pip//pytest",
-        "@someip_pip//someip",
+# Export vsomeip config for QEMU deployment
+exports_files(
+    ["vsomeip.json"],
+    visibility = ["//visibility:public"],
+)
+
+py_itf_test(
+    name = "test_qemu_network_single",
+    srcs = [
+        "test_qemu_network.py",
+        "//tests/itf_updates:qemu_utils.py",
+    ],
+    args = [
+        "-k",
+        "TestSingleInstanceNetwork",
+        "--qemu-config=$(location qemu_config.json)",
+        "--qemu-image=$(location //deployment/qemu:someip_gateway_ifs)",
+    ],
+    data = [
+        "qemu_config.json",
+        "//deployment/qemu:someip_gateway_ifs",
+    ],
+    plugins = [qemu],
+    tags = [
+        "exclusive",
+        "qemu",
+        "qemu-x86_64",
+    ],
+)
+
+# Dual instance test - automatically starts two QEMU instances via qemu_utils.py
+py_itf_test(
+    name = "test_qemu_network_dual",
+    srcs = [
+        "test_qemu_network.py",
+        "//tests/itf_updates:qemu_utils.py",
+    ],
+    args = [
+        "-k",
+        "TestDualInstanceNetwork",
+    ],
+    data = [
+        "//deployment/qemu:run_qemu.sh",
+        "//deployment/qemu:someip_gateway_ifs",
+    ],
+    plugins = [],  # No qemu plugin - uses qemu_utils.py for dual instance management
+    tags = [
+        "exclusive",
+        "qemu",
+        "qemu-x86_64",
+    ],
+)
+
+# SOME/IP Service Discovery test - captures traffic and verifies SD offers/finds/subscriptions
+py_itf_test(
+    name = "test_someip_sd",
+    srcs = [
+        "test_qemu_network.py",
+        "//tests/itf_updates:qemu_utils.py",
+    ],
+    args = [
+        "-k",
+        "TestSomeIPSD",
+        "-s",
+    ],
+    data = [
+        "analyze_pcap_someip.py",
+        "//deployment/qemu:run_qemu.sh",
+        "//deployment/qemu:someip_gateway_ifs",
+    ],
+    plugins = [],  # No qemu plugin - uses qemu_utils.py for dual instance management
+    tags = [
+        "exclusive",
+        "qemu",
+        "qemu-x86_64",
     ],
 )

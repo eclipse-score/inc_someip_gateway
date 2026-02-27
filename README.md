@@ -1,4 +1,3 @@
-
 # SOME/IP Gateway
 
 The gateway is divided into a gateway daemon (gatewayd) which contains the network-independent logic (payload serialization, etc.) and the SOME/IP daemon (someipd) which binds to the concrete SOME/IP stack.
@@ -41,41 +40,50 @@ bazel run //examples/car_window_sim:car_window_controller
 If you type `open` or `close` the command will be sent via network.
 
 
-### Dockerized integration test POC
+### QEMU x86_64 - based integration test and unit tests
 
-For integration tests, a docker based approach was taken.
-As a proof of concept `docker compose` can be used to build, setup and run the containers.
-In the future a pytest based setup can be implemented to orchestrate the containers.
+For integration tests where the communication between two QEMU instances is required, a custom implementation is used to start and manage the QEMU instances within the test logic. This is because ITF does not support starting multiple QEMU instances in parallel yet.
 
-Build the docker containers:
+For the QEMU QNX x864 image to run on host please run the script deployment/qemu/setup_bridge.sh with sudo privileges to setup the required network bridge and tap interfaces.
+It is stronly recommended to run all tests with `--nocache_test_results` which is the best way on development cycles to ensure you are always running the latest version of the tests and not accidentally running cached results.
 
-```sh
-docker compose --project-directory tests/integration/docker_setup/ build
-```
-
-Start up the containers:
+Tu run all tests (will take around 2 minutes)
 
 ```sh
-docker compose --project-directory tests/integration/docker_setup/ up
+bazel test  //tests/...  --test_output=all --nocache_test_results --config=x86_64-qnx
 ```
 
-Those containers are pre-configured (IP adresses, multicast route, ...).
-The someipd-1 container already starts up the `gatewayd` and the `someipd`.
-
-In Wireshark the network traffic can be seen by capturing on `any` with `ip.addr== 192.168.87.2 || ip.addr ==192.168.87.3`.
-
-On the client side, start up the `sample_client` in another shell:
+Unit tests are defined by the bazel `test_ut` target:
 
 ```sh
-docker exec -it --env VSOMEIP_CONFIGURATION=/home/source/tests/integration/sample_client/vsomeip.json docker_setup-client-1 /home/source/bazel-bin/tests/integration/sample_client/sample_client
+bazel test //tests/UT:test_ut --test_output=all  --config=x86_64-qnx
 ```
 
-Finally start the benchmark on the someipd-1 container in a third shell:
+For Integration SOMEIP Service Discovery tests:
 
 ```sh
-docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/performance_benchmarks/ipc_benchmarks
+bazel test //tests/integration/... --test_output=all --config=x86_64-qnx
 ```
 
+Run a specific integration test `test_negative_only_qemu1_with_services` for SOMEIP Service Discovery test suite:
+
+```sh
+bazel test //tests/integration:test_someip_sd --test_output=all --config=x86_64-qnx --test_arg='-k' --test_arg='test_negative_only_qemu1_with_services'
+```
+To run the QNX tests using dev containers please add the changes to devcontainer.json:
+
+```json
+"runArgs": {
+    "--device=/dev/kvm"
+}
+"postCreateCommand": "sudo apt-get update && sudo apt-get install -y software-properties-common && sudo add-apt-repository -y universe && sudo apt-get update && sudo apt-get install -y qemu-system-x86 iputils-ping && sudo apt-get install -y tcpdump && sudo apt install -y iptables",
+"postStartCommand": "sudo chmod 666 /dev/kvm"
+```
+When the docker container is running is please execute the shell command:
+
+```sh
+sudo deployment/qemu/setup_bridge.sh
+```
 
 ## 📝 Configuration
 

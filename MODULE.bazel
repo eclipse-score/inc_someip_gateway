@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -62,12 +62,24 @@ use_repo(pip, "someip_pip")
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 bazel_dep(name = "google_benchmark", version = "1.9.4", dev_dependency = True)
 
+bazel_dep(name = "score_itf", version = "0.1.0")
+git_override(
+    module_name = "score_itf",
+    commit = "e994cb6",  # Main branch with simplified QEMU plugin
+    patch_strip = 1,
+    patches = ["//third_party:score_itf_oci_conflict.patch"],
+    remote = "https://github.com/eclipse-score/itf.git",
+)
+
 # ============================================================================
 # Build System Rules
 # ============================================================================
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "rules_rust", version = "0.63.0")
 bazel_dep(name = "rules_pkg", version = "1.1.0")
+
+# Required by score_toolchains_qnx qnx_ifs rule for tar extraction
+bazel_dep(name = "tar.bzl", version = "0.7.0")
 
 # Platforms: Standard constraint values and platform definitions
 # Required for select() expressions that use @platforms//cpu:* and @platforms//os:*
@@ -140,8 +152,30 @@ register_toolchains(
     "@score_gcc_aarch64_toolchain//:all",
     "@score_qcc_x86_64_toolchain//:all",
     "@score_qcc_aarch64_toolchain//:all",
+    "@toolchains_qnx_ifs//:all",
     dev_dependency = True,
 )
+
+# ============================================================================
+# QNX IFS Image Toolchain (for building QEMU filesystem images via mkifs)
+# ============================================================================
+bazel_dep(name = "score_toolchains_qnx", version = "0.0.7", dev_dependency = True)
+
+toolchains_qnx = use_extension(
+    "@score_toolchains_qnx//:extensions.bzl",
+    "toolchains_qnx",
+    dev_dependency = True,
+)
+toolchains_qnx.sdp(
+    sha256 = "f2e0cb21c6baddbcb65f6a70610ce498e7685de8ea2e0f1648f01b327f6bac63",
+    strip_prefix = "installation",
+    url = "https://www.qnx.com/download/download/79858/installation.tgz",
+)
+use_repo(toolchains_qnx, "toolchains_qnx_ifs")
+# register_toolchains(
+#     "@toolchains_qnx_ifs//:ifs_x86_64",
+#     dev_dependency = True,
+# )
 
 # ============================================================================
 # LLVM C/C++ Toolchain Configuration
@@ -172,7 +206,7 @@ register_toolchains(
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "score_tooling", version = "1.1.2", dev_dependency = True)
 bazel_dep(name = "aspect_rules_lint", version = "1.10.2", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
 
@@ -185,6 +219,14 @@ bazel_dep(name = "score_docs_as_code", version = "2.3.0", dev_dependency = True)
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.1.2")
+
+# On aarch64 (ARM), C's char is unsigned (u8)
+# Fixed upstream on main by commit b9efce9702d108fd63be806738db50c14d354302
+single_version_override(
+    module_name = "score_communication",
+    patch_strip = 1,
+    patches = ["//:third_party/score_communication-cchar.patch"],
+)
 
 # ============================================================================
 # Base Libraries
@@ -263,7 +305,7 @@ http_archive(
     build_file = "@//:third_party/vsomeip.BUILD.bazel",
     integrity = "sha256-hMjkJs3fQ14MVtpwupfno/UbK+rxV+1zih9632bO5Sk=",
     patch_strip = 1,
-    patches = ["//:third_party/vsomeip-qnx8.patch"],
+    patches = ["//:third_party/vsomeip_qnx8.patch"],
     strip_prefix = "vsomeip-3.6.1",
     urls = [
         "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",

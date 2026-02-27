@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -34,6 +34,16 @@ exports_files(
 cc_binary(
     name = "gatewayd",
     srcs = ["main.cpp"],
+    args = [
+        "-config_file",
+        "$(rootpath :config_file)",
+        "-service_instance_manifest",
+        "$(rootpath etc/mw_com_config.json)",
+    ],
+    data = [
+        "etc/mw_com_config.json",
+        ":config_file",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":config_flatbuffers",
@@ -72,10 +82,16 @@ flatbuffer_cc_library(
     srcs = ["etc/gatewayd_config.fbs"],
 )
 
+exports_files(
+    ["etc/mw_com_config.json"],
+    visibility = ["//deployment:__subpackages__"],
+)
+
 generate_someip_config_bin(
     name = "config_file",
     json = "etc/gatewayd_config.json",
     output = "etc/gatewayd_config.bin",
+    visibility = ["//deployment:__subpackages__"],
 )
 
 validate_json_schema_test(

@@ -1,0 +1,129 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# =============================================================================
+# QNX QEMU Image for SOME/IP Gateway
+#
+# Builds a bootable QNX IFS (Image File System) containing the someipd and
+# gatewayd daemons, then provides a target to run it under QEMU.
+#
+# Usage:
+#   # Build the IFS image
+#   bazel build //deployment/qemu:someip_gateway_ifs --config=x86_64-qnx
+# =============================================================================
+
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@score_toolchains_qnx//rules/fs:ifs.bzl", "qnx_ifs")
+
+# Export scripts for use as data dependencies in tests
+exports_files(
+    [
+        "run_qemu.sh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# ---------------------------------------------------------------------------
+# Package all gateway binaries + configs into a single tar for IFS inclusion
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "gateway_binaries_pkg",
+    srcs = [
+        "//src/gatewayd",
+        "//src/someipd",
+        "//tests/integration/sample_client",
+        "@vsomeip",
+    ],
+    include_runfiles = True,
+    package_dir = "/",
+)
+
+# ---------------------------------------------------------------------------
+# Package C++ unit test binaries for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "test_binaries_pkg",
+    testonly = True,
+    srcs = [
+        "//tests/UT/UnitTest_UT1:cpp_test_main1",
+        "//tests/UT/UnitTest_UT2:cpp_test_main2",
+    ],
+    include_runfiles = True,
+    package_dir = "/",
+)
+
+# ---------------------------------------------------------------------------
+# Package gateway config files for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "gateway_configs_pkg",
+    srcs = [
+        "//src/gatewayd:config_file",
+        "//src/gatewayd:etc/mw_com_config.json",
+    ],
+    strip_prefix = "/src/gatewayd/etc",
+)
+
+# ---------------------------------------------------------------------------
+# Package someipd config files for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "someipd_configs_pkg",
+    srcs = [
+        "//src/someipd:etc/mw_com_config.json",
+        "//tests/integration:vsomeip.json",
+    ],
+    remap_paths = {
+        "/src/someipd/etc/mw_com_config.json": "mw_com_config.json",
+        "/tests/integration/vsomeip.json": "vsomeip.json",
+    },
+)
+
+# ---------------------------------------------------------------------------
+# Package sample_client config files for the IFS
+# ---------------------------------------------------------------------------
+pkg_tar(
+    name = "sample_client_configs_pkg",
+    srcs = [
+        "//tests/integration/sample_client:vsomeip.json",
+    ],
+    remap_paths = {
+        "/tests/integration/sample_client/vsomeip.json": "vsomeip.json",
+    },
+)
+
+# ---------------------------------------------------------------------------
+# QNX IFS image: boots QNX 8.0 with someipd + gatewayd inside with networking
+# ---------------------------------------------------------------------------
+qnx_ifs(
+    name = "someip_gateway_ifs",
+    testonly = True,
+    srcs = [
+        "//deployment/qemu/configs:network_configs",
+        "//deployment/qemu/configs:ssh_configs",
+    ],
+    out = "someip_gateway_x86_64.ifs",
+    build_file = "init_x86_64.build",
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:qnx",
+    ],
+    tars = {
+        "GATEWAY_BINS": ":gateway_binaries_pkg",
+        "GATEWAY_CONFIGS": ":gateway_configs_pkg",
+        "SOMEIPD_CONFIGS": ":someipd_configs_pkg",
+        "SAMPLE_CLIENT_CONFIGS": ":sample_client_configs_pkg",
+        "TEST_BINS": ":test_binaries_pkg",
+    },
+    visibility = ["//visibility:public"],
+)

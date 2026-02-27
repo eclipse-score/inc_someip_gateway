@@ -1,0 +1,237 @@
+###############################################################################
+#
+# QNX IFS image for SOME/IP Gateway — x86_64 (QEMU) with Networking
+#
+# This mkifs build file produces a bootable IFS containing:
+#   - QNX 8.0 kernel (procnto-smp-instr)
+#   - someipd daemon
+#   - gatewayd daemon
+#   - Minimal shell environment (ksh, pidin, toybox)
+#   - Network stack with VirtIO network driver for QEMU
+#
+# Build:
+#   bazel build //deployment/qemu:someip_gateway_ifs --config=x86_64-qnx
+#
+# Run in QEMU:
+#   bazel run //deployment/qemu:run_qemu --config=x86_64-qnx
+#
+###############################################################################
+
+[-optional]
+
+[image=0x3600000]
+[virtual=x86_64,multiboot] boot = {
+    startup-x86 -v -D8250..115200 -zz
+    PATH=/proc/boot
+    LD_LIBRARY_PATH=/proc/boot:/usr/bin
+    [+keeplinked] procnto-smp-instr
+}
+
+[+script] startup-script = {
+    procmgr_symlink /dev/shmem /tmp
+
+    display_msg Welcome to QNX 8.0 — SOME/IP Gateway (x86_64) with Networking
+
+    # Environment inherited by all subsequent processes
+    SYSNAME=nto
+    TERM=qansi
+
+    # Start serial driver
+    devc-ser8250 &
+    waitfor /dev/ser1
+    reopen /dev/ser1
+
+    display_msg Starting system services...
+    etc/startup.sh
+
+    # Interactive shell
+    [+session] /bin/sh &
+}
+
+# ===========================================================================
+# QNX shared libraries (from SDP /proc/boot)
+# ===========================================================================
+/usr/lib/ldqnx-64.so.2=ldqnx-64.so.2
+libc.so.6
+[type=link] libc.so=libc.so.6
+libfsnotify.so.1
+libgcc_s.so.1
+libm.so
+libsecpol.so.1
+libtracelog.so.1
+libz.so
+libc++.so.2
+[type=link] libc++.so=libc++.so.2
+libsocket.so.4
+[type=link] libsocket.so=libsocket.so.4
+libxo.so.0
+[type=link] libxo.so=libxo.so.0
+libslog2.so.1
+[type=link] libslog2.so=libslog2.so.1
+libslog2parse.so.1
+[type=link] libslog2parse.so=libslog2parse.so.1
+libqh.so.1
+[type=link] libqh.so=libqh.so.1
+libcam.so.2
+cam-disk.so
+io-blk.so
+fs-qnx6.so
+
+# PCI and Network libraries
+libpci.so.3.0
+libfdt.so.1
+libbz2.so.1
+liblzma.so.5
+libcatalog.so.1
+libiconv.so.1
+libregex.so.1
+libexpat.so.2
+
+# Crypto libraries (required by random, networking, etc.)
+libqcrypto.so.1.0
+libcrypto.so.3
+libssl.so.3
+qcrypto-openssl-3.so
+
+# System libraries
+libjail.so.1
+libpam.so.2
+
+# ===========================================================================
+# SSH server components
+# ===========================================================================
+sshd                                                                            # SSH daemon for remote access
+# /usr/libexec/sshd-session=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sshd-session # uncomment this for QNX > 8.0
+ssh                                                                             # SSH client for remote connections
+ssh-keygen                                                                      # SSH key generation utility
+/usr/lib/ssh/sftp-server=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sftp-server     # SFTP server for scp
+
+# Networking shared libraries and modules
+mods-pci.so
+mods-phy.so
+devs-vtnet_pci.so
+
+# ===========================================================================
+# Networking components
+# ===========================================================================
+io-sock                                  # Network socket manager
+if_up                                    # Network interface configuration
+ifconfig                                 # Network interface configuration tool
+route                                    # Routing table management
+sysctl                                   # Configure kernel parameters at runtime
+ping                                     # Network connectivity test
+netstat                                  # Network statistics
+tcpdump                                  # Network packet capture
+hostname                                 # Set/display hostname
+librpc.so.2                              # RPC library (for tcpdump)
+
+# PCI server and components
+pci-server                               # PCI bus server
+pci/pci_hw-Intel_x86.so                  # Intel x86 PCI hardware support
+pci/pci_slog2.so                         # PCI system logging support
+pci/pci_cap-0x05.so                      # PCI capability handler for MSI
+pci/pci_cap-0x10.so                      # PCI Express capability handler
+pci/pci_cap-0x11.so                      # MSI-X capability handler
+pci/pci_strings.so                       # PCI device string database
+pci/pci_bkwd_compat.so                   # Backward compatibility support
+pci/pci_debug2.so                        # Enhanced PCI debugging support
+
+# ===========================================================================
+# Standard tools
+# ===========================================================================
+on
+[type=link] waitfor=on
+[type=link] ability=on
+ksh
+pidin
+shutdown
+toybox
+awk
+random
+getconf
+[type=link] setconf=getconf
+slog2info
+
+# ===========================================================================
+# Drivers
+# ===========================================================================
+devc-ser8250
+devc-pty                                 # Pseudo-terminal driver (required for SSH sessions)
+fsevmgr
+slogger2
+pipe
+devb-ram
+mkqnx6fs
+mount
+
+# ===========================================================================
+# System directories
+# ===========================================================================
+[type=dir] /tmp_discovery
+[type=dir] /tmp_ram
+[type=dir] /var
+[type=dir] /var/db
+[gid=0 uid=0 dperms=755 type=dir] /var/chroot/sshd              # SSH chroot directory (privilege separation)
+[gid=0 uid=0 dperms=700 type=dir] /var/ssh                      # SSH configuration and key storage
+
+# ===========================================================================
+# Symlinks
+# ===========================================================================
+[type=link] /bin/sh=/proc/boot/ksh
+[type=link] /bin/ls=/proc/boot/ls
+[type=link] cat=toybox
+[type=link] chmod=toybox
+[type=link] cp=toybox
+[type=link] dd=toybox
+[type=link] echo=toybox
+[type=link] grep=toybox
+[type=link] ln=toybox
+[type=link] ls=toybox
+[type=link] rm=toybox
+[type=link] mkdir=toybox
+[type=link] env=toybox
+[type=link] mv=toybox
+[type=link] pwd=toybox
+[type=link] sleep=toybox
+[type=link] tail=toybox
+[type=link] head=toybox
+[type=link] tee=toybox
+[type=link] touch=toybox
+[type=link] uname=toybox
+[type=link] wc=toybox
+[type=link] which=toybox
+[type=link] whoami=toybox
+[type=link] id=toybox
+[type=link] sed=toybox
+[type=link] sort=toybox
+[type=link] find=toybox
+[type=link] xargs=toybox
+[type=link] date=toybox
+[type=link] kill=toybox
+[type=link] true=toybox
+[type=link] false=toybox
+[type=link] test=toybox
+
+# ===========================================================================
+# Configuration files
+# ===========================================================================
+[perms=0444] pci_server.cfg = ${MAIN_BUILD_FILE_DIR}/configs/pci_server.cfg
+[perms=0444] pci_hw.cfg = ${MAIN_BUILD_FILE_DIR}/configs/pci_hw.cfg
+[perms=0444] qcrypto.conf = ${MAIN_BUILD_FILE_DIR}/configs/qcrypto.conf
+[perms=0700] /etc/startup.sh = ${MAIN_BUILD_FILE_DIR}/configs/startup.sh
+[perms=0700] /etc/network_setup.sh = ${MAIN_BUILD_FILE_DIR}/configs/network_setup.sh
+
+# SSH configuration files
+[perms=0444] /var/ssh/sshd_config = ${MAIN_BUILD_FILE_DIR}/configs/sshd_config
+[perms=0644] /etc/passwd = ${MAIN_BUILD_FILE_DIR}/configs/passwd
+[perms=0644] /etc/group = ${MAIN_BUILD_FILE_DIR}/configs/group
+[perms=0644] /etc/profile = ${MAIN_BUILD_FILE_DIR}/configs/profile
+
+# ===========================================================================
+# Application binaries (injected via pkg_tar → tars attribute)
+# ===========================================================================
+/usr/bin=${GATEWAY_BINS}
+/etc/gatewayd=${GATEWAY_CONFIGS}
+/etc/someipd=${SOMEIPD_CONFIGS}
+/etc/sample_client=${SAMPLE_CLIENT_CONFIGS}
+/usr/bin/tests=${TEST_BINS}
