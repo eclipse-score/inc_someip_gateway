@@ -48,18 +48,6 @@ updates:
           - "minor"
           - "patch"
 
-  - package-ecosystem: devcontainers
-    directory: /
-    schedule:
-      interval: daily
-    groups:
-      all-in-one:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
   - package-ecosystem: bazel
     directory: /
     schedule:
