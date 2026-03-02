@@ -72,6 +72,7 @@ py_itf_test(
 py_itf_test(
     name = "test_someip_sd",
     srcs = [
+        "analyze_pcap_someip.py",
         "test_qemu_network.py",
         "//tests/itf_updates:qemu_utils.py",
     ],
@@ -81,7 +82,6 @@ py_itf_test(
         "-s",
     ],
     data = [
-        "analyze_pcap_someip.py",
         "//deployment/qemu:run_qemu.sh",
         "//deployment/qemu:someip_gateway_ifs",
     ],
@@ -91,4 +91,5 @@ py_itf_test(
         "qemu",
         "qemu-x86_64",
     ],
+    deps = ["@someip_pip//scapy"],
 )

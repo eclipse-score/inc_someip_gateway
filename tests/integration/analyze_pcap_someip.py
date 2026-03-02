@@ -12,24 +12,26 @@
 # *******************************************************************************
 
 #!/usr/bin/env python3
-"""
-AI generated proof of concept, has been tested and verified to work correctly for the limited configuration in this project.
-Scapy can simplify the parsing but requires additional dependencies and setup.
+"""Analyze pcap files for SOME/IP-SD messages using scapy.
+
+Parses a pcap file for SOME/IP-SD messages and generates a summary of
+Offers, Finds, and Subscriptions per target host.
+
 Targets: someipd (192.168.87.2) and sample_client (192.168.87.3)
 
-This script parses a pcap file for SOME/IP-SD messages and generates
-a summary of Offers, Finds, and Subscriptions
-
 Usage:
-    python3 analyze_someip_sd.py [pcap_file]
+    python3 analyze_pcap_someip.py [pcap_file]
 """
 
 import struct
-import subprocess
-import re
 import sys
 import os
 from collections import defaultdict
+
+from scapy.all import rdpcap, IP, UDP, conf
+
+# Suppress scapy verbosity
+conf.verb = 0
 
 # --- Configuration ---
 TARGET_HOSTS = {"192.168.87.2": "someipd", "192.168.87.3": "sample_client"}
@@ -37,6 +39,7 @@ TARGET_HOSTS = {"192.168.87.2": "someipd", "192.168.87.3": "sample_client"}
 # Constants for SOME/IP-SD parsing
 SOMEIP_SD_SERVICE_ID = 0xFFFF
 SOMEIP_SD_METHOD_ID = 0x8100
+SD_PORT = 30490
 
 # SOME/IP-SD Entry Types
 ENTRY_TYPE_FIND = 0x00
@@ -44,18 +47,9 @@ ENTRY_TYPE_OFFER = 0x01
 ENTRY_TYPE_SUBSCRIBE = 0x06
 ENTRY_TYPE_STOP_SUBSCRIBE_ACK = 0x07
 
-TYPE_NAMES = {
-    ENTRY_TYPE_FIND: "FindService",
-    ENTRY_TYPE_OFFER: "OfferService",
-    ENTRY_TYPE_SUBSCRIBE: "Subscribe",
-    ENTRY_TYPE_STOP_SUBSCRIBE_ACK: "StopSubscribe/Ack",
-}
 
-# --- Parsing Functions ---
-
-
-def decode_someip_sd_entry(data, offset=0):
-    """Decode SOME/IP-SD entry at given offset."""
+def decode_sd_entry(data, offset=0):
+    """Decode a single 16-byte SOME/IP-SD entry."""
     if len(data) < offset + 16:
         return None
 
@@ -63,17 +57,13 @@ def decode_someip_sd_entry(data, offset=0):
     service_id = struct.unpack("!H", data[offset + 4 : offset + 6])[0]
     instance_id = struct.unpack("!H", data[offset + 6 : offset + 8])[0]
 
-    entry_name = TYPE_NAMES.get(entry_type, f"Type-{entry_type:02x}")
-
-    # For eventgroup entries (Subscribe), eventgroup is at bytes 14-15
     eventgroup = None
     if entry_type in (ENTRY_TYPE_SUBSCRIBE, ENTRY_TYPE_STOP_SUBSCRIBE_ACK):
         eventgroup = struct.unpack("!H", data[offset + 14 : offset + 16])[0]
-        if eventgroup == 0xFFFF or eventgroup == 0:
+        if eventgroup in (0xFFFF, 0):
             eventgroup = None
 
     return {
-        "type": entry_name,
         "type_id": entry_type,
         "service": service_id,
         "instance": instance_id,
@@ -81,124 +71,35 @@ def decode_someip_sd_entry(data, offset=0):
     }
 
 
-def parse_tcpdump_hex_output(output):
-    """Parse tcpdump -XX output and extract packet information."""
-    packets = []
-    current_packet = None
-    hex_lines = []
-
-    for line in output.split("\n"):
-        if re.match(r"^\d{2}:\d{2}:\d{2}", line):
-            if current_packet and hex_lines:
-                current_packet["raw_bytes"] = parse_hex_lines(hex_lines)
-                packets.append(current_packet)
-                hex_lines = []
-            current_packet = parse_packet_header(line)
-        elif line.strip().startswith("0x"):
-            hex_lines.append(line)
-
-    if current_packet and hex_lines:
-        current_packet["raw_bytes"] = parse_hex_lines(hex_lines)
-        packets.append(current_packet)
-
-    return packets
-
-
-def parse_packet_header(line):
-    """Parse tcpdump packet header line."""
-    packet = {"src_ip": None, "dst_ip": None, "timestamp": None}
-    ts_match = re.match(r"^(\d{2}:\d{2}:\d{2}\.\d+)", line)
-    if ts_match:
-        packet["timestamp"] = ts_match.group(1)
-
-    ip_match = re.search(
-        r"IP\s+(\d+\.\d+\.\d+\.\d+)\.(\d+)\s+>\s+(\d+\.\d+\.\d+\.\d+)\.(\d+)", line
-    )
-    if ip_match:
-        packet["src_ip"] = ip_match.group(1)
-        packet["src_port"] = int(ip_match.group(2))
-        packet["dst_ip"] = ip_match.group(3)
-        packet["dst_port"] = int(ip_match.group(4))
-    return packet
-
-
-def parse_hex_lines(hex_lines):
-    """Parses tcpdump hex dump lines into raw bytes."""
-    hex_data = []
-
-    for line in hex_lines:
-        # Ensure line has an offset (e.g., "0x0000:")
-        if ":" not in line:
-            continue
-
-        # Get content after the offset colon
-        content = line.split(":", 1)[1]
-
-        # Collect hex chunks (2 or 4 chars), stop when we hit the ASCII visualization
-        for part in content.split():
-            if len(part) in (2, 4) and all(c in "0123456789abcdefABCDEF" for c in part):
-                hex_data.append(part)
-            else:
-                break  # Stop reading this line as we reached the ASCII column
-
-    return bytes.fromhex("".join(hex_data))
-
-
-def extract_someip_sd_entries(raw_bytes):
-    """Extract SOME/IP-SD entries from raw packet bytes."""
-    if len(raw_bytes) < 58:
+def extract_sd_entries(payload):
+    """Extract SOME/IP-SD entries from raw UDP payload bytes."""
+    if len(payload) < 24:  # 16 SOME/IP header + 8 SD header minimum
         return []
 
-    ip_header_start = 14
-    ip_version_ihl = raw_bytes[ip_header_start]
-    ip_header_len = (ip_version_ihl & 0x0F) * 4
-
-    someip_start = ip_header_start + ip_header_len + 8  # +8 for UDP
-    if len(raw_bytes) < someip_start + 16:
-        return []
-
-    service_id = struct.unpack("!H", raw_bytes[someip_start : someip_start + 2])[0]
-    method_id = struct.unpack("!H", raw_bytes[someip_start + 2 : someip_start + 4])[0]
+    service_id = struct.unpack("!H", payload[0:2])[0]
+    method_id = struct.unpack("!H", payload[2:4])[0]
 
     if service_id != SOMEIP_SD_SERVICE_ID or method_id != SOMEIP_SD_METHOD_ID:
         return []
 
-    sd_start = someip_start + 16
-    if len(raw_bytes) < sd_start + 8:
+    # SD header starts after 16-byte SOME/IP header
+    sd_start = 16
+    if len(payload) < sd_start + 8:
         return []
 
-    entries_length = struct.unpack("!I", raw_bytes[sd_start + 4 : sd_start + 8])[0]
+    entries_length = struct.unpack("!I", payload[sd_start + 4 : sd_start + 8])[0]
     entries_start = sd_start + 8
-    entries_end = min(entries_start + entries_length, len(raw_bytes))
+    entries_end = min(entries_start + entries_length, len(payload))
 
     entries = []
     offset = entries_start
     while offset + 16 <= entries_end:
-        entry_data = raw_bytes[offset : offset + 16]
-        entry = decode_someip_sd_entry(entry_data, 0)
+        entry = decode_sd_entry(payload, offset)
         if entry:
             entries.append(entry)
         offset += 16
 
     return entries
-
-
-def run_tcpdump(pcap_file):
-    """Run tcpdump to capture all SOME/IP SD traffic."""
-    # We capture all UDP 30490 traffic, sorting out IPs in Python
-    cmd = ["tcpdump", "-r", pcap_file, "-n", "udp port 30490", "-XX"]
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        return result.stdout + result.stderr
-    except subprocess.TimeoutExpired:
-        print(f"Error: tcpdump timed out reading {pcap_file}")
-        return ""
-    except FileNotFoundError:
-        print("Error: tcpdump not found. Please install tcpdump.")
-        sys.exit(1)
-
-
-# --- Summary Logic ---
 
 
 def print_summary(ip, name, data):
@@ -210,8 +111,7 @@ def print_summary(ip, name, data):
     # OFFERS
     if data["offers"]:
         print("OFFERS:")
-        sorted_offers = sorted(list(data["offers"]))
-        for svc, inst, eg in sorted_offers:
+        for svc, inst, eg in sorted(data["offers"]):
             eg_str = f" with eventgroup 0x{eg:04x}" if eg else ""
             print(f"            Service 0x{svc:04x}.0x{inst:04x}{eg_str}")
     else:
@@ -222,7 +122,7 @@ def print_summary(ip, name, data):
     # FINDS
     if data["finds"]:
         print("FINDS:")
-        for svc, inst in sorted(list(data["finds"])):
+        for svc, inst in sorted(data["finds"]):
             print(f"            Service 0x{svc:04x}.0x{inst:04x}")
     else:
         print("FINDS:")
@@ -232,7 +132,7 @@ def print_summary(ip, name, data):
     # SUBSCRIBES
     if data["subscribes"]:
         print("SUBSCRIBED SUCCESSFULLY TO:")
-        for svc, inst, eg in sorted(list(data["subscribes"])):
+        for svc, inst, eg in sorted(data["subscribes"]):
             eg_str = f", eventgroup 0x{eg:04x}" if eg else ""
             print(f"            Service 0x{svc:04x}.0x{inst:04x}{eg_str}")
     else:
@@ -241,44 +141,32 @@ def print_summary(ip, name, data):
     print("\n")
 
 
-def main():
-    if len(sys.argv) > 1:
-        pcap_file = sys.argv[1]
-    else:
-        print("Usage: python3 analyze_qemu1_qemu2_someip.py [pcap_file]")
-        sys.exit(1)
+def analyze(pcap_file: str) -> dict[str, dict[str, set]]:
+    """Analyze a pcap file and return SOME/IP-SD data per host.
 
-    if not os.path.exists(pcap_file):
-        print(f"Error: pcap file not found: {pcap_file}")
-        sys.exit(1)
-
-    print(f"Analyzing {pcap_file} for SOME/IP-SD traffic...")
-
-    # Data structure to hold unique entries per host
-    # Structure: host_data[ip] = { 'offers': set(), 'finds': set(), 'subscribes': set() }
+    Returns dict keyed by IP with values {"offers": set, "finds": set, "subscribes": set}.
+    Offer/subscribe entries are tuples of (service_id, instance_id, eventgroup).
+    Find entries are tuples of (service_id, instance_id).
+    """
     host_data = defaultdict(
         lambda: {"offers": set(), "finds": set(), "subscribes": set()}
     )
 
-    # Run processing
-    output = run_tcpdump(pcap_file)
-    packets = parse_tcpdump_hex_output(output)
+    packets = rdpcap(pcap_file)
 
-    if not packets:
-        print("No SOME/IP-SD packets found.")
-        return
+    for pkt in packets:
+        if not pkt.haslayer(IP) or not pkt.haslayer(UDP):
+            continue
 
-    # Process packets
-    for packet in packets:
-        src_ip = packet["src_ip"]
+        if pkt[UDP].dport != SD_PORT and pkt[UDP].sport != SD_PORT:
+            continue
 
-        # Only process if src_ip is one of our targets
+        src_ip = pkt[IP].src
         if src_ip not in TARGET_HOSTS:
             continue
 
-        entries = extract_someip_sd_entries(packet["raw_bytes"])
-
-        for entry in entries:
+        payload = bytes(pkt[UDP].payload)
+        for entry in extract_sd_entries(payload):
             t_id = entry["type_id"]
             svc = entry["service"]
             inst = entry["instance"]
@@ -291,22 +179,33 @@ def main():
             elif t_id == ENTRY_TYPE_SUBSCRIBE:
                 host_data[src_ip]["subscribes"].add((svc, inst, eg))
 
+    # Only return IPs that had actual SD traffic
+    return dict(host_data)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python3 analyze_pcap_someip.py [pcap_file]")
+        sys.exit(1)
+
+    pcap_file = sys.argv[1]
+
+    if not os.path.exists(pcap_file):
+        print(f"Error: pcap file not found: {pcap_file}")
+        sys.exit(1)
+
+    print(f"Analyzing {pcap_file} for SOME/IP-SD traffic...")
+
+    host_data = analyze(pcap_file)
+
     # Output Results
     print("\n")
 
-    # 1. Print someipd Summary
-    ip_someipd = "192.168.87.2"
-    if ip_someipd in host_data:
-        print_summary(ip_someipd, TARGET_HOSTS[ip_someipd], host_data[ip_someipd])
-    else:
-        print(f"No data found for {TARGET_HOSTS[ip_someipd]} ({ip_someipd})")
-
-    # 2. Print sample_client Summary
-    ip_client = "192.168.87.3"
-    if ip_client in host_data:
-        print_summary(ip_client, TARGET_HOSTS[ip_client], host_data[ip_client])
-    else:
-        print(f"No data found for {TARGET_HOSTS[ip_client]} ({ip_client})")
+    for ip in ("192.168.87.2", "192.168.87.3"):
+        if ip in host_data:
+            print_summary(ip, TARGET_HOSTS[ip], host_data[ip])
+        else:
+            print(f"No data found for {TARGET_HOSTS[ip]} ({ip})")
 
 
 if __name__ == "__main__":

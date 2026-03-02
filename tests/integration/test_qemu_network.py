@@ -133,11 +133,6 @@ def get_workspace_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
-def get_analyze_script() -> Path:
-    """Get path to analyze_pcap_someip.py script."""
-    return get_workspace_root() / "tests/integration/analyze_pcap_someip.py"
-
-
 def ssh_run_bg(host: str, cmd: str) -> None:
     """Fire-and-forget a command on host via SSH."""
     subprocess.Popen(
@@ -164,53 +159,31 @@ def kill_stale_qemu_instances() -> None:
     time.sleep(2)
 
 
-def parse_analyze_output(output: str) -> dict[str, SDResult]:
-    """Parse analyze_pcap_someip.py output into per-IP SDResult dict."""
-    result: dict[str, SDResult] = {}
-    current_ip: str | None = None
-    current_section: str | None = None
-
-    for line in output.splitlines():
-        stripped = line.strip()
-
-        # Detect SUMMARY header: "SUMMARY: someipd (192.168.87.2)"
-        if stripped.startswith("SUMMARY:"):
-            if (start := stripped.rfind("(")) != -1 and (
-                end := stripped.rfind(")")
-            ) != -1:
-                current_ip = stripped[start + 1 : end]
-                result[current_ip] = SDResult(
-                    offers=set(), finds=set(), subscribed=set()
-                )
-                current_section = None
-            continue
-
-        if current_ip is None:
-            continue
-
-        # Detect section headers
-        if stripped == "OFFERS:":
-            current_section = "offers"
-        elif stripped == "FINDS:":
-            current_section = "finds"
-        elif stripped.startswith("SUBSCRIBED SUCCESSFULLY TO:"):
-            current_section = "subscribed"
-        elif current_section and stripped.startswith("Service"):
-            getattr(result[current_ip], current_section).add(stripped)
-
-    return result
+def _format_service(
+    svc: int, inst: int, eg: int | None = None, *, with_eg: bool = False
+) -> str:
+    """Format a service entry as the expected string."""
+    if with_eg and eg is not None:
+        return f"Service 0x{svc:04x}.0x{inst:04x}, eventgroup 0x{eg:04x}"
+    return f"Service 0x{svc:04x}.0x{inst:04x}"
 
 
 def analyze_pcap(pcap_file: Path) -> dict[str, SDResult]:
-    """Run analyze_pcap_someip.py and return parsed results."""
-    proc = subprocess.run(
-        ["python3", str(get_analyze_script()), str(pcap_file)],
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
-    assert proc.returncode == 0, f"analyze_pcap_someip.py failed:\n{proc.stderr}"
-    return parse_analyze_output(proc.stdout)
+    """Analyze pcap file and return parsed SD results per IP."""
+    from tests.integration.analyze_pcap_someip import analyze as analyze_pcap_file  # noqa: PLC0415
+
+    raw = analyze_pcap_file(str(pcap_file))
+    result: dict[str, SDResult] = {}
+
+    for ip, data in raw.items():
+        offers = {_format_service(s, i) for s, i, _eg in data["offers"]}
+        finds = {_format_service(s, i) for s, i in data["finds"]}
+        subscribed = {
+            _format_service(s, i, eg, with_eg=True) for s, i, eg in data["subscribes"]
+        }
+        result[ip] = SDResult(offers=offers, finds=finds, subscribed=subscribed)
+
+    return result
 
 
 @contextmanager
