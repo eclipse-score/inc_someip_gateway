@@ -22,7 +22,7 @@ The following feature requirement establishes TC8 SOME/IP conformance testing
 as a formal verification activity for the SOME/IP Gateway's protocol stack.
 
 .. feat_req:: TC8 SOME/IP Protocol Conformance
-   :id: feat_req__some_ip_gateway__tc8_conformance
+   :id: feat_req__tc8_conformance__conformance
    :status: valid
    :tags: tc8, conformance, someip, verification
    :satisfies: stkh_req__docgen_enabled__example
@@ -47,10 +47,10 @@ tests for SOME/IP Service Discovery (SD), aligned with SOME/IP-SD Protocol
 Specification (AUTOSAR PRS_SOMEIP_SD).
 
 .. comp_req:: TC8 SD Offer Entry Format Validation
-   :id: comp_req__someipd__tc8_sd_offer_format
+   :id: comp_req__tc8_conformance__sd_offer_format
    :status: valid
    :tags: tc8, conformance, service_discovery
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -65,10 +65,10 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    Covers TC8-SD-001 and TC8-SD-002 from the test strategy.
 
 .. comp_req:: TC8 SD Cyclic Offer Timing
-   :id: comp_req__someipd__tc8_sd_cyclic_timing
+   :id: comp_req__tc8_conformance__sd_cyclic_timing
    :status: valid
    :tags: tc8, conformance, service_discovery, timing
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -82,10 +82,10 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    Covers TC8-SD-003 from the test strategy.
 
 .. comp_req:: TC8 SD FindService Response
-   :id: comp_req__someipd__tc8_sd_find_response
+   :id: comp_req__tc8_conformance__sd_find_response
    :status: valid
    :tags: tc8, conformance, service_discovery
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -99,10 +99,10 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    Covers TC8-SD-004 and TC8-SD-005 from the test strategy.
 
 .. comp_req:: TC8 SD Subscribe Eventgroup Lifecycle
-   :id: comp_req__someipd__tc8_sd_subscribe_lifecycle
+   :id: comp_req__tc8_conformance__sd_sub_lifecycle
    :status: valid
    :tags: tc8, conformance, service_discovery, eventgroup
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -119,10 +119,10 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    Covers TC8-SD-006, TC8-SD-007, and TC8-SD-008 from the test strategy.
 
 .. comp_req:: TC8 SD Initial Delay and Repetitions Phase
-   :id: comp_req__someipd__tc8_sd_phases_timing
+   :id: comp_req__tc8_conformance__sd_phases_timing
    :status: valid
    :tags: tc8, conformance, service_discovery, timing
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -140,10 +140,10 @@ Component Requirements — SOME/IP Message Format
 ------------------------------------------------
 
 .. comp_req:: TC8 SOME/IP Response Header Validation
-   :id: comp_req__someipd__tc8_msg_response_header
+   :id: comp_req__tc8_conformance__msg_resp_header
    :status: valid
    :tags: tc8, conformance, message_format
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -160,10 +160,10 @@ Component Requirements — SOME/IP Message Format
    from the test strategy.
 
 .. comp_req:: TC8 SOME/IP Error Return Codes
-   :id: comp_req__someipd__tc8_msg_error_codes
+   :id: comp_req__tc8_conformance__msg_error_codes
    :status: valid
    :tags: tc8, conformance, message_format, error_handling
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -182,10 +182,10 @@ Component Requirements — Event Notification
 --------------------------------------------
 
 .. comp_req:: TC8 Event Notification Subscription Lifecycle
-   :id: comp_req__someipd__tc8_evt_subscription
+   :id: comp_req__tc8_conformance__evt_subscription
    :status: valid
    :tags: tc8, conformance, events, notification
-   :satisfies: feat_req__some_ip_gateway__tc8_conformance
+   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -214,35 +214,35 @@ specification section it verifies.
      - TC8 Test IDs
      - SOME/IP Spec Reference
      - Safety
-   * - ``comp_req__someipd__tc8_sd_offer_format``
+   * - ``comp_req__tc8_conformance__sd_offer_format``
      - TC8-SD-001, -002
      - SOME/IP-SD §4.1.2.1, §4.1.2.3
      - QM
-   * - ``comp_req__someipd__tc8_sd_cyclic_timing``
+   * - ``comp_req__tc8_conformance__sd_cyclic_timing``
      - TC8-SD-003
      - SOME/IP-SD §4.1.1 (Main Phase)
      - QM
-   * - ``comp_req__someipd__tc8_sd_find_response``
+   * - ``comp_req__tc8_conformance__sd_find_response``
      - TC8-SD-004, -005
      - SOME/IP-SD §4.1.2.2
      - QM
-   * - ``comp_req__someipd__tc8_sd_subscribe_lifecycle``
+   * - ``comp_req__tc8_conformance__sd_sub_lifecycle``
      - TC8-SD-006, -007, -008
      - SOME/IP-SD §4.1.2.4–4.1.2.6
      - QM
-   * - ``comp_req__someipd__tc8_sd_phases_timing``
+   * - ``comp_req__tc8_conformance__sd_phases_timing``
      - TC8-SD-009, -010
      - SOME/IP-SD §4.1.1 (Phases)
      - QM
-   * - ``comp_req__someipd__tc8_msg_response_header``
+   * - ``comp_req__tc8_conformance__msg_resp_header``
      - TC8-MSG-001, -002, -005, -008
      - SOME/IP §4.1.3, §4.1.4, §4.1.6
      - QM
-   * - ``comp_req__someipd__tc8_msg_error_codes``
+   * - ``comp_req__tc8_conformance__msg_error_codes``
      - TC8-MSG-003, -004, -006
      - SOME/IP §4.1.7 (Table 4.14)
      - QM
-   * - ``comp_req__someipd__tc8_evt_subscription``
+   * - ``comp_req__tc8_conformance__evt_subscription``
      - TC8-EVT-001–004, -006
      - SOME/IP §5.1, SOME/IP-SD §4.1.2.4
      - QM
