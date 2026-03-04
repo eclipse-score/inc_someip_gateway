@@ -23,7 +23,7 @@
 [virtual=x86_64,multiboot] boot = {
     startup-x86 -v -D8250..115200 -zz
     PATH=/proc/boot
-    LD_LIBRARY_PATH=/proc/boot:/usr/bin
+    LD_LIBRARY_PATH=/proc/boot:/usr/lib
     [+keeplinked] procnto-smp-instr
 }
 
@@ -231,6 +231,7 @@ mount
 # Application binaries (injected via pkg_tar → tars attribute)
 # ===========================================================================
 /usr/bin=${GATEWAY_BINS}
+/usr/lib=${GATEWAY_LIBS}
 /etc/gatewayd=${GATEWAY_CONFIGS}
 /etc/someipd=${SOMEIPD_CONFIGS}
 /etc/sample_client=${SAMPLE_CLIENT_CONFIGS}

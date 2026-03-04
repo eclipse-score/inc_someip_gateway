@@ -17,4 +17,7 @@ exports_files([
     "score_itf_oci_conflict.patch",
     "vsomeip.BUILD.bazel",
     "vsomeip_qnx8.patch",
+    "rules_foreign_cc-dont_block_network.patch",
+    "rules_foreign_cc-fix_proc_self_cwd.patch",
+    "score_communication-cchar.patch",
 ])

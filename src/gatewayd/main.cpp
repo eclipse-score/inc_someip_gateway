@@ -17,6 +17,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include <string_view>
 
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
@@ -48,7 +49,7 @@ int main(int argc, const char* argv[]) {
     // TODO: Use memory mapped file instead of copying into buffer
     std::string config_path = "src/gatewayd/etc/gatewayd_config.bin";
     for (int i = 1; i < argc; ++i) {
-        if (std::string(argv[i]) == "-config_file" && i + 1 < argc) {
+        if (std::string_view(argv[i]) == "-config_file" && i + 1 < argc) {
             config_path = argv[i + 1];
             break;
         }
