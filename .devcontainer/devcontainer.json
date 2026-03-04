@@ -1,10 +1,16 @@
 {
     "name": "eclipse-s-core",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USERNAME": "${localEnv:USER}"
+        }
     },
+    "remoteUser": "${localEnv:USER}",
     "runArgs": [
-        "--privileged"
+        "--privileged",
+        "--add-host=host.docker.internal:host-gateway",
+        "--device=/dev/kvm"
     ],
     "mounts": [
         {
@@ -31,5 +37,7 @@
                 "streetsidesoftware.code-spell-checker"
             ]
         }
-    }
+    },
+    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y software-properties-common && sudo add-apt-repository -y universe && sudo apt-get update && sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump iptables",
+    "postStartCommand": "sudo chmod 666 /dev/kvm"
 }
