@@ -37,19 +37,9 @@ updates:
           - "patch"
 
   - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: daily
-    groups:
-      all-in-one:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
-  - package-ecosystem: devcontainers
-    directory: /
+    directories:
+      - /.devcontainer
+      - /tests/integration/docker_setup
     schedule:
       interval: daily
     groups:
