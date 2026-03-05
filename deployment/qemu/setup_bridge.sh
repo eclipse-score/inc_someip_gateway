@@ -115,7 +115,7 @@ setup_bridge() {
 
     # Set bridge helper permissions (needs setuid for non-root QEMU)
     if [[ -f "${QEMU_BRIDGE_HELPER}" ]]; then
-        chmod u+s "${QEMU_BRIDGE_HELPER}" #on a native Linux host it might be required "chmod 777" but this will not work in WSL2
+        chmod u+s "${QEMU_BRIDGE_HELPER}" # setuid required for non-root bridge creation
         echo "[INFO] Set setuid on ${QEMU_BRIDGE_HELPER}"
     else
         echo "[WARNING] QEMU bridge helper not found at ${QEMU_BRIDGE_HELPER}"
