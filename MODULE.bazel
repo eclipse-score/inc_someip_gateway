@@ -62,6 +62,7 @@ use_repo(pip, "someip_pip")
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 bazel_dep(name = "google_benchmark", version = "1.9.4", dev_dependency = True)
 
+# Opened problem report at: https://github.com/eclipse-score/itf/issues/60
 bazel_dep(name = "score_itf", version = "0.1.0")
 git_override(
     module_name = "score_itf",
@@ -222,6 +223,7 @@ bazel_dep(name = "score_communication", version = "0.1.2")
 
 # On aarch64 (ARM), C's char is unsigned (u8)
 # Fixed upstream on main by commit b9efce9702d108fd63be806738db50c14d354302
+# Opened problem report at: https://github.com/eclipse-score/communication/issues/172
 single_version_override(
     module_name = "score_communication",
     patch_strip = 1,

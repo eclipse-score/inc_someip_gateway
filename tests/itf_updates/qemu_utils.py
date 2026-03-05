@@ -155,8 +155,8 @@ class QEMUInstance:
 
     Attributes:
         process: The subprocess.Popen object for the QEMU process.
-        instance_id: Unique identifier for this instance (1, 2, etc.).
-        ssh_host: SSH hostname/IP for this instance (192.168.87.2 for id=1, etc.).
+        instance_id: Unique identifier for this instance (1 or 2).
+        ssh_host: SSH hostname/IP for this instance (192.168.87.2 for id=1, 192.168.87.3 for id=2).
         log_file: Path to the QEMU log file.
         pid_file: Path to the PID file for cleanup.
     """
@@ -225,7 +225,7 @@ def start_qemu(ifs_image: Path, run_script: Path, instance_id: int = 1) -> QEMUI
     Args:
         ifs_image: Path to the QNX IFS image.
         run_script: Path to the run_qemu.sh script.
-        instance_id: Unique identifier for this instance (default: 1).
+        instance_id: Unique identifier for this instance (1 or 2, default: 1).
 
     Returns:
         QEMUInstance representing the running QEMU.

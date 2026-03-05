@@ -56,11 +56,12 @@ echo "---> Bringing up vtnet0"
 if_up -p vtnet0
 
 # Detect instance ID from vtnet0 MAC address
+# Only instance IDs 1 and 2 are supported (network design allows max 2 instances)
+# MAC is set by run_qemu.sh which validates instance ID to 1 or 2
 VTNET0_MAC=$(ifconfig vtnet0 2>/dev/null | grep ether | awk '{print $2}')
 case "$VTNET0_MAC" in
     *:01) INSTANCE_ID=1 ;;
     *:02) INSTANCE_ID=2 ;;
-    *:03) INSTANCE_ID=3 ;;
 esac
 echo "---> Detected instance ${INSTANCE_ID} from MAC: ${VTNET0_MAC}"
 

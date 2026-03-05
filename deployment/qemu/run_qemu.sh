@@ -29,6 +29,12 @@ set -euo pipefail
 IFS_IMAGE=$1
 INSTANCE_ID=${2:-${QEMU_INSTANCE_ID:-1}}
 
+# Validate instance ID (only 1 or 2 allowed)
+if [[ "${INSTANCE_ID}" != "1" && "${INSTANCE_ID}" != "2" ]]; then
+    echo "  INSTANCE_ID must be 1 or 2 (default: 1)"
+    exit 1
+fi
+
 # Bridge configuration
 BRIDGE_NAME="virbr0"
 
