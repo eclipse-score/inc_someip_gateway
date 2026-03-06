@@ -35,7 +35,7 @@ build --tool_java_runtime_version=remotejdk_17
 #   @score_bazel_platforms//:aarch64-qnx   - aarch64 architecture (QNX8)
 
 common:_toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux
-
+common:_toolchain_common --nocheck_visibility
 common:x86_64-linux --config=_toolchain_common
 common:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
 common:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
@@ -76,3 +76,22 @@ common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 common --@score_communication//score/mw/com/flags:tracing_library=stub
+
+# ============================================================================
+# Coverage Settings (LLVM source-based coverage → lcov)
+# ============================================================================
+# The project uses the LLVM/clang toolchain (toolchains_llvm). Coverage is
+# collected via LLVM's source-based profiling (profraw → profdata → lcov).
+#
+# Instrument only production code under //src/... (exclude test directories)
+coverage --instrumentation_filter="//src[/:]"
+
+# Produce a combined lcov report
+coverage --combined_report=lcov
+coverage --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main
+
+# Use LLVM native coverage and export to lcov format
+coverage --experimental_generate_llvm_lcov
+
+# Force static linking to avoid shared-library / profraw mismatch
+coverage --dynamic_mode=off
