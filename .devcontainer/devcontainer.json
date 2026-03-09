@@ -18,7 +18,7 @@
         },
         {
             "source": "${localEnv:HOME}${localEnv:USERPROFILE}/.netrc",
-            "target": "/home/vscode/.netrc",
+            "target": "/home/${localEnv:USER}/.netrc",
             "type": "bind"
         }
     ],
