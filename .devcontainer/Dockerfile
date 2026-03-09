@@ -10,6 +10,7 @@ RUN if [ "$USERNAME" != "vscode" ]; then \
         usermod -l ${USERNAME} vscode \
         && groupmod -n ${USERNAME} vscode \
         && usermod -d /home/${USERNAME} -m ${USERNAME} \
+        && ln -s /home/${USERNAME} /home/vscode  \
         && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} \
         && chmod 0440 /etc/sudoers.d/${USERNAME}; \
     fi
