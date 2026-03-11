@@ -15,6 +15,8 @@
 # This module will be replaced when ITF natively supports multi-instance QEMU.
 # See: https://github.com/eclipse-score/itf/issues/59
 
+from __future__ import annotations
+
 import logging
 import os
 import signal
@@ -24,7 +26,6 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import paramiko
 import pytest
@@ -45,6 +46,9 @@ SSH_TIMEOUT = 10  # SSH connection timeout in seconds
 
 # Boot timeout
 QEMU_BOOT_TIMEOUT = 15  # seconds
+
+# Delay between SSH connection retry attempts in seconds
+SSH_RETRY_BACKOFF_MAX = 5
 
 
 def get_guest_ip(instance_id: int) -> str:
@@ -68,7 +72,7 @@ WORKSPACE_NAME = "_main"
 # ---------------------------------------------------------------------------
 
 
-def get_runfile_path(relative_path: str) -> Optional[Path]:
+def get_runfile_path(relative_path: str) -> Path | None:
     """Get the path to a file in Bazel runfiles.
 
     This uses standard Bazel environment variables to locate runfiles.
@@ -206,12 +210,12 @@ class QEMUInstance:
             ) as e:
                 last_error = e
                 if attempt < retries - 1:
-                    time.sleep(2)
+                    time.sleep(SSH_RETRY_BACKOFF_MAX)
         raise paramiko.SSHException(
             f"Failed to connect after {retries} attempts: {last_error}"
         )
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop this QEMU instance gracefully."""
         if self.process and self.process.poll() is None:
             self.process.terminate()
