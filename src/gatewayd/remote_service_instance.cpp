@@ -16,6 +16,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "score/mw/com/com_error_domain.h"
 #include "score/mw/com/types.h"
 
 using score::mw::com::GenericProxy;
@@ -92,7 +93,7 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
     std::vector<std::unique_ptr<RemoteServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
         std::cerr << "ERROR: Service instance config is nullptr!" << std::endl;
-        return MakeUnexpected(mw::com::impl::ComErrc::kInvalidConfiguration);
+        return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
     }
     auto ipc_instance_specifier = score::mw::com::InstanceSpecifier::Create(
                                       service_instance_config->instance_specifier()->str())
