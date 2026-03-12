@@ -20,7 +20,7 @@ Offers, Finds, and Subscriptions per target host.
 Targets: someipd (192.168.87.2) and sample_client (192.168.87.3)
 
 Usage:
-    python3 analyze_pcap_someip.py [pcap_file]
+    python3 someip_network_analyzer.py [pcap_file]
 """
 
 from __future__ import annotations
@@ -253,7 +253,7 @@ def analyze_events(pcap_file: str) -> dict[str, list[dict]]:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 analyze_pcap_someip.py [pcap_file]")
+        print("Usage: python3 someip_network_analyzer.py [pcap_file]")
         sys.exit(1)
 
     pcap_file = sys.argv[1]

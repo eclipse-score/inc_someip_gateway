@@ -34,7 +34,7 @@ from tests.itf_updates.qemu_utils import (
     qemu_run_script,
     start_qemu,
 )
-from tests.integration.analyze_pcap_someip import (
+from tests.integration.someip_network_analyzer import (
     analyze as analyze_pcap_file,
     analyze_events,
 )

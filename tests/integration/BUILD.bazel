@@ -13,7 +13,6 @@
 
 load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@score_itf//:defs.bzl", "py_itf_test")
-load("@score_itf//score/itf/plugins:plugins.bzl", "qemu")
 
 # Export vsomeip config for QEMU deployment
 exports_files(
@@ -23,10 +22,10 @@ exports_files(
 
 # SOME/IP Service Discovery test - captures traffic and verifies SD offers/finds/subscriptions
 py_itf_test(
-    name = "test_someip_sd",
+    name = "someip_integration_tests",
     srcs = [
-        "analyze_pcap_someip.py",
-        "test_qemu_network.py",
+        "someip_integration.py",
+        "someip_network_analyzer.py",
         "//tests/itf_updates:qemu_utils.py",
     ],
     args = [
@@ -44,5 +43,5 @@ py_itf_test(
         "qemu",
         "qemu-x86_64",
     ],
-    deps = ["@someip_pip//scapy"],
+    deps = ["@score_someip_gateway_pip//scapy"],
 )
