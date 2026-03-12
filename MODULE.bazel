@@ -164,10 +164,9 @@ register_toolchains(
 bazel_dep(name = "score_rules_imagefs", version = "0.0.1", dev_dependency = True)
 git_override(
     module_name = "score_rules_imagefs",
-    commit = "abc3cf28ac05166b49ca2be570332b07e0ed6126",  # v0.0.1
-    remote = "https://github.com/eclipse-score/rules_imagefs.git",
+    commit = "93491146e61aad2c37f649fb6e88ce3ac6e17742",
+    remote = "https://github.com/etas-contrib/score_rules_imagefs.git",
 )
-
 imagefs = use_extension(
     "@score_rules_imagefs//extensions:imagefs.bzl",
     "imagefs",
