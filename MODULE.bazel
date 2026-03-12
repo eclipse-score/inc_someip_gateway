@@ -11,9 +11,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-"S-CORE SOME/IP Gateway"
-
-module(name = "score_someip_gateway")
+module(
+    name = "score_someip_gateway",
+    version = "0.0.1",
+)
 
 # ============================================================================
 # Python Configuration
@@ -26,17 +27,10 @@ single_version_override(
     version = "1.4.1",
 )
 
-# Python 3.12: Required for testing infrastructure and code generation tools
-PYTHON_VERSION = "3.12"
-
-python = use_extension(
-    "@rules_python//python/extensions:python.bzl",
-    "python",
-    dev_dependency = True,
-)
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
-    python_version = PYTHON_VERSION,
+    python_version = "3.12",
 )
 use_repo(python)
 
@@ -47,14 +41,14 @@ bazel_dep(
     repo_name = "bazel_tools_python",
 )
 
-# Python pip dependencies for testing
-pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
+# Python pip dependencies
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    hub_name = "someip_pip",
-    python_version = PYTHON_VERSION,
+    hub_name = "score_someip_gateway_pip",
+    python_version = "3.12",
     requirements_lock = "//:python_requirements_lock.txt",
 )
-use_repo(pip, "someip_pip")
+use_repo(pip, "score_someip_gateway_pip")
 
 # ============================================================================
 # Testing & Performance Measurement
@@ -63,15 +57,15 @@ bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 bazel_dep(name = "google_benchmark", version = "1.9.4", dev_dependency = True)
 
 # ============================================================================
-# Build System Rules
+# Build System Rules & Utilities
 # ============================================================================
-bazel_dep(name = "rules_cc", version = "0.2.14")
-bazel_dep(name = "rules_rust", version = "0.63.0")
-bazel_dep(name = "rules_pkg", version = "1.1.0")
+bazel_dep(name = "bazel_lib", version = "3.1.0", dev_dependency = True)
 
-# Platforms: Standard constraint values and platform definitions
-# Required for select() expressions that use @platforms//cpu:* and @platforms//os:*
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name = "rules_pkg", version = "1.1.0")
+bazel_dep(name = "rules_rust", version = "0.63.0")
 
 # ============================================================================
 # Toolchains & Platform Configuration
@@ -148,10 +142,10 @@ register_toolchains(
 # ============================================================================
 
 # LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
-# Integrates with LLVM 19.1.0 and Debian Bullseye sysroots
+# Integrates with LLVM 19.1.7 and Debian Bullseye sysroots
 bazel_dep(name = "toolchains_llvm", version = "1.5.0", dev_dependency = True)
 
-# Configures LLVM 19.1.0 for C/C++ compilation with cross-architecture support.
+# Configures LLVM 19.1.7 for C/C++ compilation with cross-architecture support.
 llvm = use_extension(
     "@toolchains_llvm//toolchain/extensions:llvm.bzl",
     "llvm",
@@ -200,11 +194,15 @@ single_version_override(
 )
 
 # ============================================================================
-# Code Generation - FlatBuffers
+# Code Generation
 # ============================================================================
 bazel_dep(name = "flatbuffers", version = "25.2.10")
 
-# TRLC: Traceability Language Compiler for requirements management
+# ============================================================================
+# Requirements Traceability
+# ============================================================================
+# TRLC (Traceability Language Compiler) for requirements management.
+# Overrides the transitive dependency to pin a verified release.
 git_override(
     module_name = "trlc",
     commit = "650b51a47264a4f232b3341f473527710fc32669",  # trlc-2.0.2 release
@@ -269,10 +267,3 @@ http_archive(
         "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
     ],
 )
-
-# ============================================================================
-# JSON Schema generation, validation and handling (e.g. write_source_files)
-# ============================================================================
-bazel_dep(name = "bazel_lib", version = "3.1.0", dev_dependency = True)
-
-bazel_dep(name = "bazel_skylib", version = "1.9.0")

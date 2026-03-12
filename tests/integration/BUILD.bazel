@@ -26,7 +26,7 @@ py_pytest(
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//src/someipd",
-        "@someip_pip//pytest",
-        "@someip_pip//someip",
+        "@score_someip_gateway_pip//pytest",
+        "@score_someip_gateway_pip//someip",
     ],
 )

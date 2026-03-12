@@ -1,6 +1,6 @@
 ..
    # *******************************************************************************
-   # Copyright (c) 2024 Contributors to the Eclipse Foundation
+   # Copyright (c) 2024-2026 Contributors to the Eclipse Foundation
    #
    # See the NOTICE file(s) distributed with this work for additional
    # information regarding copyright ownership.
@@ -19,7 +19,9 @@ SOMEIP Gateway Documentation
 .. toctree::
    :maxdepth: 2
 
+   requirements/index
    architecture/index.rst
+   tc8_conformance/index.rst
 
 
 Overview
@@ -27,18 +29,6 @@ Overview
 
 This repository provides a standardized setup for projects using **C++** or **Rust** and **Bazel** as a build system.
 It integrates best practices for build, test, CI/CD and documentation.
-
-Requirements
-------------
-
-.. stkh_req:: Example Functional Requirement
-   :id: stkh_req__docgen_enabled__example
-   :status: valid
-   :safety: QM
-   :security: YES
-   :reqtype: Functional
-   :rationale: Ensure documentation builds are possible for all modules
-
 
 Project Layout
 --------------
