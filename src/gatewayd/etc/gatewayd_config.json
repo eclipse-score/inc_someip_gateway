@@ -19,10 +19,25 @@
     ],
     "remote_service_instances": [
         {
-            "instance_specifier": "gatewayd/application_echo_response",
+            "instance_specifier": "benchmark/echo_response",
             "events": [
                 {
                     "event_name": "echo_response_tiny"
+                },
+                {
+                    "event_name": "echo_response_small"
+                },
+                {
+                    "event_name": "echo_response_medium"
+                },
+                {
+                    "event_name": "echo_response_large"
+                },
+                {
+                    "event_name": "echo_response_xlarge"
+                },
+                {
+                    "event_name": "echo_response_xxlarge"
                 }
             ]
         }
