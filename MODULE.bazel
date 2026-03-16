@@ -80,15 +80,6 @@ git_override(
     remote = "https://github.com/etas-contrib/score_toolchains_rust.git",
 )
 
-# Use ferrocene toolchains by default
-register_toolchains(
-    "@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu",
-    "@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu",
-    "@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800",
-    "@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800",
-    dev_dependency = True,
-)
-
 # ============================================================================
 # QNX8 Toolchain Configuration
 # ============================================================================
@@ -136,14 +127,6 @@ use_repo(
     "score_gcc_x86_64_toolchain",
     "score_qcc_aarch64_toolchain",
     "score_qcc_x86_64_toolchain",
-)
-
-register_toolchains(
-    "@score_gcc_x86_64_toolchain//:all",
-    "@score_gcc_aarch64_toolchain//:all",
-    "@score_qcc_x86_64_toolchain//:all",
-    "@score_qcc_aarch64_toolchain//:all",
-    dev_dependency = True,
 )
 
 # ============================================================================
