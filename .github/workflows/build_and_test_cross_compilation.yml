@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2024 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -14,7 +14,7 @@
 # Workflow configuration for S-CORE CI - Bazel Build & Test module
 # This workflow runs Bazel build and test when triggered by specific pull request events.
 
-name: Build & Test module (with host toolchain)
+name: Build & Test module (cross compilation)
 on:
   pull_request:
     types: [opened, reopened, synchronize]
@@ -22,7 +22,11 @@ on:
     types: [checks_requested]
   workflow_call:
 jobs:
-  build_and_test_host:
+  build_and_test_cross_compilation:
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel-config: ["x86_64-linux", "aarch64-linux"]
     runs-on: ubuntu-24.04
     steps:
       - uses: eclipse-score/more-disk-space@v1
@@ -39,8 +43,7 @@ jobs:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
           # Store build cache per workflow.
-          disk-cache: ${{ github.workflow }}
-          # Share repository cache between workflows.
+          disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
           repository-cache: true
           # Cache external/
           external-cache: true
@@ -48,12 +51,9 @@ jobs:
         uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
       - run: df -h
       - name: Bazel build targets
+        # TODO: build all targets ( //... ) once python toolchain issue is resolved.
         run: |
-          bazel build //...
+          bazel build --config ${{ matrix.bazel-config }} //src/... //tests/... //examples/...
       - run: df -h
         if: always()
-      - name: Bazel test targets
-        run: |
-          bazel test //... --build_tests_only
-      - run: df -h
-        if: always()
+        # TODO Run tests on QEMU

@@ -22,9 +22,11 @@ py_pytest(
     size = "medium",
     srcs = glob(["test_*.py"]) + ["conftest.py"],
     data = ["vsomeip-local.json"],
+    # Restrict the test execution to Linux for the moment due to dependency on Python
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//src/someipd",
-        "@someip_pip//pytest",
-        "@someip_pip//someip",
+        "@score_someip_gateway_pip//pytest",
+        "@score_someip_gateway_pip//someip",
     ],
 )

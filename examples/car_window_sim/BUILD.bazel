@@ -47,8 +47,6 @@ rust_library(
     deps = [
         ":car_window_types_ipc_gen_cpp",
         "@score_communication//score/mw/com/impl/rust:mw_com",
-        #"@my_crate_index//:libc",
-        "@@rules_rust++crate+crate_index//:libc",
     ],
 )
 
@@ -62,10 +60,6 @@ rust_binary(
     deps = [
         ":car_window_types",
         "@score_communication//score/mw/com/impl/rust:mw_com",
-        #"@my_crate_index//:clap",
-        "@@rules_rust++crate+crate_index//:clap",
-        #"@my_crate_index//:futures",
-        "@@rules_rust++crate+crate_index//:futures",
     ],
 )
 
@@ -84,15 +78,8 @@ rust_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":car_window_types",
-        "@car_window_sim_crate//:rustyrepl",
         "@car_window_sim_crate//:anyhow",
-        "@car_window_sim_crate//:clap",
-        "@car_window_sim_crate//:tokio",
-        "@score_communication//score/mw/com/impl/rust:mw_com",
-        #"@my_crate_index//:clap",
-        #"@@rules_rust++crate+crate_index//:clap",
-        #"@my_crate_index//:futures",
-        "@@rules_rust++crate+crate_index//:futures",
         "@score_baselibs//score/mw/log",
+        "@score_communication//score/mw/com/impl/rust:mw_com",
     ],
 )
