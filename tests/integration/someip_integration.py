@@ -66,13 +66,18 @@ GATEWAYD_CMD = (
     "/usr/bin/gatewayd -config_file /etc/gatewayd/gatewayd_config.bin "
     "--service_instance_manifest /etc/gatewayd/mw_com_config.json"
 )
+SOMEIPD_REMOTE_LOG = "/tmp/someipd.log"
 SOMEIPD_CMD = (
     "export VSOMEIP_CONFIGURATION=/etc/someipd/vsomeip.json && "
-    "/usr/bin/someipd --service_instance_manifest /etc/someipd/mw_com_config.json"
+    "/usr/bin/someipd -someipd_config /etc/someipd/someipd_config.json "
+    "--service_instance_manifest /etc/someipd/mw_com_config.json "
+    f"> {SOMEIPD_REMOTE_LOG} 2>&1"
 )
+SAMPLE_CLIENT_REMOTE_LOG = "/tmp/sample_client.log"
 SAMPLE_CLIENT_CMD = (
     "export VSOMEIP_CONFIGURATION=/etc/sample_client/vsomeip.json && "
-    "/usr/bin/sample_client"
+    "/usr/bin/sample_client "
+    f"> {SAMPLE_CLIENT_REMOTE_LOG} 2>&1"
 )
 
 IPC_BENCHMARKS_CMD = (
@@ -177,6 +182,29 @@ def ssh_run_bg(host: str, cmd: str) -> None:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
+
+
+def ssh_run(host: str, cmd: str) -> subprocess.CompletedProcess:
+    """Run a command on host via SSH and return the result with captured output."""
+    return subprocess.run(
+        ["ssh", *SSH_OPTS, f"root@{host}", cmd],
+        capture_output=True,
+    )
+
+
+def fetch_service_log(
+    host: str, service: str, remote_log: str, tc_name: str, outputs_dir: Path
+) -> None:
+    """Fetch a service log from QNX via SSH and save as <service>_<tc_name>.log."""
+    local_log = outputs_dir / f"{tc_name}_{service}.log"
+    result = ssh_run(host, f"/proc/boot/cat {remote_log}")
+    if result.returncode != 0:
+        logger.warning(
+            f"Failed to fetch {service} log from {host}: {result.stderr.decode()}"
+        )
+    else:
+        local_log.write_bytes(result.stdout)
+        logger.info(f"{service} log saved to {local_log}")
 
 
 def kill_stale_qemu_instances() -> None:
@@ -360,13 +388,13 @@ class TestSomeIPSD:
     """
 
     def test_someip_sd_offers_finds_subscriptions(
-        self, qemu_ifs_image, qemu_run_script
+        self, request, qemu_ifs_image, qemu_run_script
     ):
         """Verify SOME/IP-SD offers, finds, and subscriptions between QEMUs."""
         kill_stale_qemu_instances()
         tmp = get_outputs_dir()
-        pcap = tmp / "someip_sd_test.pcap"
-        log = tmp / "tcpdump.log"
+        pcap = tmp / f"{request.node.name}_tcpdump.pcap"
+        log = tmp / f"{request.node.name}_tcpdump.log"
 
         instance1 = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=1)
         instance2 = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=2)
@@ -376,6 +404,20 @@ class TestSomeIPSD:
                 start_qemu2_services(instance2.ssh_host)
                 time.sleep(SERVICE_SETTLE_TIME)
         finally:
+            fetch_service_log(
+                instance1.ssh_host,
+                "someipd",
+                SOMEIPD_REMOTE_LOG,
+                request.node.name,
+                tmp,
+            )
+            fetch_service_log(
+                instance2.ssh_host,
+                "sample_client",
+                SAMPLE_CLIENT_REMOTE_LOG,
+                request.node.name,
+                tmp,
+            )
             instance1.stop()
             instance2.stop()
 
@@ -386,25 +428,27 @@ class TestSomeIPSD:
             assert ip in parsed, f"No SD data for {expected.name} ({ip})"
             verify_sd_match(ip, expected, parsed[ip])
 
-    def test_negative_no_qemu_only_tcpdump(self):
+    def test_negative_no_qemu_only_tcpdump(self, request):
         """Negative: No QEMUs running - no traffic expected."""
         kill_stale_qemu_instances()
 
         tmp = get_outputs_dir()
-        pcap = tmp / "negative_no_qemu.pcap"
+        pcap = tmp / f"{request.node.name}_tcpdump.pcap"
 
-        with tcpdump_capture(pcap, tmp / "tcpdump_no_qemu.log"):
+        with tcpdump_capture(pcap, tmp / f"{request.node.name}_tcpdump.log"):
             time.sleep(5)
 
         parsed = analyze_pcap(pcap)
         assert not parsed, f"Expected no SD data, found: {list(parsed.keys())}"
         logger.info("PASS: No SOME/IP-SD traffic when no QEMU instances running")
 
-    def test_negative_both_qemus_no_services(self, qemu_ifs_image, qemu_run_script):
+    def test_negative_both_qemus_no_services(
+        self, request, qemu_ifs_image, qemu_run_script
+    ):
         """Negative: Both QEMUs running but no services - no traffic expected."""
         kill_stale_qemu_instances()
         tmp = get_outputs_dir()
-        pcap = tmp / "negative_no_services.pcap"
+        pcap = tmp / f"{request.node.name}_tcpdump.pcap"
 
         instance1 = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=1)
         instance2 = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=2)
@@ -412,7 +456,7 @@ class TestSomeIPSD:
             logger.info(f"QEMU 1: {instance1.ssh_host}, QEMU 2: {instance2.ssh_host}")
             logger.info("Waiting 5 seconds without starting services...")
 
-            with tcpdump_capture(pcap, tmp / "tcpdump_no_services.log"):
+            with tcpdump_capture(pcap, tmp / f"{request.node.name}_tcpdump.log"):
                 time.sleep(5)
         finally:
             instance1.stop()
@@ -422,12 +466,14 @@ class TestSomeIPSD:
         assert not parsed, f"Expected no SD data, found: {list(parsed.keys())}"
         logger.info("PASS: No SOME/IP-SD traffic when QEMUs running without services")
 
-    def test_negative_only_qemu1_with_services(self, qemu_ifs_image, qemu_run_script):
+    def test_negative_only_qemu1_with_services(
+        self, request, qemu_ifs_image, qemu_run_script
+    ):
         """Negative: Only QEMU 1 with services - offers/finds but no subscriptions."""
         kill_stale_qemu_instances()
         tmp = get_outputs_dir()
-        pcap = tmp / "negative_only_qemu1.pcap"
-        log = tmp / "tcpdump_qemu1.log"
+        pcap = tmp / f"{request.node.name}_tcpdump.pcap"
+        log = tmp / f"{request.node.name}_tcpdump.log"
 
         instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=1)
         try:
@@ -437,6 +483,9 @@ class TestSomeIPSD:
                 logger.info(f"Waiting {SERVICE_SETTLE_TIME}s for SD exchanges...")
                 time.sleep(SERVICE_SETTLE_TIME)
         finally:
+            fetch_service_log(
+                instance.ssh_host, "someipd", SOMEIPD_REMOTE_LOG, request.node.name, tmp
+            )
             instance.stop()
 
         parsed = analyze_pcap(pcap)
@@ -450,12 +499,14 @@ class TestSomeIPSD:
         logger.info("  QEMU 2: Not present (as expected)")
         logger.info("PASS: Only QEMU 1 - offers/finds present, no subscriptions")
 
-    def test_negative_only_qemu2_with_services(self, qemu_ifs_image, qemu_run_script):
+    def test_negative_only_qemu2_with_services(
+        self, request, qemu_ifs_image, qemu_run_script
+    ):
         """Negative: Only QEMU 2 with services - offers/finds but no subscriptions."""
         kill_stale_qemu_instances()
         tmp = get_outputs_dir()
-        pcap = tmp / "negative_only_qemu2.pcap"
-        log = tmp / "tcpdump_qemu2.log"
+        pcap = tmp / f"{request.node.name}_tcpdump.pcap"
+        log = tmp / f"{request.node.name}_tcpdump.log"
 
         instance = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=2)
         try:
@@ -467,6 +518,13 @@ class TestSomeIPSD:
                 logger.info(f"Waiting {SERVICE_SETTLE_TIME}s for SD exchanges...")
                 time.sleep(SERVICE_SETTLE_TIME)
         finally:
+            fetch_service_log(
+                instance.ssh_host,
+                "sample_client",
+                SAMPLE_CLIENT_REMOTE_LOG,
+                request.node.name,
+                tmp,
+            )
             instance.stop()
 
         parsed = analyze_pcap(pcap)
@@ -480,22 +538,36 @@ class TestSomeIPSD:
         logger.info("  QEMU 1: Not present (as expected)")
         logger.info("PASS: Only QEMU 2 - offers/finds present, no subscriptions")
 
-    def test_someip_event_data_transfer(self, qemu_ifs_image, qemu_run_script):
+    def test_someip_event_data_transfer(self, request, qemu_ifs_image, qemu_run_script):
         """Verify SOME/IP event data flows between QEMU 1 and QEMU 2."""
         kill_stale_qemu_instances()
         tmp = get_outputs_dir()
-        pcap = tmp / "someip_event_data.pcap"
+        pcap = tmp / f"{request.node.name}_tcpdump.pcap"
 
         instance1 = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=1)
         instance2 = start_qemu(qemu_ifs_image, qemu_run_script, instance_id=2)
         try:
-            with tcpdump_capture(pcap, tmp / "tcpdump_event_data.log"):
+            with tcpdump_capture(pcap, tmp / f"{request.node.name}_tcpdump.log"):
                 start_qemu1_services(instance1.ssh_host)
                 start_qemu2_services(instance2.ssh_host)
                 time.sleep(SERVICE_SETTLE_TIME)
                 start_ipc_benchmarks(instance1.ssh_host)
                 time.sleep(10)
         finally:
+            fetch_service_log(
+                instance1.ssh_host,
+                "someipd",
+                SOMEIPD_REMOTE_LOG,
+                request.node.name,
+                tmp,
+            )
+            fetch_service_log(
+                instance2.ssh_host,
+                "sample_client",
+                SAMPLE_CLIENT_REMOTE_LOG,
+                request.node.name,
+                tmp,
+            )
             instance1.stop()
             instance2.stop()
 
