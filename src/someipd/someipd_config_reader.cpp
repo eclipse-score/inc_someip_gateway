@@ -13,7 +13,6 @@
 
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
 #include <string>
 
 #include "src/someipd/someipd_config.h"
@@ -51,7 +50,7 @@ ServiceConfig ParseService(const nlohmann::json& obj) {
 SomeipDConfig ReadSomeipDConfig(const std::string& config_path) {
     std::ifstream file(config_path);
     if (!file.is_open()) {
-        throw std::runtime_error("Cannot open someipd config file: " + config_path);
+        return {};
     }
 
     const nlohmann::json root = nlohmann::json::parse(file);
