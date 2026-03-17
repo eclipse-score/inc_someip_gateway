@@ -29,15 +29,80 @@ exports_files(
 )
 
 # ============================================================================
-# Config Reader Library
+# Core Types (stack-independent SOME/IP types and constants)
 # ============================================================================
 cc_library(
-    name = "vsomeip_config_reader",
-    srcs = ["vsomeip_config_reader.cpp"],
-    hdrs = ["vsomeip_config_reader.h"],
+    name = "someipd_types",
+    hdrs = ["someipd_types.h"],
+)
+
+# ============================================================================
+# Abstract Interfaces (Bridge pattern implementor interfaces)
+# ============================================================================
+cc_library(
+    name = "i_network_stack",
+    hdrs = ["i_network_stack.h"],
+    deps = [":someipd_types"],
+)
+
+cc_library(
+    name = "i_internal_ipc",
+    hdrs = ["i_internal_ipc.h"],
+)
+
+# ============================================================================
+# Config Reader (stack-independent)
+# ============================================================================
+cc_library(
+    name = "someipd_config",
+    srcs = ["someipd_config_reader.cpp"],
+    hdrs = ["someipd_config.h"],
     deps = [
+        ":someipd_types",
         "@nlohmann_json//:json",
+    ],
+)
+
+# ============================================================================
+# Gateway Routing (Bridge pattern abstraction — core routing logic)
+# ============================================================================
+cc_library(
+    name = "gateway_routing",
+    srcs = ["gateway_routing.cpp"],
+    hdrs = ["gateway_routing.h"],
+    deps = [
+        ":i_internal_ipc",
+        ":i_network_stack",
+        ":someipd_config",
+        "@score_baselibs//score/mw/log",
+    ],
+)
+
+# ============================================================================
+# vsomeip Adapter (Adapter pattern — SOME/IP network stack)
+# ============================================================================
+cc_library(
+    name = "vsomeip_adapter",
+    srcs = ["vsomeip_adapter.cpp"],
+    hdrs = ["vsomeip_adapter.h"],
+    deps = [
+        ":i_network_stack",
         "@vsomeip",
+    ],
+)
+
+# ============================================================================
+# mw::com Adapter (Adapter pattern — internal IPC framework)
+# ============================================================================
+cc_library(
+    name = "mwcom_adapter",
+    srcs = ["mwcom_adapter.cpp"],
+    hdrs = ["mwcom_adapter.h"],
+    deps = [
+        ":i_internal_ipc",
+        "//src/network_service:provider",
+        "@score_baselibs//score/mw/log",
+        "@score_communication//score/mw/com",
     ],
 )
 
@@ -59,11 +124,11 @@ cc_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":vsomeip_config_reader",
-        "//src/network_service:provider",
-        "@score_baselibs//score/language/futurecpp",
-        "@score_communication//score/mw/com",
-        "@vsomeip",
+        ":gateway_routing",
+        ":mwcom_adapter",
+        ":someipd_config",
+        ":vsomeip_adapter",
+        "@score_baselibs//score/mw/log",
     ],
 )
 

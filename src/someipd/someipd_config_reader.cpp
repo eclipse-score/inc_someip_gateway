@@ -11,19 +11,19 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "src/someipd/vsomeip_config_reader.h"
-
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <string>
 
+#include "src/someipd/someipd_config.h"
+
 namespace score::someip_gateway::someipd {
 
 namespace {
 
-vsomeip::service_t ParseHex16(const std::string& value) {
-    return static_cast<vsomeip::service_t>(std::stoul(value, nullptr, 16));
+std::uint16_t ParseHex16(const std::string& value) {
+    return static_cast<std::uint16_t>(std::stoul(value, nullptr, 16));
 }
 
 ServiceEventConfig ParseEvent(const nlohmann::json& obj) {
@@ -38,8 +38,7 @@ ServiceConfig ParseService(const nlohmann::json& obj) {
     svc.service_id = ParseHex16(obj.at("service_id").get<std::string>());
     svc.instance_id = ParseHex16(obj.at("instance_id").get<std::string>());
     if (obj.contains("unreliable_port")) {
-        svc.unreliable_port =
-            static_cast<std::uint16_t>(obj.at("unreliable_port").get<std::uint16_t>());
+        svc.unreliable_port = obj.at("unreliable_port").get<std::uint16_t>();
     }
     for (const auto& ev : obj.at("events")) {
         svc.events.push_back(ParseEvent(ev));

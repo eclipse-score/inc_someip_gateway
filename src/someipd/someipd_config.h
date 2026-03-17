@@ -13,22 +13,24 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <vsomeip/vsomeip.hpp>
+
+#include "src/someipd/someipd_types.h"
 
 namespace score::someip_gateway::someipd {
 
 /// A single event/eventgroup pair within a SOME/IP service.
 struct ServiceEventConfig {
-    vsomeip::event_t event_id;
-    vsomeip::eventgroup_t eventgroup_id;
+    EventId event_id;
+    EventGroupId eventgroup_id;
 };
 
 /// Transport-level configuration for one SOME/IP service instance.
 struct ServiceConfig {
-    vsomeip::service_t service_id;
-    vsomeip::instance_t instance_id;
+    ServiceId service_id;
+    InstanceId instance_id;
     /// UDP port for unreliable (UDP) transport. 0 means no external transport configured.
     std::uint16_t unreliable_port{0};
     std::vector<ServiceEventConfig> events;

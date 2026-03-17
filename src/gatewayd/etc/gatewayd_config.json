@@ -1,17 +1,21 @@
 {
     "local_service_instances": [
         {
+            "someip_service_id": 4660,
             "instance_specifier": "gatewayd/application_window_control",
             "events": [
                 {
+                    "someip_method_id": 34680,
                     "event_name": "window_control"
                 }
             ]
         },
         {
+            "someip_service_id": 4660,
             "instance_specifier": "gatewayd/application_echo_request",
             "events": [
                 {
+                    "someip_method_id": 34680,
                     "event_name": "echo_request_tiny"
                 }
             ]

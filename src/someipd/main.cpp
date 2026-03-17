@@ -14,217 +14,91 @@
 #include <atomic>
 #include <csignal>
 #include <cstdlib>
-#include <iostream>
-#include <set>
-#include <thread>
-#include <cstdlib>
-#include <vsomeip/defines.hpp>
-#include <vsomeip/primitive_types.hpp>
-#include <vsomeip/vsomeip.hpp>
+#include <memory>
 
-#include "score/mw/com/runtime.h"
-#include "score/span.hpp"
-#include "src/network_service/interfaces/message_transfer.h"
-#include "src/someipd/vsomeip_config_reader.h"
+#include "score/mw/log/logging.h"
+#include "src/someipd/gateway_routing.h"
+#include "src/someipd/mwcom_adapter.h"
+#include "src/someipd/someipd_config.h"
+#include "src/someipd/vsomeip_adapter.h"
 
-static const std::size_t max_sample_count = 10;
-
-using score::someip_gateway::network_service::interfaces::message_transfer::
-    SomeipMessageTransferProxy;
-using score::someip_gateway::network_service::interfaces::message_transfer::
-    SomeipMessageTransferSkeleton;
+using score::someip_gateway::someipd::GatewayRouting;
+using score::someip_gateway::someipd::MwcomAdapter;
 using score::someip_gateway::someipd::SomeipDConfig;
+using score::someip_gateway::someipd::VsomeipAdapter;
 
-// Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
 
-// Signal handler for graceful shutdown
-void termination_handler(int /*signal*/) {
-    std::cout << "Received termination signal. Initiating graceful shutdown..." << std::endl;
-    shutdown_requested.store(true);
+void termination_handler(int /*signal*/) { shutdown_requested.store(true); }
+
+std::optional<std::string_view> ParseConfigPath(int argc, const char* argv[]) {
+    for (int i = 1; i < argc - 1; ++i) {
+        if (std::string_view{argv[i]} == "-someipd_config") {
+            return argv[i + 1];
+        }
+    }
+    return std::nullopt;
+}
+
+void LogConfig(const SomeipDConfig& config) {
+    using score::mw::log::LogHex16;
+    score::mw::log::LogInfo() << "Loaded someipd config";
+    for (const auto& svc : config.offered_services) {
+        score::mw::log::LogInfo() << "Offered service: " << LogHex16{svc.service_id} << ":"
+                                  << LogHex16{svc.instance_id} << " on port "
+                                  << svc.unreliable_port;
+        for (const auto& ev : svc.events) {
+            score::mw::log::LogInfo() << "  Event: " << LogHex16{ev.event_id} << " in event group "
+                                      << LogHex16{ev.eventgroup_id};
+        }
+    }
+    for (const auto& svc : config.subscribed_services) {
+        score::mw::log::LogInfo() << "Subscribed service: " << LogHex16{svc.service_id} << ":"
+                                  << LogHex16{svc.instance_id};
+        for (const auto& ev : svc.events) {
+            score::mw::log::LogInfo() << "  Event: " << LogHex16{ev.event_id} << " in event group "
+                                      << LogHex16{ev.eventgroup_id};
+        }
+    }
 }
 
 int main(int argc, const char* argv[]) {
-    std::cout << "Starting SOME/IP daemon..." << std::endl;
-    // Register signal handlers for graceful shutdown
+    score::mw::log::LogInfo() << "Starting SOME/IP daemon...";
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
 
-    std::optional<std::string_view> someipd_config_path;
-
-    for (int i = 1; i < argc - 1; ++i) {
-        if (std::string_view{argv[i]} == "-someipd_config") {
-            someipd_config_path = argv[i + 1];
-            break;
-        }
-    }
-
+    auto someipd_config_path = ParseConfigPath(argc, argv);
     if (!someipd_config_path.has_value()) {
-        std::cerr << "Mandatory argument '-someipd_config' is missing.\n";
+        score::mw::log::LogError() << "Mandatory argument '-someipd_config' is missing.";
         return EXIT_FAILURE;
     }
 
     SomeipDConfig config{};
     try {
-        config = score::someip_gateway::someipd::ReadSomeipDConfig(std::string(someipd_config_path.value()));
-        //print all the values from config for debugging
-        std::cout << "Loaded someipd config:\n";
-        for (const auto& svc : config.offered_services) {
-            std::cout << "Offered service: 0x" << std::hex <<
-                            svc.service_id << ":0x" << svc.instance_id << std::dec
-                        << " on port " << svc.unreliable_port << std::endl;
-            for (const auto& ev : svc.events) {
-                std::cout << "  Event: 0x" << std::hex << ev.event_id << " in event group 0x" << ev.eventgroup_id << std::dec << std::endl;
-            }
-        }
-        for (const auto& svc : config.subscribed_services) {
-            std::cout << "Subscribed service: 0x" << std::hex <<
-                            svc.service_id << ":0x" << svc.instance_id << std::dec << std::endl;
-            for (const auto& ev : svc.events) {
-                std::cout << "  Event: 0x" << std::hex << ev.event_id << " in event group 0x" << ev.eventgroup_id << std::dec << std::endl;
-            }
-        }
+        config = score::someip_gateway::someipd::ReadSomeipDConfig(
+            std::string(someipd_config_path.value()));
+        LogConfig(config);
     } catch (const std::exception& ex) {
-        std::cerr << "Failed to load someipd config: " << ex.what() << '\n';
-        return EXIT_FAILURE;
-    }
-    score::mw::com::runtime::InitializeRuntime(argc, argv);
-    auto runtime = vsomeip::runtime::get();
-    auto application = runtime->create_application("someipd");
-    if (!application->init()) {
-        std::cerr << "App init failed";
+        score::mw::log::LogError() << "Failed to load someipd config: " << ex.what();
         return EXIT_FAILURE;
     }
 
-    std::thread([application, config]() {
-        auto handles =
-            SomeipMessageTransferProxy::FindService(
-                score::mw::com::InstanceSpecifier::Create(std::string("someipd/gatewayd_messages"))
-                    .value())
-                .value();
+    // Create adapters — swap these to use different SOME/IP stacks or IPC frameworks.
+    auto network_stack = std::make_unique<VsomeipAdapter>("someipd");
+    if (!network_stack->Init()) {
+        score::mw::log::LogError() << "Network stack initialization failed";
+        return EXIT_FAILURE;
+    }
 
-        {  // Proxy for receiving messages from gatewayd to be sent via SOME/IP
-            auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
-            proxy.message_.Subscribe(max_sample_count);
+    auto internal_ipc =
+        std::make_unique<MwcomAdapter>("someipd/gatewayd_messages", "someipd/someipd_messages", 10);
+    if (!internal_ipc->Init(argc, argv)) {
+        score::mw::log::LogError() << "IPC initialization failed";
+        return EXIT_FAILURE;
+    }
 
-            // Skeleton for transmitting messages from the network to gatewayd
-            auto create_result = SomeipMessageTransferSkeleton::Create(
-                score::mw::com::InstanceSpecifier::Create(std::string("someipd/someipd_messages"))
-                    .value());
-            // TODO: Error handling
-            auto skeleton = std::move(create_result).value();
-            (void)skeleton.OfferService();
+    GatewayRouting routing(std::move(network_stack), std::move(internal_ipc), std::move(config));
+    routing.Run(shutdown_requested);
 
-            // Register message handlers for all subscribed services
-            for (const auto& svc : config.subscribed_services) {
-                for (const auto& ev : svc.events) {
-                    std::cout << "Registering message handler for service 0x" << std::hex << svc.service_id
-                              << ":0x" << svc.instance_id << " event 0x" << ev.event_id << std::dec
-                              << std::endl;
-                    application->register_message_handler(
-                        svc.service_id, svc.instance_id, ev.event_id,
-                        [&skeleton](const std::shared_ptr<vsomeip::message>& msg) {
-                            auto maybe_message = skeleton.message_.Allocate();
-                            if (!maybe_message.has_value()) {
-                                std::cerr << "Failed to allocate SOME/IP message:"
-                                          << maybe_message.error().Message() << std::endl;
-                                return;
-                            }
-                            auto message_sample = std::move(maybe_message).value();
-                            memcpy(message_sample->data + VSOMEIP_FULL_HEADER_SIZE,
-                                   msg->get_payload()->get_data(),
-                                   msg->get_payload()->get_length());
-                            message_sample->size =
-                                msg->get_payload()->get_length() + VSOMEIP_FULL_HEADER_SIZE;
-                            skeleton.message_.Send(std::move(message_sample));
-                        });
-                }
-
-                application->request_service(svc.service_id, svc.instance_id);
-                for (const auto& ev : svc.events) {
-                    std::set<vsomeip::eventgroup_t> groups{ev.eventgroup_id};
-                    application->request_event(svc.service_id, svc.instance_id, ev.event_id, groups,
-                                               vsomeip::event_type_e::ET_EVENT);
-                    application->subscribe(svc.service_id, svc.instance_id, ev.eventgroup_id);
-                }
-            }
-
-            // Offer all configured local services to the SOME/IP network.
-            // Order matters: offer_event must come before offer_service — see vsomeip application.hpp.
-            for (const auto& svc : config.offered_services) {
-                for (const auto& ev : svc.events) {
-                    std::set<vsomeip::eventgroup_t> groups{ev.eventgroup_id};
-                    std::cout << "Offering event 0x" << std::hex << svc.service_id << ":0x" << svc.instance_id
-                              << " event 0x" << ev.event_id << " in event group 0x" << ev.eventgroup_id
-                              << std::dec << std::endl;
-                    application->offer_event(svc.service_id, svc.instance_id, ev.event_id, groups);
-                }
-                std::cout << "Offering service 0x" << std::hex << svc.service_id << ":0x" << svc.instance_id
-                          << std::dec << std::endl;
-                application->offer_service(svc.service_id, svc.instance_id);
-            }
-
-            auto payload = vsomeip::runtime::get()->create_payload();
-
-            std::cout << "SOME/IP daemon started, waiting for messages..." << std::endl;
-
-            // Process messages until shutdown is requested
-            while (!shutdown_requested.load()) {
-                // TODO: Use ReceiveHandler + async runtime instead of polling
-                proxy.message_.GetNewSamples(
-                    [&](auto message_sample) {
-                        score::cpp::span<const std::byte> message(message_sample->data,
-                                                                  message_sample->size);
-
-                        // Check if sample size is valid and contains at least a SOME/IP header
-                        if (message.size() < VSOMEIP_FULL_HEADER_SIZE) {
-                            std::cerr << "Received too small sample (size: " << message.size()
-                                      << ", expected at least: " << VSOMEIP_FULL_HEADER_SIZE
-                                      << "). Skipping message." << std::endl;
-                            return;
-                        }
-
-                        // Read service_id and event_id from the SOME/IP header (big-endian)
-                        const auto service_id = static_cast<vsomeip::service_t>(
-                            (std::to_integer<uint16_t>(message[0]) << 8) |
-                            std::to_integer<uint16_t>(message[1]));
-                        const auto event_id = static_cast<vsomeip::event_t>(
-                            (std::to_integer<uint16_t>(message[2]) << 8) |
-                            std::to_integer<uint16_t>(message[3]));
-
-                        // Look up the instance_id from the offered services config
-                        vsomeip::instance_t instance_id = vsomeip::ANY_INSTANCE;
-                        for (const auto& svc : config.offered_services) {
-                            if (svc.service_id == service_id) {
-                                instance_id = svc.instance_id;
-                                break;
-                            }
-                        }
-                        if (instance_id == vsomeip::ANY_INSTANCE) {
-                            std::cerr << "No offered service configured for service_id 0x"
-                                      << std::hex << service_id << ". Dropping message." << std::dec
-                                      << std::endl;
-                            return;
-                        }
-
-                        // TODO: Here we need to find a better way how to pass the message to
-                        // vsomeip. There doesn't seem to be a public way to just wrap the existing
-                        // buffer.
-                        auto payload_data = message.subspan(VSOMEIP_FULL_HEADER_SIZE);
-                        payload->set_data(
-                            reinterpret_cast<const vsomeip_v3::byte_t*>(payload_data.data()),
-                            payload_data.size());
-                        application->notify(service_id, instance_id, event_id, payload);
-                    },
-                    max_sample_count);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
-
-            std::cout << "Shutting down SOME/IP daemon..." << std::endl;
-        }
-
-        application->stop();
-    }).detach();
-
-    application->start();
+    return EXIT_SUCCESS;
 }
