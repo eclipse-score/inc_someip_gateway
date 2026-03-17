@@ -129,14 +129,6 @@ use_repo(
     "score_qcc_x86_64_toolchain",
 )
 
-register_toolchains(
-    "@score_gcc_x86_64_toolchain//:all",
-    "@score_gcc_aarch64_toolchain//:all",
-    "@score_qcc_x86_64_toolchain//:all",
-    "@score_qcc_aarch64_toolchain//:all",
-    dev_dependency = True,
-)
-
 # ============================================================================
 # LLVM C/C++ Toolchain Configuration
 # ============================================================================
@@ -179,6 +171,15 @@ bazel_dep(name = "score_docs_as_code", version = "2.3.0", dev_dependency = True)
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.1.2")
+
+# On aarch64 (ARM), C's char is unsigned (u8)
+# Fixed upstream on main by commit b9efce9702d108fd63be806738db50c14d354302
+# Opened problem report at: https://github.com/eclipse-score/communication/issues/172
+single_version_override(
+    module_name = "score_communication",
+    patch_strip = 1,
+    patches = ["//:third_party/score_communication-cchar.patch"],
+)
 
 # ============================================================================
 # Base Libraries
