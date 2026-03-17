@@ -26,6 +26,12 @@ namespace score::someip_gateway::someipd {
 ///
 /// All vsomeip-specific headers and API calls are isolated here.
 /// To switch to a different SOME/IP stack, provide another INetworkStack adapter.
+///
+/// Target (INetworkStack)
+/// Adapter (VsomeipAdapter)
+/// Adaptee (vsomeip::application & vsomeip::payload)
+/// Client main.cpp , it instantiate the adapter
+
 class VsomeipAdapter : public INetworkStack {
    public:
     explicit VsomeipAdapter(std::string app_name);

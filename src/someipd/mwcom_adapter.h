@@ -27,12 +27,18 @@ namespace score::someip_gateway::someipd {
 ///
 /// All mw::com-specific headers and API calls are isolated here.
 /// To switch to a different IPC framework, provide another IInternalIpc adapter.
+///
+///
+/// Target (IInternalIpc)
+/// Adapter (MwcomAdapter)
+/// Adaptee (SomeipMessageTransferProxy & SomeipMessageTransferSkeleton)
+/// Client main.cpp
 class MwcomAdapter : public IInternalIpc {
    public:
     MwcomAdapter(std::string proxy_instance_specifier, std::string skeleton_instance_specifier,
                  std::size_t max_sample_count);
 
-    bool Init(int argc, const char* argv[]) override;
+    void Init(int argc, const char* argv[]) override;
     bool SendToGatewayd(const std::byte* data, std::size_t size) override;
     void ReceiveFromGatewayd(MessageCallback callback, std::size_t max_count) override;
 

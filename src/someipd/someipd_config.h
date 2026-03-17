@@ -31,7 +31,6 @@ struct ServiceEventConfig {
 struct ServiceConfig {
     ServiceId service_id;
     InstanceId instance_id;
-    /// UDP port for unreliable (UDP) transport. 0 means no external transport configured.
     std::uint16_t unreliable_port{0};
     std::vector<ServiceEventConfig> events;
 };
@@ -44,9 +43,6 @@ struct SomeipDConfig {
     std::vector<ServiceConfig> subscribed_services;
 };
 
-/// @brief Parse the someipd service configuration from a JSON file.
-/// @param config_path Absolute or relative path to the someipd config JSON file.
-/// @throws std::runtime_error if the file cannot be opened or parsed.
 SomeipDConfig ReadSomeipDConfig(const std::string& config_path);
 
 }  // namespace score::someip_gateway::someipd

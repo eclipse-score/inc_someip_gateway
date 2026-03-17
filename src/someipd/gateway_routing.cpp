@@ -85,7 +85,7 @@ InstanceId GatewayRouting::LookupInstanceId(ServiceId service_id) const {
     }
     return kAnyInstance;
 }
-
+// exchange event data
 void GatewayRouting::ProcessMessages(std::atomic<bool>& shutdown_requested) {
     static constexpr std::size_t kMaxSampleCount = 10;
 
@@ -131,8 +131,8 @@ void GatewayRouting::ProcessMessages(std::atomic<bool>& shutdown_requested) {
 
 void GatewayRouting::Run(std::atomic<bool>& shutdown_requested) {
     network_stack_->StartProcessing();
-    SetupSubscriptions();
-    SetupOfferings();
+    SetupSubscriptions(); // once per service, not per message
+    SetupOfferings();     // once per service, not per message
     ProcessMessages(shutdown_requested);
     network_stack_->StopProcessing();
 }

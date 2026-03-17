@@ -27,7 +27,7 @@ class IInternalIpc {
     virtual ~IInternalIpc() = default;
 
     /// Initialize the IPC runtime, discover services, and establish connections.
-    virtual bool Init(int argc, const char* argv[]) = 0;
+    virtual void Init(int argc, const char* argv[]) = 0;
 
     /// Send a raw SOME/IP message to gatewayd (inbound path: network → someipd → gatewayd).
     virtual bool SendToGatewayd(const std::byte* data, std::size_t size) = 0;

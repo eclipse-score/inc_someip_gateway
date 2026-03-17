@@ -28,17 +28,12 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
-# ============================================================================
 # Core Types (stack-independent SOME/IP types and constants)
-# ============================================================================
 cc_library(
     name = "someipd_types",
     hdrs = ["someipd_types.h"],
 )
 
-# ============================================================================
-# Abstract Interfaces (Bridge pattern implementor interfaces)
-# ============================================================================
 cc_library(
     name = "i_network_stack",
     hdrs = ["i_network_stack.h"],
@@ -50,9 +45,6 @@ cc_library(
     hdrs = ["i_internal_ipc.h"],
 )
 
-# ============================================================================
-# Config Reader (stack-independent)
-# ============================================================================
 cc_library(
     name = "someipd_config",
     srcs = ["someipd_config_reader.cpp"],
@@ -63,9 +55,6 @@ cc_library(
     ],
 )
 
-# ============================================================================
-# Gateway Routing (Bridge pattern abstraction — core routing logic)
-# ============================================================================
 cc_library(
     name = "gateway_routing",
     srcs = ["gateway_routing.cpp"],
@@ -78,9 +67,6 @@ cc_library(
     ],
 )
 
-# ============================================================================
-# vsomeip Adapter (Adapter pattern — SOME/IP network stack)
-# ============================================================================
 cc_library(
     name = "vsomeip_adapter",
     srcs = ["vsomeip_adapter.cpp"],
@@ -91,9 +77,6 @@ cc_library(
     ],
 )
 
-# ============================================================================
-# mw::com Adapter (Adapter pattern — internal IPC framework)
-# ============================================================================
 cc_library(
     name = "mwcom_adapter",
     srcs = ["mwcom_adapter.cpp"],
@@ -106,9 +89,6 @@ cc_library(
     ],
 )
 
-# ============================================================================
-# Main Binary
-# ============================================================================
 cc_binary(
     name = "someipd",
     srcs = ["main.cpp"],

@@ -28,7 +28,7 @@ MwcomAdapter::MwcomAdapter(std::string proxy_instance_specifier,
       skeleton_instance_specifier_(std::move(skeleton_instance_specifier)),
       max_sample_count_(max_sample_count) {}
 
-bool MwcomAdapter::Init(int argc, const char* argv[]) {
+void MwcomAdapter::Init(int argc, const char* argv[]) {
     score::mw::com::runtime::InitializeRuntime(argc, argv);
 
     auto handles = Proxy::FindService(
@@ -41,8 +41,6 @@ bool MwcomAdapter::Init(int argc, const char* argv[]) {
         score::mw::com::InstanceSpecifier::Create(skeleton_instance_specifier_).value());
     skeleton_.emplace(std::move(create_result).value());
     (void)skeleton_->OfferService();
-
-    return true;
 }
 
 bool MwcomAdapter::SendToGatewayd(const std::byte* data, std::size_t size) {

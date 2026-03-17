@@ -18,13 +18,13 @@
 
 namespace score::someip_gateway::someipd {
 
-/// Stack-independent SOME/IP type aliases.
+/// Hopefully ;) Stack-independent SOME/IP type aliases.
 using ServiceId = std::uint16_t;
 using InstanceId = std::uint16_t;
 using EventId = std::uint16_t;
 using EventGroupId = std::uint16_t;
 
-/// SOME/IP protocol constants (per SOME/IP specification, stack-independent).
+/// Hopefully ;) SOME/IP protocol constants (per SOME/IP specification, stack-independent).
 constexpr std::size_t kSomeipFullHeaderSize = 16;
 constexpr std::size_t kMaxMessageSize = 1500;
 constexpr InstanceId kAnyInstance = 0xFFFF;

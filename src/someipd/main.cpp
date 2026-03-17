@@ -86,10 +86,7 @@ int main(int argc, const char* argv[]) {
 
     auto internal_ipc =
         std::make_unique<MwcomAdapter>("someipd/gatewayd_messages", "someipd/someipd_messages", 10);
-    if (!internal_ipc->Init(argc, argv)) {
-        score::mw::log::LogError() << "IPC initialization failed";
-        return EXIT_FAILURE;
-    }
+    internal_ipc->Init(argc, argv);
 
     GatewayRouting routing(std::move(network_stack), std::move(internal_ipc), std::move(config));
     routing.Run(shutdown_requested);
