@@ -40,28 +40,6 @@ std::optional<std::string_view> ParseConfigPath(int argc, const char* argv[]) {
     return std::nullopt;
 }
 
-void LogConfig(const SomeipDConfig& config) {
-    using score::mw::log::LogHex16;
-    score::mw::log::LogInfo() << "Loaded someipd config";
-    for (const auto& svc : config.offered_services) {
-        score::mw::log::LogInfo() << "Offered service: " << LogHex16{svc.service_id} << ":"
-                                  << LogHex16{svc.instance_id} << " on port "
-                                  << svc.unreliable_port;
-        for (const auto& ev : svc.events) {
-            score::mw::log::LogInfo() << "  Event: " << LogHex16{ev.event_id} << " in event group "
-                                      << LogHex16{ev.eventgroup_id};
-        }
-    }
-    for (const auto& svc : config.subscribed_services) {
-        score::mw::log::LogInfo() << "Subscribed service: " << LogHex16{svc.service_id} << ":"
-                                  << LogHex16{svc.instance_id};
-        for (const auto& ev : svc.events) {
-            score::mw::log::LogInfo() << "  Event: " << LogHex16{ev.event_id} << " in event group "
-                                      << LogHex16{ev.eventgroup_id};
-        }
-    }
-}
-
 int main(int argc, const char* argv[]) {
     score::mw::log::LogInfo() << "Starting SOME/IP daemon...";
     std::signal(SIGTERM, termination_handler);
@@ -75,7 +53,6 @@ int main(int argc, const char* argv[]) {
 
     SomeipDConfig config{};
     config = score::someip_gateway::someipd::ReadSomeipDConfig(std::string(someipd_config_path.value()));
-    LogConfig(config);
 
     // Create adapters — swap these to use different SOME/IP stacks or IPC frameworks.
     auto network_stack = std::make_unique<VsomeipAdapter>("someipd");
