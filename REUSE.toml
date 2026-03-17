@@ -1,0 +1,54 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+version = 1
+
+[[annotations]]
+path = [".devcontainer/*.json"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [".vscode/*.json", ".vscode/restructuredtext.code-snippets"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["**/*.lock.json", "**/Cargo.lock", "MODULE.bazel.lock", "python_requirements_lock.txt"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [".bazelversion"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["third_party/*.patch"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+    "docs/architecture/score-someip-car-window-overview.drawio*",
+    "examples/car_window_sim/config/mw_com_config.json",
+    "src/gatewayd/etc/gatewayd_config.*",
+    "src/gatewayd/etc/mw_com_config.json",
+    "src/someipd/etc/mw_com_config.json",
+    "tests/integration/sample_client/vsomeip.json",
+    "tests/integration/vsomeip-local.json",
+    "tests/integration/vsomeip.json",
+    "tests/performance_benchmarks/config/benchmark_mw_com_config.json"
+]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"

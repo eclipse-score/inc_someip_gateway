@@ -30,10 +30,10 @@ repos:
       - id: copyright
         exclude: defs.bzl
 
-  # - repo: https://codeberg.org/fsfe/reuse-tool
-  #   rev: a1bb792acda6fd0724936b4ebbdbc8eceb9c0459 # v6.2.0
-  #   hooks:
-  #     - id: reuse-lint-file
+  - repo: https://codeberg.org/fsfe/reuse-tool
+    rev: a1bb792acda6fd0724936b4ebbdbc8eceb9c0459 # v6.2.0
+    hooks:
+      - id: reuse-lint-file
 
   - repo: https://github.com/google/yamlfmt
     rev: 21ca5323a9c87ee37a434e0ca908efc0a89daa07 # v0.21.0
