@@ -1,0 +1,27 @@
+{
+    "offered_services": [
+        {
+            "service_id": "0x1234",
+            "instance_id": "0x5678",
+            "unreliable_port": 31000,
+            "events": [
+                {
+                    "event_id": "0x8778",
+                    "eventgroup_id": "0x4465"
+                }
+            ]
+        }
+    ],
+    "subscribed_services": [
+        {
+            "service_id": "0x4321",
+            "instance_id": "0x5678",
+            "events": [
+                {
+                    "event_id": "0x8778",
+                    "eventgroup_id": "0x4465"
+                }
+            ]
+        }
+    ]
+}

@@ -16,27 +16,99 @@ This daemon contains the SOME/IP communication stack and is QM
 """
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
-# ============================================================================
-# Main Binary
-# ============================================================================
+# Export config files for deployment
+exports_files(
+    [
+        "etc/mw_com_config.json",
+        "etc/someipd_config.json",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Core Types (stack-independent SOME/IP types and constants)
+cc_library(
+    name = "someipd_types",
+    hdrs = ["someipd_types.h"],
+)
+
+cc_library(
+    name = "i_network_stack",
+    hdrs = ["i_network_stack.h"],
+    deps = [":someipd_types"],
+)
+
+cc_library(
+    name = "i_internal_ipc",
+    hdrs = ["i_internal_ipc.h"],
+)
+
+cc_library(
+    name = "someipd_config",
+    srcs = ["someipd_config_reader.cpp"],
+    hdrs = ["someipd_config.h"],
+    deps = [
+        ":someipd_types",
+        "@nlohmann_json//:json",
+    ],
+)
+
+cc_library(
+    name = "gateway_routing",
+    srcs = ["gateway_routing.cpp"],
+    hdrs = ["gateway_routing.h"],
+    deps = [
+        ":i_internal_ipc",
+        ":i_network_stack",
+        ":someipd_config",
+        "@score_baselibs//score/mw/log",
+    ],
+)
+
+cc_library(
+    name = "vsomeip_adapter",
+    srcs = ["vsomeip_adapter.cpp"],
+    hdrs = ["vsomeip_adapter.h"],
+    deps = [
+        ":i_network_stack",
+        "@vsomeip",
+    ],
+)
+
+cc_library(
+    name = "mwcom_adapter",
+    srcs = ["mwcom_adapter.cpp"],
+    hdrs = ["mwcom_adapter.h"],
+    deps = [
+        ":i_internal_ipc",
+        "//src/network_service:provider",
+        "@score_baselibs//score/mw/log",
+        "@score_communication//score/mw/com",
+    ],
+)
+
 cc_binary(
     name = "someipd",
     srcs = ["main.cpp"],
     args = [
         "-service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
+        "-someipd_config",
+        "$(rootpath etc/someipd_config.json)",
     ],
     data = [
         "etc/mw_com_config.json",
+        "etc/someipd_config.json",
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/network_service:provider",
-        "@score_baselibs//score/language/futurecpp",
-        "@score_communication//score/mw/com",
-        "@vsomeip",
+        ":gateway_routing",
+        ":mwcom_adapter",
+        ":someipd_config",
+        ":vsomeip_adapter",
+        "@score_baselibs//score/mw/log",
     ],
 )
 
