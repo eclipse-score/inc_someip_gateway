@@ -10,7 +10,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
 """
 Tests for verifying the SOMEIP service discovery and event communication between two QEMU instances using tcpdump captures.
 The tests cover both positive scenarios (services properly discovered and subscribed) and negative scenarios (no traffic when no services running, etc.).

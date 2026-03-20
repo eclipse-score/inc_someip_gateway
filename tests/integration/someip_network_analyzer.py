@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # *******************************************************************************
 # Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
@@ -10,8 +11,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
-#!/usr/bin/env python3
 """Analyze pcap files for SOME/IP-SD messages using scapy.
 
 Parses a pcap file for SOME/IP-SD messages and generates a summary of
