@@ -39,7 +39,7 @@ jobs:
       bazel-target: "//src/... //tests/... //examples/..."
       bazel-config: ${{ matrix.bazel-config }}
       credential-helper: ".github/tools/qnx_credential_helper.py"
-      bazel-disk-cache: ${{ matrix.bazel-config }}
+      bazel-disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
     secrets:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
