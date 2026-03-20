@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -10,13 +10,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-
 #include <atomic>
 #include <csignal>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <thread>
+#include <string_view>
 
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
@@ -45,14 +45,20 @@ int main(int argc, const char* argv[]) {
     std::signal(SIGINT, termination_handler);
 
     // Read config data
-    // TODO: Be more flexible with the path
     // TODO: Use memory mapped file instead of copying into buffer
+    std::string config_path = "src/gatewayd/etc/gatewayd_config.bin";
+    for (int i = 1; i < argc; ++i) {
+        if (std::string_view(argv[i]) == "-config_file" && i + 1 < argc) {
+            config_path = argv[i + 1];
+            break;
+        }
+    }
+
     std::ifstream config_file;
-    config_file.open("src/gatewayd/etc/gatewayd_config.bin", std::ios::binary | std::ios::in);
+    config_file.open(config_path, std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file 'src/gatewayd/etc/gatewayd_config.bin'"
-                  << std::endl;
+        std::cerr << "Error: Could not open config file '" << config_path << "'" << std::endl;
         return 1;
     }
 

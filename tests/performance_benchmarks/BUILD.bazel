@@ -15,6 +15,11 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
+exports_files(
+    ["config/benchmark_mw_com_config.json"],
+    visibility = ["//deployment/qemu:__pkg__"],
+)
+
 cc_library(
     name = "echo_service",
     hdrs = ["echo_service.h"],
@@ -43,6 +48,10 @@ cc_binary(
 cc_binary(
     name = "ipc_benchmarks",
     srcs = ["ipc_benchmarks.cpp"],
+    args = [
+        "-service_instance_manifest",
+        "$(rootpath config/benchmark_mw_com_config.json)",
+    ],
     data = ["config/benchmark_mw_com_config.json"],
     visibility = ["//visibility:public"],
     deps = [

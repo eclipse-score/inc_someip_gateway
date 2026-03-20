@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -10,23 +10,37 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
-"""
-Integration Tests
-"""
-
 load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
+load("@score_itf//:defs.bzl", "py_itf_test")
 
-py_pytest(
-    name = "integration",
-    size = "medium",
-    srcs = glob(["test_*.py"]) + ["conftest.py"],
-    data = ["vsomeip-local.json"],
-    # Restrict the test execution to Linux for the moment due to dependency on Python
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = [
-        "//src/someipd",
-        "@score_someip_gateway_pip//pytest",
-        "@score_someip_gateway_pip//someip",
+# Export vsomeip config for QEMU deployment
+exports_files(
+    ["vsomeip.json"],
+    visibility = ["//visibility:public"],
+)
+
+# SOME/IP Service Discovery test - captures traffic and verifies SD offers/finds/subscriptions
+py_itf_test(
+    name = "someip_integration_tests",
+    srcs = [
+        "someip_integration.py",
+        "someip_network_analyzer.py",
+        "//tests/itf_updates:qemu_utils.py",
     ],
+    args = [
+        "-k",
+        "TestSomeIPSD",
+        "-s",
+    ],
+    data = [
+        "//deployment/qemu:run_qemu.sh",
+        "//deployment/qemu:someip_gateway_ifs",
+    ],
+    plugins = [],  # No qemu plugin - uses qemu_utils.py for dual instance management
+    tags = [
+        "exclusive",
+        "qemu",
+        "qemu-x86_64",
+    ],
+    deps = ["@score_someip_gateway_pip//scapy"],
 )

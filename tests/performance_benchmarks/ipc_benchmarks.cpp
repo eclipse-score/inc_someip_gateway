@@ -639,17 +639,9 @@ int main(int argc, char** argv) {
     g_stop_source = score::cpp::stop_source{};
     g_stop_token = g_stop_source.get_token();
 
-    // Initialize runtime with default config
-    const char* score_args[] = {"ipc_benchmarks", "-service_instance_manifest",
-                                "tests/performance_benchmarks/config/benchmark_mw_com_config.json"};
-    int score_argc = sizeof(score_args) / sizeof(score_args[0]);
-    score::mw::com::runtime::InitializeRuntime(score_argc, score_args);
-
+    score::mw::com::runtime::InitializeRuntime(argc, const_cast<const char**>(argv));
+    // this will automatically ignore the unknown google benchmark parameters in argv and remove them before initializing the benchmark library
     benchmark::Initialize(&argc, argv);
-
-    if (benchmark::ReportUnrecognizedArguments(argc, argv)) {
-        return 1;
-    }
 
     std::cout << "Starting IPC Performance Benchmarks..." << std::endl;
     std::cout << "Echo server should be running. If not, run:" << std::endl;

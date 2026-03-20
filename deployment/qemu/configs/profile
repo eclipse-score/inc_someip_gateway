@@ -11,8 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-Host slave
-    ProxyCommand socat - TCP4:slave:%p,bind=:22,reuseaddr
-    User root
-    IdentityFile /commonapi_main/lxc-config/.ssh/mgc_lxc/rsa_key_file.pub
-    Port 22
+# System-wide profile for interactive shells
+export PATH=/proc/boot:/bin:/usr/bin:/sbin:/usr/sbin
+export LD_LIBRARY_PATH=/proc/boot:/usr/lib
+export TERM=qansi
+export PS1='# '

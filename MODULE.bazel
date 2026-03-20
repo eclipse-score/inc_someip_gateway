@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -10,7 +10,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
 module(
     name = "score_someip_gateway",
     version = "0.0.1",
@@ -56,6 +55,16 @@ use_repo(pip, "score_someip_gateway_pip")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2", dev_dependency = True)
 bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 
+# Opened problem report at: https://github.com/eclipse-score/itf/issues/60
+bazel_dep(name = "score_itf", version = "0.1.0")
+git_override(
+    module_name = "score_itf",
+    commit = "e994cb6",  # Main branch with simplified QEMU plugin
+    patch_strip = 1,
+    patches = ["//third_party:score_itf_oci_conflict.patch"],
+    remote = "https://github.com/eclipse-score/itf.git",
+)
+
 # ============================================================================
 # Build System Rules & Utilities
 # ============================================================================
@@ -66,6 +75,9 @@ bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
 bazel_dep(name = "rules_rust", version = "0.69.0")
+
+# Required by score_rules_imagefs qnx_ifs rule for tar extraction
+bazel_dep(name = "tar.bzl", version = "0.7.0")
 
 # ============================================================================
 # Toolchains & Platform Configuration
@@ -127,7 +139,42 @@ use_repo(
     "score_gcc_x86_64_toolchain",
     "score_qcc_aarch64_toolchain",
     "score_qcc_x86_64_toolchain",
+    "score_qcc_x86_64_toolchain_pkg",
 )
+
+register_toolchains(
+    "@score_gcc_x86_64_toolchain//:all",
+    "@score_gcc_aarch64_toolchain//:all",
+    "@score_qcc_x86_64_toolchain//:all",
+    "@score_qcc_aarch64_toolchain//:all",
+    "@imagefs_qnx_ifs//:all",
+    dev_dependency = True,
+)
+
+# ============================================================================
+# QNX IFS Image Toolchain (for building QEMU filesystem images via mkifs)
+# ============================================================================
+bazel_dep(name = "score_rules_imagefs", version = "0.0.1", dev_dependency = True)
+git_override(
+    module_name = "score_rules_imagefs",
+    commit = "38d5a1a5e5d83faa5d00e4d2f31c303db0d0f7de",
+    remote = "https://github.com/eclipse-score/rules_imagefs",
+)
+
+imagefs = use_extension(
+    "@score_rules_imagefs//extensions:imagefs.bzl",
+    "imagefs",
+    dev_dependency = True,
+)
+imagefs.toolchain(
+    name = "imagefs_qnx_ifs",
+    sdp_to_import = "@score_qcc_x86_64_toolchain_pkg",
+    sdp_version = "8.0.0",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    type = "ifs",
+)
+use_repo(imagefs, "imagefs_qnx_ifs")
 
 # ============================================================================
 # LLVM C/C++ Toolchain Configuration
@@ -158,7 +205,7 @@ register_toolchains(
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "score_tooling", version = "1.1.2", dev_dependency = True)
 bazel_dep(name = "aspect_rules_lint", version = "2.3.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
 

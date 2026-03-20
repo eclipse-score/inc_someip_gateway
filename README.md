@@ -55,41 +55,39 @@ bazel run //examples/car_window_sim:car_window_controller
 If you type `open` or `close` the command will be sent via network.
 
 
-### Dockerized integration test POC
+### QEMU x86_64 - based integration test and unit tests
 
-For integration tests, a docker based approach was taken.
-As a proof of concept `docker compose` can be used to build, setup and run the containers.
-In the future a pytest based setup can be implemented to orchestrate the containers.
+For integration tests where the communication between two QEMU instances is required, a custom implementation is used to start and manage the QEMU instances within the test logic. This is because ITF does not support starting multiple QEMU instances in parallel yet.
 
-Build the docker containers:
+**Prerequisite: Network Setup**
+The network bridge and tap interfaces must be configured before running the tests.
 
-```sh
-docker compose --project-directory tests/integration/docker_setup/ build
-```
-
-Start up the containers:
+- **Dev container**: this is done automatically on container start via `deployment/qemu/setup_bridge.sh`.
+- **Host machine**: run the script manually with sudo privileges:
 
 ```sh
-docker compose --project-directory tests/integration/docker_setup/ up
+sudo deployment/qemu/setup_bridge.sh
 ```
 
-Those containers are pre-configured (IP adresses, multicast route, ...).
-The someipd-1 container already starts up the `gatewayd` and the `someipd`.
+It is recommended to run all tests with `--nocache_test_results` to ensure you are always running the latest version of the tests and not accidentally seeing cached results.
 
-In Wireshark the network traffic can be seen by capturing on `any` with `ip.addr== 192.168.87.2 || ip.addr ==192.168.87.3`.
-
-On the client side, start up the `sample_client` in another shell:
+To run all tests (will take around 2 minutes):
 
 ```sh
-docker exec -it --env VSOMEIP_CONFIGURATION=/home/source/tests/integration/sample_client/vsomeip.json docker_setup-client-1 /home/source/bazel-bin/tests/integration/sample_client/sample_client
+bazel test  //tests/...  --test_output=all --nocache_test_results --config=x86_64-qnx
 ```
 
-Finally start the benchmark on the someipd-1 container in a third shell:
+For Integration SOMEIP Service Discovery tests:
 
 ```sh
-docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/performance_benchmarks/ipc_benchmarks
+bazel test //tests/integration/... --test_output=all --config=x86_64-qnx
 ```
 
+Run a specific integration test `test_negative_only_qemu1_with_services` for SOMEIP Service Discovery test suite:
+
+```sh
+bazel test //tests/integration:someip_integration_tests --test_output=all --config=x86_64-qnx --test_arg='-k' --test_arg='test_negative_only_qemu1_with_services'
+```
 
 ## 📝 Configuration
 

@@ -14,6 +14,28 @@
 # Use Dockerfile to get dependabot version bumps after new image is released
 FROM ghcr.io/eclipse-score/devcontainer:v1.2.0
 
+# Set the value if a proxy is used: cntlm, Px, etc.Example: BUILD_PROXY = http://host.docker.internal:<port>
+ARG BUILD_PROXY=""
+
+# Install networking and QEMU tools (conditionally using proxy if provided)
+RUN if [ -n "$BUILD_PROXY" ]; then \
+        export http_proxy="${BUILD_PROXY}"; \
+        export https_proxy="${BUILD_PROXY}"; \
+    fi; \
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        software-properties-common \
+    && add-apt-repository -y universe \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        bridge-utils \
+        iproute2 \
+        iputils-ping \
+        iptables \
+        libcap2-bin \
+        qemu-system-x86 \
+        tcpdump
+
 # Build argument for dynamic username (defaults to 'vscode' if not provided)
 ARG USERNAME=vscode
 

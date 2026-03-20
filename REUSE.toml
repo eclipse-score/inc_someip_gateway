@@ -48,7 +48,21 @@ path = [
     "tests/integration/sample_client/vsomeip.json",
     "tests/integration/vsomeip-local.json",
     "tests/integration/vsomeip.json",
+    "tests/integration/qemu_config.json",
     "tests/performance_benchmarks/config/benchmark_mw_com_config.json"
+]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+    "deployment/qemu/configs/group",
+    "deployment/qemu/configs/passwd",
+    "deployment/qemu/configs/pci_hw.cfg",
+    "deployment/qemu/configs/pci_server.cfg",
+    "deployment/qemu/configs/qcrypto.conf",
+    "deployment/qemu/configs/sshd_config",
+    "deployment/qemu/init_x86_64.build"
 ]
 SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
 SPDX-License-Identifier = "Apache-2.0"

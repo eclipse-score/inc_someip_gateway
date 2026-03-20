@@ -43,3 +43,17 @@ index 77c261cc..6e5a71b7 100644
  
  /*
   * These definitions MUST remain in the global namespace.
+diff --git a/implementation/routing/src/routing_manager_impl.cpp b/implementation/routing/src/routing_manager_impl.cpp
+--- a/implementation/routing/src/routing_manager_impl.cpp
++++ b/implementation/routing/src/routing_manager_impl.cpp
+@@ -3453,6 +3453,10 @@ void routing_manager_impl::on_net_interface_or_route_state_changed(bool _is_inte
+ void routing_manager_impl::start_ip_routing() {
+ #if defined(_WIN32) || defined(__QNX__)
+     if_state_running_ = true;
++    sd_route_set_ = true;
++    // QNX: Process any pending service offers now that routing is ready
++    // (On Linux, this is done via on_net_interface_or_route_state_changed)
++    init_pending_services();
+ #endif
+ 
+     if (routing_ready_handler_) {

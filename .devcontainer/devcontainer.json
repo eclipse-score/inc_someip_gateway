@@ -4,11 +4,16 @@
         "dockerfile": "Dockerfile",
         "args": {
             "USERNAME": "${localEnv:USER}"
-        }
+        },
+        "options": [
+            "--add-host=host.docker.internal:host-gateway"
+        ]
     },
     "remoteUser": "${localEnv:USER}",
     "runArgs": [
-        "--privileged"
+        "--privileged",
+        "--add-host=host.docker.internal:host-gateway",
+        "--device=/dev/kvm"
     ],
     "mounts": [
         {
@@ -35,5 +40,6 @@
                 "streetsidesoftware.code-spell-checker"
             ]
         }
-    }
+    },
+    "postStartCommand": "sudo chmod 666 /dev/kvm && sudo deployment/qemu/setup_bridge.sh"
 }

@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -10,9 +10,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+exports_files(
+    [
+        "qemu_utils.py",
+    ],
+    visibility = ["//tests:__subpackages__"],
+)
 
-from someip.header import SOMEIPHeader
-
-
-def test_dummy(someipd):
-    assert True
+py_library(
+    name = "itf_updates",
+    srcs = [
+        "qemu_utils.py",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+    visibility = ["//tests:__subpackages__"],
+)
