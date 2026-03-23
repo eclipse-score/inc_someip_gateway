@@ -51,14 +51,4 @@ TEST_F(ServiceInterfaceConfigurationTest, ConfigurationEqual) {
     ASSERT_FALSE(interface_config_4 == interface_config_1);
 }
 
-TEST(ServiceInterfaceConfigurationTestInvalid, Invalid) {
-    Service_interface_configuration const expected_config{
-        Service_interface{std::string_view{""}, Service_interface::Version{0U, 0U}},
-        Num_of_methods{}, Num_of_events{}};
-
-    auto const interface_config_invalid = Server_service_interface_configuration::invalid();
-
-    ASSERT_TRUE(interface_config_invalid == expected_config);
-}
-
 }  // namespace score::socom

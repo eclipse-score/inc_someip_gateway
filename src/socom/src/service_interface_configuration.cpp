@@ -62,12 +62,6 @@ Server_service_interface_configuration::operator Service_interface_configuration
     return m_configuration;
 }
 
-Server_service_interface_configuration Server_service_interface_configuration::invalid() {
-    return Server_service_interface_configuration{
-        Service_interface{std::string_view{""}, Service_interface::Version{0U, 0U}},
-        Num_of_methods{}, Num_of_events{}};
-}
-
 std::size_t Server_service_interface_configuration::get_num_methods() const noexcept {
     return m_configuration.num_methods;
 }

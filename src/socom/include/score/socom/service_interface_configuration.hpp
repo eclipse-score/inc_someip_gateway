@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION_HPP
-#define SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION_HPP
+#ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION
+#define SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION
 
 #include <score/socom/event.hpp>
 #include <score/socom/method.hpp>
@@ -97,8 +97,6 @@ class Server_service_interface_configuration final {
     /// \return The stored configuration.
     operator Service_interface_configuration() const;
 
-    static Server_service_interface_configuration invalid();
-
     std::size_t get_num_methods() const noexcept;
     std::size_t get_num_events() const noexcept;
     Service_interface const& get_interface() const noexcept;
@@ -106,4 +104,4 @@ class Server_service_interface_configuration final {
 
 }  // namespace score::socom
 
-#endif  // SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION_HPP
+#endif  // SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION
