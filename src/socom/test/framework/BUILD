@@ -21,7 +21,7 @@ cc_library(
         "inc",
         "src/socom/test/framework/inc",
     ],
-    visibility = ["//visibility:public"],
+    visibility = ["//src/socom/test:__subpackages__"],
     deps = [
         "//src/socom",
         "//src/socom:mock",

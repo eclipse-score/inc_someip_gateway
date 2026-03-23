@@ -17,7 +17,6 @@ load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER
 filegroup(
     name = "headers",
     srcs = glob(include = ["include/**"]),
-    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -41,7 +40,6 @@ cc_library(
 filegroup(
     name = "mock_headers",
     srcs = glob(include = ["mock/**"]),
-    visibility = ["//visibility:public"],
 )
 
 cc_library(
