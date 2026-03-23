@@ -256,7 +256,8 @@ class Runtime {
     /// \param interface Service interface.
     /// \param instance Optional service instance.
     /// \return Object that represents an active find service subscription.
-    [[nodiscard]]
+    [[nodiscard]] [[deprecated(
+        "Removed due to complexity. Use Client_connectors Service_state_change_callback instead.")]]
     virtual Find_subscription subscribe_find_service(
         Find_result_callback on_result_set_change, Service_interface const& interface,
         std::optional<Service_instance> instance) noexcept = 0;
@@ -300,7 +301,8 @@ class Runtime {
     /// \param instance Service instance.
     /// \param identity Optional bridge identity.
     /// \return Object that represents an active find service subscription.
-    [[nodiscard]]
+    [[nodiscard]] [[deprecated(
+        "Removed due to complexity. Use Client_connectors Service_state_change_callback instead.")]]
     virtual Find_subscription subscribe_find_service(
         Find_result_change_callback on_result_change, std::optional<Service_interface> interface,
         std::optional<Service_instance> instance,
