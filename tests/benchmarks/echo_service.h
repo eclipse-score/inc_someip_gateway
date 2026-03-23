@@ -10,8 +10,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#ifndef TESTS_PERFORMANCE_BENCHMARKS_ECHO_SERVICE
-#define TESTS_PERFORMANCE_BENCHMARKS_ECHO_SERVICE
+#ifndef TESTS_BENCHMARKS_ECHO_SERVICE
+#define TESTS_BENCHMARKS_ECHO_SERVICE
 
 #include <algorithm>
 #include <chrono>
@@ -165,4 +165,4 @@ inline void FillTestPayload(MessageType& message, std::uint64_t pattern = 0xDEAD
 
 }  // namespace echo_service
 
-#endif  // TESTS_PERFORMANCE_BENCHMARKS_ECHO_SERVICE
+#endif  // TESTS_BENCHMARKS_ECHO_SERVICE

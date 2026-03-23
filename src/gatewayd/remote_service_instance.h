@@ -20,7 +20,7 @@
 #include "score/mw/com/types.h"
 #include "src/gatewayd/gatewayd_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
-#include "tests/performance_benchmarks/echo_service.h"
+#include "tests/benchmarks/echo_service.h"
 
 namespace score::someip_gateway::gatewayd {
 

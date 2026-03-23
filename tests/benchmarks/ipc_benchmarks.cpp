@@ -93,7 +93,7 @@ class BenchmarkFixture {
             if (retry == 0) {
                 std::cout << "Echo response service not found. Waiting for echo_server to start..."
                           << std::endl;
-                std::cout << "Please run: bazel run //tests/performance_benchmarks:echo_server"
+                std::cout << "Please run: bazel run //tests/benchmarks:echo_server"
                           << std::endl;
             }
 
@@ -641,7 +641,7 @@ int main(int argc, char** argv) {
 
     // Initialize runtime with default config
     const char* score_args[] = {"ipc_benchmarks", "-service_instance_manifest",
-                                "tests/performance_benchmarks/config/benchmark_mw_com_config.json"};
+                                "tests/benchmarks/config/benchmark_mw_com_config.json"};
     int score_argc = sizeof(score_args) / sizeof(score_args[0]);
     score::mw::com::runtime::InitializeRuntime(score_argc, score_args);
 
@@ -653,7 +653,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Starting IPC Performance Benchmarks..." << std::endl;
     std::cout << "Echo server should be running. If not, run:" << std::endl;
-    std::cout << "bazel run //tests/performance_benchmarks:echo_server" << std::endl;
+    std::cout << "bazel run //tests/benchmarks:echo_server" << std::endl;
 
 #if defined(__aarch64__) || defined(__arm64__)
     benchmark::AddCustomContext("architecture", "aarch64");

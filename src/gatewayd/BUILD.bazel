@@ -28,6 +28,7 @@ exports_files(
         "etc/gatewayd_config.fbs",
         "etc/gatewayd_config.json",
         "etc/gatewayd_config.schema.json",
+        "etc/mw_com_config.json",
     ],
 )
 
@@ -62,7 +63,7 @@ cc_library(
     deps = [
         ":config_flatbuffers",
         "//src/network_service:consumer",
-        "//tests/performance_benchmarks:echo_service",
+        "//tests/benchmarks:echo_service",
         "@score_communication//score/mw/com",
     ],
 )
@@ -76,6 +77,7 @@ generate_someip_config_bin(
     name = "config_file",
     json = "etc/gatewayd_config.json",
     output = "etc/gatewayd_config.bin",
+    visibility = ["//visibility:public"],
 )
 
 validate_json_schema_test(
