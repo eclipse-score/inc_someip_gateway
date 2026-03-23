@@ -34,6 +34,13 @@ return
 
 Server -> Server : updated event
 
+Server -> SOCom : allocate_event_payload(x)
+activate SOCom
+SOCom -> Client_1 : on_event_payload_allocate(x)
+activate Client_1
+return writable_payload
+return writable_payload
+
 Server -> SOCom : update_event(x, payload)
 activate SOCom
 
