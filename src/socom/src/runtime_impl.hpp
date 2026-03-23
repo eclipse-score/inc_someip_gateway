@@ -196,22 +196,21 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
                                 Interfaces_instances>>;
 
     Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_configuration const& configuration, Service_instance const& instance,
+        Service_interface_configuration configuration, Service_instance instance,
         Client_connector::Callbacks callbacks) noexcept override;
 
     Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_configuration const& configuration, Service_instance const& instance,
+        Service_interface_configuration configuration, Service_instance instance,
         Client_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
 
     Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_configuration const& configuration,
-        Service_instance const& instance,
+        Server_service_interface_configuration configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks) noexcept override;
 
     Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_configuration const& configuration,
-        Service_instance const& instance, Disabled_server_connector::Callbacks callbacks,
+        Server_service_interface_configuration configuration, Service_instance instance,
+        Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
 
     Find_subscription subscribe_find_service(

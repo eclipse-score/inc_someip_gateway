@@ -30,19 +30,18 @@ class Runtime_mock : public Runtime {
    public:
     // mock interface
     MOCK_METHOD(Result<Client_connector::Uptr>, make_client_connector,
-                (Service_interface_configuration const&, Service_instance const&,
-                 Client_connector::Callbacks),
+                (Service_interface_configuration, Service_instance, Client_connector::Callbacks),
                 (noexcept, override));
     MOCK_METHOD(Result<Client_connector::Uptr>, make_client_connector,
-                (Service_interface_configuration const&, Service_instance const&,
-                 Client_connector::Callbacks, Posix_credentials const&),
+                (Service_interface_configuration, Service_instance, Client_connector::Callbacks,
+                 Posix_credentials const&),
                 (noexcept, override));
     MOCK_METHOD((Result<Disabled_server_connector::Uptr>), make_server_connector,
-                (Server_service_interface_configuration const&, Service_instance const&,
+                (Server_service_interface_configuration, Service_instance,
                  Disabled_server_connector::Callbacks),
                 (noexcept, override));
     MOCK_METHOD((Result<Disabled_server_connector::Uptr>), make_server_connector,
-                (Server_service_interface_configuration const&, Service_instance const&,
+                (Server_service_interface_configuration, Service_instance,
                  Disabled_server_connector::Callbacks, Posix_credentials const&),
                 (noexcept, override));
     MOCK_METHOD(Find_subscription, subscribe_find_service,

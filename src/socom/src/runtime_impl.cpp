@@ -501,32 +501,32 @@ Service_record::Client_registration Service_record::register_client_connector(
 }
 
 Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
-    Service_interface_configuration const& configuration, Service_instance const& instance,
+    Service_interface_configuration configuration, Service_instance instance,
     Client_connector::Callbacks callbacks) noexcept {
-    return make_client_connector(configuration, instance, std::move(callbacks),
-                                 Posix_credentials{::getuid(), ::getgid()});
+    return make_client_connector(std::move(configuration), std::move(instance),
+                                 std::move(callbacks), Posix_credentials{::getuid(), ::getgid()});
 }
 
 Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
-    Service_interface_configuration const& configuration, Service_instance const& instance,
+    Service_interface_configuration configuration, Service_instance instance,
     Client_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
     if (!is_valid(callbacks)) {
         return MakeUnexpected(Construction_error::callback_missing);
     }
 
-    return {std::make_unique<CC_impl>(*this, configuration, instance, std::move(callbacks),
-                                      credentials)};
+    return {std::make_unique<CC_impl>(*this, std::move(configuration), std::move(instance),
+                                      std::move(callbacks), credentials)};
 }
 
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
-    Server_service_interface_configuration const& configuration, Service_instance const& instance,
+    Server_service_interface_configuration configuration, Service_instance instance,
     Disabled_server_connector::Callbacks callbacks) noexcept {
-    return make_server_connector(configuration, instance, std::move(callbacks),
-                                 Posix_credentials{::getuid(), ::getgid()});
+    return make_server_connector(std::move(configuration), std::move(instance),
+                                 std::move(callbacks), Posix_credentials{::getuid(), ::getgid()});
 }
 
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
-    Server_service_interface_configuration const& configuration, Service_instance const& instance,
+    Server_service_interface_configuration configuration, Service_instance instance,
     Disabled_server_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
     Service_instance_identifier const identifier{configuration.get_interface(), instance};
 
@@ -550,8 +550,8 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
             }
         }};
 
-    return {std::make_unique<SC_impl>(*this, configuration, instance, std::move(callbacks),
-                                      std::move(final_action), credentials)};
+    return {std::make_unique<SC_impl>(*this, std::move(configuration), std::move(instance),
+                                      std::move(callbacks), std::move(final_action), credentials)};
 }
 
 namespace {

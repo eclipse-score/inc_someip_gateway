@@ -40,8 +40,8 @@ class Impl final : public Client_connector {
     using Server_indication =
         std::function<void(::score::socom::Server_connector_listen_endpoint const&)>;
 
-    Impl(Runtime_impl& runtime, Service_interface_configuration const& configuration,
-         Service_instance const& instance, Client_connector::Callbacks callbacks,
+    Impl(Runtime_impl& runtime, Service_interface_configuration configuration,
+         Service_instance instance, Client_connector::Callbacks callbacks,
          Posix_credentials const& credentials);
     Impl(Impl const&) = delete;
     Impl(Impl&&) = delete;

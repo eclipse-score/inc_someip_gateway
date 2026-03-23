@@ -26,16 +26,16 @@ namespace score {
 namespace socom {
 namespace client_connector {
 
-Impl::Impl(Runtime_impl& runtime, Service_interface_configuration const& configuration,
-           Service_instance const& instance, Client_connector::Callbacks callbacks,
+Impl::Impl(Runtime_impl& runtime, Service_interface_configuration configuration,
+           Service_instance instance, Client_connector::Callbacks callbacks,
            Posix_credentials const& credentials)
-    : m_configuration{configuration},
-      m_instance{instance},
+    : m_configuration{std::move(configuration)},
+      m_instance{std::move(instance)},
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
           std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
-      m_registration{
-          runtime.register_connector(configuration, instance, make_on_server_update_callback())},
+      m_registration{runtime.register_connector(m_configuration, m_instance,
+                                                make_on_server_update_callback())},
       m_credentials{credentials} {
     assert(m_registration);
 }

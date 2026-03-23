@@ -39,7 +39,7 @@ Impl::Impl(Runtime_impl& runtime, Server_service_interface_configuration configu
            Final_action final_action, Posix_credentials const& credentials)
     : m_runtime{runtime},
       m_configuration{std::move(configuration)},
-      m_instance{instance},
+      m_instance{std::move(instance)},
       m_callbacks{std::move(callbacks)},
       m_subscriber{m_configuration.get_num_events()},
       m_update_requester{m_configuration.get_num_events()},
