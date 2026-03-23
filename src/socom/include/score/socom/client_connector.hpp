@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_SOCOM_CLIENT_CONNECTOR_HPP
-#define SCORE_SOCOM_CLIENT_CONNECTOR_HPP
+#ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_CLIENT_CONNECTOR
+#define SRC_SOCOM_INCLUDE_SCORE_SOCOM_CLIENT_CONNECTOR
 
 #include <memory>
 #include <optional>
@@ -148,7 +148,7 @@ class Client_connector {
     /// \param method_id ID of the method for which a payload should be allocated.
     /// \return A writable payload in case of successful operation, otherwise an error.
     [[nodiscard]]
-    virtual Result<std::unique_ptr<Writable_payload>> allocate_method_payload(
+    virtual Result<std::unique_ptr<Writable_payload>> allocate_method_call_payload(
         Method_id method_id) noexcept = 0;
 
     /// \brief Subscribe an event to receive event updates from the Server_connector.
@@ -243,4 +243,4 @@ class Client_connector {
 
 }  // namespace score::socom
 
-#endif  // SCORE_SOCOM_CLIENT_CONNECTOR_HPP
+#endif  // SRC_SOCOM_INCLUDE_SCORE_SOCOM_CLIENT_CONNECTOR

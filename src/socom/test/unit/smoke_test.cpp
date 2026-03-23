@@ -48,7 +48,7 @@ class Runtime_test : public ::testing::Test {
     Event_subscription_change_callback_mock m_event_subscription_change_mock;
     Event_request_update_callback_mock m_event_update_request_mock;
     Method_call_credentials_callback_mock m_method_call_mock;
-    Method_payload_allocate_callback_mock m_method_payload_allocate_mock;
+    Method_call_payload_allocate_callback_mock m_method_payload_allocate_mock;
 
     Disabled_server_connector::Callbacks server_callbacks{
         m_method_call_mock.AsStdFunction(), m_event_subscription_change_mock.AsStdFunction(),

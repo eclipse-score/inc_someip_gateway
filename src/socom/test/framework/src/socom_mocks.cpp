@@ -27,7 +27,7 @@ Disabled_server_connector::Callbacks create_server_callbacks(
         },
         [&mock](auto& connector, auto eid) { mock.on_event_update_request(connector, eid); },
         [&mock](auto& connector, auto mid) {
-            return mock.on_method_payload_allocate(connector, mid);
+            return mock.on_method_call_payload_allocate(connector, mid);
         }};
 }
 
@@ -44,7 +44,7 @@ Disabled_server_connector::Callbacks create_server_callbacks(
         },
         [&mock](auto& connector, auto eid) { mock.on_event_update_request(connector, eid); },
         [&mock](auto& connector, auto mid) {
-            return mock.on_method_payload_allocate(connector, mid);
+            return mock.on_method_call_payload_allocate(connector, mid);
         }};
 }
 

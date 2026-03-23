@@ -90,7 +90,7 @@ struct Allocate_event_payload {
     Event_id const id;
 };
 
-struct Allocate_method_payload {
+struct Allocate_method_call_payload {
     using Return_type = score::Result<std::unique_ptr<Writable_payload>>;
     Method_id const id;
 };

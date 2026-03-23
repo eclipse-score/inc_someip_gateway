@@ -150,7 +150,7 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithOutOfBoundsMethodIdRe
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    auto payload = client.allocate_method_payload(method_id + 1);
+    auto payload = client.allocate_method_call_payload(method_id + 1);
     EXPECT_FALSE(payload);
     EXPECT_EQ(payload.error(), Error::logic_error_id_out_of_range);
 }
@@ -159,7 +159,7 @@ TEST_F(AllocateMethodPayloadTest,
        AllocateMethodPayloadWithoutConnectedServerReturnsServiceNotAvailableError) {
     Client_data client{connector_factory, Client_data::no_connect};
 
-    auto payload = client.allocate_method_payload(method_id);
+    auto payload = client.allocate_method_call_payload(method_id);
     EXPECT_FALSE(payload);
     EXPECT_EQ(payload.error(), Error::runtime_error_service_not_available);
 }
@@ -175,7 +175,7 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturn
     auto const& expect_method_payload_allocation =
         server.expect_method_allocate_payload(method_id, std::move(wpayload));
 
-    auto payload = client.allocate_method_payload(method_id);
+    auto payload = client.allocate_method_call_payload(method_id);
     EXPECT_TRUE(payload);
     EXPECT_EQ(wpayload_ptr, payload.value().get());
     wait_for_atomics(expect_method_payload_allocation);

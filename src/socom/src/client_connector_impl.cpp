@@ -101,9 +101,9 @@ message::Call_method::Return_type Impl::call_method(
     return send(message::Call_method{client_id, payload, std::move(reply_data), m_credentials});
 }
 
-Result<std::unique_ptr<Writable_payload>> Impl::allocate_method_payload(
+Result<std::unique_ptr<Writable_payload>> Impl::allocate_method_call_payload(
     Method_id method_id) noexcept {
-    return send(message::Allocate_method_payload{method_id});
+    return send(message::Allocate_method_call_payload{method_id});
 }
 
 Result<Posix_credentials> Impl::get_peer_credentials() const noexcept {

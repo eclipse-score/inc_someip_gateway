@@ -154,7 +154,8 @@ struct Client_data {
     ///
     /// \param method_id ID of the method for which a payload should be allocated.
     /// \return A writable payload in case of successful operation, otherwise an error.
-    score::Result<std::unique_ptr<Writable_payload>> allocate_method_payload(Method_id method_id);
+    score::Result<std::unique_ptr<Writable_payload>> allocate_method_call_payload(
+        Method_id method_id);
 
     /// \brief Call method method_id with payload
     ///

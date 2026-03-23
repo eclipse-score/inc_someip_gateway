@@ -261,8 +261,8 @@ message::Call_method::Return_type Impl::receive(Client_connection const& /*clien
         *this, message.id, message.payload, std::move(message.reply_data), message.credentials));
 }
 
-message::Allocate_method_payload::Return_type Impl::receive(
-    Client_connection const& /*client*/, message::Allocate_method_payload message) {
+message::Allocate_method_call_payload::Return_type Impl::receive(
+    Client_connection const& /*client*/, message::Allocate_method_call_payload message) {
     if (message.id >= m_configuration.get_num_methods()) {
         return MakeUnexpected(Error::logic_error_id_out_of_range);
     }
@@ -272,7 +272,7 @@ message::Allocate_method_payload::Return_type Impl::receive(
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    return m_callbacks.on_method_payload_allocate(*this, message.id);
+    return m_callbacks.on_method_call_payload_allocate(*this, message.id);
 }
 
 message::Posix_credentials::Return_type Impl::receive(

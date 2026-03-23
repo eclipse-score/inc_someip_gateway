@@ -126,9 +126,9 @@ void Client_data::request_event_update(Event_id const& event_id) const {
     m_connector->request_event_update(event_id);
 }
 
-score::Result<std::unique_ptr<Writable_payload>> Client_data::allocate_method_payload(
+score::Result<std::unique_ptr<Writable_payload>> Client_data::allocate_method_call_payload(
     Method_id method_id) {
-    return m_connector->allocate_method_payload(method_id);
+    return m_connector->allocate_method_call_payload(method_id);
 }
 
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload) {

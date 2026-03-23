@@ -40,7 +40,7 @@ using Method_call_credentials_callback =
                                           Method_call_reply_data_opt, Posix_credentials const&)>;
 
 /// \brief Function type for indicating a method call payload request to the service provider.
-using Method_payload_allocate_callback =
+using Method_call_payload_allocate_callback =
     std::function<score::Result<Writable_payload::Uptr>(Enabled_server_connector&, Method_id)>;
 
 class Configuration_getter {
@@ -96,7 +96,7 @@ class Disabled_server_connector : public Configuration_getter {
         Event_request_update_callback on_event_update_request;
 
         /// \brief Callback is called to allocate method call payloads.
-        Method_payload_allocate_callback on_method_payload_allocate;
+        Method_call_payload_allocate_callback on_method_call_payload_allocate;
     };
 
     /// \brief Makes the service available to clients.

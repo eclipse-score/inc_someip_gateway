@@ -29,7 +29,7 @@ class Client_connector_mock : public Client_connector {
     MOCK_METHOD(Result<Method_invocation::Uptr>, call_method,
                 (Method_id, Payload::Sptr, Method_call_reply_data_opt),
                 (const, noexcept, override));
-    MOCK_METHOD(Result<std::unique_ptr<Writable_payload>>, allocate_method_payload,
+    MOCK_METHOD(Result<std::unique_ptr<Writable_payload>>, allocate_method_call_payload,
                 (Method_id method_id), (noexcept, override));
     MOCK_METHOD(Result<Posix_credentials>, get_peer_credentials, (), (const, noexcept, override));
     MOCK_METHOD(Service_interface_configuration const&, get_configuration, (),

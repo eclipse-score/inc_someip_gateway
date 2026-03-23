@@ -145,7 +145,7 @@ void Server_data::expect_and_respond_update_event_request(Event_id const& event_
 
 std::atomic<bool> const& Server_data::expect_method_allocate_payload(
     Method_id const& method_id, score::Result<std::unique_ptr<Writable_payload>> result) {
-    EXPECT_CALL(m_callbacks, on_method_payload_allocate(_, method_id))
+    EXPECT_CALL(m_callbacks, on_method_call_payload_allocate(_, method_id))
         .WillOnce(DoAll(Assign(&m_method_payload_allocate_called, true),
                         Return(ByMove(std::move(result)))));
 

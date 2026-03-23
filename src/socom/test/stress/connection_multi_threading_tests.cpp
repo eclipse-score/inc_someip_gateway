@@ -105,10 +105,11 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
             esc.update_event(eid, real_payload);
         };
 
-    Method_payload_allocate_callback const method_payload_allocate_fail_on_call =
+    Method_call_payload_allocate_callback const method_payload_allocate_fail_on_call =
         [](Enabled_server_connector& /*esc*/,
            Method_id const& /* mid */) -> score::Result<Writable_payload::Uptr> {
-        ADD_FAILURE() << "Unexpected call to on_method_payload_allocate for method_id " << event_id;
+        ADD_FAILURE() << "Unexpected call to on_method_call_payload_allocate for method_id "
+                      << event_id;
         return score::MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     };
 

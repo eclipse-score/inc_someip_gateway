@@ -51,7 +51,7 @@ class Impl final : public Client_connector {
     ~Impl() noexcept override;
 
     // interface ::score::socom::Client_connector
-    Result<std::unique_ptr<Writable_payload>> allocate_method_payload(
+    Result<std::unique_ptr<Writable_payload>> allocate_method_call_payload(
         Method_id method_id) noexcept override;
     message::Subscribe_event::Return_type subscribe_event(Event_id client_id,
                                                           Event_mode mode) const noexcept override;

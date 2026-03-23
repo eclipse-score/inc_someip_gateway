@@ -40,7 +40,7 @@ struct Server_connector_callbacks_naggy_mock {
     MOCK_METHOD(void, on_event_subscription_change,
                 (Enabled_server_connector&, Event_id, Event_state));
     MOCK_METHOD(void, on_event_update_request, (Enabled_server_connector&, Event_id));
-    MOCK_METHOD(score::Result<std::unique_ptr<Writable_payload>>, on_method_payload_allocate,
+    MOCK_METHOD(score::Result<std::unique_ptr<Writable_payload>>, on_method_call_payload_allocate,
                 (Enabled_server_connector&, Method_id));
 };
 
@@ -51,7 +51,7 @@ struct Server_connector_credentials_callbacks_naggy_mock {
     MOCK_METHOD(void, on_event_subscription_change,
                 (Enabled_server_connector&, Event_id, Event_state));
     MOCK_METHOD(void, on_event_update_request, (Enabled_server_connector&, Event_id));
-    MOCK_METHOD(score::Result<std::unique_ptr<Writable_payload>>, on_method_payload_allocate,
+    MOCK_METHOD(score::Result<std::unique_ptr<Writable_payload>>, on_method_call_payload_allocate,
                 (Enabled_server_connector&, Method_id));
 };
 

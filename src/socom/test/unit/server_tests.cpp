@@ -47,7 +47,7 @@ class ServerConnectorTest : public SingleConnectionTest {
     Event_subscription_change_callback_mock esccb;
     Event_request_update_callback_mock eruc;
     Method_call_credentials_callback_mock mccb;
-    Method_payload_allocate_callback_mock mpacb;
+    Method_call_payload_allocate_callback_mock mpacb;
 };
 
 TEST_F(ServerConnectorTest, ConstructDestruct) {

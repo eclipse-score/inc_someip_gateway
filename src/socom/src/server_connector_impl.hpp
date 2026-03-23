@@ -115,8 +115,8 @@ class Impl final : virtual public Disabled_server_connector,
                                                     message::Unsubscribe_event message);
     message::Request_event_update::Return_type receive(Client_connection const& client,
                                                        message::Request_event_update message);
-    message::Allocate_method_payload::Return_type receive(Client_connection const& client,
-                                                          message::Allocate_method_payload message);
+    message::Allocate_method_call_payload::Return_type receive(
+        Client_connection const& client, message::Allocate_method_call_payload message);
 
    private:
     struct Event_info {
