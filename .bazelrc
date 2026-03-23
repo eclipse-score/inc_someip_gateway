@@ -102,3 +102,6 @@ build:tsan --copt -O1
 build:tsan --copt -g
 build:tsan --strip=never
 build:tsan --linkopt -fsanitize=thread
+
+# Import custom user settings
+try-import %workspace%/user.bazelrc
