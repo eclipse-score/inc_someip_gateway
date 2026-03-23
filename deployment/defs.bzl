@@ -14,10 +14,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Rule to extract variables from the C++ toolchain for use in package names."""
+"""Deployment helpers: toolchain variable extraction and package tar macro."""
 
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("@rules_pkg//pkg:providers.bzl", "PackageVariablesInfo")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 def _names_from_toolchains_impl(ctx):
     values = {}
@@ -33,6 +34,29 @@ def _names_from_toolchains_impl(ctx):
     values["compilation_mode"] = ctx.var.get("COMPILATION_MODE")
 
     return PackageVariablesInfo(values = values)
+
+def scoreipgw_pkg_tar(name, srcs, package_dir):
+    """Creates a platform-aware deployment tar package.
+
+    Encapsulates the common pkg_tar attributes shared by all gateway packages:
+    runfiles inclusion, platform-stamped filename, and public visibility.
+
+    Args:
+        name: Target name; also used as the archive filename prefix.
+        srcs: Files and targets to include in the archive.
+        package_dir: Root directory path inside the archive.
+    """
+    pkg_tar(
+        name = name,
+        srcs = srcs,
+        out = name + ".tar.gz",
+        extension = "tar.gz",
+        include_runfiles = True,
+        package_dir = package_dir,
+        package_file_name = name + "-{cc_cpu}.tar.gz",
+        package_variables = ":toolchain_vars",
+        visibility = ["//visibility:public"],
+    )
 
 #
 # Extracting variables from the toolchain to use in the package name.

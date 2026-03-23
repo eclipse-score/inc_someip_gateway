@@ -48,7 +48,7 @@ path = [
     "tests/integration/sample_client/vsomeip.json",
     "tests/integration/vsomeip-local.json",
     "tests/integration/vsomeip.json",
-    "tests/performance_benchmarks/config/benchmark_mw_com_config.json"
+    "tests/benchmarks/config/benchmark_mw_com_config.json"
 ]
 SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
 SPDX-License-Identifier = "Apache-2.0"

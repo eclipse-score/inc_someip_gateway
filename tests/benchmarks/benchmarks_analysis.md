@@ -15,10 +15,12 @@ SPDX-License-Identifier: Apache-2.0
 
 # S-Core SOME/IP Gateway IPC Performance Analysis
 
-- **Test Environment:** Eclipse S-CORE SOME/IP Gateway Prototype
+- **Test Environment:** Eclipse S-CORE SOME/IP Gateway
 - **Measurement Method:** Google Benchmark with manual timing
 - **Test Date:** November 18, 2025
 - **Samples:** 30 repetitions per payload size
+- **Document Version:** 0.2 (Draft)
+- **Last Updated:** 2026-03-23
 
 ## Executive Summary
 
@@ -27,6 +29,16 @@ This document analyzes performance of two communication mechanisms:
 **LoLa IPC (Single Target):** Demonstrates **consistent and predictable latency** across payload sizes (8B to 1MB), with round-trip times below **51.5 ms** and throughput up to **120 MB/s**. Tail latency (p99) remains under 1% above median, with excellent stability across repetitions.
 
 **SOME/IP Gateway (Distributed):** Using COVESA vsomeip over Ethernet between two Raspberry Pi 4 targets, the gateway achieves **100 ms round-trip latency** and **12,050 msg/s throughput** for 8-byte payloads. Despite 2× higher latency than local IPC, it delivers **higher consistency** (13.4 µs std dev vs 21.1 µs) and **narrower tail behavior** (p99 = +0.03% vs +0.15%). The gateway architecture combines LoLa IPC with SOME/IP for inter-target communication.
+
+---
+
+> ### ⚠️ Important: Echo Server Polling Delay Dominates Latency
+>
+> All round-trip latency measurements are dominated by a **50 ms polling sleep**
+> (`MAIN_LOOP_SLEEP{50}`) in `echo_server.cpp`. The echo server polls for new requests
+> once every 50 ms, so every measurement includes a near-full 50 ms wait.
+> **Actual LoLa IPC overhead is ~0.3 ms** (the thin spread above the 50 ms floor).
+> CPU time and throughput figures are not affected by this sleep and remain valid.
 
 ---
 
@@ -47,11 +59,9 @@ This document analyzes performance of two communication mechanisms:
 
 1. **Fixed Base Latency (~50.3 ms):** All messages below 64 KB have nearly identical latency (~50.3 ms), meaning:
    - **Payload size doesn't matter** for small-to-medium messages
-   - Latency is dominated by **fixed overhead costs**:
-     - IPC context switching
-     - Message routing and service discovery
-     - Serialization/deserialization
-     - Operating system scheduling
+   - > **⚠️ Note:** The ~50 ms floor is the echo server's `MAIN_LOOP_SLEEP{50}` polling
+     > interval — not intrinsic IPC cost. Actual IPC overhead is the ~0.3 ms spread
+     > above the floor (60–140 µs latency range).
    - Sending 8 bytes takes the same time as sending 64 KB
 
 2. **Large Payload Impact (+1.15 ms for 1 MB):** The 1 MB payload adds only **1.15 ms increase** in latency compared to smaller payloads:
@@ -140,7 +150,8 @@ $$
 
 1. **Efficient IPC Implementation:** For small payloads, CPU time is only **96-110 µs** on a 50 ms round-trip:
    - **0.19-0.22% CPU utilization** for IPC mechanism itself
-   - Remaining 99.8% is likely **kernel scheduling overhead** and **echo server processing**
+   - Remaining 99.8% of wall time is the **echo server's 50 ms polling sleep**
+     (`MAIN_LOOP_SLEEP`), not kernel scheduling overhead (see caveat above)
 
 2. **Scalable CPU Overhead:** CPU time scales efficiently with payload size.
 
@@ -308,8 +319,11 @@ $$
 | Activity | Time Spent | Percentage | What's Happening |
 |---|---|---|---|
 | **IPC Messaging** | ~100 µs | 0.2% | Actual message sending/receiving |
-| **OS & Scheduling** | ~50,000 µs | 99.8% | Waiting for OS to schedule tasks |
-| **Total** | 50,100 µs | 100% | Complete round-trip |
+| **Echo Server Polling Sleep** ⚠️ | ~49,900 µs | 99.8% | `MAIN_LOOP_SLEEP{50}` — harness artifact, not IPC overhead |
+| **Total** | 50,000 µs | 100% | Complete round-trip |
+
+> **⚠️ Note:** The dominant cost is the echo server's polling interval, not OS scheduling.
+> Without `MAIN_LOOP_SLEEP` the round-trip would be ~0.3 ms.
 
 **Breaking Down a 51.5 ms Round-Trip for 1 MB Messages:**
 
@@ -341,13 +355,13 @@ $$
 
 ### 7.1 Automotive Industry Context
 
-| Metric | S-CORE LoLa | Typical Requirement |
-|---|---|---|
-| p99 latency | 50.4 ms (small) | < 100 ms |
-| Latency variance | 0.04% CV | < 5% |
-| Throughput (peak) | 120 MB/s | 10-50 MB/s |
-| Determinism | ±20 µs | ±1 ms |
-| CPU efficiency | 0.19% | < 10% |
+| Metric | S-CORE LoLa | Typical Requirement | Note |
+|---|---|---|---|
+| p99 latency | 50.4 ms (small) ⚠️ | < 100 ms | Includes 50 ms echo-server polling sleep; actual IPC p99 ~0.3 ms |
+| Latency variance | 0.04% CV | < 5% | Valid — variance is within-cycle jitter, unaffected by sleep |
+| Throughput (peak) | 120 MB/s | 10-50 MB/s | Valid — throughput benchmark is not echo-based |
+| Determinism | ±20 µs | ±1 ms | Valid — reflects actual IPC jitter above the 50 ms floor |
+| CPU efficiency | 0.19% | < 10% | CPU time valid; ratio inflated by 50 ms wall-time floor |
 
 ### 7.2 Message Size Recommendations
 
@@ -390,10 +404,11 @@ $$
 ### Summary of Results
 
 **1. Response Time: Fast and Predictable**
-- **50-51 milliseconds** for all message sizes (8 bytes to 1 MB)
-- Variation of only **±22 microseconds** (highly consistent)
-- Even worst-case responses (slowest 1%) are within **0.17%** of typical times
-- **Suitable for safety-critical systems** (meets automotive ASIL B/C standards)
+- **50-51 milliseconds** measured round-trip for all message sizes (8 bytes to 1 MB)
+  > **⚠️ Note:** This figure is dominated by `MAIN_LOOP_SLEEP{50}`. True LoLa IPC
+  > overhead is ~0.3 ms.
+- Variation of only **±22 microseconds** within each polling cycle (valid and highly consistent)
+- Worst-case responses (slowest 1%) are within **0.17%** of cycle time — valid jitter metric
 
 **2. Throughput: High Message Rate or High Bandwidth**
 - **Small messages (8B):** 21,000 messages/second, 170 KB/s data rate
@@ -466,11 +481,9 @@ Client Target (RPi 4)                    Server Target (RPi 4)
 **Key Observations:**
 
 1. **2× Latency Increase:** SOME/IP gateway adds approximately **50 ms** of additional latency
-   - LoLa IPC (app → gateway): minimal overhead
-   - Gateway processing: SOME/IP protocol translation
-   - Network transmission: Ethernet round-trip time
-   - vsomeip serialization/deserialization
-   - TCP/UDP overhead
+   > **⚠️ Note:** The near-exact doubling to ~100 ms suggests two sequential 50 ms polling
+   > cycles (echo server + gatewayd's LoLa poll). The additional 50 ms likely reflects a
+   > second `MAIN_LOOP_SLEEP` artifact rather than Ethernet transit time.
 
 2. **Consistency:** Despite higher absolute latency, **standard deviation is lower** (13.4 µs vs 21.1 µs)
    - Narrower latency spread: **60 µs** range vs **140 µs** for pure LoLa
@@ -627,7 +640,7 @@ This chapter demonstrates that the **S-CORE SOME/IP Gateway Prototype** (combini
 ```text
 Starting IPC Performance Benchmarks...
 Echo server should be running. If not, run:
-bazel run //tests/performance_benchmarks:echo_server
+bazel run //tests/benchmarks:echo_server
 2025-08-06T02:00:55+00:00
 Running ./ipc_benchmarks
 Run on (4 X 1500 MHz CPU s)
@@ -894,7 +907,7 @@ Benchmark infrastructure cleaned up
 ```text
 Starting IPC Performance Benchmarks...
 Echo server should be running. If not, run:
-bazel run //tests/performance_benchmarks:echo_server
+bazel run //tests/benchmarks:echo_server
 2025-08-06T05:38:19+00:00
 Running ./ipc_benchmarks
 Run on (4 X 1500 MHz CPU s)
@@ -963,6 +976,3 @@ Benchmark infrastructure cleaned up
 </details>
 
 ---
-
-- **Document Version:** 0.1 (Draft)
-- **Last Updated:** November 18, 2025

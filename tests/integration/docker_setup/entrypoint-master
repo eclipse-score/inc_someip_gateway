@@ -34,6 +34,6 @@ sleep 2s
 export VSOMEIP_CONFIGURATION=$(pwd)/tests/integration/vsomeip.json
 /home/source/bazel-bin/src/someipd/someipd -service_instance_manifest /home/source/src/someipd/etc/mw_com_config.json &
 
-# /home/source/bazel-bin/tests/performance_benchmarks/ipc_benchmarks
+# /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
 
 sleep infinity

@@ -87,7 +87,7 @@ docker exec -it --env VSOMEIP_CONFIGURATION=/home/source/tests/integration/sampl
 Finally start the benchmark on the someipd-1 container in a third shell:
 
 ```sh
-docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/performance_benchmarks/ipc_benchmarks
+docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
 ```
 
 
