@@ -27,11 +27,12 @@ Final_action::Final_action(Final_action&& other) noexcept : m_f{std::move(other.
 Final_action::~Final_action() noexcept { execute(); }
 
 void Final_action::execute() noexcept {
+    F tmp_f = nullptr;
+    std::swap(tmp_f, m_f);
     try {
-        if (m_f) {
-            m_f();
+        if (tmp_f) {
+            tmp_f();
         }
-        m_f = nullptr;
     } catch (...) {
     }
 }
