@@ -24,8 +24,10 @@
     ],
     "initializeCommand": {
         "Make sure QNX licenses exists": "mkdir -p ~/.qnx/license && touch -a ~/.qnx/license/licenses",
-        "Make sure .netrc exists": "touch -a ~/.netrc",
-        "Setup external symlink": "ln -s \"bazel-$(basename $PWD)/external\" external"
+        "Make sure .netrc exists": "touch -a ~/.netrc"
+    },
+    "onCreateCommand": {
+        "Setup external symlink": "[ -L external ] || ln -s \"bazel-$(basename $PWD)/external\" external"
     },
     "customizations": {
         "vscode": {
