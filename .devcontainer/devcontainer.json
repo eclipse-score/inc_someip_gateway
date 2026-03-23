@@ -27,7 +27,7 @@
         "Make sure .netrc exists": "touch -a ~/.netrc"
     },
     "onCreateCommand": {
-        "Setup external symlink": "[ -e external ] || ln -s \"bazel-$(basename $PWD)/external\" external"
+        "Setup external symlink": "[ -L external ] || ln -s \"bazel-$(basename $PWD)/external\" external"
     },
     "customizations": {
         "vscode": {
