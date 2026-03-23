@@ -28,13 +28,14 @@ Service_interface_configuration::Service_interface_configuration(Service_interfa
 
 bool operator==(Service_interface_configuration const& lhs,
                 Service_interface_configuration const& rhs) {
-    return !(lhs < rhs) && !(rhs < lhs);
+    auto const is_equal = !(lhs < rhs) && !(rhs < lhs);
+    assert(!is_equal || (lhs.num_events == rhs.num_events && lhs.num_methods == rhs.num_methods));
+    return is_equal;
 }
 
 bool operator<(Service_interface_configuration const& lhs,
                Service_interface_configuration const& rhs) {
-    return std::tie(lhs.num_methods, lhs.num_events, lhs.interface) <
-           std::tie(rhs.num_methods, rhs.num_events, rhs.interface);
+    return lhs.interface < rhs.interface;
 }
 
 Server_service_interface_configuration::Server_service_interface_configuration(

@@ -41,14 +41,22 @@ class ServiceInterfaceConfigurationTest : public Test {
         service_interface, to_num_of_methods(num_methods), to_num_of_events(num_events_2)};
 };
 
+using ServiceInterfaceConfigurationDeathTest = ServiceInterfaceConfigurationTest;
+
 constexpr std::string_view ServiceInterfaceConfigurationTest::service_interface_id;
 constexpr std::string_view ServiceInterfaceConfigurationTest::service_interface_id_2;
 
 TEST_F(ServiceInterfaceConfigurationTest, ConfigurationEqual) {
     ASSERT_TRUE(interface_config_1 == interface_config_1);
     ASSERT_FALSE(interface_config_1 == interface_config_2);
-    ASSERT_FALSE(interface_config_3 == interface_config_1);
-    ASSERT_FALSE(interface_config_4 == interface_config_1);
+}
+
+TEST_F(ServiceInterfaceConfigurationDeathTest, SameInterfaceDifferentNumMethodsAsserts) {
+    EXPECT_DEATH((void)(interface_config_1 == interface_config_3), "[Aa]ssertion.*failed");
+}
+
+TEST_F(ServiceInterfaceConfigurationDeathTest, SameInterfaceDifferentNumEventsAsserts) {
+    EXPECT_DEATH((void)(interface_config_1 == interface_config_4), "[Aa]ssertion.*failed");
 }
 
 }  // namespace score::socom
