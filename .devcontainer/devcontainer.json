@@ -1,8 +1,12 @@
 {
     "name": "eclipse-s-core",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USERNAME": "${localEnv:USER}"
+        }
     },
+    "remoteUser": "${localEnv:USER}",
     "runArgs": [
         "--privileged"
     ],
@@ -14,7 +18,7 @@
         },
         {
             "source": "${localEnv:HOME}${localEnv:USERPROFILE}/.netrc",
-            "target": "/home/vscode/.netrc",
+            "target": "/home/${localEnv:USER}/.netrc",
             "type": "bind"
         }
     ],

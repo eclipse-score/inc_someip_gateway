@@ -16,8 +16,8 @@
 
 name: Build & Test module (cross compilation for QNX)
 on:
-  # pull_request_target:
-  #   types: [opened, reopened, synchronize]
+  pull_request_target:
+    types: [opened, reopened, synchronize]
   push:
     branches:
       - main
@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         bazel-config: ["x86_64-qnx", "aarch64-qnx"]
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@main
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
     permissions:
       contents: read
       pull-requests: read
@@ -39,7 +39,7 @@ jobs:
       bazel-target: "//src/... //tests/... //examples/..."
       bazel-config: ${{ matrix.bazel-config }}
       credential-helper: ".github/tools/qnx_credential_helper.py"
-      bazel-disk-cache: ${{ matrix.bazel-config }}
+      bazel-disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
     secrets:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
