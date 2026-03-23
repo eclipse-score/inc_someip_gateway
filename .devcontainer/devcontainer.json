@@ -23,7 +23,7 @@
         }
     ],
     "initializeCommand": {
-        "Make sure QNX licenses exists": "touch -a ~/.qnx/license/licenses",
+        "Make sure QNX licenses exists": "mkdir -p ~/.qnx/license && touch -a ~/.qnx/license/licenses",
         "Make sure .netrc exists": "touch -a ~/.netrc"
     },
     "customizations": {
