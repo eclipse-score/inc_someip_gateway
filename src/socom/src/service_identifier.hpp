@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_SOCOM_SERVICE_IDENTIFIER_HPP
-#define SCORE_SOCOM_SERVICE_IDENTIFIER_HPP
+#ifndef SRC_SOCOM_SRC_SERVICE_IDENTIFIER
+#define SRC_SOCOM_SRC_SERVICE_IDENTIFIER
 
 #include "score/socom/service_interface.hpp"
 
@@ -20,16 +20,19 @@ namespace score {
 namespace socom {
 
 /// Service instance identification information
-struct Service_identifier final {
+///
+/// This is only used to check if any (Disabled, Enabled) Server_connector for the given interface
+/// and instance already exists.
+struct Service_instance_identifier final {
     Service_interface interface;
     Service_instance instance;
 };
 
 /// \cond
-bool operator<(Service_identifier const& lhs, Service_identifier const& rhs);
+bool operator<(Service_instance_identifier const& lhs, Service_instance_identifier const& rhs);
 /// \endcond
 
 }  // namespace socom
 }  // namespace score
 
-#endif  // SCORE_SOCOM_SERVICE_IDENTIFIER_HPP
+#endif  // SRC_SOCOM_SRC_SERVICE_IDENTIFIER

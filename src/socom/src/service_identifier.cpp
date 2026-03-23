@@ -18,7 +18,7 @@
 namespace score {
 namespace socom {
 
-bool operator<(Service_identifier const& lhs, Service_identifier const& rhs) {
+bool operator<(Service_instance_identifier const& lhs, Service_instance_identifier const& rhs) {
     return std::tie(lhs.instance, lhs.interface) < std::tie(rhs.instance, rhs.interface);
 }
 

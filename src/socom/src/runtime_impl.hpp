@@ -60,7 +60,7 @@ struct Mutexed_variable {
 using Currently_running_subscribe_find_service_report =
     Mutexed_variable<std::atomic<std::thread::id>>;
 
-using Service_identifiers = Mutexed_variable<std::set<Service_identifier>>;
+using Service_identifiers = Mutexed_variable<std::set<Service_instance_identifier>>;
 
 class Service_record {
    public:

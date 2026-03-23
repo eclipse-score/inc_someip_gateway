@@ -528,7 +528,7 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
     Server_service_interface_configuration const& configuration, Service_instance const& instance,
     Disabled_server_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
-    Service_identifier const identifier{configuration.get_interface(), instance};
+    Service_instance_identifier const identifier{configuration.get_interface(), instance};
 
     if (!is_valid(callbacks)) {
         return MakeUnexpected(Construction_error::callback_missing);
