@@ -50,6 +50,7 @@
 bazel-*
 MODULE.bazel.lock
 user.bazelrc
+external
 
 # Caches
 .ruff_cache
