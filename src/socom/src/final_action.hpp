@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_FINAL_ACTION
-#define SRC_SOCOM_INCLUDE_SCORE_SOCOM_FINAL_ACTION
+#ifndef SRC_SOCOM_SRC_FINAL_ACTION
+#define SRC_SOCOM_SRC_FINAL_ACTION
 
 #include <functional>
 
@@ -60,4 +60,4 @@ class Final_action {
 }  // namespace socom
 }  // namespace score
 
-#endif  // SRC_SOCOM_INCLUDE_SCORE_SOCOM_FINAL_ACTION
+#endif  // SRC_SOCOM_SRC_FINAL_ACTION

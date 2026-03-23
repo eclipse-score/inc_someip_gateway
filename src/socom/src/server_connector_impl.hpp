@@ -17,11 +17,11 @@
 #include <future>
 #include <mutex>
 #include <optional>
-#include <score/socom/final_action.hpp>
 #include <score/socom/service_interface_configuration.hpp>
 #include <vector>
 
 #include "endpoint.hpp"
+#include "final_action.hpp"
 #include "messages.hpp"
 #include "runtime_registration.hpp"
 #include "score/socom/server_connector.hpp"

@@ -18,7 +18,6 @@
 #include "gtest/gtest.h"
 #include "score/socom/clients_t.hpp"
 #include "score/socom/connector_factory.hpp"
-#include "score/socom/final_action.hpp"
 #include "score/socom/server_t.hpp"
 #include "score/socom/service_interface.hpp"
 #include "score/socom/utilities.hpp"
@@ -39,6 +38,8 @@ std::ostream& operator<<(std::ostream& out, Expectation const& e) {
     return out;
 }
 
+using Check_log = std::function<void()>;
+
 using Interface_configuration_and_expected_connection =
     std::tuple<Server_service_interface_configuration, Server_service_interface_configuration,
                Expectation>;
@@ -49,23 +50,23 @@ class InterfaceCompatibilityTest
     Service_instance const instance{"VersionCompatibilityTest"};
 };
 
-Final_action expect_logs(Expectation const expected_connection,
-                         Server_service_interface_configuration const& client_conf,
-                         Server_service_interface_configuration const& server_conf) {
+Check_log expect_logs(Expectation const expected_connection,
+                      Server_service_interface_configuration const& client_conf,
+                      Server_service_interface_configuration const& server_conf) {
     if ((Expectation::no_connect == expected_connection) &&
         (client_conf.get_interface().version.major == server_conf.get_interface().version.major) &&
         (client_conf.get_interface().id == server_conf.get_interface().id)) {
         // start capturing stderr
         testing::internal::CaptureStderr();
-        // return final action that encapsulates the reading of stderr and verification
-        return Final_action{[]() {
+        // return lambda that encapsulates the reading of stderr and verification
+        return []() {
             auto const expected_message =
                 "SOCom error: Bind client to server - minor version incompatible";
             auto const output_err = testing::internal::GetCapturedStderr();
             ASSERT_EQ(output_err.substr(0, strlen(expected_message)), expected_message);
-        }};
+        };
     }
-    return Final_action{[]() {}};
+    return []() {};
 }
 
 TEST_P(InterfaceCompatibilityTest, ServerCreatedBeforeClient) {
@@ -82,6 +83,8 @@ TEST_P(InterfaceCompatibilityTest, ServerCreatedBeforeClient) {
     } else {
         Client_data client1{factory, Client_data::no_connect};
     }
+
+    log_expectation();
 }
 
 TEST_P(InterfaceCompatibilityTest, ClientCreatedBeforeServer) {
@@ -114,6 +117,8 @@ TEST_P(InterfaceCompatibilityTest, ClientCreatedBeforeServer) {
         ASSERT_NE(nullptr, not_available);
         wait_for_atomics(*not_available);
     }
+
+    log_expectation();
 }
 
 Interface_configuration_and_expected_connection create_conf(
