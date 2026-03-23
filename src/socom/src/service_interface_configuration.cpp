@@ -13,17 +13,8 @@
 
 #include <cassert>
 #include <score/socom/service_interface_configuration.hpp>
-#include <string_view>
 
 namespace score::socom {
-
-Num_of_events to_num_of_events(std::size_t const value) noexcept {
-    return static_cast<Num_of_events>(value);
-}
-
-Num_of_methods to_num_of_methods(std::size_t const value) noexcept {
-    return static_cast<Num_of_methods>(value);
-}
 
 Service_interface_configuration::Service_interface_configuration(
     Service_interface const sif, Num_of_methods const num_of_methods,

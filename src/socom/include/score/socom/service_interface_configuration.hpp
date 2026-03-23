@@ -26,8 +26,13 @@ enum class Num_of_events : std::size_t {};
 /// description: Strong type for forced proper construction.
 enum class Num_of_methods : std::size_t {};
 
-Num_of_events to_num_of_events(std::size_t value) noexcept;
-Num_of_methods to_num_of_methods(std::size_t value) noexcept;
+inline Num_of_events to_num_of_events(std::size_t const value) noexcept {
+    return static_cast<Num_of_events>(value);
+}
+
+inline Num_of_methods to_num_of_methods(std::size_t const value) noexcept {
+    return static_cast<Num_of_methods>(value);
+}
 
 /// \brief Service interface configuration data structure for Client_connector instances.
 /// \details This type, which is used by Runtime::make_client_connector(), allows an optional member
