@@ -24,8 +24,9 @@ namespace score::socom {
 
 class Runtime_test : public ::testing::Test {
    protected:
-    Server_service_interface_configuration config{Service_interface{"example.interface", {1, 0}},
-                                                  to_num_of_methods(1), to_num_of_events(1)};
+    Server_service_interface_definition config{
+        Service_interface_identifier{"example.interface", {1, 0}}, to_num_of_methods(1),
+        to_num_of_events(1)};
     Service_instance instance{"instance1"};
 
     Runtime::Uptr runtime = create_runtime();

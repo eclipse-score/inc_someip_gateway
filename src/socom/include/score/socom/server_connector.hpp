@@ -20,7 +20,7 @@
 #include <score/socom/method.hpp>
 #include <score/socom/payload.hpp>
 #include <score/socom/posix_credentials.hpp>
-#include <score/socom/service_interface_configuration.hpp>
+#include <score/socom/service_interface_definition.hpp>
 
 namespace score::socom {
 
@@ -48,7 +48,7 @@ class Configuration_getter {
     virtual ~Configuration_getter() = default;
 
     [[nodiscard]]
-    virtual Server_service_interface_configuration const& get_configuration() const noexcept = 0;
+    virtual Server_service_interface_definition const& get_configuration() const noexcept = 0;
     [[nodiscard]]
     virtual Service_instance const& get_service_instance() const noexcept = 0;
 };
@@ -132,7 +132,7 @@ class Disabled_server_connector : public Configuration_getter {
 /// called.
 ///
 /// If the passed parameter server_id  is not valid (not contained in
-/// Server_service_interface_configuration), service API calls have no effect and return
+/// Server_service_interface_definition), service API calls have no effect and return
 /// Server_connector_error::logic_error_id_out_of_range.
 class Enabled_server_connector : public Configuration_getter {
    public:

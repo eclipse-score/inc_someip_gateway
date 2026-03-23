@@ -18,17 +18,17 @@
 #include <future>
 #include <memory>
 #include <optional>
+#include <score/socom/event.hpp>
+#include <score/socom/service_interface_definition.hpp>
 #include <string>
 #include <string_view>
 
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/clients_t.hpp"
-#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_t.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/temporary_event_subscription.hpp"
@@ -81,7 +81,7 @@ Client_connector::Uptr create_connected_client_with_event_subscription(
     return client0;
 }
 
-std::function<void(Client_connector const&, Service_state, Service_interface_configuration)>
+std::function<void(Client_connector const&, Service_state, Service_interface_definition)>
 delete_client_state_change(std::unique_ptr<Client_connector>& client0) {
     return [&client0](auto const& /* client_connector */, auto /* state */,
                       auto const& /* configuration */) { client0.reset(); };
@@ -111,13 +111,13 @@ using Test_method_ids = std::vector<Test_method_id>;
 using Test_event_ids = std::vector<Test_event_id>;
 
 struct Test_setup {
-    explicit Test_setup(Service_interface_configuration service_interface_configuration,
+    explicit Test_setup(Service_interface_definition service_interface_configuration,
                         Test_method_ids test_method_ids = {}, Test_event_ids test_event_ids = {})
         : service_interface_configuration{std::move(service_interface_configuration)},
           test_method_ids{std::move(test_method_ids)},
           test_event_ids{std::move(test_event_ids)} {}
 
-    Service_interface_configuration const service_interface_configuration;
+    Service_interface_definition const service_interface_configuration;
     Test_method_ids const test_method_ids;
     Test_event_ids const test_event_ids;
 };
@@ -131,42 +131,42 @@ Payload::Sptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U
 
 Method_result const application_return{Application_return{}};
 
-auto const service_interface =
-    Service_interface{std::string_view{"TestInterface1"}, Service_interface::Version{1U, 2U}};
+auto const service_interface = Service_interface_identifier{
+    std::string_view{"TestInterface1"}, Service_interface_identifier::Version{1U, 2U}};
 auto const service_instance = Service_instance{std::string_view{"TestInstance1"}};
 
-Server_service_interface_configuration const server_configuration{
+Server_service_interface_definition const server_configuration{
     service_interface, to_num_of_methods(2U), to_num_of_events(3U)};
 
 Test_setup const full_client_configuration_setup{
     test_values::server_configuration, {{0U, 0U}, {1U, 1U}}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
 
-Service_interface_configuration const no_client_configuration{service_interface};
+Service_interface_definition const no_client_configuration{service_interface};
 
 Test_setup const no_client_configuration_setup{
     no_client_configuration, {{0U, 0U}, {1U, 1U}}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
 
 // method variations
-Server_service_interface_configuration const method_without_event_configuration{
+Server_service_interface_definition const method_without_event_configuration{
     service_interface, to_num_of_methods(2U), to_num_of_events(0U)};
 
 Test_setup const method_without_event_configuration_setup{
     method_without_event_configuration, {{0U, 0U}, {1U, 1U}}, {}};
 
-Service_interface_configuration const method_subset_client_configuration{
+Service_interface_definition const method_subset_client_configuration{
     service_interface, to_num_of_methods(1U), to_num_of_events(3U)};
 
 Test_setup const method_subset_client_configuration_setup{
     method_subset_client_configuration, {{0U, 0U}}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
 
 // event variations
-Server_service_interface_configuration const event_without_method_configuration{
+Server_service_interface_definition const event_without_method_configuration{
     service_interface, to_num_of_methods(0U), to_num_of_events(3U)};
 
 Test_setup const event_without_method_configuration_setup{
     event_without_method_configuration, {}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
 
-Service_interface_configuration const event_subset_client_configuration{
+Service_interface_definition const event_subset_client_configuration{
     service_interface, to_num_of_methods(2U), to_num_of_events(2U)};
 
 Test_setup const event_subset_client_configuration_setup{
@@ -599,9 +599,9 @@ TEST_F(ClientConnectorTest, RetrieveServerConnectorConfig) {
 TEST_F(ClientConnectorTest, DifferentServiceInterfaceId) {
     auto modified_interface_id =
         std::string{connector_factory.get_configuration().get_interface().id + std::to_string(1)};
-    auto const conf = Server_service_interface_configuration{
-        Service_interface{std::move(modified_interface_id),
-                          connector_factory.get_configuration().get_interface().version},
+    auto const conf = Server_service_interface_definition{
+        Service_interface_identifier{std::move(modified_interface_id),
+                                     connector_factory.get_configuration().get_interface().version},
         to_num_of_methods(connector_factory.get_num_methods()),
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
@@ -624,12 +624,12 @@ TEST_F(ClientConnectorTest, DifferentServiceInstanceId) {
 }
 
 TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
-    auto const modified_major_interface = Service_interface{
+    auto const modified_major_interface = Service_interface_identifier{
         connector_factory.get_configuration().get_interface().id,
         {static_cast<uint16_t>(connector_factory.get_configuration().get_interface().version.major +
                                1),
          connector_factory.get_configuration().get_interface().version.minor}};
-    auto const conf = Server_service_interface_configuration{
+    auto const conf = Server_service_interface_definition{
         modified_major_interface, to_num_of_methods(connector_factory.get_num_methods()),
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
@@ -640,13 +640,13 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
 }
 
 TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
-    auto const modified_minor_interface = Service_interface{
+    auto const modified_minor_interface = Service_interface_identifier{
         connector_factory.get_configuration().get_interface().id,
         {connector_factory.get_configuration().get_interface().version.major,
          static_cast<uint16_t>(connector_factory.get_configuration().get_interface().version.minor -
                                1)}};
 
-    auto const conf = Server_service_interface_configuration{
+    auto const conf = Server_service_interface_definition{
         modified_minor_interface, to_num_of_methods(connector_factory.get_num_methods()),
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
@@ -657,13 +657,13 @@ TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
 }
 
 TEST_F(ClientConnectorTest, SmallerServiceInterfaceMinorVersion) {
-    auto const modified_minor_interface = Service_interface{
+    auto const modified_minor_interface = Service_interface_identifier{
         connector_factory.get_configuration().get_interface().id,
         {connector_factory.get_configuration().get_interface().version.major,
          static_cast<uint16_t>(connector_factory.get_configuration().get_interface().version.minor +
                                1)}};
 
-    auto const conf = Server_service_interface_configuration{
+    auto const conf = Server_service_interface_definition{
         modified_minor_interface, to_num_of_methods(connector_factory.get_num_methods()),
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};

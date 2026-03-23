@@ -17,7 +17,7 @@ package SOCom {
     Component Client_connector
     Component Server_connector
     Component Runtime
-    Component Service_interface_configuration
+    Component Service_interface_definition
 }
 
 () "Client_connector" as Client_connector_if
@@ -30,7 +30,7 @@ Disabled_server_connector_if -- Server_connector
 Enabled_server_connector_if -- Server_connector
 Runtime_if -- Runtime
 
-Client_connector --> Service_interface_configuration : depends
-Server_connector --> Service_interface_configuration : depends
-Runtime --> Service_interface_configuration : depends
+Client_connector --> Service_interface_definition : depends
+Server_connector --> Service_interface_definition : depends
+Runtime --> Service_interface_definition : depends
 @enduml

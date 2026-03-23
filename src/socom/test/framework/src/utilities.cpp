@@ -76,17 +76,18 @@ void increase_and_fill(Vector_buffer& data, std::size_t const new_size) {
     std::generate(start, std::end(data), [&gen, &distrib]() { return std::byte(distrib(gen)); });
 }
 
-Service_interface create_service_interface(size_t const interface_id) {
-    return Service_interface{std::string{"interface_" + std::to_string(interface_id)}, {4, 2}};
+Service_interface_identifier create_service_interface(size_t const interface_id) {
+    return Service_interface_identifier{std::string{"interface_" + std::to_string(interface_id)},
+                                        {4, 2}};
 }
 
-Server_service_interface_configuration create_service_interface_configuration(
+Server_service_interface_definition create_service_interface_configuration(
     size_t const interface_id) {
-    return Server_service_interface_configuration{create_service_interface(interface_id), {}, {}};
+    return Server_service_interface_definition{create_service_interface(interface_id), {}, {}};
 }
 
-std::vector<Server_service_interface_configuration> create_service_interfaces(size_t const num) {
-    std::vector<Server_service_interface_configuration> interfaces;
+std::vector<Server_service_interface_definition> create_service_interfaces(size_t const num) {
+    std::vector<Server_service_interface_definition> interfaces;
     interfaces.reserve(num);
     for (size_t i = 0; i < num; i++) {
         interfaces.emplace_back(create_service_interface_configuration(i));
@@ -114,13 +115,13 @@ namespace socom {
 
 std::ostream& operator<<(std::ostream& out, Method_result const& /*method_result*/) { return out; }
 
-std::ostream& operator<<(
-    std::ostream& out, Service_interface_configuration const& /*service_interface_configuration*/) {
+std::ostream& operator<<(std::ostream& out,
+                         Service_interface_definition const& /*service_interface_configuration*/) {
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, Server_service_interface_configuration const& conf) {
-    return operator<<(out, static_cast<Service_interface_configuration>(conf));
+std::ostream& operator<<(std::ostream& out, Server_service_interface_definition const& conf) {
+    return operator<<(out, static_cast<Service_interface_definition>(conf));
 }
 
 std::ostream& operator<<(std::ostream& out, Service_state const& state) {

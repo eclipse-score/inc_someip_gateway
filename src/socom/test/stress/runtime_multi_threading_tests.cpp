@@ -84,9 +84,9 @@ class Client_to_connect {
         };
     }
 
-    Loop_function_t create_thread_function(
-        Connector_factory& factory, Server_service_interface_configuration const& configuration,
-        Service_instance const& instance) {
+    Loop_function_t create_thread_function(Connector_factory& factory,
+                                           Server_service_interface_definition const& configuration,
+                                           Service_instance const& instance) {
         reset();
         return [&factory, &configuration, &instance,
                 state_change_cb = m_state_change_mock.AsStdFunction()]() {
@@ -148,7 +148,7 @@ class RuntimeMultiThreadingTest : public SingleConnectionTest {
     }
 
     Loop_function_t create_servers_thread_main(
-        Server_service_interface_configuration const& configuration,
+        Server_service_interface_definition const& configuration,
         Service_instance const& instance) {
         return [this, &configuration, &instance]() {
             Server_data server{connector_factory, configuration, instance};
@@ -217,9 +217,9 @@ TEST_F(RuntimeMultiThreadingTest,
             auto instance = Service_instance{std::to_string(instance_number++)};
             Server_data server{
                 connector_factory,
-                Server_service_interface_configuration{configuration.interface,
-                                                       to_num_of_methods(configuration.num_methods),
-                                                       to_num_of_events(configuration.num_events)},
+                Server_service_interface_definition{configuration.interface,
+                                                    to_num_of_methods(configuration.num_methods),
+                                                    to_num_of_events(configuration.num_events)},
                 instance};
             return nullptr;
         });

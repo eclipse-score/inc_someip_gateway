@@ -74,8 +74,7 @@ struct Client_data {
     /// \param[in] configuration use this instead of the one stored in factory
     /// \param[in] instance use this instead of the one stored in factory
     Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
-                Service_interface_configuration const& configuration,
-                Service_instance const& instance,
+                Service_interface_definition const& configuration, Service_instance const& instance,
                 Service_state_change_callback const& state_change_callback = {});
 
     /// \brief Create Client_data with custom configuration, POSIX credentials and connect to the
@@ -85,7 +84,7 @@ struct Client_data {
     /// \param[in] configuration use this instead of the one stored in factory
     /// \param[in] instance use this instead of the one stored in factory
     /// \param[in] credentials POSIX credentials
-    Client_data(Connector_factory& factory, Service_interface_configuration const& configuration,
+    Client_data(Connector_factory& factory, Service_interface_definition const& configuration,
                 Service_instance const& instance,
                 std::optional<Posix_credentials> const& credentials = {});
 
@@ -214,7 +213,7 @@ struct Client_data {
     /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_service_state_change(
         size_t count, Service_state const& state,
-        Optional_reference<Server_service_interface_configuration const> const& conf);
+        Optional_reference<Server_service_interface_definition const> const& conf);
 
     /// \brief Expect event payload allocation
     ///
@@ -323,7 +322,7 @@ struct Client_data {
     /// \param[in] instance use this instead of the one stored in factory
     /// \return created and connected clients
     static Vector create_clients(Connector_factory& factory, size_t const& size,
-                                 Service_interface_configuration const& configuration,
+                                 Service_interface_definition const& configuration,
                                  Service_instance const& instance);
 
     /// \brief Expect event update

@@ -13,16 +13,16 @@
 
 #include <atomic>
 #include <cstddef>
+#include <score/socom/event.hpp>
+#include <score/socom/server_connector.hpp>
+#include <score/socom/service_interface_definition.hpp>
 #include <utility>
 
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
-#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/multi_threaded_test_template.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/server_connector.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 
 namespace score::socom {
@@ -136,7 +136,7 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
 TEST_F(ConnectionMultiThreadingTest,
        ClientSubscribesEventsAndCallsMethodsInStateChangeCallbackWithoutRace) {
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
-                                  Service_interface_configuration const& /*conf*/) {
+                                  Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
             subscribe_events(cc, connector_factory.get_num_events());
             call_methods(cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
@@ -153,7 +153,7 @@ TEST_F(ConnectionMultiThreadingTest,
 
 TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsServerThreadAndCallsMethodsInOwnThread) {
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
-                                  Service_interface_configuration const& /*conf*/) {
+                                  Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
             subscribe_events(cc, connector_factory.get_num_events());
         }
@@ -170,7 +170,7 @@ TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsServerThreadAndCallsM
 TEST_F(ConnectionMultiThreadingTest,
        ClientCallsMethodsInServerThreadAndSubscribesEventsInOwnThreadWithoutRace) {
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
-                                  Service_interface_configuration const& /*conf*/) {
+                                  Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
             call_methods(cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
         }
@@ -186,7 +186,7 @@ TEST_F(ConnectionMultiThreadingTest,
 
 TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnThreadWithoutRace) {
     auto on_state_change = [](Client_connector const& /* cc */, Service_state const& /* state */,
-                              Service_interface_configuration const& /*conf*/) {};
+                              Service_interface_definition const& /*conf*/) {};
 
     auto const client_thread = [this, cc_callbacks = create_client_callbacks(on_state_change)]() {
         auto const cc = this->connector_factory.create_client_connector(cc_callbacks);
@@ -209,7 +209,7 @@ TEST_F(ConnectionMultiThreadingTest,
     std::size_t const num_connection_limit{5000};
     auto const on_state_change = [&num_connected, &connected, &cv_connected, &mtx_connected](
                                      Client_connector const& /* cc */, Service_state const& state,
-                                     Service_interface_configuration const& /*conf*/) {
+                                     Service_interface_definition const& /*conf*/) {
         num_connected += static_cast<std::size_t>(Service_state::available == state);
         if (Service_state::available == state) {
             std::unique_lock<std::mutex> lock_connected(mtx_connected);

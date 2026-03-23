@@ -95,8 +95,8 @@ class Bridge_data {
     /// \param[in] interface the interface to be reported
     /// \param[in] instance the instance to be reported
     /// \param[in] status the status of the reported service
-    void find_service(Service_interface const& interface, Service_instance const& instance,
-                      Find_result_status const& status) const;
+    void find_service(Service_interface_identifier const& interface,
+                      Service_instance const& instance, Find_result_status const& status) const;
 
     /// \brief Expect call to subscribe_find_service()
     ///
@@ -104,7 +104,7 @@ class Bridge_data {
     /// \param[in] instance
     /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
     void expect_subscribe_find_service(
-        Service_interface const& interface, std::optional<Service_instance> instance,
+        Service_interface_identifier const& interface, std::optional<Service_instance> instance,
         Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
 
     /// \brief Expect call to subscribe_find_service(), callback only, for use with additional
@@ -114,7 +114,7 @@ class Bridge_data {
     /// \param[in] instance
     /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
     void expect_another_subscribe_find_service(
-        Service_interface const& interface, std::optional<Service_instance> instance,
+        Service_interface_identifier const& interface, std::optional<Service_instance> instance,
         Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
 
     /// \brief Expect call to request_find_service()
@@ -123,8 +123,8 @@ class Bridge_data {
     /// \param[in] instance
     /// \param[in] rsf Function to call when configured request_find_service() is called
     void expect_request_find_service(
-        Service_interface_configuration const& configuration, Service_instance const& instance,
-        std::function<void(Service_interface_configuration const&, Service_instance const&)>&& rsf =
+        Service_interface_definition const& configuration, Service_instance const& instance,
+        std::function<void(Service_interface_definition const&, Service_instance const&)>&& rsf =
             [](auto const& /*configuration*/, auto const& /*instance*/) {});
 
     /// \return atomic to check if runtime called request_find_service

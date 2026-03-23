@@ -11,12 +11,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <score/socom/event.hpp>
+#include <score/socom/server_connector.hpp>
+
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/clients_t.hpp"
-#include "score/socom/event.hpp"
 #include "score/socom/posix_credentials.hpp"
-#include "score/socom/server_connector.hpp"
 #include "score/socom/server_t.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"

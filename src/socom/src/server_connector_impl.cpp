@@ -17,13 +17,13 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <score/socom/event.hpp>
+#include <score/socom/server_connector.hpp>
+#include <score/socom/service_interface_definition.hpp>
+#include <score/socom/service_interface_identifier.hpp>
 
 #include "messages.hpp"
 #include "runtime_impl.hpp"
-#include "score/socom/event.hpp"
-#include "score/socom/server_connector.hpp"
-#include "score/socom/service_interface.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "temporary_thread_id_add.hpp"
 
 namespace score {
@@ -34,7 +34,7 @@ namespace server_connector {
 Client_connection::Client_connection(Impl& impl, Client_connector_endpoint client)
     : m_impl{impl}, m_client{std::move(client)} {}
 
-Impl::Impl(Runtime_impl& runtime, Server_service_interface_configuration configuration,
+Impl::Impl(Runtime_impl& runtime, Server_service_interface_definition configuration,
            Service_instance instance, Disabled_server_connector::Callbacks callbacks,
            Final_action final_action, Posix_credentials const& credentials)
     : m_runtime{runtime},
@@ -129,7 +129,7 @@ Result<std::unique_ptr<Writable_payload>> Impl::allocate_event_payload(Event_id 
         MakeUnexpected(Server_connector_error::runtime_error_no_client_subscribed_for_event));
 }
 
-Server_service_interface_configuration const& Impl::get_configuration() const noexcept {
+Server_service_interface_definition const& Impl::get_configuration() const noexcept {
     return m_configuration;
 }
 

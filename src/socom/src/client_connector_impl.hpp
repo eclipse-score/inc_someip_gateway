@@ -19,7 +19,7 @@
 #include <mutex>
 #include <optional>
 #include <score/socom/client_connector.hpp>
-#include <score/socom/service_interface.hpp>
+#include <score/socom/service_interface_identifier.hpp>
 
 #include "endpoint.hpp"
 #include "messages.hpp"
@@ -40,7 +40,7 @@ class Impl final : public Client_connector {
     using Server_indication =
         std::function<void(::score::socom::Server_connector_listen_endpoint const&)>;
 
-    Impl(Runtime_impl& runtime, Service_interface_configuration configuration,
+    Impl(Runtime_impl& runtime, Service_interface_definition configuration,
          Service_instance instance, Client_connector::Callbacks callbacks,
          Posix_credentials const& credentials);
     Impl(Impl const&) = delete;
@@ -63,7 +63,7 @@ class Impl final : public Client_connector {
         Method_id client_id, Payload::Sptr payload,
         Method_call_reply_data_opt reply_data) const noexcept override;
     Result<Posix_credentials> get_peer_credentials() const noexcept override;
-    Service_interface_configuration const& get_configuration() const noexcept override;
+    Service_interface_definition const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
     bool is_service_available() const noexcept override;
 
@@ -86,7 +86,7 @@ class Impl final : public Client_connector {
     template <typename MessageType>
     typename MessageType::Return_type send(MessageType message) const;
 
-    Service_interface_configuration const m_configuration;
+    Service_interface_definition const m_configuration;
     Service_instance const m_instance;
     Client_connector::Callbacks const m_callbacks;
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION

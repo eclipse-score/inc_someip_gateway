@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_SOCOM_SERVICE_INTERFACE_HPP
-#define SCORE_SOCOM_SERVICE_INTERFACE_HPP
+#ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_IDENTIFIER
+#define SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_IDENTIFIER
 
 #include <cstdint>
 #include <string>
@@ -25,7 +25,7 @@ namespace score::socom {
 using Service_instance = std::string;
 
 /// \brief Service interface identification information.
-struct Service_interface {
+struct Service_interface_identifier {
    public:
     /// \brief Alias for a service interface identifier.
     /// TODO sting registry optimization is missing
@@ -51,26 +51,26 @@ struct Service_interface {
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     /// \param new_version Version of the service interface.
-    Service_interface(std::string_view new_id, Version new_version)
+    Service_interface_identifier(std::string_view new_id, Version new_version)
         : id{new_id}, version{new_version} {}
 };
 
-/// \brief Operator == for Service_interface::Version.
+/// \brief Operator == for Service_interface_identifier::Version.
 /// \param lhs Left-hand side of operator.
 /// \param rhs Right-hand side of operator.
 /// \return True in case of equality, otherwise false.
-inline bool operator==(Service_interface::Version const& lhs,
-                       Service_interface::Version const& rhs) {
+inline bool operator==(Service_interface_identifier::Version const& lhs,
+                       Service_interface_identifier::Version const& rhs) {
     return (std::tie(lhs.major, lhs.minor) == std::tie(rhs.major, rhs.minor));
 }
 
-/// \brief Operator < for Service_interface::Version.
+/// \brief Operator < for Service_interface_identifier::Version.
 /// \param lhs Left-hand side of operator.
 /// \param rhs Right-hand side of operator.
 /// \return True in case the contents of lhs are lexicographically less than the contents of rhs,
 /// otherwise false.
-inline bool operator<(Service_interface::Version const& lhs,
-                      Service_interface::Version const& rhs) {
+inline bool operator<(Service_interface_identifier::Version const& lhs,
+                      Service_interface_identifier::Version const& rhs) {
     return (std::tie(lhs.major, lhs.minor) < std::tie(rhs.major, rhs.minor));
 }
 
@@ -78,7 +78,8 @@ inline bool operator<(Service_interface::Version const& lhs,
 /// \param lhs Left-hand side of operator.
 /// \param rhs Right-hand side of operator.
 /// \return True in case of equality, otherwise false.
-inline bool operator==(Service_interface const& lhs, Service_interface const& rhs) {
+inline bool operator==(Service_interface_identifier const& lhs,
+                       Service_interface_identifier const& rhs) {
     return (std::tie(lhs.id, lhs.version) == std::tie(rhs.id, rhs.version));
 }
 
@@ -87,10 +88,11 @@ inline bool operator==(Service_interface const& lhs, Service_interface const& rh
 /// \param rhs Right-hand side of operator.
 /// \return True in case the contents of lhs are lexicographically less than the contents of rhs,
 /// otherwise false.
-inline bool operator<(Service_interface const& lhs, Service_interface const& rhs) {
+inline bool operator<(Service_interface_identifier const& lhs,
+                      Service_interface_identifier const& rhs) {
     return (std::tie(lhs.id, lhs.version) < std::tie(rhs.id, rhs.version));
 }
 
 }  // namespace score::socom
 
-#endif  // SCORE_SOCOM_SERVICE_INTERFACE_HPP
+#endif  // SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_IDENTIFIER

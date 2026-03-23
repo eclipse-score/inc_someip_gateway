@@ -32,7 +32,7 @@ class Client_connector_mock : public Client_connector {
     MOCK_METHOD(Result<std::unique_ptr<Writable_payload>>, allocate_method_call_payload,
                 (Method_id method_id), (noexcept, override));
     MOCK_METHOD(Result<Posix_credentials>, get_peer_credentials, (), (const, noexcept, override));
-    MOCK_METHOD(Service_interface_configuration const&, get_configuration, (),
+    MOCK_METHOD(Service_interface_definition const&, get_configuration, (),
                 (const, noexcept, override));
     MOCK_METHOD(Service_instance const&, get_service_instance, (), (const, noexcept, override));
     MOCK_METHOD(bool, is_service_available, (), (const, noexcept, override));

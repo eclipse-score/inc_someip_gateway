@@ -15,13 +15,13 @@
 #define SOCOM_SERVER_T_HPP
 
 #include <cstddef>
+#include <score/socom/event.hpp>
+#include <score/socom/server_connector.hpp>
 
 #include "score/socom/connector_factory.hpp"
-#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/posix_credentials.hpp"
-#include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
 
 namespace score::socom {
@@ -63,7 +63,7 @@ struct Server_data {
     /// \param[in] configuration use this instead of the one stored in factory
     /// \param[in] instance use this instead of the one stored in factory
     Server_data(Connector_factory& factory,
-                Server_service_interface_configuration const& configuration,
+                Server_service_interface_definition const& configuration,
                 Service_instance const& instance);
 
     /// \brief Create a new instance with the configuration stored in factory and POSIX credentials
@@ -73,7 +73,7 @@ struct Server_data {
     /// \param[in] instance use this instead of the one stored in factory
     /// \param[in] credentials use POSIX credentials
     Server_data(Connector_factory& factory,
-                Server_service_interface_configuration const& configuration,
+                Server_service_interface_definition const& configuration,
                 Service_instance const& instance, Posix_credentials const& credentials);
 
     Server_data(Server_data const&) = delete;

@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <score/socom/service_interface_definition.hpp>
 #include <set>
 #include <thread>
 #include <vector>
@@ -27,7 +28,6 @@
 #include "client_connector_impl.hpp"
 #include "runtime_registration.hpp"
 #include "score/socom/runtime.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "server_connector_impl.hpp"
 #include "service_identifier.hpp"
 
@@ -48,7 +48,7 @@ using Bridge_id_to_request = Bridge_id_to<Service_request>;
 
 template <typename INSTANCE, typename HANDLE>
 using Active_bridge_requests = std::map<
-    std::tuple<Service_interface_configuration, INSTANCE>,
+    std::tuple<Service_interface_definition, INSTANCE>,
     std::tuple<std::weak_ptr<Bridge_id_to<HANDLE>>, std::vector<std::optional<Bridge_identity>>>>;
 
 template <typename T>
@@ -65,12 +65,12 @@ using Service_identifiers = Mutexed_variable<std::set<Service_instance_identifie
 class Service_record {
    public:
     struct Interfaced_server {
-        Service_interface interface;
+        Service_interface_identifier interface;
         SC_impl::Listen_endpoint endpoint;
     };
 
     struct Interfaced_client {
-        Service_interface interface;
+        Service_interface_identifier interface;
         CC_impl::Server_indication indication;
     };
 
@@ -89,10 +89,10 @@ class Service_record {
 
     explicit Service_record(std::mutex& runtime_mutex);
 
-    Server_registration register_server_connector(Service_interface const& interface,
+    Server_registration register_server_connector(Service_interface_identifier const& interface,
                                                   SC_impl::Listen_endpoint connector);
 
-    Client_registration register_client_connector(Service_interface const& interface,
+    Client_registration register_client_connector(Service_interface_identifier const& interface,
                                                   CC_impl::Server_indication on_server_update);
 
     bool is_available() const { return m_server.has_value(); }
@@ -104,29 +104,30 @@ class Service_record {
 };
 
 using Instances = std::vector<Service_instance>;
-using Interfaces_instances = std::map<Service_interface, Instances>;
+using Interfaces_instances = std::map<Service_interface_identifier, Instances>;
 
 class Service_database {
    public:
     explicit Service_database(std::mutex& runtime_mutex);
 
-    Service_record& get_record(Service_interface const& interface,
+    Service_record& get_record(Service_interface_identifier const& interface,
                                Service_instance const& instance);
 
-    Interfaces_instances get_instances(Service_interface const& interface,
+    Interfaces_instances get_instances(Service_interface_identifier const& interface,
                                        std::optional<Service_instance> const& filter) const;
 
-    Interfaces_instances get_instances(std::optional<Service_interface> const& interface,
+    Interfaces_instances get_instances(std::optional<Service_interface_identifier> const& interface,
                                        std::optional<Service_instance> const& filter) const;
 
    private:
     struct Minor_version_ignoring_comparator {
-        bool operator()(Service_interface const& lhs, Service_interface const& rhs) const;
+        bool operator()(Service_interface_identifier const& lhs,
+                        Service_interface_identifier const& rhs) const;
     };
 
     using Service_instances = std::map<Service_instance, Service_record>;
-    using Service_interfaces =
-        std::map<Service_interface, Service_instances, Minor_version_ignoring_comparator>;
+    using Service_interfaces = std::map<Service_interface_identifier, Service_instances,
+                                        Minor_version_ignoring_comparator>;
 
     std::mutex& m_runtime_mutex;
     Service_interfaces m_service_records;
@@ -183,42 +184,43 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
     using Find_result_callback_sptr = std::shared_ptr<Find_result_change_callback const>;
     using Find_result_callbacks = std::list<Find_result_callback_wptr>;
     using Callback_with_id =
-        std::tuple<Find_result_callback_sptr, std::optional<Service_interface>,
+        std::tuple<Find_result_callback_sptr, std::optional<Service_interface_identifier>,
                    std::optional<Service_instance>, std::shared_ptr<Bridge_id_to_subscription>>;
     using Subscription_to_callback = std::map<Find_subscription_id, Callback_with_id>;
     using Service_instance_to_callbacks =
         std::map<std::optional<Service_instance>, Find_result_callbacks>;
     using Interface_to_instance_to_callbacks =
-        std::map<std::optional<Service_interface>, Service_instance_to_callbacks>;
+        std::map<std::optional<Service_interface_identifier>, Service_instance_to_callbacks>;
 
     using Bridge_registration_to_callbacks =
         Bridge_id_to<std::tuple<Subscribe_find_service_function, Request_service_function,
                                 Interfaces_instances>>;
 
     Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_configuration configuration, Service_instance instance,
+        Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks) noexcept override;
 
     Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_configuration configuration, Service_instance instance,
+        Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
 
     Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_configuration configuration, Service_instance instance,
+        Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks) noexcept override;
 
     Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_configuration configuration, Service_instance instance,
+        Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
 
     Find_subscription subscribe_find_service(
-        Find_result_callback on_result_set_change, Service_interface const& interface,
+        Find_result_callback on_result_set_change, Service_interface_identifier const& interface,
         std::optional<Service_instance> instance) noexcept override;
 
     Find_subscription subscribe_find_service(
-        Find_result_change_callback on_result_change, std::optional<Service_interface> interface,
+        Find_result_change_callback on_result_change,
+        std::optional<Service_interface_identifier> interface,
         std::optional<Service_instance> instance,
         std::optional<Bridge_identity> identity) noexcept override;
 
@@ -228,11 +230,11 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Request_service_function request_service) noexcept override;
     // NOLINTEND(bugprone-exception-escape)
 
-    Registration register_connector(Service_interface_configuration const& configuration,
+    Registration register_connector(Service_interface_definition const& configuration,
                                     Service_instance const& instance,
                                     CC_impl::Server_indication const& on_server_update);
 
-    Registration register_connector(Service_interface const& interface,
+    Registration register_connector(Service_interface_identifier const& interface,
                                     Service_instance const& instance,
                                     SC_impl::Listen_endpoint endpoint);
 
@@ -242,20 +244,20 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
 
    private:
     std::shared_ptr<Bridge_id_to_request> get_or_create_service_requests(
-        Service_interface_configuration const& configuration, Service_instance const& instance);
+        Service_interface_definition const& configuration, Service_instance const& instance);
 
-    void remove_from_service_requests(Service_interface_configuration const& configuration,
+    void remove_from_service_requests(Service_interface_definition const& configuration,
                                       Service_instance const& instance);
 
-    Registration bridge_service_requests(Service_interface_configuration const& configuration,
+    Registration bridge_service_requests(Service_interface_definition const& configuration,
                                          Service_instance const& instance);
 
     void update_bridges_provided_services(Bridge_registration_id const& bridge_id,
-                                          Service_interface const& interface,
+                                          Service_interface_identifier const& interface,
                                           Service_instance const& instance,
                                           Find_result_status status);
 
-    void call_subscribe_find_service_callbacks(Service_interface const& interface,
+    void call_subscribe_find_service_callbacks(Service_interface_identifier const& interface,
                                                Service_instance const& instance,
                                                Find_result_status status, bool local);
 
@@ -263,11 +265,12 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Bridge_registration_id const& bridge_id);
 
     std::shared_ptr<Bridge_id_to_subscription> get_or_create_find_services(
-        Service_interface const& interface, std::optional<Service_instance> const& instance,
-        std::optional<Bridge_identity> identity);
+        Service_interface_identifier const& interface,
+        std::optional<Service_instance> const& instance, std::optional<Bridge_identity> identity);
 
     Interfaces_instances get_bridge_reported_instances(
-        Service_interface const& interface, std::optional<Service_instance> const& instance) const;
+        Service_interface_identifier const& interface,
+        std::optional<Service_instance> const& instance) const;
 
     mutable std::mutex m_runtime_mutex{};
     Service_database m_database{m_runtime_mutex};

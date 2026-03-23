@@ -15,18 +15,18 @@
 
 #include <cassert>
 #include <iostream>
+#include <score/socom/event.hpp>
 
 #include "messages.hpp"
 #include "runtime_impl.hpp"
 #include "score/socom/client_connector.hpp"
-#include "score/socom/event.hpp"
 #include "server_connector_impl.hpp"
 
 namespace score {
 namespace socom {
 namespace client_connector {
 
-Impl::Impl(Runtime_impl& runtime, Service_interface_configuration configuration,
+Impl::Impl(Runtime_impl& runtime, Service_interface_definition configuration,
            Service_instance instance, Client_connector::Callbacks callbacks,
            Posix_credentials const& credentials)
     : m_configuration{std::move(configuration)},
@@ -110,7 +110,7 @@ Result<Posix_credentials> Impl::get_peer_credentials() const noexcept {
     return send(message::Posix_credentials{});
 }
 
-Service_interface_configuration const& Impl::get_configuration() const noexcept {
+Service_interface_definition const& Impl::get_configuration() const noexcept {
     return m_configuration;
 }
 

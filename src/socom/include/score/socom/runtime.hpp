@@ -21,7 +21,7 @@
 #include <score/socom/error.hpp>
 #include <score/socom/posix_credentials.hpp>
 #include <score/socom/server_connector.hpp>
-#include <score/socom/service_interface.hpp>
+#include <score/socom/service_interface_identifier.hpp>
 #include <vector>
 
 namespace score::socom {
@@ -128,16 +128,17 @@ enum class Find_result_status : std::uint8_t {
 using Find_result_callback = std::function<void(Find_result_container const& result)>;
 
 /// \brief Find service result indication callback type, see Runtime::subscribe_find_service().
-using Find_result_change_callback =
-    std::function<void(Service_interface const&, Service_instance const&, Find_result_status)>;
+using Find_result_change_callback = std::function<void(
+    Service_interface_identifier const&, Service_instance const&, Find_result_status)>;
 
 /// \brief Subscribe_find_service interface type signature.
 using Subscribe_find_service_function = std::function<Find_subscription(
-    Find_result_change_callback, Service_interface const&, std::optional<Service_instance>)>;
+    Find_result_change_callback, Service_interface_identifier const&,
+    std::optional<Service_instance>)>;
 
 /// \brief Request_service interface type signature.
 using Request_service_function =
-    std::function<Service_request(Service_interface_configuration const&, Service_instance const&)>;
+    std::function<Service_request(Service_interface_definition const&, Service_instance const&)>;
 
 /// \brief Interface that provides access to the service oriented communication (SOCom) middleware.
 /// \details SOCom implements a client-service-server based architectural pattern.
@@ -188,7 +189,7 @@ class Runtime {
     /// credentials of the returned Client_connector.
     [[nodiscard]]
     virtual Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_configuration configuration, Service_instance instance,
+        Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks) noexcept = 0;
 
     /// \brief Creates a new client connector.
@@ -203,7 +204,7 @@ class Runtime {
     /// \note Construction_error::callback_missing is returned if any of the callbacks is not set.
     [[nodiscard]]
     virtual Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_configuration configuration, Service_instance instance,
+        Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept = 0;
 
     /// \brief Creates a new server connector.
@@ -226,7 +227,7 @@ class Runtime {
     /// credentials of the returned Disabled_server_connector.
     [[nodiscard]]
     virtual Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_configuration configuration, Service_instance instance,
+        Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks) noexcept = 0;
 
     /// \brief Creates a new server connector.
@@ -240,7 +241,7 @@ class Runtime {
     /// an error.
     [[nodiscard]]
     virtual Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_configuration configuration, Service_instance instance,
+        Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept = 0;
 
@@ -258,7 +259,7 @@ class Runtime {
     [[nodiscard]] [[deprecated(
         "Removed due to complexity. Use Client_connectors Service_state_change_callback instead.")]]
     virtual Find_subscription subscribe_find_service(
-        Find_result_callback on_result_set_change, Service_interface const& interface,
+        Find_result_callback on_result_set_change, Service_interface_identifier const& interface,
         std::optional<Service_instance> instance) noexcept = 0;
 
     /// \brief Calls on_result_change when a new service is found or a service is removed.
@@ -303,7 +304,8 @@ class Runtime {
     [[nodiscard]] [[deprecated(
         "Removed due to complexity. Use Client_connectors Service_state_change_callback instead.")]]
     virtual Find_subscription subscribe_find_service(
-        Find_result_change_callback on_result_change, std::optional<Service_interface> interface,
+        Find_result_change_callback on_result_change,
+        std::optional<Service_interface_identifier> interface,
         std::optional<Service_instance> instance,
         std::optional<Bridge_identity> identity) noexcept = 0;
 

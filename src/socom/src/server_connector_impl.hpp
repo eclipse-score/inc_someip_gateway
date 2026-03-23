@@ -17,15 +17,15 @@
 #include <future>
 #include <mutex>
 #include <optional>
-#include <score/socom/service_interface_configuration.hpp>
+#include <score/socom/server_connector.hpp>
+#include <score/socom/service_interface_definition.hpp>
+#include <score/socom/service_interface_identifier.hpp>
 #include <vector>
 
 #include "endpoint.hpp"
 #include "final_action.hpp"
 #include "messages.hpp"
 #include "runtime_registration.hpp"
-#include "score/socom/server_connector.hpp"
-#include "score/socom/service_interface.hpp"
 #include "temporary_thread_id_add.hpp"
 
 namespace score {
@@ -78,7 +78,7 @@ class Impl final : virtual public Disabled_server_connector,
     using Listen_endpoint = Server_connector_listen_endpoint;
     using Endpoint = Server_connector_endpoint;
 
-    Impl(Runtime_impl& runtime, Server_service_interface_configuration configuration,
+    Impl(Runtime_impl& runtime, Server_service_interface_definition configuration,
          Service_instance instance, Disabled_server_connector::Callbacks callbacks,
          Final_action final_action, Posix_credentials const& credentials);
     Impl(Impl const&) = delete;
@@ -97,7 +97,7 @@ class Impl final : virtual public Disabled_server_connector,
     Impl* disable() noexcept override;
     Result<std::unique_ptr<Writable_payload>> allocate_event_payload(
         Event_id event_id) noexcept override;
-    Server_service_interface_configuration const& get_configuration() const noexcept override;
+    Server_service_interface_definition const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
 
     // Endpoint APIs
@@ -146,7 +146,7 @@ class Impl final : virtual public Disabled_server_connector,
         typename MessageType::Return_type default_return_value = {});
 
     Runtime_impl& m_runtime;
-    Server_service_interface_configuration const m_configuration;
+    Server_service_interface_definition const m_configuration;
     Service_instance const m_instance;
     Disabled_server_connector::Callbacks const m_callbacks;
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION

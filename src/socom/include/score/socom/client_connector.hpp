@@ -21,7 +21,7 @@
 #include <score/socom/method.hpp>
 #include <score/socom/payload.hpp>
 #include <score/socom/posix_credentials.hpp>
-#include <score/socom/service_interface_configuration.hpp>
+#include <score/socom/service_interface_definition.hpp>
 
 namespace score::socom {
 
@@ -37,7 +37,7 @@ enum class Service_state : std::uint8_t {
 
 /// \brief Function type for indicating service state changes to the service user.
 using Service_state_change_callback = std::function<void(
-    Client_connector const&, Service_state, Server_service_interface_configuration const&)>;
+    Client_connector const&, Service_state, Server_service_interface_definition const&)>;
 
 /// \brief Function type for indicating event updates to the service user.
 using Event_update_callback = std::function<void(Client_connector const&, Event_id, Payload::Sptr)>;
@@ -57,14 +57,14 @@ using Event_payload_allocate_callback =
 /// return Error::runtime_error_service_not_available.
 ///
 /// If the passed parameter client_id is not valid (not contained in the client connector or server
-/// connector specific Service_interface_configuration), service API calls have no effect and
+/// connector specific Service_interface_definition), service API calls have no effect and
 /// return Error::logic_error_id_out_of_range.
 ///
-/// If the Service_interface_configuration of the Client_connector instance contains a member
+/// If the Service_interface_definition of the Client_connector instance contains a member
 /// configuration, then the client_id is translated to the server_id based on the matching member
 /// names (configuration.members.events and configuration.members.methods).
 ///
-/// If the Service_interface_configuration of the Client_connector instance does not contain a
+/// If the Service_interface_definition of the Client_connector instance does not contain a
 /// member configuration, then the client_id is translated to the server_id 1:1.
 ///
 /// The Client_connector callback on_event_update is called if an available Enabled_server_connector
@@ -235,7 +235,7 @@ class Client_connector {
     /// \return Posix credentials in case of successful operation, otherwise an error.
     [[nodiscard]] virtual Result<Posix_credentials> get_peer_credentials() const noexcept = 0;
 
-    [[nodiscard]] virtual Service_interface_configuration const& get_configuration()
+    [[nodiscard]] virtual Service_interface_definition const& get_configuration()
         const noexcept = 0;
     [[nodiscard]] virtual Service_instance const& get_service_instance() const noexcept = 0;
     [[nodiscard]] virtual bool is_service_available() const noexcept = 0;

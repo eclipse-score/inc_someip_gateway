@@ -57,7 +57,7 @@ score::Result<Service_bridge_registration> Bridge_data::register_at_runtime(
 }
 
 void Bridge_data::expect_subscribe_find_service(
-    Service_interface const& interface, std::optional<Service_instance> instance,
+    Service_interface_identifier const& interface, std::optional<Service_instance> instance,
     Subscribe_find_service_function const& sfs_callback) {
     EXPECT_CALL(m_sfsf_mock, Call(_, interface, instance))
         .WillOnce(DoAll(
@@ -67,14 +67,14 @@ void Bridge_data::expect_subscribe_find_service(
 }
 
 void Bridge_data::expect_another_subscribe_find_service(
-    Service_interface const& interface, std::optional<Service_instance> instance,
+    Service_interface_identifier const& interface, std::optional<Service_instance> instance,
     Subscribe_find_service_function const& sfs_callback) {
     EXPECT_CALL(m_sfsf_mock, Call(_, interface, instance)).WillOnce(sfs_callback);
 }
 
 void Bridge_data::expect_request_find_service(
-    Service_interface_configuration const& configuration, Service_instance const& instance,
-    std::function<void(Service_interface_configuration const&, Service_instance const&)>&& rsf) {
+    Service_interface_definition const& configuration, Service_instance const& instance,
+    std::function<void(Service_interface_definition const&, Service_instance const&)>&& rsf) {
     EXPECT_CALL(m_rsf_mock, Call(configuration, instance))
         .WillOnce(
             DoAll(Assign(&m_request_find_service_created, true),
@@ -131,7 +131,8 @@ void Bridge_data::no_destroyed_check() {
     m_subscribe_find_service_destroyed = true;
 }
 
-void Bridge_data::find_service(Service_interface const& interface, Service_instance const& instance,
+void Bridge_data::find_service(Service_interface_identifier const& interface,
+                               Service_instance const& instance,
                                Find_result_status const& status) const {
     wait_for_atomics(get_subscribe_find_service_created());
     ASSERT_TRUE(get_subscribe_find_service_created());

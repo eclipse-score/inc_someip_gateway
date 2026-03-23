@@ -22,7 +22,7 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-added-large-files
         args: [--maxkb=50, --enforce-all] # increase or add git lfs if too strict
-        exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md
+        exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md|src/socom/test/unit/runtime_tests.cpp
 
   - repo: https://github.com/eclipse-score/tooling
     rev: 31ff8eee214e4e97ef8f5cb46e443273515b63ec

@@ -16,10 +16,10 @@
 #include <atomic>
 #include <cstddef>
 #include <future>
+#include <score/socom/event.hpp>
 
 #include "gmock/gmock.h"
 #include "score/socom/client_connector.hpp"
-#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/utilities.hpp"
 
@@ -44,7 +44,7 @@ void maybe_connect(Client_connector_callbacks_mock& callbacks,
 
 Client_connector::Uptr create_and_maybe_connect(
     Client_connector_callbacks_mock& callbacks, Connector_factory& factory,
-    Service_interface_configuration const& configuration, Service_instance const& instance,
+    Service_interface_definition const& configuration, Service_instance const& instance,
     Client_data::No_connect_helper const& connect_helper,
     Service_state_change_callback const& state_change_callback) {
     maybe_connect(callbacks, connect_helper, state_change_callback);
@@ -72,14 +72,14 @@ Client_data::Client_data(Connector_factory& factory, No_connect_helper const& co
           create_and_maybe_connect(m_callbacks, factory, connect_helper, state_change_callback)} {}
 
 Client_data::Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
-                         Service_interface_configuration const& configuration,
+                         Service_interface_definition const& configuration,
                          Service_instance const& instance,
                          Service_state_change_callback const& state_change_callback)
     : m_connector{create_and_maybe_connect(m_callbacks, factory, configuration, instance,
                                            connect_helper, state_change_callback)} {}
 
 Client_data::Client_data(Connector_factory& factory,
-                         Service_interface_configuration const& configuration,
+                         Service_interface_definition const& configuration,
                          Service_instance const& instance,
                          std::optional<Posix_credentials> const& credentials)
     : m_connector{factory.create_and_connect(configuration, instance, m_callbacks, credentials)} {}
@@ -176,13 +176,13 @@ std::atomic<bool>& Client_data::get_atomic(Service_state const& state) {
 
 std::atomic<bool> const& Client_data::expect_service_state_change(size_t const count,
                                                                   Service_state const& state) {
-    Optional_reference<Server_service_interface_configuration const> const conf;
+    Optional_reference<Server_service_interface_definition const> const conf;
     return expect_service_state_change(count, state, conf);
 }
 
 std::atomic<bool> const& Client_data::expect_service_state_change(
     size_t const count, Service_state const& state,
-    Optional_reference<Server_service_interface_configuration const> const& conf) {
+    Optional_reference<Server_service_interface_definition const> const& conf) {
     auto& atomi = get_atomic(state);
     EXPECT_TRUE(atomi);
     atomi = false;
@@ -319,9 +319,9 @@ Client_data::Vector Client_data::create_clients(Connector_factory& factory, size
     return result;
 }
 
-Client_data::Vector Client_data::create_clients(
-    Connector_factory& factory, size_t const& size,
-    Service_interface_configuration const& configuration, Service_instance const& instance) {
+Client_data::Vector Client_data::create_clients(Connector_factory& factory, size_t const& size,
+                                                Service_interface_definition const& configuration,
+                                                Service_instance const& instance) {
     auto result = Client_data::Vector{size};
     for (auto& item : result) {
         item = std::make_unique<Client_data>(factory, configuration, instance);

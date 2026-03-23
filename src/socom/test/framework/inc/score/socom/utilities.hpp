@@ -19,11 +19,11 @@
 #include <cstddef>
 #include <future>
 #include <optional>
+#include <score/socom/server_connector.hpp>
 #include <thread>
 #include <vector>
 
 #include "score/socom/payload.hpp"
-#include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/vector_payload.hpp"
 
@@ -154,14 +154,14 @@ void increase_and_fill(Vector_buffer& data, std::size_t new_size);
 ///
 /// \param[in] num number of interfaces to create
 /// \return the created interfaces
-std::vector<Server_service_interface_configuration> create_service_interfaces(std::size_t num);
+std::vector<Server_service_interface_definition> create_service_interfaces(std::size_t num);
 
 /// \brief Create interface configuration without events and methods but with name including the
 /// interface id
 ///
 /// \param[in] interface_id interface id to identify the service
 /// \return the created service interface
-Server_service_interface_configuration create_service_interface_configuration(size_t interface_id);
+Server_service_interface_definition create_service_interface_configuration(size_t interface_id);
 
 /// \brief Create Service_instances with unique names
 /// \param[in] num the number of instances to create
@@ -208,9 +208,9 @@ std::ostream& operator<<(std::ostream& out, std::function<RET(ARGS...)> const& /
 
 std::ostream& operator<<(std::ostream& out, Method_result const& /*unused*/);
 
-std::ostream& operator<<(std::ostream& out, Service_interface_configuration const& /*unused*/);
+std::ostream& operator<<(std::ostream& out, Service_interface_definition const& /*unused*/);
 
-std::ostream& operator<<(std::ostream& out, Server_service_interface_configuration const& conf);
+std::ostream& operator<<(std::ostream& out, Server_service_interface_definition const& conf);
 
 std::ostream& operator<<(std::ostream& out, Service_state const& state);
 

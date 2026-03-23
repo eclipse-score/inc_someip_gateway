@@ -13,18 +13,18 @@
 
 #include <array>
 #include <memory>
+#include <score/socom/event.hpp>
+#include <score/socom/server_connector.hpp>
+#include <score/socom/service_interface_definition.hpp>
 #include <string>
 
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/clients_t.hpp"
 #include "score/socom/connector_factory.hpp"
-#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/server_connector.hpp"
 #include "score/socom/server_t.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"

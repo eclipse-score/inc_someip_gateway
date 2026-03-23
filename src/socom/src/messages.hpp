@@ -14,11 +14,11 @@
 #ifndef SCORE_SOCOM_MESSAGES_HPP
 #define SCORE_SOCOM_MESSAGES_HPP
 
+#include <score/socom/event.hpp>
 #include <score/socom/posix_credentials.hpp>
 
 #include "endpoint.hpp"
 #include "score/socom/client_connector.hpp"
-#include "score/socom/event.hpp"
 
 namespace score {
 namespace socom {
@@ -31,7 +31,7 @@ struct Request_disconnect {
 struct Service_state_change {
     using Return_type = void;
     Service_state const state;
-    Server_service_interface_configuration const& configuration;
+    Server_service_interface_definition const& configuration;
 };
 
 struct Connect_return {

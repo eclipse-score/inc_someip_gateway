@@ -15,10 +15,10 @@
 
 #include <atomic>
 #include <future>
+#include <score/socom/server_connector.hpp>
 
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
 
@@ -55,12 +55,12 @@ Server_data::Server_data(Connector_factory& factory, Method_id method_id,
           expect_method_call(m_callbacks, method_id, expected_payload))} {}
 
 Server_data::Server_data(Connector_factory& factory,
-                         Server_service_interface_configuration const& configuration,
+                         Server_service_interface_definition const& configuration,
                          Service_instance const& instance)
     : m_connector{factory.create_and_enable(configuration, instance, m_callbacks)} {}
 
 Server_data::Server_data(Connector_factory& factory,
-                         Server_service_interface_configuration const& configuration,
+                         Server_service_interface_definition const& configuration,
                          Service_instance const& instance, Posix_credentials const& credentials)
     : m_connector{factory.create_and_enable(configuration, instance, m_credential_callbacks,
                                             credentials)} {}

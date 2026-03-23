@@ -11,12 +11,12 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION
-#define SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION
+#ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_DEFINITION
+#define SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_DEFINITION
 
 #include <score/socom/event.hpp>
 #include <score/socom/method.hpp>
-#include <score/socom/service_interface.hpp>
+#include <score/socom/service_interface_identifier.hpp>
 
 namespace score::socom {
 
@@ -37,76 +37,72 @@ inline Num_of_methods to_num_of_methods(std::size_t const value) noexcept {
 /// \brief Service interface configuration data structure for Client_connector instances.
 /// \details This type, which is used by Runtime::make_client_connector(), allows an optional member
 /// configuration.
-struct Service_interface_configuration final {
+struct Service_interface_definition final {
     /// \brief Constructor for default use-case.
     /// \param sif Service interface identification information.
     /// \param methods Methods of the service interface.
     /// \param events Events of the service interface.
-    Service_interface_configuration(Service_interface sif, Num_of_methods num_of_methods,
-                                    Num_of_events num_of_events);
+    Service_interface_definition(Service_interface_identifier sif, Num_of_methods num_of_methods,
+                                 Num_of_events num_of_events);
 
     /// \brief Constructor without methods and events.
     /// \details Client_connectors which have no member configuration must use the provided
-    /// Server_service_interface_configuration configuration.
+    /// Server_service_interface_definition configuration.
     /// \param sif Service interface identification information.
-    explicit Service_interface_configuration(Service_interface sif);
+    explicit Service_interface_definition(Service_interface_identifier sif);
 
-    Service_interface_configuration(Service_interface_configuration const&) = default;
-    Service_interface_configuration(Service_interface_configuration&&) noexcept = default;
+    Service_interface_definition(Service_interface_definition const&) = default;
+    Service_interface_definition(Service_interface_definition&&) noexcept = default;
 
-    ~Service_interface_configuration() noexcept = default;
+    ~Service_interface_definition() noexcept = default;
 
-    Service_interface_configuration& operator=(Service_interface_configuration const&) = delete;
-    Service_interface_configuration& operator=(Service_interface_configuration&&) = delete;
+    Service_interface_definition& operator=(Service_interface_definition const&) = delete;
+    Service_interface_definition& operator=(Service_interface_definition&&) = delete;
 
     /// \brief Service interface identification information.
-    Service_interface const interface;
+    Service_interface_identifier const interface;
     std::size_t num_methods{0U};
     std::size_t num_events{0U};
 };
 
-bool operator==(Service_interface_configuration const& lhs,
-                Service_interface_configuration const& rhs);
+bool operator==(Service_interface_definition const& lhs, Service_interface_definition const& rhs);
 
-bool operator<(Service_interface_configuration const& lhs,
-               Service_interface_configuration const& rhs);
+bool operator<(Service_interface_definition const& lhs, Service_interface_definition const& rhs);
 
 /// \brief Service interface configuration data structure for Server_connector instances.
 /// \details This type, which is used by Runtime::make_server_connector(), enforces a member
 /// configuration.
-class Server_service_interface_configuration final {
-    Service_interface_configuration m_configuration;
+class Server_service_interface_definition final {
+    Service_interface_definition m_configuration;
 
    public:
     /// \brief Constructor.
     /// \param sif Service interface identification information.
     /// \param methods Methods of the service interface.
     /// \param events Events of the service interface.
-    Server_service_interface_configuration(Service_interface const& sif,
-                                           Num_of_methods num_of_methods,
-                                           Num_of_events num_of_events);
+    Server_service_interface_definition(Service_interface_identifier const& sif,
+                                        Num_of_methods num_of_methods, Num_of_events num_of_events);
 
-    Server_service_interface_configuration(Server_service_interface_configuration const& rhs);
-    Server_service_interface_configuration(Server_service_interface_configuration&& rhs) noexcept;
+    Server_service_interface_definition(Server_service_interface_definition const& rhs);
+    Server_service_interface_definition(Server_service_interface_definition&& rhs) noexcept;
 
-    ~Server_service_interface_configuration() noexcept = default;
+    ~Server_service_interface_definition() noexcept = default;
 
-    Server_service_interface_configuration& operator=(
-        Server_service_interface_configuration const&) = delete;
-    Server_service_interface_configuration& operator=(Server_service_interface_configuration&&) =
+    Server_service_interface_definition& operator=(Server_service_interface_definition const&) =
         delete;
+    Server_service_interface_definition& operator=(Server_service_interface_definition&&) = delete;
 
-    // Service_interface_configuration
+    // Service_interface_definition
     /// \brief Retrieves the configuration by implicitly converting an instance to
-    /// Service_interface_configuration.
+    /// Service_interface_definition.
     /// \return The stored configuration.
-    operator Service_interface_configuration() const;
+    operator Service_interface_definition() const;
 
     std::size_t get_num_methods() const noexcept;
     std::size_t get_num_events() const noexcept;
-    Service_interface const& get_interface() const noexcept;
+    Service_interface_identifier const& get_interface() const noexcept;
 };
 
 }  // namespace score::socom
 
-#endif  // SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_CONFIGURATION
+#endif  // SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_DEFINITION

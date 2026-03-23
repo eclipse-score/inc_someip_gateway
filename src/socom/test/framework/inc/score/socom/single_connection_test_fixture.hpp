@@ -14,11 +14,12 @@
 #ifndef SRC_SOCOM_TEST_UNIT2_FRAMEWORK_INC_SINGLE_CONNECTION_TEST_FIXTURE
 #define SRC_SOCOM_TEST_UNIT2_FRAMEWORK_INC_SINGLE_CONNECTION_TEST_FIXTURE
 
+#include <score/socom/server_connector.hpp>
+#include <score/socom/service_interface_definition.hpp>
+
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/connector_factory.hpp"
-#include "score/socom/server_connector.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/vector_payload.hpp"
 
@@ -34,8 +35,8 @@ Payload::Sptr const& error_data();
 ///        in each test
 class SingleConnectionTest : public ::testing::Test {
    public:
-    Service_interface const service_interface{
-        Service_interface{"TestInterface1", Service_interface::Version{1U, 2U}}};
+    Service_interface_identifier const service_interface{Service_interface_identifier{
+        "TestInterface1", Service_interface_identifier::Version{1U, 2U}}};
     Service_instance const service_instance{"TestInterface1"};
     std::size_t num_methods{2U};
     std::size_t num_events{3U};

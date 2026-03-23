@@ -16,6 +16,7 @@
 #include <future>
 #include <iterator>
 #include <memory>
+#include <score/socom/service_interface_definition.hpp>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -26,7 +27,6 @@
 #include "score/socom/connector_factory.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/socom/server_t.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
@@ -512,7 +512,8 @@ TEST_F(
     EXPECT_CALL(fsus_mock, Call(connector_factory.get_configuration().get_interface(),
                                 connector_factory.get_instance(), Find_result_status::added))
         .WillOnce(DoAll(
-            [this, &client](Service_interface const& /*ignore*/, Service_instance const& /*ignore*/,
+            [this, &client](Service_interface_identifier const& /*ignore*/,
+                            Service_instance const& /*ignore*/,
                             Find_result_status /*ignore*/) { client.emplace(connector_factory); },
             Assign(&subscribe_find_service_cb_called, true)));
 
@@ -534,9 +535,9 @@ TEST_F(
         EXPECT_CALL(fsus_mock, Call(connector_factory.get_configuration().get_interface(),
                                     connector_factory.get_instance(), Find_result_status::added))
             .WillOnce(DoAll(
-                [this, &client, &client_mocks, &available](Service_interface const& /*ignore*/,
-                                                           Service_instance const& /*ignore*/,
-                                                           Find_result_status /*ignore*/) {
+                [this, &client, &client_mocks, &available](
+                    Service_interface_identifier const& /*ignore*/,
+                    Service_instance const& /*ignore*/, Find_result_status /*ignore*/) {
                     // switch to Enabled_server_connector
                     EXPECT_CALL(client_mocks,
                                 on_service_state_change(_, Service_state::available, _))
@@ -838,7 +839,7 @@ TEST_F(RuntimeTest,
        BridgeCreatesServerConnectorInRequestServiceFunctionCallbackAtClientConnectorCreation) {
     std::optional<Server_data> server;
     auto const create_server = [this, &server](
-                                   Service_interface_configuration const& /*configuration*/,
+                                   Service_interface_definition const& /*configuration*/,
                                    Service_instance const& /*instance*/) {
         server.emplace(connector_factory);
     };
@@ -905,7 +906,7 @@ TEST_F(RuntimeTest, BridgeDeletionOfNonAvailableService) {
                                 connector_factory.get_instance(), Find_result_status::deleted))
         .Times(0U);
 
-    auto const interface = Service_interface{"TestInterface1", {9U, 1U}};
+    auto const interface = Service_interface_identifier{"TestInterface1", {9U, 1U}};
     bridge.find_service(interface, connector_factory.get_instance(), Find_result_status::deleted);
 
     bridge.no_destroyed_check();
@@ -1141,7 +1142,7 @@ TEST_F(RuntimeTest, SubscribeFindServiceWithStartedServerFindResultCallbackThrow
         EXPECT_CALL(fsus_mock, Call(connector_factory.get_configuration().get_interface(),
                                     connector_factory.get_instance(), _))
             .WillOnce(
-                Invoke([this](Service_interface const& /*ignore*/,
+                Invoke([this](Service_interface_identifier const& /*ignore*/,
                               Service_instance const& /*ignore*/, Find_result_status /*ignore*/) {
                     subscribe_find_service_cb_called = true;
                     throw std::runtime_error("fatal error");

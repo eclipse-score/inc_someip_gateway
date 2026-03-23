@@ -11,16 +11,17 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <score/socom/service_interface_definition.hpp>
+
 #include "gtest/gtest.h"
 #include "score/socom/clients_t.hpp"
 #include "score/socom/server_t.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
 
 namespace score::socom {
 
-using Conf_instance = std::pair<Server_service_interface_configuration, Service_instance>;
+using Conf_instance = std::pair<Server_service_interface_definition, Service_instance>;
 
 using MultiConnectionTest = SingleConnectionTest;
 

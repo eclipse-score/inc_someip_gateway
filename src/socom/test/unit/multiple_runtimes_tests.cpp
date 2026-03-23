@@ -11,6 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <score/socom/service_interface_definition.hpp>
 #include <string_view>
 
 #include "gtest/gtest.h"
@@ -18,7 +19,6 @@
 #include "score/socom/connector_factory.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_t.hpp"
-#include "score/socom/service_interface_configuration.hpp"
 #include "score/socom/vector_payload.hpp"
 
 namespace score::socom {
@@ -34,13 +34,13 @@ class MultipleRuntimesTest : public ::testing::Test {
    protected:
     static constexpr std::string_view test_service_id{"TestInterface1"};
     static constexpr std::string_view test_instance_id{"TestInstance1"};
-    Connector_factory factory0 =
-        Connector_factory{Service_interface{test_service_id, {1, 0}}, to_num_of_methods(2U),
-                          to_num_of_events(3U), Service_instance{test_instance_id}};
+    Connector_factory factory0 = Connector_factory{
+        Service_interface_identifier{test_service_id, {1, 0}}, to_num_of_methods(2U),
+        to_num_of_events(3U), Service_instance{test_instance_id}};
 
-    Connector_factory factory1 =
-        Connector_factory{Service_interface{test_service_id, {2, 3}}, to_num_of_methods(2U),
-                          to_num_of_events(3U), Service_instance{test_instance_id}};
+    Connector_factory factory1 = Connector_factory{
+        Service_interface_identifier{test_service_id, {2, 3}}, to_num_of_methods(2U),
+        to_num_of_events(3U), Service_instance{test_instance_id}};
 
     Payload::Sptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
     Payload::Sptr const more_payload = make_vector_payload(

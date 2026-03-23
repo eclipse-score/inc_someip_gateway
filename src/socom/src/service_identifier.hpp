@@ -14,7 +14,7 @@
 #ifndef SRC_SOCOM_SRC_SERVICE_IDENTIFIER
 #define SRC_SOCOM_SRC_SERVICE_IDENTIFIER
 
-#include "score/socom/service_interface.hpp"
+#include <score/socom/service_interface_identifier.hpp>
 
 namespace score {
 namespace socom {
@@ -24,7 +24,7 @@ namespace socom {
 /// This is only used to check if any (Disabled, Enabled) Server_connector for the given interface
 /// and instance already exists.
 struct Service_instance_identifier final {
-    Service_interface interface;
+    Service_interface_identifier interface;
     Service_instance instance;
 };
 
