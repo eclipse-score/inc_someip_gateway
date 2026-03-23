@@ -89,19 +89,7 @@ test --sandbox_tmpfs_path=/dev/shm
 test --sandbox_tmpfs_path=/tmp
 test --nosandbox_default_allow_network
 
-# Build with sanitizers
-# To test with sanitizers, use:  bazel --output_base=/tmp/san-out test  --config=san //...
-build:san --copt -fsanitize=address,undefined,leak
-build:san --copt -O1
-build:san --copt -g
-build:san --strip=never
-build:san --linkopt -fsanitize=address,undefined,leak
-
-build:tsan --copt -fsanitize=thread
-build:tsan --copt -O1
-build:tsan --copt -g
-build:tsan --strip=never
-build:tsan --linkopt -fsanitize=thread
-
 # Import custom user settings
+# Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
+# For definition of sanitizer features see https://github.com/eclipse-score/bazel_cpp_toolchains/blob/main/templates/linux/cc_toolchain_config.bzl.template
 try-import %workspace%/user.bazelrc
