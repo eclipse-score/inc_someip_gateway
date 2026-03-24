@@ -46,6 +46,7 @@ jobs:
   # This job fails, if any of the required checks failed.
   # Skipped jobs are not a failure.
   can_merge:
+    name: ci_pull_request_target/can_merge
     if: always()
     needs:
       - build_and_test_qnx

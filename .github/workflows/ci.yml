@@ -44,6 +44,7 @@ jobs:
   # This job fails, if any of the required checks failed.
   # Skipped jobs are not a failure.
   can_merge:
+    name: ci/can_merge
     if: always()
     needs:
       - pre-commit
