@@ -44,6 +44,7 @@ jobs:
       - license_check
     permissions:
       actions: read
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - env:
