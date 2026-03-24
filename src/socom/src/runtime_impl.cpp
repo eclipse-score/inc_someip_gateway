@@ -637,6 +637,10 @@ class Find_aggregation_subscription_handle : public Find_subscription_handle {
 Find_subscription Runtime_impl::subscribe_find_service(
     Find_result_callback on_result_set_change, Service_interface_identifier const& interface,
     std::optional<Service_instance> instance) noexcept {
+    if (!on_result_set_change) {
+        return std::make_unique<Void_find_subscription_handle>();
+    }
+
     // shared context between multiple copies of the callback handler
     auto find_aggregation = std::make_shared<Find_aggregation>(std::move(on_result_set_change));
 
