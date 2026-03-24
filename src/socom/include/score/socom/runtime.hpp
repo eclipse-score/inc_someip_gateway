@@ -265,21 +265,21 @@ class Runtime {
     /// \brief Calls on_result_change when a new service is found or a service is removed.
     /// \note Interface and instance are used to filter for specific services.
     /// \details Immediately reports the all currently known service instances matching the given
-    /// interface and instance to the callback on_result_set_change and returns a RAII object
+    /// interface and instance to the callback on_result_change and returns a RAII object
     /// representing this find subscription.
     ///
     /// If the set of known services matching the parameters interface and instance changes compared
-    /// to the last invocation of the callback on_result_set_change, on_result_set_change is called
+    /// to the last invocation of the callback on_result_change, on_result_change is called
     /// with the new set of known service instances.
     ///
     /// If the object representing a find subscription is released, then any further changes are no
-    /// longer indicated through the callback on_result_set_change.
+    /// longer indicated through the callback on_result_change.
     ///
     /// If the parameter instance has no value, all instances matching the interface are part of the
     /// result.
     ///
-    /// If the callback on_result_set_change is nullptr, find subscription is not performed and the
-    /// callback on_result_set_change is never called.
+    /// If the callback on_result_change is nullptr, find subscription is not performed and the
+    /// callback on_result_change is never called.
     ///
     /// The method subscribe_find_service(interface, instance) is called on every already registered
     /// or later registered bridge and the Service_request RAII objects are stored.
