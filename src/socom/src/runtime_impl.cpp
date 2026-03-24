@@ -663,6 +663,8 @@ Find_subscription Runtime_impl::subscribe_find_service(
     Find_result_change_callback on_result_change,
     std::optional<Service_interface_identifier> interface, std::optional<Service_instance> instance,
     std::optional<Bridge_identity> identity) noexcept {
+    // interface can be specified without instance, but not the other way around
+    // Logic expression: instance -> interface
     assert(interface || !instance);
 
     if (!on_result_change) {
