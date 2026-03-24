@@ -736,11 +736,9 @@ Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
          bridge_id = registration.get()](auto const& interface_configuration) {
             auto const& interface = std::get<0>(interface_configuration).interface;
             auto const& instance = std::get<1>(interface_configuration);
-            std::optional<Service_instance> const ref_instance =
-                instance ? *instance : std::optional<Service_instance>{};
             Find_result_change_callback cb = this->create_bridge_find_result_callback(bridge_id);
 
-            return subscribe_find_service(std::move(cb), interface, ref_instance);
+            return subscribe_find_service(std::move(cb), interface, instance);
         };
 
     auto const create_service_request = [request_service](auto const& interface_configuration) {
