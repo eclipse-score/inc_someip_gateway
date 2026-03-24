@@ -23,27 +23,13 @@ jobs:
   build_and_test_qnx:
     secrets: inherit
     uses: ./.github/workflows/build_and_test_qnx.yml
-  # # check if PR can be enqueued to the merge queue
-  # can_enqueue:
-  #   if: always() && github.event_name != 'merge_group'
-  #   needs:
-  #     - build_and_test_qnx
-  #   permissions:
-  #     actions: read
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - env:
-  #         NEEDS_JSON: "${{toJSON(needs)}}"
-  #       name: Transform outcomes
-  #       run: |
-  #         echo "ALL_SUCCESS=$(echo "$NEEDS_JSON" | jq '. | to_entries | map([.value.result == "success", .value.result == "skipped"] | any) | all')" >>$GITHUB_ENV
-  #     - name: check
-  #       run: |
-  #         [ $ALL_SUCCESS == true ]
-  # check in the merge queue if PR can be merged to main
+  # check if PR can be enqueued to the merge queue or merged to main
+  # individual jobs are skipped in their respective workflow files depending on the event type,
+  # so we can just check the outcomes of all jobs here without checking the event type again.
+  # This job fails, if any of the required checks failed.
+  # Skipped jobs are not a failure.
   can_merge:
     if: always()
-    # && github.event_name == 'merge_group'
     needs:
       - build_and_test_qnx
     permissions:
