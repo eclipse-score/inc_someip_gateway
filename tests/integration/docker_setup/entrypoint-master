@@ -31,7 +31,8 @@ cp /home/source/bazel-bin/src/gatewayd/etc/gatewayd_config.bin /home/source/src/
 # Give gatewayd some time to start. TODO: improve with some sort of state check
 sleep 2s
 
-export VSOMEIP_CONFIGURATION=$(pwd)/tests/integration/vsomeip.json
+VSOMEIP_CONFIGURATION="$(pwd)/tests/integration/vsomeip.json"
+export VSOMEIP_CONFIGURATION
 /home/source/bazel-bin/src/someipd/someipd -service_instance_manifest /home/source/src/someipd/etc/mw_com_config.json &
 
 # /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks

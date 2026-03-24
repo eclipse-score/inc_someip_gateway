@@ -54,9 +54,13 @@ case "$1" in
         echo "Starting someipd..."
         # Locate vsomeip shared libraries inside the Bazel runfiles tree and
         # add them to LD_LIBRARY_PATH so the dynamic linker finds them.
+        # head -1 exit code intentionally ignored; find errors suppressed via 2>/dev/null
+        # shellcheck disable=SC2312
         VSOMEIP_LIB_DIR=$(find "${SCRIPT_DIR}/someipd.runfiles" \
             -name "libvsomeip3.so*" -exec dirname {} \; 2>/dev/null | head -1)
         if [ -n "${VSOMEIP_LIB_DIR}" ]; then
+            # LD_LIBRARY_PATH is inherited from the caller's environment
+            # shellcheck disable=SC2154
             export LD_LIBRARY_PATH="${VSOMEIP_LIB_DIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
         fi
         "${SCRIPT_DIR}/someipd" \
