@@ -828,8 +828,6 @@ void Runtime_impl::stop_subscription(Find_subscription_id const& id) noexcept {
 
     auto const& cb_id = subscription_it->second;
 
-    Find_result_callback_wptr const weak_cb{std::get<0>(cb_id)};
-
     auto const interface = std::get<1>(cb_id);
     auto const instance = std::get<2>(cb_id);
 
