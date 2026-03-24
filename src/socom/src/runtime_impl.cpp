@@ -815,18 +815,18 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
 
 void Runtime_impl::stop_subscription(Find_subscription_id const& id) noexcept {
     std::unique_lock<std::mutex> lock{m_runtime_mutex};
-    auto const callback = m_find_service_subscriptions.find(id);
+    auto const subscription_it = m_find_service_subscriptions.find(id);
 
     // Defensive programming. The true case will not occur because Runtime_impl implements
     // Stop_subscription which further calls stop_subscribe when Find_subscription_handle_impl gets
     // destroyed. This means the callback must be in the map. Furthermore, the function
     // stop_subscription itself cannot be tested as it is not an interface function.
 
-    if (std::end(m_find_service_subscriptions) == callback) {
+    if (std::end(m_find_service_subscriptions) == subscription_it) {
         return;
     }
 
-    auto const& cb_id = callback->second;
+    auto const& cb_id = subscription_it->second;
 
     Find_result_callback_wptr const weak_cb{std::get<0>(cb_id)};
 
@@ -838,7 +838,7 @@ void Runtime_impl::stop_subscription(Find_subscription_id const& id) noexcept {
     cleanup(callbacks, std::get<0>(cb_id));
     cleanup(instances_to_callbacks, instance, callbacks);
     cleanup(m_interface_to_callbacks, interface, instances_to_callbacks);
-    m_find_service_subscriptions.erase(callback);
+    m_find_service_subscriptions.erase(subscription_it);
     lock.unlock();
 
     // cleanup bridge find subscription
