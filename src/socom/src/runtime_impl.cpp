@@ -231,16 +231,6 @@ bool is_interface_compatible(Service_interface_identifier const& server,
            is_minor_version_compatible(server, client);
 }
 
-bool is_only_minor_version_incompatible(Service_interface_identifier const& server,
-                                        Service_interface_identifier const& client) {
-    // Defensive programming. This function is called in the two register_connector functions.
-    // First, a record is loaded depending on service interface and instance. The record ensures
-    // that the right server/client is loaded, therefore this function will always return true.
-
-    return (server.id == client.id) && (server.version.major == client.version.major) &&
-           (client.version.minor > server.version.minor);
-}
-
 bool is_valid(Client_connector::Callbacks const& callbacks) {
     return callbacks.on_service_state_change && callbacks.on_event_update &&
            callbacks.on_event_requested_update && callbacks.on_event_payload_allocate;
@@ -767,8 +757,6 @@ Registration Runtime_impl::register_connector(Service_interface_definition const
                 is_interface_compatible(result.current_server->interface, configuration.interface));
             on_server_update(result.current_server->endpoint);
         } else {
-            assert(is_only_minor_version_incompatible(result.current_server->interface,
-                                                      configuration.interface));
             std::cerr << "SOCom error: Bind client to server - minor version incompatible:"
                       << " client=" << configuration.interface.id
                       << ", server=" << result.current_server->interface.id
@@ -797,7 +785,6 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
             assert(is_interface_compatible(interface, client.interface));
             client.indication(endpoint);
         } else {
-            assert(is_only_minor_version_incompatible(interface, client.interface));
             std::cerr << "SOCom error: Bind client to server - minor version incompatible:"
                       << " client=" << client.interface.id << ", server=" << interface.id
                       << ", instance=" << instance << std::endl;
