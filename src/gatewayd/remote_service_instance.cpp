@@ -56,7 +56,7 @@ RemoteServiceInstance::RemoteServiceInstance(
                 // TODO: Check based on event/method id within the SOME/IP header which event was
                 // received, to forward via the correct IPC event. For now, we assume it's always
                 // the echo_response_tiny event.
-                auto& event = const_cast<score::mw::com::impl::GenericSkeletonEvent&>(
+                auto& event = const_cast<score::mw::com::GenericSkeletonEvent&>(
                     ipc_skeleton_.GetEvents().find("echo_response_tiny")->second);
                 auto maybe_sample = event.Allocate();
                 if (!maybe_sample.has_value()) {
@@ -103,7 +103,7 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
                                       service_instance_config->instance_specifier()->str())
                                       .value();
 
-    std::vector<score::mw::com::impl::EventInfo> events{};
+    std::vector<score::mw::com::EventInfo> events{};
     events.reserve(service_instance_config->events()->size());
 
     for (const auto& event : *service_instance_config->events()) {
@@ -113,12 +113,12 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
         }
 
         // TODO: Get the event type info from somewhere. Configuration?
-        score::mw::com::impl::DataTypeMetaInfo type_info{sizeof(echo_service::EchoResponseTiny),
-                                                         alignof(echo_service::EchoResponseTiny)};
+        score::mw::com::DataTypeMetaInfo type_info{sizeof(echo_service::EchoResponseTiny),
+                                                   alignof(echo_service::EchoResponseTiny)};
         events.push_back({event->event_name()->string_view(), type_info});
     }
 
-    score::mw::com::impl::GenericSkeletonServiceElementInfo create_params;
+    score::mw::com::GenericSkeletonServiceElementInfo create_params;
     create_params.events = events;
 
     auto create_ipc_result =
