@@ -31,9 +31,17 @@ jobs:
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
+    permissions:
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
   license_check:
     secrets: inherit
     uses: ./.github/workflows/license_check.yml
+    permissions:
+      pull-requests: write
+      issues: write
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
