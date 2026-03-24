@@ -25,6 +25,9 @@ jobs:
   build_and_test_qnx:
     secrets: inherit
     uses: ./.github/workflows/build_and_test_qnx.yml
+    permissions:
+      contents: read
+      pull-requests: read
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
@@ -44,7 +47,6 @@ jobs:
       - license_check
     permissions:
       actions: read
-      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - env:
