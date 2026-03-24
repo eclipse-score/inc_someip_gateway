@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: CI and merge queue checks (QNX)
+name: CI and merge queue checks which have to be run in the context of the base branch (secrets, permissions, etc.)
 on:
   pull_request_target:
     types: [opened, reopened, synchronize, labeled, unlabeled]
@@ -23,6 +23,12 @@ jobs:
   build_and_test_qnx:
     secrets: inherit
     uses: ./.github/workflows/build_and_test_qnx.yml
+  docs:
+    secrets: inherit
+    uses: ./.github/workflows/docs.yml
+  license_check:
+    secrets: inherit
+    uses: ./.github/workflows/license_check.yml
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
@@ -32,6 +38,8 @@ jobs:
     if: always()
     needs:
       - build_and_test_qnx
+      - docs
+      - license_check
     permissions:
       actions: read
     runs-on: ubuntu-latest
