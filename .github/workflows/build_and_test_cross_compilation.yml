@@ -16,13 +16,14 @@
 
 name: Build & Test module (cross compilation)
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-  merge_group:
-    types: [checks_requested]
+  # pull_request:
+  #   types: [opened, reopened, synchronize]
+  # merge_group:
+  #   types: [checks_requested]
   workflow_call:
 jobs:
   build_and_test_cross_compilation:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test-cross')
     strategy:
       fail-fast: false
       matrix:
