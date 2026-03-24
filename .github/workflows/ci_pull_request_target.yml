@@ -11,10 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: CI and merge queue checks which have to be run in the context of the base branch (secrets, permissions, etc.)
+name: CI (context of the base branch) (secrets, permissions, etc.)
 on:
-  # only used for testing, must go away before merge
-  pull_request:
   pull_request_target:
     types: [opened, reopened, synchronize, labeled, unlabeled]
   merge_group:

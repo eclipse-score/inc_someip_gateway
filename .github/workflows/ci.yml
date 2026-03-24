@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: CI and merge queue checks
+name: CI
 on:
   pull_request:
     types: [opened, reopened, synchronize, labeled, unlabeled]
