@@ -129,6 +129,10 @@ void notify_subscribed_callbacks(
     }
 }
 
+/// \brief Removes all weak_ptrs from list that are either expired or point to item.
+///
+/// \param list List of weak_ptrs to clean up.
+/// \param item Item to remove from list. All weak_ptrs that point to this item will be removed.
 template <typename T>
 void cleanup(std::list<std::weak_ptr<T const>>& list,
              std::shared_ptr<T const> const& item) noexcept {
@@ -148,6 +152,11 @@ void cleanup(std::list<std::weak_ptr<T const>>& list,
     list.remove_if(equals_cb);
 }
 
+/// \brief Removes key from map if value is empty
+///
+/// \param map Map to clean up.
+/// \param key Key to remove from map if value is empty.
+/// \param value Value associated with the key.
 template <typename Key, typename Value>
 void cleanup(std::map<Key, Value>& map, Key const& key, Value const& value) noexcept {
     if (value.empty()) {
@@ -155,6 +164,10 @@ void cleanup(std::map<Key, Value>& map, Key const& key, Value const& value) noex
     }
 }
 
+/// \brief Removes key from inner maps of map
+///
+/// \param map Map to clean up.
+/// \param key Key to remove from inner maps.
 template <typename Key0, typename Key1, typename Value>
 void cleanup(std::map<Key0, std::tuple<std::weak_ptr<std::map<Key1, Value>>,
                                        std::vector<std::optional<Bridge_identity>>>>& map,
@@ -175,6 +188,10 @@ void cleanup(std::map<Key0, std::tuple<std::weak_ptr<std::map<Key1, Value>>,
     }
 }
 
+/// \brief Removes key from map if its pointed to value is empty
+///
+/// \param map Map to clean up.
+/// \param key Key to remove from map if its pointed to value is empty.
 template <typename Key, typename Value>
 void cleanup(
     std::map<Key, std::tuple<std::weak_ptr<Value>, std::vector<std::optional<Bridge_identity>>>>&
