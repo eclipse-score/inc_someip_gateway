@@ -1,0 +1,65 @@
+# *******************************************************************************
+# Copyright (c) 2024 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: CI and merge queue checks (QNX)
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+  merge_group:
+    types: [checks_requested]
+  workflow_call:
+  workflow_dispatch:
+jobs:
+  build_and_test_qnx:
+    secrets: inherit
+    uses: ./.github/workflows/build_and_test_qnx.yml
+  # check if PR can be enqueued to the merge queue
+  can_enqueue:
+    if: always() && github.event_name != 'merge_group'
+    needs:
+      - build_and_test_qnx
+    permissions:
+      actions: read
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          NEEDS_JSON: "${{toJSON(needs)}}"
+        name: Transform outcomes
+        run: |
+          echo "ALL_SUCCESS=$(echo "$NEEDS_JSON" | jq '. | to_entries | map([.value.result == "success", .value.result == "skipped"] | any) | all')" >>$GITHUB_ENV
+      - name: check
+        run: |
+          [ $ALL_SUCCESS == true ]
+  # check in the merge queue if PR can be merged to main
+  can_merge:
+    if: always() && github.event_name == 'merge_group'
+    needs:
+      - build_and_test_qnx
+    permissions:
+      actions: read
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          NEEDS_JSON: "${{toJSON(needs)}}"
+        name: Transform outcomes
+        run: |
+          echo "ALL_SUCCESS=$(echo "$NEEDS_JSON" | jq '. | to_entries | map([.value.result == "success", .value.result == "skipped"] | any) | all')" >>$GITHUB_ENV
+      - name: check
+        run: |
+          [ $ALL_SUCCESS == true ]
+  # workaround to get running merge queue checks visible in the PR checks list, as GitHub does not show merge group check runs in the UI.
+  can_see_status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Immediate success for improved visibility on github merge queue
+        run: true

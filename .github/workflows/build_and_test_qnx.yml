@@ -16,16 +16,18 @@
 
 name: Build & Test module (cross compilation for QNX)
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize]
-  push:
-    branches:
-      - main
-  merge_group:
-    types: [checks_requested]
+  # pull_request_target:
+  #   types: [opened, reopened, synchronize]
+  # push:
+  #   branches:
+  #     - main
+  # merge_group:
+  #   types: [checks_requested]
   workflow_call:
 jobs:
   build_and_test_qnx:
+    # TODO check for label test-qnx and only run if label is present, to avoid running QNX build for every PR
+    if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'test-qnx')
     strategy:
       fail-fast: false
       matrix:

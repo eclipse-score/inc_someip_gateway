@@ -12,8 +12,9 @@
 # *******************************************************************************
 name: pre-commit
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
+  # pull_request:
+  #   types: [opened, reopened, synchronize]
+  workflow_call:
 jobs:
   self_test:
     name: 🔬 Self Test

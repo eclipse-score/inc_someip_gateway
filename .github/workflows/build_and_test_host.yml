@@ -16,10 +16,10 @@
 
 name: Build & Test module (with host toolchain)
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-  merge_group:
-    types: [checks_requested]
+  # pull_request:
+  #   types: [opened, reopened, synchronize]
+  # merge_group:
+  #   types: [checks_requested]
   workflow_call:
 jobs:
   build_and_test_host:
