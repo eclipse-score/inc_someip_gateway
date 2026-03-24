@@ -40,9 +40,9 @@ bool is_matching_instance(std::optional<Service_instance> const& filter,
     return !filter || *filter == instance;
 }
 
-template <typename Key, typename Value>
-std::vector<Key> get_keys(std::map<Key, Value> const& map) {
-    std::vector<Key> keys;
+template <typename Map>
+std::vector<typename Map::key_type> get_keys(Map const& map) {
+    std::vector<typename Map::key_type> keys;
     keys.reserve(map.size());
     for (auto const& pair : map) {
         keys.emplace_back(pair.first);
@@ -157,8 +157,8 @@ void cleanup(std::list<std::weak_ptr<T const>>& list,
 /// \param map Map to clean up.
 /// \param key Key to remove from map if value is empty.
 /// \param value Value associated with the key.
-template <typename Key, typename Value>
-void cleanup(std::map<Key, Value>& map, Key const& key, Value const& value) noexcept {
+template <template <typename, typename> class Map, typename Key, typename Value>
+void cleanup(Map<Key, Value>& map, Key const& key, Value const& value) noexcept {
     if (value.empty()) {
         map.erase(key);
     }
@@ -467,11 +467,6 @@ Interfaces_instances Service_database::get_instances(
         }
     }
     return result;
-}
-
-bool Service_database::Minor_version_ignoring_comparator::operator()(
-    Service_interface_identifier const& lhs, Service_interface_identifier const& rhs) const {
-    return std::tie(lhs.id, lhs.version.major) < std::tie(rhs.id, rhs.version.major);
 }
 
 Stop_subscription::~Stop_subscription() noexcept = default;

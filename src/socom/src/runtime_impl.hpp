@@ -23,6 +23,7 @@
 #include <score/socom/service_interface_definition.hpp>
 #include <set>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "client_connector_impl.hpp"
@@ -104,7 +105,7 @@ class Service_record {
 };
 
 using Instances = std::vector<Service_instance>;
-using Interfaces_instances = std::map<Service_interface_identifier, Instances>;
+using Interfaces_instances = std::unordered_map<Service_interface_identifier, Instances>;
 
 class Service_database {
    public:
@@ -120,14 +121,25 @@ class Service_database {
                                        std::optional<Service_instance> const& filter) const;
 
    private:
-    struct Minor_version_ignoring_comparator {
+    struct Minor_version_ignoring_key_equal {
         bool operator()(Service_interface_identifier const& lhs,
-                        Service_interface_identifier const& rhs) const;
+                        Service_interface_identifier const& rhs) const noexcept {
+            return (lhs.id == rhs.id) && (lhs.version.major == rhs.version.major);
+        }
     };
 
-    using Service_instances = std::map<Service_instance, Service_record>;
-    using Service_interfaces = std::map<Service_interface_identifier, Service_instances,
-                                        Minor_version_ignoring_comparator>;
+    struct Minor_version_ignoring_hash {
+        std::size_t operator()(Service_interface_identifier const& sii) const noexcept {
+            auto const id_hash = std::hash<std::string>{}(sii.id);
+            auto const major_hash = std::hash<std::uint16_t>{}(sii.version.major);
+            return id_hash ^ (major_hash << 1);
+        }
+    };
+
+    using Service_instances = std::unordered_map<Service_instance, Service_record>;
+    using Service_interfaces =
+        std::unordered_map<Service_interface_identifier, Service_instances,
+                           Minor_version_ignoring_hash, Minor_version_ignoring_key_equal>;
 
     std::mutex& m_runtime_mutex;
     Service_interfaces m_service_records;
@@ -188,9 +200,10 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
                    std::optional<Service_instance>, std::shared_ptr<Bridge_id_to_subscription>>;
     using Subscription_to_callback = std::map<Find_subscription_id, Callback_with_id>;
     using Service_instance_to_callbacks =
-        std::map<std::optional<Service_instance>, Find_result_callbacks>;
+        std::unordered_map<std::optional<Service_instance>, Find_result_callbacks>;
     using Interface_to_instance_to_callbacks =
-        std::map<std::optional<Service_interface_identifier>, Service_instance_to_callbacks>;
+        std::unordered_map<std::optional<Service_interface_identifier>,
+                           Service_instance_to_callbacks>;
 
     using Bridge_registration_to_callbacks =
         Bridge_id_to<std::tuple<Subscribe_find_service_function, Request_service_function,

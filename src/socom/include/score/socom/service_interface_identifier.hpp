@@ -15,6 +15,7 @@
 #define SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_IDENTIFIER
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -94,5 +95,16 @@ inline bool operator<(Service_interface_identifier const& lhs,
 }
 
 }  // namespace score::socom
+
+template <>
+struct std::hash<score::socom::Service_interface_identifier> {
+    std::size_t operator()(score::socom::Service_interface_identifier const& s) const noexcept {
+        std::size_t const h1 = std::hash<std::string>{}(s.id);
+        std::size_t const h2 = std::hash<std::uint16_t>{}(s.version.major);
+        std::size_t const h3 = std::hash<std::uint16_t>{}(s.version.minor);
+        auto const hash = h1 ^ (h2 << 1) ^ (h3 << 2);
+        return hash;
+    }
+};
 
 #endif  // SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_IDENTIFIER
