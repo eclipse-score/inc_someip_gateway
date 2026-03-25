@@ -14,7 +14,7 @@
 #ifndef SRC_SOCOM_SRC_FINAL_ACTION
 #define SRC_SOCOM_SRC_FINAL_ACTION
 
-#include <functional>
+#include <score/move_only_function.hpp>
 
 namespace score {
 namespace socom {
@@ -26,7 +26,7 @@ namespace socom {
 ///
 class Final_action {
    public:
-    using F = std::function<void()>;
+    using F = score::cpp::move_only_function<void(), 128U>;
 
     ///
     /// \brief Constructor

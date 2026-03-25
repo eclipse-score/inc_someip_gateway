@@ -30,7 +30,7 @@ void Final_action::execute() noexcept {
     F tmp_f = nullptr;
     std::swap(tmp_f, m_f);
     try {
-        if (tmp_f) {
+        if (!tmp_f.empty()) {
             tmp_f();
         }
     } catch (...) {
