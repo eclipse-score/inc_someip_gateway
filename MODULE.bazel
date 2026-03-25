@@ -193,6 +193,7 @@ bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.1.4")
+
 # TODO: Remove override as soon as new release containing the GenericSkeleton is available.
 git_override(
     module_name = "score_communication",
