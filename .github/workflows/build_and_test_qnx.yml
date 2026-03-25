@@ -19,6 +19,8 @@ on:
   workflow_call:
 jobs:
   build_and_test_qnx:
+    # Do not run by default for every PR.
+    # Run either in merge queue or if the pull request has the 'test-qnx' label.
     if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'test-qnx')
     strategy:
       fail-fast: false
