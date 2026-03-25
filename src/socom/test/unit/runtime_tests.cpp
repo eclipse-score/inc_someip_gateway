@@ -324,9 +324,9 @@ TEST(RuntimeFactoryTest, DefaultConstructorWorks) {
 
 class RuntimeTest : public SingleConnectionTest {
    protected:
-    std::vector<Service_instance> const input_find_result{Service_instance{"first instance"},
-                                                          Service_instance{"second instance"},
-                                                          connector_factory.get_instance()};
+    std::vector<Service_instance> const input_find_result{
+        Service_instance{"first instance", Literal_tag{}},
+        Service_instance{"second instance", Literal_tag{}}, connector_factory.get_instance()};
     Service_instance const expected_find_result{connector_factory.get_instance()};
 
     std::atomic<bool> subscribe_find_service_cb_called{false};
@@ -698,7 +698,7 @@ TEST_F(RuntimeTest, SubscribeFindServiceWithUnknownServiceInstanceDoesNotCallCal
     EXPECT_CALL(fsus_mock, Call(_, _, _)).Times(0);
 
     auto const find_subscription = connector_factory.subscribe_find_service(
-        fsus_mock.AsStdFunction(), Service_instance{"not_to_be_known_by_anyone"});
+        fsus_mock.AsStdFunction(), Service_instance{"not_to_be_known_by_anyone", Literal_tag{}});
 }
 
 TEST_F(RuntimeTest, DeletingSubscribeFindServiceHandleStopsReporting) {
@@ -751,7 +751,7 @@ TEST_F(RuntimeTest, SubscribeFindServiceDuringRegisterServiceBridge) {
     auto const normal_subscription = connector_factory.subscribe_find_service(
         fsus_mock.AsStdFunction(), connector_factory.get_instance());
 
-    auto instance_2 = Service_instance{"TestInstance2"};
+    auto instance_2 = Service_instance{"TestInstance2", Literal_tag{}};
     Find_subscription normal_subscription_2;
 
     Bridge_data* bridge_ptr{nullptr};
@@ -906,7 +906,7 @@ TEST_F(RuntimeTest, BridgeDeletionOfNonAvailableService) {
                                 connector_factory.get_instance(), Find_result_status::deleted))
         .Times(0U);
 
-    auto const interface = Service_interface_identifier{"TestInterface1", {9U, 1U}};
+    auto const interface = Service_interface_identifier{"TestInterface1", Literal_tag{}, {9U, 1U}};
     bridge.find_service(interface, connector_factory.get_instance(), Find_result_status::deleted);
 
     bridge.no_destroyed_check();

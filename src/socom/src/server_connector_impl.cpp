@@ -96,7 +96,7 @@ Impl* Impl::disable() noexcept {
             std::cerr << "SOCom error: A callback causes the Enabled_server_connector instance to "
                          "be destroyed by which the callback is called. This leads to a deadlock "
                          "because the destructor waits until all callbacks are done.: interface="
-                      << m_configuration.get_interface().id << "instance=" << m_instance
+                      << m_configuration.get_interface().id << "instance=" << m_instance.id
                       << std::endl;
         };
 

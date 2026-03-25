@@ -134,9 +134,9 @@ struct Subscribe_find_service_to_call {
 
 class RuntimeMultiThreadingTest : public SingleConnectionTest {
    protected:
-    std::vector<Service_instance> const input_find_result{Service_instance{"first instance"},
-                                                          Service_instance{"second instance"},
-                                                          connector_factory.get_instance()};
+    std::vector<Service_instance> const input_find_result{
+        Service_instance{"first instance", Literal_tag{}},
+        Service_instance{"second instance", Literal_tag{}}, connector_factory.get_instance()};
 
     Find_result_change_callback_mock fsus_mock;
 

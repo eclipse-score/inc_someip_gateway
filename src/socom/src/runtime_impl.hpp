@@ -130,7 +130,7 @@ class Service_database {
 
     struct Minor_version_ignoring_hash {
         std::size_t operator()(Service_interface_identifier const& sii) const noexcept {
-            auto const id_hash = std::hash<std::string>{}(sii.id);
+            auto const id_hash = std::hash<Registry_string_view>{}(sii.id);
             auto const major_hash = std::hash<std::uint16_t>{}(sii.version.major);
             return id_hash ^ (major_hash << 1);
         }

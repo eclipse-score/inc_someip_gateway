@@ -776,7 +776,7 @@ Registration Runtime_impl::register_connector(Service_interface_definition const
             std::cerr << "SOCom error: Bind client to server - minor version incompatible:"
                       << " client=" << configuration.interface.id
                       << ", server=" << result.current_server->interface.id
-                      << ", instance=" << instance << std::endl;
+                      << ", instance=" << instance.id << std::endl;
         }
     } else {
         bridged_service_requests = bridge_service_requests(configuration, instance);
@@ -803,7 +803,7 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
         } else {
             std::cerr << "SOCom error: Bind client to server - minor version incompatible:"
                       << " client=" << client.interface.id << ", server=" << interface.id
-                      << ", instance=" << instance << std::endl;
+                      << ", instance=" << instance.id << std::endl;
         }
     };
 

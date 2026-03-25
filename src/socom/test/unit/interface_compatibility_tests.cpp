@@ -47,7 +47,7 @@ using Interface_configuration_and_expected_connection =
 class InterfaceCompatibilityTest
     : public ::testing::TestWithParam<Interface_configuration_and_expected_connection> {
    protected:
-    Service_instance const instance{"VersionCompatibilityTest"};
+    Service_instance const instance{"VersionCompatibilityTest", Literal_tag{}};
 };
 
 Check_log expect_logs(Expectation const expected_connection,
