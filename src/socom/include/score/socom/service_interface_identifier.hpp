@@ -31,22 +31,40 @@ class Service_instance final {
     /// String-based service instance identifier.
     Id id;
 
-    explicit Service_instance(Id idd) noexcept : id{idd} {}
+    /// \brief Constructor.
+    /// \param new_id ID of the service interface.
+    explicit Service_instance(Id new_id) noexcept : id{new_id} {}
 
-    explicit Service_instance(std::string_view idd)
-        : id{score::socom::instance_id_registry().insert(idd).first} {}
+    /// \brief Constructor.
+    /// \param new_id ID of the service interface.
+    explicit Service_instance(std::string_view new_id)
+        : id{score::socom::instance_id_registry().insert(new_id).first} {}
 
-    Service_instance(std::string_view idd, Literal_tag is_static_string_literal)
-        : id{score::socom::instance_id_registry().insert(idd, is_static_string_literal).first} {}
+    /// \brief Constructor.
+    /// \param new_id ID of the service interface.
+    /// \param is_static_string_literal Tag to indicate that the provided string is a static string
+    ///                                 literal.
+    Service_instance(std::string_view new_id, Literal_tag is_static_string_literal)
+        : id{score::socom::instance_id_registry().insert(new_id, is_static_string_literal).first} {}
 
-    explicit Service_instance(std::string&& idd)
-        : id{score::socom::instance_id_registry().insert(std::move(idd)).first} {}
+    /// \brief Constructor.
+    /// \param new_id ID of the service interface.
+    explicit Service_instance(std::string&& new_id)
+        : id{score::socom::instance_id_registry().insert(std::move(new_id)).first} {}
 };
 
+/// \brief Operator == for Service_instance.
+/// \param lhs Left-hand side of operator.
+/// \param rhs Right-hand side of operator.
+/// \return True in case of equality, otherwise false.
 inline bool operator==(Service_instance const& lhs, Service_instance const& rhs) {
     return lhs.id == rhs.id;
 }
 
+/// \brief Operator < for Service_instance.
+/// \param lhs Left-hand side of operator.
+/// \param rhs Right-hand side of operator.
+/// \return True in case of lhs is less than rhs, otherwise false.
 inline bool operator<(Service_instance const& lhs, Service_instance const& rhs) {
     return lhs.id < rhs.id;
 }
@@ -80,16 +98,28 @@ struct Service_interface_identifier {
     Service_interface_identifier(Id new_id, Version new_version) noexcept
         : id{new_id}, version{new_version} {}
 
-    Service_interface_identifier(std::string_view idd, Version versionn)
-        : id{score::socom::service_id_registry().insert(idd).first}, version{versionn} {}
+    /// \brief Constructor.
+    /// \param new_id ID of the service interface.
+    /// \param new_version Version of the service interface.
+    Service_interface_identifier(std::string_view new_id, Version new_version)
+        : id{score::socom::service_id_registry().insert(new_id).first}, version{new_version} {}
 
-    Service_interface_identifier(std::string_view idd, Literal_tag is_static_string_literal,
-                                 Version versionn)
-        : id{score::socom::service_id_registry().insert(idd, is_static_string_literal).first},
-          version{versionn} {}
+    /// \brief Constructor.
+    /// \param new_id ID of the service interface.
+    /// \param is_static_string_literal Tag to indicate that the provided string is a static string
+    ///                                 literal.
+    /// \param new_version Version of the service interface.
+    Service_interface_identifier(std::string_view new_id, Literal_tag is_static_string_literal,
+                                 Version new_version)
+        : id{score::socom::service_id_registry().insert(new_id, is_static_string_literal).first},
+          version{new_version} {}
 
-    Service_interface_identifier(std::string&& idd, Version versionn)
-        : id{score::socom::service_id_registry().insert(std::move(idd)).first}, version{versionn} {}
+    /// \brief Constructor.
+    /// \param new_id ID of the service interface.
+    /// \param new_version Version of the service interface.
+    Service_interface_identifier(std::string&& new_id, Version new_version)
+        : id{score::socom::service_id_registry().insert(std::move(new_id)).first},
+          version{new_version} {}
 };
 
 /// \brief Operator == for Service_interface_identifier::Version.
@@ -132,6 +162,10 @@ inline bool operator<(Service_interface_identifier const& lhs,
 
 }  // namespace score::socom
 
+/// \brief std::hash specialization for Service_instance
+///
+/// \return Hash value for the given Service_instance
+///
 template <>
 struct std::hash<score::socom::Service_instance> {
     std::size_t operator()(score::socom::Service_instance const& s) const noexcept {
@@ -139,6 +173,10 @@ struct std::hash<score::socom::Service_instance> {
     }
 };
 
+/// \brief std::hash specialization for Service_interface_identifier
+///
+/// \return Hash value for the given Service_interface_identifier
+///
 template <>
 struct std::hash<score::socom::Service_interface_identifier> {
     std::size_t operator()(score::socom::Service_interface_identifier const& s) const noexcept {

@@ -177,7 +177,6 @@ inline std::ostream& operator<<(std::ostream& os, Registry_string_view v) {
 
 namespace std {
 
-///
 /// \brief std::hash specialization for Registry_string_view
 ///
 /// \return Hash value for the given Registry_string_view
