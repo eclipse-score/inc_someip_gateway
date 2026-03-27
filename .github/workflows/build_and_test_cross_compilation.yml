@@ -16,10 +16,6 @@
 
 name: Build & Test module (cross compilation)
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-  merge_group:
-    types: [checks_requested]
   workflow_call:
 jobs:
   build_and_test_cross_compilation:

@@ -13,8 +13,7 @@
 
 name: Gitlint check
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_call:
 jobs:
   lint-commits:
     name: check-commit-messages

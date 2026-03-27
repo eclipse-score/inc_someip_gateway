@@ -14,10 +14,7 @@
 name: Formatting checks
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-  merge_group:
-    types: [checks_requested]
+  workflow_call:
 
 jobs:
   formatting-check:
