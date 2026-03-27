@@ -40,6 +40,15 @@ jobs:
   gitlint:
     secrets: inherit
     uses: ./.github/workflows/gitlint.yml
+  build_and_test_qnx:
+    # Do not run by default for every PR.
+    # Run either in merge queue or if the pull request has the 'test-qnx' label.
+    if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'test-qnx')
+    secrets: inherit
+    uses: ./.github/workflows/build_and_test_qnx.yml
+    permissions:
+      contents: read
+      pull-requests: read
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
