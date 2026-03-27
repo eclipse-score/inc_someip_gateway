@@ -27,6 +27,9 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/build_and_test_host.yml
   build_and_test_cross_compilation:
+    # Do not run by default for every PR.
+    # Run either in merge queue or if the pull request has the 'test-cross' label.
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test-cross')
     secrets: inherit
     uses: ./.github/workflows/build_and_test_cross_compilation.yml
   copyright:
