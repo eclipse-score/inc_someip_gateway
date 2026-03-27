@@ -26,10 +26,6 @@
 
 const char* someipd_name = "someipd";
 
-static const vsomeip::service_t service_id = 0x1111;
-static const vsomeip::instance_t service_instance_id = 0x2222;
-static const vsomeip::method_t service_method_id = 0x3333;
-
 static const std::size_t max_sample_count = 10;
 
 #define SAMPLE_SERVICE_ID 0x1234

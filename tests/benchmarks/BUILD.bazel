@@ -13,7 +13,7 @@
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 cc_library(
     name = "echo_service",

@@ -13,7 +13,7 @@
 
 """Macros to generate and validate a SOME/IP gateway configuration"""
 
-load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 def _get_expected_binary_name(json):
     """Extracts the expected binary filename from a JSON label.

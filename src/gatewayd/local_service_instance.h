@@ -23,8 +23,22 @@
 
 namespace score::someip_gateway::gatewayd {
 
+/// \brief Instance of a locally available service
+/// \details This class represents a service instance that is provided by an application
+///          running on the same ECU. It manages the communication between the local service
+///          and the someipd daemon, which handles the actual SOME/IP network protocol.
+///          The class uses an IPC proxy for local communication with the service providing
+///          application and coordinates with the SOME/IP message skeleton to forward messages to
+///          the someipd daemon, ultimately making the local service accessible to remote ECUs.
 class LocalServiceInstance {
    public:
+    /// \brief Constructs a LocalServiceInstance
+    /// \param service_instance_config Configuration for this service instance
+    /// \param ipc_proxy Generic proxy for IPC communication with the local service
+    /// \param someip_message_skeleton Skeleton for message transfer to the someipd daemon
+    /// \details This constructor initializes a local service instance with the necessary
+    ///          components to forward local service messages to the someipd daemon, which
+    ///          then handles the SOME/IP network communication with remote ECUs.
     LocalServiceInstance(
         std::shared_ptr<const config::ServiceInstance> service_instance_config,
         score::mw::com::GenericProxy&& ipc_proxy,
@@ -32,6 +46,16 @@ class LocalServiceInstance {
         network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
             someip_message_skeleton);
 
+    /// \brief Asynchronously creates a local service instance
+    /// \param service_instance_config Configuration for the service instance to create
+    /// \param someip_message_skeleton Skeleton for message transfer to the someipd daemon
+    /// \param instances Vector to store the created local service instance
+    /// \return Result containing a FindServiceHandle on success, or an error on failure
+    /// \details This static factory method asynchronously searches for and creates a local
+    ///          service instance. It performs service discovery on the local ECU and, when
+    ///          found, constructs a LocalServiceInstance object and adds it to the instances
+    ///          vector. The returned FindServiceHandle can be used to manage the asynchronous
+    ///          operation.
     static Result<mw::com::FindServiceHandle> CreateAsyncLocalService(
         std::shared_ptr<const config::ServiceInstance> service_instance_config,
         network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
@@ -44,8 +68,11 @@ class LocalServiceInstance {
     LocalServiceInstance& operator=(LocalServiceInstance&&) = delete;
 
    private:
+    /// Configuration for this service instance
     std::shared_ptr<const config::ServiceInstance> service_instance_config_;
+    /// Generic proxy for IPC communication with the local service providing application
     score::mw::com::GenericProxy ipc_proxy_;
+    /// Reference to the SOME/IP message skeleton for forwarding messages to the someipd daemon
     network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
         someip_message_skeleton_;
 };

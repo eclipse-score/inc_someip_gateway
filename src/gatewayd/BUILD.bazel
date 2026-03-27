@@ -20,8 +20,8 @@ load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin", "validate_someip_config_test")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 exports_files(
     [

@@ -51,6 +51,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :tags: tc8, conformance, service_discovery
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -69,6 +70,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :tags: tc8, conformance, service_discovery, timing
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -86,6 +88,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :tags: tc8, conformance, service_discovery
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -103,6 +106,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :tags: tc8, conformance, service_discovery, eventgroup
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -123,6 +127,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :tags: tc8, conformance, service_discovery, timing
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -144,6 +149,7 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :tags: tc8, conformance, message_format
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -164,6 +170,7 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :tags: tc8, conformance, message_format, error_handling
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -186,6 +193,7 @@ Component Requirements — Event Notification
    :status: valid
    :tags: tc8, conformance, events, notification
    :satisfies: feat_req__tc8_conformance__conformance
+   :belongs_to: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
