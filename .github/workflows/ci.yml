@@ -1,0 +1,75 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: CI
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+  merge_group:
+    types: [checks_requested]
+  workflow_dispatch:
+jobs:
+  pre-commit:
+    secrets: inherit
+    uses: ./.github/workflows/pre-commit.yml
+  build_and_test_host:
+    secrets: inherit
+    uses: ./.github/workflows/build_and_test_host.yml
+  build_and_test_cross_compilation:
+    # Do not run by default for every PR.
+    # Run either in merge queue or if the pull request has the 'test-cross' label.
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test-cross')
+    secrets: inherit
+    uses: ./.github/workflows/build_and_test_cross_compilation.yml
+  copyright:
+    secrets: inherit
+    uses: ./.github/workflows/copyright.yml
+  format:
+    secrets: inherit
+    uses: ./.github/workflows/format.yml
+  gitlint:
+    secrets: inherit
+    uses: ./.github/workflows/gitlint.yml
+  # check if PR can be enqueued to the merge queue or merged to main
+  # individual jobs are skipped in their respective workflow files depending on the event type,
+  # so we can just check the outcomes of all jobs here without checking the event type again.
+  # This job fails, if any of the required checks failed.
+  # Skipped jobs are not a failure.
+  can_merge:
+    name: ci/can_merge
+    if: always()
+    needs:
+      - pre-commit
+      - build_and_test_host
+      - build_and_test_cross_compilation
+      - copyright
+      - format
+      - gitlint
+    permissions:
+      actions: read
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          NEEDS_JSON: "${{toJSON(needs)}}"
+        name: Transform outcomes
+        run: |
+          echo "ALL_SUCCESS=$(echo "$NEEDS_JSON" | jq '. | to_entries | map([.value.result == "success", .value.result == "skipped"] | any) | all')" >>$GITHUB_ENV
+      - name: check
+        run: |
+          [ $ALL_SUCCESS == true ]
+  # workaround to get running merge queue checks visible in the PR checks list, as GitHub does not show merge group check runs in the UI.
+  can_see_status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Immediate success for improved visibility on github merge queue
+        run: true

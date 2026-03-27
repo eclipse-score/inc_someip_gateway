@@ -16,13 +16,6 @@
 
 name: Build & Test module (cross compilation for QNX)
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize]
-  push:
-    branches:
-      - main
-  merge_group:
-    types: [checks_requested]
   workflow_call:
 jobs:
   build_and_test_qnx:
