@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: CI (context of the base branch) (secrets, permissions, etc.)
+name: CI (context of the base branch)
 on:
   pull_request_target:
     types: [opened, reopened, synchronize, labeled, unlabeled]
