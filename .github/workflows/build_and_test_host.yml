@@ -51,7 +51,7 @@ jobs:
       - name: Bazel test targets
         run: |
           bazel test //... --build_tests_only --test_tag_filters=-tc8
-      - name: Bazel TC8 Conformance Test Targets
+      - name: Bazel TC8 SOME/IP Conformance Targets
         run: |
           # Add loopback multicast route for TC8 conformance tests
           # '|| true' prevents step failure if route already exists on the runner
