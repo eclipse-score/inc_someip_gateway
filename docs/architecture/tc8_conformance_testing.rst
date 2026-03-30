@@ -627,11 +627,12 @@ CI/CD Integration
 
 Protocol conformance tests run on ``ubuntu-24.04`` GitHub Actions runners
 under ``build_and_test_host.yml``. The ``someipd`` process runs as a local
-subprocess; ``bazel test //...`` picks up TC8 targets automatically.
-
-The only prerequisite is a loopback multicast route::
+subprocess in a dedicated CI step that first adds the loopback multicast
+route, then runs all TC8 targets::
 
     sudo ip route add 224.0.0.0/4 dev lo
+    bazel test --test_tag_filters=tc8 --test_output=all \
+               --test_env=TC8_HOST_IP=127.0.0.1 //tests/tc8_conformance/...
 
 ``TC8_HOST_IP=127.0.0.1`` is passed via ``--test_env``. The DUT fixture
 writes this address into the SOME/IP config template (replacing the
