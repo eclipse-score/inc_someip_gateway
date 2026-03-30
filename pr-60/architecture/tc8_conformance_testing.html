@@ -672,9 +672,11 @@ structured CI reporting scenarios.</p>
 <h2>CI/CD Integration<a class="headerlink" href="#ci-cd-integration" title="Link to this heading">#</a></h2>
 <p>Protocol conformance tests run on <code class="docutils literal notranslate"><span class="pre">ubuntu-24.04</span></code> GitHub Actions runners
 under <code class="docutils literal notranslate"><span class="pre">build_and_test_host.yml</span></code>. The <code class="docutils literal notranslate"><span class="pre">someipd</span></code> process runs as a local
-subprocess; <code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">test</span> <span class="pre">//...</span></code> picks up TC8 targets automatically.</p>
-<p>The only prerequisite is a loopback multicast route:</p>
+subprocess in a dedicated CI step that first adds the loopback multicast
+route, then runs all TC8 targets:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">ip</span> <span class="n">route</span> <span class="n">add</span> <span class="mf">224.0.0.0</span><span class="o">/</span><span class="mi">4</span> <span class="n">dev</span> <span class="n">lo</span>
+<span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">test_tag_filters</span><span class="o">=</span><span class="n">tc8</span> <span class="o">--</span><span class="n">test_output</span><span class="o">=</span><span class="nb">all</span> \
+           <span class="o">--</span><span class="n">test_env</span><span class="o">=</span><span class="n">TC8_HOST_IP</span><span class="o">=</span><span class="mf">127.0.0.1</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="o">/...</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">TC8_HOST_IP=127.0.0.1</span></code> is passed via <code class="docutils literal notranslate"><span class="pre">--test_env</span></code>. The DUT fixture
