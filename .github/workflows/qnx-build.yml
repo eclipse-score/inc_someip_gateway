@@ -1,0 +1,135 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: QNX Build (gated)
+
+on:
+  workflow_call:
+    inputs:
+      bazel-target:
+        description: "Bazel target to build with the QNX toolchain"
+        required: false
+        default: "//..."
+        type: string
+      bazel-config:
+        description: "Bazel configuration to use for QNX builds"
+        required: false
+        default: "x86_64-qnx"
+        type: string
+      credential-helper:
+        description: "Relative or absolute path to the QNX credential helper script"
+        required: false
+        default: ".github/tools/qnx_credential_helper.py"
+        type: string
+      environment-name:
+        description: "Environment gating access to QNX secrets"
+        required: false
+        default: "workflow-approval"
+        type: string
+      bazel-disk-cache:
+        description: "Enable Bazel disk cache on GitHub. The value can be a string to use as cache key for separating workflows"
+        required: false
+        default: "true"
+        type: string
+      extra-bazel-flags:
+        description: "Additional Bazel flags to pass to the build command (whitespace separated)"
+        required: false
+        default: ""
+        type: string
+    secrets:
+      score-qnx-license:
+        description: "Base64-encoded QNX license content"
+        required: true
+      score-qnx-user:
+        description: "QNX account username"
+        required: true
+      score-qnx-password:
+        description: "QNX account password"
+        required: true
+
+jobs:
+  approval:
+    # If the job is already in the merge queue, the changes have already been reviewed and approved.
+    # Thus the approval is already implicit by the review approval.
+    if: github.event_name != 'merge_group'
+    environment: ${{ inputs.environment-name }}
+    runs-on: ${{ vars.REPO_RUNNER_LABELS && fromJSON(vars.REPO_RUNNER_LABELS) || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Blocking on approval
+        run: 'true'
+
+  qnx-build:
+    name: Build QNX target
+    needs: approval
+    runs-on: ${{ vars.REPO_RUNNER_LABELS && fromJSON(vars.REPO_RUNNER_LABELS) || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository (Handle all events)
+        uses: actions/checkout@v4.2.2
+        with:
+          ref: ${{ github.head_ref || github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+      - name: Setup Bazel with shared caching
+        uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          disk-cache: ${{ inputs.bazel-disk-cache }}
+          repository-cache: true
+          bazelisk-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
+
+      - name: Prepare QNX license
+        env:
+          SCORE_QNX_LICENSE: ${{ secrets.score-qnx-license }}
+        run: |
+          set -euo pipefail
+
+          LICENSE_DIR="/opt/score_qnx/license"
+          sudo mkdir -p "${LICENSE_DIR}"
+          echo "${SCORE_QNX_LICENSE}" | base64 --decode | sudo tee "${LICENSE_DIR}/licenses" >/dev/null
+
+      - name: Build with QNX toolchain
+        env:
+          SCORE_QNX_USER: ${{ secrets.score-qnx-user }}
+          SCORE_QNX_PASSWORD: ${{ secrets.score-qnx-password }}
+        run: |
+          set -euo pipefail
+
+          CRED_HELPER="${{ inputs.credential-helper }}"
+          if [[ "${CRED_HELPER}" != /* ]]; then
+            CRED_HELPER="${GITHUB_WORKSPACE}/${CRED_HELPER}"
+          fi
+
+          if [[ ! -f "${CRED_HELPER}" ]]; then
+            echo "Credential helper not found at ${CRED_HELPER}" >&2
+            exit 1
+          fi
+
+          if [[ ! -x "${CRED_HELPER}" ]]; then
+            chmod +x "${CRED_HELPER}"
+          fi
+
+          echo "Using credential helper at ${CRED_HELPER}"
+          bazel build --config ${{ inputs.bazel-config }} \
+            --credential_helper=*.qnx.com="${CRED_HELPER}" ${{ inputs.extra-bazel-flags }} -- \
+            ${{ inputs.bazel-target }}
+
+      - name: Cleanup QNX license
+        if: always()
+        run: sudo rm -rf /opt/score_qnx
