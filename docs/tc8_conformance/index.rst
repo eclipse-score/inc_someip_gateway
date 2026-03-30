@@ -25,7 +25,7 @@ The TC8 test suite covers two scopes:
   UDP/TCP sockets and the ``someip`` Python package. No application processes
   are needed. ``someipd`` runs in ``--tc8-standalone`` mode.
 
-- **Enhanced Testability** — Tests the full gateway path
+- **Application-Level Tests** — Tests the full gateway path
   (mw::com client → ``gatewayd`` → ``someipd`` → network) using C++ apps
   built on ``score::mw::com``. These tests are stack-agnostic.
 
