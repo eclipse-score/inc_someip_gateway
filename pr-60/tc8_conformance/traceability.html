@@ -1,0 +1,1980 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>TC8 Conformance Traceability &#8212; Module Template Project  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=6e51530f" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_needs.css?v=e97392eb" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_design.css?v=d9fd870c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview.bundle.js?v=18cd53c5"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview_loader.js?v=f7ff7e7d"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
+    <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tc8_conformance/traceability';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="TC8 Test Specifications" href="test_specification.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Eclipse S-CORE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
+    SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    TC8 SOME/IP Conformance Testing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
+    SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    TC8 SOME/IP Conformance Testing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">TC8 Conformance Test Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test_specification.html">TC8 Test Specifications</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">TC8 Conformance Traceability</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">TC8 SOME/IP Conformance Testing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">TC8 Conformance Traceability</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="tc8-conformance-traceability">
+<h1>TC8 Conformance Traceability<a class="headerlink" href="#tc8-conformance-traceability" title="Link to this heading">#</a></h1>
+<p>This document provides the single source of truth for tracing
+OPEN Alliance TC8 test cases from the external specification through
+the project’s internal requirements to the implementing test functions.</p>
+<section id="source-document">
+<h2>Source Document<a class="headerlink" href="#source-document" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Title:</strong> OA Automotive Ethernet ECU Test Specification — Layers 3–7</p></li>
+<li><p><strong>Version:</strong> v3.0</p></li>
+<li><p><strong>Chapter:</strong> 5 — SOME/IP</p></li>
+<li><p><strong>Publisher:</strong> OPEN Alliance SIG</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>OA Spec References use test case identifiers from Chapter 5 of the
+OA Automotive Ethernet ECU Test Specification v3.0 (October 2019).
+<code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_*</span></code> IDs are from §5.1.5 (SOME/IP Server Tests) and
+<code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_*</span></code> IDs are from §5.1.6 (Enhanced Testability Service Tests).</p>
+</div>
+</section>
+<section id="full-traceability-matrix">
+<h2>Full Traceability Matrix<a class="headerlink" href="#full-traceability-matrix" title="Link to this heading">#</a></h2>
+<p>The following table links each OA TC8 specification test case to the
+project’s internal test ID, component requirement, and implementing
+Python test function(s).  All requirement IDs use the
+<code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__</span></code> prefix (omitted for brevity).</p>
+<section id="service-discovery">
+<h3>Service Discovery<a class="headerlink" href="#service-discovery" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_08</p></td>
+<td><p>TC8-SD-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_001_multicast_offer_on_startup</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_14–18</p></td>
+<td><p>TC8-SD-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_002_offer_entry_format</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.4 — SOMEIPSRV_SD_BEHAVIOR_02</p></td>
+<td><p>TC8-SD-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_cyclic_timing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_003_cyclic_offer_timing</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_171</p></td>
+<td><p>TC8-SD-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_004_find_known_service_unicast_offer</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.4 — implied by SD_BEHAVIOR_03/04</p></td>
+<td><p>TC8-SD-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_005_find_unknown_service_no_response</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_13</p></td>
+<td><p>TC8-SD-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_006_subscribe_valid_eventgroup_ack</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_14; §5.1.6 — SOMEIP_ETS_140</p></td>
+<td><p>TC8-SD-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_007_subscribe_unknown_eventgroup_nack</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_108, SOMEIP_ETS_092</p></td>
+<td><p>TC8-SD-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_008_stop_subscribe_ceases_notifications</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.4 — SOMEIPSRV_SD_BEHAVIOR_01</p></td>
+<td><p>TC8-SD-009</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_phases_timing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_phases_timing::test_tc8_sd_009_repetition_phase_intervals</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.4 — SOMEIPSRV_SD_BEHAVIOR_01</p></td>
+<td><p>TC8-SD-010</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_phases_timing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_phases_timing::test_tc8_sd_010_repetition_count_before_main_phase</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_01–07</p></td>
+<td><p>TC8-SD-011</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_endpoint_option</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_011_offer_ipv4_endpoint_option</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_02, FORMAT_07</p></td>
+<td><p>TC8-SD-012</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::test_tc8_sd_012_reboot_flag_set_after_restart</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::test_tc8_sd_012_session_id_resets_after_restart</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_08–14</p></td>
+<td><p>TC8-SD-013</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_mcast_eg</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_013_subscribe_ack_has_multicast_option</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_095</p></td>
+<td><p>TC8-SD-014</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_014_ttl_expiry_ceases_notifications</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="some-ip-message-format">
+<h3>SOME/IP Message Format<a class="headerlink" href="#some-ip-message-format" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_05</p></td>
+<td><p>TC8-MSG-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_001_protocol_version</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_07</p></td>
+<td><p>TC8-MSG-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_002_message_type_response</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_002_no_response_for_request_no_return</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_10; §5.1.6 — SOMEIP_ETS_077</p></td>
+<td><p>TC8-MSG-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_error_codes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_003_unknown_service</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_12; §5.1.6 — SOMEIP_ETS_076</p></td>
+<td><p>TC8-MSG-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_error_codes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_004_unknown_method</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_03</p></td>
+<td><p>TC8-MSG-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_005_session_id_echo</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_074</p></td>
+<td><p>TC8-MSG-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_error_codes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_006_wrong_interface_version</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_054, 055, 058, 078</p></td>
+<td><p>TC8-MSG-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_malformed</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_007_truncated_message_no_crash</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_007_wrong_protocol_version_no_crash</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_007_oversized_length_field_no_crash</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_03</p></td>
+<td><p>TC8-MSG-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_008_client_id_echo</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="event-notification">
+<h3>Event Notification<a class="headerlink" href="#event-notification" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_03; §5.1.6 — SOMEIP_ETS_147</p></td>
+<td><p>TC8-EVT-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evt_subscription</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_evt_001_notification_message_type</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_03</p></td>
+<td><p>TC8-EVT-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evt_subscription</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_evt_002_correct_event_id</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_147</p></td>
+<td><p>TC8-EVT-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evt_subscription</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_evt_003_notification_only_to_subscriber</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_147 (pre-subscribe)</p></td>
+<td><p>TC8-EVT-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evt_subscription</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_evt_004_no_notification_before_subscribe</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_150</p></td>
+<td><p>TC8-EVT-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evt_subscription</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_evt_005_multicast_notification_delivery</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_108</p></td>
+<td><p>TC8-EVT-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evt_subscription</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_evt_006_stop_subscribe_ceases_notifications</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_16</p></td>
+<td><p>TC8-EVT-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fld_getter_setter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::TestEventNotification::test_rpc_16_field_notifies_only_on_change</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_15</p></td>
+<td><p>TC8-EVT-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">evt_subscription</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::TestEventNotificationFormat::test_rpc_15_cyclic_notification_rate</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="field-conformance">
+<h3>Field Conformance<a class="headerlink" href="#field-conformance" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_121</p></td>
+<td><p>TC8-FLD-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fld_initial_value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_fld_001_initial_notification_on_subscribe</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_121</p></td>
+<td><p>TC8-FLD-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fld_initial_value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_fld_002_is_field_sends_initial_value_within_one_second</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_03; §5.1.6 — SOMEIP_ETS_166</p></td>
+<td><p>TC8-FLD-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fld_get_set</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_fld_003_getter_returns_current_value</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_11; §5.1.6 — SOMEIP_ETS_166</p></td>
+<td><p>TC8-FLD-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fld_get_set</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_fld_004_setter_updates_value_and_notifies</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="tcp-transport-binding">
+<h3>TCP Transport Binding<a class="headerlink" href="#tcp-transport-binding" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_01</p></td>
+<td><p>TC8-TCP-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_rpc_01_tcp_request_response</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_01</p></td>
+<td><p>TC8-TCP-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_rpc_01_tcp_session_id_echo</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_01</p></td>
+<td><p>TC8-TCP-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_rpc_01_tcp_client_id_echo</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_02</p></td>
+<td><p>TC8-TCP-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_rpc_02_tcp_multiple_methods_single_connection</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_15</p></td>
+<td><p>TC8-TCP-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_sd_options_15_tcp_endpoint_advertised</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17</p></td>
+<td><p>TC8-TCP-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_rpc_17_tcp_field_getter</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17</p></td>
+<td><p>TC8-TCP-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_rpc_17_tcp_field_setter</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17</p></td>
+<td><p>TC8-TCP-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_rpc_17_tcp_event_notification_delivery</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>SOMEIP_ETS_068</p></td>
+<td><p>TC8-TCP-009</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_ets_068_unaligned_someip_messages_over_tcp</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>SOMEIPSRV_RPC_17 partial coverage:</strong> TC8-TCP-006, TC8-TCP-007,
+and TC8-TCP-008 verify TCP transport for field GET/SET and event
+notification operations using a single service instance; the full
+SOMEIPSRV_RPC_17 requirement (each service instance on a separate
+TCP connection) is not covered — multi-instance TCP is a known gap.</p>
+</div>
+</section>
+<section id="udp-transport-binding">
+<h3>UDP Transport Binding<a class="headerlink" href="#udp-transport-binding" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SOMEIP_ETS_069</p></td>
+<td><p>TC8-UDP-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">udp_transport</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_ets_069_unaligned_someip_messages_over_udp</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="multi-service-and-multi-instance">
+<h3>Multi-service and Multi-instance<a class="headerlink" href="#multi-service-and-multi-instance" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_13</p></td>
+<td><p>TC8-MULTI-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">multi_service_routing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_multi_service::TestMultiServiceInstanceRouting::test_rpc_13_multi_service_config_loads_and_primary_service_offered</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_14</p></td>
+<td><p>TC8-MULTI-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">multi_service_routing</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_multi_service::TestMultiServiceInstanceRouting::test_rpc_14_service_a_advertises_configured_udp_port</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_multi_service::TestMultiServiceInstanceRouting::test_rpc_14_no_unexpected_service_ids_in_offers</span></code></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="sd-format-and-options-compliance">
+<h3>SD Format and Options Compliance<a class="headerlink" href="#sd-format-and-options-compliance" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_01</p></td>
+<td><p>TC8-SDF-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsOfferService::test_format_01_client_id_is_zero</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_02</p></td>
+<td><p>TC8-SDF-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsOfferService::test_format_02_session_id_is_nonzero_and_in_range</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_04</p></td>
+<td><p>TC8-SDF-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsOfferService::test_format_04_interface_version_is_one</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_05</p></td>
+<td><p>TC8-SDF-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsOfferService::test_format_05_message_type_is_notification</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_06</p></td>
+<td><p>TC8-SDF-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsOfferService::test_format_06_return_code_is_e_ok</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_09</p></td>
+<td><p>TC8-SDF-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsOfferService::test_format_09_sd_flags_reserved_bits_are_zero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_10</p></td>
+<td><p>TC8-SDF-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsOfferService::test_format_10_sd_entry_reserved_bytes_are_zero</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_11</p></td>
+<td><p>TC8-SDF-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOfferEntryFields::test_format_11_entry_is_16_bytes</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_12</p></td>
+<td><p>TC8-SDF-009</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOfferEntryFields::test_format_12_first_option_run_index_is_zero</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_13</p></td>
+<td><p>TC8-SDF-010</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOfferEntryFields::test_format_13_num_options_matches_options_list</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_15</p></td>
+<td><p>TC8-SDF-011</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOfferEntryFields::test_format_15_instance_id_matches_config</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_16</p></td>
+<td><p>TC8-SDF-012</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOfferEntryFields::test_format_16_major_version_matches_config</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_18</p></td>
+<td><p>TC8-SDF-013</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOfferEntryFields::test_format_18_minor_version_matches_config</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_19</p></td>
+<td><p>TC8-SDF-014</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_19_ack_entry_type_is_subscribe_ack</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_20</p></td>
+<td><p>TC8-SDF-015</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_20_ack_entry_is_16_bytes</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_21</p></td>
+<td><p>TC8-SDF-016</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_21_ack_option_run_index_is_zero_when_no_options</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_23</p></td>
+<td><p>TC8-SDF-017</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_23_ack_service_id_matches_config</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_24</p></td>
+<td><p>TC8-SDF-018</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_24_ack_instance_id_matches_config</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_25</p></td>
+<td><p>TC8-SDF-019</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_25_ack_major_version_matches_config</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_26</p></td>
+<td><p>TC8-SDF-020</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_26_ack_ttl_is_nonzero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_27</p></td>
+<td><p>TC8-SDF-021</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_27_ack_reserved_field_is_zero</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_28</p></td>
+<td><p>TC8-SDF-022</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdHeaderFieldsSubscribeAck::test_format_28_ack_eventgroup_id_matches_subscribe</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_01</p></td>
+<td><p>TC8-SDF-023</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsEndpoint::test_options_01_endpoint_option_length_is_nine</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_02</p></td>
+<td><p>TC8-SDF-024</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsEndpoint::test_options_02_endpoint_option_type_is_0x04</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_03</p></td>
+<td><p>TC8-SDF-025</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsEndpoint::test_options_03_endpoint_option_reserved_after_type_is_zero</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_05</p></td>
+<td><p>TC8-SDF-026</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsEndpoint::test_options_05_endpoint_option_reserved_before_protocol_is_zero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_06</p></td>
+<td><p>TC8-SDF-027</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsEndpoint::test_options_06_endpoint_option_protocol_is_udp</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_08</p></td>
+<td><p>TC8-SDF-028</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsMulticast::test_options_08_multicast_option_length_is_nine</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_09</p></td>
+<td><p>TC8-SDF-029</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsMulticast::test_options_09_multicast_option_type_is_0x14</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_10</p></td>
+<td><p>TC8-SDF-030</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsMulticast::test_options_10_multicast_option_reserved_is_zero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_11</p></td>
+<td><p>TC8-SDF-031</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsMulticast::test_options_11_multicast_address_matches_config</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_12</p></td>
+<td><p>TC8-SDF-032</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsMulticast::test_options_12_multicast_option_reserved_before_port_is_zero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_13</p></td>
+<td><p>TC8-SDF-033</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsMulticast::test_options_13_multicast_option_protocol_is_udp</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.2 — SOMEIPSRV_OPTIONS_14</p></td>
+<td><p>TC8-SDF-034</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_options_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdOptionsMulticast::test_options_14_multicast_port_matches_config</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_12</p></td>
+<td><p>TC8-SDF-035</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_stop_sub_fmt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdStopSubscribeFormat::test_sd_message_12_stop_subscribe_entry_format</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_03</p></td>
+<td><p>TC8-SDF-036</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdMissingFormatFields::test_format_03_protocol_version_is_one</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_08</p></td>
+<td><p>TC8-SDF-037</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdMissingFormatFields::test_format_07_unicast_flag_set</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_14</p></td>
+<td><p>TC8-SDF-038</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdMissingFormatFields::test_format_14_entry_type_is_offer</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_17</p></td>
+<td><p>TC8-SDF-039</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdMissingFormatFields::test_format_17_ttl_is_nonzero</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_22</p></td>
+<td><p>TC8-SDF-040</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdMissingFormatFields::test_format_22_ack_num_options_1_matches</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TC8-SDF-028 through TC8-SDF-034 (SOMEIPSRV_OPTIONS_08–14, multicast option
+fields) require a non-loopback NIC and are skipped on loopback with
+<code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>TC8-SDF-037 naming:</strong> The test function is named
+<code class="docutils literal notranslate"><span class="pre">test_format_07_unicast_flag_set</span></code> but verifies the <strong>Unicast Flag (bit 6)</strong>
+of the SD Flags byte, which corresponds to <code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_FORMAT_08</span></code> in the OA
+spec.  <code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_FORMAT_07</span></code> (Reboot Flag) is a separate requirement covered
+by <code class="docutils literal notranslate"><span class="pre">TC8-SD-012</span></code>.</p>
+</div>
+</section>
+<section id="sd-entry-semantics">
+<h3>SD Entry Semantics<a class="headerlink" href="#sd-entry-semantics" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_01</p></td>
+<td><p>TC8-SDM-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_01_instance_wildcard</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_02</p></td>
+<td><p>TC8-SDM-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_02_instance_specific</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_03</p></td>
+<td><p>TC8-SDM-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_03_major_version_wildcard</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_04</p></td>
+<td><p>TC8-SDM-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_04_major_version_specific</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_05</p></td>
+<td><p>TC8-SDM-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_05_minor_version_wildcard</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_06</p></td>
+<td><p>TC8-SDM-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_06_minor_version_specific</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_14</p></td>
+<td><p>TC8-SDM-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_14_wrong_major_version</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_15</p></td>
+<td><p>TC8-SDM-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_15_wrong_service_id</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_16</p></td>
+<td><p>TC8-SDM-009</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_16_wrong_instance_id</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_17</p></td>
+<td><p>TC8-SDM-010</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_17_unknown_eventgroup_id</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_18</p></td>
+<td><p>TC8-SDM-011</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_18_ttl_zero_stop_subscribe</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_19</p></td>
+<td><p>TC8-SDM-012</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_19_reserved_field_set</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.4 — SOMEIPSRV_SD_BEHAVIOR_03</p></td>
+<td><p>TC8-SDM-013</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_cyclic_timing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceTiming::test_sd_behavior_03_unicast_findservice_timing</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.4 — SOMEIPSRV_SD_BEHAVIOR_04</p></td>
+<td><p>TC8-SDM-014</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_cyclic_timing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceTiming::test_sd_behavior_04_multicast_findservice_timing</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_07</p></td>
+<td><p>TC8-SDM-015</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_07_offer_entry_type_byte</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_08</p></td>
+<td><p>TC8-SDM-016</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_08_offer_entry_option_run2_index_zero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_09</p></td>
+<td><p>TC8-SDM-017</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_09_offer_entry_num_options_2_zero</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_11</p></td>
+<td><p>TC8-SDM-018</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_11_subscribe_entry_type_byte</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>SOMEIPSRV_SD_MESSAGE_08 dual coverage:</strong> <code class="docutils literal notranslate"><span class="pre">TC8-SD-001</span></code> verifies that an
+OfferService message is <em>present</em> on multicast at startup (behavioural
+assertion).  <code class="docutils literal notranslate"><span class="pre">TC8-SDM-016</span></code> verifies the <em>option_index_2 byte</em> in the
+serialised entry is zero — a distinct field-level assertion from the same
+spec requirement.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TC8-SDM-012 (SOMEIPSRV_SD_MESSAGE_19) is expected to <strong>FAIL</strong> against
+vsomeip 3.6.1: the stack sends a positive ACK instead of NAck for a
+SubscribeEventgroup with reserved bits set.  See the “Known SOME/IP Stack
+Limitations” section in <a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+</div>
+</section>
+<section id="sd-lifecycle-advanced">
+<h3>SD Lifecycle Advanced<a class="headerlink" href="#sd-lifecycle-advanced" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_088</p></td>
+<td><p>TC8-SDLC-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_088_two_subscribes_same_session</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_092</p></td>
+<td><p>TC8-SDLC-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_092_ttl_zero_stop_subscribe_no_nack</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_098</p></td>
+<td><p>TC8-SDLC-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_098_subscribe_accepted_without_prior_rpc</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_107</p></td>
+<td><p>TC8-SDLC-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_107_find_service_and_subscribe_processed_independently</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_120</p></td>
+<td><p>TC8-SDLC-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_120_subscribe_endpoint_ip_matches_tester</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_122</p></td>
+<td><p>TC8-SDLC-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_122_sd_interface_version_is_one</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_155</p></td>
+<td><p>TC8-SDLC-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_155_resubscribe_after_stop</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_091</p></td>
+<td><p>TC8-SDLC-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_091_session_id_increments</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_099</p></td>
+<td><p>TC8-SDLC-009</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_099_initial_event_sent_after_subscribe</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_100</p></td>
+<td><p>TC8-SDLC-010</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_100_no_findservice_emitted_by_server</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_101</p></td>
+<td><p>TC8-SDLC-011</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_101_stop_offer_ceases_client_events</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_128</p></td>
+<td><p>TC8-SDLC-012</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_128_multicast_findservice_version_wildcard</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_130</p></td>
+<td><p>TC8-SDLC-013</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_130_multicast_findservice_unicast_flag_clear</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_084</p></td>
+<td><p>TC8-SDLC-014</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_client::TestSDClientStopSubscribe::test_ets_084_stop_subscribe_ceases_events</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_081</p></td>
+<td><p>TC8-SDLC-015</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_client::TestSDClientReboot::test_ets_081_reboot_flag_set_after_first_restart</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_082</p></td>
+<td><p>TC8-SDLC-016</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_client::TestSDClientReboot::test_ets_082_reboot_flag_set_after_second_restart</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_093</p></td>
+<td><p>TC8-SDLC-017</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::TestSDReboot::test_ets_093_reboot_on_unicast_channel</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_094</p></td>
+<td><p>TC8-SDLC-018</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::TestSDReboot::test_ets_094_server_reboot_session_id_resets</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_095</p></td>
+<td><p>TC8-SDLC-019</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_ttl_expiry</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_095_subscribe_ttl_expires_no_events</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_105</p></td>
+<td><p>TC8-SDLC-020</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_105_initial_event_udp_unicast</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_106</p></td>
+<td><p>TC8-SDLC-021</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_106_subscribe_eventgroup_ack_received</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_121</p></td>
+<td><p>TC8-SDLC-022</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fld_initial_value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_121_initial_field_event_after_subscribe</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_173</p></td>
+<td><p>TC8-SDLC-023</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_173_unicast_subscribe_receives_ack</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_104</p></td>
+<td><p>TC8-SDLC-024</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_104_last_value_udp_multicast</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_127</p></td>
+<td><p>TC8-SDLC-025</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_127_multicast_findservice_response</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TC8-SDLC-011 (SOMEIP_ETS_101) is implemented as <code class="docutils literal notranslate"><span class="pre">pytest.skip</span></code> because
+stopping the DUT’s own OfferService from an external tester requires a
+dedicated reverse-direction SD client target; the current target does not
+include that capability.</p>
+</div>
+</section>
+<section id="sd-robustness">
+<h3>SD Robustness<a class="headerlink" href="#sd-robustness" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_111</p></td>
+<td><p>TC8-SDROBUST-001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_111_empty_entries_array</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_112/113</p></td>
+<td><p>TC8-SDROBUST-002</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_112_empty_option_zero_length</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_114</p></td>
+<td><p>TC8-SDROBUST-003</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_114_entries_length_zero</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_114_entries_length_mismatched</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_115</p></td>
+<td><p>TC8-SDROBUST-004</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_115_entry_refs_more_options_than_exist</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_116</p></td>
+<td><p>TC8-SDROBUST-005</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_116_entry_unknown_option_type</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_117</p></td>
+<td><p>TC8-SDROBUST-006</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_117_two_entries_same_option</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_118</p></td>
+<td><p>TC8-SDROBUST-007</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_118_find_service_with_endpoint_option</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_123/124</p></td>
+<td><p>TC8-SDROBUST-008</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_123_entries_length_wildly_too_large</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_125</p></td>
+<td><p>TC8-SDROBUST-009</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_125_truncated_entry</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_134</p></td>
+<td><p>TC8-SDROBUST-010</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_134_option_length_much_too_large</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_135</p></td>
+<td><p>TC8-SDROBUST-011</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_135_option_length_one_too_large</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_136</p></td>
+<td><p>TC8-SDROBUST-012</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_136_option_length_too_short</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_137</p></td>
+<td><p>TC8-SDROBUST-013</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_137_option_length_unaligned</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_138</p></td>
+<td><p>TC8-SDROBUST-014</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_138_options_array_length_too_large</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_139</p></td>
+<td><p>TC8-SDROBUST-015</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_139_options_array_length_too_short</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_174</p></td>
+<td><p>TC8-SDROBUST-016</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_174_unknown_option_type_0x77</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_109</p></td>
+<td><p>TC8-SDROBUST-017</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_109_subscribe_no_endpoint_option</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_110</p></td>
+<td><p>TC8-SDROBUST-018</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_110_subscribe_endpoint_ip_zero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_119</p></td>
+<td><p>TC8-SDROBUST-019</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_119_subscribe_unknown_l4proto</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_140</p></td>
+<td><p>TC8-SDROBUST-020</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_140_subscribe_unknown_service_id</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_141</p></td>
+<td><p>TC8-SDROBUST-021</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_141_subscribe_unknown_instance_id</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_142</p></td>
+<td><p>TC8-SDROBUST-022</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_142_subscribe_unknown_eventgroup_id</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_143</p></td>
+<td><p>TC8-SDROBUST-023</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_143_subscribe_all_ids_unknown</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_144</p></td>
+<td><p>TC8-SDROBUST-024</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_144_subscribe_reserved_option_type</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_152</p></td>
+<td><p>TC8-SDROBUST-025</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMessageFramingErrors::test_ets_152_high_session_id_0xfffe</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMessageFramingErrors::test_ets_152_session_id_0xffff</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMessageFramingErrors::test_ets_152_session_id_one</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_153</p></td>
+<td><p>TC8-SDROBUST-026</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMessageFramingErrors::test_ets_153_someip_length_too_small</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMessageFramingErrors::test_ets_153_someip_length_too_large</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_178</p></td>
+<td><p>TC8-SDROBUST-027</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMessageFramingErrors::test_ets_178_wrong_someip_service_id</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_058</p></td>
+<td><p>TC8-SDROBUST-028</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMessageFramingErrors::test_ets_058_someip_length_way_too_long</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_113</p></td>
+<td><p>TC8-SDROBUST-029</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_113_empty_options_array_with_subscribe</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_124</p></td>
+<td><p>TC8-SDROBUST-030</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedEntries::test_ets_124_entries_length_too_long_by_small_margin</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_154</p></td>
+<td><p>TC8-SDROBUST-031</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_154_subscribe_nonroutable_endpoint_ip</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_162</p></td>
+<td><p>TC8-SDROBUST-032</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_162_subscribe_endpoint_ip_not_subscriber</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_163</p></td>
+<td><p>TC8-SDROBUST-033</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDSubscribeEdgeCases::test_ets_163_subscribe_endpoint_dut_address</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_175</p></td>
+<td><p>TC8-SDROBUST-034</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_175_unreferenced_option_ignored</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_176</p></td>
+<td><p>TC8-SDROBUST-035</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_176_trailing_data_after_options_array</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_177</p></td>
+<td><p>TC8-SDROBUST-036</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sd_robustness</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_robustness::TestSDMalformedOptions::test_ets_177_trailing_data_wrong_options_length</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="some-ip-message-protocol-compliance">
+<h3>SOME/IP Message Protocol Compliance<a class="headerlink" href="#some-ip-message-protocol-compliance" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 5)</p></th>
+<th class="head"><p>Internal ID</p></th>
+<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Test Function(s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_01</p></td>
+<td><p>TC8-MSG-009</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipBasicIdentifiers::test_basic_01_correct_service_id_gets_response</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_02</p></td>
+<td><p>TC8-MSG-010</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_error_codes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipBasicIdentifiers::test_basic_02_unknown_service_id_no_response_or_error</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_03</p></td>
+<td><p>TC8-MSG-011</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipBasicIdentifiers::test_basic_03_event_method_id_no_response</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_01</p></td>
+<td><p>TC8-MSG-012</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_onwire_01_response_source_address</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_02</p></td>
+<td><p>TC8-MSG-013</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_onwire_02_method_id_msb_zero_in_response</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_04</p></td>
+<td><p>TC8-MSG-014</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_onwire_04_request_id_reuse</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_06</p></td>
+<td><p>TC8-MSG-015</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_onwire_06_interface_version_echoed</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.6 — SOMEIPSRV_ONWIRE_11</p></td>
+<td><p>TC8-MSG-016</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_onwire_11_normal_response_return_code_ok</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_18</p></td>
+<td><p>TC8-MSG-017</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_rpc_18_message_id_echoed</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_20</p></td>
+<td><p>TC8-MSG-018</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_rpc_20_interface_version_copied_from_request</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_05</p></td>
+<td><p>TC8-MSG-019</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_05_fire_and_forget_no_error</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_06</p></td>
+<td><p>TC8-MSG-020</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_06_return_code_upper_bits_zero</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_07</p></td>
+<td><p>TC8-MSG-021</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_07_request_with_return_code_bits_set</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_08</p></td>
+<td><p>TC8-MSG-022</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_08_request_with_error_return_code_no_reply</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_09</p></td>
+<td><p>TC8-MSG-023</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_09_error_response_no_payload</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_10</p></td>
+<td><p>TC8-MSG-024</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_10_fire_and_forget_reserved_type_no_error</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_004</p></td>
+<td><p>TC8-MSG-025</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_ets_004_burst_10_sequential_requests</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_054</p></td>
+<td><p>TC8-MSG-026</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_ets_054_empty_payload_request</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_059</p></td>
+<td><p>TC8-MSG-027</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_ets_059_fire_and_forget_wrong_service_no_error</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_061</p></td>
+<td><p>TC8-MSG-028</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_ets_061_two_sequential_requests</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_075</p></td>
+<td><p>TC8-MSG-029</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_malformed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_ets_075_notification_as_request_ignored</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.6 — SOMEIP_ETS_005</p></td>
+<td><p>TC8-MSG-030</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_ets_005_response_uses_big_endian_byte_order</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_058</p></td>
+<td><p>TC8-MSG-031</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_malformed_handling</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_ets_058_oversized_length_field_no_crash</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_19</p></td>
+<td><p>TC8-MSG-032</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msg_resp_header</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipResponseFields::test_rpc_19_session_id_echoed_in_error</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TC8-MSG-022 (SOMEIPSRV_RPC_08) is expected to <strong>FAIL</strong> against vsomeip
+3.6.1: the stack replies to a REQUEST with non-zero return_code when the
+spec requires no reply.  See the “Known SOME/IP Stack Limitations” section
+in <a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+<p>TC8-MSG-010 (SOMEIPSRV_BASIC_02) is expected to <strong>FAIL</strong> against vsomeip
+3.6.1: the stack silently drops unknown-service requests rather than
+responding with E_UNKNOWN_SERVICE.</p>
+</div>
+</section>
+</section>
+<section id="coverage-summary">
+<h2>Coverage Summary<a class="headerlink" href="#coverage-summary" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.8%" />
+<col style="width: 23.1%" />
+<col style="width: 23.1%" />
+<col style="width: 23.1%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>TC8 Area</p></th>
+<th class="head"><p>Total Test IDs</p></th>
+<th class="head"><p>Implemented</p></th>
+<th class="head"><p>OA Spec Mapped</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Service Discovery</p></td>
+<td><p>14</p></td>
+<td><p>14</p></td>
+<td><p>14</p></td>
+</tr>
+<tr class="row-odd"><td><p>SD Format and Options Compliance</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+</tr>
+<tr class="row-even"><td><p>SD Entry Semantics</p></td>
+<td><p>18</p></td>
+<td><p>18</p></td>
+<td><p>18</p></td>
+</tr>
+<tr class="row-odd"><td><p>SD Lifecycle Advanced</p></td>
+<td><p>25</p></td>
+<td><p>25</p></td>
+<td><p>25</p></td>
+</tr>
+<tr class="row-even"><td><p>SD Robustness</p></td>
+<td><p>36</p></td>
+<td><p>36</p></td>
+<td><p>36</p></td>
+</tr>
+<tr class="row-odd"><td><p>Message Format (existing)</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-even"><td><p>SOME/IP Message Protocol Compliance</p></td>
+<td><p>24</p></td>
+<td><p>24</p></td>
+<td><p>24</p></td>
+</tr>
+<tr class="row-odd"><td><p>Event Notification</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-even"><td><p>Field Conformance</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+</tr>
+<tr class="row-odd"><td><p>TCP Transport Binding</p></td>
+<td><p>9</p></td>
+<td><p>9</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-even"><td><p>UDP Transport Binding</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>Multi-service and Multi-instance</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total</strong></p></td>
+<td><p><strong>189</strong></p></td>
+<td><p><strong>189</strong></p></td>
+<td><p><strong>189</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some TC8 test IDs are implemented by multiple test functions to separate
+independent assertions.  The 189 IDs above correspond to approximately
+215 pytest functions in total.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Three tests are expected to <strong>FAIL</strong> against vsomeip 3.6.1 due to known
+stack limitations.  See the “Known SOME/IP Stack Limitations” section in
+<a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Coverage is reported against the subset of TC8 test cases implemented.
+For the full OA TC8 v3.0 Chapter 5 scope analysis see
+<a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+</div>
+</section>
+<section id="how-to-update">
+<h2>How to Update<a class="headerlink" href="#how-to-update" title="Link to this heading">#</a></h2>
+<p>When adding a new TC8 test case:</p>
+<ol class="arabic simple">
+<li><p>Read the OA specification Chapter 5 to identify the exact test case
+section number and title.</p></li>
+<li><p>Add a row to the appropriate area table above with the OA reference,
+internal TC8 ID, requirement, and test function.</p></li>
+<li><p>Ensure the test function calls <code class="docutils literal notranslate"><span class="pre">record_property(&quot;FullyVerifies&quot;,</span> <span class="pre">...)</span></code>
+with the matching <code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__&lt;id&gt;</span></code>.</p></li>
+<li><p>Update the Coverage Summary counts.</p></li>
+</ol>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="test_specification.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">TC8 Test Specifications</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#source-document">Source Document</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#full-traceability-matrix">Full Traceability Matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-discovery">Service Discovery</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#some-ip-message-format">SOME/IP Message Format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-notification">Event Notification</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#field-conformance">Field Conformance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tcp-transport-binding">TCP Transport Binding</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#udp-transport-binding">UDP Transport Binding</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-service-and-multi-instance">Multi-service and Multi-instance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-format-and-options-compliance">SD Format and Options Compliance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-entry-semantics">SD Entry Semantics</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-lifecycle-advanced">SD Lifecycle Advanced</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-robustness">SD Robustness</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#some-ip-message-protocol-compliance">SOME/IP Message Protocol Compliance</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coverage-summary">Coverage Summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-update">How to Update</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/'docs'/tc8_conformance/traceability.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
