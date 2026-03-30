@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <future>
+#include <memory>
 #include <score/socom/server_connector.hpp>
 
 #include "score/socom/method.hpp"
@@ -101,10 +102,11 @@ std::atomic<bool> const& Server_data::expect_on_event_subscription_change(
     EXPECT_TRUE(atomi);
     atomi = false;
 
-    auto call_callback = [subscription_change_callback = std::move(subscription_change_callback)](
-                             auto& sc, auto const event_id, auto const state) {
-        if (subscription_change_callback) {
-            subscription_change_callback(sc, event_id, state);
+    auto callback = std::make_shared<Event_subscription_change_callback>(
+        std::move(subscription_change_callback));
+    auto call_callback = [callback](auto& sc, auto const event_id, auto const state) {
+        if (!callback->empty()) {
+            (*callback)(sc, event_id, state);
         }
     };
 

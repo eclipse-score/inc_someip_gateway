@@ -74,40 +74,31 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
         counter.method_response_received();
     };
 
-    Method_call_credentials_callback const on_method_call =
-        [](Enabled_server_connector& /*esc*/, Method_id /* mid */, Payload::Sptr const& /* pl */,
-           Method_call_reply_data_opt const& reply, auto const& cred) {
-            if (reply) {
-                reply->reply_callback(Method_result{Application_return{}});
-            }
-            return nullptr;
-        };
-
-    Event_subscription_change_callback const on_event_subscription_change =
-        [this](Enabled_server_connector& esc, Event_id const& eid, Event_state const& /* state */) {
-            esc.update_event(eid, real_payload);
-        };
-
-    Event_request_update_callback const on_event_update_request =
-        [this](Enabled_server_connector& esc, Event_id const& eid) {
-            esc.update_event(eid, real_payload);
-        };
-
-    Method_call_payload_allocate_callback const method_payload_allocate_fail_on_call =
-        [](Enabled_server_connector& /*esc*/,
-           Method_id const& /* mid */) -> score::Result<Writable_payload::Uptr> {
-        ADD_FAILURE() << "Unexpected call to on_method_call_payload_allocate for method_id "
-                      << event_id;
-        return score::MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
-    };
-
-    Disabled_server_connector::Callbacks const sc_callbacks{
-        on_method_call, on_event_subscription_change, on_event_update_request,
-        method_payload_allocate_fail_on_call};
+    Disabled_server_connector::Callbacks create_server_callbacks() {
+        return {
+            [](Enabled_server_connector& /*esc*/, Method_id /*mid*/, Payload::Sptr const& /*pl*/,
+               Method_call_reply_data_opt const& reply, auto const& /*cred*/) {
+                if (reply) {
+                    reply->reply_callback(Method_result{Application_return{}});
+                }
+                return Method_invocation::Uptr{};
+            },
+            [this](Enabled_server_connector& esc, Event_id const& eid,
+                   Event_state const& /*state*/) { esc.update_event(eid, real_payload); },
+            [this](Enabled_server_connector& esc, Event_id const& eid) {
+                esc.update_event(eid, real_payload);
+            },
+            [](Enabled_server_connector& /*esc*/,
+               Method_id const& /*mid*/) -> score::Result<Writable_payload::Uptr> {
+                ADD_FAILURE() << "Unexpected call to on_method_call_payload_allocate for method_id "
+                              << event_id;
+                return score::MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
+            }};
+    }
 
     std::function<void()> const server_thread = [this]() {
         auto esc = Disabled_server_connector::enable(
-            this->connector_factory.create_server_connector(sc_callbacks));
+            this->connector_factory.create_server_connector(create_server_callbacks()));
 
         for (std::size_t i{0}; i < connector_factory.get_num_events(); i++) {
             esc->update_event(i, real_payload);
@@ -254,7 +245,7 @@ TEST_F(ConnectionMultiThreadingTest,
         }
 
         auto const esc = Disabled_server_connector::enable(
-            connector_factory.create_server_connector(sc_callbacks));
+            connector_factory.create_server_connector(create_server_callbacks()));
 
         std::unique_lock<std::mutex> lock_destroyed(mtx_client_destroyed);
         // Wait for client to be destroyed

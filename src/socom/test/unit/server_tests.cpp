@@ -126,19 +126,20 @@ TEST_F(ServerConnectorTest, ConstructDestructNoCallbacksReturnsCallbackMissing) 
 }
 
 TEST_F(ServerConnectorTest, WhenCallbackMissingCreationReturnsCallbackMissing) {
-    std::array<Disabled_server_connector::Callbacks, 4> const server_callbacks_array = {
-        Disabled_server_connector::Callbacks{nullptr, esccb.AsStdFunction(), eruc.AsStdFunction(),
-                                             mpacb.AsStdFunction()},
-        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), nullptr, eruc.AsStdFunction(),
-                                             mpacb.AsStdFunction()},
-        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), esccb.AsStdFunction(), nullptr,
-                                             mpacb.AsStdFunction()},
-        Disabled_server_connector::Callbacks{mccb.AsStdFunction(), esccb.AsStdFunction(),
-                                             eruc.AsStdFunction(), nullptr},
+    std::array<Disabled_server_connector::Callbacks, 4> server_callbacks_array = {
+        Disabled_server_connector::Callbacks{nullptr, esccb.as_function(), eruc.as_function(),
+                                             mpacb.as_function()},
+        Disabled_server_connector::Callbacks{mccb.as_function(), nullptr, eruc.as_function(),
+                                             mpacb.as_function()},
+        Disabled_server_connector::Callbacks{mccb.as_function(), esccb.as_function(), nullptr,
+                                             mpacb.as_function()},
+        Disabled_server_connector::Callbacks{mccb.as_function(), esccb.as_function(),
+                                             eruc.as_function(), nullptr},
     };
 
-    for (auto const& server_callbacks : server_callbacks_array) {
-        auto scd = connector_factory.create_server_connector_with_result(server_callbacks);
+    for (auto& server_callbacks : server_callbacks_array) {
+        auto scd =
+            connector_factory.create_server_connector_with_result(std::move(server_callbacks));
 
         EXPECT_EQ(callback_missing, scd);
     }

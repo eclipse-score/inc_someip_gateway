@@ -94,17 +94,19 @@ Connector_factory::create_server_connector_with_result(
 score::Result<Disabled_server_connector::Uptr>
 Connector_factory::create_server_connector_with_result(
     Optional_reference<Server_connector_callbacks_mock> sc_callbacks) {
-    static const Disabled_server_connector::Callbacks dummy;
-    return create_server_connector_with_result(sc_callbacks ? create_server_callbacks(*sc_callbacks)
-                                                            : dummy);
+    if (sc_callbacks) {
+        return create_server_connector_with_result(create_server_callbacks(*sc_callbacks));
+    }
+
+    return create_server_connector_with_result(Disabled_server_connector::Callbacks{});
 }
 
 Disabled_server_connector::Uptr Connector_factory::create_server_connector(
     Server_service_interface_definition const& configuration, Service_instance const& instance,
     Optional_reference<Server_connector_callbacks_mock> sc_callbacks) {
-    static const Disabled_server_connector::Callbacks dummy;
-    auto sc = get_runtime().make_server_connector(
-        configuration, instance, sc_callbacks ? create_server_callbacks(*sc_callbacks) : dummy);
+    auto callbacks = sc_callbacks ? create_server_callbacks(*sc_callbacks)
+                                  : Disabled_server_connector::Callbacks{};
+    auto sc = get_runtime().make_server_connector(configuration, instance, std::move(callbacks));
     EXPECT_TRUE(sc);
     return std::move(sc).value();
 }
@@ -113,10 +115,10 @@ Disabled_server_connector::Uptr Connector_factory::create_server_connector(
     Server_service_interface_definition const& configuration, Service_instance const& instance,
     Optional_reference<Server_connector_credentials_callbacks_mock> sc_callbacks,
     Posix_credentials const& credentials) {
-    static const Disabled_server_connector::Callbacks dummy;
-    auto sc = get_runtime().make_server_connector(
-        configuration, instance, (sc_callbacks ? create_server_callbacks(*sc_callbacks) : dummy),
-        credentials);
+    auto callbacks = sc_callbacks ? create_server_callbacks(*sc_callbacks)
+                                  : Disabled_server_connector::Callbacks{};
+    auto sc = get_runtime().make_server_connector(configuration, instance, std::move(callbacks),
+                                                  credentials);
     EXPECT_TRUE(sc);
     return std::move(sc).value();
 }

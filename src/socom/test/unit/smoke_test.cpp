@@ -46,10 +46,12 @@ class Runtime_test : public ::testing::Test {
     Method_call_credentials_callback_mock m_method_call_mock;
     Method_call_payload_allocate_callback_mock m_method_payload_allocate_mock;
 
-    Disabled_server_connector::Callbacks server_callbacks{
-        m_method_call_mock.AsStdFunction(), m_event_subscription_change_mock.AsStdFunction(),
-        m_event_update_request_mock.AsStdFunction(),
-        m_method_payload_allocate_mock.AsStdFunction()};
+    Disabled_server_connector::Callbacks make_server_callbacks() {
+        return Disabled_server_connector::Callbacks{m_method_call_mock.as_function(),
+                                                    m_event_subscription_change_mock.as_function(),
+                                                    m_event_update_request_mock.as_function(),
+                                                    m_method_payload_allocate_mock.as_function()};
+    }
 
     Client_connector::Callbacks make_client_callbacks() {
         return Client_connector::Callbacks{m_service_state_change_mock.as_function(),
@@ -67,7 +69,7 @@ class Connection_test : public Runtime_test {
         auto client_connector_result =
             runtime->make_client_connector(config, instance, make_client_callbacks());
         auto server_connector_result =
-            runtime->make_server_connector(config, instance, server_callbacks);
+            runtime->make_server_connector(config, instance, make_server_callbacks());
 
         ASSERT_TRUE(client_connector_result);
         ASSERT_TRUE(server_connector_result);
@@ -100,7 +102,7 @@ TEST_F(Runtime_test, client_connector_construction_works) {
 
 TEST_F(Runtime_test, server_connector_construction_works) {
     auto const server_connector_result =
-        runtime->make_server_connector(config, instance, server_callbacks);
+        runtime->make_server_connector(config, instance, make_server_callbacks());
     EXPECT_TRUE(server_connector_result);
 }
 
@@ -111,7 +113,7 @@ TEST_F(Runtime_test, subscribe_find_service_finds_server) {
     EXPECT_CALL(m_find_result_mock, Call(_, _, Find_result_status::added)).Times(1);
 
     auto server_connector_result =
-        runtime->make_server_connector(config, instance, server_callbacks);
+        runtime->make_server_connector(config, instance, make_server_callbacks());
     ASSERT_TRUE(server_connector_result);
     auto enabled_server_connector =
         Disabled_server_connector::enable(std::move(server_connector_result.value()));
@@ -125,7 +127,7 @@ TEST_F(Runtime_test, connection_setup_works) {
     auto const client_connector_result =
         runtime->make_client_connector(config, instance, make_client_callbacks());
     auto server_connector_result =
-        runtime->make_server_connector(config, instance, server_callbacks);
+        runtime->make_server_connector(config, instance, make_server_callbacks());
 
     ASSERT_TRUE(client_connector_result);
     ASSERT_TRUE(server_connector_result);

@@ -15,6 +15,7 @@
 #define SCORE_SOCOM_SERVER_CONNECTOR_HPP
 
 #include <memory>
+#include <score/move_only_function.hpp>
 #include <score/socom/error.hpp>
 #include <score/socom/event.hpp>
 #include <score/socom/method.hpp>
@@ -29,19 +30,21 @@ class Enabled_server_connector;
 
 /// \brief Function type for indicating an event subscription state change to the service provider.
 using Event_subscription_change_callback =
-    std::function<void(Enabled_server_connector&, Event_id, Event_state)>;
+    score::cpp::move_only_function<void(Enabled_server_connector&, Event_id, Event_state)>;
 
 /// \brief Function type for indicating an event update request to the service provider.
-using Event_request_update_callback = std::function<void(Enabled_server_connector&, Event_id)>;
+using Event_request_update_callback =
+    score::cpp::move_only_function<void(Enabled_server_connector&, Event_id)>;
 
 /// \brief Function type for processing any client side method invocation.
-using Method_call_credentials_callback =
-    std::function<Method_invocation::Uptr(Enabled_server_connector&, Method_id, Payload::Sptr,
-                                          Method_call_reply_data_opt, Posix_credentials const&)>;
+using Method_call_credentials_callback = score::cpp::move_only_function<Method_invocation::Uptr(
+    Enabled_server_connector&, Method_id, Payload::Sptr, Method_call_reply_data_opt,
+    Posix_credentials const&)>;
 
 /// \brief Function type for indicating a method call payload request to the service provider.
 using Method_call_payload_allocate_callback =
-    std::function<score::Result<Writable_payload::Uptr>(Enabled_server_connector&, Method_id)>;
+    score::cpp::move_only_function<score::Result<Writable_payload::Uptr>(Enabled_server_connector&,
+                                                                         Method_id)>;
 
 class Configuration_getter {
    public:
