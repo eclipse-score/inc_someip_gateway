@@ -52,3 +52,8 @@ path = [
 ]
 SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
 SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["tests/tc8_conformance/config/*.json"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
