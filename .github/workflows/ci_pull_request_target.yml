@@ -13,8 +13,7 @@
 
 name: CI (context of the base branch)
 on:
-  pull_request:
-    # pull_request_target:
+  pull_request_target:
     types: [opened, reopened, synchronize, labeled, unlabeled]
   merge_group:
     types: [checks_requested]
@@ -23,7 +22,7 @@ jobs:
   build_and_test_qnx:
     # Do not run by default for every PR.
     # Run either in merge queue or if the pull request has the 'test-qnx' label.
-    # if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'test-qnx')
+    if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'test-qnx')
     secrets: inherit
     uses: ./.github/workflows/build_and_test_qnx.yml
     permissions:
