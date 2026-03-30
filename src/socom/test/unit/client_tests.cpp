@@ -195,36 +195,36 @@ class ConstructionClientConnectorTest : public ::testing::TestWithParam<test_val
 };
 
 TEST_P(ConstructionClientConnectorTest, ConstructCallbackMissing) {
-    std::vector<Client_connector::Callbacks> input = {
-        {
-            nullptr,
-            event_update_mock.AsStdFunction(),
-            event_update_mock.AsStdFunction(),
-            event_payload_allocate_mock.AsStdFunction(),
-        },
-        {
-            state_change_mock.AsStdFunction(),
-            nullptr,
-            event_update_mock.AsStdFunction(),
-            event_payload_allocate_mock.AsStdFunction(),
-        },
-        {
-            state_change_mock.AsStdFunction(),
-            event_update_mock.AsStdFunction(),
-            nullptr,
-            event_payload_allocate_mock.AsStdFunction(),
-        },
-        {
-            state_change_mock.AsStdFunction(),
-            event_update_mock.AsStdFunction(),
-            event_update_mock.AsStdFunction(),
-            nullptr,
-        },
-    };
+    std::vector<Client_connector::Callbacks> input;
+    input.emplace_back(Client_connector::Callbacks{
+        nullptr,
+        event_update_mock.as_function(),
+        event_update_mock.as_function(),
+        event_payload_allocate_mock.as_function(),
+    });
+    input.emplace_back(Client_connector::Callbacks{
+        state_change_mock.as_function(),
+        nullptr,
+        event_update_mock.as_function(),
+        event_payload_allocate_mock.as_function(),
+    });
+    input.emplace_back(Client_connector::Callbacks{
+        state_change_mock.as_function(),
+        event_update_mock.as_function(),
+        nullptr,
+        event_payload_allocate_mock.as_function(),
+    });
+    input.emplace_back(Client_connector::Callbacks{
+        state_change_mock.as_function(),
+        event_update_mock.as_function(),
+        event_update_mock.as_function(),
+        nullptr,
+    });
 
-    for (auto const& callbacks : input) {
+    for (auto& callbacks : input) {
         auto cc = connector_factory.create_client_connector_with_result(
-            GetParam().service_interface_configuration, test_values::service_instance, callbacks);
+            GetParam().service_interface_configuration, test_values::service_instance,
+            std::move(callbacks));
 
         StaticAssertTypeEq<decltype(cc), score::Result<Client_connector::Uptr>>();
         EXPECT_EQ(cc, callback_missing);

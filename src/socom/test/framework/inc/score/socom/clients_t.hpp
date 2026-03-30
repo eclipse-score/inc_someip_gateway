@@ -66,7 +66,7 @@ struct Client_data {
     ///
     /// \param[in] factory factory to create client connector with
     Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
-                Service_state_change_callback const& state_change_callback = {});
+                Service_state_change_callback state_change_callback = {});
 
     /// \brief Create Client_data but do not connect to the server
     ///
@@ -75,7 +75,7 @@ struct Client_data {
     /// \param[in] instance use this instead of the one stored in factory
     Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
                 Service_interface_definition const& configuration, Service_instance const& instance,
-                Service_state_change_callback const& state_change_callback = {});
+                Service_state_change_callback state_change_callback = {});
 
     /// \brief Create Client_data with custom configuration, POSIX credentials and connect to the
     /// server

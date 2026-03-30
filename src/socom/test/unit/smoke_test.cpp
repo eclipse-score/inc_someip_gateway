@@ -40,11 +40,6 @@ class Runtime_test : public ::testing::Test {
     Event_update_callback_mock m_requested_event_update_mock;
     Event_payload_allocate_callback_mock m_event_payload_allocate_mock;
 
-    Client_connector::Callbacks client_callbacks{m_service_state_change_mock.AsStdFunction(),
-                                                 m_event_update_mock.AsStdFunction(),
-                                                 m_requested_event_update_mock.AsStdFunction(),
-                                                 m_event_payload_allocate_mock.AsStdFunction()};
-
     // Server_connector mocks
     Event_subscription_change_callback_mock m_event_subscription_change_mock;
     Event_request_update_callback_mock m_event_update_request_mock;
@@ -55,6 +50,13 @@ class Runtime_test : public ::testing::Test {
         m_method_call_mock.AsStdFunction(), m_event_subscription_change_mock.AsStdFunction(),
         m_event_update_request_mock.AsStdFunction(),
         m_method_payload_allocate_mock.AsStdFunction()};
+
+    Client_connector::Callbacks make_client_callbacks() {
+        return Client_connector::Callbacks{m_service_state_change_mock.as_function(),
+                                           m_event_update_mock.as_function(),
+                                           m_requested_event_update_mock.as_function(),
+                                           m_event_payload_allocate_mock.as_function()};
+    }
 };
 
 class Connection_test : public Runtime_test {
@@ -63,7 +65,7 @@ class Connection_test : public Runtime_test {
         Runtime_test::SetUp();
 
         auto client_connector_result =
-            runtime->make_client_connector(config, instance, client_callbacks);
+            runtime->make_client_connector(config, instance, make_client_callbacks());
         auto server_connector_result =
             runtime->make_server_connector(config, instance, server_callbacks);
 
@@ -92,7 +94,7 @@ class Connection_test : public Runtime_test {
 
 TEST_F(Runtime_test, client_connector_construction_works) {
     auto const client_connector_result =
-        runtime->make_client_connector(config, instance, client_callbacks);
+        runtime->make_client_connector(config, instance, make_client_callbacks());
     EXPECT_TRUE(client_connector_result);
 }
 
@@ -121,7 +123,7 @@ TEST_F(Runtime_test, subscribe_find_service_finds_server) {
 
 TEST_F(Runtime_test, connection_setup_works) {
     auto const client_connector_result =
-        runtime->make_client_connector(config, instance, client_callbacks);
+        runtime->make_client_connector(config, instance, make_client_callbacks());
     auto server_connector_result =
         runtime->make_server_connector(config, instance, server_callbacks);
 

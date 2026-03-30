@@ -24,8 +24,7 @@
 
 namespace score::socom {
 
-template <typename Function>
-class Move_only_function_mock;
+namespace internal {
 
 template <typename Function, typename Return_type, typename... Args>
 class Move_only_function_mock_base : public ::testing::MockFunction<Return_type(Args...)> {
@@ -34,7 +33,8 @@ class Move_only_function_mock_base : public ::testing::MockFunction<Return_type(
 
     using Base::Call;
 
-    Function as_function() {
+    template <typename Function_t>
+    Function_t as_function_impl() {
         return [this](Args... args) -> Return_type {
             if constexpr (std::is_void_v<Return_type>) {
                 this->Call(std::forward<Args>(args)...);
@@ -43,22 +43,33 @@ class Move_only_function_mock_base : public ::testing::MockFunction<Return_type(
             }
         };
     }
+
+    std::function<Return_type(Args...)> AsStdFunction() {
+        return as_function_impl<std::function<Return_type(Args...)>>();
+    }
+
+    Function as_function() { return as_function_impl<Function>(); }
 };
+
+}  // namespace internal
+
+template <typename Function>
+class Move_only_function_mock;
 
 template <typename Return_type, typename... Args>
 class Move_only_function_mock<Return_type(Args...)>
-    : public Move_only_function_mock_base<std::function<Return_type(Args...)>, Return_type,
-                                          Args...> {};
+    : public internal::Move_only_function_mock_base<std::function<Return_type(Args...)>,
+                                                    Return_type, Args...> {};
 
 template <typename Return_type, typename... Args>
 class Move_only_function_mock<std::function<Return_type(Args...)>>
-    : public Move_only_function_mock_base<std::function<Return_type(Args...)>, Return_type,
-                                          Args...> {};
+    : public internal::Move_only_function_mock_base<std::function<Return_type(Args...)>,
+                                                    Return_type, Args...> {};
 
 template <typename Return_type, typename... Args, std::size_t Storage_size, std::size_t Alignment>
 class Move_only_function_mock<
     ::score::cpp::move_only_function<Return_type(Args...), Storage_size, Alignment>>
-    : public Move_only_function_mock_base<
+    : public internal::Move_only_function_mock_base<
           ::score::cpp::move_only_function<Return_type(Args...), Storage_size, Alignment>,
           Return_type, Args...> {};
 

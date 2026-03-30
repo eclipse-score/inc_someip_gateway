@@ -178,15 +178,23 @@ score::Result<Client_connector::Uptr> Connector_factory::create_client_connector
     Service_interface_definition const& configuration, Service_instance const& instance,
     Optional_reference<Client_connector_callbacks_mock> cc_callbacks,
     std::optional<Posix_credentials> const& credentials) {
-    static const Client_connector::Callbacks dummy;
     if (credentials) {
-        return create_client_connector_with_result(
-            configuration, instance, cc_callbacks ? create_client_callbacks(*cc_callbacks) : dummy,
-            *credentials);
+        if (cc_callbacks) {
+            return create_client_connector_with_result(
+                configuration, instance, create_client_callbacks(*cc_callbacks), *credentials);
+        }
+
+        return create_client_connector_with_result(configuration, instance,
+                                                   Client_connector::Callbacks{}, *credentials);
     }
 
-    return create_client_connector_with_result(
-        configuration, instance, cc_callbacks ? create_client_callbacks(*cc_callbacks) : dummy);
+    if (cc_callbacks) {
+        return create_client_connector_with_result(configuration, instance,
+                                                   create_client_callbacks(*cc_callbacks));
+    }
+
+    return create_client_connector_with_result(configuration, instance,
+                                               Client_connector::Callbacks{});
 }
 
 score::Result<Client_connector::Uptr> Connector_factory::create_client_connector_with_result(

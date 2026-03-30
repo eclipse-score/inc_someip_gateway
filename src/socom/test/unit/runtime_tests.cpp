@@ -855,7 +855,7 @@ TEST_F(RuntimeTest,
                     Call(_, Service_state::available, connector_factory.get_configuration()));
     }
     Client_data const client{connector_factory, Client_data::might_connect,
-                             state_change_callback.AsStdFunction()};
+                             state_change_callback.as_function()};
 }
 
 TEST_F(RuntimeTest, SubscribeFindServiceWithWildcardReturnsBridgesMultipleFoundServices) {

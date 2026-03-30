@@ -34,11 +34,15 @@ namespace {
 
 void maybe_connect(Client_connector_callbacks_mock& callbacks,
                    Client_data::No_connect_helper const& connect_helper,
-                   Service_state_change_callback const& state_change_callback) {
-    if (Client_data::might_connect == connect_helper && state_change_callback) {
+                   Service_state_change_callback state_change_callback) {
+    if (Client_data::might_connect == connect_helper && !state_change_callback.empty()) {
+        auto callback =
+            std::make_shared<Service_state_change_callback>(std::move(state_change_callback));
         EXPECT_CALL(callbacks, on_service_state_change(_, _, _))
             .Times(AnyNumber())
-            .WillRepeatedly(state_change_callback);
+            .WillRepeatedly([callback](auto const& connector, auto state, auto const& conf) {
+                (*callback)(connector, state, conf);
+            });
     }
 }
 
@@ -46,16 +50,16 @@ Client_connector::Uptr create_and_maybe_connect(
     Client_connector_callbacks_mock& callbacks, Connector_factory& factory,
     Service_interface_definition const& configuration, Service_instance const& instance,
     Client_data::No_connect_helper const& connect_helper,
-    Service_state_change_callback const& state_change_callback) {
-    maybe_connect(callbacks, connect_helper, state_change_callback);
+    Service_state_change_callback state_change_callback) {
+    maybe_connect(callbacks, connect_helper, std::move(state_change_callback));
     return factory.create_client_connector(configuration, instance, callbacks);
 }
 
 Client_connector::Uptr create_and_maybe_connect(
     Client_connector_callbacks_mock& callbacks, Connector_factory& factory,
     Client_data::No_connect_helper const& connect_helper,
-    Service_state_change_callback const& state_change_callback) {
-    maybe_connect(callbacks, connect_helper, state_change_callback);
+    Service_state_change_callback state_change_callback) {
+    maybe_connect(callbacks, connect_helper, std::move(state_change_callback));
     return factory.create_client_connector(callbacks);
 }
 
@@ -67,16 +71,16 @@ Client_data::Client_data(Connector_factory& factory)
     : m_connector{factory.create_and_connect(m_callbacks)} {}
 
 Client_data::Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
-                         Service_state_change_callback const& state_change_callback)
-    : m_connector{
-          create_and_maybe_connect(m_callbacks, factory, connect_helper, state_change_callback)} {}
+                         Service_state_change_callback state_change_callback)
+    : m_connector{create_and_maybe_connect(m_callbacks, factory, connect_helper,
+                                           std::move(state_change_callback))} {}
 
 Client_data::Client_data(Connector_factory& factory, No_connect_helper const& connect_helper,
                          Service_interface_definition const& configuration,
                          Service_instance const& instance,
-                         Service_state_change_callback const& state_change_callback)
+                         Service_state_change_callback state_change_callback)
     : m_connector{create_and_maybe_connect(m_callbacks, factory, configuration, instance,
-                                           connect_helper, state_change_callback)} {}
+                                           connect_helper, std::move(state_change_callback))} {}
 
 Client_data::Client_data(Connector_factory& factory,
                          Service_interface_definition const& configuration,

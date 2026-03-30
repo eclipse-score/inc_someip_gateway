@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <optional>
+#include <score/move_only_function.hpp>
 #include <score/socom/error.hpp>
 #include <score/socom/event.hpp>
 #include <score/socom/method.hpp>
@@ -36,15 +37,17 @@ enum class Service_state : std::uint8_t {
 };
 
 /// \brief Function type for indicating service state changes to the service user.
-using Service_state_change_callback = std::function<void(
+using Service_state_change_callback = score::cpp::move_only_function<void(
     Client_connector const&, Service_state, Server_service_interface_definition const&)>;
 
 /// \brief Function type for indicating event updates to the service user.
-using Event_update_callback = std::function<void(Client_connector const&, Event_id, Payload::Sptr)>;
+using Event_update_callback =
+    score::cpp::move_only_function<void(Client_connector const&, Event_id, Payload::Sptr)>;
 
 /// \brief Function type for allocating event payloads.
 using Event_payload_allocate_callback =
-    std::function<Result<std::unique_ptr<Writable_payload>>(Client_connector const&, Event_id)>;
+    score::cpp::move_only_function<Result<std::unique_ptr<Writable_payload>>(
+        Client_connector const&, Event_id)>;
 
 /// \brief Interface for applications to use a service (client-role).
 /// \details Changes of service instance state are indicated by callback on_service_state_change.

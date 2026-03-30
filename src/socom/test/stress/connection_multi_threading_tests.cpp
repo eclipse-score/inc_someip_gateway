@@ -74,18 +74,6 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
         counter.method_response_received();
     };
 
-    Event_update_callback const on_event_update =
-        [this](Client_connector const& /*cc*/, Event_id const& /*eid*/,
-               Payload::Sptr const& /*pl*/) { counter.event_received(); };
-
-    Event_payload_allocate_callback const event_payload_allocate_fail_on_call =
-        [](Client_connector const& /*cc*/, Event_id const& event_id) {
-            ADD_FAILURE() << "Unexpected call to on_event_payload_allocate for event_id "
-                          << event_id;
-            return score::MakeUnexpected(
-                Server_connector_error::runtime_error_no_client_subscribed_for_event);
-        };
-
     Method_call_credentials_callback const on_method_call =
         [](Enabled_server_connector& /*esc*/, Method_id /* mid */, Payload::Sptr const& /* pl */,
            Method_call_reply_data_opt const& reply, auto const& cred) {
@@ -127,9 +115,18 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
     };
 
     Client_connector::Callbacks create_client_callbacks(
-        socom::Service_state_change_callback const& on_state_change) {
-        return {on_state_change, on_event_update, on_event_update,
-                event_payload_allocate_fail_on_call};
+        socom::Service_state_change_callback on_state_change) {
+        return {std::move(on_state_change),
+                [this](Client_connector const& /*cc*/, Event_id const& /*eid*/,
+                       Payload::Sptr const& /*pl*/) { counter.event_received(); },
+                [this](Client_connector const& /*cc*/, Event_id const& /*eid*/,
+                       Payload::Sptr const& /*pl*/) { counter.event_received(); },
+                [](Client_connector const& /*cc*/, Event_id const& event_id) {
+                    ADD_FAILURE() << "Unexpected call to on_event_payload_allocate for event_id "
+                                  << event_id;
+                    return score::MakeUnexpected(
+                        Server_connector_error::runtime_error_no_client_subscribed_for_event);
+                }};
     }
 };
 
@@ -143,8 +140,9 @@ TEST_F(ConnectionMultiThreadingTest,
         }
     };
 
-    auto const client_thread = [this, cc_callbacks = create_client_callbacks(on_state_change)]() {
-        auto const cc = this->connector_factory.create_client_connector(cc_callbacks);
+    auto const client_thread = [this, on_state_change]() {
+        auto const cc = this->connector_factory.create_client_connector(
+            create_client_callbacks(on_state_change));
         (void)cc;
     };
 
@@ -159,8 +157,9 @@ TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsServerThreadAndCallsM
         }
     };
 
-    auto const client_thread = [this, cc_callbacks = create_client_callbacks(on_state_change)]() {
-        auto const cc = this->connector_factory.create_client_connector(cc_callbacks);
+    auto const client_thread = [this, on_state_change]() {
+        auto const cc = this->connector_factory.create_client_connector(
+            create_client_callbacks(on_state_change));
         call_methods(*cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
     };
 
@@ -176,8 +175,9 @@ TEST_F(ConnectionMultiThreadingTest,
         }
     };
 
-    auto const client_thread = [this, cc_callbacks = create_client_callbacks(on_state_change)]() {
-        auto const cc = this->connector_factory.create_client_connector(cc_callbacks);
+    auto const client_thread = [this, on_state_change]() {
+        auto const cc = this->connector_factory.create_client_connector(
+            create_client_callbacks(on_state_change));
         subscribe_events(*cc, connector_factory.get_num_events());
     };
 
@@ -188,8 +188,9 @@ TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnT
     auto on_state_change = [](Client_connector const& /* cc */, Service_state const& /* state */,
                               Service_interface_definition const& /*conf*/) {};
 
-    auto const client_thread = [this, cc_callbacks = create_client_callbacks(on_state_change)]() {
-        auto const cc = this->connector_factory.create_client_connector(cc_callbacks);
+    auto const client_thread = [this, on_state_change]() {
+        auto const cc = this->connector_factory.create_client_connector(
+            create_client_callbacks(on_state_change));
         subscribe_events(*cc, connector_factory.get_num_events());
         call_methods(*cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
     };
@@ -199,36 +200,42 @@ TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnT
 
 TEST_F(ConnectionMultiThreadingTest,
        ServerConnectsToClientWhileClientDtorIsRunningWithoutDeadlock) {
-    std::mutex mtx_connected;
     std::mutex mtx_client_destroyed;
-    std::condition_variable cv_connected;
     std::condition_variable cv_client_destroyed;
-    bool connected = false;
     std::atomic<bool> client_destroyed{true};
-    std::atomic<std::size_t> num_connected{0};
     std::size_t const num_connection_limit{5000};
-    auto const on_state_change = [&num_connected, &connected, &cv_connected, &mtx_connected](
+
+    struct State {
+        std::mutex mtx_connected;
+        std::condition_variable cv_connected;
+        bool connected = false;
+        std::atomic<std::size_t> num_connected{0};
+    } on_state_change_vars;
+
+    auto const on_state_change = [&on_state_change_vars](
                                      Client_connector const& /* cc */, Service_state const& state,
                                      Service_interface_definition const& /*conf*/) {
-        num_connected += static_cast<std::size_t>(Service_state::available == state);
+        on_state_change_vars.num_connected +=
+            static_cast<std::size_t>(Service_state::available == state);
         if (Service_state::available == state) {
-            std::unique_lock<std::mutex> lock_connected(mtx_connected);
-            connected = true;
-            cv_connected.notify_one();  // Notify client_thread that connection is established
+            std::unique_lock<std::mutex> lock_connected(on_state_change_vars.mtx_connected);
+            on_state_change_vars.connected = true;
+            on_state_change_vars.cv_connected
+                .notify_one();  // Notify client_thread that connection is established
         }
     };
 
-    auto const client_thread = [this, cc_callbacks = create_client_callbacks(on_state_change),
-                                &client_destroyed, &connected, &cv_client_destroyed, &cv_connected,
-                                &mtx_connected, &mtx_client_destroyed]() {
+    auto const client_thread = [this, on_state_change, &client_destroyed, &on_state_change_vars,
+                                &cv_client_destroyed, &mtx_client_destroyed]() {
         {
             client_destroyed = false;
-            auto const cc = this->connector_factory.create_client_connector(cc_callbacks);
+            auto const cc = this->connector_factory.create_client_connector(
+                create_client_callbacks(on_state_change));
 
             // Wait for server to connect
-            std::unique_lock<std::mutex> lock_connected(mtx_connected);
-            if (!connected) {
-                cv_connected.wait(lock_connected);
+            std::unique_lock<std::mutex> lock_connected(on_state_change_vars.mtx_connected);
+            if (!on_state_change_vars.connected) {
+                on_state_change_vars.cv_connected.wait(lock_connected);
             }
         }
 
@@ -256,8 +263,8 @@ TEST_F(ConnectionMultiThreadingTest,
         }
     };
 
-    multi_threaded_test_template({client_thread, server_thread}, [&num_connected]() {
-        return num_connected > num_connection_limit;
+    multi_threaded_test_template({client_thread, server_thread}, [&on_state_change_vars]() {
+        return on_state_change_vars.num_connected > num_connection_limit;
     });
 }
 

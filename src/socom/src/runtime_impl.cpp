@@ -249,8 +249,9 @@ bool is_interface_compatible(Service_interface_identifier const& server,
 }
 
 bool is_valid(Client_connector::Callbacks const& callbacks) {
-    return callbacks.on_service_state_change && callbacks.on_event_update &&
-           callbacks.on_event_requested_update && callbacks.on_event_payload_allocate;
+    return !callbacks.on_service_state_change.empty() && !callbacks.on_event_update.empty() &&
+           !callbacks.on_event_requested_update.empty() &&
+           !callbacks.on_event_payload_allocate.empty();
 }
 
 bool is_valid(Disabled_server_connector::Callbacks const& callbacks) {

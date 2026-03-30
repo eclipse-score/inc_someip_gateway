@@ -88,10 +88,9 @@ class Client_to_connect {
                                            Server_service_interface_definition const& configuration,
                                            Service_instance const& instance) {
         reset();
-        return [&factory, &configuration, &instance,
-                state_change_cb = m_state_change_mock.AsStdFunction()]() {
+        return [this, &factory, &configuration, &instance]() {
             Client_data client{factory, Client_data::might_connect, configuration, instance,
-                               state_change_cb};
+                               m_state_change_mock.as_function()};
         };
     }
 
@@ -229,8 +228,9 @@ TEST_F(RuntimeMultiThreadingTest,
     EXPECT_CALL(state_change_mock, Call(_, _, _))
         .Times(AnyNumber())
         .WillRepeatedly(Assign(&client_connected, true));
-    auto const start_clients = [this, state_change_cb = state_change_mock.AsStdFunction()]() {
-        Client_data client{connector_factory, Client_data::might_connect, state_change_cb};
+    auto const start_clients = [this, &state_change_mock]() {
+        Client_data client{connector_factory, Client_data::might_connect,
+                           state_change_mock.as_function()};
     };
 
     multi_threaded_test_template(
