@@ -1263,6 +1263,10 @@ application and Payload Transformation in gatewayd.</p>
 <p>The following table records the known limitations of <strong>vsomeip 3.6.1</strong>
 against the OA TC8 v3.0 specification.  This table must be reviewed and
 updated whenever the SOME/IP stack version changes.</p>
+<p>Each test listed here is decorated with <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.xfail(strict=True)</span></code>
+so that CI passes despite the known non-conformance.  <code class="docutils literal notranslate"><span class="pre">strict=True</span></code> ensures
+that if the limitation is fixed in a future stack version, the unexpected pass
+(XPASS) will cause CI to fail, prompting removal of the marker.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1283,7 +1287,7 @@ updated whenever the SOME/IP stack version changes.</p>
 responded to with a NAck (SubscribeEventgroupAck with TTL = 0).</p></td>
 <td><p>Sends a positive SubscribeEventgroupAck (TTL &gt; 0) regardless of
 reserved bits.</p></td>
-<td><p><strong>FAIL</strong> —
+<td><p><strong>XFAIL</strong> —
 <code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_19_reserved_field_set</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_03</p></td>
@@ -1291,7 +1295,7 @@ reserved bits.</p></td>
 notification ID), it MUST NOT send a RESPONSE (message_type 0x80).</p></td>
 <td><p>Sends a RESPONSE (message_type 0x80) for event-ID messages even
 though the spec prohibits it.</p></td>
-<td><p><strong>FAIL</strong> —
+<td><p><strong>XFAIL</strong> —
 <code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipBasicIdentifiers::test_basic_03_event_method_id_no_response</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_08</p></td>
@@ -1299,7 +1303,7 @@ though the spec prohibits it.</p></td>
 carries a non-zero return code.</p></td>
 <td><p>Processes the REQUEST normally and sends a RESPONSE, ignoring the
 return code field.</p></td>
-<td><p><strong>FAIL</strong> —
+<td><p><strong>XFAIL</strong> —
 <code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_08_request_with_error_return_code_no_reply</span></code></p></td>
 </tr>
 </tbody>
