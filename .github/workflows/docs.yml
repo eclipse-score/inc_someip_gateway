@@ -14,6 +14,7 @@
 name: Documentation
 
 permissions:
+  actions: read
   contents: write
   pages: write
   pull-requests: write
@@ -27,8 +28,9 @@ on:
 
 jobs:
   build-docs:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@d2b2f810641e61a1be374169d5bca9201af3703e # main (2026-03-31)
     permissions:
+      actions: read
       contents: write
       pages: write
       pull-requests: write

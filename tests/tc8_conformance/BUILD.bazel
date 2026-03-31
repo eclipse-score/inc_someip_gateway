@@ -12,8 +12,8 @@
 # *******************************************************************************
 """TC8 SOME/IP conformance and enhanced testability tests for someipd."""
 
-load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("@score_tooling//:defs.bzl", "score_py_pytest")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 _COMMON_DEPS = [
     "//src/someipd",

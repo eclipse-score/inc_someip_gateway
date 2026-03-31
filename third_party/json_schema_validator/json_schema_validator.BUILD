@@ -10,20 +10,24 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+package(
+    default_visibility = ["//visibility:public"],
+)
 
-name: Documentation Cleanup
+cc_library(
+    name = "json_schema_validator_lib",
+    srcs = glob(["src/*"]),
+    hdrs = ["src/nlohmann/json-schema.hpp"],
+    features = [
+        "third_party_warnings",
+        "-treat_warnings_as_errors",
+    ],
+    includes = ["src"],
+    deps = ["@nlohmann_json//:json"],
+)
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-on:
-  schedule:
-    - cron: '0 0 * * *' # Runs every day at midnight UTC
-
-jobs:
-  docs-cleanup:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs-cleanup.yml@d2b2f810641e61a1be374169d5bca9201af3703e # main (2026-03-31)
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+cc_binary(
+    name = "json_schema_validator",
+    srcs = ["app/json-schema-validate.cpp"],
+    deps = [":json_schema_validator_lib"],
+)
