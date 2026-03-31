@@ -32,6 +32,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
     permissions:
+      actions: read
       contents: write
       pages: write
       pull-requests: write
