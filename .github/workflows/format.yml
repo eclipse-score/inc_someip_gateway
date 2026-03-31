@@ -18,6 +18,6 @@ on:
 
 jobs:
   formatting-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@d2b2f810641e61a1be374169d5bca9201af3703e # main (2026-03-31)
+    uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@2f846ffe7c6e64c790b1f66f5b504622cd03526e # main (2026-03-31)
     with:
       bazel-target: "test //:format.check" # optional, this is the default
