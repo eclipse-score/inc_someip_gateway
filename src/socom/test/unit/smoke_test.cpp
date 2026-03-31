@@ -155,7 +155,7 @@ TEST_F(Connection_test, client_calls_method_and_gets_response) {
             return nullptr;
         });
     auto const invocation = client_connector->call_method(
-        0, empty_payload(), Method_call_reply_data{m_method_reply_mock.AsStdFunction(), nullptr});
+        0, empty_payload(), Method_call_reply_data{m_method_reply_mock.as_function(), nullptr});
     // ASSERT_TRUE(invocation);
 
     EXPECT_CALL(m_method_reply_mock, Call).Times(1);

@@ -168,7 +168,7 @@ struct Client_data {
     /// \param[in] payload payload of method
     /// \param[in] reply reply callback
     void call_method(Method_id const& method_id, Payload::Sptr const& payload,
-                     Method_reply_callback const& reply);
+                     Method_reply_callback reply);
 
     /// \brief Call method method_id with payload and reply callback
     ///

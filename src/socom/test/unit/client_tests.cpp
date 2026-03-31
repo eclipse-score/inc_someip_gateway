@@ -284,7 +284,7 @@ TEST_P(UnconnectedClientConnectorTest, CallMethodReturnsServiceNotAvailable) {
 
     for (auto const& input : GetParam().test_method_ids) {
         auto const result = cc->call_method(input.client_id, empty_payload(),
-                                            Method_call_reply_data{mrcb.AsStdFunction(), nullptr});
+                                            Method_call_reply_data{mrcb.as_function(), nullptr});
 
         EXPECT_EQ(result, no_connection_method);
     }
@@ -350,7 +350,7 @@ TEST_P(UnavailableServerConnectorClientConnectorTest, CallMethodReturnsServiceNo
 
     for (auto const& input : GetParam().test_method_ids) {
         auto const result = cc->call_method(input.client_id, empty_payload(),
-                                            Method_call_reply_data{mrcb.AsStdFunction(), nullptr});
+                                            Method_call_reply_data{mrcb.as_function(), nullptr});
 
         EXPECT_EQ(result, no_connection_method);
     }
@@ -433,7 +433,7 @@ TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
     auto reply_callback_future =
         server.expect_and_return_method_call(input.server_id, empty_payload());
 
-    client.call_method(input.client_id, empty_payload(), reply_mock.AsStdFunction());
+    client.call_method(input.client_id, empty_payload(), reply_mock.as_function());
 
     auto reply_callback = get_value(std::move(reply_callback_future));
 
@@ -873,7 +873,7 @@ TEST_F(ClientConnectorOutOfBoundsTest, CallMethodWithOutOfBoundsIndexReturnsOutO
     auto const out_of_range_method = score::MakeUnexpected(Error::logic_error_id_out_of_range);
     EXPECT_EQ(out_of_range_method,
               (client0->call_method(max_method_id + 1, empty_payload(),
-                                    Method_call_reply_data{mrcb.AsStdFunction(), nullptr})));
+                                    Method_call_reply_data{mrcb.as_function(), nullptr})));
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, ResultCompareOperator) {

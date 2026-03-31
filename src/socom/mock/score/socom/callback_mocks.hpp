@@ -45,7 +45,7 @@ using Method_call_payload_allocate_callback_mock =
 // Method callbacks
 using Method_call_credentials_callback_mock =
     Move_only_function_mock<Method_call_credentials_callback>;
-using Method_reply_callback_mock = ::testing::MockFunction<Method_reply_callback>;
+using Method_reply_callback_mock = Move_only_function_mock<Method_reply_callback>;
 
 // Bridge callbacks
 using Subscribe_find_service_function_mock =

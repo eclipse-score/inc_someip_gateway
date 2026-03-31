@@ -57,11 +57,11 @@ void subscribe_events(Client_connector const& cc, std::size_t const num_events) 
 }
 
 void call_methods(Client_connector const& cc, std::size_t const num_methods,
-                  Payload::Sptr const& payload, Method_reply_callback const& on_method_reply) {
+                  Payload::Sptr const& payload, Method_reply_callback on_method_reply) {
     for (std::size_t i{0}; i < num_methods; i++) {
-        auto reply_cb = 0 == i % 2
-                            ? Method_call_reply_data_opt{std::in_place, on_method_reply, nullptr}
-                            : Method_call_reply_data_opt{std::nullopt};
+        auto reply_cb = 0 == i % 2 ? Method_call_reply_data_opt{std::in_place,
+                                                                std::move(on_method_reply), nullptr}
+                                   : Method_call_reply_data_opt{std::nullopt};
         (void)cc.call_method(i, payload, std::move(reply_cb));
     }
 }
@@ -70,9 +70,9 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
    protected:
     Event_method_counter counter;
 
-    Method_reply_callback const on_method_reply = [this](Method_result const& /*result*/) {
-        counter.method_response_received();
-    };
+    Method_reply_callback create_method_reply_callback() {
+        return [this](Method_result const& /*result*/) { counter.method_response_received(); };
+    }
 
     Disabled_server_connector::Callbacks create_server_callbacks() {
         return {
@@ -127,7 +127,8 @@ TEST_F(ConnectionMultiThreadingTest,
                                   Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
             subscribe_events(cc, connector_factory.get_num_events());
-            call_methods(cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
+            call_methods(cc, connector_factory.get_num_methods(), real_payload,
+                         create_method_reply_callback());
         }
     };
 
@@ -151,7 +152,8 @@ TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsServerThreadAndCallsM
     auto const client_thread = [this, on_state_change]() {
         auto const cc = this->connector_factory.create_client_connector(
             create_client_callbacks(on_state_change));
-        call_methods(*cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
+        call_methods(*cc, connector_factory.get_num_methods(), real_payload,
+                     create_method_reply_callback());
     };
 
     multi_threaded_test_template({client_thread, server_thread}, counter.create_stop_condition());
@@ -162,7 +164,8 @@ TEST_F(ConnectionMultiThreadingTest,
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
                                   Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
-            call_methods(cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
+            call_methods(cc, connector_factory.get_num_methods(), real_payload,
+                         create_method_reply_callback());
         }
     };
 
@@ -183,7 +186,8 @@ TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnT
         auto const cc = this->connector_factory.create_client_connector(
             create_client_callbacks(on_state_change));
         subscribe_events(*cc, connector_factory.get_num_events());
-        call_methods(*cc, connector_factory.get_num_methods(), real_payload, on_method_reply);
+        call_methods(*cc, connector_factory.get_num_methods(), real_payload,
+                     create_method_reply_callback());
     };
 
     multi_threaded_test_template({client_thread, server_thread}, counter.create_stop_condition());

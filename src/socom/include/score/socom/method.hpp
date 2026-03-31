@@ -15,8 +15,8 @@
 #define SCORE_SOCOM_METHOD_HPP
 
 #include <cstdint>
-#include <functional>
 #include <optional>
+#include <score/move_only_function.hpp>
 #include <score/socom/error.hpp>
 #include <score/socom/payload.hpp>
 #include <variant>
@@ -125,7 +125,7 @@ inline bool operator!=(Application_error const& lhs, Application_error const& rh
 }
 
 /// \brief Alias for the callback function of a method, in case a reply is requested.
-using Method_reply_callback = std::function<void(Method_result const&)>;
+using Method_reply_callback = score::cpp::move_only_function<void(Method_result const&)>;
 
 /// \brief Callback and payload buffer for method call replies.
 struct Method_call_reply_data {

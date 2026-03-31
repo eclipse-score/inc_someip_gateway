@@ -191,9 +191,9 @@ TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodC
     Method_reply_callback_mock method_reply_callback_mock;
 
     auto reply_data_fut = server.expect_and_return_method_call(method_id, input_data());
-    client.call_method(method_id, input_data(),
-                       Method_call_reply_data{method_reply_callback_mock.AsStdFunction(),
-                                              std::move(reply_payload)});
+    client.call_method(
+        method_id, input_data(),
+        Method_call_reply_data{method_reply_callback_mock.as_function(), std::move(reply_payload)});
 
     auto reply_data = reply_data_fut.get();
     ASSERT_TRUE(reply_data);

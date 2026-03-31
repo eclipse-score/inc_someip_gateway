@@ -137,14 +137,14 @@ score::Result<std::unique_ptr<Writable_payload>> Client_data::allocate_method_ca
 
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload) {
     auto result = m_connector->call_method(
-        method_id, payload, Method_call_reply_data{m_method_callback.AsStdFunction(), nullptr});
+        method_id, payload, Method_call_reply_data{m_method_callback.as_function(), nullptr});
     ASSERT_TRUE(result);
     m_method_invocations.emplace_back(std::move(result).value());
 }
 
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload,
-                              Method_reply_callback const& reply) {
-    call_method(method_id, payload, Method_call_reply_data{reply, nullptr});
+                              Method_reply_callback reply) {
+    call_method(method_id, payload, Method_call_reply_data{std::move(reply), nullptr});
 }
 
 void Client_data::call_method(Method_id const& method_id, Payload::Sptr const& payload,

@@ -259,7 +259,7 @@ TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallReplyResultsInLoggi
             server.reset();
         };
 
-        client0.call_method(method_id, empty_payload(), reset_server);
+        client0.call_method(method_id, empty_payload(), std::move(reset_server));
     };
     EXPECT_DEATH(el_failure(), expected_message);
 }
