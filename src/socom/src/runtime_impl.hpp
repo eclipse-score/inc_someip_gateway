@@ -145,8 +145,6 @@ class Service_database {
     Service_interfaces m_service_records;
 };
 
-// Could also be std::function instead.
-// Which one is chosen is not a big deal as no user is exposed to it and can later be changed.
 struct Stop_subscription {
     Stop_subscription() = default;
     Stop_subscription(Stop_subscription const&) = delete;

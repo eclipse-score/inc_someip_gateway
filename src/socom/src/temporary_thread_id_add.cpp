@@ -39,7 +39,8 @@ Temporary_thread_id_add Deadlock_detector::enter_callback() {
 }
 
 // Destructors that could cause exceptions are never called because of process termination.
-void Deadlock_detector::check_deadlock(std::function<void()> const& on_deadlock_detected) noexcept {
+void Deadlock_detector::check_deadlock(
+    On_deadlock_detected_callback const& on_deadlock_detected) noexcept {
     std::lock_guard<std::mutex> const lock{m_mutex};
     auto const thread_id =
         std::find(std::begin(m_thread_ids), std::end(m_thread_ids), std::this_thread::get_id());

@@ -19,8 +19,7 @@ namespace socom {
 Final_action::Final_action(F f) noexcept : m_f{std::move(f)} {}
 
 Final_action::Final_action(Final_action&& other) noexcept : m_f{std::move(other.m_f)} {
-    // it is not defined by C++ if a std::function after a move is reset or not. Reset it always to
-    // get consistent behavior.
+    // Reset it always to get consistent behavior.
     other.m_f = nullptr;
 }
 

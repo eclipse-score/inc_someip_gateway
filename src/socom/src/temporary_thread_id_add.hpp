@@ -14,8 +14,8 @@
 #ifndef SCORE_SOCOM_TEMPORARY_THREAD_ID_ADD_HPP
 #define SCORE_SOCOM_TEMPORARY_THREAD_ID_ADD_HPP
 
-#include <functional>
 #include <mutex>
+#include <score/move_only_function.hpp>
 #include <thread>
 #include <vector>
 
@@ -46,7 +46,7 @@ class Temporary_thread_id_add {
     // Move constructor is only declared, but not defined.
     // Without a declared move constructor Temporary_thread_id_add cannot be returned by a function.
     // But thanks to rvalue optimization the compiler does not use the move constructor, thus it is
-    // fine to skip the definition. Whenenver a move constructor needs to be defined = default is
+    // fine to skip the definition. Whenever a move constructor needs to be defined = default is
     // not enough, as we then would run in danger of removing the same thread::id twice.
     Temporary_thread_id_add(Temporary_thread_id_add&& /*rhs*/) noexcept;
 
@@ -70,6 +70,8 @@ class Deadlock_detector {
     std::vector<std::thread::id> m_thread_ids;
 
    public:
+    using On_deadlock_detected_callback = cpp::move_only_function<void()>;
+
     /// Save current thread id until the returned object is destroyed.
     ///
     /// \return RAII object which removes the saved thread id automatically
@@ -79,7 +81,7 @@ class Deadlock_detector {
     ///
     /// \param[in] on_deadlock_detected function to call before terminating the process in presence
     /// of a deadlock
-    void check_deadlock(std::function<void()> const& on_deadlock_detected) noexcept;
+    void check_deadlock(On_deadlock_detected_callback const& on_deadlock_detected) noexcept;
 };
 
 }  // namespace socom
