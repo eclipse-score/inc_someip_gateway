@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Stakeholder Requirements &#8212; Module Template Project  documentation</title>
+    <title>Components &#8212; Module Template Project  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/stakeholder';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/components';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -72,8 +72,8 @@
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Feature Requirements" href="feature/index.html" />
-    <link rel="prev" title="Requirements" href="index.html" />
+    <link rel="next" title="Architectural Design Decision: Dynamic Registration for SOME/IP Gateway" href="dec_someipgw_registration.html" />
+    <link rel="prev" title="SOMEIP Gateway Architecture" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -152,15 +152,15 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
     Requirements
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../architecture/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -281,15 +281,15 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
     Requirements
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../architecture/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -365,9 +365,11 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Stakeholder Requirements</a></li>
-<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature Requirements</a></li>
-<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Components</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tc8_conformance_testing.html">TC8 SOME/IP Conformance Testing</a></li>
 </ul>
 </div>
 </nav></div>
@@ -409,9 +411,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Requirements</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOMEIP Gateway Architecture</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Stakeholder Requirements</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Components</span></li>
   </ul>
 </nav>
 </div>
@@ -428,22 +430,61 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="stakeholder-requirements">
-<h1>Stakeholder Requirements<a class="headerlink" href="#stakeholder-requirements" title="Link to this heading">#</a></h1>
-<p>This file contains stakeholder-level requirements for the SOME/IP Gateway.
-Stakeholder requirements capture high-level needs from users, integrators,
-and safety standards. They are the top of the requirements hierarchy —
-feature and component requirements derive from these.</p>
-<div class="need_container docutils container" id="SNCB-49ff97e5">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_stkh_req table" id="stkh_req__docgen_enabled__example">
+  <section id="components">
+<h1>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h1>
+<div class="need_container docutils container" id="SNCB-534119f0">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__gatewayd">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Example Functional Requirement</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Gateway Daemon</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">YES</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span></span></span></div>
+<div class="line"><span></span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP gateway daemon (ASIL-B), bridging the IPC network
+(score::mw::com) and the SOME/IP network by managing local and remote
+service instances.</p></td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__gatewayd" title="comp__gatewayd">comp__gatewayd</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="need_container docutils container" id="SNCB-7c056e8a">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__someipd">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Network Daemon</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
 <div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
 </div>
 </td>
@@ -453,23 +494,22 @@ feature and component requirements derive from these.</p>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_rationale"><span class="needs_label">rationale: </span><span class="needs_data">Ensure documentation builds are possible for all modules</span></span></div>
-<div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
-</span></span></div>
-<div class="line"><span><div class="line">satisfied by: <span class="satisfies"><span><a class="reference internal" href="../tc8_conformance/requirements.html#feat_req__tc8_conformance__conformance" title="stkh_req__docgen_enabled__example">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><span></span></span></div>
+<div class="line"><span><div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_offer_format" title="comp__someipd">comp_req__tc8_conformance__sd_offer_format</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_cyclic_timing" title="comp__someipd">comp_req__tc8_conformance__sd_cyclic_timing</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_find_response" title="comp__someipd">comp_req__tc8_conformance__sd_find_response</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle" title="comp__someipd">comp_req__tc8_conformance__sd_sub_lifecycle</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_ttl_expiry" title="comp__someipd">comp_req__tc8_conformance__sd_ttl_expiry</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_phases_timing" title="comp__someipd">comp_req__tc8_conformance__sd_phases_timing</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_endpoint_option" title="comp__someipd">comp_req__tc8_conformance__sd_endpoint_option</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_reboot" title="comp__someipd">comp_req__tc8_conformance__sd_reboot</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_mcast_eg" title="comp__someipd">comp_req__tc8_conformance__sd_mcast_eg</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_resp_header" title="comp__someipd">comp_req__tc8_conformance__msg_resp_header</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_error_codes" title="comp__someipd">comp_req__tc8_conformance__msg_error_codes</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_malformed" title="comp__someipd">comp_req__tc8_conformance__msg_malformed</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__evt_subscription" title="comp__someipd">comp_req__tc8_conformance__evt_subscription</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__fld_initial_value" title="comp__someipd">comp_req__tc8_conformance__fld_initial_value</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__fld_get_set" title="comp__someipd">comp_req__tc8_conformance__fld_get_set</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__tcp_transport" title="comp__someipd">comp_req__tc8_conformance__tcp_transport</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__multi_service" title="comp__someipd">comp_req__tc8_conformance__multi_service</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_format_fields" title="comp__someipd">comp_req__tc8_conformance__sd_format_fields</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_options_fields" title="comp__someipd">comp_req__tc8_conformance__sd_options_fields</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_stop_sub_fmt" title="comp__someipd">comp_req__tc8_conformance__sd_stop_sub_fmt</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_robustness" title="comp__someipd">comp_req__tc8_conformance__sd_robustness</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__udp_transport" title="comp__someipd">comp_req__tc8_conformance__udp_transport</a></span></span></div>
 </span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP stack daemon (QM), wrapping vsomeip for all network I/O
+and SOME/IP Service Discovery.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#stkh_req__docgen_enabled__example" title="stkh_req__docgen_enabled__example">stkh_req__docgen_enabled__example</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__someipd" title="comp__someipd">comp__someipd</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Stakeholder Requirement</span></span></span></div>
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
 </div>
 </td>
 <td class="footer_right" colspan="2"></td>
@@ -477,12 +517,6 @@ feature and component requirements derive from these.</p>
 </tbody>
 </table>
 </div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The requirement above is a placeholder inherited from the module template.
-It should be replaced with proper SOME/IP Gateway stakeholder requirements
-as they are defined.</p>
 </div>
 </section>
 
@@ -502,15 +536,15 @@ as they are defined.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Requirements</p>
+        <p class="prev-next-title">SOMEIP Gateway Architecture</p>
       </div>
     </a>
     <a class="right-next"
-       href="feature/index.html"
+       href="dec_someipgw_registration.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Feature Requirements</p>
+        <p class="prev-next-title">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -529,7 +563,7 @@ as they are defined.</p>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/stakeholder.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/components.rst">
       <i class="fa-solid fa-pencil"></i>
       
       

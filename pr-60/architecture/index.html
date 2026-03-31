@@ -72,7 +72,7 @@
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Architectural Design Decision: Dynamic Registration for SOME/IP Gateway" href="dec_someipgw_registration.html" />
+    <link rel="next" title="Components" href="components.html" />
     <link rel="prev" title="Component Requirements" href="../requirements/component/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -365,6 +365,9 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+</ul>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tc8_conformance_testing.html">TC8 SOME/IP Conformance Testing</a></li>
 </ul>
@@ -426,50 +429,12 @@
                   
   <section id="someip-gateway-architecture">
 <h1>SOMEIP Gateway Architecture<a class="headerlink" href="#someip-gateway-architecture" title="Link to this heading">#</a></h1>
-<section id="components">
-<h2>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-0a2319ba">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__someipd">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Stack Daemon</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span></span></span></div>
-<div class="line"><span><div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_offer_format" title="comp__someipd">comp_req__tc8_conformance__sd_offer_format</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_cyclic_timing" title="comp__someipd">comp_req__tc8_conformance__sd_cyclic_timing</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_find_response" title="comp__someipd">comp_req__tc8_conformance__sd_find_response</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle" title="comp__someipd">comp_req__tc8_conformance__sd_sub_lifecycle</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_ttl_expiry" title="comp__someipd">comp_req__tc8_conformance__sd_ttl_expiry</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_phases_timing" title="comp__someipd">comp_req__tc8_conformance__sd_phases_timing</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_endpoint_option" title="comp__someipd">comp_req__tc8_conformance__sd_endpoint_option</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_reboot" title="comp__someipd">comp_req__tc8_conformance__sd_reboot</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_mcast_eg" title="comp__someipd">comp_req__tc8_conformance__sd_mcast_eg</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_resp_header" title="comp__someipd">comp_req__tc8_conformance__msg_resp_header</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_error_codes" title="comp__someipd">comp_req__tc8_conformance__msg_error_codes</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_malformed" title="comp__someipd">comp_req__tc8_conformance__msg_malformed</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__evt_subscription" title="comp__someipd">comp_req__tc8_conformance__evt_subscription</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__fld_initial_value" title="comp__someipd">comp_req__tc8_conformance__fld_initial_value</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__fld_get_set" title="comp__someipd">comp_req__tc8_conformance__fld_get_set</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__tcp_transport" title="comp__someipd">comp_req__tc8_conformance__tcp_transport</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__multi_service" title="comp__someipd">comp_req__tc8_conformance__multi_service</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_format_fields" title="comp__someipd">comp_req__tc8_conformance__sd_format_fields</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_options_fields" title="comp__someipd">comp_req__tc8_conformance__sd_options_fields</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_stop_sub_fmt" title="comp__someipd">comp_req__tc8_conformance__sd_stop_sub_fmt</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_robustness" title="comp__someipd">comp_req__tc8_conformance__sd_robustness</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__udp_transport" title="comp__someipd">comp_req__tc8_conformance__udp_transport</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP stack daemon (QM), wrapping vsomeip for all network I/O
-and SOME/IP Service Discovery.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__someipd" title="comp__someipd">comp__someipd</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
+<section id="component-definition">
+<h2>Component Definition<a class="headerlink" href="#component-definition" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+</ul>
 </div>
 </section>
 <section id="design-decisions">
@@ -503,11 +468,11 @@ and SOME/IP Service Discovery.</p></td>
       </div>
     </a>
     <a class="right-next"
-       href="dec_someipgw_registration.html"
+       href="components.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</p>
+        <p class="prev-next-title">Components</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -530,7 +495,7 @@ and SOME/IP Service Discovery.</p></td>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components">Components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-definition">Component Definition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-decisions">Design decisions</a></li>
 </ul>
   </nav></div>
@@ -539,7 +504,7 @@ and SOME/IP Service Discovery.</p></td>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/'docs'/architecture/index.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/index.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
