@@ -62,7 +62,7 @@ def _generate_someip_config_bin_impl(name, json, output, **kwargs):
         tags = ["lint"],
     )
 
-    schema_file_path = "@score_someip_gateway//src/gatewayd:etc/gatewayd_config.fbs"
+    schema_file_path = "@score_someip_gateway//src/config:mw_someip_config.fbs"
 
     expected_file_name = _get_expected_binary_name(json)
 
@@ -122,7 +122,7 @@ def _validate_someip_config_impl(name, json, expected_failure, **kwargs):
     validate_json_schema_test(
         name = name,
         json = json,
-        schema = "@score_someip_gateway//src/gatewayd:config_schema.generate",
+        schema = "@score_someip_gateway//src/config:config_schema.generate",
         expected_failure = expected_failure,
         **kwargs
     )

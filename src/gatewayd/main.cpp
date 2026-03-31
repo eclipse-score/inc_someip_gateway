@@ -22,7 +22,7 @@
 #include "remote_service_instance.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/com/types.h"
-#include "src/gatewayd/gatewayd_config_generated.h"
+#include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
 
 // In the main file we are not in any namespace

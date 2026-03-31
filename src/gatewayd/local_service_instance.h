@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "score/mw/com/types.h"
-#include "src/gatewayd/gatewayd_config_generated.h"
+#include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
 
 namespace score::someip_gateway::gatewayd {
