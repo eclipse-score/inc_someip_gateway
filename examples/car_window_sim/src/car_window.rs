@@ -23,10 +23,7 @@ const MW_COM_CONFIG_PATH: &str = "examples/car_window_sim/config/mw_com_config.j
 const CONTROL_INSTANCE_SPECIFIER_ID: &str = "carwindow/WindowControl1";
 const SERVICE_DISCOVERY_SLEEP_DURATION: Duration = Duration::from_millis(500);
 
-fn update_state_machine(
-    command: Option<car_window_types::WindowCommand>,
-    winfo: &mut WindowInfo,
-) -> bool {
+fn update_state_machine(command: Option<car_window_types::WindowCommand>, winfo: &mut WindowInfo) -> bool {
     // window state is represented by position (0 = closed, 100 = open, in between = opening/closing/stopped).
     // the state represents the current action of the window.
     // the state open means the window is at position 100.
@@ -46,70 +43,70 @@ fn update_state_machine(
             match window_state {
                 WindowState::Open => {
                     // already open, do nothing
-                }
+                },
                 WindowState::Closed => {
                     window_state = WindowState::Opening;
-                }
+                },
                 WindowState::Opening => {
                     // already opening, do nothing
-                }
+                },
                 WindowState::Closing => {
                     window_state = WindowState::Stopped;
-                }
+                },
                 WindowState::Stopped => {
                     window_state = WindowState::Opening;
-                }
+                },
             }
-        }
+        },
         Some(WindowCommand::Close) => {
             match window_state {
                 WindowState::Open => {
                     window_state = WindowState::Closing;
-                }
+                },
                 WindowState::Closed => {
                     // already closed, do nothing
-                }
+                },
                 WindowState::Opening => {
                     window_state = WindowState::Stopped;
-                }
+                },
                 WindowState::Closing => {
                     // already closing, do nothing
-                }
+                },
                 WindowState::Stopped => {
                     window_state = WindowState::Closing;
-                }
+                },
             }
-        }
+        },
         Some(WindowCommand::Stop) => {
             window_state = WindowState::Stopped;
-        }
+        },
         None => {
             match window_state {
                 WindowState::Open => {
                     // do nothing
-                }
+                },
                 WindowState::Closed => {
                     // do nothing
-                }
+                },
                 WindowState::Opening => {
                     if position < 100 {
                         position += 1;
                     } else {
                         window_state = WindowState::Open;
                     }
-                }
+                },
                 WindowState::Closing => {
                     if position > 0 {
                         position -= 1;
                     } else {
                         window_state = WindowState::Closed;
                     }
-                }
+                },
                 WindowState::Stopped => {
                     // do nothing
-                }
+                },
             }
-        }
+        },
     }
     // return true if state or position changed
     let changed = position != winfo.pos || window_state != winfo.state;
@@ -120,9 +117,8 @@ fn update_state_machine(
 
 fn main() {
     mw_com::initialize(Some(Path::new(MW_COM_CONFIG_PATH)));
-    let control_instance_specifier =
-        mw_com::InstanceSpecifier::try_from(CONTROL_INSTANCE_SPECIFIER_ID)
-            .expect("Control Instance specifier creation failed");
+    let control_instance_specifier = mw_com::InstanceSpecifier::try_from(CONTROL_INSTANCE_SPECIFIER_ID)
+        .expect("Control Instance specifier creation failed");
     loop {
         let handles = loop {
             let handles = mw_com::proxy::find_service(control_instance_specifier.clone())
@@ -136,8 +132,7 @@ fn main() {
         };
 
         let car_window_types::WindowControlInterface::Proxy { window_control_ } =
-            car_window_types::WindowControlInterface::Proxy::new(&handles[0])
-                .expect("Failed to create the proxy");
+            car_window_types::WindowControlInterface::Proxy::new(&handles[0]).expect("Failed to create the proxy");
         let subscribed_window_control = window_control_.subscribe(1).expect("Failed to subscribe");
         println!("Subscribed!");
         //let mut command = None;

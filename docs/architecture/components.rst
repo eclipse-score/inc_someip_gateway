@@ -1,6 +1,6 @@
 ..
    # *******************************************************************************
-   # Copyright (c) 2025 Contributors to the Eclipse Foundation
+   # Copyright (c) 2026 Contributors to the Eclipse Foundation
    #
    # See the NOTICE file(s) distributed with this work for additional
    # information regarding copyright ownership.
@@ -12,21 +12,17 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOMEIP Gateway Architecture
-===========================
+Components
+==========
 
-Component Definition
---------------------
+.. comp:: SOME/IP Gateway Daemon
+   :id: comp__gatewayd
+   :status: valid
+   :safety: ASIL_B
+   :security: NO
 
-.. toctree::
-   :maxdepth: 1
-
-   components.rst
-
-Design decisions
-----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   dec_someipgw_registration.rst
+.. comp:: SOME/IP Network Daemon
+   :id: comp__someipd
+   :status: valid
+   :safety: QM
+   :security: NO

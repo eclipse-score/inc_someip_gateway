@@ -228,7 +228,7 @@
       ]
     },
     {
-      "instanceSpecifier": "gatewayd/application_echo_response",
+      "instanceSpecifier": "benchmark/echo_response",
       "serviceTypeName": "/benchmark/EchoResponse",
       "version": {
         "major": 1,

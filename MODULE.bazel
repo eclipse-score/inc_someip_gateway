@@ -65,7 +65,7 @@ bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
-bazel_dep(name = "rules_rust", version = "0.69.0")
+bazel_dep(name = "rules_rust", version = "0.68.1-score")
 
 # ============================================================================
 # Toolchains & Platform Configuration
@@ -163,52 +163,65 @@ bazel_dep(name = "aspect_rules_lint", version = "2.3.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
 
 # ============================================================================
+# JSON Schema Validation
+# ============================================================================
+bazel_dep(name = "nlohmann_json", version = "3.11.3", dev_dependency = True)
+bazel_dep(name = "download_utils", version = "1.2.2", dev_dependency = True)
+
+download_archive = use_repo_rule("@download_utils//download/archive:defs.bzl", "download_archive")
+
+download_archive(
+    name = "json_schema_validator",
+    build = "//third_party/json_schema_validator:json_schema_validator.BUILD",
+    strip_prefix = "json-schema-validator-2.1.0",
+    urls = ["https://github.com/pboettch/json-schema-validator/archive/refs/tags/2.1.0.tar.gz"],
+)
+
+download_archive(
+    name = "jsonschema",
+    build = "//third_party/jsonschema:jsonschema.BUILD",
+    strip_prefix = "jsonschema-4.23.0",
+    urls = ["https://github.com/python-jsonschema/jsonschema/archive/refs/tags/v4.23.0.tar.gz"],
+)
+
+# ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "2.3.0", dev_dependency = True)
+bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
 
 # ============================================================================
 # Communication Framework
 # ============================================================================
-bazel_dep(name = "score_communication", version = "0.1.2")
+bazel_dep(name = "score_communication", version = "0.1.4")
 
-# On aarch64 (ARM), C's char is unsigned (u8)
-# Fixed upstream on main by commit b9efce9702d108fd63be806738db50c14d354302
-# Opened problem report at: https://github.com/eclipse-score/communication/issues/172
-single_version_override(
+# TODO: Remove override as soon as new release containing the GenericSkeleton is available.
+git_override(
     module_name = "score_communication",
-    patch_strip = 1,
-    patches = ["//:third_party/score_communication-cchar.patch"],
+    commit = "fea1b1058ea78ccd32fd04bf2e0d4728b34e18fa",
+    remote = "https://github.com/eclipse-score/communication.git",
 )
 
 # ============================================================================
 # Base Libraries
 # ============================================================================
-# Patch note: baselibs-multiarch.patch adds multi-arch support for .deb downloads.
-# score_baselibs hardcodes amd64 URLs; patch replaces them with architecture-aware
-# selection (x86_64 or aarch64) based on TARGET_ARCH environment variable.
-bazel_dep(name = "score_baselibs", version = "0.2.2")
-single_version_override(
+bazel_dep(name = "score_baselibs", version = "0.2.4")
+git_override(
     module_name = "score_baselibs",
-    patch_strip = 1,
-    patches = ["//:third_party/baselibs-multiarch.patch"],
+    commit = "052c2f271be4239f97182b164f4903b8c88d6c72",
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
+
+bazel_dep(name = "score_logging", version = "0.1.0")
+git_override(
+    module_name = "score_logging",
+    commit = "38e8762881d512c89ae5c2e5e5238fd791d327df",
+    remote = "https://github.com/eclipse-score/logging.git",
 )
 
 # ============================================================================
 # Code Generation
 # ============================================================================
 bazel_dep(name = "flatbuffers", version = "25.12.19")
-
-# ============================================================================
-# Requirements Traceability
-# ============================================================================
-# TRLC (Traceability Language Compiler) for requirements management.
-# Overrides the transitive dependency to pin a verified release.
-git_override(
-    module_name = "trlc",
-    commit = "650b51a47264a4f232b3341f473527710fc32669",  # trlc-2.0.2 release
-    remote = "https://github.com/bmw-software-engineering/trlc.git",
-)
 
 # ============================================================================
 # Examples: Car Window Simulator

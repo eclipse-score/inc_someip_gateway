@@ -10,20 +10,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
-name: Documentation Cleanup
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-on:
-  schedule:
-    - cron: '0 0 * * *' # Runs every day at midnight UTC
-
-jobs:
-  docs-cleanup:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs-cleanup.yml@d2b2f810641e61a1be374169d5bca9201af3703e # main (2026-03-31)
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+py_library(
+    name = "lib",
+    srcs = glob([
+        "jsonschema/**/*.py",
+    ]),
+    imports = ["."],
+    visibility = ["//visibility:public"],
+)
