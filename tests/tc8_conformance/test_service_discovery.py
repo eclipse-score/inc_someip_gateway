@@ -1638,7 +1638,7 @@ class TestSDSubscribeLifecycleAdvanced:
 
         Verification strategy:
         - FindService response (OfferService) is captured on the SD multicast
-          socket because the DUT responds to server-side FindService on multicast.
+          socket because the DUT (server) responds to incoming FindService messages on multicast.
         - SubscribeAck arrives on the unicast sender socket.
         Both arriving confirms the DUT processed both entries.
         """

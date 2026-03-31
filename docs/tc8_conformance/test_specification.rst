@@ -29,6 +29,14 @@ For requirement definitions see :doc:`requirements`.
    TC8 Automotive Ethernet ECU Test Specification v3.0.
    See :doc:`traceability` for the full mapping.
 
+.. note:: Terminology
+
+   Throughout this specification, **"server"** refers to the SOME/IP Service Provider role
+   (the DUT, which offers services and responds to requests), and **"client"** refers to the
+   SOME/IP Service Consumer role (the external test harness, which discovers services and
+   subscribes to events). This usage mirrors TC8 OA §5.1.5 ("SOME/IP Server Tests") and
+   §5.1.6 ("ETS Client / Control") directly.
+
 Service Discovery Tests
 -----------------------
 
