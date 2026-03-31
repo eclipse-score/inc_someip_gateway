@@ -1017,7 +1017,5 @@ Interfaces_instances Runtime_impl::get_bridge_reported_instances(
     return {{interface, result}};
 }
 
-Runtime::Uptr create_runtime() { return std::make_unique<Runtime_impl>(); }
-
 }  // namespace socom
 }  // namespace score
