@@ -50,6 +50,16 @@ jobs:
         if: always()
       - name: Bazel test targets
         run: |
-          bazel test //... --build_tests_only
+          bazel test //... --build_tests_only --test_tag_filters=-lint,-tc8
+      - name: Bazel TC8 SOME/IP Conformance Targets
+        run: |
+          # Add loopback multicast route for TC8 conformance tests
+          # '|| true' prevents step failure if route already exists on the runner
+          sudo ip route add 224.0.0.0/4 dev lo || true
+
+          # Confirm multicast route was added
+          ip route show | grep "224\." || echo "WARNING: No multicast route found in routing table!"
+
+          bazel test --test_tag_filters=lint,tc8 --test_output=all --test_env=TC8_HOST_IP=127.0.0.1 //tests/tc8_conformance/...
       - run: df -h
         if: always()

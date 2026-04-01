@@ -1,0 +1,256 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+"""TC8 SOME/IP conformance and enhanced testability tests for someipd."""
+
+load("@score_tooling//:defs.bzl", "score_py_pytest")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+
+_COMMON_DEPS = [
+    "//src/someipd",
+    "@score_someip_gateway_pip//someip",
+]
+
+# Force colored pytest output.
+_COMMON_ARGS = ["--color=yes"]
+
+# Each TC8 target uses unique SD and service ports assigned via the Bazel
+# ``env`` attribute.  The SOME/IP-SD protocol requires the SD source port to
+# equal the configured SD port; this is satisfied because both the DUT config
+# and Python sockets read the same TC8_SD_PORT env var for each process.  The
+# ``exclusive`` tag is removed from the four medium targets; the two large
+# targets (tc8_sd_phases_timing and tc8_sd_reboot) retain it for timing
+# accuracy and reboot lifecycle safety.
+_COMMON_TAGS = [
+    "tc8",
+    "conformance",
+]
+
+# Used by timing and reboot targets that are sensitive to scheduler jitter
+# or manage external someipd processes outside the shared someipd_dut fixture.
+_EXCLUSIVE_TAGS = _COMMON_TAGS + ["exclusive"]
+
+score_py_pytest(
+    name = "tc8_service_discovery",
+    size = "medium",
+    srcs = [
+        "conftest.py",
+        "test_service_discovery.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30490",
+        "TC8_SVC_PORT": "30500",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _COMMON_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_sd_phases_timing",
+    size = "large",
+    srcs = [
+        "conftest.py",
+        "test_sd_phases_timing.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30491",
+        "TC8_SVC_PORT": "30501",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _EXCLUSIVE_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_message_format",
+    size = "medium",
+    srcs = [
+        "conftest.py",
+        "test_someip_message_format.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30492",
+        "TC8_SVC_PORT": "30502",
+        "TC8_SVC_TCP_PORT": "30503",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _COMMON_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_event_notification",
+    size = "medium",
+    srcs = [
+        "conftest.py",
+        "test_event_notification.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30493",
+        "TC8_SVC_PORT": "30504",
+        "TC8_SVC_TCP_PORT": "30505",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _COMMON_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_sd_reboot",
+    size = "large",
+    srcs = [
+        "conftest.py",
+        "test_sd_reboot.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30494",
+        "TC8_SVC_PORT": "30506",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _EXCLUSIVE_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_field_conformance",
+    size = "medium",
+    srcs = [
+        "conftest.py",
+        "test_field_conformance.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30495",
+        "TC8_SVC_PORT": "30507",
+        "TC8_SVC_TCP_PORT": "30508",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _COMMON_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_sd_format",
+    size = "medium",
+    srcs = [
+        "conftest.py",
+        "test_sd_format_compliance.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30496",
+        "TC8_SVC_PORT": "30509",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _COMMON_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_sd_robustness",
+    size = "medium",
+    srcs = [
+        "conftest.py",
+        "test_sd_robustness.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30497",
+        "TC8_SVC_PORT": "30510",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _COMMON_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_sd_client",
+    size = "large",
+    srcs = [
+        "conftest.py",
+        "test_sd_client.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30498",
+        "TC8_SVC_PORT": "30511",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _EXCLUSIVE_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+score_py_pytest(
+    name = "tc8_multi_service",
+    size = "medium",
+    srcs = [
+        "conftest.py",
+        "test_multi_service.py",
+    ] + glob(["helpers/*.py"]),
+    args = _COMMON_ARGS,
+    data = glob(["config/*.json"]),
+    env = {
+        "TC8_SD_PORT": "30499",
+        "TC8_SVC_PORT": "30512",
+        "TC8_SVC_TCP_PORT": "30513",
+    },
+    env_inherit = ["TC8_HOST_IP"],
+    imports = ["."],
+    tags = _COMMON_TAGS,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _COMMON_DEPS,
+)
+
+[validate_json_schema_test(
+    name = cfg.replace(".json", "_schema_valid"),
+    size = "small",
+    json = "config/" + cfg,
+    schema = "config/tc8_someipd_config.schema.json",
+    tags = ["lint"],
+) for cfg in [
+    "tc8_someipd_sd.json",
+    "tc8_someipd_service.json",
+    "tc8_someipd_multi.json",
+]]

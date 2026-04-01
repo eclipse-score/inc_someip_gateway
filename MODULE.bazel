@@ -158,7 +158,7 @@ register_toolchains(
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "score_tooling", version = "1.1.2", dev_dependency = True)
 bazel_dep(name = "aspect_rules_lint", version = "2.3.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
 
@@ -173,6 +173,7 @@ download_archive = use_repo_rule("@download_utils//download/archive:defs.bzl", "
 download_archive(
     name = "json_schema_validator",
     build = "//third_party/json_schema_validator:json_schema_validator.BUILD",
+    integrity = "sha256-g/YdgRL0heDT8ectUWELo5JLF5kmqDdq7zwDh3D68gI=",
     strip_prefix = "json-schema-validator-2.1.0",
     urls = ["https://github.com/pboettch/json-schema-validator/archive/refs/tags/2.1.0.tar.gz"],
 )
@@ -180,6 +181,7 @@ download_archive(
 download_archive(
     name = "jsonschema",
     build = "//third_party/jsonschema:jsonschema.BUILD",
+    integrity = "sha256-rugv6PaV/h4ielG3dMOujCuyVpUGUampKGbFI7FQQs4=",
     strip_prefix = "jsonschema-4.23.0",
     urls = ["https://github.com/python-jsonschema/jsonschema/archive/refs/tags/v4.23.0.tar.gz"],
 )

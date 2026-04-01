@@ -1,0 +1,64 @@
+{
+    "unicast": "__TC8_HOST_IP__",
+    "logging": {
+        "level": "info",
+        "console": "true",
+        "file": {
+            "enable": "false",
+            "path": "/tmp/vsomeip-tc8.log"
+        },
+        "dlt": "false"
+    },
+    "applications": [
+        {
+            "name": "someipd",
+            "id": "0x1277"
+        }
+    ],
+    "services": [
+        {
+            "service": "0x1234",
+            "instance": "0x5678",
+            "unreliable": "__TC8_SVC_PORT__",
+            "events": [
+                {
+                    "event": "0x0777",
+                    "is_field": "true",
+                    "update-cycle": 2000
+                }
+            ],
+            "eventgroups": [
+                {
+                    "eventgroup": "0x4455",
+                    "events": [
+                        "0x777"
+                    ]
+                },
+                {
+                    "eventgroup": "0x4465",
+                    "events": [
+                        "0x777"
+                    ],
+                    "multicast": {
+                        "address": "239.0.0.1",
+                        "port": "40490"
+                    }
+                }
+            ]
+        }
+    ],
+    "routing": "someipd",
+    "service-discovery": {
+        "enable": "true",
+        "multicast": "224.244.224.245",
+        "port": "__TC8_SD_PORT__",
+        "protocol": "udp",
+        "initial_delay_min": "10",
+        "initial_delay_max": "100",
+        "repetitions_base_delay": "200",
+        "repetitions_max": "3",
+        "ttl": "30",
+        "cyclic_offer_delay": "2000",
+        "request_response_delay": "500"
+    }
+}
