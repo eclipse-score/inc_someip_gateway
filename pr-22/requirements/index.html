@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Architectural Design Decision: Dynamic Registration for SOME/IP Gateway &#8212; Module Template Project  documentation</title>
+    <title>Requirements &#8212; Module Template Project  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/dec_someipgw_registration';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/index';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -72,8 +72,8 @@
         </script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="TC8 SOME/IP Conformance Testing" href="../tc8_conformance/index.html" />
-    <link rel="prev" title="Components" href="components.html" />
+    <link rel="next" title="Stakeholder Requirements" href="stakeholder.html" />
+    <link rel="prev" title="SOMEIP Gateway Documentation" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -152,15 +152,15 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../requirements/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
     Requirements
   </a>
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -281,15 +281,15 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../requirements/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
     Requirements
   </a>
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -365,10 +365,9 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
-</ul>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stakeholder.html">Stakeholder Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a></li>
 </ul>
 </div>
 </nav></div>
@@ -409,10 +408,7 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOMEIP Gateway Architecture</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Requirements</span></li>
   </ul>
 </nav>
 </div>
@@ -429,153 +425,155 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="architectural-design-decision-dynamic-registration-for-some-ip-gateway">
-<h1>Architectural Design Decision: Dynamic Registration for SOME/IP Gateway<a class="headerlink" href="#architectural-design-decision-dynamic-registration-for-some-ip-gateway" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-9f8f6d02">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__component__someip_gw_registration">
+  <section id="requirements">
+<h1>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h1>
+<p>This section contains all requirements for the SOME/IP Gateway, organized
+following the S-CORE docs-as-code requirements process.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="stakeholder.html">Stakeholder Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature Requirements</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+<section id="organization">
+<h2>Organization<a class="headerlink" href="#organization" title="Link to this heading">#</a></h2>
+<p>Requirements are structured in a three-level hierarchy following the
+S-CORE requirements engineering process:</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id1">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">Requirements Hierarchy</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 30.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
+<th class="head"><p>Directory</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
 <tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Dynamic Registration for SOME/IP Gateway</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">proposed</span></span></span></div>
-<div class="line"><span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
+<tr class="row-even"><td><p>Stakeholder</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">requirements/stakeholder.rst</span></code></p></td>
+<td><p>High-level needs and constraints from users, integrators, and safety</p></td>
 </tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_context"><span class="needs_label">context: </span><span class="needs_data">The SOME/IP Gateway architecture separates the core communication stack from multiple gateway processes. This is necessary for safety separation (ASIL vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gateway &quot;client&quot; processes to inform the central &quot;server&quot; stack of their routing needs at runtime.</span></span></div>
-<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Gateway processes will dynamically register their communication requirements (e.g., required services and events) with the central SOME/IP Communication Stack process. This will be achieved via a dedicated, message-based IPC interface.</span></span></div>
-</span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
+<tr class="row-odd"><td><p>Feature</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">requirements/feature/</span></code></p></td>
+<td><p>Derived from stakeholder requirements, scoped to a gateway feature</p></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#dec_rec__component__someip_gw_registration" title="dec_rec__component__someip_gw_registration">dec_rec__component__someip_gw_registration</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Decision Record</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
+<tr class="row-even"><td><p>Component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">requirements/component/</span></code></p></td>
+<td><p>Derived from feature requirements, scoped to a specific component</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<section id="component-names">
+<h3>Component Names<a class="headerlink" href="#component-names" title="Link to this heading">#</a></h3>
+<p>The following component identifiers are used in requirement IDs and file names:</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id2">
+<caption><span class="caption-number">Table 2 </span><span class="caption-text">Component Identifiers</span><a class="headerlink" href="#id2" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Safety</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></td>
+<td><p>ASIL-B</p></td>
+<td><p>Gateway daemon — bridges IPC and SOME/IP, E2E protection, ACL enforcement</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code></p></td>
+<td><p>QM</p></td>
+<td><p>SOME/IP stack daemon — wraps vsomeip, handles network I/O and SOME/IP-SD</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">network_service</span></code></p></td>
+<td><p>ASIL-B</p></td>
+<td><p>IPC interface between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> (SomeipMessageTransfer)</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<section id="alternatives-considered">
-<h2>Alternatives Considered<a class="headerlink" href="#alternatives-considered" title="Link to this heading">#</a></h2>
-<section id="static-configuration-file">
-<h3>Static Configuration File<a class="headerlink" href="#static-configuration-file" title="Link to this heading">#</a></h3>
-<p>A central, static configuration file (e.g., in JSON or XML format) would define the complete routing table for all possible gateway processes.
-The SOME/IP Communication Stack would parse this file at its startup and configure all possible routes.
-Gateway processes would also read this file to understand their respective roles.</p>
-<section id="advantages">
-<h4>Advantages<a class="headerlink" href="#advantages" title="Link to this heading">#</a></h4>
+</section>
+<section id="requirement-identifier-scheme">
+<h3>Requirement Identifier Scheme<a class="headerlink" href="#requirement-identifier-scheme" title="Link to this heading">#</a></h3>
+<p>IDs follow the pattern <code class="docutils literal notranslate"><span class="pre">&lt;type&gt;__&lt;scope&gt;__&lt;title_snake_case&gt;</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id3">
+<caption><span class="caption-number">Table 3 </span><span class="caption-text">Identifier Format</span><a class="headerlink" href="#id3" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 40.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Type Prefix</p></th>
+<th class="head"><p>Format</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stkh_req</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stkh_req__some_ip_gateway__&lt;title&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stkh_req__some_ip_gateway__transparent_bridging</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">feat_req</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">feat_req__some_ip_gateway__&lt;title&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">feat_req__some_ip_gateway__e2e_protection</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">comp_req__&lt;component&gt;__&lt;title&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">comp_req__gatewayd__msg_routing</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aou_req</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">aou_req__&lt;component&gt;__&lt;title&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">aou_req__gatewayd__valid_config</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="document-heading-standards">
+<h3>Document Heading Standards<a class="headerlink" href="#document-heading-standards" title="Link to this heading">#</a></h3>
+<p>All RST requirement files follow this structure:</p>
+<ol class="arabic simple">
+<li><p>Copyright header (RST comment block)</p></li>
+<li><p>Document title — <code class="docutils literal notranslate"><span class="pre">=</span></code> overline/underline</p></li>
+<li><p>Descriptive introduction paragraph</p></li>
+<li><p>Requirement directives grouped by topic</p></li>
+<li><p>Sections within a file use <code class="docutils literal notranslate"><span class="pre">-</span></code> underline, subsections use <code class="docutils literal notranslate"><span class="pre">^</span></code></p></li>
+</ol>
+</section>
+<section id="mandatory-attributes">
+<h3>Mandatory Attributes<a class="headerlink" href="#mandatory-attributes" title="Link to this heading">#</a></h3>
+<p>Every requirement directive must include these attributes:</p>
 <ul class="simple">
-<li><p><strong>Simplicity:</strong>
-No complex runtime IPC protocol for registration is needed.
-The system’s entire configuration is declarative and visible in one place.</p></li>
-<li><p><strong>Predictability:</strong>
-System behavior is fixed at startup, which can simplify system analysis and testing.</p></li>
-<li><p><strong>Low Runtime Overhead:</strong>
-No resources are spent on registration messages during operation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:id:</span></code> — unique identifier per the scheme above</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:status:</span></code> — <code class="docutils literal notranslate"><span class="pre">valid</span></code> or <code class="docutils literal notranslate"><span class="pre">draft</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:safety:</span></code> — <code class="docutils literal notranslate"><span class="pre">QM</span></code> or <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:security:</span></code> — <code class="docutils literal notranslate"><span class="pre">YES</span></code> or <code class="docutils literal notranslate"><span class="pre">NO</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:reqtype:</span></code> — <code class="docutils literal notranslate"><span class="pre">Functional</span></code>, <code class="docutils literal notranslate"><span class="pre">Interface</span></code>, <code class="docutils literal notranslate"><span class="pre">Process</span></code>, or <code class="docutils literal notranslate"><span class="pre">Non-Functional</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code> — parent requirement ID (mandatory for feature and component levels)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:rationale:</span></code> — justification text (mandatory for stakeholder level only)</p></li>
 </ul>
 </section>
-<section id="disadvantages">
-<h4>Disadvantages<a class="headerlink" href="#disadvantages" title="Link to this heading">#</a></h4>
+<section id="cross-references">
+<h3>Cross-References<a class="headerlink" href="#cross-references" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><strong>Inflexible and Static:</strong>
-Any change, such as adding a new gateway process or modifying an existing one’s routes, requires a restart of the central SOME/IP stack.
-This would cause a temporary loss of all external communication for the entire system, not just the affected gateway.</p></li>
-<li><p><strong>Lack of Resilience:</strong>
-The SOME/IP stack has no knowledge of whether a gateway process is actually running.
-It may attempt to forward data to a crashed or non-existent process, leading to data loss and wasted resources.</p></li>
-<li><p><strong>Tight Coupling:</strong>
-The central stack’s configuration is coupled to the existence of every potential gateway client.</p></li>
+<li><p>TC8 conformance test requirements are maintained in <a class="reference internal" href="../tc8_conformance/index.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>
+alongside their test specifications.</p></li>
 </ul>
 </section>
-</section>
-<section id="shared-memory-control-block">
-<h3>Shared Memory Control Block<a class="headerlink" href="#shared-memory-control-block" title="Link to this heading">#</a></h3>
-<p>The SOME/IP stack would create a shared memory segment with a well-defined data structure (a “control block”).
-This structure would contain slots for gateway processes to write their registration information (e.g., PID, required service IDs).
-The SOME/IP stack would periodically poll this memory to discover and update its routing table.</p>
-<section id="id1">
-<h4>Advantages<a class="headerlink" href="#id1" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>High Performance:</strong>
-Bypasses the kernel for data exchange, offering very low latency communication between the processes.</p></li>
-</ul>
-</section>
-<section id="id2">
-<h4>Disadvantages<a class="headerlink" href="#id2" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>High Complexity &amp; Risk:</strong>
-Requires complex and error-prone synchronization mechanisms (e.g., mutexes, semaphores within the shared memory) to prevent race conditions.
-A gateway crashing while holding a lock could deadlock the entire system.
-Unfortunately this kind of communication pattern is not implemented in LoLa (unlike iceoryx2 with the blackboard pattern) which would abstract all those complexities away.</p></li>
-<li><p><strong>Brittle:</strong>
-The data structures are tightly coupled.
-A change in the control block structure requires recompiling all participating processes.
-This would be acceptable though in this case because the gateway and the SOME/IP stack are developed together.</p></li>
-<li><p><strong>Implicit Liveness:</strong>
-Detecting a crashed gateway is not straightforward.
-It would require implementing a heartbeat mechanism within the shared memory, adding further complexity.</p></li>
-</ul>
-</section>
-</section>
-<section id="one-some-ip-stack-per-gateway-process">
-<h3>One SOME/IP Stack per Gateway Process<a class="headerlink" href="#one-some-ip-stack-per-gateway-process" title="Link to this heading">#</a></h3>
-<p>Each gateway process would embed its own instance of the SOME/IP communication stack, linking it as a library. Each process would then attempt to manage its own network socket.</p>
-<section id="id3">
-<h4>Advantages<a class="headerlink" href="#id3" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>Maximum Decoupling:</strong>
-Processes are completely self-contained with no runtime dependency on a central stack for network access.</p></li>
-</ul>
-</section>
-<section id="id4">
-<h4>Disadvantages<a class="headerlink" href="#id4" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>Fundamentally Infeasible:</strong>
-This approach is not viable under the core constraint.
-Multiple processes <strong>cannot</strong> bind to the same network device and port simultaneously.
-This would lead to “Address already in use” errors for all but the first process to start.
-While they could use different ports, this would violate the SOME/IP service architecture, where a service is expected at a specific, well-known port.</p></li>
-</ul>
-</section>
-</section>
-</section>
-<section id="justification-for-the-decision">
-<h2>Justification for the Decision<a class="headerlink" href="#justification-for-the-decision" title="Link to this heading">#</a></h2>
-<p>The <strong>Dynamic Registration via IPC</strong> approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity.</p>
-<ul class="simple">
-<li><p><strong>Flexibility and Scalability:</strong>
-This is the primary advantage.
-New gateway processes can be introduced, and existing ones can be updated and restarted independently without affecting the central SOME/IP stack or any other gateway.
-This is essential for a dynamic, resilient system.</p></li>
-<li><p><strong>Robust State Management:</strong>
-The registration protocol provides explicit control over the system’s state.
-The central stack knows exactly which gateways are active and what their requirements are.
-The IPC connection’s liveness provides a reliable and immediate mechanism to detect client failures and clean up associated routes, preventing data loss to dead processes.</p></li>
-<li><p><strong>Clear Separation of Concerns:</strong>
-It enforces the client-server model cleanly.
-The IPC protocol becomes a well-defined API contract between the components, allowing them to be developed, tested, and maintained independently.</p></li>
-</ul>
-<p>While this approach introduces the overhead of defining and managing an IPC protocol, this complexity is justified by the significant gains in flexibility and resilience when compared to the static alternatives.
-It is far less complex and risky than implementing a custom shared memory solution, and it is the only viable option that respects the fundamental networking constraints of the operating system.</p>
 </section>
 </section>
 
@@ -590,20 +588,20 @@ It is far less complex and risky than implementing a custom shared memory soluti
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="components.html"
+       href="../index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Components</p>
+        <p class="prev-next-title">SOMEIP Gateway Documentation</p>
       </div>
     </a>
     <a class="right-next"
-       href="../tc8_conformance/index.html"
+       href="stakeholder.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">TC8 SOME/IP Conformance Testing</p>
+        <p class="prev-next-title">Stakeholder Requirements</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -626,25 +624,14 @@ It is far less complex and risky than implementing a custom shared memory soluti
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#alternatives-considered">Alternatives Considered</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#static-configuration-file">Static Configuration File</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#advantages">Advantages</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#disadvantages">Disadvantages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organization">Organization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#component-names">Component Names</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#requirement-identifier-scheme">Requirement Identifier Scheme</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#document-heading-standards">Document Heading Standards</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mandatory-attributes">Mandatory Attributes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-references">Cross-References</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory-control-block">Shared Memory Control Block</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Advantages</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Disadvantages</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#one-some-ip-stack-per-gateway-process">One SOME/IP Stack per Gateway Process</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Advantages</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Disadvantages</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#justification-for-the-decision">Justification for the Decision</a></li>
 </ul>
   </nav></div>
 
@@ -652,7 +639,7 @@ It is far less complex and risky than implementing a custom shared memory soluti
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/dec_someipgw_registration.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/index.rst">
       <i class="fa-solid fa-pencil"></i>
       
       

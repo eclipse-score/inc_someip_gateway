@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -72,7 +72,7 @@
         </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="SOMEIP Gateway Architecture" href="architecture/index.html" />
+    <link rel="next" title="Requirements" href="requirements/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -152,8 +152,22 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="architecture/index.html">
     SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tc8_conformance/index.html">
+    TC8 SOME/IP Conformance Testing
   </a>
 </li>
 
@@ -269,8 +283,22 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="architecture/index.html">
     SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tc8_conformance/index.html">
+    TC8 SOME/IP Conformance Testing
   </a>
 </li>
 
@@ -364,8 +392,20 @@
 <h1>SOMEIP Gateway Documentation<a class="headerlink" href="#someip-gateway-documentation" title="Link to this heading">#</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="requirements/index.html">Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="requirements/stakeholder.html">Stakeholder Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="requirements/feature/index.html">Feature Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="requirements/component/index.html">Component Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="requirements/index.html#organization">Organization</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="architecture/index.html">SOMEIP Gateway Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture/index.html#component-definition">Component Definition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture/index.html#design-decisions">Design decisions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tc8_conformance/index.html">TC8 SOME/IP Conformance Testing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tc8_conformance/requirements.html">TC8 Conformance Test Requirements</a></li>
 </ul>
 </li>
 </ul>
@@ -374,52 +414,6 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
 <p>This repository provides a standardized setup for projects using <strong>C++</strong> or <strong>Rust</strong> and <strong>Bazel</strong> as a build system.
 It integrates best practices for build, test, CI/CD and documentation.</p>
-</section>
-<section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-5031b95a">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_stkh_req table" id="stkh_req__docgen_enabled__example">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Example Functional Requirement</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">YES</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_rationale"><span class="needs_label">rationale: </span><span class="needs_data">Ensure documentation builds are possible for all modules</span></span></div>
-<div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
-</span></span></div>
-<div class="line"><span></span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#stkh_req__docgen_enabled__example" title="stkh_req__docgen_enabled__example">stkh_req__docgen_enabled__example</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Stakeholder Requirement</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 </section>
 <section id="project-layout">
 <h2>Project Layout<a class="headerlink" href="#project-layout" title="Link to this heading">#</a></h2>
@@ -468,11 +462,11 @@ It integrates best practices for build, test, CI/CD and documentation.</p>
                   
 <div class="prev-next-area">
     <a class="right-next"
-       href="architecture/index.html"
+       href="requirements/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">SOMEIP Gateway Architecture</p>
+        <p class="prev-next-title">Requirements</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -496,7 +490,6 @@ It integrates best practices for build, test, CI/CD and documentation.</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#requirements">Requirements</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#project-layout">Project Layout</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
@@ -507,7 +500,7 @@ It integrates best practices for build, test, CI/CD and documentation.</p>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/'docs'/index.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/index.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
