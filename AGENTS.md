@@ -58,25 +58,36 @@ bazel run //src/someipd
 # Run example application
 bazel run //examples/car_window_sim:car_window_controller
 
-# Run all C++ tests
-bazel test //tests/cpp:all
+# Run all tests
+bazel test //...
 
 # Run integration tests
 bazel test //tests/integration:integration
 
 # Run performance benchmarks
-bazel test //tests/performance_benchmarks:all
+bazel test //tests/benchmarks:all
 
 # Generate/update compile_commands.json for IDE support
 bazel run //:bazel-compile-commands
 ```
 
 **When adding new code, tests are required by default:**
-- C++ unit tests in [tests/cpp/BUILD.bazel](tests/cpp/BUILD.bazel)
 - Integration tests in [tests/integration/BUILD.bazel](tests/integration/BUILD.bazel)
 - Use `py_pytest` rule for Python tests
 
 ## Project Conventions
+
+**Directory layout**
+- Units and components are called software elements
+- Software elements are placed underneath [src/](src/)
+- A software elements directory be default looks like this:
+  ```
+  <software element>/
+  ├── BUILD
+  ├── doc/
+  ├── include/
+  ├── src/
+  └── test/```
 
 **Configuration Management:**
 - FlatBuffers schemas define typed configs (see [gatewayd_config.fbs](src/gatewayd/etc/gatewayd_config.fbs))
@@ -115,4 +126,4 @@ Follow [CONTRIBUTION.md](CONTRIBUTION.md):
 
 ---
 
-**Last updated: 2025-02-16**
+**Last updated: 2025-04-02**
