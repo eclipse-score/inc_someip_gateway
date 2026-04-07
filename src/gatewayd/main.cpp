@@ -11,6 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <getopt.h>
+
 #include <atomic>
 #include <csignal>
 #include <fstream>
@@ -20,6 +22,7 @@
 
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
+#include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/com/types.h"
 #include "src/config/mw_someip_config_generated.h"
@@ -39,10 +42,65 @@ void termination_handler(int /*signal*/) {
     shutdown_requested.store(true);
 }
 
-int main(int argc, const char* argv[]) {
+void print_help() {
+    std::cout << "Syntax: gatewayd -h/--help\n"
+              << "        gatewayd -c/--configuration <config.bin> "
+              << "-s/--service_instance_manifest <manifest.json>\n"
+              << "\n";
+
+    std::cout << "Options:\n"
+              << " -h/--help Displays this help\n"
+              << " -c/--configuration Specifies the configuration file\n"
+              << " -s/--service_instance_manifest Specifies the service instance manifest file\n"
+              << "\n";
+}
+
+int main(int argc, char* argv[]) {
     // Register signal handlers for graceful shutdown
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
+
+    const char* const short_opts = "hc:s:";
+    const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
+                                {"configuration", required_argument, nullptr, 'c'},
+                                {"service_instance_manifest", required_argument, nullptr, 's'},
+                                {nullptr, no_argument, nullptr, 0}};
+
+    score::filesystem::Path service_instance_manifest_path;
+    score::filesystem::Path configuration_path;
+
+    while (true) {
+        const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
+        if (opt == -1) {
+            // No more options
+            break;
+        }
+        switch (static_cast<char>(opt)) {
+            case 'h': {
+                print_help();
+                return 0;
+            }
+            case 'c': {
+                configuration_path = score::filesystem::Path{optarg};
+                break;
+            }
+            case 's': {
+                service_instance_manifest_path = score::filesystem::Path{optarg};
+                break;
+            }
+            // Unknown option
+            default: {
+                print_help();
+                return 1;
+            }
+        }
+    }
+
+    // Both configurations are required, otherwise print help and exit
+    if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
+        print_help();
+        return 1;
+    }
 
     // Read config data
     // TODO: Be more flexible with the path
@@ -73,7 +131,8 @@ int main(int argc, const char* argv[]) {
     auto config =
         std::shared_ptr<const config::Root>(config_buffer, config::GetRoot(config_buffer.get()));
 
-    score::mw::com::runtime::InitializeRuntime(argc, argv);
+    score::mw::com::runtime::InitializeRuntime(
+        score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
     // TODO: Need to come up with a proper scheme how to generate instance specifiers
     auto create_result = SomeipMessageTransferSkeleton::Create(

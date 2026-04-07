@@ -27,7 +27,7 @@ cc_binary(
     name = "someipd",
     srcs = ["main.cpp"],
     args = [
-        "-service_instance_manifest",
+        "--service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
     ],
     data = [
@@ -36,6 +36,7 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//src/network_service:provider",
+        "@score_baselibs//score/filesystem",
         "@score_baselibs//score/language/futurecpp",
         "@score_communication//score/mw/com",
         "@vsomeip",

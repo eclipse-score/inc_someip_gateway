@@ -31,10 +31,11 @@ cc_binary(
     srcs = ["main.cpp"],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/config:config_flatbuffers",
         ":local_service_instance",
         ":remote_service_instance",
+        "//src/config:config_flatbuffers",
         "//src/network_service:consumer",
+        "@score_baselibs//score/filesystem",
         "@score_communication//score/mw/com",
     ],
 )
@@ -75,7 +76,7 @@ native_binary(
     name = "gatewayd_example",
     src = "//src/gatewayd",
     args = [
-        "-service_instance_manifest",
+        "--service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
     ],
     data = [
