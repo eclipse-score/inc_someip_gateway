@@ -42,6 +42,7 @@ void termination_handler(int /*signal*/) {
     shutdown_requested.store(true);
 }
 
+// Help text, showing usage syntax and available options
 void print_help() {
     std::cout << "Syntax: gatewayd -h/--help\n"
               << "        gatewayd -c/--configuration <config.bin> "
@@ -66,13 +67,13 @@ int main(int argc, char* argv[]) {
                                 {"service_instance_manifest", required_argument, nullptr, 's'},
                                 {nullptr, no_argument, nullptr, 0}};
 
-    score::filesystem::Path service_instance_manifest_path;
-    score::filesystem::Path configuration_path;
+    score::filesystem::Path service_instance_manifest_path{};
+    score::filesystem::Path configuration_path{};
 
     while (true) {
         const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
         if (opt == -1) {
-            // No more options
+            // No more options, break the while loop
             break;
         }
         switch (static_cast<char>(opt)) {
@@ -96,21 +97,19 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Both configurations are required, otherwise print help and exit
+    // Both configuration files are required, otherwise print help and exit
     if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
         print_help();
         return 1;
     }
 
     // Read config data
-    // TODO: Be more flexible with the path
     // TODO: Use memory mapped file instead of copying into buffer
     std::ifstream config_file;
-    config_file.open("src/gatewayd/etc/gatewayd_config.bin", std::ios::binary | std::ios::in);
+    config_file.open(configuration_path.CStr(), std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file 'src/gatewayd/etc/gatewayd_config.bin'"
-                  << std::endl;
+        std::cerr << "Error: Could not open config file " << configuration_path.CStr() << std::endl;
         return 1;
     }
 
