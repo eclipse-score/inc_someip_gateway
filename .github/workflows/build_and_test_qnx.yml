@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         bazel-config: ["x86_64-qnx", "aarch64-qnx"]
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@829b3e11ccbf924a5782f7bfed647cb1619fdf78 # v0.0.1
+    uses: elektrobit-contrib/eclipse-score_cicd-workflows/.github/workflows/qnx-build.yml@4480706b2573e844588efaef3d0a48d5b9cdf175
     permissions:
       contents: read
       pull-requests: read
