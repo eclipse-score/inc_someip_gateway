@@ -30,17 +30,19 @@ using network_service::interfaces::message_transfer::SomeipMessageTransferSkelet
 static const std::size_t max_sample_count = 10;
 
 LocalServiceInstance::LocalServiceInstance(
-    std::shared_ptr<const config::ServiceInstance> service_instance_config,
+    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     GenericProxy&& ipc_proxy,
     // TODO: Decouple this via an interface
     SomeipMessageTransferSkeleton& someip_message_skeleton)
     : service_instance_config_(std::move(service_instance_config)),
+      service_type_config_(std::move(service_type_config)),
       ipc_proxy_(std::move(ipc_proxy)),
       someip_message_skeleton_(someip_message_skeleton) {
     // Set up IPC event handlers
     auto& events = ipc_proxy_.GetEvents();
 
-    for (auto event_config : *service_instance_config_->events()) {
+    for (auto event_config : *service_type_config_->events()) {
         auto result = events.find(event_config->event_name()->string_view());
         if (result == events.cend()) {
             std::cerr << "Failed to find " << event_config->event_name()->string_view()
@@ -67,11 +69,11 @@ LocalServiceInstance::LocalServiceInstance(
                     // TODO: Design decision: the gateway needs to generate the SOME/IP message
                     // including the header in order to have the E2E protection in the ASIL
                     // context.
-                    std::uint16_t service_id = service_instance_config_->someip_service_id();
+                    std::uint16_t service_id = service_type_config_->service_id();
                     message.data()[pos++] = static_cast<std::byte>(service_id >> 8);
                     message.data()[pos++] = static_cast<std::byte>(service_id & 0xFF);
 
-                    std::uint16_t method_id = event_config->someip_method_id();
+                    std::uint16_t method_id = event_config->event_id();
                     message.data()[pos++] = static_cast<std::byte>(method_id >> 8);
                     message.data()[pos++] = static_cast<std::byte>(method_id & 0xFF);
 
@@ -90,8 +92,7 @@ LocalServiceInstance::LocalServiceInstance(
                     std::uint8_t protocol_version = 1;
                     message.data()[pos++] = static_cast<std::byte>(protocol_version);
 
-                    std::uint8_t interface_version =
-                        service_instance_config_->someip_service_version_major();
+                    std::uint8_t interface_version = service_type_config_->service_version_major();
                     message.data()[pos++] = static_cast<std::byte>(interface_version);
 
                     std::uint8_t message_type = 0x02;  // NOTIFICATION
@@ -120,20 +121,26 @@ LocalServiceInstance::LocalServiceInstance(
 
 namespace {
 struct FindServiceContext {
-    std::shared_ptr<const config::ServiceInstance> config;
+    std::shared_ptr<const mw_someip_config::ServiceInstance> config;
+    std::shared_ptr<const mw_someip_config::ServiceType> service_config;
     SomeipMessageTransferSkeleton& skeleton;
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances;
 
-    FindServiceContext(std::shared_ptr<const config::ServiceInstance> config_,
+    FindServiceContext(std::shared_ptr<const mw_someip_config::ServiceInstance> config_,
+                       std::shared_ptr<const mw_someip_config::ServiceType> service_config_,
                        SomeipMessageTransferSkeleton& skeleton_,
                        std::vector<std::unique_ptr<LocalServiceInstance>>& instances_)
-        : config(std::move(config_)), skeleton(skeleton_), instances(instances_) {}
+        : config(std::move(config_)),
+          service_config(std::move(service_config_)),
+          skeleton(skeleton_),
+          instances(instances_) {}
 };
 
 }  // namespace
 
-Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService(
-    std::shared_ptr<const config::ServiceInstance> service_instance_config,
+Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalServices(
+    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     SomeipMessageTransferSkeleton& someip_message_skeleton,
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
@@ -149,25 +156,27 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
 
     // TODO: StartFindService should be modified to handle arbitrarily large lambdas
     // or we need to check whether it is OK to stick with dynamic allocation here.
-    auto context = std::make_unique<FindServiceContext>(service_instance_config,
-                                                        someip_message_skeleton, instances);
+    auto context = std::make_unique<FindServiceContext>(
+        service_instance_config, service_type_config, someip_message_skeleton, instances);
 
     return GenericProxy::StartFindService(
         [context = std::move(context)](auto handles, auto find_handle) {
-            auto& this_config = context->config;
+            auto& instance_config = context->config;
+            auto& service_config = context->service_config;
 
             auto proxy_result = GenericProxy::Create(handles.front());
             if (!proxy_result.has_value()) {
                 std::cerr << "Proxy creation failed: "
-                          << this_config->instance_specifier()->string_view() << "\n";
+                          << instance_config->instance_specifier()->string_view() << "\n";
                 return;
             }
 
             // TODO: Add mutex if callbacks can run concurrently or use futures
             context->instances.push_back(std::make_unique<LocalServiceInstance>(
-                this_config, std::move(proxy_result).value(), context->skeleton));
+                instance_config, service_config, std::move(proxy_result).value(),
+                context->skeleton));
 
-            std::cout << "Proxy created: " << this_config->instance_specifier()->string_view()
+            std::cout << "Proxy created: " << instance_config->instance_specifier()->string_view()
                       << "\n";
 
             GenericProxy::StopFindService(find_handle);

@@ -16,7 +16,9 @@
 #include <atomic>
 #include <csignal>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <memory>
 #include <thread>
 #include <vsomeip/defines.hpp>
 #include <vsomeip/primitive_types.hpp>
@@ -24,6 +26,7 @@
 
 #include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
+#include "src/config/mw_someip_config_generated.h"
 #include "score/span.hpp"
 #include "src/network_service/interfaces/message_transfer.h"
 
@@ -60,6 +63,7 @@ void termination_handler(int /*signal*/) {
     shutdown_requested.store(true);
 }
 
+// Help text, showing usage syntax and available options
 void print_help() {
     std::cout << "Syntax: someipd -h/--help\n"
               << "        someipd -c/--configuration <config.bin> "
@@ -84,8 +88,8 @@ int main(int argc, char* argv[]) {
                                 {"service_instance_manifest", required_argument, nullptr, 's'},
                                 {nullptr, no_argument, nullptr, 0}};
 
-    score::filesystem::Path service_instance_manifest_path;
-    score::filesystem::Path configuration_path;
+    score::filesystem::Path service_instance_manifest_path{};
+    score::filesystem::Path configuration_path{};
 
     while (true) {
         const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
@@ -119,6 +123,33 @@ int main(int argc, char* argv[]) {
         print_help();
         return 1;
     }
+
+    // Read config data
+    // TODO: Use memory mapped file instead of copying into buffer
+    std::ifstream config_file;
+    config_file.open(configuration_path.CStr(), std::ios::binary | std::ios::in);
+
+    if (!config_file.is_open()) {
+        std::cerr << "Error: Could not open config file " << configuration_path.CStr() << std::endl;
+        return 1;
+    }
+
+    config_file.seekg(0, std::ios::end);
+    std::streampos length = config_file.tellg();
+
+    if (length <= 0) {
+        std::cerr << "Error: Invalid config file size: " << length << std::endl;
+        config_file.close();
+        return 1;
+    }
+
+    config_file.seekg(0, std::ios::beg);
+    auto config_buffer = std::shared_ptr<char>(new char[length]);
+    config_file.read(config_buffer.get(), length);
+    config_file.close();
+
+    auto config =
+        std::shared_ptr<const score::mw_someip_config::Root>(config_buffer, score::mw_someip_config::GetRoot(config_buffer.get()));
 
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});

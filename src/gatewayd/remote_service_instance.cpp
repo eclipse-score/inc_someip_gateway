@@ -31,9 +31,11 @@ static const std::size_t max_sample_count = 10;
 static const std::size_t SOMEIP_FULL_HEADER_SIZE = 16;
 
 RemoteServiceInstance::RemoteServiceInstance(
-    std::shared_ptr<const config::ServiceInstance> service_instance_config,
+    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     score::mw::com::GenericSkeleton&& ipc_skeleton, SomeipMessageTransferProxy someip_message_proxy)
     : service_instance_config_(std::move(service_instance_config)),
+      service_type_config_(std::move(service_type_config)),
       ipc_skeleton_(std::move(ipc_skeleton)),
       someip_message_proxy_(std::move(someip_message_proxy)) {
     // TODO: Error handling
@@ -81,20 +83,27 @@ RemoteServiceInstance::RemoteServiceInstance(
 
 namespace {
 struct FindServiceContext {
-    std::shared_ptr<const config::ServiceInstance> config;
+    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config;
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config;
     score::mw::com::GenericSkeleton skeleton;
     std::vector<std::unique_ptr<RemoteServiceInstance>>& instances;
 
-    FindServiceContext(std::shared_ptr<const config::ServiceInstance> config_,
-                       score::mw::com::GenericSkeleton&& skeleton_,
-                       std::vector<std::unique_ptr<RemoteServiceInstance>>& instances_)
-        : config(std::move(config_)), skeleton(std::move(skeleton_)), instances(instances_) {}
+    FindServiceContext(
+        std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_,
+        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_,
+        score::mw::com::GenericSkeleton&& skeleton_,
+        std::vector<std::unique_ptr<RemoteServiceInstance>>& instances_)
+        : service_instance_config(std::move(service_instance_config_)),
+          service_type_config(std::move(service_type_config_)),
+          skeleton(std::move(skeleton_)),
+          instances(instances_) {}
 };
 
 }  // namespace
 
 Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteService(
-    std::shared_ptr<const config::ServiceInstance> service_instance_config,
+    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     std::vector<std::unique_ptr<RemoteServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
         std::cerr << "ERROR: Service instance config is nullptr!" << std::endl;
@@ -105,9 +114,9 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
                                       .value();
 
     score::containers::NonRelocatableVector<score::mw::com::EventInfo> events(
-        service_instance_config->events()->size());
+        service_type_config->events()->size());
 
-    for (const auto& event : *service_instance_config->events()) {
+    for (const auto& event : *service_type_config->events()) {
         if (event == nullptr) {
             std::cerr << "ERROR: Encountered nullptr in events configuration!" << std::endl;
             return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
@@ -136,12 +145,12 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
 
     // TODO: StartFindService should be modified to handle arbitrarily large lambdas
     // or we need to check whether it is OK to stick with dynamic allocation here.
-    auto context = std::make_unique<FindServiceContext>(service_instance_config,
-                                                        std::move(ipc_skeleton), instances);
+    auto context = std::make_unique<FindServiceContext>(
+        service_instance_config, service_type_config, std::move(ipc_skeleton), instances);
 
     return SomeipMessageTransferProxy::StartFindService(
         [context = std::move(context)](auto handles, auto find_handle) {
-            auto this_config = context->config;
+            auto this_config = context->service_instance_config;
 
             auto proxy_result = SomeipMessageTransferProxy::Create(handles.front());
             if (!proxy_result.has_value()) {
@@ -153,7 +162,8 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
 
             // TODO: Add mutex if callbacks can run concurrently
             context->instances.push_back(std::make_unique<RemoteServiceInstance>(
-                this_config, std::move(context->skeleton), std::move(proxy_result).value()));
+                this_config, context->service_type_config, std::move(context->skeleton),
+                std::move(proxy_result).value()));
 
             std::cout << "SomeipMessageTransferProxy created for "
                       << this_config->instance_specifier()->string_view() << "\n";

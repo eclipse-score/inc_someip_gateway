@@ -127,8 +127,8 @@ int main(int argc, char* argv[]) {
     config_file.read(config_buffer.get(), length);
     config_file.close();
 
-    auto config =
-        std::shared_ptr<const config::Root>(config_buffer, config::GetRoot(config_buffer.get()));
+    auto config = std::shared_ptr<const score::mw_someip_config::Root>(
+        config_buffer, score::mw_someip_config::GetRoot(config_buffer.get()));
 
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
@@ -143,30 +143,36 @@ int main(int argc, char* argv[]) {
     // TODO: Error handling
     (void)someip_message_skeleton.OfferService();
 
-    // Create service instances from configuration
-    if (config->local_service_instances() == nullptr) {
-        std::cerr << "No local service instances configured" << std::endl;
-        return 1;
-    }
-
+    // Create local service instances from configuration
     std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
-    for (auto service_instance_config : *config->local_service_instances()) {
-        LocalServiceInstance::CreateAsyncLocalService(
-            std::shared_ptr<const config::ServiceInstance>(config, service_instance_config),
-            someip_message_skeleton, local_service_instances);
+    for (auto service_type_config : *config->service_types()) {
+        auto service_instances = service_type_config->local_service_instances();
+        if (service_instances && service_instances->size() > 0) {
+            for (auto service_instance_config : *service_instances) {
+                LocalServiceInstance::CreateAsyncLocalServices(
+                    std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                        config, service_instance_config),
+                    std::shared_ptr<const score::mw_someip_config::ServiceType>(
+                        config, service_type_config),
+                    someip_message_skeleton, local_service_instances);
+            }
+        }
     }
 
-    // Create service instances from configuration
-    if (config->remote_service_instances() == nullptr) {
-        std::cerr << "No remote service instances configured" << std::endl;
-        return 1;
-    }
-
+    // Create remote service instances from configuration
     std::vector<std::unique_ptr<RemoteServiceInstance>> remote_service_instances;
-    for (auto service_instance_config : *config->remote_service_instances()) {
-        RemoteServiceInstance::CreateAsyncRemoteService(
-            std::shared_ptr<const config::ServiceInstance>(config, service_instance_config),
-            remote_service_instances);
+    for (auto service_type_config : *config->service_types()) {
+        auto service_instances = service_type_config->remote_service_instances();
+        if (service_instances && service_instances->size() > 0) {
+            for (auto service_instance_config : *service_instances) {
+                RemoteServiceInstance::CreateAsyncRemoteService(
+                    std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                        config, service_instance_config),
+                    std::shared_ptr<const score::mw_someip_config::ServiceType>(
+                        config, service_type_config),
+                    remote_service_instances);
+            }
+        }
     }
 
     std::cout << "Gateway started, waiting for shutdown signal..." << std::endl;
