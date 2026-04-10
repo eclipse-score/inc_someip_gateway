@@ -697,30 +697,16 @@ under <code class="docutils literal notranslate"><span class="pre">build_and_tes
 <section id="network-namespace-wrapper">
 <h3>Network Namespace Wrapper<a class="headerlink" href="#network-namespace-wrapper" title="Link to this heading">#</a></h3>
 <p>The wrapper script (<code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/tc8_net_wrapper.sh</span></code>) uses
-<code class="docutils literal notranslate"><span class="pre">unshare</span> <span class="pre">--user</span> <span class="pre">--net</span> <span class="pre">--map-root-user</span></code> to create a <strong>private network
-namespace</strong> per test process — no <code class="docutils literal notranslate"><span class="pre">sudo</span></code> required.  Inside the namespace
-the wrapper brings up loopback and adds the multicast route:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ip</span> <span class="n">link</span> <span class="nb">set</span> <span class="n">lo</span> <span class="n">up</span>
-<span class="n">ip</span> <span class="n">route</span> <span class="n">add</span> <span class="mf">224.0.0.0</span><span class="o">/</span><span class="mi">4</span> <span class="n">dev</span> <span class="n">lo</span>
-</pre></div>
-</div>
+<code class="docutils literal notranslate"><span class="pre">unshare</span></code> to create a <strong>private network namespace</strong> per test process
+with loopback and multicast routing — no <code class="docutils literal notranslate"><span class="pre">sudo</span></code> required.</p>
 <p>All child processes (including <code class="docutils literal notranslate"><span class="pre">someipd</span></code> spawned by conftest.py and, in
 future, <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and the ETS application) <strong>inherit the namespace</strong>
 because they are started via <code class="docutils literal notranslate"><span class="pre">subprocess.Popen</span></code> within the wrapped
-process.  This means:</p>
-<ul class="simple">
-<li><p>SD multicast (<code class="docutils literal notranslate"><span class="pre">224.244.224.245</span></code>) is routed via <code class="docutils literal notranslate"><span class="pre">lo</span></code> inside the
-namespace without touching the host routing table.</p></li>
-<li><p>Each test target runs in its own isolated namespace — no port conflicts
-between concurrent targets.</p></li>
-<li><p>No <code class="docutils literal notranslate"><span class="pre">sudo</span></code> privileges are needed: <code class="docutils literal notranslate"><span class="pre">unshare</span> <span class="pre">--user</span> <span class="pre">--net</span></code> uses
-unprivileged user namespaces (enabled by default on Linux ≥ 5.15,
-Ubuntu 24.04, and Docker with default seccomp).</p></li>
-</ul>
-<p>If <code class="docutils literal notranslate"><span class="pre">unshare</span></code> is unavailable (e.g., restricted AppArmor on Ubuntu 24.10+),
-the wrapper falls back to running the test directly.  The
-<code class="docutils literal notranslate"><span class="pre">require_tc8_environment</span></code> fixture detects the missing multicast route and
-skips gracefully.</p>
+process.  Each test target runs in its own isolated namespace — no port
+conflicts between concurrent targets.</p>
+<p>If namespace creation fails, the wrapper falls back to direct execution
+with a warning.  The <code class="docutils literal notranslate"><span class="pre">require_tc8_environment</span></code> fixture detects the
+missing multicast route and skips gracefully.</p>
 </section>
 <section id="ci-workflow">
 <h3>CI Workflow<a class="headerlink" href="#ci-workflow" title="Link to this heading">#</a></h3>
@@ -743,7 +729,7 @@ Two layers of protection exist:</p>
 <li><p><strong>Tag filter exclusion</strong> — <code class="docutils literal notranslate"><span class="pre">.bazelrc</span></code> sets
 <code class="docutils literal notranslate"><span class="pre">test</span> <span class="pre">--test_tag_filters=-tc8</span></code> so <code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">test</span> <span class="pre">//...</span></code> does not even
 attempt to run TC8 targets.</p></li>
-<li><p><strong>Fixture guard</strong> — if TC8 targets are run without the wrapper (e.g.,
+<li><p><strong>Fixture guard</strong> — if TC8 targets are run without the namespace (e.g.,
 via <code class="docutils literal notranslate"><span class="pre">--test_env=TC8_HOST_IP=...</span></code> without <code class="docutils literal notranslate"><span class="pre">--config=tc8</span></code>), the
 <code class="docutils literal notranslate"><span class="pre">require_tc8_environment</span></code> autouse fixture in <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code> checks
 three conditions:</p>
