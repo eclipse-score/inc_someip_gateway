@@ -16,7 +16,7 @@ Creates "validate_json_schema_test" test rule which validates the input "json" f
 """
 
 def _impl(ctx):
-    script = """
+    script = """#!/usr/bin/env bash
     readonly expected_failure={expected_failure}
     '{validator}' '{schema}' < '{json}'
     readonly ret=$?
@@ -39,6 +39,7 @@ Note: by default expected_failure is false."
     ctx.actions.write(
         output = ctx.outputs.executable,
         content = script,
+        is_executable = True,
     )
 
     # To ensure the files needed by the script are available, put them in the runfiles

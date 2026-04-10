@@ -30,3 +30,4 @@ Design decisions
    :maxdepth: 1
 
    dec_someipgw_registration.rst
+   tc8_conformance_testing.rst

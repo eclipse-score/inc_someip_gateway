@@ -21,7 +21,8 @@ module(
 # ============================================================================
 bazel_dep(name = "rules_python", version = "1.9.0", dev_dependency = True)
 
-# rules_python 1.5.0 breaks score_docs_as_code; pin to 1.4.1 until resolved.
+# rules_python >= 1.5.0 breaks score_tooling's pip hub (pip_tooling); pin to 1.4.1 until
+# score_tooling updates its pip extension for the new rules_python API.
 single_version_override(
     module_name = "rules_python",
     version = "1.4.1",
@@ -33,13 +34,6 @@ python.toolchain(
     python_version = "3.12",
 )
 use_repo(python)
-
-bazel_dep(
-    name = "score_bazel_tools_python",
-    version = "0.1.3",
-    dev_dependency = True,
-    repo_name = "bazel_tools_python",
-)
 
 # Python pip dependencies
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
@@ -71,7 +65,7 @@ bazel_dep(name = "rules_rust", version = "0.68.1-score")
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.0.4")
+bazel_dep(name = "score_bazel_platforms", version = "0.1.1")
 
 bazel_dep(name = "score_toolchains_rust", version = "0.7.0", dev_dependency = True)
 git_override(
@@ -158,7 +152,7 @@ register_toolchains(
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
 bazel_dep(name = "aspect_rules_lint", version = "2.3.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
 
@@ -173,21 +167,20 @@ download_archive = use_repo_rule("@download_utils//download/archive:defs.bzl", "
 download_archive(
     name = "json_schema_validator",
     build = "//third_party/json_schema_validator:json_schema_validator.BUILD",
-    strip_prefix = "json-schema-validator-2.1.0",
-    urls = ["https://github.com/pboettch/json-schema-validator/archive/refs/tags/2.1.0.tar.gz"],
-)
-
-download_archive(
-    name = "jsonschema",
-    build = "//third_party/jsonschema:jsonschema.BUILD",
-    strip_prefix = "jsonschema-4.23.0",
-    urls = ["https://github.com/python-jsonschema/jsonschema/archive/refs/tags/v4.23.0.tar.gz"],
+    integrity = "sha256-JMuxFGCcybQ9QBi40D4IL/XS8m9dzovTZTgJcme2Ovk=",
+    strip_prefix = "json-schema-validator-2.4.0",
+    urls = ["https://github.com/pboettch/json-schema-validator/archive/refs/tags/2.4.0.tar.gz"],
 )
 
 # ============================================================================
 # Documentation
 # ============================================================================
 bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
+# Pinned at 3.0.0: upgrading is blocked by three upstream issues (verified 2026-04-09):
+#   1. BCR 3.1.0 has compatibility_level=3 vs baselibs' dep on 3.0.0 (compat=0)
+#   2. score_baselibs does not mark score_docs_as_code as dev_dependency
+#   3. score_tooling@1.2.0 pip_tooling hub lacks sphinx packages needed by 3.0.1
+# Track: eclipse-score/bazel_registry, eclipse-score/baselibs, eclipse-score/tooling
 
 # ============================================================================
 # Communication Framework
