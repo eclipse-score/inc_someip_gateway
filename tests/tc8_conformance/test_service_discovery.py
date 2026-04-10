@@ -68,9 +68,6 @@ _UNKNOWN_INSTANCE_ID: int = 0xBEEF
 _MAJOR_VERSION: int = 0x00
 _MINOR_VERSION: int = 0x00000000
 
-#: All tests in this module require multicast — checked once per module.
-pytestmark = pytest.mark.usefixtures("require_multicast")
-
 
 # ---------------------------------------------------------------------------
 # TC8-SD-001 / TC8-SD-002 / TC8-SD-003 — offer format and cyclic timing

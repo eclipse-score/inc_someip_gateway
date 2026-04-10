@@ -60,9 +60,6 @@ _TCP_EVENTGROUP_ID: int = 0x4475
 _STATIC_FIELD_EVENT_ID: int = 0x0779
 _STATIC_FIELD_EVENTGROUP_ID: int = 0x4480
 
-#: All tests in this module require multicast — checked once per module.
-pytestmark = pytest.mark.usefixtures("require_multicast")
-
 
 # ---------------------------------------------------------------------------
 # TC8-EVT-001 / TC8-EVT-002 — Notification format

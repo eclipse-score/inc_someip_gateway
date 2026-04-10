@@ -638,6 +638,43 @@ route, then runs all TC8 targets::
 writes this address into the SOME/IP config template (replacing the
 ``__TC8_HOST_IP__`` placeholder), keeping all traffic on loopback.
 
+Environment-Aware Skip Logic
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+TC8 tests are designed to **skip gracefully** when the environment is not
+ready, so that ``bazel test //...`` never fails due to TC8 prerequisites.
+The ``require_tc8_environment`` autouse fixture in ``conftest.py`` checks
+three conditions before any test in a module runs:
+
+1. **Opt-in gate** — ``TC8_HOST_IP`` must be present in the environment.
+   Without ``--test_env=TC8_HOST_IP=...``, all TC8 tests skip with an
+   actionable message.
+
+2. **IP validation** — ``TC8_HOST_IP`` must be a valid IPv4 address.
+   A malformed value (e.g. a typo) triggers a skip instead of producing
+   cryptic socket errors.
+
+3. **Multicast route** — when ``TC8_HOST_IP`` is a loopback address, the
+   SOME/IP stack resolves its SD multicast interface from the system routing
+   table. Without an explicit loopback multicast route, SD traffic goes via
+   a physical NIC and never reaches the test sockets.  The fixture runs
+   ``ip route get 224.244.224.245`` and verifies the output contains
+   ``dev lo``; if not, it skips with the ``sudo ip route add`` instruction.
+
+This means:
+
+- ``bazel test //...`` — TC8 tests skip (no ``TC8_HOST_IP``)
+- ``bazel test --test_env=TC8_HOST_IP=127.0.0.1 //tests/tc8_conformance/...``
+  without the multicast route — tests skip with route setup instructions
+- CI (multicast route + ``TC8_HOST_IP``) — tests execute normally
+
+Additionally, the general test step in CI uses ``--test_tag_filters=-tc8``
+to exclude TC8 targets from the main test sweep. TC8 tests run in their own
+dedicated step.
+
+Port Isolation and Parallelism
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Each TC8 target receives unique ``TC8_SD_PORT``, ``TC8_SVC_PORT``, and
 (where applicable) ``TC8_SVC_TCP_PORT`` values via the Bazel ``env``
 attribute, as described in the Port Isolation and Parallel Execution section

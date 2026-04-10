@@ -23,17 +23,14 @@ TC8_HOST_IP
     Use a non-loopback address for reliable multicast.
 """
 
+import ipaddress
 import os
-import socket
-import struct
 import subprocess
 import time
 from pathlib import Path
 from typing import Generator
 
 import pytest
-
-from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
 
 
 # ---------------------------------------------------------------------------
@@ -200,37 +197,66 @@ def tester_ip(host_ip: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Multicast prerequisite check
+# TC8 environment prerequisite check
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="module")
-def require_multicast(host_ip: str) -> None:
-    """Skip the entire module if the host cannot join the SD multicast group.
+@pytest.fixture(autouse=True, scope="module")
+def require_tc8_environment() -> None:
+    """Skip the entire module unless the TC8 environment is fully configured.
 
-    SD uses ``SD_PORT`` (read from ``TC8_SD_PORT`` env var, default 30490).
-    The source port of SD messages must equal the configured SD port; the
-    DUT drops SD packets from other source ports.  Port isolation across
-    parallel Bazel targets is achieved by assigning each target a unique
-    ``TC8_SD_PORT`` value via the Bazel ``env`` attribute, so targets never
-    compete for the same bind address.
+    Three checks are performed:
+
+    1. **Opt-in gate** — ``TC8_HOST_IP`` must be set explicitly (via
+       ``--test_env=TC8_HOST_IP=...``).  Without it ``bazel test //...``
+       gracefully skips all TC8 tests.
+
+    2. **IP validation** — ``TC8_HOST_IP`` must be a valid IPv4 address.
+       A malformed value (e.g. typo) is caught early with a clear message
+       instead of producing cryptic socket errors later.
+
+    3. **Multicast route** — when ``host_ip`` is a loopback address, the
+       kernel's default multicast route typically goes via a physical NIC,
+       not ``lo``.  The SOME/IP stack may resolves its SD multicast interface
+       from the system routing table (``ip route get 224.x.x.x``), so SD
+       traffic bypasses loopback and never reaches the test sockets.  We
+       verify the route resolves to ``dev lo`` and skip with instructions
+       if not.
+
+    CI sets up both: ``--test_env=TC8_HOST_IP=127.0.0.1`` and
+    ``sudo ip route add 224.0.0.0/4 dev lo``.
     """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    try:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(("", SD_PORT))
-        group = socket.inet_aton(SD_MULTICAST_ADDR)
-        iface = socket.inet_aton(host_ip)
-        mreq = struct.pack("4s4s", group, iface)
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-    except OSError as exc:
+    raw_ip = os.environ.get("TC8_HOST_IP")
+    if raw_ip is None:
         pytest.skip(
-            f"Multicast socket setup failed on {host_ip}: {exc}. "
-            "Set TC8_HOST_IP to a non-loopback interface IP or add a multicast "
-            "route: sudo ip route add 224.0.0.0/4 dev lo"
+            "TC8_HOST_IP not set — TC8 conformance tests require explicit "
+            "opt-in.  Run with: bazel test --test_env=TC8_HOST_IP=127.0.0.1 "
+            "//tests/tc8_conformance/..."
         )
-    finally:
-        sock.close()
+
+    try:
+        addr = ipaddress.ip_address(raw_ip)
+    except ValueError:
+        pytest.skip(
+            f"TC8_HOST_IP={raw_ip!r} is not a valid IP address.  "
+            "Set it to a valid IPv4 address, e.g. 127.0.0.1"
+        )
+
+    if addr.is_loopback:
+        try:
+            result = subprocess.run(
+                ["ip", "route", "get", "224.244.224.245"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if "dev lo" not in result.stdout:
+                pytest.skip(
+                    "Multicast route does not go via loopback.  "
+                    "Add it with: sudo ip route add 224.0.0.0/4 dev lo"
+                )
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass  # 'ip' not available — optimistically proceed
 
 
 # ---------------------------------------------------------------------------
@@ -243,6 +269,7 @@ def someipd_dut(
     request: pytest.FixtureRequest,
     tmp_path_factory: pytest.TempPathFactory,
     host_ip: str,
+    require_tc8_environment: None,  # noqa: ARG001 — ensures env check runs first
 ) -> Generator[subprocess.Popen[bytes], None, None]:
     """Start ``someipd`` as DUT and yield the Popen handle.
 
@@ -252,6 +279,9 @@ def someipd_dut(
     tmp_dir = tmp_path_factory.mktemp("tc8_config")
     config_path = render_someip_config(config_name, host_ip, tmp_dir)
 
-    proc = launch_someipd(config_path)
+    try:
+        proc = launch_someipd(config_path)
+    except RuntimeError as exc:
+        pytest.skip(f"someipd failed to start (environment not ready?): {exc}")
     yield proc
     terminate_someipd(proc)

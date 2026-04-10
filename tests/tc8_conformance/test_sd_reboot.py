@@ -41,9 +41,6 @@ from someip.header import SOMEIPHeader, SOMEIPSDHeader
 #: Uses the standard SD config (same service IDs as test_service_discovery.py).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
-#: All tests require multicast — checked once per module.
-pytestmark = pytest.mark.usefixtures("require_multicast")
-
 
 # ---------------------------------------------------------------------------
 # sd_reboot_capture — module-scoped fixture

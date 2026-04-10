@@ -65,9 +65,6 @@ _GET_METHOD_ID: int = 0x0001
 #: SET field method — updates field value and notifies (TC8-FLD-004).
 _SET_METHOD_ID: int = 0x0002
 
-#: All tests in this module require multicast — checked once per module.
-pytestmark = pytest.mark.usefixtures("require_multicast")
-
 
 # ---------------------------------------------------------------------------
 # TC8-FLD-001 / TC8-FLD-002 — Field initial value on subscribe

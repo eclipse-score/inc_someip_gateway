@@ -59,9 +59,6 @@ _INSTANCE_ID: int = 0x5678
 _EVENTGROUP_ID: int = 0x4455
 _MAJOR_VERSION: int = 0x00
 
-#: All tests in this module require multicast — checked once per module.
-pytestmark = pytest.mark.usefixtures("require_multicast")
-
 
 # ---------------------------------------------------------------------------
 # Module-level helper — collect SD messages from multicast socket

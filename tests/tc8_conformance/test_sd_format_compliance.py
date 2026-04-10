@@ -79,9 +79,6 @@ _MINOR_VERSION: int = 0x00000000
 _MULTICAST_ADDR: str = "239.0.0.1"
 _MULTICAST_PORT: int = 40490
 
-#: All tests in this module require multicast — checked once per module.
-pytestmark = pytest.mark.usefixtures("require_multicast")
-
 
 # ---------------------------------------------------------------------------
 # Internal capture helpers

@@ -36,34 +36,47 @@ coverage status see `docs/architecture/tc8_conformance_testing.rst`.
 
 ## Quick Start
 
+TC8 tests require explicit opt-in via the ``TC8_HOST_IP`` environment
+variable. Without it, ``bazel test //...`` gracefully skips all TC8 targets.
+
 ```bash
-# Run all TC8 tests
-bazel test //tests/tc8_conformance/...
+# Run all TC8 tests (loopback — requires multicast route, see below)
+bazel test --test_env=TC8_HOST_IP=127.0.0.1 //tests/tc8_conformance/...
 
 # Run a specific target
-bazel test //tests/tc8_conformance:tc8_service_discovery
+bazel test --test_env=TC8_HOST_IP=127.0.0.1 //tests/tc8_conformance:tc8_service_discovery
 
 # Run all TC8 tests by tag
-bazel test //tests/... --test_tag_filters=tc8
+bazel test --test_env=TC8_HOST_IP=127.0.0.1 --test_tag_filters=tc8 //tests/...
 
-# Use a real network interface
-TC8_HOST_IP=<your-host-ip> bazel test //tests/tc8_conformance/...
+# Use a real network interface (no multicast route needed)
+bazel test --test_env=TC8_HOST_IP=192.168.x.x //tests/tc8_conformance/...
 ```
+
+> **Note:** ``bazel test //...`` without ``--test_env=TC8_HOST_IP=...`` will
+> skip all TC8 tests with a clear message. This is by design — TC8 tests
+> need network prerequisites that may not be present in every environment.
 
 ## Network Setup
 
 Tests join multicast group `224.244.224.245:30490`.
 
-| Environment | `TC8_HOST_IP` | Multicast? |
-|---|---|---|
-| Real NIC | `192.168.x.x` | Works |
-| Loopback only | `127.0.0.1` (default) | Needs manual route |
-| Bazel sandbox | N/A | Tests auto-skip |
+| Environment | ``TC8_HOST_IP`` | Multicast route? | Tests run? |
+|---|---|---|---|
+| Real NIC | ``192.168.x.x`` | Not needed | ✅ Yes |
+| Loopback | ``127.0.0.1`` | ``sudo ip route add 224.0.0.0/4 dev lo`` | ✅ Yes |
+| Loopback, no route | ``127.0.0.1`` | Missing | ⏭️ Skip |
+| Not set | — | — | ⏭️ Skip |
+| Malformed | e.g. ``abc`` | — | ⏭️ Skip |
 
 ```bash
-# Required on loopback (run once)
+# Required on loopback (run once per boot)
 sudo ip route add 224.0.0.0/4 dev lo
 ```
+
+The ``require_tc8_environment`` fixture in ``conftest.py`` validates all three
+prerequisites (env var presence, IP format, multicast route) and skips the
+entire module with an actionable message when any check fails.
 
 ## Configuration Templates
 

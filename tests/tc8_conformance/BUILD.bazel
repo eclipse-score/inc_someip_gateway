@@ -248,7 +248,10 @@ score_py_pytest(
     size = "small",
     json = "config/" + cfg,
     schema = "config/tc8_someipd_config.schema.json",
-    tags = ["lint"],
+    tags = [
+        "lint",
+        "tc8",
+    ],
 ) for cfg in [
     "tc8_someipd_sd.json",
     "tc8_someipd_service.json",
