@@ -685,6 +685,39 @@ route, then runs all TC8 targets:</p>
 <p><code class="docutils literal notranslate"><span class="pre">TC8_HOST_IP=127.0.0.1</span></code> is passed via <code class="docutils literal notranslate"><span class="pre">--test_env</span></code>. The DUT fixture
 writes this address into the SOME/IP config template (replacing the
 <code class="docutils literal notranslate"><span class="pre">__TC8_HOST_IP__</span></code> placeholder), keeping all traffic on loopback.</p>
+<section id="environment-aware-skip-logic">
+<h3>Environment-Aware Skip Logic<a class="headerlink" href="#environment-aware-skip-logic" title="Link to this heading">#</a></h3>
+<p>TC8 tests are designed to <strong>skip gracefully</strong> when the environment is not
+ready, so that <code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">test</span> <span class="pre">//...</span></code> never fails due to TC8 prerequisites.
+The <code class="docutils literal notranslate"><span class="pre">require_tc8_environment</span></code> autouse fixture in <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code> checks
+three conditions before any test in a module runs:</p>
+<ol class="arabic simple">
+<li><p><strong>Opt-in gate</strong> — <code class="docutils literal notranslate"><span class="pre">TC8_HOST_IP</span></code> must be present in the environment.
+Without <code class="docutils literal notranslate"><span class="pre">--test_env=TC8_HOST_IP=...</span></code>, all TC8 tests skip with an
+actionable message.</p></li>
+<li><p><strong>IP validation</strong> — <code class="docutils literal notranslate"><span class="pre">TC8_HOST_IP</span></code> must be a valid IPv4 address.
+A malformed value (e.g. a typo) triggers a skip instead of producing
+cryptic socket errors.</p></li>
+<li><p><strong>Multicast route</strong> — when <code class="docutils literal notranslate"><span class="pre">TC8_HOST_IP</span></code> is a loopback address, the
+SOME/IP stack resolves its SD multicast interface from the system routing
+table. Without an explicit loopback multicast route, SD traffic goes via
+a physical NIC and never reaches the test sockets.  The fixture runs
+<code class="docutils literal notranslate"><span class="pre">ip</span> <span class="pre">route</span> <span class="pre">get</span> <span class="pre">224.244.224.245</span></code> and verifies the output contains
+<code class="docutils literal notranslate"><span class="pre">dev</span> <span class="pre">lo</span></code>; if not, it skips with the <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">ip</span> <span class="pre">route</span> <span class="pre">add</span></code> instruction.</p></li>
+</ol>
+<p>This means:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">test</span> <span class="pre">//...</span></code> — TC8 tests skip (no <code class="docutils literal notranslate"><span class="pre">TC8_HOST_IP</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bazel</span> <span class="pre">test</span> <span class="pre">--test_env=TC8_HOST_IP=127.0.0.1</span> <span class="pre">//tests/tc8_conformance/...</span></code>
+without the multicast route — tests skip with route setup instructions</p></li>
+<li><p>CI (multicast route + <code class="docutils literal notranslate"><span class="pre">TC8_HOST_IP</span></code>) — tests execute normally</p></li>
+</ul>
+<p>Additionally, the general test step in CI uses <code class="docutils literal notranslate"><span class="pre">--test_tag_filters=-tc8</span></code>
+to exclude TC8 targets from the main test sweep. TC8 tests run in their own
+dedicated step.</p>
+</section>
+<section id="port-isolation-and-parallelism">
+<h3>Port Isolation and Parallelism<a class="headerlink" href="#port-isolation-and-parallelism" title="Link to this heading">#</a></h3>
 <p>Each TC8 target receives unique <code class="docutils literal notranslate"><span class="pre">TC8_SD_PORT</span></code>, <code class="docutils literal notranslate"><span class="pre">TC8_SVC_PORT</span></code>, and
 (where applicable) <code class="docutils literal notranslate"><span class="pre">TC8_SVC_TCP_PORT</span></code> values via the Bazel <code class="docutils literal notranslate"><span class="pre">env</span></code>
 attribute, as described in the Port Isolation and Parallel Execution section
@@ -697,6 +730,7 @@ accuracy or lifecycle correctness.</p>
 <p>Application-level tests (when implemented) will follow the same pattern.
 If multi-node isolation is needed, the Docker Compose setup at
 <code class="docutils literal notranslate"><span class="pre">tests/integration/docker_setup/</span></code> can be extended.</p>
+</section>
 </section>
 <section id="tc8-specification-alignment-analysis">
 <h2>TC8 Specification Alignment Analysis<a class="headerlink" href="#tc8-specification-alignment-analysis" title="Link to this heading">#</a></h2>
@@ -1381,7 +1415,11 @@ return code field.</p></td>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#planned-components">Planned Components</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ci-cd-integration">CI/CD Integration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ci-cd-integration">CI/CD Integration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-aware-skip-logic">Environment-Aware Skip Logic</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#port-isolation-and-parallelism">Port Isolation and Parallelism</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-specification-alignment-analysis">TC8 Specification Alignment Analysis</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coverage-at-a-glance">Coverage at a Glance</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#current-implementation">Current Implementation</a></li>
