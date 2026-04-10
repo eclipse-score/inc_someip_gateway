@@ -856,7 +856,7 @@ First post-restart SD message has reboot flag set and session ID ≤ 2.</p>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tc8_someipd_sd.json</span></code></p>
 </dd>
 <dt class="field-even">Marker<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
@@ -1272,7 +1272,7 @@ No notifications received.</p>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tc8_someipd_service.json</span></code></p>
 </dd>
 <dt class="field-even">Marker<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
@@ -2505,7 +2505,7 @@ Passive capture; read <code class="docutils literal notranslate"><span class="pr
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_options_fields</span></code></p>
 </dd>
 <dt class="field-odd">Marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSdOptionsMulticast::test_options_08_multicast_option_length_is_nine</span></code></p>
@@ -2514,7 +2514,7 @@ Passive capture; read <code class="docutils literal notranslate"><span class="pr
 <p><strong>Purpose:</strong>
 Verify that the IPv4MulticastOption in SubscribeEventgroupAck has length field 0x0009.</p>
 <p><strong>Preconditions:</strong>
-Non-loopback NIC (TC8_HOST_IP set); eventgroup 0x4465 configured with multicast address.</p>
+Non-loopback interface (TC8_HOST_IP set); eventgroup 0x4465 configured with multicast address.</p>
 <p><strong>Stimulus:</strong>
 Send SubscribeEventgroup for eventgroup 0x4465; capture Ack and extract multicast option.</p>
 <p><strong>Expected Result:</strong>
@@ -2530,7 +2530,7 @@ Send SubscribeEventgroup for eventgroup 0x4465; capture Ack and extract multicas
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_options_fields</span></code></p>
 </dd>
 <dt class="field-odd">Marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSdOptionsMulticast::test_options_09_multicast_option_type_is_0x14</span></code></p>
@@ -2553,7 +2553,7 @@ Same as TC8-SDF-028.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_options_fields</span></code></p>
 </dd>
 <dt class="field-odd">Marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSdOptionsMulticast::test_options_10_multicast_option_reserved_is_zero</span></code></p>
@@ -2576,7 +2576,7 @@ Same as TC8-SDF-028.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_options_fields</span></code></p>
 </dd>
 <dt class="field-odd">Marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSdOptionsMulticast::test_options_11_multicast_address_matches_config</span></code></p>
@@ -2600,7 +2600,7 @@ Same as TC8-SDF-028.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_options_fields</span></code></p>
 </dd>
 <dt class="field-odd">Marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSdOptionsMulticast::test_options_12_multicast_option_reserved_before_port_is_zero</span></code></p>
@@ -2623,7 +2623,7 @@ Same as TC8-SDF-028.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_options_fields</span></code></p>
 </dd>
 <dt class="field-odd">Marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSdOptionsMulticast::test_options_13_multicast_option_protocol_is_udp</span></code></p>
@@ -2646,7 +2646,7 @@ Same as TC8-SDF-028.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_options_fields</span></code></p>
 </dd>
 <dt class="field-odd">Marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback NIC)</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.network</span></code> (requires non-loopback interface)</p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSdOptionsMulticast::test_options_14_multicast_port_matches_config</span></code></p>
@@ -3516,7 +3516,7 @@ SubscribeEventgroupAck received unicast at tester’s endpoint; <code class="doc
 </dd>
 </dl>
 <p><strong>Preconditions:</strong>
-Requires physical multicast NIC; skipped automatically on loopback.</p>
+Requires a non-loopback interface; skipped automatically on loopback.</p>
 <p><strong>Stimulus:</strong>
 Subscribe to multicast eventgroup; capture NOTIFICATION on configured multicast group.</p>
 <p><strong>Expected Result:</strong>
@@ -3536,7 +3536,7 @@ NOTIFICATION is received on the eventgroup’s multicast address, not unicast.</
 </dd>
 </dl>
 <p><strong>Preconditions:</strong>
-Requires physical multicast NIC; skipped automatically on loopback.</p>
+Requires a non-loopback interface; skipped automatically on loopback.</p>
 <p><strong>Stimulus:</strong>
 Send SD FindService for the configured service via multicast.</p>
 <p><strong>Expected Result:</strong>
