@@ -149,11 +149,9 @@ Service_instance const& Impl::get_service_instance() const noexcept { return m_i
 bool Impl::is_service_available() const noexcept { return m_server.has_value(); }
 
 message::Service_state_change::Return_type Impl::receive(message::Service_state_change message) {
-    {
+    if (message.state == Service_state::not_available) {
         std::lock_guard<std::mutex> const lock{m_mutex};
-        if (message.state == Service_state::not_available) {
-            m_server.reset();
-        }
+        m_server.reset();
     }
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
