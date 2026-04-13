@@ -41,7 +41,8 @@ struct Literal_tag {};
 ///
 class String_registry final {
    public:
-    // AXIVION AutosarC++18_10-A12.4.1: It's not intended to be used polymorphically.
+    // Other objects used as static variables may depend on this initializer to ensure defined
+    // destruction order.
     struct Initializer {
         std::shared_ptr<String_registry> service_id_registry{shared_service_id_registry()};
         std::shared_ptr<String_registry> instance_id_registry{shared_instance_id_registry()};

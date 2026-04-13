@@ -277,7 +277,7 @@ void register_bridge(Bridge_registration_id const& bridge_id,
     std::set<Key_t> requests_done;
     auto requests_to_do = get_keys(bridge_requests);
     bool first_run = true;
-    // would have been do {} while(); but Axivion forbids it
+    // would have been do {} while(); but static code analysis forbids it
     while (!requests_to_do.empty() || first_run) {
         first_run = false;
         // unlock
