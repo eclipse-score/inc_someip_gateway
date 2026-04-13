@@ -25,12 +25,6 @@
 
 namespace score::socom {
 
-class String_registry;
-
-std::shared_ptr<String_registry> shared_service_id_registry() noexcept;
-
-std::shared_ptr<String_registry> shared_instance_id_registry() noexcept;
-
 /// \brief Tag to select StringView literal version
 struct Literal_tag {};
 
@@ -41,13 +35,6 @@ struct Literal_tag {};
 ///
 class String_registry final {
    public:
-    // Other objects used as static variables may depend on this initializer to ensure defined
-    // destruction order.
-    struct Initializer {
-        std::shared_ptr<String_registry> service_id_registry{shared_service_id_registry()};
-        std::shared_ptr<String_registry> instance_id_registry{shared_instance_id_registry()};
-    };
-
     ///
     /// \brief Insert a new StringView literal into the string registry.
     ///

@@ -65,18 +65,14 @@ std::pair<Registry_string_view, bool> String_registry::insert(std::string&& new_
     return std::pair<Registry_string_view, bool>{Registry_string_view{*iter}, false};
 }
 
-std::shared_ptr<String_registry> shared_service_id_registry() noexcept {
-    static auto const registry = std::make_shared<String_registry>();
+String_registry& service_id_registry() noexcept {
+    static String_registry registry;
     return registry;
 }
 
-String_registry& service_id_registry() noexcept { return *shared_service_id_registry(); }
-
-std::shared_ptr<String_registry> shared_instance_id_registry() noexcept {
-    static auto const registry = std::make_shared<String_registry>();
+String_registry& instance_id_registry() noexcept {
+    static String_registry registry;
     return registry;
 }
-
-String_registry& instance_id_registry() noexcept { return *shared_instance_id_registry(); }
 
 }  // namespace score::socom
