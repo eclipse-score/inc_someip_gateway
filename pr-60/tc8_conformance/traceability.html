@@ -1213,8 +1213,7 @@ spec requirement.</p>
 <p class="admonition-title">Note</p>
 <p>TC8-SDM-012 (SOMEIPSRV_SD_MESSAGE_19) is expected to <strong>FAIL</strong> against
 vsomeip 3.6.1: the stack sends a positive ACK instead of NAck for a
-SubscribeEventgroup with reserved bits set.  See the “Known SOME/IP Stack
-Limitations” section in <a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+SubscribeEventgroup with reserved bits set.  See <a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p>
 </div>
 </section>
 <section id="sd-lifecycle-advanced">
@@ -1728,8 +1727,7 @@ include that capability.</p>
 <p class="admonition-title">Note</p>
 <p>TC8-MSG-022 (SOMEIPSRV_RPC_08) is expected to <strong>FAIL</strong> against vsomeip
 3.6.1: the stack replies to a REQUEST with non-zero return_code when the
-spec requires no reply.  See the “Known SOME/IP Stack Limitations” section
-in <a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+spec requires no reply.  See <a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p>
 <p>TC8-MSG-010 (SOMEIPSRV_BASIC_02) is expected to <strong>FAIL</strong> against vsomeip
 3.6.1: the stack silently drops unknown-service requests rather than
 responding with E_UNKNOWN_SERVICE.</p>
@@ -1830,14 +1828,13 @@ independent assertions.  The 189 IDs above correspond to approximately
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Three tests are expected to <strong>FAIL</strong> against vsomeip 3.6.1 due to known
-stack limitations.  See the “Known SOME/IP Stack Limitations” section in
-<a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+stack limitations.  See <a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Coverage is reported against the subset of TC8 test cases implemented.
 For the full OA TC8 v3.0 Chapter 5 scope analysis see
-<a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+<a class="reference internal" href="#tc8-specification-alignment-analysis">TC8 Specification Alignment Analysis</a> below.</p>
 </div>
 </section>
 <section id="how-to-update">
@@ -1852,6 +1849,546 @@ internal TC8 ID, requirement, and test function.</p></li>
 with the matching <code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__&lt;id&gt;</span></code>.</p></li>
 <li><p>Update the Coverage Summary counts.</p></li>
 </ol>
+</section>
+<section id="tc8-specification-alignment-analysis">
+<h2>TC8 Specification Alignment Analysis<a class="headerlink" href="#tc8-specification-alignment-analysis" title="Link to this heading">#</a></h2>
+<p>This section maps the 230 test cases in Chapter 5 of the
+<a class="reference external" href="https://opensig.org/tech-committee/tc8-automotive-ethernet-ecu-test-specification/">OPEN Alliance TC8 ECU Test Specification Layer 3-7 v3.0 (October 2019)</a>
+to the current implementation status. It answers three questions for every
+TC8 group:</p>
+<ol class="arabic simple">
+<li><p><strong>What is already tested and passing?</strong></p></li>
+<li><p><strong>What can be tested today without any new software?</strong></p></li>
+<li><p><strong>What requires new software before the tests can run?</strong></p></li>
+</ol>
+<p>For the full test case catalog see
+<code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/tc8_ecu_test_chapter5_someip_v3.0_oct2019.md</span></code>.</p>
+<p>The specification organizes Chapter 5 into two top-level groups:</p>
+<ul class="simple">
+<li><p><strong>SOME/IP Server Tests</strong> (<code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_*</span></code>, 93 items, Section 5.1.5) —
+wire-level protocol checks. Only <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and a raw socket are needed.
+No application code is required.</p></li>
+<li><p><strong>Enhanced Testability Service Tests</strong> (<code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_*</span></code>, 137 items,
+Section 5.1.6) — behavior tests that range from wire-level SD tests
+(needing only <code class="docutils literal notranslate"><span class="pre">someipd</span></code>) to full-pipeline serialization tests that
+require a C++ test application.</p></li>
+</ul>
+<section id="coverage-at-a-glance">
+<h3>Coverage at a Glance<a class="headerlink" href="#coverage-at-a-glance" title="Link to this heading">#</a></h3>
+<p>The table below shows the top-level status for all five TC8 test groups.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 8.0%" />
+<col style="width: 9.0%" />
+<col style="width: 10.0%" />
+<col style="width: 41.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>TC8 Group</p></th>
+<th class="head"><p>Total</p></th>
+<th class="head"><p>✅ Tested</p></th>
+<th class="head"><p>⚠ Can add</p></th>
+<th class="head"><p>Infrastructure needed</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SOMEIPSRV Protocol (§5.1.5)</p></td>
+<td><p>93</p></td>
+<td><p>93</p></td>
+<td><p>0</p></td>
+<td><p><strong>N/A</strong> — all wire-level tests complete</p></td>
+</tr>
+<tr class="row-odd"><td><p>ETS SD Protocol (§5.1.6 SD)</p></td>
+<td><p>74</p></td>
+<td><p>60</p></td>
+<td><p>0</p></td>
+<td><p><strong>14 tests blocked — ETS application required</strong>
+(ETS_089/096/097/103/146–151/164/166–168 require ETS C++ application)</p></td>
+</tr>
+<tr class="row-even"><td><p>ETS Robustness (§5.1.6 robustness)</p></td>
+<td><p>14</p></td>
+<td><p>14</p></td>
+<td><p>0</p></td>
+<td><p><strong>N/A</strong> — all tests complete</p></td>
+</tr>
+<tr class="row-odd"><td><p>ETS Serialization / Echo (§5.1.6 echo)</p></td>
+<td><p>44</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p><strong>ETS application + gatewayd</strong> — see <a class="reference internal" href="#ets-application-gap">ETS Application Gap</a></p></td>
+</tr>
+<tr class="row-even"><td><p>ETS Client / Control (§5.1.6 client)</p></td>
+<td><p>5</p></td>
+<td><p>3</p></td>
+<td><p>0</p></td>
+<td><p>2 of 5 require ETS control methods — see <a class="reference internal" href="#ets-application-gap">ETS Application Gap</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Key points:</strong></p>
+<ul class="simple">
+<li><p>The first three groups (181 specification items total) need only <code class="docutils literal notranslate"><span class="pre">someipd</span></code>
+and the existing pytest framework. 167 of these items have
+passing tests; 14 ETS SD items remain blocked pending the ETS C++ application
+(see <a class="reference internal" href="#ets-application-gap">ETS Application Gap</a>).</p></li>
+<li><p>The last two groups (49 tests total) are <strong>blocked</strong>. They cannot be
+written until a C++ ETS test application is implemented. See
+<a class="reference internal" href="#ets-application-gap">ETS Application Gap</a> for what is needed.</p></li>
+</ul>
+</section>
+<section id="some-ip-server-tests-coverage">
+<h3>SOME/IP Server Tests Coverage<a class="headerlink" href="#some-ip-server-tests-coverage" title="Link to this heading">#</a></h3>
+<p>These 93 tests check the SOME/IP wire protocol at the byte level. The DUT is
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> in standalone mode. Each test sends a raw UDP or TCP packet and
+checks the DUT’s response. <strong>No C++ application code or gatewayd is needed.</strong></p>
+<p>The table below uses these status labels:</p>
+<ul class="simple">
+<li><p><strong>Complete</strong> — every specification item in this category has a passing test.</p></li>
+<li><p><strong>Near-complete</strong> — one or two items do not yet have a test, but they can
+be added using the existing framework. No new software is needed.</p></li>
+<li><p><strong>Complete (loopback skip)</strong> — all tests are written and pass on a
+non-loopback interface. Tests that require vsomeip to include
+<code class="docutils literal notranslate"><span class="pre">IPv4MulticastOption</span></code> in SD messages skip automatically on loopback.</p></li>
+</ul>
+<p class="rubric">SOMEIPSRV Coverage Mapping</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 7.0%" />
+<col style="width: 8.0%" />
+<col style="width: 17.0%" />
+<col style="width: 44.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>TC8 Category (Section)</p></th>
+<th class="head"><p>Total</p></th>
+<th class="head"><p>Written</p></th>
+<th class="head"><p>Status</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SD Message Format (5.1.5.1)</p></td>
+<td><p>27</p></td>
+<td><p>27</p></td>
+<td><p><strong>Complete</strong></p></td>
+<td><p>All SD SOME/IP header fields (Client ID, Session ID, Protocol Version,
+Interface Version, Message Type, Return Code, Reboot flag, Unicast
+flag, Reserved) and all OfferService and SubscribeAck entry fields
+(FORMAT_01 through FORMAT_28) have dedicated byte-level assertions in
+<code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance.py</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>SD Options Array (5.1.5.2)</p></td>
+<td><p>15</p></td>
+<td><p>15</p></td>
+<td><p><strong>Complete</strong> (7 skip in CI)</p></td>
+<td><p>IPv4 Endpoint Option (OPTIONS_01–07), IPv4 Multicast Option
+(OPTIONS_08–14), and TCP Endpoint Option (OPTIONS_15) are all tested.
+The 7 multicast sub-field tests (OPTIONS_08–14) skip on loopback
+because vsomeip 3.6.1 does not include <code class="docutils literal notranslate"><span class="pre">IPv4MulticastOption</span></code> in
+SubscribeEventgroupAck when bound to a loopback address.  They run
+and pass on a non-loopback interface.</p></td>
+</tr>
+<tr class="row-even"><td><p>SD Message Entries (5.1.5.3)</p></td>
+<td><p>17</p></td>
+<td><p>17</p></td>
+<td><p><strong>Complete</strong></p></td>
+<td><p>Tested: FindService responses (SD_MESSAGE_01–06), OfferService raw
+entry fields including entry Type byte and both option-run fields
+(SD_MESSAGE_07–09), Subscribe request entry Type byte
+(SD_MESSAGE_11), SubscribeAck entry (SD_MESSAGE_13), NAck conditions
+(SD_MESSAGE_14–19), and Stop Subscribe raw entry format
+(SD_MESSAGE_12). All items covered.</p></td>
+</tr>
+<tr class="row-odd"><td><p>SD Communication Behavior (5.1.5.4)</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p><strong>Complete</strong></p></td>
+<td><p>Repetition phase doubling (SD_BEHAVIOR_01), Main Phase cyclic offers
+(SD_BEHAVIOR_02), and FindService response timing (SD_BEHAVIOR_03/04
+— wall-clock assertions checking the DUT responds within
+<code class="docutils literal notranslate"><span class="pre">request_response_delay</span> <span class="pre">*</span> <span class="pre">1.5</span></code>) are all covered.
+StopSubscribe behavior (SD_BEHAVIOR_06) is covered by TC8-SD-008.
+SD_BEHAVIOR_05 (client reaction to StopOffer) does not apply: the DUT
+is a server only and has no active client subscriptions to cancel.</p></td>
+</tr>
+<tr class="row-even"><td><p>Basic Service Identifiers (5.1.5.5)</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p><strong>Complete</strong></p></td>
+<td><p>Service ID (BASIC_01), Instance ID (BASIC_02), and event notification
+method ID bit — bit 15 = 1 (BASIC_03) — are all verified. Note:
+vsomeip 3.6.1 fails BASIC_03 (sends a RESPONSE to event-ID messages).
+See <a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>On-Wire Format (5.1.5.6)</p></td>
+<td><p>10</p></td>
+<td><p>10</p></td>
+<td><p><strong>Complete</strong></p></td>
+<td><p>Protocol version, message type, request/response ID echo, interface
+version, return codes, and error responses for unknown service or
+method are all verified (ONWIRE_01–07/10–12) in
+<code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Remote Procedure Call (5.1.5.7)</p></td>
+<td><p>17</p></td>
+<td><p>17</p></td>
+<td><p><strong>Complete</strong></p></td>
+<td><p>Tested: TCP request/response (RPC_01/02), Fire-and-Forget
+(RPC_04/05), return code handling (RPC_06–10), field getter/setter
+(RPC_03/11), multiple service instances (RPC_13/14), cyclic
+notification rate (RPC_15), on-change-only notification (RPC_16),
+TCP event and field notification (RPC_17), error header echo
+(RPC_18/19/20). All items covered.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Summary: All 93 SOMEIPSRV items have passing tests.</strong></p>
+</section>
+<section id="ets-tests-coverage">
+<h3>ETS Tests Coverage<a class="headerlink" href="#ets-tests-coverage" title="Link to this heading">#</a></h3>
+<p>The ETS test cases split into two tracks based on what infrastructure they
+need.</p>
+<p class="rubric">Track A — Wire-level tests (88 items, pytest)</p>
+<p>These tests check the SOME/IP wire protocol directly. They use <code class="docutils literal notranslate"><span class="pre">someipd</span></code>
+in standalone mode and send raw packets — exactly the same setup as the
+SOMEIPSRV tests above. All wire-level ETS tests are now implemented; 14
+tests in the ETS SD Protocol group remain blocked pending the ETS C++
+application.</p>
+<p><strong>ETS SD Protocol (74 items)</strong></p>
+<p>This group covers Service Discovery at the wire level: FindService,
+SubscribeEventgroup with various option types, NAck conditions, session ID
+behavior, TTL expiry, reboot detection, and multicast/unicast interactions.</p>
+<p><em>Status: 60 of 74 implemented (14 blocked — require ETS application).</em></p>
+<p>All wire-level ETS SD tests that can run without the ETS C++ application
+are now implemented. The 60 implemented tests cover session ID behavior,
+FindService responses, subscribe edge cases, malformed SD entries and
+options, TTL expiry, reboot detection, and multicast/unicast interactions.</p>
+<p>Implemented examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_088</span></code> — two subscribes with the same session ID</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_091</span></code> — session ID increments correctly</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_092</span></code> — TTL=0 stop-subscribe</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_120</span></code> — subscribe endpoint IP matches tester</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_111–142</span></code> — malformed SD entries and options (robustness)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_081/082/084</span></code> — SD client stop-subscribe, reboot detection</p></li>
+</ul>
+<p class="rubric">ETS SD Protocol — Blocked Tests (14 items, require ETS application)</p>
+<p>The following 14 ETS SD test cases cannot be implemented without the ETS
+C++ application:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_089</span></code> — <code class="docutils literal notranslate"><span class="pre">suspendInterface</span></code> control method required</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_096</span></code> — TCP connection prerequisite for subscription (needs
+ETS app for TCP server)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_097</span></code> — TCP reconnection recovery (needs ETS app for TCP
+server)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_103</span></code> — <code class="docutils literal notranslate"><span class="pre">SD_ClientServiceGetLastValueOfEventTCP</span></code> (TCP
+event delivery, needs ETS app)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_146</span></code> — <code class="docutils literal notranslate"><span class="pre">resetInterface</span></code> control method required</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_147–151</span></code> — <code class="docutils literal notranslate"><span class="pre">triggerEvent*</span></code> methods required (event push
+triggers)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_164</span></code> — <code class="docutils literal notranslate"><span class="pre">suspendInterface</span></code> control method required</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_166–168</span></code> — <code class="docutils literal notranslate"><span class="pre">TestField*</span></code> methods required (field
+read/write via ETS app)</p></li>
+</ul>
+<p>These are tracked in <a class="reference internal" href="#ets-application-gap">ETS Application Gap</a> and will be unblocked when the
+ETS C++ application is implemented.</p>
+<p><strong>ETS Robustness (14 items)</strong></p>
+<p>These tests send wrong protocol versions, wrong message types, wrong IDs,
+truncated messages, oversized messages, and unaligned packets.</p>
+<p><em>Status: 14 of 14 implemented.</em></p>
+<p>All implemented:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_068</span></code> — unaligned SOME/IP messages over TCP (TC8-TCP-009 in
+<code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_069</span></code> — unaligned SOME/IP messages over UDP (TC8-UDP-001)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_074/075/076/077/078</span></code> — wrong interface version, message
+type, method ID, service ID, protocol version</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_054/055</span></code> — length field zero or less than 8 bytes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_004</span></code> — burst of 10 sequential requests</p></li>
+</ul>
+<p class="rubric">Track B — Tests requiring an ETS application (49 items)</p>
+<p id="ets-application-gap">These tests <strong>cannot run yet</strong> because they require a C++ test application
+that does not exist. The tests cannot be written until that application is
+built. This is the only infrastructure gap for ETS tests.</p>
+<p><strong>What is the ETS application?</strong></p>
+<p>It is a small C++ program (a <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> Skeleton) that implements
+the TC8 service interface defined in Section 5.1.4 of the specification.
+The planned location is <code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/application/</span></code> (the
+directory structure and README are already in place, but no code exists yet).
+It must expose:</p>
+<ul class="simple">
+<li><p><em>Echo methods</em> — receive a value and return it unchanged
+(<code class="docutils literal notranslate"><span class="pre">echoUINT8</span></code>, <code class="docutils literal notranslate"><span class="pre">echoUINT8Array</span></code>, <code class="docutils literal notranslate"><span class="pre">echoUTF8DYNAMIC</span></code>, <code class="docutils literal notranslate"><span class="pre">echoUNION</span></code>,
+and ~40 others). These let the tester verify that the full pipeline
+(mw::com Skeleton → gatewayd → someipd → network) serializes every
+SOME/IP data type correctly.</p></li>
+<li><p><em>Event triggers</em> — fire an event on demand
+(<code class="docutils literal notranslate"><span class="pre">triggerEventUINT8</span></code>, <code class="docutils literal notranslate"><span class="pre">triggerEventUINT8Reliable</span></code>, etc.)</p></li>
+<li><p><em>Field accessors</em> — getter, setter, and notifier for TC8 test fields</p></li>
+<li><p><em>Control methods</em> — <code class="docutils literal notranslate"><span class="pre">resetInterface</span></code>, <code class="docutils literal notranslate"><span class="pre">suspendInterface</span></code>,
+<code class="docutils literal notranslate"><span class="pre">clientServiceActivate</span></code> / <code class="docutils literal notranslate"><span class="pre">clientServiceDeactivate</span></code></p></li>
+</ul>
+<p><strong>ETS Serialization / Echo (44 items)</strong> <code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_001–053,</span> <span class="pre">063–073</span></code></p>
+<p>The tester sends an echo request with a specific data value. The DUT must
+return the same value through the full pipeline. This validates the
+<strong>Payload Transformation</strong> component inside <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p>
+<p><em>Status: 0 of 44 implemented.</em> These tests cannot be written until both the
+ETS application and the Payload Transformation component in gatewayd exist
+and are working correctly.</p>
+<p>Data types covered by echo tests: UINT8, INT8, INT64, FLOAT64, arrays
+(static and dynamic, 1D and 2D), strings (UTF-8 and UTF-16, fixed and
+dynamic length), unions, enums, bitfields, E2E-protected messages, and
+common data type combinations.</p>
+<p><strong>ETS Client / Control (5 items)</strong></p>
+<p>Three of these (<code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_081/082/084</span></code>) are already implemented in
+<code class="docutils literal notranslate"><span class="pre">test_sd_client.py</span></code> because they only need wire-level SD messages. The
+remaining two (<code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_089/164</span></code>) use <code class="docutils literal notranslate"><span class="pre">resetInterface</span></code> and
+<code class="docutils literal notranslate"><span class="pre">suspendInterface</span></code> control methods, which require the ETS application.</p>
+<p><em>Status: 3 of 5 implemented; 2 blocked on ETS application.</em></p>
+</section>
+<section id="test-framework-suitability">
+<h3>Test Framework Suitability<a class="headerlink" href="#test-framework-suitability" title="Link to this heading">#</a></h3>
+<p class="rubric">Framework Assessment per TC8 Group</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 8.0%" />
+<col style="width: 24.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>TC8 Test Group</p></th>
+<th class="head"><p>Count</p></th>
+<th class="head"><p>Framework needed</p></th>
+<th class="head"><p>Current status</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SOMEIPSRV Protocol (all)</p></td>
+<td><p>93</p></td>
+<td><p>pytest</p></td>
+<td><p>✅ <strong>Complete</strong> — all 93 tests written and passing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ETS SD Protocol</p></td>
+<td><p>74</p></td>
+<td><p>pytest</p></td>
+<td><p>✅ <strong>Complete</strong> — all 60 wire-level tests written and passing.
+14 tests blocked on ETS application (see <a class="reference internal" href="#ets-application-gap">ETS Application Gap</a>).</p></td>
+</tr>
+<tr class="row-even"><td><p>ETS Robustness</p></td>
+<td><p>14</p></td>
+<td><p>pytest</p></td>
+<td><p>✅ <strong>Complete</strong> — all 14 tests written and passing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ETS Serialization / Echo</p></td>
+<td><p>44</p></td>
+<td><p>ETS application + gatewayd + pytest</p></td>
+<td><p><strong>0 of 44 implemented.</strong> Blocked — ETS application and Payload
+Transformation in gatewayd do not exist yet.</p></td>
+</tr>
+<tr class="row-even"><td><p>ETS Client / Control</p></td>
+<td><p>5</p></td>
+<td><p>3 use pytest; 2 need ETS application</p></td>
+<td><p><strong>3 of 5 implemented</strong> (ETS_081/082/084 in <code class="docutils literal notranslate"><span class="pre">test_sd_client.py</span></code>).
+2 tests (ETS_089/164) blocked on ETS application.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Framework recommendation:</strong></p>
+<p>For all tests, pytest is the test framework. Wire-level tests run entirely
+within the pytest process. Application-level tests extend <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code>
+with a subprocess fixture that starts the ETS application, <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> in order — the same <code class="docutils literal notranslate"><span class="pre">subprocess.Popen</span></code> pattern used for
+the standalone <code class="docutils literal notranslate"><span class="pre">someipd</span></code> fixture. Adopt S-CORE ITF if multi-node
+isolation or structured CI reporting becomes necessary.</p>
+</section>
+<section id="what-is-needed-to-reach-100-coverage">
+<h3>What is Needed to Reach 100% Coverage<a class="headerlink" href="#what-is-needed-to-reach-100-coverage" title="Link to this heading">#</a></h3>
+<p>The table below lists the remaining actions in priority order.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 5.0%" />
+<col style="width: 30.0%" />
+<col style="width: 11.0%" />
+<col style="width: 54.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Action</p></th>
+<th class="head"><p>Unlocks</p></th>
+<th class="head"><p>Details</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>✅ DONE — Write missing wire-level tests</p></td>
+<td><p>21 tests added</p></td>
+<td><p>All 21 missing wire-level tests have been implemented (21 new test
+functions added in this milestone). SD_MESSAGE_12, RPC_15, RPC_16,
+all ETS SD Protocol wire-level tests, and all ETS Robustness tests
+are now written and passing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>Implement the ETS application (mw::com Skeleton)</p></td>
+<td><p>49 tests</p></td>
+<td><p>Write the C++ service application in
+<code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/application/</span></code>. The directory structure and
+README are already in place. The application must implement all echo
+methods (<code class="docutils literal notranslate"><span class="pre">echoUINT8</span></code>, <code class="docutils literal notranslate"><span class="pre">echoUINT8Array</span></code>, <code class="docutils literal notranslate"><span class="pre">echoUTF8DYNAMIC</span></code>, and
+~40 others), event triggers, field accessors, and control methods
+(<code class="docutils literal notranslate"><span class="pre">resetInterface</span></code>, <code class="docutils literal notranslate"><span class="pre">suspendInterface</span></code>,
+<code class="docutils literal notranslate"><span class="pre">clientServiceActivate</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Verify Payload Transformation in gatewayd</p></td>
+<td><p>44 tests (same as action 2)</p></td>
+<td><p>Serialization echo tests pass only when gatewayd correctly
+serializes and deserializes all TC8 data types through the full
+pipeline. Verify each type: UINT8/INT8/FLOAT64, static and dynamic
+arrays, UTF-8 and UTF-16 strings, unions, enums, bitfields, and
+common data type combinations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>Add ETS process orchestration to conftest.py</p></td>
+<td><p>49 tests (same as action 2)</p></td>
+<td><p>Add a pytest fixture that starts the ETS application, <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> in order and tears them down after the test. A simple
+<code class="docutils literal notranslate"><span class="pre">subprocess.Popen</span></code> fixture is sufficient. Adopt S-CORE ITF later
+if multi-node isolation is needed.</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>Assess E2E protection support</p></td>
+<td><p>2 tests</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_034</span></code> (echoUINT8E2E) and <code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_149</span></code>
+(triggerEventUINT8E2E) require E2E middleware integration. Assess
+whether mw::com and gatewayd support E2E protection and configure it
+if needed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="transport-layer-tests-status">
+<h3>Transport Layer Tests — Status<a class="headerlink" href="#transport-layer-tests-status" title="Link to this heading">#</a></h3>
+<p>The following ETS test cases involve transport layer scenarios.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 38.0%" />
+<col style="width: 27.0%" />
+<col style="width: 15.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Spec ID</p></th>
+<th class="head"><p>Title</p></th>
+<th class="head"><p>TCP Scenario</p></th>
+<th class="head"><p>Status</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SOMEIP_ETS_035</p></td>
+<td><p>echoUINT8RELIABLE</p></td>
+<td><p>Request/response via TCP</p></td>
+<td><p>Blocked — needs ETS app</p></td>
+</tr>
+<tr class="row-odd"><td><p>SOMEIP_ETS_037</p></td>
+<td><p>echoUINT8RELIABLE_client_closes_TCP_connection_automatically</p></td>
+<td><p>TCP lifecycle persistence</p></td>
+<td><p>Blocked — needs ETS app</p></td>
+</tr>
+<tr class="row-even"><td><p>SOMEIP_ETS_068</p></td>
+<td><p>Unaligned_SOMEIP_Messages_overTCP</p></td>
+<td><p>Multiple SOME/IP messages in one TCP packet</p></td>
+<td><p>✅ <strong>Implemented</strong> — TC8-TCP-009 in <code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>SOMEIP_ETS_069</p></td>
+<td><p>Unaligned_SOMEIP_Messages_overUDP</p></td>
+<td><p>Multiple SOME/IP messages in one UDP datagram</p></td>
+<td><p>✅ <strong>Implemented</strong> — TC8-UDP-001 in <code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>SOMEIP_ETS_086</p></td>
+<td><p>Eventgroup_EventsAndFieldsAll_2_TCP</p></td>
+<td><p>TCP eventgroup with initial field delivery</p></td>
+<td><p>Blocked — needs ETS app</p></td>
+</tr>
+<tr class="row-odd"><td><p>SOMEIP_ETS_096</p></td>
+<td><p>SD_Check_TCP_Connection_before_SubscribeEventgroup</p></td>
+<td><p>TCP prerequisite for subscription</p></td>
+<td><p>Blocked — needs ETS app</p></td>
+</tr>
+<tr class="row-even"><td><p>SOMEIP_ETS_097</p></td>
+<td><p>SD_Client_restarts_tcp_connection</p></td>
+<td><p>TCP reconnection recovery</p></td>
+<td><p>Blocked — needs ETS app</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_068</span></code> and <code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_069</span></code> are the only transport layer tests
+that can be tested at the wire level (no application needed). Both are
+implemented. The TCP helper functions <code class="docutils literal notranslate"><span class="pre">tcp_send_concatenated()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">tcp_receive_n_responses()</span></code> live in <code class="docutils literal notranslate"><span class="pre">helpers/tcp_helpers.py</span></code>; the UDP
+equivalents <code class="docutils literal notranslate"><span class="pre">udp_send_concatenated()</span></code> and <code class="docutils literal notranslate"><span class="pre">udp_receive_responses()</span></code> live
+in <code class="docutils literal notranslate"><span class="pre">helpers/udp_helpers.py</span></code>. All remaining TCP tests require the ETS
+application and Payload Transformation in gatewayd.</p>
+</section>
+</section>
+<section id="known-some-ip-stack-limitations">
+<span id="known-stack-limitations"></span><h2>Known SOME/IP Stack Limitations<a class="headerlink" href="#known-some-ip-stack-limitations" title="Link to this heading">#</a></h2>
+<p>The following table records the known limitations of <strong>vsomeip 3.6.1</strong>
+against the OA TC8 v3.0 specification.  This table must be reviewed and
+updated whenever the SOME/IP stack version changes.</p>
+<p>Each test listed here is decorated with <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.xfail(strict=True)</span></code>
+so that CI passes despite the known non-conformance.  <code class="docutils literal notranslate"><span class="pre">strict=True</span></code> ensures
+that if the limitation is fixed in a future stack version, the unexpected pass
+(XPASS) will cause CI to fail, prompting removal of the marker.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 30.0%" />
+<col style="width: 10.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>OA Spec Reference</p></th>
+<th class="head"><p>Specification Requirement</p></th>
+<th class="head"><p>vsomeip 3.6.1 Actual Behaviour</p></th>
+<th class="head"><p>Test Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_19</p></td>
+<td><p>SubscribeEventgroup with reserved bits set in the entry MUST be
+responded to with a NAck (SubscribeEventgroupAck with TTL = 0).</p></td>
+<td><p>Sends a positive SubscribeEventgroupAck (TTL &gt; 0) regardless of
+reserved bits.</p></td>
+<td><p><strong>XFAIL</strong> —
+<code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_19_reserved_field_set</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_03</p></td>
+<td><p>When the DUT receives a message with method_id bit 15 = 1 (event
+notification ID), it MUST NOT send a RESPONSE (message_type 0x80).</p></td>
+<td><p>Sends a RESPONSE (message_type 0x80) for event-ID messages even
+though the spec prohibits it.</p></td>
+<td><p><strong>XFAIL</strong> —
+<code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipBasicIdentifiers::test_basic_03_event_method_id_no_response</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_08</p></td>
+<td><p>The DUT MUST NOT send a reply to a REQUEST message that already
+carries a non-zero return code.</p></td>
+<td><p>Processes the REQUEST normally and sends a RESPONSE, ignoring the
+return code field.</p></td>
+<td><p><strong>XFAIL</strong> —
+<code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_08_request_with_error_return_code_no_reply</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 </section>
 
@@ -1911,6 +2448,16 @@ with the matching <code class="docutils literal notranslate"><span class="pre">c
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coverage-summary">Coverage Summary</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-update">How to Update</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-specification-alignment-analysis">TC8 Specification Alignment Analysis</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coverage-at-a-glance">Coverage at a Glance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#some-ip-server-tests-coverage">SOME/IP Server Tests Coverage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ets-tests-coverage">ETS Tests Coverage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-framework-suitability">Test Framework Suitability</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-needed-to-reach-100-coverage">What is Needed to Reach 100% Coverage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transport-layer-tests-status">Transport Layer Tests — Status</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#known-some-ip-stack-limitations">Known SOME/IP Stack Limitations</a></li>
 </ul>
   </nav></div>
 
