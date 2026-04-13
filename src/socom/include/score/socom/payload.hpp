@@ -24,18 +24,18 @@ namespace score::socom {
 /// \details The payload itself must be representable by a continuous Span of bytes.
 ///
 /// The Payload has an optional header(), which is writable, but is not part of the data
-/// returned by span(). The optional header() is part of the same internal buffer, which also
-/// backs span().
+/// returned by data(). The optional header() is part of the same internal buffer, which also
+/// backs data().
 ///
 /// The payload can internally look as follows:
 /// xxxxxxx SOME/IP_header | payload_data
 ///
 /// Here | shows the position of the actual payload start in the buffer. Here "payload_data"
-/// will be returned with span().
+/// will be returned with data().
 ///
 /// This is needed for algorithms like the one for E2E, which require all data
 /// to be in contiguous memory and require an additional header for processing.
-/// \note When sending data over the wire, only data returned by span() shall be sent.
+/// \note When sending data over the wire, only data returned by data() shall be sent.
 class Payload {
    public:
     /// \brief Alias for a shared pointer to this interface.
