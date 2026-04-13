@@ -135,7 +135,7 @@ use_repo(
 
 # LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
 # Integrates with LLVM 19.1.7 and Debian Bullseye sysroots
-bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
+bazel_dep(name = "toolchains_llvm", version = "1.7.0", dev_dependency = True)
 
 # Configures LLVM 19.1.7 for C/C++ compilation with cross-architecture support.
 llvm = use_extension(
@@ -158,15 +158,15 @@ register_toolchains(
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.1.2", dev_dependency = True)
-bazel_dep(name = "aspect_rules_lint", version = "2.3.0", dev_dependency = True)
+bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "2.5.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
 
 # ============================================================================
 # JSON Schema Validation
 # ============================================================================
-bazel_dep(name = "nlohmann_json", version = "3.11.3", dev_dependency = True)
-bazel_dep(name = "download_utils", version = "1.2.2", dev_dependency = True)
+bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1", dev_dependency = True)
+bazel_dep(name = "download_utils", version = "1.2.3", dev_dependency = True)
 
 download_archive = use_repo_rule("@download_utils//download/archive:defs.bzl", "download_archive")
 
