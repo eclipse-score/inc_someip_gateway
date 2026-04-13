@@ -41,9 +41,9 @@ Impl::Impl(Runtime_impl& runtime, Server_service_interface_definition configurat
       m_configuration{std::move(configuration)},
       m_instance{std::move(instance)},
       m_callbacks{std::move(callbacks)},
-      m_subscriber{m_configuration.get_num_events()},
-      m_update_requester{m_configuration.get_num_events()},
-      m_event_infos{m_configuration.get_num_events()},
+      m_subscriber(m_configuration.get_num_events()),
+      m_update_requester(m_configuration.get_num_events()),
+      m_event_infos(m_configuration.get_num_events()),
       m_final_action{std::move(final_action)},
       m_credentials{credentials} {
     assert(m_subscriber.size() == m_configuration.get_num_events());
