@@ -2060,6 +2060,11 @@ class TestSDFindServiceAdvanced:
         finally:
             sock.close()
 
+    @add_test_properties(
+        partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+        test_type="requirements-based",
+        derivation_technique="requirements-analysis",
+    )
     def test_ets_101_stop_offer_ceases_client_events(
         self,
         someipd_dut: subprocess.Popen[bytes],

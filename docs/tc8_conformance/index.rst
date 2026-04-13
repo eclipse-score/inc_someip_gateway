@@ -43,6 +43,8 @@ diagrams, and module structure, see
 
 .. seealso::
 
-   :doc:`/architecture/tc8_conformance_testing` — full OA TC8 v3.0 Chapter 5
-   scope analysis, gap analysis, and coverage breakdown (19% of 230 spec test
-   cases).
+   :doc:`/architecture/tc8_conformance_testing` — test topology, module
+   dependency diagrams, and planned components.
+
+   :doc:`traceability` — full OA TC8 v3.0 Chapter 5 scope analysis, gap
+   analysis, coverage breakdown, and known stack limitations.

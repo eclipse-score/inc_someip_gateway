@@ -31,8 +31,10 @@ For architecture diagrams and design rationale, see
 Protocol conformance tests send/receive raw UDP packets using the Python `someip` library.
 Application-level tests use C++ `mw::com` applications and work with any SOME/IP binding.
 
-For design rationale, UML dependency diagrams, specification alignment analysis, and
-coverage status see `docs/architecture/tc8_conformance_testing.rst`.
+For design rationale and UML dependency diagrams see
+`docs/architecture/tc8_conformance_testing.rst`. For specification alignment
+analysis, coverage status, and known stack limitations see
+`docs/tc8_conformance/traceability.rst`.
 
 ## Quick Start
 
@@ -98,8 +100,28 @@ behaves differently on loopback:
 Future ETS application-level tests (see ``application/README.md``) will also
 run on loopback via ``--config=tc8``.  All child processes (``gatewayd``,
 ``someipd``, ETS app) inherit the private network namespace because they are
-spawned as subprocesses.  See ``docs/architecture/tc8_conformance_testing.rst``
-for the full compatibility analysis.
+spawned as subprocesses.
+
+### Port Assignment per Target
+
+Each Bazel TC8 target receives unique SOME/IP port values via the Bazel
+`env` attribute. This prevents port conflicts when targets run in parallel.
+
+| Target | TC8_SD_PORT | TC8_SVC_PORT | TC8_SVC_TCP_PORT | exclusive |
+|---|---|---|---|---|
+| `tc8_service_discovery` | 30490 | 30500 | — | no |
+| `tc8_sd_phases_timing` | 30491 | 30501 | — | yes (timing) |
+| `tc8_message_format` | 30492 | 30502 | 30503 | no |
+| `tc8_event_notification` | 30493 | 30504 | 30505 | no |
+| `tc8_sd_reboot` | 30494 | 30506 | — | yes (lifecycle) |
+| `tc8_field_conformance` | 30495 | 30507 | 30508 | no |
+| `tc8_sd_format` | 30496 | 30509 | — | no |
+| `tc8_sd_robustness` | 30497 | 30510 | — | no |
+| `tc8_sd_client` | 30498 | 30511 | — | yes (lifecycle) |
+| `tc8_multi_service` | 30499 | 30512 | 30513 | no |
+
+Medium targets run in parallel; exclusive targets run serially for timing
+accuracy or lifecycle correctness.
 
 ## Configuration Templates
 
@@ -112,6 +134,8 @@ starting `someipd`.
 |---|---|---|
 | `config/tc8_someipd_sd.json` | SD, SD-phases | Event `0x0777` (`is_field: true`, 2 s cycle), eventgroup `0x4455`, `cyclic_offer_delay=2000ms`, initial delay 10–100 ms, repetitions max 3; no TCP reliable port |
 | `config/tc8_someipd_service.json` | MSG, EVT, FLD, TCP | Both events (0x0777 field + 0x0778 TCP-reliable), all 3 eventgroups (UDP 0x4455, multicast 0x4465, TCP 0x4475), TCP reliable port 30510, `cyclic_offer_delay=500ms` |
+| `config/tc8_someipd_multi.json` | Multi-service | Two service entries for multi-service/instance config validation |
+| `config/tc8_someipd_config.schema.json` | (all configs) | JSON Schema for validating TC8 vsomeip config templates |
 
 ### Common Parameters
 
@@ -143,6 +167,9 @@ can render them at test time.
 | `helpers/message_builder.py` | SOME/IP REQUEST/REQUEST_NO_RETURN packet construction and malformed packets |
 | `helpers/event_helpers.py` | Event subscription (subscribe + wait Ack) and NOTIFICATION capture |
 | `helpers/field_helpers.py` | Field GET/SET request helpers over UDP |
+| `helpers/sd_malformed.py` | Malformed SD packet builders for robustness tests |
+| `helpers/tcp_helpers.py` | TCP transport helpers (reliable binding, stream framing) |
+| `helpers/udp_helpers.py` | UDP transport helpers (unreliable binding, length-field framing) |
 
 ## Adding a New Test
 
@@ -210,26 +237,36 @@ Every new test follows this pattern:
 tests/tc8_conformance/
 ├── BUILD.bazel                        # Protocol conformance score_py_pytest targets
 ├── README.md                          # This file
+├── tc8_net_wrapper.sh                 # Network namespace wrapper (--config=tc8 --run_under)
 ├── conftest.py                        # Fixtures: someipd_dut, host_ip, tester_ip
 ├── test_service_discovery.py          # TC8-SD-001 … 008, 011, 013, 014
 ├── test_sd_phases_timing.py           # TC8-SD-009 / 010
 ├── test_sd_reboot.py                  # TC8-SD-012
+├── test_sd_format_compliance.py       # TC8-FORMAT_01 … OPTIONS_14 (SD format & options)
+├── test_sd_robustness.py              # TC8 Group 4 — malformed SD message handling
+├── test_sd_client.py                  # TC8-ETS_081/082/084 — SD client lifecycle
 ├── test_someip_message_format.py      # TC8-MSG-001 … 008
 ├── test_event_notification.py         # TC8-EVT-001 … 006
 ├── test_field_conformance.py          # TC8-FLD-001 … 004
+├── test_multi_service.py              # SOMEIPSRV_RPC_13 — multi-service config
 ├── config/
 │   ├── tc8_someipd_sd.json            # SD config template (slow 2 s cycle)
-│   └── tc8_someipd_service.json       # Service config: MSG + EVT + FLD + TCP
+│   ├── tc8_someipd_service.json       # Service config: MSG + EVT + FLD + TCP
+│   ├── tc8_someipd_multi.json         # Multi-service vsomeip config template
+│   └── tc8_someipd_config.schema.json # JSON Schema for TC8 config validation
 ├── helpers/
 │   ├── __init__.py
 │   ├── constants.py                   # Shared port/address constants
 │   ├── sd_helpers.py                  # SD capture + parsing
 │   ├── sd_sender.py                   # SD packet building + unicast capture
+│   ├── sd_malformed.py                # Malformed SD packet builders (robustness)
 │   ├── someip_assertions.py           # Assertion helpers (SD + MSG)
 │   ├── timing.py                      # Timestamped capture
 │   ├── message_builder.py             # SOME/IP message construction
 │   ├── event_helpers.py               # Event subscription + capture
-│   └── field_helpers.py               # Field GET/SET helpers
+│   ├── field_helpers.py               # Field GET/SET helpers
+│   ├── tcp_helpers.py                 # TCP transport (reliable binding)
+│   └── udp_helpers.py                 # UDP transport (unreliable binding)
 └── application/                       # Enhanced testability (planned)
     ├── README.md
     ├── apps/                          # C++ test apps (planned)

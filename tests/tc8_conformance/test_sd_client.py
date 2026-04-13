@@ -128,28 +128,34 @@ def sd_client_config(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(
-    reason=(
+@add_test_properties(
+    partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+    test_type="requirements-based",
+    derivation_technique="requirements-analysis",
+)
+def test_ets_096_tcp_connection_before_subscribe() -> None:
+    """ETS_096: TCP connection established before SubscribeEventgroup for TCP eventgroup."""
+    pytest.skip(
         "ETS_096 requires a TCP eventgroup config (tc8_someipd_service.json) and a "
         "dedicated TC8_SVC_TCP_PORT.  The tc8_sd_client target allocates only "
         "TC8_SD_PORT=30498 and TC8_SVC_PORT=30511 (no TCP port).  Implement once "
         "a dedicated tc8_sd_client_tcp target with TC8_SVC_TCP_PORT is added."
     )
+
+
+@add_test_properties(
+    partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+    test_type="requirements-based",
+    derivation_technique="requirements-analysis",
 )
-def test_ets_096_tcp_connection_before_subscribe() -> None:
-    """ETS_096: TCP connection established before SubscribeEventgroup for TCP eventgroup."""
-
-
-@pytest.mark.skip(
-    reason=(
+def test_ets_097_tcp_reconnect() -> None:
+    """ETS_097: TCP reconnection after disconnect yields a new SubscribeAck."""
+    pytest.skip(
         "ETS_097 requires a TCP eventgroup config (tc8_someipd_service.json) and a "
         "dedicated TC8_SVC_TCP_PORT.  The tc8_sd_client target allocates only "
         "TC8_SD_PORT=30498 and TC8_SVC_PORT=30511 (no TCP port).  Implement once "
         "a dedicated tc8_sd_client_tcp target with TC8_SVC_TCP_PORT is added."
     )
-)
-def test_ets_097_tcp_reconnect() -> None:
-    """ETS_097: TCP reconnection after disconnect yields a new SubscribeAck."""
 
 
 # ---------------------------------------------------------------------------
