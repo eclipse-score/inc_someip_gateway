@@ -35,10 +35,8 @@ String_registry::insert(std::string_view const new_string) noexcept {
 
     auto const iter = m_registered_strings.find(new_string);
     if (iter == m_registered_strings.end()) {
-        m_dynamic_allocated.emplace_front(new_string.data(), new_string.length());
-        auto const iterator = m_dynamic_allocated.begin();
-        auto const registered_string =
-            m_registered_strings.insert({iterator->c_str(), iterator->size()});
+        auto& inserted_string = m_dynamic_allocated.emplace_front(new_string);
+        auto const registered_string = m_registered_strings.insert(inserted_string);
         return std::pair<Registry_string_view, bool>{Registry_string_view{*registered_string.first},
                                                      registered_string.second};
     }
@@ -54,10 +52,8 @@ std::pair<Registry_string_view, bool> String_registry::insert(std::string&& new_
                      [&new_string](auto const& entry) { return entry.data() == new_string; });
 
     if (iter == m_registered_strings.end()) {
-        m_dynamic_allocated.emplace_front(std::move(new_string));
-        auto const iterator = m_dynamic_allocated.begin();
-        auto const registered_string =
-            m_registered_strings.insert({iterator->c_str(), iterator->size()});
+        auto& inserted_string = m_dynamic_allocated.emplace_front(std::move(new_string));
+        auto const registered_string = m_registered_strings.insert(inserted_string);
         return std::pair<Registry_string_view, bool>{Registry_string_view{*registered_string.first},
                                                      registered_string.second};
     }
