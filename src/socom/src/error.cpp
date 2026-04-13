@@ -42,6 +42,8 @@ class Server_connector_error_domain final : public score::result::ErrorDomain {
         switch (static_cast<Server_connector_error>(code)) {
             case Server_connector_error::logic_error_id_out_of_range:
                 return "ID out of range";
+            case Server_connector_error::runtime_error_no_client_subscribed_for_event:
+                return "No client subscribed for event";
             default:
                 return "Unknown Error";
         }
