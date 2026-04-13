@@ -117,7 +117,7 @@ Result<std::unique_ptr<Writable_payload>> Impl::allocate_event_payload(Event_id 
         return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
 
-    assert(event_id < m_configuration.get_num_events());
+    assert(event_id < m_subscriber.size());
 
     std::unique_lock<std::mutex> lock{m_mutex};
     // May throw std::bad_alloc: left unhandled as a design decision
