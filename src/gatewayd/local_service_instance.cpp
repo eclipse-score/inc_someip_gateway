@@ -45,7 +45,7 @@ LocalServiceInstance::LocalServiceInstance(
     for (auto event_config : *service_type_config_->events()) {
         auto result = events.find(event_config->event_name()->string_view());
         if (result == events.cend()) {
-            std::cerr << "Failed to find " << event_config->event_name()->string_view()
+            std::cerr << "[gatewayd] Failed to find " << event_config->event_name()->string_view()
                       << " event in ipc_proxy." << std::endl;
             continue;
         }
@@ -56,7 +56,7 @@ LocalServiceInstance::LocalServiceInstance(
                 [&](SamplePtr<void> sample) {
                     auto maybe_message = someip_message_skeleton_.message_.Allocate();
                     if (!maybe_message.has_value()) {
-                        std::cerr << "Failed to allocate SOME/IP message:"
+                        std::cerr << "[gatewayd] Failed to allocate SOME/IP message:"
                                   << maybe_message.error().Message() << std::endl;
                         return;
                     }
@@ -144,15 +144,14 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
     SomeipMessageTransferSkeleton& someip_message_skeleton,
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
-        std::cerr << "ERROR: Service instance config is nullptr!" << std::endl;
+        std::cerr << "[gatewayd] ERROR: Service instance config is nullptr!" << std::endl;
         return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
     }
+
+    // TODO: Error handling for instance specifier creation
     auto instance_specifier = score::mw::com::InstanceSpecifier::Create(
                                   service_instance_config->instance_specifier()->str())
                                   .value();
-
-    std::cout << "Starting discovery: "
-              << service_instance_config->instance_specifier()->string_view() << "\n";
 
     // TODO: StartFindService should be modified to handle arbitrarily large lambdas
     // or we need to check whether it is OK to stick with dynamic allocation here.
@@ -166,8 +165,9 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
 
             auto proxy_result = GenericProxy::Create(handles.front());
             if (!proxy_result.has_value()) {
-                std::cerr << "Proxy creation failed: "
-                          << instance_config->instance_specifier()->string_view() << "\n";
+                std::cerr << "[gatewayd] Proxy creation failed for instance specifier: "
+                          << instance_config->instance_specifier()->string_view()
+                          << "': " << proxy_result.error().Message() << std::endl;
                 return;
             }
 
@@ -176,8 +176,8 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
                 instance_config, service_config, std::move(proxy_result).value(),
                 context->skeleton));
 
-            std::cout << "Proxy created: " << instance_config->instance_specifier()->string_view()
-                      << "\n";
+            std::cout << "[gatewayd] LocalServiceInstance created for instance specifier: "
+                      << instance_config->instance_specifier()->string_view() << std::endl;
 
             GenericProxy::StopFindService(find_handle);
         },

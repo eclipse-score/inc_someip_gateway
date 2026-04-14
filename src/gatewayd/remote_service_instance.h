@@ -50,7 +50,7 @@ class RemoteServiceInstance {
     /// \brief Asynchronously creates a remote service instance
     /// \param service_instance_config Configuration for the service instance to create
     /// \param service_type_config Configuration for the service type of the instance to create
-    /// \param instances Vector to store the created remote service instance
+    /// \param instances Reference to the vector to store the created remote service instance
     /// \return Result containing a FindServiceHandle on success, or an error on failure
     /// \details This static factory method asynchronously searches for and creates a remote
     ///          service instance. It performs service discovery for services offered via SOME/IP

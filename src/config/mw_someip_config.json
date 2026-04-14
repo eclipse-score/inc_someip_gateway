@@ -20,60 +20,79 @@
         },
         {
             "service_type_name": "echo_request",
-            "service_id": 2,
+            "service_id": 4660,
             "service_version_major": 1,
             "service_version_minor": 0,
             "events": [
                 {
                     "event_name": "echo_request_tiny",
-                    "event_id": 1
+                    "event_id": 34680
+                },
+                {
+                    "event_name": "echo_request_small",
+                    "event_id": 2
+                },
+                {
+                    "event_name": "echo_request_medium",
+                    "event_id": 3
+                },
+                {
+                    "event_name": "echo_request_large",
+                    "event_id": 4
+                },
+                {
+                    "event_name": "echo_request_xlarge",
+                    "event_id": 5
+                },
+                {
+                    "event_name": "echo_request_xxlarge",
+                    "event_id": 6
                 }
             ],
             "local_service_instances": [
                 {
-                "instance_specifier": "gatewayd/application_echo_request",
-                "instance_id": 1
+                    "instance_specifier": "gatewayd/application_echo_request",
+                    "instance_id": 22136
                 }
             ]
         },
         {
             "service_type_name": "echo_response",
-            "service_id": 3,
+            "service_id": 17185,
             "service_version_major": 1,
             "service_version_minor": 0,
             "events": [
                 {
                     "event_name": "echo_response_tiny",
-                    "event_id": 1
+                    "event_id": 34680
                 },
                 {
                     "event_name": "echo_response_small",
-                    "event_id": 2
+                    "event_id": 1
                 },
                 {
                     "event_name": "echo_response_medium",
-                    "event_id": 3
+                    "event_id": 2
                 },
                 {
                     "event_name": "echo_response_large",
-                    "event_id": 4
+                    "event_id": 3
                 },
                 {
                     "event_name": "echo_response_xlarge",
-                    "event_id": 5
+                    "event_id": 4
                 },
                 {
                     "event_name": "echo_response_xxlarge",
-                    "event_id": 6
+                    "event_id": 5
                 }
             ],
             "remote_service_instances": [
                 {
                     "instance_specifier": "benchmark/echo_response",
-                    "instance_id": 1
+                    "instance_id": 22136
                 }
             ]
         }
-
     ]
 }

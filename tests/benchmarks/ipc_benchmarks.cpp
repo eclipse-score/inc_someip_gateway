@@ -74,12 +74,15 @@ class BenchmarkFixture {
                 throw std::runtime_error("Stop requested during service discovery");
             }
 
+            std::cout << "Attempting to find echo_response service (try " << (retry + 1) << "/"
+                      << static_cast<int>(MAX_SERVICE_DISCOVERY_RETRIES) << ")..." << std::endl;
             auto response_handles_result =
                 EchoResponseProxy::FindService(score::mw::com::InstanceSpecifier::Create(
                                                    std::string{EchoResponseInstanceSpecifier})
                                                    .value());
 
             if (response_handles_result.has_value() && !response_handles_result.value().empty()) {
+                std::cout << "Echo response service found!" << std::endl;
                 auto response_proxy_result =
                     EchoResponseProxy::Create(response_handles_result.value().front());
                 if (!response_proxy_result.has_value()) {
@@ -93,8 +96,7 @@ class BenchmarkFixture {
             if (retry == 0) {
                 std::cout << "Echo response service not found. Waiting for echo_server to start..."
                           << std::endl;
-                std::cout << "Please run: bazel run //tests/benchmarks:echo_server"
-                          << std::endl;
+                std::cout << "Please run: bazel run //tests/benchmarks:echo_server" << std::endl;
             }
 
             std::cout << "Retry " << (retry + 1) << "/" << MAX_SERVICE_DISCOVERY_RETRIES
@@ -129,11 +131,11 @@ class BenchmarkFixture {
 
         std::cout << "Subscribing to echo_response service events..." << std::endl;
         response_proxy_->echo_response_tiny_.Subscribe(MaxSamplesCount);
-        response_proxy_->echo_response_small_.Subscribe(MaxSamplesCount);
-        response_proxy_->echo_response_medium_.Subscribe(MaxSamplesCount);
-        response_proxy_->echo_response_large_.Subscribe(MaxSamplesCount);
-        response_proxy_->echo_response_xlarge_.Subscribe(MaxSamplesCount);
-        response_proxy_->echo_response_xxlarge_.Subscribe(MaxSamplesCount);
+        // response_proxy_->echo_response_small_.Subscribe(MaxSamplesCount);
+        // response_proxy_->echo_response_medium_.Subscribe(MaxSamplesCount);
+        // response_proxy_->echo_response_large_.Subscribe(MaxSamplesCount);
+        // response_proxy_->echo_response_xlarge_.Subscribe(MaxSamplesCount);
+        // response_proxy_->echo_response_xxlarge_.Subscribe(MaxSamplesCount);
 
         std::cout << "Creating and offering echo_request service..." << std::endl;
         auto request_skeleton_result = EchoRequestSkeleton::Create(
@@ -245,6 +247,8 @@ class BenchmarkFixture {
 
             response_proxy_->echo_response_tiny_.GetNewSamples(
                 [&](const auto& response_sample) {
+                    std::cout << "GetNewSamples was called; " << response_sample->sequence_id
+                              << std::endl;
                     if (response_sample->sequence_id == sequence_id) {
                         receive_time = std::chrono::high_resolution_clock::now();
                         found = true;
@@ -640,7 +644,7 @@ int main(int argc, char** argv) {
     g_stop_token = g_stop_source.get_token();
 
     // Initialize runtime with default config
-    const char* score_args[] = {"ipc_benchmarks", "-service_instance_manifest",
+    const char* score_args[] = {"ipc_benchmarks", "--service_instance_manifest",
                                 "tests/benchmarks/config/benchmark_mw_com_config.json"};
     int score_argc = sizeof(score_args) / sizeof(score_args[0]);
     score::mw::com::runtime::InitializeRuntime(score_argc, score_args);

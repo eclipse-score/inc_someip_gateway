@@ -16,6 +16,7 @@ This daemon contains the SOME/IP communication stack and is QM
 """
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 exports_files(["etc/mw_com_config.json"])
@@ -35,9 +36,26 @@ cc_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":routing",
         "//src/config:config_flatbuffers",
         "//src/network_service:provider",
         "@score_baselibs//score/filesystem",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+# ============================================================================
+# Libraries
+# ============================================================================
+cc_library(
+    name = "routing",
+    srcs = ["routing.cpp"],
+    hdrs = ["routing.h"],
+    deps = [
+        "//src/common:constants",
+        "//src/common:types",
+        "//src/config:config_flatbuffers",
+        "//src/network_service:provider",
         "@score_baselibs//score/language/futurecpp",
         "@score_communication//score/mw/com",
         "@vsomeip",

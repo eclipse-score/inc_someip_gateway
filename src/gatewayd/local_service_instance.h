@@ -52,7 +52,7 @@ class LocalServiceInstance {
     /// \param service_instance_config Configuration for the service instance to create
     /// \param service_type_config Configuration for the service type of the instance to create
     /// \param someip_message_skeleton Skeleton for message transfer to the someipd daemon
-    /// \param instances Vector to store the created local service instance
+    /// \param instances Reference to the vector to store the created local service instance
     /// \return Result containing a FindServiceHandle on success, or an error on failure
     /// \details This static factory method asynchronously searches for and creates a local
     ///          service instance. It performs service discovery on the local ECU and, when

@@ -219,9 +219,7 @@
           "binding": "SHM",
           "events": [
             {
-              "eventName": "echo_request_tiny",
-              "numberOfSampleSlots": 10,
-              "maxSubscribers": 1
+              "eventName": "echo_request_tiny"
             }
           ]
         }

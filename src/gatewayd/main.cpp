@@ -149,6 +149,12 @@ int main(int argc, char* argv[]) {
         auto service_instances = service_type_config->local_service_instances();
         if (service_instances && service_instances->size() > 0) {
             for (auto service_instance_config : *service_instances) {
+                std::cout << "Creating local service instance: "
+                          << service_type_config->service_type_name()->string_view()
+                          << " (service_id=0x" << std::hex << service_type_config->service_id() << std::dec
+                          << ", instance_id=0x" << std::hex << service_instance_config->instance_id() << std::dec
+                          << ", specifier=" << service_instance_config->instance_specifier()->string_view()
+                          << ")" << std::endl;
                 LocalServiceInstance::CreateAsyncLocalServices(
                     std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
                         config, service_instance_config),
@@ -165,6 +171,12 @@ int main(int argc, char* argv[]) {
         auto service_instances = service_type_config->remote_service_instances();
         if (service_instances && service_instances->size() > 0) {
             for (auto service_instance_config : *service_instances) {
+                std::cout << "Creating remote service instance: "
+                          << service_type_config->service_type_name()->string_view()
+                          << " (service_id=0x" << std::hex << service_type_config->service_id() << std::dec
+                          << ", instance_id=0x" << std::hex << service_instance_config->instance_id() << std::dec
+                          << ", specifier=" << service_instance_config->instance_specifier()->string_view()
+                          << ")" << std::endl;
                 RemoteServiceInstance::CreateAsyncRemoteService(
                     std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
                         config, service_instance_config),
