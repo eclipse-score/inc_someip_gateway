@@ -154,11 +154,13 @@ class Impl final : virtual public Disabled_server_connector,
 #endif
     mutable std::mutex m_mutex;
     std::promise<void> m_stop_complete_promise;
-    Reference_token m_stop_block_token;         // Protected by m_mutex
-    Events m_subscriber;                        // Entries protected by m_mutex
-    Events m_update_requester;                  // Entries protected by m_mutex
-    Event_infos m_event_infos;                  // Entries protected by m_mutex
-    std::optional<Client_connection> m_client;  // Protected by m_mutex
+    std::promise<void> m_all_clients_disconnected_promise;
+    Reference_token m_stop_block_token;                      // Protected by m_mutex
+    Reference_token m_all_clients_disconnected_block_token;  // Protected by m_mutex
+    Events m_subscriber;                                     // Entries protected by m_mutex
+    Events m_update_requester;                               // Entries protected by m_mutex
+    Event_infos m_event_infos;                               // Entries protected by m_mutex
+    std::optional<Client_connection> m_client;               // Protected by m_mutex
     Registration m_registration;
     Final_action m_final_action;
     Posix_credentials m_credentials;

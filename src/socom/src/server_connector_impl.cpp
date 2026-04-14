@@ -65,8 +65,11 @@ Impl* Impl::enable() {
     }
 
     m_stop_complete_promise = {};
+    m_all_clients_disconnected_promise = {};
     m_stop_block_token =
         std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); });
+    m_all_clients_disconnected_block_token = std::make_shared<Final_action>(
+        [this]() { m_all_clients_disconnected_promise.set_value(); });
     m_registration = m_runtime.register_connector(m_configuration.get_interface(), m_instance,
                                                   Listen_endpoint{*this, m_stop_block_token});
 
@@ -77,16 +80,14 @@ Impl* Impl::enable() {
 
 Impl* Impl::disable() noexcept {
     if (m_registration != nullptr) {
-        {
-            std::lock_guard<std::mutex> const lock{m_mutex};
-            m_stop_block_token.reset();
-        }
         // this will cause callbacks being called
         // m_registration is set in enable(), which cannot be called concurrently because
         // disable() and enable() convert the type at socom-API level.
         m_registration.reset();
         {
             std::lock_guard<std::mutex> const lock{m_mutex};
+            m_stop_block_token.reset();
+            m_all_clients_disconnected_block_token.reset();
             unsubscribe_event();
         }
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
@@ -102,11 +103,12 @@ Impl* Impl::disable() noexcept {
 
         m_deadlock_detector.check_deadlock(log_on_deadlock);
 #endif
+
+        m_stop_complete_promise.get_future().wait();
+        // must ensure that all callbacks are done, before calling this, otherwise we get state
+        // change races
         send_all(message::Service_state_change{Service_state::not_available, m_configuration});
-        auto const wait_for_stop_complete = [this]() {
-            m_stop_complete_promise.get_future().wait();
-        };
-        Final_action const catch_promise_exceptions{wait_for_stop_complete};
+        m_all_clients_disconnected_promise.get_future().wait();
     }
     assert(m_registration == nullptr);
     return this;
@@ -233,7 +235,7 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
     assert(!m_client.has_value());
 
     m_client.emplace(*this, message.endpoint);
-    auto stop_block_token_copy = m_stop_block_token;
+    auto stop_block_token_copy = m_all_clients_disconnected_block_token;
     lock.unlock();
 
     auto reference_token = std::make_shared<Final_action>(
