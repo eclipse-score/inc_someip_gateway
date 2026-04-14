@@ -67,7 +67,8 @@ void multi_threaded_test_template(std::vector<Loop_function_t> const& thread_fun
                 And_stop{Num_iterations{num_iterations}, caller_stop_condition}};
 
     auto threads_started = std::vector<std::atomic<bool>>(thread_functions.size());
-    auto results = std::vector<std::future<void>>{thread_functions.size()};
+    auto results = std::vector<std::future<void>>();
+    results.reserve(thread_functions.size());
 
     std::atomic<bool> start_loops{false};
     auto threads_started_iter = std::begin(threads_started);
