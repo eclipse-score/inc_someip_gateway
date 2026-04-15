@@ -15,6 +15,7 @@
 #define SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING_SERVER
 
 #include <score/message_passing/i_server_factory.h>
+#include <score/message_passing/server_types.h>
 #include <score/message_passing/service_protocol_config.h>
 #include <score/result/result.h>
 
@@ -31,7 +32,13 @@ namespace score::gateway_ipc_binding {
 
 /// \brief Client identifier type
 using Client_id = std::size_t;
-
+/// \brief Information about a connected client
+struct Client_info {
+    /// \brief Identifier string supplied by the client in its Connect message (empty if none)
+    std::string identifier;
+    /// \brief Transport-level client identity (PID, UID, GID)
+    score::message_passing::ClientIdentity client_identity;
+};
 /// \brief Server-side transport endpoint for Gateway IPC Binding
 /// \details Owns a `score::message_passing` server that accepts multiple incoming IPC
 ///          connections and forwards their protocol traffic into the shared binding base.
@@ -63,12 +70,12 @@ class Gateway_ipc_binding_server {
     /// \return Success or error if the transport could not start or is already listening
     virtual Result<void> start() noexcept = 0;
 
-    /// \brief Returns the identifiers of all currently connected clients
-    /// \details Maps each connected client's `Client_id` to the identifier string it sent in
-    ///          the `Connect` message. Clients that did not supply an identifier have an empty
-    ///          string entry.
-    /// \return Map from Client_id to identifier string
-    virtual std::unordered_map<Client_id, std::string> get_client_identifiers() const noexcept = 0;
+    /// \brief Returns information about all currently connected clients
+    /// \details Maps each connected client's `Client_id` to a `Client_info` containing the
+    ///          identifier string it sent in the `Connect` message (empty if none was supplied)
+    ///          and the transport-level `ClientIdentity` (PID, UID, GID).
+    /// \return Map from Client_id to Client_info
+    virtual std::unordered_map<Client_id, Client_info> get_client_identifiers() const noexcept = 0;
 
    protected:
     Gateway_ipc_binding_server() = default;

@@ -134,7 +134,8 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
                 auto const& msg = **msg_opt;
                 std::lock_guard<std::mutex> const lock(m_mutex);
 
-                m_client_identifiers[client_id] = fixed_string_to_string(msg.identifier);
+                m_client_identifiers[client_id] = Client_info{
+                    fixed_string_to_string(msg.identifier), connection.GetClientIdentity()};
 
                 if (!msg.find_service_elements.empty()) {
                     m_on_find_service_change(client_id, msg.find_service_elements, true);
@@ -162,7 +163,7 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
         return {};
     }
 
-    std::unordered_map<Client_id, std::string> get_client_identifiers() const noexcept override {
+    std::unordered_map<Client_id, Client_info> get_client_identifiers() const noexcept override {
         std::lock_guard<std::mutex> const lock(m_mutex);
         return m_client_identifiers;
     }
@@ -174,7 +175,7 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
     std::unordered_map<Client_id, Server_reply_channel> m_connections;
     mutable std::mutex m_mutex;  // Protects m_listening, m_next_client_id, m_connections
     std::unordered_map<Client_id, Find_service_elements> m_find_service_elements_by_client;
-    std::unordered_map<Client_id, std::string> m_client_identifiers;
+    std::unordered_map<Client_id, Client_info> m_client_identifiers;
     Gateway_ipc_binding_server::On_find_service_change m_on_find_service_change;
     Gateway_ipc_binding_base m_binding_base;
 };
