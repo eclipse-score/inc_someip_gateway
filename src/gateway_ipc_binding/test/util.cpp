@@ -22,10 +22,32 @@ using ::testing::AtMost;
 
 namespace score::gateway_ipc_binding {
 
+namespace {
+
+std::string get_test_run_id() {
+    static const std::string run_id = [] {
+        std::ostringstream ss;
+        ss << ":" << ::getpid();
+        ss << ":" << std::chrono::steady_clock::now().time_since_epoch().count();
+        return std::to_string(std::hash<std::string>{}(ss.str()));
+    }();
+    return run_id;
+}
+
+std::string make_unique_name(std::string const& base) {
+    static std::atomic<std::uint64_t> sequence{0U};
+    return base + "_" + get_test_run_id() + "_" +
+           std::to_string(sequence.fetch_add(1U, std::memory_order_relaxed));
+}
+
+}  // namespace
+
 Shared_memory_metadata make_metadata(std::string const& path, std::uint32_t slot_size,
                                      std::uint32_t slot_count) {
     Shared_memory_metadata metadata{};
-    EXPECT_TRUE(fill_fixed_string(metadata.path, path));
+    // with linux-sandbox make_unique_name() is not really necessary for uniqueness, but it adds an
+    // extra layer of safety
+    EXPECT_TRUE(fill_fixed_string(metadata.path, make_unique_name(path)));
     metadata.slot_size = slot_size;
     metadata.slot_count = slot_count;
     return metadata;
@@ -33,7 +55,9 @@ Shared_memory_metadata make_metadata(std::string const& path, std::uint32_t slot
 
 std::string make_service_name() {
     static std::atomic<int> counter{0};
-    return "gateway_ipc_binding_test_service_" + std::to_string(++counter);
+    // looks like Unix Domain Sockets are not properly sandboxed
+    return "gateway_ipc_binding_test_service_" + get_test_run_id() + "_" +
+           std::to_string(++counter);
 }
 
 Client_connector_with_callbacks::Client_connector_with_callbacks(
