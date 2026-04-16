@@ -377,25 +377,19 @@ void Gateway_ipc_binding_base::handle_subscribe_event_message(Client_id client_i
 
 void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
                                                            Event_update const& msg) noexcept {
-    Shared_memory_metadata peer_metadata{};
-
     auto const lock = m_mutex.lock();
     auto const mapping_info = m_id_mapping.get_by_remote_handle(client_id, msg.required_id);
     if (!mapping_info.has_value()) {
-        // Mapping was removed, could be a race condition or invalid message
+        // Mapping was removed, but peer send event update, before it processed the unsubscription
+        // or service removal
         return;
     }
 
-    auto connector_state = m_service_states.get(mapping_info->get().key);
-    if (!connector_state || !connector_state->get().enabled_connector) {
-        // Service state or connector was removed - race condition or service cleanup
-        return;
-    }
-
-    peer_metadata = mapping_info->get().remote_metadata;
+    assert(m_service_states.has_connector(mapping_info->get().key) &&
+           "Service state should have connector for key");
     score::socom::Enabled_server_connector* enabled_connector =
-        connector_state->get().enabled_connector.get();
-
+        m_service_states.get(mapping_info->get().key)->get().enabled_connector.get();
+    assert(enabled_connector != nullptr && "Enabled connector should exist for key");
     if (enabled_connector == nullptr) {
         return;
     }
@@ -418,11 +412,14 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
             (void)send_result;
         };
 
-    auto payload = m_read_only_slot_managers.get_read_only_shared_memory_slot_manager(peer_metadata)
-                       .get_payload(msg.payload, on_payload_destruction);
+    auto payload =
+        m_read_only_slot_managers
+            .get_read_only_shared_memory_slot_manager(mapping_info->get().remote_metadata)
+            .get_payload(msg.payload, on_payload_destruction);
 
     auto update_result = enabled_connector->update_event(msg.event_id, std::move(payload));
     (void)update_result;
+    assert(update_result);
 }
 
 void Gateway_ipc_binding_base::handle_payload_consumed_message(
@@ -469,19 +466,7 @@ void Gateway_ipc_binding_base::handle_connect_service_message(Client_id client_i
     m_id_mapping.add_mapping(client_id, info);
 
     auto service_state_opt = m_service_states.get(key);
-    if (!service_state_opt.has_value()) {
-        // Service state was removed, likely due to service being cleaned up
-        // Send reply to client indicating the service is no longer available
-        Message_frame<Connect_service_reply> reply;
-        reply.payload.required_id = msg.required_id;
-        reply.payload.provided_id = info.local_handle;
-        reply.payload.metadata = info.local_metadata;
-        reply.payload.num_methods = 0;
-        reply.payload.num_events = 0;
-        auto send_result = conn.send(reply);
-        (void)send_result;
-        return;
-    }
+    assert(service_state_opt.has_value() && "Service state should exist for key");
     auto& service_state = service_state_opt->get();
 
     Message_frame<Connect_service_reply> reply;

@@ -41,6 +41,7 @@
 #include "util.hpp"
 
 using testing::_;
+using testing::AtLeast;
 using testing::Values;
 using namespace std::chrono_literals;
 
@@ -101,7 +102,9 @@ class Gateway_ipc_binding_many_clients_integration_test
         std::promise<void> all_subscribed_promise;
         EXPECT_CALL(mock_event_subscription_change_cb,
                     Call(_, event_id, socom::Event_state::subscribed))
-            .Times(1)
+            // there might be late subscribers after the first one, so we can't expect an exact
+            // number here.
+            .Times(AtLeast(1))
             .WillOnce([&](auto&, auto, auto) { all_subscribed_promise.set_value(); });
 
         for (auto const& cc : client_connectors) {
