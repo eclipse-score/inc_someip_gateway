@@ -212,7 +212,13 @@ class Service_states {
 
     void add_server_connector(Key_t const& key, socom::Enabled_server_connector::Uptr connector) {
         auto state_ref = get(key);
-        assert(state_ref.has_value() && "Service state must exist before adding server connector");
+        if (!state_ref) {
+            // Service state was removed while creating the server connector.
+            // This can happen in racing conditions where the service is deregistered
+            // between the time we started creating the connector and when we try to add it.
+            // The connector will be destroyed at end of scope, which is safe.
+            return;
+        }
         state_ref->get().enabled_connector = std::move(connector);
     }
 
@@ -233,7 +239,13 @@ class Service_states {
 
     void add_client_connector(Key_t const& key, socom::Client_connector::Uptr connector) {
         auto state_ref = get(key);
-        assert(state_ref.has_value() && "Service state must exist before adding client connector");
+        if (!state_ref) {
+            // Service state was removed while creating the client connector.
+            // This can happen in racing conditions where the service is deregistered
+            // between the time we started creating the connector and when we try to add it.
+            // The connector will be destroyed at end of scope, which is safe.
+            return;
+        }
         state_ref->get().client_connector = std::move(connector);
         state_ref->get().client_connector_pending = false;
     }

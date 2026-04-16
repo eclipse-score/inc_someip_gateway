@@ -381,13 +381,20 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
 
     auto const lock = m_mutex.lock();
     auto const mapping_info = m_id_mapping.get_by_remote_handle(client_id, msg.required_id);
-    assert(mapping_info.has_value() && "Mapping should exist for required_id");
+    if (!mapping_info.has_value()) {
+        // Mapping was removed, could be a race condition or invalid message
+        return;
+    }
+
+    auto connector_state = m_service_states.get(mapping_info->get().key);
+    if (!connector_state || !connector_state->get().enabled_connector) {
+        // Service state or connector was removed - race condition or service cleanup
+        return;
+    }
+
     peer_metadata = mapping_info->get().remote_metadata;
-    assert(m_service_states.has_connector(mapping_info->get().key) &&
-           "Service state should have connector for key");
     score::socom::Enabled_server_connector* enabled_connector =
-        m_service_states.get(mapping_info->get().key)->get().enabled_connector.get();
-    assert(enabled_connector != nullptr && "Enabled connector should exist for key");
+        connector_state->get().enabled_connector.get();
 
     if (enabled_connector == nullptr) {
         return;
@@ -416,7 +423,6 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
 
     auto update_result = enabled_connector->update_event(msg.event_id, std::move(payload));
     (void)update_result;
-    assert(update_result);
 }
 
 void Gateway_ipc_binding_base::handle_payload_consumed_message(
@@ -463,7 +469,19 @@ void Gateway_ipc_binding_base::handle_connect_service_message(Client_id client_i
     m_id_mapping.add_mapping(client_id, info);
 
     auto service_state_opt = m_service_states.get(key);
-    assert(service_state_opt.has_value() && "Service state should exist for key");
+    if (!service_state_opt.has_value()) {
+        // Service state was removed, likely due to service being cleaned up
+        // Send reply to client indicating the service is no longer available
+        Message_frame<Connect_service_reply> reply;
+        reply.payload.required_id = msg.required_id;
+        reply.payload.provided_id = info.local_handle;
+        reply.payload.metadata = info.local_metadata;
+        reply.payload.num_methods = 0;
+        reply.payload.num_events = 0;
+        auto send_result = conn.send(reply);
+        (void)send_result;
+        return;
+    }
     auto& service_state = service_state_opt->get();
 
     Message_frame<Connect_service_reply> reply;

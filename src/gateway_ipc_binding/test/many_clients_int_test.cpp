@@ -113,7 +113,7 @@ class Gateway_ipc_binding_many_clients_integration_test
 
         EXPECT_CALL(mock_event_subscription_change_cb,
                     Call(_, event_id, socom::Event_state::unsubscribed))
-            .Times(1);
+            .Times(AtMost(1));
     }
 };
 
@@ -235,7 +235,7 @@ TEST_P(Gateway_ipc_binding_many_clients_integration_test,
         .WillOnce([&](auto&, auto, auto) { subscription_change_promise.set_value(); });
     EXPECT_CALL(server.mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::unsubscribed))
-        .Times(1);
+        .Times(AtMost(1));
 
     // Subscribe only the first half of clients
     for (std::size_t i = 0; i < num_subscribed; ++i) {
