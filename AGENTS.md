@@ -1,4 +1,87 @@
+<!--
+*******************************************************************************
+Copyright (c) 2026 Contributors to the Eclipse Foundation
+
+See the NOTICE file(s) distributed with this work for additional
+information regarding copyright ownership.
+
+This program and the accompanying materials are made available under the
+terms of the Apache License Version 2.0 which is available at
+https://www.apache.org/licenses/LICENSE-2.0
+
+SPDX-License-Identifier: Apache-2.0
+*******************************************************************************
+-->
+
 # AI Agent Guidelines for SOME/IP Gateway
+
+<!-- The first sections are based on https://github.com/forrestchang/andrej-karpathy-skills -->
+
+## General instructions
+
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+### 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+### 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+### 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+### 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
 ## Project Overview
 
@@ -13,7 +96,7 @@ The gateway also includes Rust examples and comprehensive Python integration tes
 **All source files must include Apache 2.0 license headers:**
 ```cpp
 /********************************************************************************
- * Copyright (c) 2026 Contributors to the Eclipse Foundation
+ * Copyright (c) <year> Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -34,6 +117,7 @@ The gateway also includes Rust examples and comprehensive Python integration tes
 
 **Core Components:**
 - [src/gatewayd/](src/gatewayd/) - Main daemon, configuration via FlatBuffers ([gatewayd_config.fbs](src/gatewayd/etc/gatewayd_config.fbs))
+- [src/socom/](src/socom/) - SOME/IP abstraction with plugin interface for IPC binding
 - [src/someipd/](src/someipd/) - SOME/IP binding layer
 - [src/network_service/interfaces/](src/network_service/interfaces/) - Network abstraction (message_transfer.h)
 - [examples/car_window_sim/](examples/car_window_sim/) - Complete working Rust example
@@ -61,6 +145,9 @@ bazel run //examples/car_window_sim:car_window_controller
 # Run all tests
 bazel test //...
 
+# Run unit tests
+bazel test //src/...
+
 # Run integration tests
 bazel test //tests/integration:integration
 
@@ -73,6 +160,7 @@ bazel run //:bazel-compile-commands
 
 **When adding new code, tests are required by default:**
 - Integration tests in [tests/integration/BUILD.bazel](tests/integration/BUILD.bazel)
+- Unit tests next to the software elements source code
 - Use `py_pytest` rule for Python tests
 
 ## Project Conventions
@@ -126,4 +214,4 @@ Follow [CONTRIBUTION.md](CONTRIBUTION.md):
 
 ---
 
-**Last updated: 2025-04-02**
+**Last updated: 2025-04-17**
