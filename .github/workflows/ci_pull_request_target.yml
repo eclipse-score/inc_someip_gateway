@@ -14,7 +14,7 @@
 name: CI (context of the base branch)
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
   merge_group:
     types: [checks_requested]
   workflow_dispatch:
@@ -22,13 +22,14 @@ jobs:
   build_and_test_qnx:
     # Do not run by default for every PR.
     # Run either in merge queue or if the pull request has the 'test-qnx' label.
-    if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'test-qnx')
+    if: github.event_name != 'pull_request_target' || (contains(github.event.pull_request.labels.*.name, 'test-qnx') && (github.event.action != 'edited'))
     secrets: inherit
     uses: ./.github/workflows/build_and_test_qnx.yml
     permissions:
       contents: read
       pull-requests: read
   docs:
+    if: github.event_name != 'pull_request_target' || (github.event.action != 'edited')
     secrets: inherit
     uses: ./.github/workflows/docs.yml
     permissions:
@@ -37,11 +38,15 @@ jobs:
       pull-requests: write
       id-token: write
   license_check:
+    if: github.event_name != 'pull_request_target' || (github.event.action != 'edited')
     secrets: inherit
     uses: ./.github/workflows/license_check.yml
     permissions:
       pull-requests: write
       issues: write
+  pr-title-semantic:
+    secrets: inherit
+    uses: ./.github/workflows/pr-title-semantic.yml
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
@@ -54,6 +59,7 @@ jobs:
       - build_and_test_qnx
       - docs
       - license_check
+      - pr-title-semantic
     permissions:
       actions: read
     runs-on: ubuntu-latest
