@@ -1,3 +1,9 @@
+---
+name: fix-failing-test
+description: 'Fix a failing test in this C++/Bazel/Python project. Use when a test is red, flaky, or crashes (segfault, assertion, timeout). Covers: reproducing the failure, root-cause analysis, surgical fix, and verification. Trigger phrases: fix failing test, test is broken, test crashes, test flakes, make test pass.'
+argument-hint: 'test target or test name, e.g. //src/gateway_ipc_binding/test:gateway_ipc_binding_test'
+---
+
 <!--
 *******************************************************************************
 Copyright (c) 2026 Contributors to the Eclipse Foundation
@@ -12,12 +18,6 @@ https://www.apache.org/licenses/LICENSE-2.0
 SPDX-License-Identifier: Apache-2.0
 *******************************************************************************
 -->
-
----
-name: fix-failing-test
-description: 'Fix a failing test in this C++/Bazel/Python project. Use when a test is red, flaky, or crashes (segfault, assertion, timeout). Covers: reproducing the failure, root-cause analysis, surgical fix, and verification. Trigger phrases: fix failing test, test is broken, test crashes, test flakes, make test pass.'
-argument-hint: 'test target or test name, e.g. //src/gateway_ipc_binding/test:gateway_ipc_binding_test'
----
 
 # Fix Failing Test
 
