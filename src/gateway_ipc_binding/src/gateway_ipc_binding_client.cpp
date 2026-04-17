@@ -86,8 +86,7 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
                 Message_frame<Connect> connect_msg;
                 connect_msg.payload.find_service_elements = m_find_service_elements;
                 connect_msg.payload.identifier = m_identifier;
-                auto status = send(connect_msg);
-                assert(status);
+                (void)send(connect_msg);
 
                 break;
             }

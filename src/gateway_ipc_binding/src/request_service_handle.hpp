@@ -28,7 +28,7 @@ class Service_request_sender {
     Service_request_sender() = default;
     virtual ~Service_request_sender() = default;
 
-    virtual Result<void> send_request_service(
+    virtual void send_request_service(
         score::socom::Service_interface_definition const& configuration,
         score::socom::Service_instance const& instance, bool in_use) noexcept = 0;
 };
@@ -41,15 +41,11 @@ class Request_service_handle final : public score::socom::Service_request_handle
         : m_owner(owner),
           m_configuration(std::move(configuration)),
           m_instance(std::move(instance)) {
-        auto send_result = m_owner.send_request_service(m_configuration, m_instance, true);
-        (void)send_result;
-        assert(send_result);
+        m_owner.send_request_service(m_configuration, m_instance, true);
     }
 
     ~Request_service_handle() override {
-        auto send_result = m_owner.send_request_service(m_configuration, m_instance, false);
-        (void)send_result;
-        assert(send_result);
+        m_owner.send_request_service(m_configuration, m_instance, false);
     }
 
    private:

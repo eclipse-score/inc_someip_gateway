@@ -46,13 +46,14 @@ class Connections {
         static_assert(std::is_trivially_copyable_v<Msg_type>,
                       "Msg_type must be trivially copyable for send_to_all");
 
+        Result<void> last_failure = {};
         for (auto& entry : m_connections) {
             auto send_result = entry.second.get().send(msg);
             if (!send_result) {
-                return send_result;
+                last_failure = send_result;
             }
         }
-        return {};
+        return last_failure;
     }
 
     void add_client(Client_id const& client_id, Reply_channel& reply_channel) {

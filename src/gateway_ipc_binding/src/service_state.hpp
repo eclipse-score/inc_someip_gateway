@@ -98,10 +98,11 @@ struct Service_state {
                 msg.payload.metadata =
                     slot_managers.get_shared_memory_metadata(keys.get(service, instance));
                 msg.payload.in_use = true;
-                auto send_result = send_func(client_id, offer.required_id, msg);
-                (void)send_result;
-                assert(send_result);
-                offer.connect_sent = true;
+                auto const send_result = send_func(client_id, offer.required_id, msg);
+                if (send_result) {
+                    // Keep connect_sent=false so a later reconnect can retry this handshake.
+                    offer.connect_sent = true;
+                }
             }
         }
     }

@@ -84,12 +84,12 @@ class Gateway_ipc_binding_base : public Service_request_sender {
     void handle_connect_service_reply_message(Client_id client_id,
                                               Connect_service_reply const& msg) noexcept;
 
-    Result<void> send_request_service(
-        score::socom::Service_interface_definition const& configuration,
-        score::socom::Service_instance const& instance, bool in_use) noexcept override;
+    void send_request_service(score::socom::Service_interface_definition const& configuration,
+                              score::socom::Service_instance const& instance,
+                              bool in_use) noexcept override;
 
-    Result<void> send_offer_service_to_client(Reply_channel& conn, Service const& service,
-                                              Instance_id const& instance, bool offered) noexcept;
+    void send_offer_service_to_client(Reply_channel& conn, Service const& service,
+                                      Instance_id const& instance, bool offered) noexcept;
 
     void maybe_send_connect_service_locked(Key_t const& key, Service_state& state) noexcept;
 

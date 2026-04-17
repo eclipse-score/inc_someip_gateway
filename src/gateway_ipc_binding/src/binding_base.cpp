@@ -199,12 +199,7 @@ void Gateway_ipc_binding_base::handle_connect_message(Client_id client_id, Reply
     Message_frame<Connect_reply> reply;
     reply.payload.status = true;
 
-    auto send_result = conn.send(reply);
-    if (!send_result) {
-        std::cerr << "Failed to send Connect_reply message to client " << client_id << ": "
-                  << send_result.error() << std::endl;
-    }
-    assert(send_result);
+    (void)conn.send(reply);
 }
 
 void Gateway_ipc_binding_base::handle_connect_reply_message(Connect_reply const& msg) {
@@ -272,7 +267,6 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
                 if (send_result) {
                     ++recipient_count;
                 }
-                assert(send_result);
             });
 
         m_slot_managers.insert_allocation(key, payload, recipient_count);
@@ -409,10 +403,7 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
             Message_frame<Payload_consumed> payload_consumed_msg;
             payload_consumed_msg.payload.required_id = required_id;
             payload_consumed_msg.payload.handle = payload_handle;
-            // Server_reply_channel reply_channel{*conn};
-            // Reply_channel& channel_ref = reply_channel;
-            auto send_result = conn->send(payload_consumed_msg);
-            (void)send_result;
+            (void)conn->send(payload_consumed_msg);
         };
 
     auto payload =
@@ -478,9 +469,7 @@ void Gateway_ipc_binding_base::handle_connect_service_message(Client_id client_i
     reply.payload.metadata = info.local_metadata;
     reply.payload.num_methods = service_state.counts.num_methods;
     reply.payload.num_events = service_state.counts.num_events;
-    auto send_result = conn.send(reply);
-    (void)send_result;
-    assert(send_result);
+    (void)conn.send(reply);
 }
 
 void Gateway_ipc_binding_base::handle_connect_service_reply_message(
@@ -549,8 +538,7 @@ void Gateway_ipc_binding_base::handle_connect_service_reply_message(
             msg.payload.provided_id = provided_id;
             msg.payload.event_id = event_id;
             msg.payload.subscribe = event_state == socom::Event_state::subscribed;
-            auto send_result = conn->send(msg);
-            (void)send_result;
+            (void)conn->send(msg);
         },
         [](socom::Enabled_server_connector&, socom::Event_id) {
             // No-op callback - remote service event updates are handled through IPC
@@ -581,7 +569,7 @@ void Gateway_ipc_binding_base::handle_connect_service_reply_message(
     }
 }
 
-Result<void> Gateway_ipc_binding_base::send_request_service(
+void Gateway_ipc_binding_base::send_request_service(
     score::socom::Service_interface_definition const& configuration,
     score::socom::Service_instance const& instance, bool in_use) noexcept {
     log_it("in_use == ", in_use);
@@ -596,29 +584,27 @@ Result<void> Gateway_ipc_binding_base::send_request_service(
     if (m_service_states.has_client_connector(key)) {
         // Callback call was triggered by our creation of Client_connector
         log_it("Client connector already exists for key, skipping creation and offer");
-        return {};
+        return;
     }
 
-    auto send_result = m_connections.send_to_all(msg);
+    (void)m_connections.send_to_all(msg);
 
     auto state_opt = m_service_states.process_request_service(key, configuration, msg.payload);
     removed_connector = std::move(state_opt.connector);
     if (!state_opt.service_state) {
         m_id_mapping.remove_service(key);
         m_pending_connects.clear_pending_connects_for_key(key);
-        return send_result;
+        return;
     }
 
     auto& state = state_opt.service_state->get();
     maybe_send_connect_service_locked(key, state);
-
-    return send_result;
 }
 
-Result<void> Gateway_ipc_binding_base::send_offer_service_to_client(Reply_channel& conn,
-                                                                    Service const& service,
-                                                                    Instance_id const& instance,
-                                                                    bool offered) noexcept {
+void Gateway_ipc_binding_base::send_offer_service_to_client(Reply_channel& conn,
+                                                            Service const& service,
+                                                            Instance_id const& instance,
+                                                            bool offered) noexcept {
     log_it("offered ==", offered);
 
     Message_frame<Offer_service> msg;
@@ -626,10 +612,7 @@ Result<void> Gateway_ipc_binding_base::send_offer_service_to_client(Reply_channe
     msg.payload.instance_id = instance;
     msg.payload.offered = offered;
 
-    auto send_result = conn.send(msg);
-    (void)send_result;
-    assert(send_result);
-    return {};
+    (void)conn.send(msg);
 }
 
 void Gateway_ipc_binding_base::maybe_send_connect_service_locked(Key_t const& key,

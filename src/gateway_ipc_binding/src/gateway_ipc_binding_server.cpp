@@ -46,8 +46,6 @@ class Server_reply_channel : public Reply_channel {
         }
         return {};
     }
-
-    using Reply_channel::send;  // Bring template send() into scope
 };
 
 /// \brief Implementation of Gateway_ipc_binding_server
