@@ -43,7 +43,6 @@ jobs:
           repository-cache: true
           # Cache external/
           external-cache: true
-          cache-save: ${{ github.event_name == 'push' || github.event_name == 'merge_group' }}
       - name: Allow linux-sandbox
         uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
       - run: df -h
