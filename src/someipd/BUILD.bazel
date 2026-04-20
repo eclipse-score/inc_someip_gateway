@@ -36,6 +36,7 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//src/network_service:provider",
+        "@score_baselibs//score/containers:non_relocatable_vector",
         "@score_baselibs//score/language/futurecpp",
         "@score_communication//score/mw/com",
         "@vsomeip",

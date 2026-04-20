@@ -83,6 +83,19 @@ common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 common --@score_communication//score/mw/com/flags:tracing_library=@score_baselibs//score/analysis/tracing/generic_trace_library/stub_implementation
 
+# ============================================================================
+# TC8 SOME/IP Conformance Test Configuration
+# ============================================================================
+# Default: exclude TC8 from `bazel test //...` (no network prerequisites needed).
+test --test_tag_filters=-tc8
+
+# Opt-in: `bazel test --config=tc8 //tests/tc8_conformance/...`
+# Wraps each test in a private network namespace with loopback multicast
+# routing (no sudo required).
+test:tc8 --test_tag_filters=tc8
+test:tc8 --test_env=TC8_HOST_IP=127.0.0.1
+test:tc8 --run_under=//tests/tc8_conformance:tc8_net_wrapper
+
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
 # For definition of sanitizer features see https://github.com/eclipse-score/bazel_cpp_toolchains/blob/main/templates/linux/cc_toolchain_config.bzl.template

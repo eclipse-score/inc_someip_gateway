@@ -49,8 +49,16 @@ jobs:
           bazel build //...
       - run: df -h
         if: always()
+      - name: Bazel lint targets
+        run: |
+          bazel test --test_tag_filters=lint //...
       - name: Bazel test targets
         run: |
           bazel test //... --build_tests_only
+      - name: Bazel TC8 SOME/IP Conformance Targets
+        run: |
+          # --config=tc8 creates a private network namespace per test (no sudo),
+          # configures loopback multicast routing, and sets TC8_HOST_IP=127.0.0.1.
+          bazel test --config=tc8 --test_output=all //tests/tc8_conformance/...
       - run: df -h
         if: always()
