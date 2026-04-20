@@ -79,7 +79,7 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
             [](Enabled_server_connector& /*esc*/, Method_id /*mid*/, Payload::Sptr const& /*pl*/,
                Method_call_reply_data_opt const& reply, auto const& /*cred*/) {
                 if (reply) {
-                    reply->reply_callback(Method_result{Application_return{}});
+                    (*reply)(Method_result{Application_return{}});
                 }
                 return Method_invocation::Uptr{};
             },

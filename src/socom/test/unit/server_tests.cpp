@@ -249,7 +249,7 @@ TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallReplyResultsInLoggi
         auto const empty_reply = [](Enabled_server_connector& /*server*/, Method_id /*method_id*/,
                                     Payload::Sptr const& /*payload*/,
                                     Method_call_reply_data_opt const& reply) {
-            reply->reply_callback(Method_result{Application_return{}});
+            (*reply)(Method_result{Application_return{}});
             return nullptr;
         };
 
