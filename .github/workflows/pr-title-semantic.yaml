@@ -58,6 +58,8 @@ jobs:
             ```
             ${{ steps.lint_pr_title.outputs.error_message }}
             ```
+
+            For an explanation of the respective types read [this blog post](https://www.bavaga.com/blog/2025/01/27/my-ultimate-conventional-commit-types-cheatsheet/).
       # Delete a previous comment when the issue has been resolved
       - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
         uses: marocchino/sticky-pull-request-comment@v3
