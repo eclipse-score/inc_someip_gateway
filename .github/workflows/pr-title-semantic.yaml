@@ -32,13 +32,7 @@ jobs:
           types: |
             feat
             fix
-            docs
-            style
-            refactor
             perf
-            test
-            build
-            ci
             chore
             revert
           requireScope: false
@@ -58,6 +52,13 @@ jobs:
             ```
             ${{ steps.lint_pr_title.outputs.error_message }}
             ```
+
+            Use:
+              - `feat:` New feature, improved documentation
+              - `fix:` Bugfixes
+              - `perf:` Performance improvements
+              - `chore:` Everything which should not be noticed by the user: tests, refactoring, ci, build system
+              - `revert:` Revert gone wrong pull request
       # Delete a previous comment when the issue has been resolved
       - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
         uses: marocchino/sticky-pull-request-comment@v3
