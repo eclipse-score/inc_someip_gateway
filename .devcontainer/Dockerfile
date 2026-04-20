@@ -12,7 +12,7 @@
 # *******************************************************************************
 
 # Use Dockerfile to get dependabot version bumps after new image is released
-FROM ghcr.io/eclipse-score/devcontainer:v1.3.0
+FROM ghcr.io/eclipse-score/devcontainer:v1.4.1
 
 # Build argument for dynamic username (defaults to 'vscode' if not provided)
 ARG USERNAME=vscode

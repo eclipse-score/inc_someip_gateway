@@ -1,0 +1,21 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# ThreadSanitizer suppressions for inc_someip_gateway
+
+# Suppress benign data races in std::shared_ptr and std::weak_ptr destruction
+# shared_ptr and weak_ptr destruction is supposed to be race free, thus it is either a false positive or a bug in the library
+race:std::__1::__shared_weak_count
+
+# Standard library is not build for thread sanitizer and causes false positives
+race:std::__1::ios_base::*
