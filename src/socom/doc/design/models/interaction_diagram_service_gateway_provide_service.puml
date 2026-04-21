@@ -34,12 +34,39 @@ The bridge needs to know a priori the needed services.
 e.g. via configuration or IPC messages from remote counterparts.
 end note
 
+== service instance remote usage ==
+
+group Implementation detail
+bridge -> bridge
+note right
+A remote counterpart is interested
+in a service and informed the
+service bridge about.
+end note
+end
+
+bridge -> socom : make_client_connector(interface_A, instance_1)
+activate socom
+return
+
+group !!! Important: break circle !!!
+socom X--> bridge : bridge_request_service(interface_A, instance_1)
+note right #FFAAAA
+SOCom shall call bridge_request_service()
+only if service instance is locally not available.
+end note
+end
 
 == Application creates a service instance ==
 
 app -> socom : make_server_connector(interface_A, instance_1)
 activate socom
-socom -> bridge : bridge_find_callback(interface_A, instance_1, State::added)
+socom -> socom
+note right
+SOCom connects client_connector to server_connector.
+end note
+
+socom -> bridge : Client_connector::Service_state_change_callback(Service_state::available)
 activate bridge
 
 group Implementation detail
@@ -57,31 +84,4 @@ return
 
 return
 
-== service instance remote usage ==
-
-group Implementation detail
-bridge -> bridge
-note right
-A remote counterpart is interested
-in the local service and informed the
-generic service bridge about.
-end note
-end
-
-bridge -> socom : make_client_connector(interface_A, instance_1)
-activate socom
-return
-
-group !!! Important: break circle !!!
-socom X--> bridge : bridge_request_service(interface_A, instance_1)
-note right #FFAAAA
-SOCom shall call bridge_request_service()
-only if service instance is locally not available.
-end note
-end
-
-socom -> socom
-note right
-SOCom connects client_connector to server_connector.
-end note
 @enduml
