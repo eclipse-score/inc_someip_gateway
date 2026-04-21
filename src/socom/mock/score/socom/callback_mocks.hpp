@@ -23,10 +23,6 @@
 
 namespace score::socom {
 
-// Runtime callbacks
-using Find_result_change_callback_mock = ::testing::MockFunction<Find_result_change_callback>;
-using Legacy_find_result_callback_mock = ::testing::MockFunction<Find_result_callback>;
-
 // Client_connector callbacks
 using Service_state_change_callback_mock = Move_only_function_mock<Service_state_change_callback>;
 using Event_update_callback_mock = Move_only_function_mock<Event_update_callback>;
@@ -48,8 +44,6 @@ using Method_call_credentials_callback_mock =
 using Method_reply_callback_mock = Move_only_function_mock<Method_reply_callback>;
 
 // Bridge callbacks
-using Subscribe_find_service_function_mock =
-    ::testing::MockFunction<Subscribe_find_service_function>;
 using Request_service_function_mock = ::testing::MockFunction<Request_service_function>;
 
 }  // namespace score::socom
