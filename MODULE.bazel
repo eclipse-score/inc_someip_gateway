@@ -73,12 +73,7 @@ bazel_dep(name = "rules_rust", version = "0.68.1-score")
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
 bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
 
-bazel_dep(name = "score_toolchains_rust", version = "0.7.0", dev_dependency = True)
-git_override(
-    module_name = "score_toolchains_rust",
-    commit = "40abf2df405dc714472f72f0f8538f04a5396e0e",  # Last verified: 2026-02-10
-    remote = "https://github.com/etas-contrib/score_toolchains_rust.git",
-)
+bazel_dep(name = "score_toolchains_rust", version = "0.8.0", dev_dependency = True)
 
 # ============================================================================
 # QNX8 Toolchain Configuration
