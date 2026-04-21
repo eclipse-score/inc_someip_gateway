@@ -127,9 +127,9 @@ include::models/interaction_diagram_service_gateway_require_service.puml[]
 
 == Service Gateway - provide service
 
-The creation of server connectors is found by service bridges using the SOCom subscribe_find_service() API.
+The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
 Service bridges provide this information within their domain.
-If any domain partner requests the service instance, the service bridge creates a proxy client connector (forwarding all communication).
+If any domain partner requests the service instance, the service bridge forwards all communication using this proxy client connector.
 
 .Interaction diagram: Service Gateway - provide service
 [plantuml, svg, align="center"]

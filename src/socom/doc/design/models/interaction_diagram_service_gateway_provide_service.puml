@@ -25,21 +25,13 @@ activate socom
 app  -> bridge ** : create_bridge_component()
 activate bridge
 
-bridge -> socom :  register_service_bridge(bridge_subscribe_find_service, bridge_request_service)
-activate socom
-return
-
-bridge -> socom : subscribe_find_service(bridge_find_callback)
+bridge -> socom :  register_service_bridge(bridge_request_service)
 activate socom
 return
 
 note right
-A generic service bridge (e.g. bridge::ipc)
-is interested in every service instance
-within the local process.
-This enables a config-free (dynamic)
-implementation of service discovery functionality
-based on the pure internal service instance identifiers.
+The bridge needs to know a priori the needed services.
+e.g. via configuration or IPC messages from remote counterparts.
 end note
 
 
