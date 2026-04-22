@@ -15,35 +15,39 @@
 
 namespace score::someip {
 
-std::string_view SomeipErrorDomain::MessageFor(const score::result::ErrorCode& code) const noexcept {
-    switch (static_cast<Errc>(code)) {
-        // coverity[autosar_cpp14_m6_4_5_violation]
-        case Errc::kInitializationFailed:
-            return "Initialization of the SOME/IP stack failed.";
-        case Errc::kInvalidConfiguration:
-            return "The provided configuration is invalid.";
-        case Errc::kRuntimeError:
-            return "A runtime error occurred in the SOME/IP stack.";
-        case Errc::kMessageTooLarge:
-            return "The message exceeds the maximum allowed size.";
-        case Errc::kSerializationError:
-            return "An error occurred during message serialization or deserialization.";
-        case Errc::kServiceNotFound:
-            return "The requested service was not found.";
-        case Errc::kMethodNotFound:
-            return "The requested method was not found.";
-        case Errc::kEventNotFound:
-            return "The requested event was not found.";
-        case Errc::kFieldNotFound:
-            return "The requested field was not found.";
-        case Errc::kInvalidMessage:
-            return "The received message is invalid or malformed.";
-        case Errc::kUnknownError:
-            return "An unknown error occurred.";
-        default:
-            return "Unknown SOME/IP error.";
+class SomeipErrorDomain final : public score::result::ErrorDomain {
+   public:
+    std::string_view MessageFor(
+        const score::result::ErrorCode& code) const noexcept override final {
+        switch (static_cast<Errc>(code)) {
+            // coverity[autosar_cpp14_m6_4_5_violation]
+            case Errc::kInitializationFailed:
+                return "Initialization of the SOME/IP stack failed.";
+            case Errc::kInvalidConfiguration:
+                return "The provided configuration is invalid.";
+            case Errc::kRuntimeError:
+                return "A runtime error occurred in the SOME/IP stack.";
+            case Errc::kMessageTooLarge:
+                return "The message exceeds the maximum allowed size.";
+            case Errc::kSerializationError:
+                return "An error occurred during message serialization or deserialization.";
+            case Errc::kServiceNotFound:
+                return "The requested service was not found.";
+            case Errc::kMethodNotFound:
+                return "The requested method was not found.";
+            case Errc::kEventNotFound:
+                return "The requested event was not found.";
+            case Errc::kFieldNotFound:
+                return "The requested field was not found.";
+            case Errc::kInvalidMessage:
+                return "The received message is invalid or malformed.";
+            case Errc::kUnknownError:
+                return "An unknown error occurred.";
+            default:
+                return "Unknown SOME/IP error.";
+        }
     }
-}
+};
 
 score::result::Error MakeError(const Errc code, const std::string_view message) {
     static constexpr SomeipErrorDomain error_domain;

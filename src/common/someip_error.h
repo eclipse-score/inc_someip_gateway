@@ -31,11 +31,6 @@ enum class Errc : score::result::ErrorCode {
     kUnknownError           ///< An unknown error occurred.
 };
 
-class SomeipErrorDomain final : public score::result::ErrorDomain {
-   public:
-    std::string_view MessageFor(const score::result::ErrorCode& code) const noexcept override final;
-};
-
 score::result::Error MakeError(const Errc code, const std::string_view message = "");
 
 }  // namespace score::someip
