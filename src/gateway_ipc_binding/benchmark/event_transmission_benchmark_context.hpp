@@ -26,6 +26,7 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
+#include <score/gateway_ipc_binding/error.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
@@ -51,6 +52,7 @@ using namespace std::chrono_literals;
                                                           std::uint32_t slot_count) {
     Shared_memory_metadata metadata{};
     bool const ok = fill_fixed_string(metadata.path, path);
+    (void)ok;  // Avoid unused variable warning in non-debug builds
     assert(ok && "Path should fit into fixed-size metadata path");
     metadata.slot_size = slot_size;
     metadata.slot_count = slot_count;
@@ -87,18 +89,23 @@ class Event_transmission_benchmark_context final {
         gateway_server_.reset();
     }
 
-    [[nodiscard]] std::chrono::nanoseconds send_and_measure_once() {
+    [[nodiscard]] Result<std::chrono::nanoseconds> send_and_measure_once() {
         auto const seq = ++sequence_;
-        auto payload_result = source_connector_->allocate_event_payload(event_id_);
-        if (!payload_result) {
-            benchmark::DoNotOptimize(payload_result.error());
-            return std::chrono::nanoseconds::max();
+        Result<std::unique_ptr<socom::Writable_payload>> payload_result = MakeUnexpected(
+            socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
+        while (!payload_result) {
+            payload_result = source_connector_->allocate_event_payload(event_id_);
+            // yield() is especially important for valgrind / massif when the benchmark is run with
+            // a high iteration count, as the event processing thread may not get scheduled often
+            // enough otherwise, causing the benchmark to run way longer.
+            std::this_thread::yield();
         }
 
         auto payload = std::move(payload_result).value();
         auto writable = payload->wdata();
         if (writable.size() < sizeof(seq)) {
-            return std::chrono::nanoseconds::max();
+            return MakeUnexpected(score::gateway_ipc_binding::Shared_memory_manager_error::
+                                      runtime_error_shared_memory_allocation_failed);
         }
 
         std::memcpy(writable.data(), &seq, sizeof(seq));
@@ -106,8 +113,7 @@ class Event_transmission_benchmark_context final {
         auto const start = std::chrono::steady_clock::now();
         auto update_result = source_connector_->update_event(event_id_, std::move(payload));
         if (!update_result) {
-            benchmark::DoNotOptimize(update_result.error());
-            return std::chrono::nanoseconds::max();
+            return MakeUnexpected<std::chrono::nanoseconds>(update_result.error());
         }
 
         std::unique_lock<std::mutex> lock{event_mutex_};
@@ -180,6 +186,7 @@ class Event_transmission_benchmark_context final {
         assert(gateway_client_);
 
         auto start_result = gateway_server_->start();
+        (void)start_result;  // Avoid unused variable warning in non-debug builds
         assert(start_result);
     }
 
@@ -260,17 +267,20 @@ class Event_transmission_benchmark_context final {
         std::unique_lock<std::mutex> lock{connection_state_mutex_};
         auto const available = connection_state_cv_.wait_for(
             lock, 10s, [this]() noexcept { return service_available_; });
+        (void)available;  // Avoid unused variable warning in non-debug builds
         assert(available);
     }
 
     void subscribe_event() {
         auto const subscribe_result =
             sink_connector_->subscribe_event(event_id_, score::socom::Event_mode::update);
+        (void)subscribe_result;  // Avoid unused variable warning in non-debug builds
         assert(subscribe_result);
 
         std::unique_lock<std::mutex> lock{connection_state_mutex_};
         auto const subscribed = connection_state_cv_.wait_for(
             lock, 10s, [this]() noexcept { return event_subscribed_; });
+        (void)subscribed;  // Avoid unused variable warning in non-debug builds
         assert(subscribed);
     }
 };

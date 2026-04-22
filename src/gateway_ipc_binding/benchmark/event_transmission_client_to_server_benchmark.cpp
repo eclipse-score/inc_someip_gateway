@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <string>
 
 #include "event_transmission_benchmark_context.hpp"
 
@@ -27,11 +28,12 @@ void benchmark_event_transmission_client_to_server(benchmark::State& state) {
 
     for (auto _ : state) {
         auto const duration = context.send_and_measure_once();
-        if (duration == std::chrono::nanoseconds::max()) {
-            state.SkipWithError("Failed to send or receive benchmark event");
+        if (!duration) {
+            state.SkipWithError("Failed to send or receive benchmark event: " +
+                                std::string{duration.error().Message()});
             return;
         }
-        state.SetIterationTime(std::chrono::duration<double>(duration).count());
+        state.SetIterationTime(std::chrono::duration<double>(duration.value()).count());
     }
 
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) *

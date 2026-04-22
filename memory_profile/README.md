@@ -139,9 +139,9 @@ bazel build //src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark -c
 
 ### Run Massif (valgrind) and Always Get massif.out
 ```bash
-valgrind --tool=massif --massif-out-file=memory_profile/massif.out bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory
+valgrind --tool=massif --massif-out-file=memory_profile/massif.out.1 bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory
 # Optional: visualize the stable output file
-ms_print memory_profile/massif.out | less
+ms_print memory_profile/massif.out.1 | less
 ```
 
 > [!NOTE]
