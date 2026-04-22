@@ -71,14 +71,9 @@ bazel_dep(name = "rules_rust", version = "0.68.1-score")
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.0.4")
+bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
 
-bazel_dep(name = "score_toolchains_rust", version = "0.7.0", dev_dependency = True)
-git_override(
-    module_name = "score_toolchains_rust",
-    commit = "40abf2df405dc714472f72f0f8538f04a5396e0e",  # Last verified: 2026-02-10
-    remote = "https://github.com/etas-contrib/score_toolchains_rust.git",
-)
+bazel_dep(name = "score_toolchains_rust", version = "0.8.0", dev_dependency = True)
 
 # ============================================================================
 # QNX8 Toolchain Configuration
@@ -158,7 +153,7 @@ register_toolchains(
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
 bazel_dep(name = "aspect_rules_lint", version = "2.5.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
@@ -173,6 +168,7 @@ download_archive = use_repo_rule("@download_utils//download/archive:defs.bzl", "
 download_archive(
     name = "json_schema_validator",
     build = "//third_party/json_schema_validator:json_schema_validator.BUILD",
+    integrity = "sha256-g/YdgRL0heDT8ectUWELo5JLF5kmqDdq7zwDh3D68gI=",
     strip_prefix = "json-schema-validator-2.1.0",
     urls = ["https://github.com/pboettch/json-schema-validator/archive/refs/tags/2.1.0.tar.gz"],
 )
@@ -180,6 +176,7 @@ download_archive(
 download_archive(
     name = "jsonschema",
     build = "//third_party/jsonschema:jsonschema.BUILD",
+    integrity = "sha256-rugv6PaV/h4ielG3dMOujCuyVpUGUampKGbFI7FQQs4=",
     strip_prefix = "jsonschema-4.23.0",
     urls = ["https://github.com/python-jsonschema/jsonschema/archive/refs/tags/v4.23.0.tar.gz"],
 )
@@ -197,25 +194,18 @@ bazel_dep(name = "score_communication", version = "0.1.4")
 # TODO: Remove override as soon as new release containing the GenericSkeleton is available.
 git_override(
     module_name = "score_communication",
-    commit = "fea1b1058ea78ccd32fd04bf2e0d4728b34e18fa",
+    commit = "cb16987ee8dc316aeea8d5209f36e3cb95f47b63",
     remote = "https://github.com/eclipse-score/communication.git",
 )
 
 # ============================================================================
 # Base Libraries
 # ============================================================================
-bazel_dep(name = "score_baselibs", version = "0.2.4")
+bazel_dep(name = "score_baselibs", version = "0.2.5")
 git_override(
     module_name = "score_baselibs",
-    commit = "052c2f271be4239f97182b164f4903b8c88d6c72",
+    commit = "3e81576c61064c06abb4836282679087a550804b",
     remote = "https://github.com/eclipse-score/baselibs.git",
-)
-
-bazel_dep(name = "score_logging", version = "0.1.0")
-git_override(
-    module_name = "score_logging",
-    commit = "38e8762881d512c89ae5c2e5e5238fd791d327df",
-    remote = "https://github.com/eclipse-score/logging.git",
 )
 
 # ============================================================================
