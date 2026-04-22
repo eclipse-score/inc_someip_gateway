@@ -19,6 +19,7 @@
 #include <thread>
 #include <vsomeip/vsomeip.hpp>
 
+#include "score/result/result.h"
 #include "src/common/types.h"
 #include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
@@ -42,20 +43,37 @@ using score::someip_gateway::network_service::interfaces::message_transfer::
 /// onto the SOME/IP network via the proxy.
 class Routing {
    public:
-    /// @param config      Parsed SOME/IP gateway configuration (services, events, instances).
-    /// @param ipc_proxy   Client-side IPC handle for forwarding messages to remote consumers.
-    /// @param ipc_skeleton Server-side IPC handle for receiving messages from local producers.
-    Routing(std::shared_ptr<const score::mw_someip_config::Root> config,
-            SomeipMessageTransferProxy ipc_proxy, SomeipMessageTransferSkeleton ipc_skeleton);
+    /// @brief Creates a Routing instance from the given configuration and IPC endpoints.
+    ///
+    /// Initialises a vsomeip application, registers it with the vsomeip runtime, and wires up
+    /// the IPC proxy and skeleton. Subscriptions and service offerings are applied once Run()
+    /// is called and the application has registered with the vsomeip routing daemon.
+    ///
+    /// @param config       SOME/IP gateway configuration describing the services, instances,
+    ///                     events, and methods to subscribe to or offer on the network.
+    /// @param ipc_proxy    IPC proxy used to receive outgoing messages from local publishers
+    ///                     and forward them onto the SOME/IP network.
+    /// @param ipc_skeleton IPC skeleton used to forward incoming SOME/IP events to local
+    ///                     consumers.
+    /// @return A fully initialised Routing instance, or an error if the vsomeip application
+    ///         could not be created or initialised.
+    static Result<Routing> Create(std::shared_ptr<const score::mw_someip_config::Root> config,
+                                  SomeipMessageTransferProxy ipc_proxy,
+                                  SomeipMessageTransferSkeleton ipc_skeleton);
 
-    /// Initialises the vsomeip application and registers all handlers.
-    /// @return true on success, false if vsomeip initialisation fails.
-    bool Init();
+    ~Routing() = default;
+
+    Routing(const Routing&) = delete;
+    Routing& operator=(const Routing&) = delete;
+    Routing(Routing&&) noexcept;
+    Routing& operator=(Routing&&) noexcept;
 
     /// Runs the routing loop, blocking until @p shutdown_requested is set to true.
     void Run(std::atomic<bool>& shutdown_requested);
 
    private:
+    Routing(std::shared_ptr<const score::mw_someip_config::Root> config,
+            SomeipMessageTransferProxy ipc_proxy, SomeipMessageTransferSkeleton ipc_skeleton);
     void SetupSubscriptions();
     void SetupOfferings();
     void ProcessMessages(std::atomic<bool>& shutdown_requested);

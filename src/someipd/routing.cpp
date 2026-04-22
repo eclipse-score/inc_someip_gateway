@@ -13,12 +13,13 @@
 
 #include "routing.h"
 
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <thread>
 
-#include "score/mw/log/logging.h"
 #include "src/common/constants.h"
+#include "src/common/someip_error.h"
 
 namespace score::someipd {
 
@@ -30,16 +31,35 @@ Routing::Routing(std::shared_ptr<const score::mw_someip_config::Root> config,
                  SomeipMessageTransferProxy ipc_proxy, SomeipMessageTransferSkeleton ipc_skeleton)
     : config_(config), ipc_proxy_(std::move(ipc_proxy)), ipc_skeleton_(std::move(ipc_skeleton)) {}
 
-bool Routing::Init() {
-    auto runtime = vsomeip::runtime::get();
-    application_ = runtime->create_application("someipd");
-    if (!application_->init()) {
-        std::cerr << "[someipd] vsomeip application initialization failed" << std::endl;
-        return false;
+Routing::Routing(Routing&&) noexcept = default;
+
+Routing& Routing::operator=(Routing&& other) noexcept {
+    if (this != &other) {
+        assert(!processing_thread_.joinable());
+        config_ = std::move(other.config_);
+        application_ = std::move(other.application_);
+        payload_ = std::move(other.payload_);
+        processing_thread_ = std::move(other.processing_thread_);
+        ipc_proxy_ = std::move(other.ipc_proxy_);
+        ipc_skeleton_ = std::move(other.ipc_skeleton_);
     }
-    payload_ = runtime->create_payload();
+    return *this;
+}
+
+Result<Routing> Routing::Create(std::shared_ptr<const score::mw_someip_config::Root> config,
+                                SomeipMessageTransferProxy ipc_proxy,
+                                SomeipMessageTransferSkeleton ipc_skeleton) {
+    Routing routing(std::move(config), std::move(ipc_proxy), std::move(ipc_skeleton));
+    auto runtime = vsomeip::runtime::get();
+    routing.application_ = runtime->create_application("someipd");
+    if (!routing.application_->init()) {
+        std::cerr << "[someipd] vsomeip application initialization failed" << std::endl;
+        return MakeUnexpected(score::someip::Errc::kInitializationFailed);
+    }
+    routing.payload_ = runtime->create_payload();
     std::cout << "[someipd] vsomeip application initialized successfully" << std::endl;
-    return true;
+
+    return Result<Routing>{std::move(routing)};
 }
 
 void Routing::SetupSubscriptions() {

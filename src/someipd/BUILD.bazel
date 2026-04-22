@@ -56,6 +56,7 @@ cc_library(
         "//src/config:config_flatbuffers",
         "//src/network_service:provider",
         "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
         "@vsomeip",
     ],

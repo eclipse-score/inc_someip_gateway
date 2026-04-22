@@ -154,14 +154,14 @@ int main(int argc, char* argv[]) {
     // TODO: Error handling
     (void)skeleton.OfferService();
 
-    score::someipd::Routing routing(config, std::move(proxy), std::move(skeleton));
-    if (!routing.Init()) {
+    auto routing = score::someipd::Routing::Create(config, std::move(proxy), std::move(skeleton));
+    if (!routing.has_value()) {
         std::cerr << "[someipd] Network stack initialization failed" << std::endl;
         return 1;
     }
 
     std::cout << "[someipd] Starting routing loop..." << std::endl;
-    routing.Run(shutdown_requested);
+    routing.value().Run(shutdown_requested);
 
     std::cout << "[someipd] Shutting down SOME/IP daemon..." << std::endl;
 }
