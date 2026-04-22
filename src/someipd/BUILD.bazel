@@ -52,8 +52,7 @@ cc_library(
     srcs = ["routing.cpp"],
     hdrs = ["routing.h"],
     deps = [
-        "//src/common:constants",
-        "//src/common:types",
+        "//src/common",
         "//src/config:config_flatbuffers",
         "//src/network_service:provider",
         "@score_baselibs//score/language/futurecpp",

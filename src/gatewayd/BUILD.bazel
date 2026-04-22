@@ -56,7 +56,7 @@ cc_library(
     srcs = ["remote_service_instance.cpp"],
     hdrs = ["remote_service_instance.h"],
     deps = [
-        "//src/common:types",
+        "//src/common",
         "//src/config:config_flatbuffers",
         "//src/network_service:consumer",
         "//tests/benchmarks:echo_service",

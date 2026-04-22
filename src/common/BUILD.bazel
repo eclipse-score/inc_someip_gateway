@@ -18,14 +18,10 @@ Common types and constants shared across the SOME/IP gateway components.
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 cc_library(
-    name = "types",
-    hdrs = ["types.h"],
+    name = "common",
+    hdrs = [
+        "constants.h",
+        "types.h",
+    ],
     visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "constants",
-    hdrs = ["constants.h"],
-    visibility = ["//visibility:public"],
-    deps = [":types"],
 )
