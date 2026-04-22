@@ -36,8 +36,9 @@ void Method_call_reply_data::operator()(Method_result const& method_reply) const
     }
 }
 
-void Method_call_reply_data::set_block_token(Weak_reference_token weak_stop_block_token,
+void Method_call_reply_data::set_block_token(Weak_reference_token weak_stop_block_token
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
+                                             ,
                                              Deadlock_detector& deadlock_detector
 #endif
 ) {

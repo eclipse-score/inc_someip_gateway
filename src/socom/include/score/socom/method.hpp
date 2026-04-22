@@ -172,8 +172,9 @@ class Method_call_reply_data {
     /// \param deadlock_detector Deadlock detector to be used for detecting potential deadlocks when
     /// calling the reply callback. Only needed if socom is compiled with deadlock detection
     /// enabled.
-    void set_block_token(Weak_reference_token weak_stop_block_token,
+    void set_block_token(Weak_reference_token weak_stop_block_token
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
+                         ,
                          Deadlock_detector& deadlock_detector
 #endif
     );
