@@ -24,4 +24,13 @@ cc_library(
         "types.h",
     ],
     visibility = ["//visibility:public"],
+    deps = [":someip_error"],
+)
+
+cc_library(
+    name = "someip_error",
+    srcs = ["someip_error.cpp"],
+    hdrs = ["someip_error.h"],
+    visibility = ["//visibility:public"],
+    deps = ["@score_baselibs//score/result"],
 )
