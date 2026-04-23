@@ -93,8 +93,7 @@ class BenchmarkFixture {
             if (retry == 0) {
                 std::cout << "Echo response service not found. Waiting for echo_server to start..."
                           << std::endl;
-                std::cout << "Please run: bazel run //tests/benchmarks:echo_server"
-                          << std::endl;
+                std::cout << "Please run: bazel run //tests/benchmarks:echo_server" << std::endl;
             }
 
             std::cout << "Retry " << (retry + 1) << "/" << MAX_SERVICE_DISCOVERY_RETRIES

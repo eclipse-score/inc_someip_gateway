@@ -141,34 +141,22 @@
                     "binding": "SHM",
                     "events": [
                         {
-                            "eventName": "echo_response_tiny",
-                            "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "eventName": "echo_response_tiny"
                         },
                         {
-                            "eventName": "echo_response_small",
-                            "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "eventName": "echo_response_small"
                         },
                         {
-                            "eventName": "echo_response_medium",
-                            "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "eventName": "echo_response_medium"
                         },
                         {
-                            "eventName": "echo_response_large",
-                            "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "eventName": "echo_response_large"
                         },
                         {
-                            "eventName": "echo_response_xlarge",
-                            "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "eventName": "echo_response_xlarge"
                         },
                         {
-                            "eventName": "echo_response_xxlarge",
-                            "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "eventName": "echo_response_xxlarge"
                         }
                     ]
                 }
