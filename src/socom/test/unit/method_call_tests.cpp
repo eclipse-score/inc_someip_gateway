@@ -204,7 +204,8 @@ TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodC
         auto const& ar = std::get<Application_return>(mr);
         EXPECT_EQ(reply_ptr, ar.payload.get());
     });
-    (*reply_data)(Method_result{Application_return{std::move(reply_data->get_reply_payload())}});
+    reply_data->reply(
+        Method_result{Application_return{std::move(reply_data->get_reply_payload())}});
 }
 
 }  // namespace score::socom

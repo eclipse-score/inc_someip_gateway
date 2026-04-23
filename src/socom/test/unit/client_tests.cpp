@@ -418,7 +418,7 @@ TEST_P(ConnectedClientConnectorTest, CallMethodWithReply) {
         auto reply_callback = get_value(std::move(reply_future));
         ASSERT_NE(reply_callback, std::nullopt);
 
-        (*reply_callback)(Method_result{test_values::application_return});
+        reply_callback->reply(Method_result{test_values::application_return});
         wait_for_atomics(wait_reply);
     }
 }
@@ -439,7 +439,7 @@ TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
 
     client_owner = nullptr;
 
-    (*reply_callback)(Method_result{test_values::application_return});
+    reply_callback->reply(Method_result{test_values::application_return});
 }
 
 TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
@@ -825,7 +825,7 @@ TEST_F(ClientConnectorDeathTest, ClientDeletionByOnMethodReplyResultsInLoggingAn
         ASSERT_TRUE(client0->call_method(method_id, empty_payload(),
                                          Method_call_reply_data{delete_client, nullptr}));
         ASSERT_EQ(std::future_status::ready, reply_callback.wait_for(0ms));
-        (*reply_callback.get())(Method_result{Application_return{empty_payload()}});
+        reply_callback.get()->reply(Method_result{Application_return{empty_payload()}});
     };
     EXPECT_DEATH(el_failure(), expected_message);
 }

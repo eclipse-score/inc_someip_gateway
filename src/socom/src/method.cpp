@@ -25,7 +25,7 @@ Method_call_reply_data::Method_call_reply_data(Method_reply_callback reply_callb
     assert(!this->reply_callback.empty());
 }
 
-void Method_call_reply_data::operator()(Method_result const& method_reply) const {
+void Method_call_reply_data::reply(Method_result const& method_reply) const {
     auto const stop_block_token = weak_stop_block_token.lock();
     if (stop_block_token) {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION

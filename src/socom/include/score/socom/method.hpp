@@ -156,7 +156,7 @@ class Method_call_reply_data {
     /// \brief Call the reply callback with the given method result, if the block token is not
     /// expired.
     /// \param method_reply Method result to be passed to the reply callback.
-    void operator()(Method_result const& method_reply) const;
+    void reply(Method_result const& method_reply) const;
 
    private:
     friend class client_connector::Impl;
