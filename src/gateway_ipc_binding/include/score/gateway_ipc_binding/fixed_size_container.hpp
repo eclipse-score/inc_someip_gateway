@@ -31,7 +31,7 @@ namespace score::gateway_ipc_binding {
 ///
 /// \note A similar data structure is score::cpp::inplace_vector, but that fails to be trivially
 /// copyable due to its non-trivial destructor, copy and move operations, which makes it unsuitable
-/// for IPC payloads.
+/// for IPC payloads. See https://github.com/eclipse-score/baselibs/issues/168 for details.
 template <typename T, std::size_t Max_size>
 struct Fixed_size_container {
     std::size_t size;
