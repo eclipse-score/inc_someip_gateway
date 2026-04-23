@@ -14,6 +14,8 @@
 # Workflow configuration for S-CORE CI - Bazel Build & Test module
 # This workflow runs Bazel build and test when triggered by specific pull request events.
 
+# dummy change to create different commit for testing
+
 name: Build & Test module (cross compilation for QNX)
 on:
   workflow_call:
