@@ -90,7 +90,7 @@ inline auto matches_service_definition(socom::Server_service_interface_definitio
     });
 }
 
-inline socom::Writable_payload::Sptr create_payload(
+inline socom::Writable_payload::Uptr create_payload(
     socom::Enabled_server_connector& connector, Event_id const& event_id,
     std::vector<std::byte> const& expected_payload) {
     auto payload_handle = connector.allocate_event_payload(event_id);

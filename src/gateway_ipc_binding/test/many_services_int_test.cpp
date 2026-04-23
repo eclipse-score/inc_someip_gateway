@@ -90,7 +90,7 @@ void send_event_update(Server_connector_with_callbacks& server, Service_variant 
         .WillOnce(
             [&event_received_promise](auto&, auto, auto) { event_received_promise.set_value(); });
 
-    auto const update_result = server.connector->update_event(event_id, payload);
+    auto const update_result = server.connector->update_event(event_id, std::move(payload));
     ASSERT_TRUE(update_result);
     EXPECT_EQ(event_received_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
