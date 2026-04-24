@@ -196,12 +196,12 @@ TEST_P(Gateway_ipc_binding_many_clients_integration_test,
     auto payload_handle = create_payload(*server.connector, event_id, expected_payload);
 
     // Set up per-client expectations before calling update_event
-    std::vector<std::promise<socom::Payload::Sptr>> event_received_promises(num_clients);
+    std::vector<std::promise<socom::Payload::Uptr>> event_received_promises(num_clients);
     for (std::size_t i = 0; i < num_clients; ++i) {
         EXPECT_CALL(client_connectors[i].mock_event_update_cb, Call(_, event_id, _))
             .Times(1)
             .WillOnce([&promise = event_received_promises[i]](auto&, auto, auto payload) {
-                promise.set_value(payload);
+                promise.set_value(std::move(payload));
             });
     }
 
@@ -256,12 +256,12 @@ TEST_P(Gateway_ipc_binding_many_clients_integration_test,
     ASSERT_TRUE(payload_handle);
 
     // Set up per-client expectations: only subscribed clients should receive the update
-    std::vector<std::promise<socom::Payload::Sptr>> event_received_promises(num_subscribed);
+    std::vector<std::promise<socom::Payload::Uptr>> event_received_promises(num_subscribed);
     for (std::size_t i = 0; i < num_subscribed; ++i) {
         EXPECT_CALL(client_connectors[i].mock_event_update_cb, Call(_, event_id, _))
             .Times(1)
             .WillOnce([&promise = event_received_promises[i]](auto&, auto, auto payload) {
-                promise.set_value(payload);
+                promise.set_value(std::move(payload));
             });
     }
 
@@ -303,12 +303,12 @@ TEST_P(Gateway_ipc_binding_many_clients_integration_test,
     auto payload_handle = server.connector->allocate_event_payload(event_id);
     ASSERT_TRUE(payload_handle);
 
-    std::vector<std::promise<socom::Payload::Sptr>> event_received_promises(num_still_subscribed);
+    std::vector<std::promise<socom::Payload::Uptr>> event_received_promises(num_still_subscribed);
     for (std::size_t i = 0; i < num_still_subscribed; ++i) {
         EXPECT_CALL(client_connectors[i].mock_event_update_cb, Call(_, event_id, _))
             .Times(1)
             .WillOnce([&promise = event_received_promises[i]](auto&, auto, auto payload) {
-                promise.set_value(payload);
+                promise.set_value(std::move(payload));
             });
     }
 
@@ -355,18 +355,18 @@ TEST_F(Gateway_ipc_binding_payload_lifetime_regression_test,
 
     auto payload_handle = create_payload(*server_connector.connector, event_id, expected_payload);
 
-    std::promise<socom::Payload::Sptr> client1_payload_promise;
-    std::promise<socom::Payload::Sptr> client2_payload_promise;
+    std::promise<socom::Payload::Uptr> client1_payload_promise;
+    std::promise<socom::Payload::Uptr> client2_payload_promise;
 
     EXPECT_CALL(client_connector_1.mock_event_update_cb, Call(_, event_id, _))
         .Times(1)
         .WillOnce([&client1_payload_promise](auto&, auto, auto payload) {
-            client1_payload_promise.set_value(payload);
+            client1_payload_promise.set_value(std::move(payload));
         });
     EXPECT_CALL(client_connector_2.mock_event_update_cb, Call(_, event_id, _))
         .Times(1)
         .WillOnce([&client2_payload_promise](auto&, auto, auto payload) {
-            client2_payload_promise.set_value(payload);
+            client2_payload_promise.set_value(std::move(payload));
         });
 
     ASSERT_TRUE(server_connector.connector->update_event(event_id, std::move(payload_handle)));

@@ -77,11 +77,11 @@ TEST_P(Gateway_ipc_binding_bidirectional_many_events_integration_test,
         payload_handle->wdata()[0] = std::byte{static_cast<std::uint8_t>(
             current_event_id)};  // differentiate payloads of different events
 
-        std::promise<socom::Payload::Sptr> event_update_received_promise;
+        std::promise<socom::Payload::Uptr> event_update_received_promise;
         EXPECT_CALL(client.mock_event_update_cb, Call(_, current_event_id, _))
             .Times(1)
             .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
-                event_update_received_promise.set_value(payload);
+                event_update_received_promise.set_value(std::move(payload));
             });
         auto update_result =
             server.connector->update_event(current_event_id, std::move(payload_handle));

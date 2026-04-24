@@ -249,13 +249,13 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
     // create Client_connector and send offer once Enabled_server_connector is available
     auto const send_event_update = [this, key = key](score::socom::Client_connector const&,
                                                      score::socom::Event_id event_id,
-                                                     score::socom::Payload::Sptr const& payload) {
+                                                     score::socom::Payload::Uptr payload) {
         std::lock_guard<std::recursive_mutex> const lock{m_mutex};
         std::size_t recipient_count{0U};
 
         m_id_mapping.for_each_client(
-            key, [this, event_id, payload, &recipient_count](Client_id client_id,
-                                                             Connection_metadata::Ids const& ids) {
+            key, [this, event_id, &payload, &recipient_count](Client_id client_id,
+                                                              Connection_metadata::Ids const& ids) {
                 Reply_channel* const conn = m_connections.get_reply_channel(client_id);
                 assert(conn != nullptr && "Connection not found for client_id");
 
@@ -275,7 +275,7 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
                 }
             });
 
-        m_slot_managers.insert_allocation(key, payload, recipient_count);
+        m_slot_managers.insert_allocation(key, std::move(payload), recipient_count);
     };
 
     auto const service_state_change =
@@ -524,7 +524,7 @@ void Gateway_ipc_binding_base::handle_connect_service_reply_message(
 
     // Create callbacks for the server connector that send IPC messages
     socom::Disabled_server_connector::Callbacks server_callbacks{
-        [](socom::Enabled_server_connector&, socom::Method_id, socom::Payload::Sptr,
+        [](socom::Enabled_server_connector&, socom::Method_id, socom::Payload::Uptr,
            socom::Method_call_reply_data_opt,
            socom::Posix_credentials const&) -> socom::Method_invocation::Uptr {
             // No-op callback - remote service methods are handled through IPC

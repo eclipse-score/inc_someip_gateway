@@ -42,7 +42,7 @@ using Service_state_change_callback = score::cpp::move_only_function<void(
 
 /// \brief Function type for indicating event updates to the service user.
 using Event_update_callback =
-    score::cpp::move_only_function<void(Client_connector const&, Event_id, Payload::Sptr)>;
+    score::cpp::move_only_function<void(Client_connector const&, Event_id, Payload::Uptr)>;
 
 /// \brief Function type for allocating event payloads.
 using Event_payload_allocate_callback =
@@ -230,7 +230,7 @@ class Client_connector {
     /// \return A pointer to a Method_invocation object in case of successful invocation, otherwise
     /// an error.
     [[nodiscard]] virtual Result<Method_invocation::Uptr> call_method(
-        Method_id client_id, Payload::Sptr payload,
+        Method_id client_id, Payload::Uptr payload,
         Method_call_reply_data_opt reply_data = std::nullopt) const noexcept = 0;
 
     /// \brief Retrieves the peer posix credentials from the server.

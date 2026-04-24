@@ -83,7 +83,7 @@ message::Request_event_update::Return_type Impl::request_event_update(
 }
 
 message::Call_method::Return_type Impl::call_method(
-    Method_id client_id, Payload::Sptr payload,
+    Method_id client_id, Payload::Uptr payload,
     Method_call_reply_data_opt reply_data) const noexcept {
     Method_call_reply_data_opt internal_reply_data;
 
@@ -131,8 +131,8 @@ message::Call_method::Return_type Impl::call_method(
                                                            std::move(reply_data->reply_payload)});
     }
 
-    return send(
-        message::Call_method{client_id, payload, std::move(internal_reply_data), m_credentials});
+    return send(message::Call_method{client_id, std::move(payload), std::move(internal_reply_data),
+                                     m_credentials});
 }
 
 Result<std::unique_ptr<Writable_payload>> Impl::allocate_method_call_payload(
@@ -167,7 +167,7 @@ message::Update_event::Return_type Impl::receive(message::Update_event message) 
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    m_callbacks.on_event_update(*this, message.id, message.payload);
+    m_callbacks.on_event_update(*this, message.id, std::move(message.payload));
 }
 
 message::Update_requested_event::Return_type Impl::receive(
@@ -175,7 +175,7 @@ message::Update_requested_event::Return_type Impl::receive(
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    m_callbacks.on_event_requested_update(*this, message.id, message.payload);
+    m_callbacks.on_event_requested_update(*this, message.id, std::move(message.payload));
 }
 
 message::Allocate_event_payload::Return_type Impl::receive(

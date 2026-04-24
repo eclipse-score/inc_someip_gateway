@@ -61,10 +61,10 @@ class Method_invocation {
 struct Application_return {
     /// \brief Constructor.
     /// \param p Payload data.
-    explicit Application_return(Payload::Sptr p = empty_payload()) : payload{std::move(p)} {}
+    explicit Application_return(Payload::Uptr p = empty_payload()) : payload{std::move(p)} {}
 
     /// \brief Payload data.
-    Payload::Sptr payload;
+    Payload::Uptr payload;
 };
 
 /// \brief Result of failed method call.
@@ -74,19 +74,19 @@ struct Application_error {
 
     /// \brief Constructor.
     /// \param p Payload data.
-    explicit Application_error(Payload::Sptr p = empty_payload()) : payload{std::move(p)} {}
+    explicit Application_error(Payload::Uptr p = empty_payload()) : payload{std::move(p)} {}
 
     /// \brief Constructor.
     /// \param c Error code.
     /// \param p Payload data.
-    explicit Application_error(Code c, Payload::Sptr p = empty_payload())
+    explicit Application_error(Code c, Payload::Uptr p = empty_payload())
         : code{c}, payload{std::move(p)} {}
 
     /// \brief Error code.
     Code code{};
 
     /// \brief Payload data.
-    Payload::Sptr payload;
+    Payload::Uptr payload;
 };
 
 /// \brief Alias for the response of a method.

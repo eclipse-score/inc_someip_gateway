@@ -59,19 +59,28 @@ class Vector_payload final : public Payload {
 
 }  // namespace
 
-Payload::Sptr make_vector_payload(Vector_buffer buffer) {
-    return std::make_shared<Vector_payload>(0, std::move(buffer));
+Payload::Uptr make_vector_payload(Vector_buffer buffer) {
+    return std::make_unique<Vector_payload>(0, std::move(buffer));
 }
 
-Payload::Sptr make_vector_payload(std::size_t header_size, Vector_buffer buffer) {
+Payload::Uptr make_vector_payload(std::size_t header_size, Vector_buffer buffer) {
     assert(header_size <= buffer.size());
-    return std::make_shared<Vector_payload>(header_size, std::move(buffer));
+    return std::make_unique<Vector_payload>(header_size, std::move(buffer));
 }
 
-Payload::Sptr make_vector_payload(std::size_t lead_offset, std::size_t header_size,
+Payload::Uptr make_vector_payload(std::size_t lead_offset, std::size_t header_size,
                                   Vector_buffer buffer) {
     assert((lead_offset + header_size) <= buffer.size());
-    return std::make_shared<Vector_payload>(lead_offset, header_size, std::move(buffer));
+    return std::make_unique<Vector_payload>(lead_offset, header_size, std::move(buffer));
+}
+
+Payload::Uptr clone_payload(Payload const& p) {
+    auto header = p.header();
+    auto data = p.data();
+    Vector_buffer buf(header.size() + data.size());
+    std::copy(header.begin(), header.end(), buf.begin());
+    std::copy(data.begin(), data.end(), buf.begin() + static_cast<std::ptrdiff_t>(header.size()));
+    return make_vector_payload(header.size(), std::move(buf));
 }
 
 }  // namespace score::socom

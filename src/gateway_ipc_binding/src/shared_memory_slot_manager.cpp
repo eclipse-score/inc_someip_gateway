@@ -211,14 +211,14 @@ class Read_only_shared_memory_slot_manager_impl final
         m_shared_memory->UnlinkFilesystemEntry();
     }
 
-    socom::Payload::Sptr get_payload(
+    socom::Payload::Uptr get_payload(
         Shared_memory_handle handle,
         On_payload_destruction_callback callback) const noexcept override {
         if (handle.slot_index >= m_slot_count) {
             return nullptr;
         }
 
-        return std::make_shared<Read_only_shared_memory_payload>(
+        return std::make_unique<Read_only_shared_memory_payload>(
             m_base_address, handle.slot_index, m_slot_size, handle.used_bytes, std::move(callback));
     }
 

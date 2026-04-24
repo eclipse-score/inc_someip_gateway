@@ -27,17 +27,16 @@ struct Client_connector_callbacks_naggy_mock {
     MOCK_METHOD(void, on_service_state_change,
                 (Client_connector const&, Service_state,
                  Server_service_interface_definition const&));
-    MOCK_METHOD(void, on_event_update, (Client_connector const&, Event_id, Payload::Sptr const&));
+    MOCK_METHOD(void, on_event_update, (Client_connector const&, Event_id, Payload const*));
     MOCK_METHOD(void, on_requested_event_update,
-                (Client_connector const&, Event_id, Payload::Sptr const&));
+                (Client_connector const&, Event_id, Payload const*));
     MOCK_METHOD(score::Result<std::unique_ptr<Writable_payload>>, on_event_payload_allocate,
                 (Client_connector const&, Event_id));
 };
 
 struct Server_connector_callbacks_naggy_mock {
     MOCK_METHOD(Method_invocation::Uptr, on_method_call,
-                (Enabled_server_connector&, Method_id, Payload::Sptr const&,
-                 Method_call_reply_data_opt));
+                (Enabled_server_connector&, Method_id, Payload const*, Method_call_reply_data_opt));
     MOCK_METHOD(void, on_event_subscription_change,
                 (Enabled_server_connector&, Event_id, Event_state));
     MOCK_METHOD(void, on_event_update_request, (Enabled_server_connector&, Event_id));
@@ -47,8 +46,8 @@ struct Server_connector_callbacks_naggy_mock {
 
 struct Server_connector_credentials_callbacks_naggy_mock {
     MOCK_METHOD(Method_invocation::Uptr, on_method_call,
-                (Enabled_server_connector&, Method_id, Payload::Sptr const&,
-                 Method_call_reply_data_opt, Posix_credentials const&));
+                (Enabled_server_connector&, Method_id, Payload const*, Method_call_reply_data_opt,
+                 Posix_credentials const&));
     MOCK_METHOD(void, on_event_subscription_change,
                 (Enabled_server_connector&, Event_id, Event_state));
     MOCK_METHOD(void, on_event_update_request, (Enabled_server_connector&, Event_id));

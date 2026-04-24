@@ -137,7 +137,7 @@ Server_service_interface_definition const& Impl::get_configuration() const noexc
 
 Service_instance const& Impl::get_service_instance() const noexcept { return m_instance; }
 
-Result<Blank> Impl::update_event(Event_id server_id, Payload::Sptr payload) noexcept {
+Result<Blank> Impl::update_event(Event_id server_id, Payload::Uptr payload) noexcept {
     if (server_id >= m_configuration.get_num_events()) {
         return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
@@ -150,11 +150,11 @@ Result<Blank> Impl::update_event(Event_id server_id, Payload::Sptr payload) noex
     lock.unlock();
 
     // May throw std::bad_alloc: left unhandled as a design decision
-    send(clients, message::Update_event{server_id, payload});
+    send(clients, message::Update_event{server_id, std::move(payload)});
     return Result<Blank>{};
 }
 
-Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Sptr payload) noexcept {
+Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Uptr payload) noexcept {
     if (server_id >= m_configuration.get_num_events()) {
         return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
@@ -168,7 +168,7 @@ Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Sptr pay
     lock.unlock();
 
     // May throw std::bad_alloc: left unhandled as a design decision
-    send(clients, message::Update_requested_event{server_id, payload});
+    send(clients, message::Update_requested_event{server_id, std::move(payload)});
     return Result<Blank>{};
 }
 
@@ -259,8 +259,9 @@ message::Call_method::Return_type Impl::receive(Client_connection const& /*clien
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    return message::Call_method::Return_type(m_callbacks.on_method_call(
-        *this, message.id, message.payload, std::move(message.reply_data), message.credentials));
+    return message::Call_method::Return_type(
+        m_callbacks.on_method_call(*this, message.id, std::move(message.payload),
+                                   std::move(message.reply_data), message.credentials));
 }
 
 message::Allocate_method_call_payload::Return_type Impl::receive(

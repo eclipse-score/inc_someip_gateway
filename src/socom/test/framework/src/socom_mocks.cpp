@@ -18,9 +18,9 @@ namespace score::socom {
 Disabled_server_connector::Callbacks create_server_callbacks(
     Server_connector_callbacks_mock& mock) {
     return Disabled_server_connector::Callbacks{
-        [&mock](auto& connector, auto mid, auto const& payload,
-                Method_call_reply_data_opt reply_callback, auto cred) {
-            return mock.on_method_call(connector, mid, payload, std::move(reply_callback));
+        [&mock](auto& connector, auto mid, auto payload, Method_call_reply_data_opt reply_callback,
+                auto cred) {
+            return mock.on_method_call(connector, mid, payload.get(), std::move(reply_callback));
         },
         [&mock](auto& connector, auto eid, auto state) {
             mock.on_event_subscription_change(connector, eid, state);
@@ -34,9 +34,9 @@ Disabled_server_connector::Callbacks create_server_callbacks(
 Disabled_server_connector::Callbacks create_server_callbacks(
     Server_connector_credentials_callbacks_mock& mock) {
     return Disabled_server_connector::Callbacks{
-        [&mock](auto& connector, auto mid, auto const& payload,
-                Method_call_reply_data_opt reply_callback, auto const& credentials) {
-            return mock.on_method_call(connector, mid, payload, std::move(reply_callback),
+        [&mock](auto& connector, auto mid, auto payload, Method_call_reply_data_opt reply_callback,
+                auto const& credentials) {
+            return mock.on_method_call(connector, mid, payload.get(), std::move(reply_callback),
                                        credentials);
         },
         [&mock](auto& connector, auto eid, auto state) {
@@ -53,11 +53,11 @@ Client_connector::Callbacks create_client_callbacks(Client_connector_callbacks_m
         [&mock](auto const& connector, auto state, auto const& configuration) {
             mock.on_service_state_change(connector, state, configuration);
         },
-        [&mock](auto const& connector, auto id, auto const& payload) {
-            mock.on_event_update(connector, id, payload);
+        [&mock](auto const& connector, auto id, auto payload) {
+            mock.on_event_update(connector, id, payload.get());
         },
-        [&mock](auto const& connector, auto id, auto const& payload) {
-            mock.on_requested_event_update(connector, id, payload);
+        [&mock](auto const& connector, auto id, auto payload) {
+            mock.on_requested_event_update(connector, id, payload.get());
         },
         [&mock](auto const& connector, auto id) {
             return mock.on_event_payload_allocate(connector, id);

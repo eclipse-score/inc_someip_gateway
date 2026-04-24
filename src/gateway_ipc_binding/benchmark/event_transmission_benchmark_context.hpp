@@ -198,7 +198,7 @@ class Event_transmission_benchmark_context final {
 
     void create_connectors() {
         auto on_event_update = [this](score::socom::Client_connector const&, Event_id,
-                                      score::socom::Payload::Sptr payload) {
+                                      score::socom::Payload::Uptr payload) {
             std::uint64_t received_sequence = 0U;
             auto const data = payload->data();
             if (data.size() >= sizeof(received_sequence)) {
@@ -235,7 +235,7 @@ class Event_transmission_benchmark_context final {
         assert(sink_connector_);
 
         score::socom::Disabled_server_connector::Callbacks server_callbacks{
-            [](score::socom::Enabled_server_connector&, Method_id, score::socom::Payload::Sptr,
+            [](score::socom::Enabled_server_connector&, Method_id, score::socom::Payload::Uptr,
                score::socom::Method_call_reply_data_opt, score::socom::Posix_credentials const&) {
                 return score::socom::Method_invocation::Uptr{};
             },

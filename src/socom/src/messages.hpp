@@ -48,7 +48,7 @@ struct Connect {
 struct Call_method {
     using Return_type = score::Result<Method_invocation::Uptr>;
     Method_id const id;
-    Payload::Sptr payload;
+    Payload::Uptr payload;
     Method_call_reply_data_opt reply_data;
     Posix_credentials const& credentials;
 };
@@ -76,13 +76,13 @@ struct Request_event_update {
 struct Update_event {
     using Return_type = void;
     Event_id const id;
-    Payload::Sptr payload;
+    Payload::Uptr payload;
 };
 
 struct Update_requested_event {
     using Return_type = void;
     Event_id const id;
-    Payload::Sptr payload;
+    Payload::Uptr payload;
 };
 
 struct Allocate_event_payload {

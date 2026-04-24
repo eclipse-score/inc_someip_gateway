@@ -100,7 +100,7 @@ struct Client_data {
     /// \brief Call subscribe_event() with Event_mode::update
     ///
     /// \param[in] event_id event to subscribe to
-    void subscribe_event(Event_id const& event_id);
+    void subscribe_event(Event_id const& event_id, Event_mode const mode = Event_mode::update);
 
     /// \brief Call unsubscribe_event()
     ///
@@ -113,25 +113,6 @@ struct Client_data {
     /// \return RAII object holding the subscription
     std::unique_ptr<Temporary_event_subscription> create_event_subscription(
         Event_id const& event_id);
-
-    /// \brief Create event subscription for event_id with Event_mode::update_and_initial
-    ///
-    /// \param[in] sc_callbacks callbacks of sc
-    /// \param[in] event_id event to subscribe to
-    /// \param[in] payload payload of the event update
-    /// \return RAII object holding the subscription
-    std::unique_ptr<Temporary_event_subscription> create_event_subscription(
-        Server_connector_callbacks_mock& sc_callbacks, Event_id const& event_id,
-        Payload::Sptr const& payload);
-
-    /// \brief Create event subscription for event_id with Event_mode::update_and_initial
-    ///
-    /// \param[in] server server answering the event update request
-    /// \param[in] event_id event to subscribe to
-    /// \param[in] payload payload of the event update
-    /// \return RAII object holding the subscription
-    std::unique_ptr<Temporary_event_subscription> create_event_subscription(
-        Server_data& server, Event_id const& event_id, Payload::Sptr const& payload);
 
     /// \brief Create event subscription for event_id with Event_mode::update_and_initial
     ///        but the server is not answering the update event request
@@ -160,14 +141,14 @@ struct Client_data {
     ///
     /// \param[in] method_id method to call
     /// \param[in] payload payload of method
-    void call_method(Method_id const& method_id, Payload::Sptr const& payload);
+    void call_method(Method_id const& method_id, Payload::Uptr const& payload);
 
     /// \brief Call method method_id with payload and reply callback
     ///
     /// \param[in] method_id method to call
     /// \param[in] payload payload of method
     /// \param[in] reply reply callback
-    void call_method(Method_id const& method_id, Payload::Sptr const& payload,
+    void call_method(Method_id const& method_id, Payload::Uptr const& payload,
                      Method_reply_callback reply);
 
     /// \brief Call method method_id with payload and reply callback
@@ -175,14 +156,14 @@ struct Client_data {
     /// \param[in] method_id method to call
     /// \param[in] payload payload of method
     /// \param[in] reply reply callback
-    void call_method(Method_id const& method_id, Payload::Sptr const& payload,
+    void call_method(Method_id const& method_id, Payload::Uptr const& payload,
                      Method_call_reply_data reply);
 
     /// \brief Call method without callback and without expecting a response
     ///
     /// \param[in] method_id method to call
     /// \param[in] payload the data of the method call
-    void call_method_fire_and_forget(Method_id const& method_id, Payload::Sptr const& payload);
+    void call_method_fire_and_forget(Method_id const& method_id, Payload::Uptr const& payload);
 
     /// Call method without callback and without expecting a response
     ///
@@ -190,7 +171,7 @@ struct Client_data {
     /// \param[in] payload the data of the method call
     /// \return Method_invocation on success, else error
     score::Result<Method_invocation::Uptr> call_method_fire_and_forget_and_return_invocation(
-        Method_id const& method_id, Payload::Sptr const& payload);
+        Method_id const& method_id, Payload::Uptr const& payload);
 
     /// \brief Expect state change of configured service
     ///
@@ -229,7 +210,7 @@ struct Client_data {
     /// \param[in] payload the data of the send
     /// \return boolean reference which becomes true after the event has been received
     std::atomic<bool> const& expect_event_update(Event_id const& event_id,
-                                                 Payload::Sptr const& payload);
+                                                 Payload::Uptr const& payload);
 
     /// \brief Expect event updates
     ///
@@ -238,7 +219,7 @@ struct Client_data {
     /// \param[in] payload the data of the send
     /// \return boolean reference which becomes true after all events have been received
     std::atomic<bool> const& expect_event_updates(size_t const& count, Event_id const& event_id,
-                                                  Payload::Sptr const& payload);
+                                                  Payload::Uptr const& payload);
 
     /// Expect event updates
     ///
@@ -248,7 +229,7 @@ struct Client_data {
     /// \return future which unblocks after minimum received event updates.
     std::future<void> expect_event_updates_min_number(std::size_t const& count,
                                                       Event_id const& event_id,
-                                                      Payload::Sptr const& payload);
+                                                      Payload::Uptr const& payload);
 
     /// \brief Expect requested event update
     ///
@@ -256,7 +237,7 @@ struct Client_data {
     /// \param[in] payload the data of the send
     /// \return boolean reference which becomes true after the event has been received
     std::atomic<bool> const& expect_requested_event_update(Event_id const& event_id,
-                                                           Payload::Sptr const& payload);
+                                                           Payload::Uptr const& payload);
 
     /// Expect requested event updates
     ///
@@ -266,7 +247,7 @@ struct Client_data {
     /// \return future which unblocks after minimum received event updates.
     std::future<void> expect_requested_event_updates_min_number(std::size_t const& count,
                                                                 Event_id const& event_id,
-                                                                Payload::Sptr const& payload);
+                                                                Payload::Uptr const& payload);
 
     /// \brief Expect and request event update
     ///
@@ -274,7 +255,7 @@ struct Client_data {
     /// \param[in] payload the data of the send
     /// \return boolean reference which becomes true after the event has been received
     std::atomic<bool> const& expect_and_request_event_update(Event_id const& event_id,
-                                                             Payload::Sptr const& payload);
+                                                             Payload::Uptr const& payload);
 
     /// \brief Expect response and call method
     ///
@@ -283,7 +264,7 @@ struct Client_data {
     /// \param[in] method_result response of the method
     /// \return boolean reference which becomes true when the response is received
     std::atomic<bool> const& expect_and_call_method(Method_id const& method_id,
-                                                    Payload::Sptr const& payload,
+                                                    Payload::Uptr const& payload,
                                                     Method_result const& method_result);
 
     /// \brief Expect responses and call methods
@@ -295,7 +276,7 @@ struct Client_data {
     /// \return boolean reference which becomes true after all responses have been received
     std::atomic<bool> const& expect_and_call_methods(size_t const& count,
                                                      Method_id const& method_id,
-                                                     Payload::Sptr const& payload,
+                                                     Payload::Uptr const& payload,
                                                      Method_result const& method_result);
 
     /// \brief Create and connect clients
@@ -333,7 +314,7 @@ struct Client_data {
     /// \return boolean references for each client which become true after the event has been
     /// received
     static Callbacks_called_t expect_event_update(Vector& clients, Event_id event_id,
-                                                  Payload::Sptr const& payload);
+                                                  Payload::Uptr const& payload);
 
     /// \brief Expect and request event update
     ///
@@ -343,7 +324,7 @@ struct Client_data {
     /// \return boolean references for each client which become true after the event has been
     /// received
     static Callbacks_called_t expect_and_request_event_update(Vector& clients, Event_id event_id,
-                                                              Payload::Sptr const& payload);
+                                                              Payload::Uptr const& payload);
 
     /// \brief Expect response and call method
     ///
@@ -354,7 +335,7 @@ struct Client_data {
     /// \return boolean references for each client which become true after the response has been
     /// received
     static Callbacks_called_t expect_and_call_method(Vector& clients, Method_id method_id,
-                                                     Payload::Sptr const& payload,
+                                                     Payload::Uptr const& payload,
                                                      Method_result const& method_result);
 
     /// \brief Create event subscriptions for event_id with Event_mode::update

@@ -373,22 +373,24 @@ TEST_P(Gateway_ipc_binding_param_test, server_sends_event_update) {
     Read_only_shared_memory_slot_manager::On_payload_destruction_callback
         payload_destruction_callback;
 
-    auto payload_mock = std::make_shared<socom::Payload_mock>();
-    EXPECT_CALL(*payload_mock, data()).WillRepeatedly(Return(socom::Payload::Span{server_memory}));
     EXPECT_CALL(*mock_read_only_slot_manager,
                 get_payload(Shared_memory_handle{.slot_index = 0,
                                                  .used_bytes = get_server_metadata().slot_size},
                             _))
-        .WillOnce([payload_mock, &payload_destruction_callback](auto, auto callback) {
+        .WillOnce([&server_memory, &payload_destruction_callback](auto, auto callback) {
             payload_destruction_callback = callback;
+
+            auto payload_mock = std::make_unique<socom::Payload_mock>();
+            EXPECT_CALL(*payload_mock, data())
+                .WillRepeatedly(Return(socom::Payload::Span{server_memory}));
             return payload_mock;
         });
 
-    std::promise<socom::Payload::Sptr> event_update_received_promise;
+    std::promise<socom::Payload::Uptr> event_update_received_promise;
     EXPECT_CALL(mock_event_update_cb, Call(_, event_id, _))
         .Times(1)
         .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
-            event_update_received_promise.set_value(payload);
+            event_update_received_promise.set_value(std::move(payload));
         });
     auto update_result = server_connector->update_event(event_id, std::move(payload_handle));
     ASSERT_TRUE(update_result);

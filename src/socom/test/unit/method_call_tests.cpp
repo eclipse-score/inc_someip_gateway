@@ -29,11 +29,12 @@ namespace score::socom {
 using Me = Error;
 using Ar = Application_return;
 using Ae = Application_error;
-using Input_expected = std::tuple<Method_result, Method_result>;
+using Input_expected = std::shared_ptr<std::tuple<Method_result, Method_result>>;
 
 template <typename T, typename U>
-Input_expected create_results(T const& result, U const& expected_result) {
-    return {Method_result{result}, Method_result{expected_result}};
+Input_expected create_results(T result, U expected_result) {
+    return std::make_shared<std::tuple<Method_result, Method_result>>(
+        Method_result{std::move(result)}, Method_result{std::move(expected_result)});
 }
 
 TEST(Method_type_test, method_result_equality_and_inequality_operators) {
@@ -65,11 +66,11 @@ TEST(Method_type_test, method_result_equality_and_inequality_operators) {
     auto const vector_payload2 = make_vector_payload(2, make_vector_buffer(9U, 8U, 7U, 6U, 5U));
     auto const vector_payload3 = make_vector_payload(2, make_vector_buffer(1U, 2U, 7U, 6U, 5U));
     auto const vector_payload4 = make_vector_payload(2, make_vector_buffer(9U, 8U, 3U, 4U, 5U));
-    auto const ar1 = Application_return{vector_payload1};
-    auto const ar1_copy = Application_return{vector_payload1_copy};
-    auto const ar2 = Application_return{vector_payload1};
-    auto const ar3 = Application_return{vector_payload3};
-    auto const ar4 = Application_return{vector_payload4};
+    auto const ar1 = Application_return{clone_payload(*vector_payload1)};
+    auto const ar1_copy = Application_return{clone_payload(*vector_payload1_copy)};
+    auto const ar2 = Application_return{clone_payload(*vector_payload1)};
+    auto const ar3 = Application_return{clone_payload(*vector_payload3)};
+    auto const ar4 = Application_return{clone_payload(*vector_payload4)};
 
     // Test for (in)equality
     EXPECT_TRUE(ar1 == ar2);
@@ -83,8 +84,8 @@ class MethodCallTest : public SingleConnectionTest, public WithParamInterface<In
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    Method_result const& input_result{std::get<0>(GetParam())};
-    Method_result const& expected_result{std::get<1>(GetParam())};
+    Method_result const& input_result{std::get<0>(*GetParam())};
+    Method_result const& expected_result{std::get<1>(*GetParam())};
 };
 
 TEST_P(MethodCallTest, ClientSendsFireAndForgetMethodCallToServer) {
@@ -102,9 +103,10 @@ TEST_P(MethodCallTest, ClientCallsMethodAndReceivesResponseFromServer) {
 
 INSTANTIATE_TEST_SUITE_P(
     MethodCallTestInstance, MethodCallTest,
-    Values(create_results(Ar{}, Ar{}), create_results(Ar{error_data()}, Ar{error_data()}),
-           create_results(Ar{input_data()}, Ar{input_data()}),
-           create_results(Ar{empty_payload()}, Ar{empty_payload()}),
+    Values(create_results(Ar{}, Ar{}),
+           create_results(Ar{clone_payload(*error_data())}, Ar{clone_payload(*error_data())}),
+           create_results(Ar{clone_payload(*input_data())}, Ar{clone_payload(*input_data())}),
+           create_results(Ar{clone_payload(*empty_payload())}, Ar{clone_payload(*empty_payload())}),
            create_results(Me::runtime_error_request_rejected, Me::runtime_error_request_rejected)));
 
 using MethodCallCredentialsTest = SingleConnectionTest;
@@ -120,8 +122,10 @@ TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesCustomClientCre
 
     auto& credentials_callbacks_mock = server.get_credentials_callbacks();
 
-    EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, input_data(), _, client_credentials))
+    EXPECT_CALL(
+        credentials_callbacks_mock,
+        on_method_call(_, method_id, payload_eq(*input_data()), _,
+                       client_credentials))
         .Times(1);
 
     client.call_method(method_id, input_data());
@@ -137,8 +141,10 @@ TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesDefaultClientCr
 
     auto& credentials_callbacks_mock = server.get_credentials_callbacks();
 
-    EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, input_data(), _, default_credentials))
+    EXPECT_CALL(
+        credentials_callbacks_mock,
+        on_method_call(_, method_id, payload_eq(*input_data()), _,
+                       default_credentials))
         .Times(1);
 
     client.call_method(method_id, input_data());

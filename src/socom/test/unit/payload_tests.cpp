@@ -65,9 +65,9 @@ Vector_buffer add_buffers(Vector_buffer header, Vector_buffer const& payload) {
 TEST(Payload, NoPayloadConstruct) { EXPECT_EQ(0, empty_payload()->data().size()); }
 
 TEST(Payload, NoPayloadCopyConstruct) {
-    Payload::Sptr const copy{empty_payload()};
+    Payload::Uptr const copy{empty_payload()};
 
-    EXPECT_EQ(empty_payload(), copy);
+    EXPECT_EQ(*empty_payload(), *copy);
     EXPECT_EQ(0, copy->data().size());
 }
 
@@ -91,9 +91,9 @@ class PayloadOperatorEqualTest
     Vector_buffer const& m_rhs_header{std::get<2>(GetParam())};
     Vector_buffer const& m_rhs_payload{std::get<3>(GetParam())};
 
-    Payload::Sptr m_lhs{
+    Payload::Uptr m_lhs{
         make_vector_payload(m_lhs_header.size(), add_buffers(m_lhs_header, m_lhs_payload))};
-    Payload::Sptr m_rhs{
+    Payload::Uptr m_rhs{
         make_vector_payload(m_rhs_header.size(), add_buffers(m_rhs_header, m_rhs_payload))};
 };
 
@@ -125,7 +125,7 @@ class VectorPayloadtest : public TestWithParam<std::tuple<std::size_t, std::size
 
     Vector_buffer const m_data{create_vector_payload_with_random_data(m_size)};
 
-    Payload::Sptr m_payload{make_vector_payload(m_start_offset, Vector_buffer{m_data})};
+    Payload::Uptr m_payload{make_vector_payload(m_start_offset, Vector_buffer{m_data})};
 };
 
 INSTANTIATE_TEST_SUITE_P(Offsets, VectorPayloadtest,
@@ -161,7 +161,7 @@ class VectorPayloadLeadOffsetTest
 
     Vector_buffer const m_data{create_vector_payload_with_random_data(m_size)};
 
-    Payload::Sptr m_payload{
+    Payload::Uptr m_payload{
         make_vector_payload(m_lead_offset, m_header_size, Vector_buffer{m_data})};
 };
 
@@ -190,7 +190,7 @@ class VectorPayloadDeathTest : public TestWithParam<std::size_t> {
     std::size_t const m_size{GetParam()};
     Vector_buffer const m_data{create_vector_payload_with_random_data(m_size)};
 
-    Payload::Sptr m_payload{make_vector_payload(m_data)};
+    Payload::Uptr m_payload{make_vector_payload(m_data)};
 };
 
 INSTANTIATE_TEST_SUITE_P(Offset, VectorPayloadDeathTest, Values(10, 100, 1000));

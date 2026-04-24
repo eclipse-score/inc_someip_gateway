@@ -60,7 +60,7 @@ class Impl final : public Client_connector {
     message::Request_event_update::Return_type request_event_update(
         Event_id client_id) const noexcept override;
     message::Call_method::Return_type call_method(
-        Method_id client_id, Payload::Sptr payload,
+        Method_id client_id, Payload::Uptr payload,
         Method_call_reply_data_opt reply_data) const noexcept override;
     Result<Posix_credentials> get_peer_credentials() const noexcept override;
     Service_interface_definition const& get_configuration() const noexcept override;

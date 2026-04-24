@@ -42,8 +42,8 @@ class MultipleRuntimesTest : public ::testing::Test {
         Service_interface_identifier{test_service_id, {2, 3}}, to_num_of_methods(2U),
         to_num_of_events(3U), Service_instance{test_instance_id}};
 
-    Payload::Sptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
-    Payload::Sptr const more_payload = make_vector_payload(
+    Payload::Uptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
+    Payload::Uptr const more_payload = make_vector_payload(
         make_vector_buffer(1U, 2U, 3U, 4U, 5U, 3U, 2U, 4U, 3U, 2U, 4U, 2U, 4U, 5U, 5U, 3U));
 };
 
@@ -112,7 +112,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreSendingEvents) {
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairHasAMethodCall) {
     auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
-    auto const result0 = Method_result{Application_return{real_payload}};
+    auto const result0 = Method_result{Application_return{clone_payload(*real_payload)}};
 
     Client_server pair0{factory0};
     Client_server pair1{factory1};
@@ -123,7 +123,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairHasAM
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndSecondPairHasAMethodCall) {
     auto const method1 = Method_id{1};
-    auto const result1 = Method_result{Application_return{real_payload}};
+    auto const result1 = Method_result{Application_return{clone_payload(*real_payload)}};
 
     Client_server pair0{factory0};
     Client_server pair1{factory1};
@@ -134,10 +134,10 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndSecondPairHasA
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAndBothHaveMethodCalls) {
     auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
-    auto const result0 = Method_result{Application_return{real_payload}};
+    auto const result0 = Method_result{Application_return{clone_payload(*real_payload)}};
 
     auto const method1 = Method_id{1};
-    auto const result1 = Method_result{Application_return{more_payload}};
+    auto const result1 = Method_result{Application_return{clone_payload(*more_payload)}};
 
     Client_server pair0{factory0};
     Client_server pair1{factory1};
@@ -151,8 +151,8 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAndBothHaveMethodCalls) {
 
 TEST_F(MultipleRuntimesTest, BothRuntimesHaveSameInstanceIdAndConfigurationButAreStillSeparated) {
     auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
-    auto const result0 = Method_result{Application_return{real_payload}};
-    auto const result1 = Method_result{Application_return{more_payload}};
+    auto const result0 = Method_result{Application_return{clone_payload(*real_payload)}};
+    auto const result1 = Method_result{Application_return{clone_payload(*more_payload)}};
 
     auto rt1 = Connector_factory{factory0};
     Client_server pair0{factory0};

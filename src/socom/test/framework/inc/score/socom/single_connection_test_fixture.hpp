@@ -26,10 +26,10 @@
 namespace score::socom {
 
 /// \brief Small payload
-Payload::Sptr const& input_data();
+Payload::Uptr const& input_data();
 
 /// \brief Small payload
-Payload::Sptr const& error_data();
+Payload::Uptr const& error_data();
 
 /// \brief SingleConnectionTest provides some constants which are almost always
 ///        in each test
@@ -48,7 +48,7 @@ class SingleConnectionTest : public ::testing::Test {
     static Event_id const event_id{0x02};
     Event_id const min_event_id{0};
     Event_id const max_event_id{static_cast<Event_id>(connector_factory.get_num_events() - 1)};
-    Payload::Sptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
+    Payload::Uptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
 };
 
 }  // namespace score::socom

@@ -30,7 +30,7 @@ bool operator==(Payload const& lhs, Payload const& rhs) {
 
 bool operator!=(Payload const& lhs, Payload const& rhs) { return !(lhs == rhs); }
 
-Payload::Sptr empty_payload() {
+Payload::Uptr empty_payload() {
     class Empty_payload final : public Payload {
        public:
         [[nodiscard]] Span data() const noexcept override { return {}; }
@@ -41,8 +41,7 @@ Payload::Sptr empty_payload() {
         }
     };
 
-    static auto const empty = std::make_shared<Empty_payload>();
-    return empty;
+    return std::make_unique<Empty_payload>();
 }
 
 }  // namespace score::socom

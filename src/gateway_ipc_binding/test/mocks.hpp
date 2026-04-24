@@ -65,7 +65,7 @@ class Shared_memory_slot_manager_mock : public Shared_memory_slot_manager {
 
 class Read_only_shared_memory_slot_manager_mock : public Read_only_shared_memory_slot_manager {
    public:
-    MOCK_METHOD(socom::Payload::Sptr, get_payload,
+    MOCK_METHOD(socom::Payload::Uptr, get_payload,
                 (Shared_memory_handle handle, On_payload_destruction_callback callback),
                 (const, noexcept, override));
 };

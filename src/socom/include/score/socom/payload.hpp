@@ -42,8 +42,8 @@ constexpr std::size_t kNoSlotHandle = std::numeric_limits<std::size_t>::max();
 /// \note When sending data over the wire, only data returned by data() shall be sent.
 class Payload {
    public:
-    /// \brief Alias for a shared pointer to this interface.
-    using Sptr = std::shared_ptr<Payload>;
+    /// \brief Alias for a unique pointer to this interface.
+    using Uptr = std::unique_ptr<Payload>;
 
     /// \brief Alias for a data byte.
     using Byte = std::byte;
@@ -80,7 +80,7 @@ class Payload {
 
 /// \brief An empty payload instance, which may be used as default value for the payload parameter.
 /// \return A pointer to a Payload object.
-extern Payload::Sptr empty_payload();
+extern Payload::Uptr empty_payload();
 
 /// \brief Operator == for Payload.
 /// \param lhs Left-hand side of operator.
@@ -100,8 +100,6 @@ bool operator!=(Payload const& lhs, Payload const& rhs);
 /// The recipient is responsible for allocating enough data for the sender.
 class Writable_payload : public Payload {
    public:
-    /// \brief Alias for a shared pointer to this interface.
-    using Sptr = std::shared_ptr<Writable_payload>;
     /// \brief Alias for a unique pointer to this interface.
     using Uptr = std::unique_ptr<Writable_payload>;
 

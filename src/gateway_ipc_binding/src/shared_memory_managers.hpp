@@ -27,7 +27,7 @@ class Shared_memory_managers {
     Keys* m_keys;
 
     struct Shared_memory_allocation {
-        socom::Payload::Sptr payload;
+        socom::Payload::Uptr payload;
         std::size_t pending_consumers{0U};
     };
 
@@ -73,7 +73,7 @@ class Shared_memory_managers {
         return get_shared_memory_metadata(slot_manager);
     }
 
-    void insert_allocation(Key_t const& key, socom::Payload::Sptr payload,
+    void insert_allocation(Key_t const& key, socom::Payload::Uptr payload,
                            std::size_t consumer_count) {
         if (payload == nullptr || consumer_count == 0U) {
             return;

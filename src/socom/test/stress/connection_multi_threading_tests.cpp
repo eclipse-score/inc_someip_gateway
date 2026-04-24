@@ -57,12 +57,12 @@ void subscribe_events(Client_connector const& cc, std::size_t const num_events) 
 }
 
 void call_methods(Client_connector const& cc, std::size_t const num_methods,
-                  Payload::Sptr const& payload, Method_reply_callback on_method_reply) {
+                  Payload::Uptr const& payload, Method_reply_callback on_method_reply) {
     for (std::size_t i{0}; i < num_methods; i++) {
         auto reply_cb = 0 == i % 2 ? Method_call_reply_data_opt{std::in_place,
                                                                 std::move(on_method_reply), nullptr}
                                    : Method_call_reply_data_opt{std::nullopt};
-        (void)cc.call_method(i, payload, std::move(reply_cb));
+        (void)cc.call_method(i, clone_payload(*payload), std::move(reply_cb));
     }
 }
 
@@ -76,7 +76,7 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
 
     Disabled_server_connector::Callbacks create_server_callbacks() {
         return {
-            [](Enabled_server_connector& /*esc*/, Method_id /*mid*/, Payload::Sptr const& /*pl*/,
+            [](Enabled_server_connector& /*esc*/, Method_id /*mid*/, Payload::Uptr /*pl*/,
                Method_call_reply_data_opt const& reply, auto const& /*cred*/) {
                 if (reply) {
                     reply->reply_callback(Method_result{Application_return{}});
@@ -84,9 +84,11 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
                 return Method_invocation::Uptr{};
             },
             [this](Enabled_server_connector& esc, Event_id const& eid,
-                   Event_state const& /*state*/) { esc.update_event(eid, real_payload); },
+                   Event_state const& /*state*/) {
+                esc.update_event(eid, clone_payload(*real_payload));
+            },
             [this](Enabled_server_connector& esc, Event_id const& eid) {
-                esc.update_event(eid, real_payload);
+                esc.update_event(eid, clone_payload(*real_payload));
             },
             [](Enabled_server_connector& /*esc*/,
                Method_id const& /*mid*/) -> score::Result<Writable_payload::Uptr> {
@@ -94,14 +96,14 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
                               << event_id;
                 return score::MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
             }};
-    }
+    }  // namespace score::socom
 
     std::function<void()> const server_thread = [this]() {
         auto esc = Disabled_server_connector::enable(
             this->connector_factory.create_server_connector(create_server_callbacks()));
 
         for (std::size_t i{0}; i < connector_factory.get_num_events(); i++) {
-            esc->update_event(i, real_payload);
+            esc->update_event(i, clone_payload(*real_payload));
         }
     };
 
@@ -109,9 +111,9 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
         socom::Service_state_change_callback on_state_change) {
         return {std::move(on_state_change),
                 [this](Client_connector const& /*cc*/, Event_id const& /*eid*/,
-                       Payload::Sptr const& /*pl*/) { counter.event_received(); },
+                       Payload::Uptr /*pl*/) { counter.event_received(); },
                 [this](Client_connector const& /*cc*/, Event_id const& /*eid*/,
-                       Payload::Sptr const& /*pl*/) { counter.event_received(); },
+                       Payload::Uptr /*pl*/) { counter.event_received(); },
                 [](Client_connector const& /*cc*/, Event_id const& event_id) {
                     ADD_FAILURE() << "Unexpected call to on_event_payload_allocate for event_id "
                                   << event_id;

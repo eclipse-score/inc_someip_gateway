@@ -87,11 +87,10 @@ delete_client_state_change(std::unique_ptr<Client_connector>& client0) {
                       auto const& /* configuration */) { client0.reset(); };
 }
 
-std::function<void(Client_connector const& /*cc*/, Event_id const /*eid*/,
-                   Payload::Sptr const& /*pl*/)>
+std::function<void(Client_connector const& /*cc*/, Event_id const /*eid*/, Payload const* /*pl*/)>
 delete_client(std::unique_ptr<Client_connector>& client0) {
     auto const delete_client = [&client0](Client_connector const& /*cc*/, Event_id const /*eid*/,
-                                          Payload::Sptr const& /*pl*/) { client0.reset(); };
+                                          Payload const* /*pl*/) { client0.reset(); };
     return delete_client;
 }
 
@@ -127,7 +126,7 @@ struct Test_setup {
 // an error
 std::ostream& operator<<(std::ostream& out, Test_setup const& /*ignored*/) { return out; }
 
-Payload::Sptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
+Payload::Uptr const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
 
 Method_result const application_return{Application_return{}};
 
@@ -687,7 +686,7 @@ TEST_F(ClientConnectorTest, OnStateChangeDoMethodCall) {
 
     Server_connector_callbacks_mock server_callbacks;
 
-    EXPECT_CALL(server_callbacks, on_method_call(_, method_id, empty_payload(), _))
+    EXPECT_CALL(server_callbacks, on_method_call(_, method_id, payload_eq(*empty_payload()), _))
         .WillOnce(DoAll(Assign(&method_call, true),
                         Return(ByMove(std::make_unique<Method_invocation>()))));
 

@@ -18,6 +18,7 @@
 #include "score/socom/server_t.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
+#include "score/socom/vector_payload.hpp"
 
 namespace score::socom {
 
@@ -26,7 +27,7 @@ using Conf_instance = std::pair<Server_service_interface_definition, Service_ins
 using MultiConnectionTest = SingleConnectionTest;
 
 TEST_F(MultiConnectionTest, ClientAndServerInDifferentThreadsCommunicateRaceFree) {
-    auto const mr = Method_result{Application_return(real_payload)};
+    auto const mr = Method_result{Application_return(clone_payload(*real_payload))};
     auto const num_method_calls = 100;
     auto const num_events = 1000;
 
@@ -56,7 +57,7 @@ TEST_F(MultiConnectionTest, ClientAndServerInDifferentThreadsCommunicateRaceFree
 }
 
 TEST_F(MultiConnectionTest, ClientAndServerCreatedInDifferentThreadsCommunicateRaceFree) {
-    auto const mr = Method_result{Application_return(real_payload)};
+    auto const mr = Method_result{Application_return(clone_payload(*real_payload))};
     auto const num_method_calls = 100;
     auto const num_events = 1000;
 

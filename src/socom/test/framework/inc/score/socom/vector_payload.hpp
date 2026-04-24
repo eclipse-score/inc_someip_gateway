@@ -37,15 +37,15 @@ Vector_buffer make_vector_buffer(Ts... args) noexcept {
 /// \brief Creates a vector payload by moving the given data.
 /// \param buffer Payload data.
 /// \return A pointer to a Payload object.
-Payload::Sptr make_vector_payload(Vector_buffer buffer);
+Payload::Uptr make_vector_payload(Vector_buffer buffer);
 
 /// \brief Creates a vector payload by moving the given data.
 /// \param header_size Size of header data.
 /// \param buffer Payload data.
 /// \return A pointer to a Payload object.
-Payload::Sptr make_vector_payload(std::size_t header_size, Vector_buffer buffer);
+Payload::Uptr make_vector_payload(std::size_t header_size, Vector_buffer buffer);
 
-Payload::Sptr make_vector_payload(std::size_t lead_offset, std::size_t header_size,
+Payload::Uptr make_vector_payload(std::size_t lead_offset, std::size_t header_size,
                                   Vector_buffer buffer);
 
 /// \brief Creates vector payload from a container.
@@ -53,9 +53,12 @@ Payload::Sptr make_vector_payload(std::size_t lead_offset, std::size_t header_si
 /// \tparam C Container type.
 /// \return A pointer to a Payload object.
 template <typename C>
-inline Payload::Sptr make_vector_payload(C const& container) {
+inline Payload::Uptr make_vector_payload(C const& container) {
     return make_vector_payload(Vector_buffer{std::begin(container), std::end(container)});
 }
+
+/// \brief Creates a copy of a payload's data as a new vector payload (test utility).
+Payload::Uptr clone_payload(Payload const& p);
 
 }  // namespace score::socom
 

@@ -271,7 +271,7 @@ class Read_only_shared_memory_slot_manager {
     /// \param callback Callback to be called when the returned payload is destroyed
     /// \return Result containing a shared pointer to the payload on success, or a nullptr on
     /// failure
-    virtual socom::Payload::Sptr get_payload(
+    virtual socom::Payload::Uptr get_payload(
         Shared_memory_handle handle, On_payload_destruction_callback callback) const noexcept = 0;
 };
 

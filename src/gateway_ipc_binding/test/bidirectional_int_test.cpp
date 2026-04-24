@@ -181,11 +181,11 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_send
 
     auto payload_handle = create_payload(*server.connector, event_id, expected_payload);
 
-    std::promise<socom::Payload::Sptr> event_update_received_promise;
+    std::promise<socom::Payload::Uptr> event_update_received_promise;
     EXPECT_CALL(client.mock_event_update_cb, Call(_, event_id, _))
         .Times(1)
         .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
-            event_update_received_promise.set_value(payload);
+            event_update_received_promise.set_value(std::move(payload));
         });
     auto update_result = server.connector->update_event(event_id, std::move(payload_handle));
     ASSERT_TRUE(update_result);
@@ -206,7 +206,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_keeps_event_payloads_until_server_receives_consumed_notification) {
     client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
 
-    std::vector<socom::Payload::Sptr> payload_handles;
+    std::vector<socom::Payload::Uptr> payload_handles;
 
     for (std::size_t i = 0; i < get_server_metadata().slot_count; ++i) {
         auto payload_handle = create_payload(*server.connector, event_id, expected_payload);
@@ -214,11 +214,11 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
         payload_handle->wdata()[0] =
             std::byte{static_cast<std::uint8_t>(i)};  // differentiate payloads
 
-        std::promise<socom::Payload::Sptr> event_update_received_promise;
+        std::promise<socom::Payload::Uptr> event_update_received_promise;
         EXPECT_CALL(client.mock_event_update_cb, Call(_, event_id, _))
             .Times(1)
             .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
-                event_update_received_promise.set_value(payload);
+                event_update_received_promise.set_value(std::move(payload));
             });
         auto update_result = server.connector->update_event(event_id, std::move(payload_handle));
         ASSERT_TRUE(update_result);
