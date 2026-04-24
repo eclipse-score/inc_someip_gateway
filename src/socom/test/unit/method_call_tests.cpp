@@ -203,15 +203,15 @@ TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodC
 
     auto reply_data = reply_data_fut.get();
     ASSERT_TRUE(reply_data);
-    EXPECT_EQ(reply_ptr, reply_data->reply_payload.get());
+    EXPECT_EQ(reply_ptr, reply_data->get_reply_payload().get());
 
     EXPECT_CALL(method_reply_callback_mock, Call(_)).WillOnce([reply_ptr](auto const& mr) {
         ASSERT_TRUE(std::holds_alternative<Application_return>(mr));
         auto const& ar = std::get<Application_return>(mr);
         EXPECT_EQ(reply_ptr, ar.payload.get());
     });
-    reply_data->reply_callback(
-        Method_result{Application_return{std::move(reply_data->reply_payload)}});
+    reply_data->reply(
+        Method_result{Application_return{std::move(reply_data->get_reply_payload())}});
 }
 
 }  // namespace score::socom

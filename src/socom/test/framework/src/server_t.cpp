@@ -168,7 +168,7 @@ std::atomic<bool> const& Server_data::expect_and_respond_method_calls(size_t con
     auto const reply = [this, &result, counter](auto& /*connector*/, auto /*mid*/,
                                                 auto const& /*pl*/, auto const& cb) {
         if (cb) {
-            cb->reply_callback(result);
+            cb->reply(result);
         }
         m_num_method_calls++;
         if (counter == m_num_method_calls) {

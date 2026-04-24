@@ -159,7 +159,7 @@ TEST_F(Connection_test, client_calls_method_and_gets_response) {
     // ASSERT_TRUE(invocation);
 
     EXPECT_CALL(m_method_reply_mock, Call).Times(1);
-    pointer->reply_callback(Application_return{empty_payload()});
+    pointer->reply(Method_result{Application_return{empty_payload()}});
 }
 
 }  // namespace score::socom

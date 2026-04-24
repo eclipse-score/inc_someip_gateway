@@ -19,6 +19,7 @@
 #include <score/move_only_function.hpp>
 #include <score/socom/error.hpp>
 #include <score/socom/payload.hpp>
+#include <score/socom/reference_token.hpp>
 #include <variant>
 
 namespace score::socom {
@@ -127,13 +128,56 @@ inline bool operator!=(Application_error const& lhs, Application_error const& rh
 /// \brief Alias for the callback function of a method, in case a reply is requested.
 using Method_reply_callback = score::cpp::move_only_function<void(Method_result const&)>;
 
+namespace client_connector {
+class Impl;
+}
+
 /// \brief Callback and payload buffer for method call replies.
-struct Method_call_reply_data {
+class Method_call_reply_data {
     Method_reply_callback reply_callback;
     Writable_payload::Uptr reply_payload;
+    Weak_reference_token weak_stop_block_token;
+#ifdef WITH_SOCOM_DEADLOCK_DETECTION
+    Deadlock_detector* deadlock_detector{nullptr};
+#endif
 
+   public:
+    /// \brief Constructor.
+    /// \param reply_callback Callback function to be called with the method result when a reply is
+    /// requested.
+    /// \param reply_payload Optional payload buffer for the method reply.
     Method_call_reply_data(Method_reply_callback reply_callback,
                            Writable_payload::Uptr reply_payload);
+
+    /// \brief Get the payload buffer for the method reply.
+    /// \return Reference to the unique pointer of the payload buffer for the method reply.
+    Writable_payload::Uptr& get_reply_payload() { return reply_payload; }
+
+    /// \brief Call the reply callback with the given method result, if the block token is not
+    /// expired.
+    /// \param method_reply Method result to be passed to the reply callback.
+    void reply(Method_result const& method_reply) const;
+
+   private:
+    friend class client_connector::Impl;
+
+    /// \brief Set a block token to prevent calling the reply callback after the client is already
+    /// destroyed.
+    ///
+    /// Only to be used socom internally.
+    ///
+    /// \param weak_stop_block_token Weak reference token that can be used to check if the client is
+    /// still alive before calling the reply callback and block client destruction during method
+    /// call.
+    /// \param deadlock_detector Deadlock detector to be used for detecting potential deadlocks when
+    /// calling the reply callback. Only needed if socom is compiled with deadlock detection
+    /// enabled.
+    void set_block_token(Weak_reference_token weak_stop_block_token
+#ifdef WITH_SOCOM_DEADLOCK_DETECTION
+                         ,
+                         Deadlock_detector& deadlock_detector
+#endif
+    );
 };
 
 using Method_call_reply_data_opt = std::optional<Method_call_reply_data>;

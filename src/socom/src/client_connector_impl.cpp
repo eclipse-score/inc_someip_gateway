@@ -85,54 +85,17 @@ message::Request_event_update::Return_type Impl::request_event_update(
 message::Call_method::Return_type Impl::call_method(
     Method_id client_id, Payload::Uptr payload,
     Method_call_reply_data_opt reply_data) const noexcept {
-    Method_call_reply_data_opt internal_reply_data;
-
     if (reply_data) {
-        struct Context {
+        reply_data->set_block_token(create_weak_block_token()
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
-            Impl const* self;
+                                        ,
+                                    m_deadlock_detector
 #endif
-            Method_reply_callback reply_callback;
-            Weak_reference_token weak_stop_block_token;
-
-            Context(
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-                Impl const* self,
-#endif
-                Method_reply_callback reply_callback, Weak_reference_token weak_stop_block_token)
-                :
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-                  self{self},
-#endif
-                  reply_callback{std::move(reply_callback)},
-                  weak_stop_block_token{std::move(weak_stop_block_token)} {
-            }
-        };
-
-        auto context = std::make_unique<Context>(
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-            this,
-#endif
-            std::move(reply_data->reply_callback), create_weak_block_token());
-
-        auto wrapped_reply_callback = [context =
-                                           std::move(context)](Method_result const& method_reply) {
-            auto const stop_block_token = context->weak_stop_block_token.lock();
-            if (stop_block_token) {
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-                Temporary_thread_id_add const tmptia{
-                    context->self->m_deadlock_detector.enter_callback()};
-#endif
-                (context->reply_callback)(method_reply);
-            }
-        };
-
-        internal_reply_data.emplace(Method_call_reply_data{std::move(wrapped_reply_callback),
-                                                           std::move(reply_data->reply_payload)});
+        );
     }
 
-    return send(message::Call_method{client_id, std::move(payload), std::move(internal_reply_data),
-                                     m_credentials});
+    return send(
+        message::Call_method{client_id, std::move(payload), std::move(reply_data), m_credentials});
 }
 
 Result<std::unique_ptr<Writable_payload>> Impl::allocate_method_call_payload(
