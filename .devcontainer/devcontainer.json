@@ -35,6 +35,7 @@
                 "detachhead.basedpyright",
                 "akiramiyakoda.cppincludeguard",
                 "github.vscode-github-actions",
+                "mermaidchart.vscode-mermaid-chart",
                 "streetsidesoftware.code-spell-checker"
             ]
         }

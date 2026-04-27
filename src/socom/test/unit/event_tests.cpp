@@ -61,9 +61,9 @@ TEST_F(EventTest, FirstEventSubscriptionCallsOnEventSubscriptionChange) {
 }
 
 TEST_F(EventTest, ServerSendsEventWhichIsReceivedBySubscribedClient) {
-    std::vector<Payload::Sptr> payloads{};
+    std::vector<Payload> payloads{};
     payloads.emplace_back(empty_payload());
-    payloads.emplace_back(real_payload);
+    payloads.emplace_back(clone_payload(real_payload));
 
     for (auto const& payload : payloads) {
         Server_data server{connector_factory};
@@ -126,7 +126,7 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndServerConnectorRespondsWithUpdateE
             auto const expected_mode = score::Result<Event_mode>{Event_mode::update};
             EXPECT_EQ(expected_mode, event_mode);
 
-            connector.update_event(eid, real_payload);
+            connector.update_event(eid, clone_payload(real_payload));
         });
 
     auto const& expect_event_update = client.expect_event_update(event_id, real_payload);
@@ -266,16 +266,15 @@ TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
     server.expect_event_subscription(event_id);
     auto const sub = client0.create_event_subscription(event_id);
 
-    score::Result<std::unique_ptr<Writable_payload>> wpayload =
-        std::make_unique<Writable_payload_mock>();
-    auto const* const wpayload_ptr = wpayload.value().get();
+    score::Result<Writable_payload> wpayload{make_test_writable_payload(64)};
+    auto const* const ptr = wpayload->data().data();
 
     auto const& expect_event_payload_allocation =
         client0.expect_event_payload_allocation(event_id, std::move(wpayload));
 
     auto payload = server.get_connector().allocate_event_payload(event_id);
     EXPECT_TRUE(payload);
-    EXPECT_EQ(wpayload_ptr, payload.value().get());
+    EXPECT_EQ(payload->data().data(), ptr);
     wait_for_atomics(expect_event_payload_allocation);
 }
 

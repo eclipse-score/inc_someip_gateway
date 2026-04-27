@@ -174,6 +174,17 @@ std::vector<Service_instance> create_instances(std::size_t num);
 /// \return the created service_instance
 Service_instance create_service_instance(size_t instance_id);
 
+/// \brief Matcher that compares a Payload's contents against an expected Payload.
+///
+/// Clones the expected payload so the matcher owns its own copy.
+///
+/// \param[in] expected the payload to compare against
+/// \return a gmock matcher for Payload const&
+inline auto payload_eq(Payload const& expected) {
+    auto cloned = std::make_shared<Payload>(clone_payload(expected));
+    return ::testing::Truly([cloned](Payload const& p) { return p == *cloned; });
+}
+
 /// Set promise after count calls of callback.
 ///
 /// \param[in] num_event_callback_called counter of callback

@@ -22,7 +22,7 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-added-large-files
         args: [--maxkb=50, --enforce-all] # increase or add git lfs if too strict
-        exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md|src/socom/test/unit/runtime_tests.cpp
+        exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md|src/socom/test/unit/runtime_tests.cpp|profiling/event_transmission_client_to_server_1024_notsan_flamegraph.svg|memory_profile/memusage.data|memory_profile/massif.out.1
 
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 38980559e3a605691d6579f96222c30778e5a69e # 3.0.0
