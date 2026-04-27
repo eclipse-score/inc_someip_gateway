@@ -38,13 +38,13 @@ using Event_request_update_callback =
 
 /// \brief Function type for processing any client side method invocation.
 using Method_call_credentials_callback = score::cpp::move_only_function<Method_invocation::Uptr(
-    Enabled_server_connector&, Method_id, Payload::Sptr, Method_call_reply_data_opt,
+    Enabled_server_connector&, Method_id, Payload, Method_call_reply_data_opt,
     Posix_credentials const&)>;
 
 /// \brief Function type for indicating a method call payload request to the service provider.
 using Method_call_payload_allocate_callback =
-    score::cpp::move_only_function<score::Result<Writable_payload::Uptr>(Enabled_server_connector&,
-                                                                         Method_id)>;
+    score::cpp::move_only_function<score::Result<Writable_payload>(Enabled_server_connector&,
+                                                                   Method_id)>;
 
 class Configuration_getter {
    public:
@@ -180,8 +180,7 @@ class Enabled_server_connector : public Configuration_getter {
     /// \param event_id ID of the event for which a payload should be allocated.
     /// \return A writable payload in case of successful operation, otherwise an error.
     [[nodiscard]]
-    virtual Result<std::unique_ptr<Writable_payload>> allocate_event_payload(
-        Event_id event_id) noexcept = 0;
+    virtual Result<Writable_payload> allocate_event_payload(Event_id event_id) noexcept = 0;
 
     /// \brief Distributes new event data to all subscribed Client_connectors.
     /// \details Clears the list of event update requesters for the event server_id.
@@ -191,7 +190,7 @@ class Enabled_server_connector : public Configuration_getter {
     /// \param server_id ID of the event.
     /// \param payload Event data.
     /// \return Void in case of successful operation, otherwise an error.
-    virtual Result<Blank> update_event(Event_id server_id, Payload::Sptr payload) noexcept = 0;
+    virtual Result<Blank> update_event(Event_id server_id, Payload payload) noexcept = 0;
 
     /// \brief Distributes new event data to all event update requesting Client_connectors.
     /// \details Clears the list of event update requesters for the event server_id.
@@ -201,8 +200,7 @@ class Enabled_server_connector : public Configuration_getter {
     /// \param server_id ID of the event.
     /// \param payload Event data.
     /// \return Void in case of successful operation, otherwise an error.
-    virtual Result<Blank> update_requested_event(Event_id server_id,
-                                                 Payload::Sptr payload) noexcept = 0;
+    virtual Result<Blank> update_requested_event(Event_id server_id, Payload payload) noexcept = 0;
 
     /// \brief Retrieves the mode of the event server_id.
     /// \details Returns the combined event subscription mode for event server_id, see

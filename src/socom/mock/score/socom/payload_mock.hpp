@@ -14,26 +14,29 @@
 #ifndef SCORE_SOCOM_PAYLOAD_MOCK_HPP
 #define SCORE_SOCOM_PAYLOAD_MOCK_HPP
 
-#include <gmock/gmock.h>
-
+#include <memory>
 #include <score/socom/payload.hpp>
+#include <vector>
 
 namespace score::socom {
 
-class Payload_mock : public Payload {
-   public:
-    MOCK_METHOD(Span, data, (), (const, noexcept, override));
-    MOCK_METHOD(Span, header, (), (const, noexcept, override));
-    MOCK_METHOD(Writable_span, header, (), (noexcept, override));
-};
+/// \brief Creates a test Payload backed by a heap-allocated buffer.
+/// \param size Size of the payload buffer in bytes.
+/// \return A Payload object.
+inline Payload make_test_payload(std::size_t size = 0) {
+    auto buf = std::make_unique<std::vector<std::byte>>(size);
+    auto span = Payload::Writable_span{buf->data(), static_cast<Payload::Writable_span::size_type>(buf->size())};
+    return Payload{span, kNoSlotHandle, [buf = std::move(buf)]() {}};
+}
 
-class Writable_payload_mock : public score::socom::Writable_payload {
-   public:
-    MOCK_METHOD(Span, data, (), (const, noexcept, override));
-    MOCK_METHOD(Span, header, (), (const, noexcept, override));
-    MOCK_METHOD(Writable_span, header, (), (noexcept, override));
-    MOCK_METHOD(Writable_span, wdata, (), (noexcept, override));
-};
+/// \brief Creates a test Writable_payload backed by a heap-allocated buffer.
+/// \param size Size of the payload buffer in bytes.
+/// \return A Writable_payload object.
+inline Writable_payload make_test_writable_payload(std::size_t size = 0) {
+    auto buf = std::make_unique<std::vector<std::byte>>(size);
+    auto span = Writable_payload::Writable_span{buf->data(), static_cast<Writable_payload::Writable_span::size_type>(buf->size())};
+    return Writable_payload{span, kNoSlotHandle, [buf = std::move(buf)]() {}};
+}
 
 }  // namespace score::socom
 
