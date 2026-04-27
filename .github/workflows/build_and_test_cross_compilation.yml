@@ -50,7 +50,7 @@ jobs:
       - name: Bazel build targets
         # TODO: build all targets ( //... ) once python toolchain issue is resolved.
         run: |
-          bazel build --config ${{ matrix.bazel-config }} //src/... //tests/... //examples/...
+          bazel build --lockfile_mode=error --config ${{ matrix.bazel-config }} //src/... //tests/... //examples/...
       - run: df -h
         if: always()
         # TODO Run tests on QEMU

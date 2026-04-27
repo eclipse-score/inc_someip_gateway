@@ -46,11 +46,11 @@ jobs:
       - run: df -h
       - name: Bazel build targets
         run: |
-          bazel build //...
+          bazel build --lockfile_mode=error //...
       - run: df -h
         if: always()
       - name: Bazel test targets
         run: |
-          bazel test //... --build_tests_only
+          bazel test --lockfile_mode=error //... --build_tests_only
       - run: df -h
         if: always()
