@@ -105,90 +105,6 @@ class Payload_impl final {
 };
 }  // namespace detail
 
-/// \brief Writable payload, which can be allocated by the recipient for zero copy operations.
-/// \details The payload itself must be representable by a continuous Span of bytes.
-///
-/// The recipient is responsible for allocating enough data for the sender.
-/// After the data has been written to, the recipient can move the Writable_payload into a Payload
-/// and send it to the sender.
-///
-/// The Payload has an optional header(), which is writable, but is not part of the data
-/// returned by data(). The optional header() is part of the same internal buffer, which also
-/// backs data().
-///
-/// The payload can internally look as follows:
-/// xxxxxxx SOME/IP_header | payload_data
-///
-/// Here | shows the position of the actual payload start in the buffer. Here "payload_data"
-/// will be returned with data().
-///
-/// This is needed for algorithms like the one for E2E, which require all data
-/// to be in contiguous memory and require an additional header for processing.
-/// \note When sending data over the wire, only data returned by data() shall be sent.
-class Writable_payload final {
-   public:
-    /// \brief Alias for a data byte.
-    using Byte = detail::Payload_impl::Byte;
-
-    /// \brief Alias for payload data.
-    using Span = detail::Payload_impl::Span;
-
-    /// \brief Alias for writable payload data.
-    using Writable_span = detail::Payload_impl::Writable_span;
-
-    /// \brief Called when Payload and memory is released. Can own the memory if it is heap
-    /// allocated.
-    using Payload_destroyed = detail::Payload_impl::Payload_destroyed;
-
-    /// \brief Construct new instance.
-    Writable_payload(Writable_span data, std::size_t slot_handle,
-                     Payload_destroyed payload_destroyed, std::size_t header_size = 0U,
-                     std::size_t lead_offset = 0U) noexcept
-        : m_impl(data, slot_handle, std::move(payload_destroyed), header_size, lead_offset) {}
-
-    /// \brief Retrieves the payload data.
-    /// \return Span of payload data.
-    [[nodiscard]] Span data() const noexcept { return m_impl.data(); }
-
-    /// \brief Retrieves the writable payload data.
-    /// \return Span of payload data.
-    [[nodiscard]] Writable_span wdata() noexcept { return m_impl.data(); }
-
-    /// \brief Retrieves the header data.
-    /// \return Span of header data.
-    [[nodiscard]] Span header() const noexcept { return m_impl.header(); }
-
-    /// \brief Retrieves the header data.
-    /// \return Writable span of header data.
-    [[nodiscard]] Writable_span header() noexcept { return m_impl.header(); }
-
-    /// \brief Retrieves the slot handle associated with this payload.
-    /// \return The slot handle, or kNoSlotHandle if not associated with a slot.
-    [[nodiscard]] std::size_t get_slot_handle() const noexcept { return m_impl.get_slot_handle(); }
-
-    /// \brief Operator == for Writable_payload.
-    /// \param lhs Left-hand side of operator.
-    /// \param rhs Right-hand side of operator.
-    /// \return True in case of equality, otherwise false.
-    [[nodiscard]]
-    bool operator==(Writable_payload const& other) const noexcept {
-        return m_impl == other.m_impl;
-    }
-
-    /// \brief Operator != for Writable_payload.
-    /// \param lhs Left-hand side of operator.
-    /// \param rhs Right-hand side of operator.
-    /// \return True in case of inequality, otherwise false.
-    [[nodiscard]]
-    bool operator!=(Writable_payload const& other) const noexcept {
-        return !(*this == other);
-    }
-
-   private:
-    friend class Payload;
-    detail::Payload_impl m_impl;
-};
-
 /// \brief Interface representing the Payload transferable by SOCom.
 /// \details The payload itself must be representable by a continuous Span of bytes.
 ///
@@ -205,7 +121,7 @@ class Writable_payload final {
 /// This is needed for algorithms like the one for E2E, which require all data
 /// to be in contiguous memory and require an additional header for processing.
 /// \note When sending data over the wire, only data returned by data() shall be sent.
-class Payload final {
+class Payload {
    public:
     /// \brief Alias for a data byte.
     using Byte = detail::Payload_impl::Byte;
@@ -226,8 +142,6 @@ class Payload final {
     Payload(Writable_span data, std::size_t slot_handle, Payload_destroyed payload_destroyed,
             std::size_t header_size = 0U, std::size_t lead_offset = 0U) noexcept
         : m_impl(data, slot_handle, std::move(payload_destroyed), header_size, lead_offset) {}
-
-    Payload(Writable_payload wp) noexcept : m_impl(std::move(wp).m_impl) {}
 
     ~Payload() = default;
     Payload(Payload const&) = delete;
@@ -269,8 +183,41 @@ class Payload final {
         return !(*this == other);
     }
 
-   private:
+   protected:
     detail::Payload_impl m_impl;
+};
+
+/// \brief Writable payload, which can be allocated by the recipient for zero copy operations.
+/// \details The payload itself must be representable by a continuous Span of bytes.
+///
+/// The recipient is responsible for allocating enough data for the sender.
+/// After the data has been written to, the recipient can move the Writable_payload into a Payload
+/// and send it to the sender.
+///
+/// The Payload has an optional header(), which is writable, but is not part of the data
+/// returned by data(). The optional header() is part of the same internal buffer, which also
+/// backs data().
+///
+/// The payload can internally look as follows:
+/// xxxxxxx SOME/IP_header | payload_data
+///
+/// Here | shows the position of the actual payload start in the buffer. Here "payload_data"
+/// will be returned with data().
+///
+/// This is needed for algorithms like the one for E2E, which require all data
+/// to be in contiguous memory and require an additional header for processing.
+/// \note When sending data over the wire, only data returned by data() shall be sent.
+class Writable_payload : public Payload {
+   public:
+    /// \brief Construct new instance.
+    Writable_payload(Writable_span data, std::size_t slot_handle,
+                     Payload_destroyed payload_destroyed, std::size_t header_size = 0U,
+                     std::size_t lead_offset = 0U) noexcept
+        : Payload(data, slot_handle, std::move(payload_destroyed), header_size, lead_offset) {}
+
+    /// \brief Retrieves the writable payload data.
+    /// \return Span of payload data.
+    [[nodiscard]] Writable_span wdata() noexcept { return m_impl.data(); }
 };
 
 /// \brief An empty payload instance, which may be used as default value for the payload parameter.
