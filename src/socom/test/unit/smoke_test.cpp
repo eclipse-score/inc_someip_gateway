@@ -18,7 +18,6 @@
 #include <score/socom/runtime.hpp>
 
 using ::testing::_;
-using ::testing::MockFunction;
 
 namespace score::socom {
 
@@ -30,9 +29,6 @@ class Runtime_test : public ::testing::Test {
     Service_instance instance{"instance1", Literal_tag{}};
 
     Runtime::Uptr runtime = create_runtime();
-
-    // Runtime mocks
-    Find_result_change_callback_mock m_find_result_mock;
 
     // Client_connector mocks
     Service_state_change_callback_mock m_service_state_change_mock;
@@ -104,23 +100,6 @@ TEST_F(Runtime_test, server_connector_construction_works) {
     auto const server_connector_result =
         runtime->make_server_connector(config, instance, make_server_callbacks());
     EXPECT_TRUE(server_connector_result);
-}
-
-TEST_F(Runtime_test, subscribe_find_service_finds_server) {
-    auto const find_subscription = runtime->subscribe_find_service(
-        m_find_result_mock.AsStdFunction(), config.get_interface(), std::nullopt, std::nullopt);
-
-    EXPECT_CALL(m_find_result_mock, Call(_, _, Find_result_status::added)).Times(1);
-
-    auto server_connector_result =
-        runtime->make_server_connector(config, instance, make_server_callbacks());
-    ASSERT_TRUE(server_connector_result);
-    auto enabled_server_connector =
-        Disabled_server_connector::enable(std::move(server_connector_result.value()));
-
-    EXPECT_CALL(m_find_result_mock, Call(_, _, Find_result_status::deleted)).Times(1);
-
-    enabled_server_connector.reset();
 }
 
 TEST_F(Runtime_test, connection_setup_works) {

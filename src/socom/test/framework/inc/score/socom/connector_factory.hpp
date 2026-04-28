@@ -62,64 +62,16 @@ class Connector_factory {
     Connector_factory& operator=(Connector_factory const&) = delete;
     Connector_factory& operator=(Connector_factory&&) = delete;
 
-    /// \return Service_finder instance of the internal runtime object
-    Runtime& get_service_finder();
-
-    /// \brief Subscribe to availability changes of running servers/services
-    ///
-    /// During execution of subscribe_find_service() the on_result_change callback
-    /// will be called with the already known set of services.
-    /// After the function has been called and on each service availability change
-    /// the callback on_result_change will be called. The callback will be
-    /// called as long as the returned Find_subscription object is not destroyed.
-    ///
-    /// \param[in] on_result_change callback which is called when service state changes
-    /// \param[in] instance filter for a specific service instance
-    /// \return RAII object which keeps the subscription alive until it is destroyed
-    Find_subscription subscribe_find_service(Find_result_change_callback on_result_change,
-                                             std::optional<Service_instance> instance = {},
-                                             std::optional<Bridge_identity> identity = {});
-
-    /// \brief Legacy subscribe to availability changes of running servers/services
-    ///
-    /// During execution of legacy subscribe_find_service() the on_result_set_change callback
-    /// will be called with the already known set of services.
-    /// After the function has been called and on each service availability change
-    /// the callback on_result_set_change will be called. The callback will be
-    /// called as long as the returned Find_subscription object is not destroyed.
-    ///
-    /// \param[in] on_result_set_change callback which is called when service state changes
-    /// \param[in] instance filter for a specific service instance
-    /// \return RAII object which keeps the subscription alive until it is destroyed
-    Find_subscription subscribe_find_service(Find_result_callback on_result_set_change,
-                                             std::optional<Service_instance> instance = {});
-
-    /// \brief Subscribe to availability changes of running servers/services
-    ///
-    /// During execution of subscribe_find_service() the on_result_change callback
-    /// will be called with the already known set of services.
-    /// After the function has been called and on each service availability change
-    /// the callback on_result_change will be called. The callback will be
-    /// called as long as the returned Find_subscription object is not destroyed.
-    ///
-    /// Results of bridges are not forwarded to on_result_change and only Runtime
-    /// local services are reported.
-    ///
-    /// \param[in] on_result_change callback which is called when service state changes
-    /// \return RAII object which keeps the subscription alive until it is destroyed
-    Find_subscription subscribe_find_service_wildcard(Find_result_change_callback on_result_change);
-
     /// \brief Registers bridge callbacks at the runtime until registration is destroyed
     ///
     /// Bridges can provide additional services via IPC. The callbacks are used the query the
     /// bridges for services.
     ///
-    /// \param[in] subscribe_find_service Callback to call to search for services
+    /// \param[in] identity identity of the bridge to register, used for later identification
     /// \param[in] request_service
     /// \return RAII object which keeps the registration alive until it is destroyed
     ::score::Result<Service_bridge_registration> register_service_bridge(
-        Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
-        Request_service_function request_service);
+        Bridge_identity identity, Request_service_function request_service);
 
     /// \brief Create server connector with default configuration
     ///

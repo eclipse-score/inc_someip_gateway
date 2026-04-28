@@ -16,13 +16,11 @@
 
 #include <functional>
 #include <memory>
-#include <optional>
 #include <score/socom/client_connector.hpp>
 #include <score/socom/error.hpp>
 #include <score/socom/posix_credentials.hpp>
 #include <score/socom/server_connector.hpp>
 #include <score/socom/service_interface_identifier.hpp>
-#include <vector>
 
 namespace score::socom {
 
@@ -60,19 +58,6 @@ inline bool operator!=(Bridge_identity const& lhs, Bridge_identity const& rhs) {
     return !(lhs == rhs);
 }
 
-/// \brief Interface class for Find_subscription RAII type (see Runtime).
-class Find_subscription_handle {
-   public:
-    Find_subscription_handle() = default;
-    virtual ~Find_subscription_handle() = default;
-
-    Find_subscription_handle(Find_subscription_handle const&) = delete;
-    Find_subscription_handle(Find_subscription_handle&&) = delete;
-
-    Find_subscription_handle& operator=(Find_subscription_handle const&) = delete;
-    Find_subscription_handle& operator=(Find_subscription_handle&&) = delete;
-};
-
 /// \brief Interface class for Service_bridge_registration RAII type (see Runtime).
 class Service_bridge_registration_handle {
    public:
@@ -104,37 +89,12 @@ class Service_request_handle {
     Service_request_handle& operator=(Service_request_handle&&) = delete;
 };
 
-/// \brief RAII object that represents an active find service subscription, see
-/// Runtime::subscribe_find_service().
-using Find_subscription = std::unique_ptr<Find_subscription_handle>;
 /// \brief RAII object that represents a service bridge registration at the runtime, see
 /// Runtime::register_service_bridge()
 using Service_bridge_registration = std::unique_ptr<Service_bridge_registration_handle>;
 /// \brief RAII object that represents an service request from the runtime to a service bridge, see
 /// Runtime::register_service_bridge().
 using Service_request = std::unique_ptr<Service_request_handle>;
-
-/// \brief [[deprecated]] Find service result type, see Runtime::subscribe_find_service().
-using Find_result_container = std::vector<Service_instance>;
-
-/// \brief Status of reported service.
-enum class Find_result_status : std::uint8_t {
-    added,   ///< A new service is found.
-    deleted  ///< A service is removed.
-};
-
-/// \brief [[deprecated]] Find service result indication callback type, see
-/// Runtime::subscribe_find_service().
-using Find_result_callback = std::function<void(Find_result_container const& result)>;
-
-/// \brief Find service result indication callback type, see Runtime::subscribe_find_service().
-using Find_result_change_callback = std::function<void(
-    Service_interface_identifier const&, Service_instance const&, Find_result_status)>;
-
-/// \brief Subscribe_find_service interface type signature.
-using Subscribe_find_service_function = std::function<Find_subscription(
-    Find_result_change_callback, Service_interface_identifier const&,
-    std::optional<Service_instance>)>;
 
 /// \brief Request_service interface type signature.
 using Request_service_function =
@@ -245,80 +205,14 @@ class Runtime {
         Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept = 0;
 
-    /// \brief Offers the same functionality as the subscribe_find_service() below.
-    /// \details The complete list of currently available services is passed into the callback on
-    /// every change.
-    ///
-    /// If the set of known services matching the parameters interface and instance changes compared
-    /// to the last invocation of callback on_result_set, on_result_set is called with the complete
-    /// list of currently available services.
-    /// \param on_result_set_change Callback function.
-    /// \param interface Service interface.
-    /// \param instance Optional service instance.
-    /// \return Object that represents an active find service subscription.
-    [[nodiscard]] [[deprecated(
-        "Removed due to complexity. Use Client_connectors Service_state_change_callback instead.")]]
-    virtual Find_subscription subscribe_find_service(
-        Find_result_callback on_result_set_change, Service_interface_identifier const& interface,
-        std::optional<Service_instance> instance) noexcept = 0;
-
-    /// \brief Calls on_result_change when a new service is found or a service is removed.
-    /// \note Interface and instance are used to filter for specific services.
-    /// \details Immediately reports the all currently known service instances matching the given
-    /// interface and instance to the callback on_result_change and returns a RAII object
-    /// representing this find subscription.
-    ///
-    /// If the set of known services matching the parameters interface and instance changes compared
-    /// to the last invocation of the callback on_result_change, on_result_change is called
-    /// with the new set of known service instances.
-    ///
-    /// If the object representing a find subscription is released, then any further changes are no
-    /// longer indicated through the callback on_result_change.
-    ///
-    /// If the parameter instance has no value, all instances matching the interface are part of the
-    /// result.
-    ///
-    /// If the callback on_result_change is nullptr, find subscription is not performed and the
-    /// callback on_result_change is never called.
-    ///
-    /// The method subscribe_find_service(interface, instance) is called on every already registered
-    /// or later registered bridge and the Service_request RAII objects are stored.
-    ///
-    /// If the last find service subscription for [interface, instance] is destroyed,
-    /// subscribe_find_service() deletes all associated find service subscription RAII objects.
-    ///
-    /// A service bridge contributes to the result-set of find service subscriptions by calling the
-    /// Find_result_change_callback for the specific bridge which is part of the
-    /// subscribe_find_service interface. Thus changes on the set of known service instances must be
-    /// indicated as locally created services. Duplicate services indicate a system configuration
-    /// error.
-    ///
-    /// If the one and only find service subscriber is a bridge that indicates the existence of the
-    /// parameter identity, then no find service request forwarding to the respective bridge
-    /// is active.
-    /// \param on_result_change Callback function.
-    /// \param interface Service interface.
-    /// \param instance Service instance.
-    /// \param identity Optional bridge identity.
-    /// \return Object that represents an active find service subscription.
-    [[nodiscard]] [[deprecated(
-        "Removed due to complexity. Use Client_connectors Service_state_change_callback instead.")]]
-    virtual Find_subscription subscribe_find_service(
-        Find_result_change_callback on_result_change,
-        std::optional<Service_interface_identifier> interface,
-        std::optional<Service_instance> instance,
-        std::optional<Bridge_identity> identity) noexcept = 0;
-
     /// \brief Registers a bridge which transports events or method calls over an IPC channel.
     /// \param identity Bridge identity.
-    /// \param subscribe_find_service Function to call in order to search for services.
     /// \param request_service Function to call if the requested service is not present locally.
     /// \return A registration RAII object in case of successful operation, otherwise an error.
     /// \note Construction_error::callback_missing is returned if any of the callbacks is not set.
     [[nodiscard]]
     virtual Result<Service_bridge_registration> register_service_bridge(
-        Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
-        Request_service_function request_service) noexcept = 0;
+        Bridge_identity identity, Request_service_function request_service) noexcept = 0;
 };
 
 /// \brief Function to instantiate a Runtime object.
