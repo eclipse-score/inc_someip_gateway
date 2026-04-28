@@ -16,7 +16,6 @@
 
 #include <cstddef>
 #include <limits>
-#include <memory>
 #include <score/move_only_function.hpp>
 #include <score/span.hpp>
 
