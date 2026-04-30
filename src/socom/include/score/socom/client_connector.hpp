@@ -42,12 +42,11 @@ using Service_state_change_callback = score::cpp::move_only_function<void(
 
 /// \brief Function type for indicating event updates to the service user.
 using Event_update_callback =
-    score::cpp::move_only_function<void(Client_connector const&, Event_id, Payload::Sptr)>;
+    score::cpp::move_only_function<void(Client_connector const&, Event_id, Payload)>;
 
 /// \brief Function type for allocating event payloads.
 using Event_payload_allocate_callback =
-    score::cpp::move_only_function<Result<std::unique_ptr<Writable_payload>>(
-        Client_connector const&, Event_id)>;
+    score::cpp::move_only_function<Result<Writable_payload>(Client_connector const&, Event_id)>;
 
 /// \brief Interface for applications to use a service (client-role).
 /// \details Changes of service instance state are indicated by callback on_service_state_change.
@@ -151,8 +150,7 @@ class Client_connector {
     /// \param method_id ID of the method for which a payload should be allocated.
     /// \return A writable payload in case of successful operation, otherwise an error.
     [[nodiscard]]
-    virtual Result<std::unique_ptr<Writable_payload>> allocate_method_call_payload(
-        Method_id method_id) noexcept = 0;
+    virtual Result<Writable_payload> allocate_method_call_payload(Method_id method_id) noexcept = 0;
 
     /// \brief Subscribe an event to receive event updates from the Server_connector.
     /// \details The mode value Event_mode::update_and_initial_value supports the field use-case.
@@ -230,7 +228,7 @@ class Client_connector {
     /// \return A pointer to a Method_invocation object in case of successful invocation, otherwise
     /// an error.
     [[nodiscard]] virtual Result<Method_invocation::Uptr> call_method(
-        Method_id client_id, Payload::Sptr payload,
+        Method_id client_id, Payload payload,
         Method_call_reply_data_opt reply_data = std::nullopt) const noexcept = 0;
 
     /// \brief Retrieves the peer posix credentials from the server.

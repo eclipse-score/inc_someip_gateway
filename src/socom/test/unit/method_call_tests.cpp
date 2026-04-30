@@ -13,10 +13,10 @@
 
 #include "gtest/gtest.h"
 #include "score/socom/clients_t.hpp"
-#include "score/socom/payload_mock.hpp"
 #include "score/socom/server_t.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
+#include "score/socom/vector_payload.hpp"
 
 using ::testing::_;
 using ::testing::Values;
@@ -29,11 +29,12 @@ namespace score::socom {
 using Me = Error;
 using Ar = Application_return;
 using Ae = Application_error;
-using Input_expected = std::tuple<Method_result, Method_result>;
+using Input_expected = std::shared_ptr<std::tuple<Method_result, Method_result>>;
 
 template <typename T, typename U>
-Input_expected create_results(T const& result, U const& expected_result) {
-    return {Method_result{result}, Method_result{expected_result}};
+Input_expected create_results(T result, U expected_result) {
+    return std::make_shared<std::tuple<Method_result, Method_result>>(
+        Method_result{std::move(result)}, Method_result{std::move(expected_result)});
 }
 
 TEST(Method_type_test, method_result_equality_and_inequality_operators) {
@@ -65,11 +66,11 @@ TEST(Method_type_test, method_result_equality_and_inequality_operators) {
     auto const vector_payload2 = make_vector_payload(2, make_vector_buffer(9U, 8U, 7U, 6U, 5U));
     auto const vector_payload3 = make_vector_payload(2, make_vector_buffer(1U, 2U, 7U, 6U, 5U));
     auto const vector_payload4 = make_vector_payload(2, make_vector_buffer(9U, 8U, 3U, 4U, 5U));
-    auto const ar1 = Application_return{vector_payload1};
-    auto const ar1_copy = Application_return{vector_payload1_copy};
-    auto const ar2 = Application_return{vector_payload1};
-    auto const ar3 = Application_return{vector_payload3};
-    auto const ar4 = Application_return{vector_payload4};
+    auto const ar1 = Application_return{clone_payload(vector_payload1)};
+    auto const ar1_copy = Application_return{clone_payload(vector_payload1_copy)};
+    auto const ar2 = Application_return{clone_payload(vector_payload1)};
+    auto const ar3 = Application_return{clone_payload(vector_payload3)};
+    auto const ar4 = Application_return{clone_payload(vector_payload4)};
 
     // Test for (in)equality
     EXPECT_TRUE(ar1 == ar2);
@@ -83,8 +84,8 @@ class MethodCallTest : public SingleConnectionTest, public WithParamInterface<In
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    Method_result const& input_result{std::get<0>(GetParam())};
-    Method_result const& expected_result{std::get<1>(GetParam())};
+    Method_result const& input_result{std::get<0>(*GetParam())};
+    Method_result const& expected_result{std::get<1>(*GetParam())};
 };
 
 TEST_P(MethodCallTest, ClientSendsFireAndForgetMethodCallToServer) {
@@ -102,9 +103,10 @@ TEST_P(MethodCallTest, ClientCallsMethodAndReceivesResponseFromServer) {
 
 INSTANTIATE_TEST_SUITE_P(
     MethodCallTestInstance, MethodCallTest,
-    Values(create_results(Ar{}, Ar{}), create_results(Ar{error_data()}, Ar{error_data()}),
-           create_results(Ar{input_data()}, Ar{input_data()}),
-           create_results(Ar{empty_payload()}, Ar{empty_payload()}),
+    Values(create_results(Ar{}, Ar{}),
+           create_results(Ar{clone_payload(error_data())}, Ar{clone_payload(error_data())}),
+           create_results(Ar{clone_payload(input_data())}, Ar{clone_payload(input_data())}),
+           create_results(Ar{clone_payload(empty_payload())}, Ar{clone_payload(empty_payload())}),
            create_results(Me::runtime_error_request_rejected, Me::runtime_error_request_rejected)));
 
 using MethodCallCredentialsTest = SingleConnectionTest;
@@ -121,7 +123,7 @@ TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesCustomClientCre
     auto& credentials_callbacks_mock = server.get_credentials_callbacks();
 
     EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, input_data(), _, client_credentials))
+                on_method_call(_, method_id, payload_eq(input_data()), _, client_credentials))
         .Times(1);
 
     client.call_method(method_id, input_data());
@@ -138,7 +140,7 @@ TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesDefaultClientCr
     auto& credentials_callbacks_mock = server.get_credentials_callbacks();
 
     EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, input_data(), _, default_credentials))
+                on_method_call(_, method_id, payload_eq(input_data()), _, default_credentials))
         .Times(1);
 
     client.call_method(method_id, input_data());
@@ -168,16 +170,15 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturn
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    score::Result<std::unique_ptr<Writable_payload>> wpayload =
-        std::make_unique<Writable_payload_mock>();
-    auto const* const wpayload_ptr = wpayload.value().get();
+    score::Result<Writable_payload> wpayload{make_writable_vector_payload(64)};
+    auto const* const ptr = wpayload->data().data();
 
     auto const& expect_method_payload_allocation =
         server.expect_method_allocate_payload(method_id, std::move(wpayload));
 
     auto payload = client.allocate_method_call_payload(method_id);
     EXPECT_TRUE(payload);
-    EXPECT_EQ(wpayload_ptr, payload.value().get());
+    EXPECT_EQ(payload->data().data(), ptr);
     wait_for_atomics(expect_method_payload_allocation);
 }
 
@@ -185,8 +186,8 @@ TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodC
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    std::unique_ptr<Writable_payload> reply_payload = std::make_unique<Writable_payload_mock>();
-    auto const* const reply_ptr = reply_payload.get();
+    std::optional<Writable_payload> reply_payload{make_writable_vector_payload(64)};
+    auto const* const ptr = reply_payload->data().data();
 
     Method_reply_callback_mock method_reply_callback_mock;
 
@@ -197,15 +198,16 @@ TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodC
 
     auto reply_data = reply_data_fut.get();
     ASSERT_TRUE(reply_data);
-    EXPECT_EQ(reply_ptr, reply_data->get_reply_payload().get());
+    ASSERT_TRUE(reply_data->get_reply_payload().has_value());
+    EXPECT_EQ(reply_data->get_reply_payload()->data().data(), ptr);
 
-    EXPECT_CALL(method_reply_callback_mock, Call(_)).WillOnce([reply_ptr](auto const& mr) {
+    EXPECT_CALL(method_reply_callback_mock, Call(_)).WillOnce([ptr](auto const& mr) {
         ASSERT_TRUE(std::holds_alternative<Application_return>(mr));
         auto const& ar = std::get<Application_return>(mr);
-        EXPECT_EQ(reply_ptr, ar.payload.get());
+        EXPECT_EQ(ptr, ar.payload.data().data());
     });
     reply_data->reply(
-        Method_result{Application_return{std::move(reply_data->get_reply_payload())}});
+        Method_result{Application_return{Payload{std::move(*reply_data->get_reply_payload())}}});
 }
 
 }  // namespace score::socom

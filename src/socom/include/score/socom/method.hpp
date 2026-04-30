@@ -20,6 +20,7 @@
 #include <score/socom/error.hpp>
 #include <score/socom/payload.hpp>
 #include <score/socom/reference_token.hpp>
+#include <utility>
 #include <variant>
 
 namespace score::socom {
@@ -62,10 +63,10 @@ class Method_invocation {
 struct Application_return {
     /// \brief Constructor.
     /// \param p Payload data.
-    explicit Application_return(Payload::Sptr p = empty_payload()) : payload{std::move(p)} {}
+    explicit Application_return(Payload p = empty_payload()) : payload{std::move(p)} {}
 
     /// \brief Payload data.
-    Payload::Sptr payload;
+    Payload payload;
 };
 
 /// \brief Result of failed method call.
@@ -75,19 +76,19 @@ struct Application_error {
 
     /// \brief Constructor.
     /// \param p Payload data.
-    explicit Application_error(Payload::Sptr p = empty_payload()) : payload{std::move(p)} {}
+    explicit Application_error(Payload p = empty_payload()) : payload{std::move(p)} {}
 
     /// \brief Constructor.
     /// \param c Error code.
     /// \param p Payload data.
-    explicit Application_error(Code c, Payload::Sptr p = empty_payload())
+    explicit Application_error(Code c, Payload p = empty_payload())
         : code{c}, payload{std::move(p)} {}
 
     /// \brief Error code.
     Code code{};
 
     /// \brief Payload data.
-    Payload::Sptr payload;
+    Payload payload;
 };
 
 /// \brief Alias for the response of a method.
@@ -98,7 +99,7 @@ using Method_result = std::variant<Application_return, Application_error, Error>
 /// \param rhs Right-hand side of operator.
 /// \return True in case of equality, otherwise false.
 inline bool operator==(Application_return const& lhs, Application_return const& rhs) {
-    return *lhs.payload == *rhs.payload;
+    return lhs.payload == rhs.payload;
 }
 
 /// \brief Operator != for Application_return.
@@ -114,7 +115,7 @@ inline bool operator!=(Application_return const& lhs, Application_return const& 
 /// \param rhs Right-hand side of operator.
 /// \return True in case of equality, otherwise false.
 inline bool operator==(Application_error const& lhs, Application_error const& rhs) {
-    return (lhs.code == rhs.code) && (*lhs.payload == *rhs.payload);
+    return (lhs.code == rhs.code) && (lhs.payload == rhs.payload);
 }
 
 /// \brief Operator != for Application_error.
@@ -135,7 +136,7 @@ class Impl;
 /// \brief Callback and payload buffer for method call replies.
 class Method_call_reply_data {
     Method_reply_callback reply_callback;
-    Writable_payload::Uptr reply_payload;
+    std::optional<Writable_payload> reply_payload;
     Weak_reference_token weak_stop_block_token;
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Deadlock_detector* deadlock_detector{nullptr};
@@ -147,11 +148,11 @@ class Method_call_reply_data {
     /// requested.
     /// \param reply_payload Optional payload buffer for the method reply.
     Method_call_reply_data(Method_reply_callback reply_callback,
-                           Writable_payload::Uptr reply_payload);
+                           std::optional<Writable_payload> reply_payload);
 
     /// \brief Get the payload buffer for the method reply.
-    /// \return Reference to the unique pointer of the payload buffer for the method reply.
-    Writable_payload::Uptr& get_reply_payload() { return reply_payload; }
+    /// \return Reference to the optional writable payload buffer for the method reply.
+    std::optional<Writable_payload>& get_reply_payload() { return reply_payload; }
 
     /// \brief Call the reply callback with the given method result, if the block token is not
     /// expired.

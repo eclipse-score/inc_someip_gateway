@@ -55,7 +55,7 @@ struct Server_data {
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
     Server_data(Connector_factory& factory, Method_id method_id,
-                Payload::Sptr const& expected_payload);
+                Payload const& expected_payload);
 
     /// \brief Create a new instance with the configuration stored in factory
     ///
@@ -121,13 +121,13 @@ struct Server_data {
     ///
     /// \param[in] event_id the event update
     /// \param[in] payload the data to send
-    void update_event(Event_id const& event_id, Payload::Sptr const& payload);
+    void update_event(Event_id const& event_id, Payload const& payload);
 
     /// \brief Send requested event update to subscribed and requesting clients
     ///
     /// \param[in] event_id the event update
     /// \param[in] payload the data to send
-    void update_requested_event(Event_id const& event_id, Payload::Sptr const& payload);
+    void update_requested_event(Event_id const& event_id, Payload const& payload);
 
     /// \brief Expect a call to the on_event_subscription_change callback
     ///
@@ -168,7 +168,7 @@ struct Server_data {
     /// \param[in] event_id event for which a update is requested
     /// \param[in] payload the data to send
     void expect_and_respond_update_event_request(Event_id const& event_id,
-                                                 Payload::Sptr const& payload);
+                                                 Payload const& payload);
 
     /// \brief Expect and respond to method calls
     ///
@@ -176,7 +176,7 @@ struct Server_data {
     /// \param[in] result allocated payload
     /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_method_allocate_payload(
-        Method_id const& method_id, score::Result<std::unique_ptr<Writable_payload>> result);
+        Method_id const& method_id, score::Result<Writable_payload> result);
 
     /// \brief Expect and respond to method calls
     ///
@@ -187,7 +187,7 @@ struct Server_data {
     /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_and_respond_method_calls(size_t counter,
                                                              Method_id const& method_id,
-                                                             Payload::Sptr const& payload,
+                                                             Payload const& payload,
                                                              Method_result const& result);
 
     /// \brief Expect and respond to a method call
@@ -197,7 +197,7 @@ struct Server_data {
     /// \param[in] result return of the method
     /// \return boolean reference which becomes true when the callback is called
     std::atomic<bool> const& expect_and_respond_method_call(Method_id const& method_id,
-                                                            Payload::Sptr const& payload,
+                                                            Payload const& payload,
                                                             Method_result const& result);
 
     /// \brief Expect method call and return received client callback
@@ -206,7 +206,7 @@ struct Server_data {
     /// \param[in] payload input of the method
     /// \return Future which will return the client callback once the method is called
     std::future<Method_call_reply_data_opt> expect_and_return_method_call(
-        Method_id const& method_id, Payload::Sptr const& payload);
+        Method_id const& method_id, Payload const& payload);
 
     /// Expect minimum number of method call and return received client callback
     ///
@@ -214,7 +214,7 @@ struct Server_data {
     /// \param[in] payload input of the method
     /// \return Future which will return the client callback once the method is called
     std::future<void> expect_method_calls(std::size_t const& min_num, Method_id const& method_id,
-                                          Payload::Sptr const& payload);
+                                          Payload const& payload);
 
     /// \brief Return event mode
     ///

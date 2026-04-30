@@ -20,7 +20,7 @@ namespace score {
 namespace socom {
 
 Method_call_reply_data::Method_call_reply_data(Method_reply_callback reply_callback,
-                                               Writable_payload::Uptr reply_payload)
+                                               std::optional<Writable_payload> reply_payload)
     : reply_callback(std::move(reply_callback)), reply_payload(std::move(reply_payload)) {
     assert(!this->reply_callback.empty());
 }

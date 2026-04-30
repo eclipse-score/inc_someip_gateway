@@ -42,10 +42,14 @@ Impl::Impl(Runtime_impl& runtime, Service_interface_definition configuration,
 
 Impl::~Impl() noexcept {
     {
-        std::lock_guard<std::mutex> const lock{m_mutex};
-        m_stop_block_token.reset();
+        {
+            std::lock_guard<std::mutex> const lock{m_mutex};
+            m_stop_block_token.reset();
+            m_server.reset();
+        }
+        // triggers callback call. Actions which would be done by still active alive m_registration
+        // are stopped by already reset m_stop_block_token.
         m_registration.reset();
-        m_server.reset();
     }
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
 
@@ -79,8 +83,7 @@ message::Request_event_update::Return_type Impl::request_event_update(
 }
 
 message::Call_method::Return_type Impl::call_method(
-    Method_id client_id, Payload::Sptr payload,
-    Method_call_reply_data_opt reply_data) const noexcept {
+    Method_id client_id, Payload payload, Method_call_reply_data_opt reply_data) const noexcept {
     if (reply_data) {
         reply_data->set_block_token(create_weak_block_token()
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
@@ -90,11 +93,11 @@ message::Call_method::Return_type Impl::call_method(
         );
     }
 
-    return send(message::Call_method{client_id, payload, std::move(reply_data), m_credentials});
+    return send(
+        message::Call_method{client_id, std::move(payload), std::move(reply_data), m_credentials});
 }
 
-Result<std::unique_ptr<Writable_payload>> Impl::allocate_method_call_payload(
-    Method_id method_id) noexcept {
+Result<Writable_payload> Impl::allocate_method_call_payload(Method_id method_id) noexcept {
     return send(message::Allocate_method_call_payload{method_id});
 }
 
@@ -125,7 +128,7 @@ message::Update_event::Return_type Impl::receive(message::Update_event message) 
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    m_callbacks.on_event_update(*this, message.id, message.payload);
+    m_callbacks.on_event_update(*this, message.id, std::move(message.payload));
 }
 
 message::Update_requested_event::Return_type Impl::receive(
@@ -133,7 +136,7 @@ message::Update_requested_event::Return_type Impl::receive(
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    m_callbacks.on_event_requested_update(*this, message.id, message.payload);
+    m_callbacks.on_event_requested_update(*this, message.id, std::move(message.payload));
 }
 
 message::Allocate_event_payload::Return_type Impl::receive(
