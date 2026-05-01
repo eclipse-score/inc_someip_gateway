@@ -4,10 +4,6 @@
     "url": "https://eclipse-score.github.io/inc_someip_gateway/main/"
   },
   {
-    "version": "pr-106",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-106/"
-  },
-  {
     "version": "pr-108",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-108/"
   },
@@ -16,12 +12,12 @@
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-109/"
   },
   {
-    "version": "pr-15",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-15/"
+    "version": "pr-110",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-110/"
   },
   {
-    "version": "pr-19",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-19/"
+    "version": "pr-15",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-15/"
   },
   {
     "version": "pr-22",
@@ -46,9 +42,5 @@
   {
     "version": "pr-98",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-98/"
-  },
-  {
-    "version": "pr-110",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-110/"
   }
 ]
