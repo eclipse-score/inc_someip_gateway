@@ -48,3 +48,11 @@ When adding new code, tests are required by default:
 - Integration tests in [tests/integration/BUILD.bazel](../../tests/integration/BUILD.bazel)
 - Unit tests next to the software element's source code
 - Use `py_pytest` rule for Python tests
+
+## pre-commit
+
+pre-commit must pass, before considering the work done:
+
+```bash
+pre-commit run --all-files
+```
