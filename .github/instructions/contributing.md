@@ -13,12 +13,10 @@ SPDX-License-Identifier: Apache-2.0
 *******************************************************************************
 -->
 ---
-applyTo: ".github/**"
+applyTo: "**"
 ---
 
 # Contributing
 
 Follow [CONTRIBUTION.md](../../CONTRIBUTION.md):
 - Use provided PR templates (bug_fix.md, improvement.md)
-- All commits must follow Eclipse Foundation rules
-- Code review via CODEOWNERS
