@@ -16,8 +16,11 @@ updates:
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: chore
+      include: scope
     groups:
-      all-in-one:
+      github-actions:
         patterns:
           - "*"
           # update-types: not used by intention
@@ -27,8 +30,11 @@ updates:
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: chore
+      include: scope
     groups:
-      all-in-one:
+      cargo:
         patterns:
           - "*"
         update-types:
@@ -39,8 +45,11 @@ updates:
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: chore
+      include: scope
     groups:
-      all-in-one:
+      pip:
         patterns:
           - "*"
         update-types:
@@ -53,8 +62,11 @@ updates:
       - /tests/integration/docker_setup
     schedule:
       interval: daily
+    commit-message:
+      prefix: chore
+      include: scope
     groups:
-      all-in-one:
+      docker:
         patterns:
           - "*"
         update-types:
@@ -65,8 +77,11 @@ updates:
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: chore
+      include: scope
     groups:
-      all-in-one:
+      bazel:
         patterns:
           - "*"
         update-types:

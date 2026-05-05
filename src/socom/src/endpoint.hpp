@@ -14,15 +14,10 @@
 #ifndef SCORE_SOCOM_ENDPOINT_HPP
 #define SCORE_SOCOM_ENDPOINT_HPP
 
-#include <memory>
-
-#include "final_action.hpp"
+#include <score/socom/reference_token.hpp>
 
 namespace score {
 namespace socom {
-
-using Reference_token = std::shared_ptr<Final_action>;
-using Weak_reference_token = std::weak_ptr<Final_action>;
 
 template <typename T>
 class Endpoint {

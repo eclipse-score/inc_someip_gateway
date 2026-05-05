@@ -18,9 +18,8 @@
 #include <vector>
 
 #include "score/mw/com/types.h"
-#include "src/gatewayd/gatewayd_config_generated.h"
+#include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
-#include "tests/benchmarks/echo_service.h"
 
 namespace score::someip_gateway::gatewayd {
 
@@ -35,19 +34,23 @@ class RemoteServiceInstance {
    public:
     /// \brief Constructs a RemoteServiceInstance
     /// \param service_instance_config Configuration for this service instance
+    /// \param service_type_config Configuration for the service type of this instance
     /// \param ipc_skeleton IPC skeleton for communication with local consumer applications
     /// \param someip_message_proxy Proxy for receiving messages from the someipd daemon
     /// \details This constructor initializes a remote service instance with the necessary
     ///          components to receive messages from the someipd daemon and forward them to
     ///          local applications via IPC.
-    RemoteServiceInstance(std::shared_ptr<const config::ServiceInstance> service_instance_config,
-                          score::mw::com::GenericSkeleton&& ipc_skeleton,
-                          network_service::interfaces::message_transfer::SomeipMessageTransferProxy
-                              someip_message_proxy);
+    RemoteServiceInstance(
+        std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
+        score::mw::com::GenericSkeleton&& ipc_skeleton,
+        network_service::interfaces::message_transfer::SomeipMessageTransferProxy
+            someip_message_proxy);
 
     /// \brief Asynchronously creates a remote service instance
     /// \param service_instance_config Configuration for the service instance to create
-    /// \param instances Vector to store the created remote service instance
+    /// \param service_type_config Configuration for the service type of the instance to create
+    /// \param instances Reference to the vector to store the created remote service instance
     /// \return Result containing a FindServiceHandle on success, or an error on failure
     /// \details This static factory method asynchronously searches for and creates a remote
     ///          service instance. It performs service discovery for services offered via SOME/IP
@@ -55,7 +58,8 @@ class RemoteServiceInstance {
     ///          adds it to the instances vector. The returned FindServiceHandle can be used to
     ///          manage the asynchronous operation.
     static Result<mw::com::FindServiceHandle> CreateAsyncRemoteService(
-        std::shared_ptr<const config::ServiceInstance> service_instance_config,
+        std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
         std::vector<std::unique_ptr<RemoteServiceInstance>>& instances);
 
     RemoteServiceInstance(const RemoteServiceInstance&) = delete;
@@ -65,7 +69,9 @@ class RemoteServiceInstance {
 
    private:
     /// Configuration for this service instance
-    std::shared_ptr<const config::ServiceInstance> service_instance_config_;
+    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_;
+    /// Configuration for the service type of this instance
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_;
     /// IPC skeleton for forwarding messages to local consumer applications
     score::mw::com::GenericSkeleton ipc_skeleton_;
     /// Proxy for receiving messages from the someipd daemon

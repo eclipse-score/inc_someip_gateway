@@ -57,7 +57,7 @@ bazel_dep(name = "bazel_lib", version = "3.2.2", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "rules_cc", version = "0.2.18")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
 bazel_dep(name = "rules_rust", version = "0.68.1-score")
 
@@ -65,14 +65,9 @@ bazel_dep(name = "rules_rust", version = "0.68.1-score")
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.1.1")
+bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
 
-bazel_dep(name = "score_toolchains_rust", version = "0.7.0", dev_dependency = True)
-git_override(
-    module_name = "score_toolchains_rust",
-    commit = "40abf2df405dc714472f72f0f8538f04a5396e0e",  # Last verified: 2026-02-10
-    remote = "https://github.com/etas-contrib/score_toolchains_rust.git",
-)
+bazel_dep(name = "score_toolchains_rust", version = "0.8.0", dev_dependency = True)
 
 # ============================================================================
 # QNX8 Toolchain Configuration
@@ -190,25 +185,18 @@ bazel_dep(name = "score_communication", version = "0.1.4")
 # TODO: Remove override as soon as new release containing the GenericSkeleton is available.
 git_override(
     module_name = "score_communication",
-    commit = "fea1b1058ea78ccd32fd04bf2e0d4728b34e18fa",
+    commit = "cb16987ee8dc316aeea8d5209f36e3cb95f47b63",
     remote = "https://github.com/eclipse-score/communication.git",
 )
 
 # ============================================================================
 # Base Libraries
 # ============================================================================
-bazel_dep(name = "score_baselibs", version = "0.2.4")
+bazel_dep(name = "score_baselibs", version = "0.2.5")
 git_override(
     module_name = "score_baselibs",
-    commit = "052c2f271be4239f97182b164f4903b8c88d6c72",
+    commit = "3e81576c61064c06abb4836282679087a550804b",
     remote = "https://github.com/eclipse-score/baselibs.git",
-)
-
-bazel_dep(name = "score_logging", version = "0.1.0")
-git_override(
-    module_name = "score_logging",
-    commit = "38e8762881d512c89ae5c2e5e5238fd791d327df",
-    remote = "https://github.com/eclipse-score/logging.git",
 )
 
 # ============================================================================

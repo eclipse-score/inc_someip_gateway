@@ -11,90 +11,62 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <getopt.h>
+
 #include <array>
 #include <atomic>
 #include <csignal>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <set>
-#include <string_view>
 #include <thread>
-#include <vsomeip/defines.hpp>
-#include <vsomeip/primitive_types.hpp>
 #include <vsomeip/vsomeip.hpp>
 
-#include "score/containers/non_relocatable_vector.h"
+#include "routing.h"
+#include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
-#include "score/span.hpp"
+#include "src/common/constants.h"
+#include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
 
 static const char* someipd_name = "someipd";
 
-// SOME/IP test service constants.
-static const vsomeip::service_t kServiceId = 0x1234;
-static const vsomeip::instance_t kInstanceId = 0x5678;
-static const vsomeip::event_t kEventId = 0x8778;
-static const vsomeip::eventgroup_t kEventgroupId = 0x4465;
+using score::someip_gateway::network_service::interfaces::message_transfer::
+    SomeipMessageTransferProxy;
+using score::someip_gateway::network_service::interfaces::message_transfer::
+    SomeipMessageTransferSkeleton;
 
-// TC8 standalone constants — must match tests/tc8_conformance/config/tc8_someipd_sd.json.
-static const vsomeip::event_t kTc8EventId = 0x0777;
-static const vsomeip::eventgroup_t kTc8EventgroupId = 0x4455;
-static const vsomeip::eventgroup_t kTc8MulticastEventgroupId = 0x4465;  // TC8-SD-013 / TC8-EVT-005
-static const vsomeip::event_t kTc8ReliableEventId = 0x0778;          // TCP-only event for TC8-RPC-17
-static const vsomeip::eventgroup_t kTc8ReliableEventgroupId = 0x4475; // TCP-only eventgroup
-static const vsomeip::event_t kStaticFieldEventId = 0x0779;          // Static field for TC8-RPC-16
-static const vsomeip::eventgroup_t kStaticFieldEventgroupId = 0x4480; // Eventgroup for kStaticFieldEventId
-static const vsomeip::method_t kTc8MethodId = 0x0421;
-static const vsomeip::method_t kTc8GetFieldMethodId = 0x0001;  // TC8-FLD-003
-static const vsomeip::method_t kTc8SetFieldMethodId = 0x0002;  // TC8-FLD-004
-
-// Remote service constants.
-static const vsomeip::service_t kRemoteServiceId = 0x4321;
-
-static const std::size_t kMaxSampleCount = 10;
-
-using SomeipMessageTransferProxy = score::someip_gateway::network_service::interfaces::
-    message_transfer::SomeipMessageTransferProxy;
-using SomeipMessageTransferSkeleton = score::someip_gateway::network_service::interfaces::
-    message_transfer::SomeipMessageTransferSkeleton;
-
-/// Shutdown flag, set by the signal handler.
-static std::atomic<bool> shutdown_requested{
-    false};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+// Global flag to control application shutdown
+static std::atomic<bool> shutdown_requested{false};
 
 void termination_handler(int /*signal*/) {
     std::cout << "Received termination signal. Initiating graceful shutdown..." << std::endl;
     shutdown_requested.store(true);
 }
 
-// ---------------------------------------------------------------------------
-// CLI parsing
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// TC8 standalone mode constants and helpers
+// ===========================================================================
 
-/// Parsed command-line arguments.
-struct CliArgs {
-    bool standalone{false};
-    score::containers::NonRelocatableVector<const char*> lola_argv;
-};
+// SOME/IP test service constants (shared with normal mode via constants.h for service/instance).
+static const vsomeip::service_t kServiceId = 0x1234;
+static const vsomeip::instance_t kInstanceId = 0x5678;
 
-/// Extract --tc8-standalone from argv; return filtered args for LoLa runtime.
-static CliArgs parse_args(int argc, const char* argv[]) {
-    CliArgs result{false, score::containers::NonRelocatableVector<const char*>(
-                              static_cast<std::size_t>(argc))};
-    for (int i = 0; i < argc; ++i) {
-        if (std::string_view(argv[i]) == "--tc8-standalone") {
-            result.standalone = true;
-        } else {
-            result.lola_argv.emplace_back(argv[i]);
-        }
-    }
-    return result;
-}
-
-// ---------------------------------------------------------------------------
-// TC8 standalone mode — message handler helpers
-// ---------------------------------------------------------------------------
+// TC8 standalone constants — must match tests/tc8_conformance/config/tc8_someipd_sd.json.
+static const vsomeip::event_t kTc8EventId = 0x0777;
+static const vsomeip::eventgroup_t kTc8EventgroupId = 0x4455;
+static const vsomeip::eventgroup_t kTc8MulticastEventgroupId = 0x4465;   // TC8-SD-013 / TC8-EVT-005
+static const vsomeip::event_t kTc8ReliableEventId = 0x0778;             // TCP-only event for TC8-RPC-17
+static const vsomeip::eventgroup_t kTc8ReliableEventgroupId = 0x4475;   // TCP-only eventgroup
+static const vsomeip::event_t kStaticFieldEventId = 0x0779;             // Static field for TC8-RPC-16
+static const vsomeip::eventgroup_t kStaticFieldEventgroupId = 0x4480;   // Eventgroup for kStaticFieldEventId
+static const vsomeip::method_t kTc8MethodId = 0x0421;
+static const vsomeip::method_t kTc8GetFieldMethodId = 0x0001;           // TC8-FLD-003
+static const vsomeip::method_t kTc8SetFieldMethodId = 0x0002;           // TC8-FLD-004
 
 /// Returns true if the request is fire-and-forget (MT_REQUEST_NO_RETURN).
 /// No response must be sent for such messages — TC8-MSG-002.
@@ -120,8 +92,7 @@ struct FieldBuffer {
 
 /// Build a GET-field response payload from the current field state — TC8-FLD-003.
 // REQ: comp_req__tc8_conformance__fld_get_set
-static std::shared_ptr<vsomeip::payload> MakeTc8GetFieldPayload(
-    const FieldBuffer& field_buf) {
+static std::shared_ptr<vsomeip::payload> MakeTc8GetFieldPayload(const FieldBuffer& field_buf) {
     auto resp_payload = vsomeip::runtime::get()->create_payload();
     resp_payload->set_data(field_buf.data.data(),
                            static_cast<vsomeip::length_t>(field_buf.size));
@@ -263,136 +234,160 @@ static void run_standalone_mode(std::shared_ptr<vsomeip::application> app) {
     app->stop();
 }
 
-// ---------------------------------------------------------------------------
-// Normal IPC mode (requires gatewayd)
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// Normal IPC mode (requires gatewayd + flatbuffer config)
+// ===========================================================================
 
-/// Create and subscribe the IPC proxy to gatewayd. Blocks until gatewayd offers the service.
-static SomeipMessageTransferProxy create_ipc_proxy() {
-    auto handles =
-        SomeipMessageTransferProxy::FindService(
-            score::mw::com::InstanceSpecifier::Create(std::string{"someipd/gatewayd_messages"}).value())
-            .value();
-    auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
-    proxy.message_.Subscribe(kMaxSampleCount);
-    return proxy;
+// Help text, showing usage syntax and available options
+void print_help() {
+    std::cout << "Syntax: someipd -h/--help\n"
+              << "        someipd -c/--configuration <config.bin> "
+              << "-s/--service_instance_manifest <manifest.json>\n"
+              << "        someipd -t/--tc8-standalone "
+              << "-s/--service_instance_manifest <manifest.json>\n"
+              << "\n";
+
+    std::cout << "Options:\n"
+              << " -h/--help Displays this help\n"
+              << " -c/--configuration Specifies the configuration file\n"
+              << " -s/--service_instance_manifest Specifies the service instance manifest file\n"
+              << " -t/--tc8-standalone Run in TC8 conformance test mode (no IPC, no gatewayd)\n"
+              << "\n";
 }
 
-/// Create the IPC skeleton and offer it to gatewayd.
-static SomeipMessageTransferSkeleton create_ipc_skeleton() {
-    auto result = SomeipMessageTransferSkeleton::Create(
-        score::mw::com::InstanceSpecifier::Create(std::string{"someipd/someipd_messages"}).value());
-    auto skeleton = std::move(result).value();
-    (void)skeleton.OfferService();
-    return skeleton;
-}
-
-/// Forward incoming SOME/IP messages from the remote service to gatewayd via IPC.
-static void register_network_to_ipc_handler(std::shared_ptr<vsomeip::application> app,
-                                            SomeipMessageTransferSkeleton& skeleton) {
-    app->register_message_handler(
-        kRemoteServiceId, kInstanceId, kEventId,
-        [&skeleton](const std::shared_ptr<vsomeip::message>& msg) {
-            auto maybe_message = skeleton.message_.Allocate();
-            if (!maybe_message.has_value()) {
-                std::cerr << "Failed to allocate SOME/IP message: "
-                          << maybe_message.error().Message() << std::endl;
-                return;
-            }
-            auto sample = std::move(maybe_message).value();
-            memcpy(sample->data + VSOMEIP_FULL_HEADER_SIZE, msg->get_payload()->get_data(),
-                   msg->get_payload()->get_length());
-            sample->size = msg->get_payload()->get_length() + VSOMEIP_FULL_HEADER_SIZE;
-            skeleton.message_.Send(std::move(sample));
-        });
-}
-
-/// Subscribe to the remote service and offer the local service.
-static void setup_someip_services(std::shared_ptr<vsomeip::application> app) {
-    app->request_service(kRemoteServiceId, kInstanceId);
-
-    std::set<vsomeip::eventgroup_t> groups{kEventgroupId};
-    app->request_event(kRemoteServiceId, kInstanceId, kEventId, groups,
-                       vsomeip::event_type_e::ET_EVENT);
-    app->subscribe(kRemoteServiceId, kInstanceId, kEventgroupId);
-
-    app->offer_event(kServiceId, kInstanceId, kEventId, groups);
-    app->offer_service(kServiceId, kInstanceId);
-}
-
-/// Read IPC samples and forward them as SOME/IP notifications.
-static void forward_ipc_to_someip(SomeipMessageTransferProxy& proxy,
-                                  std::shared_ptr<vsomeip::application> app,
-                                  std::shared_ptr<vsomeip::payload> payload) {
-    proxy.message_.GetNewSamples(
-        [&](auto message_sample) {
-            score::cpp::span<const std::byte> message(message_sample->data, message_sample->size);
-            if (message.size() < VSOMEIP_FULL_HEADER_SIZE) {
-                std::cerr << "Received too small sample (size: " << message.size()
-                          << ", expected at least: " << VSOMEIP_FULL_HEADER_SIZE << "). Skipping."
-                          << std::endl;
-                return;
-            }
-            auto payload_data = message.subspan(VSOMEIP_FULL_HEADER_SIZE);
-            payload->set_data(reinterpret_cast<const vsomeip_v3::byte_t*>(payload_data.data()),
-                              payload_data.size());
-            app->notify(kServiceId, kInstanceId, kEventId, payload);
-        },
-        kMaxSampleCount);
-}
-
-/// Poll IPC and forward to SOME/IP until shutdown.
-static void poll_until_shutdown(SomeipMessageTransferProxy& proxy,
-                                std::shared_ptr<vsomeip::application> app) {
-    auto payload = vsomeip::runtime::get()->create_payload();
-    while (!shutdown_requested.load()) {
-        forward_ipc_to_someip(proxy, app, payload);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-}
-
-/// Full IPC-bridging mode: connect to gatewayd and bridge SOME/IP traffic.
-static void run_ipc_mode(std::shared_ptr<vsomeip::application> app) {
-    auto proxy = create_ipc_proxy();
-    auto skeleton = create_ipc_skeleton();
-
-    register_network_to_ipc_handler(app, skeleton);
-    setup_someip_services(app);
-
-    std::cout << "SOME/IP daemon started, waiting for messages..." << std::endl;
-    poll_until_shutdown(proxy, app);
-    std::cout << "Shutting down SOME/IP daemon..." << std::endl;
-
-    app->stop();
-}
-
-// ---------------------------------------------------------------------------
-// Entry point
-// ---------------------------------------------------------------------------
-
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
+    // Register signal handlers for graceful shutdown
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
 
-    // Strip --tc8-standalone before passing argv to LoLa runtime.
-    auto parsed = parse_args(argc, argv);
-    int lola_argc = static_cast<int>(parsed.lola_argv.size());
-    score::mw::com::runtime::InitializeRuntime(lola_argc, parsed.lola_argv.data());
+    const char* const short_opts = "htc:s:";
+    const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
+                                {"tc8-standalone", no_argument, nullptr, 't'},
+                                {"configuration", required_argument, nullptr, 'c'},
+                                {"service_instance_manifest", required_argument, nullptr, 's'},
+                                {nullptr, no_argument, nullptr, 0}};
 
-    auto vsomeip_runtime = vsomeip::runtime::get();
-    auto application = vsomeip_runtime->create_application(someipd_name);
-    if (!application->init()) {
-        std::cerr << "SOME/IP application init failed" << std::endl;
-        return EXIT_FAILURE;
+    score::filesystem::Path service_instance_manifest_path{};
+    score::filesystem::Path configuration_path{};
+    bool tc8_standalone = false;
+
+    while (true) {
+        const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
+        if (opt == -1) {
+            // No more options
+            break;
+        }
+        switch (static_cast<char>(opt)) {
+            case 'h': {
+                print_help();
+                return 0;
+            }
+            case 't': {
+                tc8_standalone = true;
+                break;
+            }
+            case 'c': {
+                configuration_path = score::filesystem::Path{optarg};
+                break;
+            }
+            case 's': {
+                service_instance_manifest_path = score::filesystem::Path{optarg};
+                break;
+            }
+            // Unknown option
+            default: {
+                print_help();
+                return 1;
+            }
+        }
     }
 
-    // Work runs in a detached thread; main thread blocks in start() (io_context).
-    if (parsed.standalone) {
+    // ---------------------------------------------------------------------------
+    // TC8 standalone mode — no config file, no IPC, no gatewayd
+    // ---------------------------------------------------------------------------
+    if (tc8_standalone) {
+        // TC8 standalone does not use LoLa IPC — skip InitializeRuntime and config parsing.
+        auto runtime = vsomeip::runtime::get();
+        auto application = runtime->create_application(someipd_name);
+        if (!application->init()) {
+            std::cerr << "SOME/IP application init failed" << std::endl;
+            return 1;
+        }
+
+        // Work runs in a detached thread; main thread blocks in start() (io_context).
         std::thread(run_standalone_mode, application).detach();
-    } else {
-        std::thread(run_ipc_mode, application).detach();
+        application->start();
+        return 0;
     }
 
-    application->start();
-    return EXIT_SUCCESS;
+    // ---------------------------------------------------------------------------
+    // Normal IPC-bridging mode — requires config file + manifest
+    // ---------------------------------------------------------------------------
+
+    // Both configurations are required, otherwise print help and exit
+    if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
+        print_help();
+        return 1;
+    }
+
+    // Read config data
+    // TODO: Use memory mapped file instead of copying into buffer
+    std::ifstream config_file;
+    config_file.open(configuration_path.CStr(), std::ios::binary | std::ios::in);
+
+    if (!config_file.is_open()) {
+        std::cerr << "Error: Could not open config file " << configuration_path.CStr() << std::endl;
+        return 1;
+    }
+
+    config_file.seekg(0, std::ios::end);
+    std::streampos length = config_file.tellg();
+
+    if (length <= 0) {
+        std::cerr << "Error: Invalid config file size: " << length << std::endl;
+        config_file.close();
+        return 1;
+    }
+
+    config_file.seekg(0, std::ios::beg);
+    auto config_buffer = std::shared_ptr<char>(new char[length]);
+    config_file.read(config_buffer.get(), length);
+    config_file.close();
+
+    auto config = std::shared_ptr<const score::mw_someip_config::Root>(
+        config_buffer, score::mw_someip_config::GetRoot(config_buffer.get()));
+
+    score::mw::com::runtime::InitializeRuntime(
+        score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
+
+    auto handles =
+        SomeipMessageTransferProxy::FindService(
+            score::mw::com::InstanceSpecifier::Create(std::string("someipd/gatewayd_messages"))
+                .value())
+            .value();
+
+    // Proxy for receiving messages from gatewayd to be sent via SOME/IP
+    auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
+    proxy.message_.Subscribe(score::someip::max_sample_count);
+
+    // Skeleton for transmitting messages from the network to gatewayd
+    // TODO: Error handling for instance specifier creation
+    auto create_result = SomeipMessageTransferSkeleton::Create(
+        score::mw::com::InstanceSpecifier::Create(std::string("someipd/someipd_messages")).value());
+
+    auto skeleton = std::move(create_result).value();
+
+    // TODO: Error handling
+    (void)skeleton.OfferService();
+
+    auto routing = score::someipd::Routing::Create(config, std::move(proxy), std::move(skeleton));
+    if (!routing.has_value()) {
+        std::cerr << "[someipd] Network stack initialization failed" << std::endl;
+        return 1;
+    }
+
+    std::cout << "[someipd] Starting routing loop..." << std::endl;
+    routing.value().Run(shutdown_requested);
+
+    std::cout << "[someipd] Shutting down SOME/IP daemon..." << std::endl;
 }

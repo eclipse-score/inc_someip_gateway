@@ -11,6 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <getopt.h>
+
 #include <atomic>
 #include <csignal>
 #include <fstream>
@@ -20,9 +22,10 @@
 
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
+#include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/com/types.h"
-#include "src/gatewayd/gatewayd_config_generated.h"
+#include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
 
 // In the main file we are not in any namespace
@@ -39,20 +42,74 @@ void termination_handler(int /*signal*/) {
     shutdown_requested.store(true);
 }
 
-int main(int argc, const char* argv[]) {
+// Help text, showing usage syntax and available options
+void print_help() {
+    std::cout << "Syntax: gatewayd -h/--help\n"
+              << "        gatewayd -c/--configuration <config.bin> "
+              << "-s/--service_instance_manifest <manifest.json>\n"
+              << "\n";
+
+    std::cout << "Options:\n"
+              << " -h/--help Displays this help\n"
+              << " -c/--configuration Specifies the configuration file\n"
+              << " -s/--service_instance_manifest Specifies the service instance manifest file\n"
+              << "\n";
+}
+
+int main(int argc, char* argv[]) {
     // Register signal handlers for graceful shutdown
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
 
+    const char* const short_opts = "hc:s:";
+    const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
+                                {"configuration", required_argument, nullptr, 'c'},
+                                {"service_instance_manifest", required_argument, nullptr, 's'},
+                                {nullptr, no_argument, nullptr, 0}};
+
+    score::filesystem::Path service_instance_manifest_path{};
+    score::filesystem::Path configuration_path{};
+
+    while (true) {
+        const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
+        if (opt == -1) {
+            // No more options, break the while loop
+            break;
+        }
+        switch (static_cast<char>(opt)) {
+            case 'h': {
+                print_help();
+                return 0;
+            }
+            case 'c': {
+                configuration_path = score::filesystem::Path{optarg};
+                break;
+            }
+            case 's': {
+                service_instance_manifest_path = score::filesystem::Path{optarg};
+                break;
+            }
+            // Unknown option
+            default: {
+                print_help();
+                return 1;
+            }
+        }
+    }
+
+    // Both configuration files are required, otherwise print help and exit
+    if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
+        print_help();
+        return 1;
+    }
+
     // Read config data
-    // TODO: Be more flexible with the path
     // TODO: Use memory mapped file instead of copying into buffer
     std::ifstream config_file;
-    config_file.open("src/gatewayd/etc/gatewayd_config.bin", std::ios::binary | std::ios::in);
+    config_file.open(configuration_path.CStr(), std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file 'src/gatewayd/etc/gatewayd_config.bin'"
-                  << std::endl;
+        std::cerr << "Error: Could not open config file " << configuration_path.CStr() << std::endl;
         return 1;
     }
 
@@ -70,10 +127,11 @@ int main(int argc, const char* argv[]) {
     config_file.read(config_buffer.get(), length);
     config_file.close();
 
-    auto config =
-        std::shared_ptr<const config::Root>(config_buffer, config::GetRoot(config_buffer.get()));
+    auto config = std::shared_ptr<const score::mw_someip_config::Root>(
+        config_buffer, score::mw_someip_config::GetRoot(config_buffer.get()));
 
-    score::mw::com::runtime::InitializeRuntime(argc, argv);
+    score::mw::com::runtime::InitializeRuntime(
+        score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
     // TODO: Need to come up with a proper scheme how to generate instance specifiers
     auto create_result = SomeipMessageTransferSkeleton::Create(
@@ -85,30 +143,50 @@ int main(int argc, const char* argv[]) {
     // TODO: Error handling
     (void)someip_message_skeleton.OfferService();
 
-    // Create service instances from configuration
-    if (config->local_service_instances() == nullptr) {
-        std::cerr << "No local service instances configured" << std::endl;
-        return 1;
-    }
-
+    // Create local service instances from configuration
     std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
-    for (auto service_instance_config : *config->local_service_instances()) {
-        LocalServiceInstance::CreateAsyncLocalService(
-            std::shared_ptr<const config::ServiceInstance>(config, service_instance_config),
-            someip_message_skeleton, local_service_instances);
+    for (auto service_type_config : *config->service_types()) {
+        auto service_instances = service_type_config->local_service_instances();
+        if (service_instances) {
+            for (auto const& service_instance_config : *service_instances) {
+                std::cout << "Creating local service instance: "
+                          << service_type_config->service_type_name()->string_view()
+                          << " (service_id=0x" << std::hex << service_type_config->service_id()
+                          << std::dec << ", instance_id=0x" << std::hex
+                          << service_instance_config->instance_id() << std::dec << ", specifier="
+                          << service_instance_config->instance_specifier()->string_view() << ")"
+                          << std::endl;
+                LocalServiceInstance::CreateAsyncLocalServices(
+                    std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                        config, service_instance_config),
+                    std::shared_ptr<const score::mw_someip_config::ServiceType>(
+                        config, service_type_config),
+                    someip_message_skeleton, local_service_instances);
+            }
+        }
     }
 
-    // Create service instances from configuration
-    if (config->remote_service_instances() == nullptr) {
-        std::cerr << "No remote service instances configured" << std::endl;
-        return 1;
-    }
-
+    // Create remote service instances from configuration
     std::vector<std::unique_ptr<RemoteServiceInstance>> remote_service_instances;
-    for (auto service_instance_config : *config->remote_service_instances()) {
-        RemoteServiceInstance::CreateAsyncRemoteService(
-            std::shared_ptr<const config::ServiceInstance>(config, service_instance_config),
-            remote_service_instances);
+    for (auto service_type_config : *config->service_types()) {
+        auto service_instances = service_type_config->remote_service_instances();
+        if (service_instances) {
+            for (auto const& service_instance_config : *service_instances) {
+                std::cout << "Creating remote service instance: "
+                          << service_type_config->service_type_name()->string_view()
+                          << " (service_id=0x" << std::hex << service_type_config->service_id()
+                          << std::dec << ", instance_id=0x" << std::hex
+                          << service_instance_config->instance_id() << std::dec << ", specifier="
+                          << service_instance_config->instance_specifier()->string_view() << ")"
+                          << std::endl;
+                RemoteServiceInstance::CreateAsyncRemoteService(
+                    std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                        config, service_instance_config),
+                    std::shared_ptr<const score::mw_someip_config::ServiceType>(
+                        config, service_type_config),
+                    remote_service_instances);
+            }
+        }
     }
 
     std::cout << "Gateway started, waiting for shutdown signal..." << std::endl;

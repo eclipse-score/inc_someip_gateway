@@ -42,7 +42,7 @@ SPDX-License-Identifier = "Apache-2.0"
 path = [
     "docs/architecture/score-someip-car-window-overview.drawio*",
     "examples/car_window_sim/config/mw_com_config.json",
-    "src/gatewayd/etc/gatewayd_config.*",
+    "src/config/mw_someip_config.*",
     "src/gatewayd/etc/mw_com_config.json",
     "src/someipd/etc/mw_com_config.json",
     "tests/integration/sample_client/vsomeip.json",

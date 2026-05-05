@@ -20,20 +20,17 @@ echo "Container using someipd started"
 # Add multicast route
 route add -net 224.0.0.0/4 dev eth0
 
-# copy the config bin file as temp solution, as the gatewayd loads it from a relative path
-cp /home/source/bazel-bin/src/gatewayd/etc/gatewayd_config.bin /home/source/src/gatewayd/etc/
-
 # Automatically startup gatewayd and someipd:
 # gatewayd --> connects to car_window_controller, sets up IPC communication to someipd
 # someipd --> connects to gatewayd, sends out SOME/IP messages on the network
 
-/home/source/bazel-bin/src/gatewayd/gatewayd -service_instance_manifest /home/source/src/gatewayd/etc/mw_com_config.json &
+/home/source/bazel-bin/src/gatewayd/gatewayd --service_instance_manifest /home/source/src/gatewayd/etc/mw_com_config.json --config /home/source/bazel-bin/src/config/mw_someip_config.bin &
 # Give gatewayd some time to start. TODO: improve with some sort of state check
 sleep 2s
 
 VSOMEIP_CONFIGURATION="$(pwd)/tests/integration/vsomeip.json"
 export VSOMEIP_CONFIGURATION
-/home/source/bazel-bin/src/someipd/someipd -service_instance_manifest /home/source/src/someipd/etc/mw_com_config.json &
+/home/source/bazel-bin/src/someipd/someipd --service_instance_manifest /home/source/src/someipd/etc/mw_com_config.json --config /home/source/bazel-bin/src/config/mw_someip_config.bin &
 
 # /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
 

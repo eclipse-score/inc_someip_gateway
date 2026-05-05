@@ -151,7 +151,7 @@ Result<Blank> Impl::update_event(Event_id server_id, Payload::Sptr payload) noex
 
     // May throw std::bad_alloc: left unhandled as a design decision
     send(clients, message::Update_event{server_id, payload});
-    return Result<Blank>{Blank{}};
+    return Result<Blank>{};
 }
 
 Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Sptr payload) noexcept {
@@ -169,7 +169,7 @@ Result<Blank> Impl::update_requested_event(Event_id server_id, Payload::Sptr pay
 
     // May throw std::bad_alloc: left unhandled as a design decision
     send(clients, message::Update_requested_event{server_id, payload});
-    return Result<Blank>{Blank{}};
+    return Result<Blank>{};
 }
 
 Result<Event_mode> Impl::get_event_mode(Event_id server_id) const noexcept {
@@ -320,7 +320,7 @@ message::Subscribe_event::Return_type Impl::receive(Client_connection const& cli
         m_callbacks.on_event_update_request(*this, message.id);
     }
 
-    return message::Subscribe_event::Return_type{Blank{}};
+    return message::Subscribe_event::Return_type{};
 }
 
 message::Unsubscribe_event::Return_type Impl::receive(Client_connection const& client,
@@ -330,7 +330,7 @@ message::Unsubscribe_event::Return_type Impl::receive(Client_connection const& c
     }
 
     unsubscribe_event(client, message.id);
-    return message::Unsubscribe_event::Return_type{Blank{}};
+    return message::Unsubscribe_event::Return_type{};
 }
 
 message::Request_event_update::Return_type Impl::receive(Client_connection const& client,
@@ -345,7 +345,7 @@ message::Request_event_update::Return_type Impl::receive(Client_connection const
 
     auto const already_update_requester = m_update_requester[message.id].get_client().has_value();
     if (already_update_requester) {
-        return message::Request_event_update::Return_type{Blank{}};
+        return message::Request_event_update::Return_type{};
     }
 
     m_update_requester[message.id].set_client(client);
@@ -357,7 +357,7 @@ message::Request_event_update::Return_type Impl::receive(Client_connection const
 #endif
         m_callbacks.on_event_update_request(*this, message.id);
     }
-    return message::Request_event_update::Return_type{Blank{}};
+    return message::Request_event_update::Return_type{};
 }
 
 }  // namespace server_connector

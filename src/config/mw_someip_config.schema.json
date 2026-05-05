@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "definitions": {
+    "score_mw_someip_config_Root" : {
+      "type" : "object",
+      "description" : "Top-level element of the gateway configuration",
+      "properties" : {
+        "service_types" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_ServiceType"},
+                "description" : "The type definitions of existing services."
+              }
+      },
+      "required" : ["service_types"],
+      "additionalProperties" : false
+    },
+    "score_mw_someip_config_ServiceType" : {
+      "type" : "object",
+      "description" : "Describes a SOME/IP service type: its network identity, versioning and service elements",
+      "properties" : {
+        "service_type_name" : {
+                "type" : "string",
+                "description" : "Human-readable label for this service type. Used for logging and diagnostics only;"
+              },
+        "service_id" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "description" : "16-bit service identifier as defined in the SOME/IP specification.\nMust be unique across all service types in this configuration."
+              },
+        "service_version_major" : {
+                "type" : "integer", "minimum" : 0, "maximum" :255,
+                "description" : "Major version of the service interface. A breaking API change increments this value."
+              },
+        "service_version_minor" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "description" : "Minor version of the service interface. Non-breaking additions increment this value.\nThe default 0xFFFFFFFF is the SOME/IP wildcard meaning \"accept any minor version\"."
+              },
+        "events" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_Event"},
+                "description" : "All events published by this service type."
+              },
+        "methods" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_Method"},
+                "description" : "All methods published by this service type."
+              },
+        "local_service_instances" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_ServiceInstance"},
+                "description" : "Instances of this service hosted on this machine that shall be offered to the network."
+              },
+        "remote_service_instances" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_ServiceInstance"},
+                "description" : "Instances of this service available on remote machines that shall be consumed."
+              }
+      },
+      "additionalProperties" : false
+    },
+    "score_mw_someip_config_ServiceInstance" : {
+      "type" : "object",
+      "description" : "Each entry identifies and describes a specific SOME/IP service instance.",
+      "properties" : {
+        "instance_specifier" : {
+                "type" : "string",
+                "description" : "Fully-qualified instance specifier."
+              },
+        "instance_id" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "description" : "16-bit SOME/IP Instance ID as defined in the SOME/IP specification.\nTogether with service_id, uniquely identifies this instance on the network."
+              }
+      },
+      "required" : ["instance_specifier"],
+      "additionalProperties" : false
+    },
+    "score_mw_someip_config_Event" : {
+      "type" : "object",
+      "description" : "Describes a single event within a service.",
+      "properties" : {
+        "event_id" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "description" : "16-bit identifier for this event within the service.\nCorresponds to the Method ID field in the SOME/IP specification for event notifications."
+              },
+        "event_name" : {
+                "type" : "string",
+                "description" : "Name of the event. Must exactly match the field name in the score::mw::com\nservice interface definition to correlate SOME/IP event IDs with IPC events."
+              }
+      },
+      "required" : ["event_name"],
+      "additionalProperties" : false
+    },
+    "score_mw_someip_config_Method" : {
+      "type" : "object",
+      "description" : "Describes a single method within a service.",
+      "properties" : {
+        "method_id" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "description" : "16-bit identifier for this method within the service.\nCorresponds to the Method ID field in the SOME/IP specification."
+              },
+        "method_name" : {
+                "type" : "string",
+                "description" : "Name of the method. Must exactly match the field name in the score::mw::com\nservice interface definition to correlate SOME/IP method IDs with IPC methods."
+              }
+      },
+      "required" : ["method_name"],
+      "additionalProperties" : false
+    }
+  },
+  "$ref" : "#/definitions/score_mw_someip_config_Root"
+}

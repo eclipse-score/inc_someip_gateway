@@ -45,11 +45,11 @@ names_from_toolchains(
 pkg_files(
     name = "gatewayd_config_files",
     srcs = [
-        "//src/gatewayd:config_file",
+        "//src/config:config_file",
         "//src/gatewayd:etc/mw_com_config.json",
     ],
     renames = {
-        "//src/gatewayd:config_file": "gatewayd_config.bin",
+        "//src/config:config_file": "gatewayd_config.bin",
         "//src/gatewayd:etc/mw_com_config.json": "gatewayd_mw_com_config.json",
     },
 )
