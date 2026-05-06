@@ -20,6 +20,8 @@ Running both in the same module would cause a routing-manager conflict.
 See ``docs/tc8_conformance/requirements.rst`` for requirement traceability.
 """
 
+import glob
+import os
 import socket
 import subprocess
 import time
@@ -40,6 +42,21 @@ from someip.header import SOMEIPHeader, SOMEIPSDHeader
 
 #: Uses the standard SD config (same service IDs as test_service_discovery.py).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
+
+
+def _cleanup_vsomeip_sockets(base_path: str = "/tmp") -> None:
+    """Remove stale vsomeip routing-manager sockets between DUT restarts.
+
+    vsomeip creates Unix domain sockets at ``<base_path>/vsomeip-<name>``
+    for the routing manager.  When the DUT is terminated with SIGTERM, the
+    socket file may not be cleaned up.  A stale socket prevents the next
+    DUT instance from becoming routing manager, leading to no SD messages.
+    """
+    for stale in glob.glob(f"{base_path}/vsomeip-*"):
+        try:
+            os.unlink(stale)
+        except OSError:
+            pass
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +138,10 @@ def sd_reboot_capture(
             break
         except OSError:
             time.sleep(0.05)
+
+    # Remove stale vsomeip routing-manager sockets so the second instance
+    # can become routing manager immediately.
+    _cleanup_vsomeip_sockets()
 
     # ---------------------------------------------------------------------------
     # Second run — open capture socket BEFORE launch to catch the first packet.
@@ -271,6 +292,8 @@ class TestSDRebootDetectionETS:
             except OSError:
                 time.sleep(0.05)
 
+        _cleanup_vsomeip_sockets()
+
         # --- Second run: capture post-reboot offer ---
         try:
             post_sock = open_multicast_socket(host_ip)
@@ -371,6 +394,8 @@ class TestSDRebootDetectionETS:
                 break
             except OSError:
                 time.sleep(0.05)
+
+        _cleanup_vsomeip_sockets()
 
         # --- Second run: verify session_id and reboot flag reset ---
         try:

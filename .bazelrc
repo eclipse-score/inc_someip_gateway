@@ -97,6 +97,11 @@ test --test_tag_filters=-tc8
 test:tc8 --test_tag_filters=tc8
 test:tc8 --test_env=TC8_HOST_IP=127.0.0.1
 test:tc8 --sandbox_default_allow_network=false
+# Scope linux-sandbox to test execution only (not build actions like CMake).
+# --spawn_strategy would affect all actions; --strategy=TestRunner targets only
+# the test runner mnemonic, so build actions use the default strategy with
+# network access.
+test:tc8 --strategy=TestRunner=worker,linux-sandbox
 test:tc8 --run_under=//tests/tc8_conformance:tc8_net_wrapper
 
 # Import custom user settings
