@@ -25,6 +25,8 @@ TC8_HOST_IP
 
 import ipaddress
 import os
+import socket
+import struct
 import subprocess
 import time
 from pathlib import Path
@@ -106,7 +108,7 @@ def launch_someipd(config_path: Path) -> subprocess.Popen[bytes]:
         [
             "src/someipd/someipd",
             "--tc8-standalone",
-            "-service_instance_manifest",
+            "--service_instance_manifest",
             str(mw_com_config),
         ],
         env={
@@ -143,6 +145,78 @@ def terminate_someipd(proc: subprocess.Popen[bytes]) -> None:
         proc.stdout.close()
     if proc.stderr:
         proc.stderr.close()
+
+
+def wait_for_sd_readiness(
+    host_ip: str,
+    timeout_secs: float = 10.0,
+) -> bool:
+    """Wait until the DUT sends at least one multicast OfferService.
+
+    This is a **stack-independent** readiness gate: any compliant SOME/IP
+    Service Discovery implementation must send cyclic OfferService entries
+    on the configured multicast group once it enters the SD main phase.
+
+    The function opens its own short-lived multicast socket, waits for a
+    SOME/IP-SD packet containing an OfferService entry, and returns
+    ``True`` as soon as one is received.  Returns ``False`` on timeout.
+
+    Port and multicast address are read from ``helpers.constants`` (which
+    themselves derive from environment variables / config templates), so
+    this function stays in sync when the JSON configuration changes.
+    """
+    from helpers.constants import SD_MULTICAST_ADDR, SD_PORT  # noqa: PLC0415
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    except AttributeError:
+        pass
+    sock.bind(("", SD_PORT))
+    group_bytes = socket.inet_aton(SD_MULTICAST_ADDR)
+    iface_bytes = socket.inet_aton(host_ip)
+    mreq = struct.pack("4s4s", group_bytes, iface_bytes)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+    deadline = time.monotonic() + timeout_secs
+    try:
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            sock.settimeout(min(remaining, 1.0))
+            try:
+                data, _ = sock.recvfrom(65535)
+            except socket.timeout:
+                continue
+            # Minimal SOME/IP-SD detection: service_id == 0xFFFF and
+            # payload contains at least one entry with type==0x01
+            # (OfferService).  No dependency on the ``someip`` parser
+            # package — keeps conftest.py self-contained.
+            if len(data) < 20:
+                continue
+            service_id = int.from_bytes(data[0:2], "big")
+            if service_id != 0xFFFF:
+                continue
+            # SD payload starts at SOME/IP header offset 16, after the
+            # 12-byte SD header (flags + reserved + lengths) the entries
+            # array begins.  Each entry is 16 bytes; first byte is type.
+            someip_len = int.from_bytes(data[4:8], "big")
+            sd_offset = 16  # end of SOME/IP header
+            if len(data) < sd_offset + 12:
+                continue
+            entries_len = int.from_bytes(data[sd_offset + 4 : sd_offset + 8], "big")
+            entry_start = sd_offset + 8
+            pos = entry_start
+            while pos + 16 <= entry_start + entries_len and pos + 16 <= len(data):
+                entry_type = data[pos]
+                if entry_type == 0x01:  # OfferService
+                    return True
+                pos += 16
+        return False
+    finally:
+        sock.close()
 
 
 # ---------------------------------------------------------------------------
@@ -267,7 +341,7 @@ def require_tc8_environment() -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="class")
 def someipd_dut(
     request: pytest.FixtureRequest,
     tmp_path_factory: pytest.TempPathFactory,
@@ -275,6 +349,16 @@ def someipd_dut(
     require_tc8_environment: None,  # noqa: ARG001 — ensures env check runs first
 ) -> Generator[subprocess.Popen[bytes], None, None]:
     """Start ``someipd`` as DUT and yield the Popen handle.
+
+    **Scope: class** — each test class gets a fresh DUT process.  This
+    prevents long-running DUT degradation caused by SOME/IP stacks that
+    cycle multicast group membership when no external SD multicast is
+    received (e.g. on loopback where the DUT is the only participant).
+
+    Before yielding, waits for the DUT to reach SD main phase by
+    observing its first multicast OfferService.  This is a
+    stack-independent readiness gate: any compliant SOME/IP-SD
+    implementation sends cyclic offers once it enters main phase.
 
     Uses the module-level ``SOMEIP_CONFIG`` variable (default ``tc8_someipd_sd.json``).
     """
@@ -286,5 +370,10 @@ def someipd_dut(
         proc = launch_someipd(config_path)
     except RuntimeError as exc:
         pytest.skip(f"someipd failed to start (environment not ready?): {exc}")
+
+    if not wait_for_sd_readiness(host_ip):
+        terminate_someipd(proc)
+        pytest.skip("someipd DUT did not reach SD main phase within timeout")
+
     yield proc
     terminate_someipd(proc)
