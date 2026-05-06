@@ -44,8 +44,8 @@ jobs:
           disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
           # Share repository cache between workflows.
           repository-cache: |
-            - MODULE.bazel
-            - .bazel_config
+            - ./MODULE.bazel
+            - ./.bazel_config
           # Cache external/
           external-cache: true
           cache-save: ${{ github.event_name == 'push' }}
