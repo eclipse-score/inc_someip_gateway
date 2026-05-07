@@ -19,6 +19,7 @@ on:
   workflow_call:
   workflow_dispatch:
   push:
+  pull_request: 
 jobs:
   build_and_test_qnx:
     strategy:
@@ -26,7 +27,7 @@ jobs:
       matrix:
         bazel-config: ["x86_64-qnx", "aarch64-qnx"]
     #uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@186ace77e09aa61bda581e5130aca70b7ec3ed06 # main (2026-05-06)
-    uses: mtombosch/cicd-workflows/.github/workflows/qnx-build.yml@dea9c41e5615f284e46c61ffd83b69e474e87868
+    uses: mtombosch/cicd-workflows/.github/workflows/qnx-build.yml@bc14756e4694a09c18c22e9d1451ff28ee718e16
     permissions:
       contents: read
       pull-requests: read
