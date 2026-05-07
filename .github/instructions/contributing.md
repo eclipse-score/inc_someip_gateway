@@ -19,4 +19,6 @@ applyTo: "**"
 # Contributing
 
 Follow [CONTRIBUTION.md](../../CONTRIBUTION.md):
-- Use provided PR templates (bug_fix.md, improvement.md)
+- Use provided PR templates
+  - [bug_fix.md](../PULL_REQUEST_TEMPLATE/bug_fix.md)
+  - [improvement.md](../PULL_REQUEST_TEMPLATE/improvement.md)

@@ -30,7 +30,7 @@ The gateway also includes Rust examples and comprehensive Python integration tes
 
 - [src/gatewayd/](../../src/gatewayd/) - Main daemon
 - [src/config](../../src/config/) configuration via FlatBuffers
-- [src/socom/](../../src/socom/) - SOME/IP abstraction with plugin interface for IPC binding
+- [src/socom/](../../src/socom/) - Service Oriented Communication abstraction with plugin interface for IPC binding
 - [src/someipd/](../../src/someipd/) - SOME/IP binding layer
 
 ## Design Patterns

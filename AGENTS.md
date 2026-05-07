@@ -22,16 +22,16 @@ The S-CORE SOME/IP Gateway bridges the SCORE middleware with SOME/IP communicati
 | What | Value |
 |------|-------|
 | Build system | **Bazel** |
-| Build | `bazel build //src/gatewayd:gatewayd` |
-| Test all | `bazel test //...` |
+| Build | `bazel build //src/...` |
 | Unit tests | `bazel test //src/...` |
+| Test all | `bazel test //...` |
 | Integration tests | `bazel test //tests/integration:integration` |
 | Compile commands | `bazel run //:bazel-compile-commands` |
 
 ## Universal Rules
 
 - **License headers**: All source files must have the Apache 2.0 header. Always add it when editing a file that's missing one.
-- **Tests required**: New code must include tests (unit tests co-located, integration in `tests/`).
+- **Tests required**: New code must include tests (unit tests co-located).
 - **Temporary files**: Use `.llm_tmp/` at repo root. Never use `/tmp`. This directory is ephemeral — overwrite freely without confirmation.
 
 ## Detailed Instructions

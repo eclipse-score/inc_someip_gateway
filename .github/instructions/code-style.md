@@ -39,7 +39,7 @@ applyTo: "**/*.{cpp,h,cc,cxx,hpp,rs,py}"
 
 ## C++ Style
 
-- Namespace organization: `score::someip_gateway::gatewayd`
+- Namespace organization: `score::someip_gateway`
 - Configuration via FlatBuffers
 - RAII patterns for resource management
 

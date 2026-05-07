@@ -37,15 +37,11 @@ bazel test //tests/integration:integration
 
 # Run performance benchmarks
 bazel test //tests/benchmarks:all
-
-# Generate/update compile_commands.json for IDE support
-bazel run //:bazel-compile-commands
 ```
 
 ## Test Requirements
 
 When adding new code, tests are required by default:
-- Integration tests in [tests/integration/BUILD.bazel](../../tests/integration/BUILD.bazel)
 - Unit tests next to the software element's source code
 - Use `py_pytest` rule for Python tests
 
