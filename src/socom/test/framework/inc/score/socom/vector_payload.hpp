@@ -45,8 +45,7 @@ Payload make_vector_payload(Vector_buffer buffer);
 /// \return A Payload object.
 Payload make_vector_payload(std::size_t header_size, Vector_buffer buffer);
 
-Payload make_vector_payload(std::size_t lead_offset, std::size_t header_size,
-                                  Vector_buffer buffer);
+Payload make_vector_payload(std::size_t lead_offset, std::size_t header_size, Vector_buffer buffer);
 
 /// \brief Creates vector payload from a container.
 /// \param container Reference container.
@@ -56,6 +55,11 @@ template <typename C>
 inline Payload make_vector_payload(C const& container) {
     return make_vector_payload(Vector_buffer{std::begin(container), std::end(container)});
 }
+
+/// \brief Creates a test Writable_payload backed by a heap-allocated buffer.
+/// \param size Size of the payload buffer in bytes.
+/// \return A Writable_payload object.
+Writable_payload make_writable_vector_payload(std::size_t size);
 
 /// \brief Creates a copy of a payload's data as a new vector payload (test utility).
 Payload clone_payload(Payload const& p);

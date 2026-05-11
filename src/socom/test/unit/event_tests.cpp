@@ -16,11 +16,11 @@
 
 #include "gtest/gtest.h"
 #include "score/socom/clients_t.hpp"
-#include "score/socom/payload_mock.hpp"
 #include "score/socom/server_t.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/temporary_event_subscription.hpp"
 #include "score/socom/utilities.hpp"
+#include "score/socom/vector_payload.hpp"
 
 using ::testing::_;
 
@@ -266,7 +266,7 @@ TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
     server.expect_event_subscription(event_id);
     auto const sub = client0.create_event_subscription(event_id);
 
-    score::Result<Writable_payload> wpayload{make_test_writable_payload(64)};
+    score::Result<Writable_payload> wpayload{make_writable_vector_payload(64)};
     auto const* const ptr = wpayload->data().data();
 
     auto const& expect_event_payload_allocation =

@@ -26,7 +26,6 @@
 #include <score/socom/client_connector.hpp>
 #include <score/socom/client_connector_mock.hpp>
 #include <score/socom/error.hpp>
-#include <score/socom/payload_mock.hpp>
 #include <score/socom/runtime.hpp>
 #include <score/socom/runtime_mock.hpp>
 #include <score/socom/server_connector.hpp>

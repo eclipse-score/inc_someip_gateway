@@ -13,10 +13,10 @@
 
 #include "gtest/gtest.h"
 #include "score/socom/clients_t.hpp"
-#include "score/socom/payload_mock.hpp"
 #include "score/socom/server_t.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
+#include "score/socom/vector_payload.hpp"
 
 using ::testing::_;
 using ::testing::Values;
@@ -170,7 +170,7 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturn
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    score::Result<Writable_payload> wpayload{make_test_writable_payload(64)};
+    score::Result<Writable_payload> wpayload{make_writable_vector_payload(64)};
     auto const* const ptr = wpayload->data().data();
 
     auto const& expect_method_payload_allocation =
@@ -186,7 +186,7 @@ TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodC
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
-    std::optional<Writable_payload> reply_payload{make_test_writable_payload(64)};
+    std::optional<Writable_payload> reply_payload{make_writable_vector_payload(64)};
     auto const* const ptr = reply_payload->data().data();
 
     Method_reply_callback_mock method_reply_callback_mock;

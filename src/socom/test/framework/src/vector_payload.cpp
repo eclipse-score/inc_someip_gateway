@@ -38,6 +38,12 @@ Payload make_vector_payload(std::size_t lead_offset, std::size_t header_size,
     return Payload{span, kNoSlotHandle, [buf = std::move(buf)]() {}, header_size, lead_offset};
 }
 
+Writable_payload make_writable_vector_payload(std::size_t size) {
+    auto buf = std::make_unique<std::vector<std::byte>>(size);
+    auto span = Writable_payload::Writable_span{*buf};
+    return Writable_payload{span, kNoSlotHandle, [buf = std::move(buf)]() {}};
+}
+
 Payload clone_payload(Payload const& p) {
     auto header = p.header();
     auto data = p.data();
