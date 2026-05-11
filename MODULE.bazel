@@ -191,17 +191,6 @@ download_archive(
 # ============================================================================
 bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
 
-# Required because there was a breaking compatibility_level change.
-# score_docs_as_code < 3.1.0 has compatibility_level = 0 (default)
-# score_docs_as_code >= 3.1.0 has compatibility_level = 3 (set in the registry, not the source repo)
-# score_docs_as_code >= 4.0.0 has compatibility_level = 4 (set in the registry, not the source repo)
-# This causes issues for downstream modules.
-# A version >= 4.0.0 would lead to further meta_model updates, requiring links, therefore stick with 3.2.0 for now.
-single_version_override(
-    module_name = "score_docs_as_code",
-    version = "3.0.0",
-)
-
 # ============================================================================
 # Communication Framework
 # ============================================================================
