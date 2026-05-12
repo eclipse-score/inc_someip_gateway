@@ -15,6 +15,7 @@
 This daemon contains the SOME/IP communication stack and is QM
 """
 
+load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
@@ -27,13 +28,6 @@ exports_files(["etc/mw_com_config.json"])
 cc_binary(
     name = "someipd",
     srcs = ["main.cpp"],
-    args = [
-        "--service_instance_manifest",
-        "$(rootpath etc/mw_com_config.json)",
-    ],
-    data = [
-        "etc/mw_com_config.json",
-    ],
     visibility = ["//visibility:public"],
     deps = [
         ":routing",
@@ -71,4 +65,19 @@ validate_json_schema_test(
     json = "etc/mw_com_config.json",
     schema = "@score_communication//score/mw/com:config_schema",
     tags = ["lint"],
+)
+
+native_binary(
+    name = "someipd_example",
+    src = "//src/someipd",
+    args = [
+        "--configuration",
+        "$(rootpath //src/config:config_file)",
+        "--service_instance_manifest",
+        "$(rootpath etc/mw_com_config.json)",
+    ],
+    data = [
+        "etc/mw_com_config.json",
+        "//src/config:config_file",
+    ],
 )
