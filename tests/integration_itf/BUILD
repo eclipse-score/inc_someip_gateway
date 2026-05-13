@@ -18,4 +18,6 @@ py_itf_test(
     srcs = ["test_example.py"],
     args = ["--docker-image=ubuntu:24.04"],
     plugins = ["@score_itf//score/itf/plugins:docker_plugin"],
+    # Restrict the test execution to Linux for the moment.
+    target_compatible_with = ["@platforms//os:linux"],
 )

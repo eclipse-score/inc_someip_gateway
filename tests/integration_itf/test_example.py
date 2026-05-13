@@ -11,7 +11,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+from score.itf.plugins.core import requires_capabilities
 
+
+@requires_capabilities("exec")
 def test_docker_exec(target):
     exit_code, output = target.execute("echo 'Hello from target!'")
     assert exit_code == 0
