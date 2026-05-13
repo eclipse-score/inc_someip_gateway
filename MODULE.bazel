@@ -271,3 +271,8 @@ http_archive(
         "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
     ],
 )
+
+# ============================================================================
+# Integration Testing
+# ============================================================================
+bazel_dep(name = "score_itf", version = "0.3.0")
