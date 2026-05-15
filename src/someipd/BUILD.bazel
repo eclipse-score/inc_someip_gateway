@@ -32,7 +32,6 @@ cc_binary(
     deps = [
         ":routing",
         "//src/config:config_flatbuffers",
-        "//src/network_service:provider",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
@@ -49,7 +48,6 @@ cc_library(
     deps = [
         "//src/common",
         "//src/config:config_flatbuffers",
-        "//src/network_service:provider",
         "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",

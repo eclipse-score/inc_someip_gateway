@@ -34,7 +34,6 @@ cc_binary(
         ":local_service_instance",
         ":remote_service_instance",
         "//src/config:config_flatbuffers",
-        "//src/network_service:consumer",
         "//src/serializer",
         "//src/socom",
         "@score_baselibs//score/filesystem",
@@ -49,7 +48,6 @@ cc_library(
     hdrs = ["local_service_instance.h"],
     deps = [
         "//src/config:config_flatbuffers",
-        "//src/network_service:consumer",
         "//src/serializer",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
