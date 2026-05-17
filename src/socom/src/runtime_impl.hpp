@@ -14,7 +14,6 @@
 #ifndef SCORE_SOCOM_RUNTIME_IMPL_HPP
 #define SCORE_SOCOM_RUNTIME_IMPL_HPP
 
-#include <atomic>
 #include <list>
 #include <map>
 #include <memory>
@@ -22,7 +21,6 @@
 #include <optional>
 #include <score/socom/service_interface_definition.hpp>
 #include <set>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -38,13 +36,11 @@ namespace socom {
 using CC_impl = client_connector::Impl;
 using SC_impl = server_connector::Impl;
 
-using Find_subscription_id = Find_subscription_handle const*;
 using Bridge_registration_id = Service_bridge_registration_handle const*;
 
 template <typename VALUE>
 using Bridge_id_to = std::map<Bridge_registration_id, VALUE>;
 
-using Bridge_id_to_subscription = Bridge_id_to<Find_subscription>;
 using Bridge_id_to_request = Bridge_id_to<Service_request>;
 
 template <typename INSTANCE, typename HANDLE>
@@ -57,9 +53,6 @@ struct Mutexed_variable {
     std::mutex mutex;
     T data{};
 };
-
-using Currently_running_subscribe_find_service_report =
-    Mutexed_variable<std::atomic<std::thread::id>>;
 
 using Service_identifiers = Mutexed_variable<std::set<Service_instance_identifier>>;
 
@@ -153,22 +146,7 @@ struct Stop_subscription {
     Stop_subscription& operator=(Stop_subscription const&) = delete;
     Stop_subscription& operator=(Stop_subscription&&) = delete;
 
-    virtual void stop_subscription(Find_subscription_id const& id) noexcept = 0;
     virtual void stop_registration(Bridge_registration_id const& id) noexcept = 0;
-};
-
-class Void_find_subscription_handle final : public Find_subscription_handle {};
-
-class Find_subscription_handle_impl final : public Find_subscription_handle {
-    Stop_subscription& m_stopper;
-
-   public:
-    explicit Find_subscription_handle_impl(Stop_subscription& stopper) : m_stopper{stopper} {}
-    Find_subscription_handle_impl(Find_subscription_handle_impl const&) = delete;
-    Find_subscription_handle_impl(Find_subscription_handle_impl&&) = delete;
-    Find_subscription_handle_impl& operator=(Find_subscription_handle_impl const&) = delete;
-    Find_subscription_handle_impl& operator=(Find_subscription_handle_impl&&) = delete;
-    ~Find_subscription_handle_impl() noexcept override { m_stopper.stop_subscription(this); }
 };
 
 class Bridge_registration_handle_impl final : public Service_bridge_registration_handle {
@@ -190,22 +168,8 @@ class Bridge_registration_handle_impl final : public Service_bridge_registration
 // both base classes delete the operator= in question
 class Runtime_impl final : public Runtime, public Stop_subscription {
    public:
-    using Find_result_callback_wptr = std::weak_ptr<Find_result_change_callback const>;
-    using Find_result_callback_sptr = std::shared_ptr<Find_result_change_callback const>;
-    using Find_result_callbacks = std::list<Find_result_callback_wptr>;
-    using Callback_with_id =
-        std::tuple<Find_result_callback_sptr, std::optional<Service_interface_identifier>,
-                   std::optional<Service_instance>, std::shared_ptr<Bridge_id_to_subscription>>;
-    using Subscription_to_callback = std::map<Find_subscription_id, Callback_with_id>;
-    using Service_instance_to_callbacks =
-        std::unordered_map<std::optional<Service_instance>, Find_result_callbacks>;
-    using Interface_to_instance_to_callbacks =
-        std::unordered_map<std::optional<Service_interface_identifier>,
-                           Service_instance_to_callbacks>;
-
     using Bridge_registration_to_callbacks =
-        Bridge_id_to<std::tuple<Subscribe_find_service_function, Request_service_function,
-                                Interfaces_instances>>;
+        Bridge_id_to<std::tuple<Request_service_function, Interfaces_instances>>;
 
     Result<Client_connector::Uptr> make_client_connector(
         Service_interface_definition configuration, Service_instance instance,
@@ -225,20 +189,9 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
 
-    Find_subscription subscribe_find_service(
-        Find_result_callback on_result_set_change, Service_interface_identifier const& interface,
-        std::optional<Service_instance> instance) noexcept override;
-
-    Find_subscription subscribe_find_service(
-        Find_result_change_callback on_result_change,
-        std::optional<Service_interface_identifier> interface,
-        std::optional<Service_instance> instance,
-        std::optional<Bridge_identity> identity) noexcept override;
-
     // NOLINTBEGIN(bugprone-exception-escape)(ClangTidy Android Warning)
     Result<Service_bridge_registration> register_service_bridge(
-        Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
-        Request_service_function request_service) noexcept override;
+        Bridge_identity identity, Request_service_function request_service) noexcept override;
     // NOLINTEND(bugprone-exception-escape)
 
     Registration register_connector(Service_interface_definition const& configuration,
@@ -248,8 +201,6 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
     Registration register_connector(Service_interface_identifier const& interface,
                                     Service_instance const& instance,
                                     SC_impl::Listen_endpoint endpoint);
-
-    void stop_subscription(Find_subscription_id const& id) noexcept override;
 
     void stop_registration(Bridge_registration_id const& id) noexcept override;
 
@@ -263,22 +214,6 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
     Registration bridge_service_requests(Service_interface_definition const& configuration,
                                          Service_instance const& instance);
 
-    void update_bridges_provided_services(Bridge_registration_id const& bridge_id,
-                                          Service_interface_identifier const& interface,
-                                          Service_instance const& instance,
-                                          Find_result_status status);
-
-    void call_subscribe_find_service_callbacks(Service_interface_identifier const& interface,
-                                               Service_instance const& instance,
-                                               Find_result_status status, bool local);
-
-    Find_result_change_callback create_bridge_find_result_callback(
-        Bridge_registration_id const& bridge_id);
-
-    std::shared_ptr<Bridge_id_to_subscription> get_or_create_find_services(
-        Service_interface_identifier const& interface,
-        std::optional<Service_instance> const& instance, std::optional<Bridge_identity> identity);
-
     Interfaces_instances get_bridge_reported_instances(
         Service_interface_identifier const& interface,
         std::optional<Service_instance> const& instance) const;
@@ -286,22 +221,13 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
     mutable std::mutex m_runtime_mutex{};
     Service_database m_database{m_runtime_mutex};
 
-    Subscription_to_callback m_find_service_subscriptions{};
-    Interface_to_instance_to_callbacks m_interface_to_callbacks{};
-
     mutable std::mutex m_bridge_mutex;
     Bridge_registration_to_callbacks m_bridge_to_callbacks{};
-
-    Active_bridge_requests<std::optional<Service_instance>, Find_subscription>
-        m_active_bridge_find_services{};
 
     Active_bridge_requests<Service_instance, Service_request> m_service_requests{};
 
     std::shared_ptr<Service_identifiers> m_service_identifiers{
         std::make_shared<Service_identifiers>()};
-
-    // Serialize Find_result_callback calls to reliably detect callback self deletion
-    Currently_running_subscribe_find_service_report m_currently_running_service_report;
 };
 
 }  // namespace socom

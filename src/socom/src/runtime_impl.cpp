@@ -50,108 +50,6 @@ std::vector<typename Map::key_type> get_keys(Map const& map) {
     return keys;
 }
 
-std::optional<Service_interface_identifier> const& any_interface() {
-    static auto const any = std::optional<Service_interface_identifier>{};
-    return any;
-}
-
-std::optional<Service_instance> const& any_instance() {
-    static auto const any = std::optional<Service_instance>{};
-    return any;
-}
-
-void get_callbacks_to_notify_helper(
-    std::vector<Runtime_impl::Find_result_callback_wptr>& result,
-    Runtime_impl::Service_instance_to_callbacks const& instances_to_callbacks,
-    std::optional<Service_instance> const& instance) {
-    auto const filter_callbacks = instances_to_callbacks.find(instance);
-    if (std::end(instances_to_callbacks) != filter_callbacks) {
-        result.insert(std::end(result), std::begin(filter_callbacks->second),
-                      std::end(filter_callbacks->second));
-    }
-}
-
-std::vector<Runtime_impl::Find_result_callback_wptr> get_callbacks_to_notify(
-    Runtime_impl::Interface_to_instance_to_callbacks const& interface_to_callbacks,
-    Service_interface_identifier const& interface, Service_instance const& instance,
-    bool const local) {
-    std::vector<Runtime_impl::Find_result_callback_wptr> result;
-
-    if (local) {
-        auto const any_interface_instances_to_callbacks =
-            interface_to_callbacks.find(any_interface());
-        if (std::end(interface_to_callbacks) != any_interface_instances_to_callbacks) {
-            get_callbacks_to_notify_helper(result, any_interface_instances_to_callbacks->second,
-                                           any_instance());
-        }
-    }
-
-    auto const instances_to_callbacks =
-        interface_to_callbacks.find(std::optional<Service_interface_identifier>{interface});
-    if (std::end(interface_to_callbacks) != instances_to_callbacks) {
-        get_callbacks_to_notify_helper(result, instances_to_callbacks->second, any_instance());
-        get_callbacks_to_notify_helper(result, instances_to_callbacks->second,
-                                       std::optional<Service_instance>{instance});
-    }
-
-    return result;
-}
-
-std::thread::id get_invalid_thread_id() { return {}; }
-
-void notify_subscribed_callbacks(
-    Currently_running_subscribe_find_service_report& running_service_report,
-    std::vector<Runtime_impl::Find_result_callback_wptr> const& callbacks_to_notify,
-    Service_interface_identifier const& interface, Service_instance const& instance,
-    Find_result_status const status) {
-    auto const call_callbacks_to_notify = [&callbacks_to_notify, &interface, &instance, &status]() {
-        for (auto const& cb : callbacks_to_notify) {
-            auto const locked_cb = cb.lock();
-            if (nullptr != locked_cb) {
-                (*locked_cb)(interface, instance, status);
-            }
-        }
-    };
-
-    // check if thread id was already set and matches this_thread::id, if yes Server_connector
-    // creation was triggered by callback and skip locking
-    if (std::this_thread::get_id() == running_service_report.data) {
-        call_callbacks_to_notify();
-    } else {
-        // Serialize Find_result_callback calls to reliably detect callback self deletion
-        // save and remove current thread id, which is checked in stop_subscription()
-        std::lock_guard<std::mutex> const lock{running_service_report.mutex};
-        running_service_report.data = std::this_thread::get_id();
-        Final_action const reset_data{
-            [&running_service_report]() { running_service_report.data = get_invalid_thread_id(); }};
-
-        call_callbacks_to_notify();
-    }
-}
-
-/// \brief Removes all weak_ptrs from list that are either expired or point to item.
-///
-/// \param list List of weak_ptrs to clean up.
-/// \param item Item to remove from list. All weak_ptrs that point to this item will be removed.
-template <typename T>
-void cleanup(std::list<std::weak_ptr<T const>>& list,
-             std::shared_ptr<T const> const& item) noexcept {
-    auto const equals_cb = [&item](auto const& cb_ref) {
-        auto const locked_cb = cb_ref.lock();
-
-        // Defensive programming. The true case for the condition (nullptr == locked_cb) will not
-        // occur because Runtime_impl implements Stop_subscription which further calls
-        // stop_subscribe when Find_subscription_handle_impl gets destroyed. This will trigger the
-        // cleanup function and the Find_result_callback gets removed from the list.
-        // Find_result_callback can not be destroyed from outside in a test to trigger the true
-        // case for (nullptr == locked_cb).
-
-        return (nullptr == locked_cb) || (item == locked_cb);
-    };
-
-    list.remove_if(equals_cb);
-}
-
 /// \brief Removes key from map if value is empty
 ///
 /// \param map Map to clean up.
@@ -305,10 +203,9 @@ void register_bridge(Bridge_registration_id const& bridge_id,
                 }
             } else {
                 auto const bridge_to_request = std::get<0>(request.second).lock();
-                // if destruction of Client_connector or subscribe_find_service handle is
-                // concurrently happening there might be a nullptr in the map until the map is
-                // cleaned. Thus because the map is going to be cleaned do not bother to call the
-                // callback of the bridge
+                // if destruction of Client_connector is concurrently happening there might be a
+                // nullptr in the map until the map is cleaned. Thus because the map is going to be
+                // cleaned do not bother to call the callback of the bridge
 
                 if (nullptr != bridge_to_request) {
                     bridge_to_request->emplace(bridge_id, std::move(cb_result_iter->second));
@@ -406,16 +303,6 @@ std::shared_ptr<ReturnValue> get_bridge_requests(
         }
     }
     return result;
-}
-
-void call_find_result_callback_with_currently_known_services(
-    Find_result_change_callback const& on_result_set_change, Interfaces_instances const& services) {
-    for (auto const& interface_with_instances : services) {
-        for (auto const& instance : interface_with_instances.second) {
-            on_result_set_change(interface_with_instances.first, instance,
-                                 Find_result_status::added);
-        }
-    }
 }
 
 }  // namespace
@@ -562,186 +449,14 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
                                       std::move(callbacks), std::move(final_action), credentials)};
 }
 
-namespace {
-
-class Find_aggregation {
-   public:
-    explicit Find_aggregation(Find_result_callback cb);
-
-    void initial_indicate() const;
-    void on_result_set_change(Service_instance const& instance, Find_result_status status);
-
-   private:
-    void add(Service_instance const& instance);
-    void remove(Service_instance const& instance);
-    void indicate() const;
-
-    mutable std::mutex m_mutex{};
-    mutable bool m_collecting_initial_result{true};
-    Find_result_container m_results{};
-    Find_result_callback const m_on_result_set_change;
-};
-
-Find_aggregation::Find_aggregation(Find_result_callback cb)
-    : m_on_result_set_change{std::move(cb)} {}
-
-void Find_aggregation::initial_indicate() const {
-    std::lock_guard<std::mutex> const guard{m_mutex};
-    m_on_result_set_change(m_results);
-    m_collecting_initial_result = false;
-}
-
-void Find_aggregation::on_result_set_change(Service_instance const& instance,
-                                            Find_result_status status) {
-    if (status == Find_result_status::added) {
-        add(instance);
-    } else {
-        assert(status == Find_result_status::deleted);
-        remove(instance);
-    }
-}
-
-void Find_aggregation::add(Service_instance const& instance) {
-    std::lock_guard<std::mutex> const guard{m_mutex};
-    m_results.push_back(instance);
-    indicate();
-}
-
-void Find_aggregation::remove(Service_instance const& instance) {
-    std::lock_guard<std::mutex> const guard{m_mutex};
-    auto const it_end = m_results.end();
-    auto const it = std::find(m_results.begin(), it_end, instance);
-    if (it != it_end) {
-        m_results.erase(it);
-        indicate();
-    }
-}
-
-void Find_aggregation::indicate() const {
-    if (!m_collecting_initial_result) {
-        m_on_result_set_change(m_results);
-    }
-}
-
-class Find_aggregation_subscription_handle : public Find_subscription_handle {
-   public:
-    Find_aggregation_subscription_handle(Find_subscription fs, std::shared_ptr<Find_aggregation> fa)
-        : m_find_aggregation{std::move(fa)}, m_handle{std::move(fs)} {
-        m_find_aggregation->initial_indicate();
-    }
-
-    Find_aggregation_subscription_handle(Find_aggregation_subscription_handle const& other) =
-        delete;
-    Find_aggregation_subscription_handle(Find_aggregation_subscription_handle&& other) = delete;
-
-    ~Find_aggregation_subscription_handle() override = default;
-
-    Find_aggregation_subscription_handle& operator=(
-        Find_aggregation_subscription_handle const& other) = delete;
-    Find_aggregation_subscription_handle& operator=(Find_aggregation_subscription_handle&& other) =
-        delete;
-
-   private:
-    std::shared_ptr<Find_aggregation> m_find_aggregation;
-    Find_subscription m_handle;
-};
-
-}  // namespace
-
-Find_subscription Runtime_impl::subscribe_find_service(
-    Find_result_callback on_result_set_change, Service_interface_identifier const& interface,
-    std::optional<Service_instance> instance) noexcept {
-    if (!on_result_set_change) {
-        return std::make_unique<Void_find_subscription_handle>();
-    }
-
-    // shared context between multiple copies of the callback handler
-    auto find_aggregation = std::make_shared<Find_aggregation>(std::move(on_result_set_change));
-
-    auto update_find_result_container_handler =
-        [find_aggregation](auto const& /*interface*/, auto const& instance, auto status) mutable {
-            find_aggregation->on_result_set_change(instance, status);
-        };
-
-    // Wrap the subscription handle in order to tie the scope of shared context with that of the
-    // subscription handle.
-    Find_subscription find_subscription{std::make_unique<Find_aggregation_subscription_handle>(
-        subscribe_find_service(std::move(update_find_result_container_handler), interface, instance,
-                               std::optional<Bridge_identity>{}),
-        find_aggregation)};
-
-    return find_subscription;
-}
-
-Find_subscription Runtime_impl::subscribe_find_service(
-    Find_result_change_callback on_result_change,
-    std::optional<Service_interface_identifier> interface, std::optional<Service_instance> instance,
-    std::optional<Bridge_identity> identity) noexcept {
-    // interface can be specified without instance, but not the other way around
-    // Logic expression: instance -> interface
-    assert(interface || !instance);
-
-    if (!on_result_change) {
-        return std::make_unique<Void_find_subscription_handle>();
-    }
-
-    // call callback with current active services
-    std::unique_lock<std::mutex> lock{m_runtime_mutex};
-
-    auto find_handle = std::make_unique<Find_subscription_handle_impl>(*this);
-    auto const inserted_element = m_find_service_subscriptions.emplace(
-        find_handle.get(),
-        std::make_tuple(std::make_shared<Find_result_change_callback>(on_result_change), interface,
-                        instance, nullptr));
-    assert(inserted_element.second);
-    m_interface_to_callbacks[interface][instance].emplace_back(
-        std::get<0>(inserted_element.first->second));
-
-    auto const current_interfaces_instances = m_database.get_instances(interface, instance);
-    lock.unlock();
-
-    try {
-        call_find_result_callback_with_currently_known_services(on_result_change,
-                                                                current_interfaces_instances);
-
-        if (interface) {
-            auto const bridge_instances = get_bridge_reported_instances(*interface, instance);
-            call_find_result_callback_with_currently_known_services(on_result_change,
-                                                                    bridge_instances);
-        }
-    } catch (...) {
-    }
-
-    // wildcard interface searches shall not be forwarded to bridges
-    if (interface) {
-        auto bridge_find_subscriptions =
-            get_or_create_find_services(*interface, instance, identity);
-        lock.lock();
-        std::get<3>(inserted_element.first->second) = std::move(bridge_find_subscriptions);
-    }
-
-    return find_handle;
-}
-
 Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
-    Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
-    Request_service_function request_service) noexcept {
-    if (!subscribe_find_service || !request_service) {
+    Bridge_identity identity, Request_service_function request_service) noexcept {
+    if (!request_service) {
         return MakeUnexpected(Construction_error::callback_missing);
     }
     // false positive, registration is moved at return
     // stack allocation not possible as the object needs a stable memory address
     auto registration = std::make_unique<Bridge_registration_handle_impl>(*this, identity);
-
-    auto const create_find_subscription =
-        [this, subscribe_find_service,
-         bridge_id = registration.get()](auto const& interface_configuration) {
-            auto const& interface = std::get<0>(interface_configuration).interface;
-            auto const& instance = std::get<1>(interface_configuration);
-            Find_result_change_callback cb = this->create_bridge_find_result_callback(bridge_id);
-
-            return subscribe_find_service(std::move(cb), interface, instance);
-        };
 
     auto const create_service_request = [request_service](auto const& interface_configuration) {
         return request_service(std::get<0>(interface_configuration),
@@ -749,11 +464,9 @@ Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
     };
 
     std::unique_lock<std::mutex> lock{m_bridge_mutex};
-    m_bridge_to_callbacks[registration.get()] = std::make_tuple(
-        std::move(subscribe_find_service), std::move(request_service), Interfaces_instances{});
+    m_bridge_to_callbacks[registration.get()] =
+        std::make_tuple(std::move(request_service), Interfaces_instances{});
 
-    register_bridge(registration.get(), lock, m_active_bridge_find_services,
-                    create_find_subscription);
     register_bridge(registration.get(), lock, m_service_requests, create_service_request);
 
     return Result<Service_bridge_registration>{std::move(registration)};
@@ -794,8 +507,6 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
     std::unique_lock<std::mutex> lock{m_runtime_mutex};
     auto& sii_record = m_database.get_record(interface, instance);
     auto result = sii_record.register_server_connector(interface, endpoint);
-    auto const callbacks_to_notify =
-        get_callbacks_to_notify(m_interface_to_callbacks, interface, instance, true);
     lock.unlock();
 
     auto const connect_client = [&endpoint, &interface, &instance](auto const& client) {
@@ -812,156 +523,15 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
     std::for_each(std::begin(result.current_clients), std::end(result.current_clients),
                   connect_client);
 
-    notify_subscribed_callbacks(m_currently_running_service_report, callbacks_to_notify, interface,
-                                instance, Find_result_status::added);
-
-    auto inform_subscribers = [this, interface, instance]() {
-        call_subscribe_find_service_callbacks(interface, instance, Find_result_status::deleted,
-                                              true);
-    };
-
-    return std::make_unique<Registration_collection>(
-        std::make_unique<Final_action_registration>(Final_action(std::move(inform_subscribers))),
-        std::move(result.registration));
-}
-
-void Runtime_impl::stop_subscription(Find_subscription_id const& id) noexcept {
-    std::unique_lock<std::mutex> lock{m_runtime_mutex};
-    auto const subscription_it = m_find_service_subscriptions.find(id);
-
-    // Defensive programming. The true case will not occur because Runtime_impl implements
-    // Stop_subscription which further calls stop_subscribe when Find_subscription_handle_impl gets
-    // destroyed. This means the callback must be in the map. Furthermore, the function
-    // stop_subscription itself cannot be tested as it is not an interface function.
-
-    if (std::end(m_find_service_subscriptions) == subscription_it) {
-        return;
-    }
-
-    auto const& cb_id = subscription_it->second;
-
-    auto const interface = std::get<1>(cb_id);
-    auto const instance = std::get<2>(cb_id);
-
-    Service_instance_to_callbacks& instances_to_callbacks = m_interface_to_callbacks.at(interface);
-    Find_result_callbacks& callbacks = instances_to_callbacks.at(instance);
-    cleanup(callbacks, std::get<0>(cb_id));
-    cleanup(instances_to_callbacks, instance, callbacks);
-    cleanup(m_interface_to_callbacks, interface, instances_to_callbacks);
-    m_find_service_subscriptions.erase(subscription_it);
-    lock.unlock();
-
-    // cleanup bridge find subscription
-    if (interface) {
-        std::lock_guard<std::mutex> const bridge_lock{m_bridge_mutex};
-        auto const configuration = Service_interface_definition{*interface};
-        cleanup(m_active_bridge_find_services, std::make_tuple(configuration, instance));
-    }
-
-    // no data race, if run from same thread
-    if (m_currently_running_service_report.data != std::this_thread::get_id()) {
-        // sync deletion with running callbacks to ensure that all shared_ptr are deleted.
-        std::lock_guard<std::mutex> const calling_callbacks_lock{
-            m_currently_running_service_report.mutex};
-    }
+    return std::move(result.registration);
 }
 
 void Runtime_impl::stop_registration(Bridge_registration_id const& id) noexcept {
     std::unique_lock<std::mutex> bridge_lock{m_bridge_mutex};
-    auto const provided_services = std::get<2>(m_bridge_to_callbacks.at(id));
     m_bridge_to_callbacks.erase(id);
 
-    cleanup(m_active_bridge_find_services, id);
     cleanup(m_service_requests, id);
     bridge_lock.unlock();
-
-    for (auto const& interface_with_instances : provided_services) {
-        for (auto const& instance : interface_with_instances.second) {
-            try {
-                call_subscribe_find_service_callbacks(interface_with_instances.first, instance,
-                                                      Find_result_status::deleted, false);
-            }
-
-            catch (...) {
-            }
-        }
-    }
-}
-
-void Runtime_impl::update_bridges_provided_services(Bridge_registration_id const& bridge_id,
-                                                    Service_interface_identifier const& interface,
-                                                    Service_instance const& instance,
-                                                    Find_result_status status) {
-    std::lock_guard<std::mutex> const lock{m_bridge_mutex};
-    auto const bridge_to_callbacks = m_bridge_to_callbacks.find(bridge_id);
-
-    // If statement expression may evaluate to true because Runtime_impl implements
-    // Stop_registration where map element with bridge_id is removed. For that reason further access
-    // to m_bridge_to_callbacks map element makes no sense. An early return takes place.
-    //
-    // Sporadically in TEST_F(RuntimeMultiThreadingTest,
-    // BridgesAndSubscribeFindServiceHaveNoRaceConditions) where tight loops of
-    // register_service_bridge are made, could be observed early return takes on place because of
-    // thread aware, concurrent API calls. Code is excluded from Bullseye coverage to prevent false
-    // reports.
-
-    if (std::end(m_bridge_to_callbacks) == bridge_to_callbacks) {
-        return;
-    }
-
-    auto& available_services = std::get<2>(bridge_to_callbacks->second);
-    if (Find_result_status::added == status) {
-        available_services[interface].emplace_back(instance);
-    } else {
-        auto const if_iter = available_services.find(interface);
-        if (std::end(available_services) == if_iter) {
-            return;
-        }
-        Instances& instances = if_iter->second;
-        auto const end =
-            std::remove_if(std::begin(instances), std::end(instances),
-                           [&instance](Service_instance const& elem) { return instance == elem; });
-        instances.erase(end, std::end(instances));
-        cleanup(available_services, interface, instances);
-    }
-}
-
-void Runtime_impl::call_subscribe_find_service_callbacks(
-    Service_interface_identifier const& interface, Service_instance const& instance,
-    Find_result_status const status, bool const local) {
-    std::unique_lock<std::mutex> runtime_lock{m_runtime_mutex};
-    auto const callbacks_to_notify =
-        get_callbacks_to_notify(m_interface_to_callbacks, interface, instance, local);
-    runtime_lock.unlock();
-    notify_subscribed_callbacks(m_currently_running_service_report, callbacks_to_notify, interface,
-                                instance, status);
-}
-
-Find_result_change_callback Runtime_impl::create_bridge_find_result_callback(
-    Bridge_registration_id const& bridge_id) {
-    assert(nullptr != bridge_id);
-    return [this, bridge_id](Service_interface_identifier const& interface,
-                             Service_instance const& instance, Find_result_status status) {
-        update_bridges_provided_services(bridge_id, interface, instance, status);
-        call_subscribe_find_service_callbacks(interface, instance, status, false);
-    };
-}
-
-std::shared_ptr<Bridge_id_to_subscription> Runtime_impl::get_or_create_find_services(
-    Service_interface_identifier const& interface, std::optional<Service_instance> const& instance,
-    std::optional<Bridge_identity> identity) {
-    auto const create_value = [this](auto const& callbacks, auto const& configuration,
-                                     auto const& instance) {
-        auto const notify_find_subscriptions =
-            this->create_bridge_find_result_callback(callbacks.first);
-        return std::get<0>(callbacks.second)(notify_find_subscriptions, configuration.interface,
-                                             instance);
-    };
-
-    std::unique_lock<std::mutex> bridge_lock{m_bridge_mutex};
-    return get_bridge_requests<Bridge_id_to_subscription>(
-        Service_interface_definition{interface}, instance, std::move(identity), bridge_lock,
-        m_active_bridge_find_services, m_bridge_to_callbacks, create_value);
 }
 
 Registration Runtime_impl::bridge_service_requests(
@@ -984,7 +554,7 @@ std::shared_ptr<Bridge_id_to_request> Runtime_impl::get_or_create_service_reques
     Service_interface_definition const& configuration, Service_instance const& instance) {
     auto const create_value = [](auto const& callbacks, auto const& configuration,
                                  auto const& instance) {
-        return std::get<1>(callbacks.second)(configuration, instance);
+        return std::get<0>(callbacks.second)(configuration, instance);
     };
     std::unique_lock<std::mutex> bridge_lock{m_bridge_mutex};
     return get_bridge_requests<Bridge_id_to_request>(configuration, instance, {}, bridge_lock,
@@ -1004,7 +574,7 @@ Interfaces_instances Runtime_impl::get_bridge_reported_instances(
     std::lock_guard<std::mutex> const bridge_lock{m_bridge_mutex};
     Instances result;
     for (auto const& bridge_data : m_bridge_to_callbacks) {
-        auto bridge_services = std::get<2>(bridge_data.second);
+        auto bridge_services = std::get<1>(bridge_data.second);
         auto const& instances = bridge_services.find(interface);
         if (std::end(bridge_services) != instances) {
             static_cast<void>(std::copy_if(std::begin(instances->second),

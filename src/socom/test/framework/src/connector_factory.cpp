@@ -43,33 +43,9 @@ Connector_factory::Connector_factory(Connector_factory const& con_fac)
 
 Runtime& Connector_factory::get_runtime() { return *m_runtime; }
 
-Runtime& Connector_factory::get_service_finder() { return get_runtime(); }
-
-Find_subscription Connector_factory::subscribe_find_service(
-    Find_result_change_callback on_result_change, std::optional<Service_instance> instance,
-    std::optional<Bridge_identity> identity) {
-    return get_service_finder().subscribe_find_service(std::move(on_result_change),
-                                                       m_configuration.get_interface(), instance,
-                                                       std::move(identity));
-}
-
-Find_subscription Connector_factory::subscribe_find_service(
-    Find_result_callback on_result_set_change, std::optional<Service_instance> instance) {
-    return get_service_finder().subscribe_find_service(std::move(on_result_set_change),
-                                                       m_configuration.get_interface(), instance);
-}
-
-Find_subscription Connector_factory::subscribe_find_service_wildcard(
-    Find_result_change_callback on_result_change) {
-    return get_service_finder().subscribe_find_service(std::move(on_result_change), std::nullopt,
-                                                       std::nullopt, std::nullopt);
-}
-
 score::Result<Service_bridge_registration> Connector_factory::register_service_bridge(
-    Bridge_identity identity, Subscribe_find_service_function subscribe_find_service,
-    Request_service_function request_service) {
-    return m_runtime->register_service_bridge(identity, std::move(subscribe_find_service),
-                                              std::move(request_service));
+    Bridge_identity identity, Request_service_function request_service) {
+    return m_runtime->register_service_bridge(identity, std::move(request_service));
 }
 
 Disabled_server_connector::Uptr Connector_factory::create_server_connector(
