@@ -19,7 +19,7 @@ module(
 # ============================================================================
 # Python Configuration
 # ============================================================================
-bazel_dep(name = "rules_python", version = "1.9.0", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "2.0.0-rc3", dev_dependency = True)
 
 # rules_python 1.5.0 breaks score_docs_as_code; pin to 1.4.1 until resolved.
 single_version_override(
