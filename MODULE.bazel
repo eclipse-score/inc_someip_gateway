@@ -32,7 +32,6 @@ python.toolchain(
     is_default = True,
     python_version = "3.12",
 )
-use_repo(python)
 
 bazel_dep(
     name = "score_bazel_tools_python",
