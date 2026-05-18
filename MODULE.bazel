@@ -195,6 +195,10 @@ bazel_dep(name = "score_communication", version = "0.1.4")
 git_override(
     module_name = "score_communication",
     commit = "cb16987ee8dc316aeea8d5209f36e3cb95f47b63",
+    patch_strip = 1,
+    patches = [
+        "//:third_party/score_communication-message_passing_public.patch",
+    ],
     remote = "https://github.com/eclipse-score/communication.git",
 )
 
