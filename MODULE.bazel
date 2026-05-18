@@ -73,7 +73,7 @@ bazel_dep(name = "rules_rust", version = "0.68.1-score")
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
 bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
 
-bazel_dep(name = "score_toolchains_rust", version = "0.8.0", dev_dependency = True)
+bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = True)
 
 # ============================================================================
 # QNX8 Toolchain Configuration
