@@ -184,12 +184,12 @@ download_archive(
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "3.0.1", dev_dependency = True)
+bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
 
-# Force score_docs_as_code to 3.0.1 to resolve compatibility conflict between score_logging and score_baselibs
+# Force score_docs_as_code to 3.0.0 to resolve compatibility conflict between score_logging and score_baselibs
 single_version_override(
     module_name = "score_docs_as_code",
-    version = "3.0.1",
+    version = "3.0.0",
 )
 
 # ============================================================================
