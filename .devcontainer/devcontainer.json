@@ -22,6 +22,9 @@
             "type": "bind"
         }
     ],
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
     "initializeCommand": {
         "Make sure QNX licenses exists": "mkdir -p ~/.qnx/license && touch -a ~/.qnx/license/licenses",
         "Make sure .netrc exists": "touch -a ~/.netrc"
