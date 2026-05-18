@@ -184,7 +184,13 @@ download_archive(
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
+bazel_dep(name = "score_docs_as_code", version = "3.0.1", dev_dependency = True)
+
+# Force score_docs_as_code to 3.0.1 to resolve compatibility conflict between score_logging and score_baselibs
+single_version_override(
+    module_name = "score_docs_as_code",
+    version = "3.0.1",
+)
 
 # ============================================================================
 # Communication Framework
@@ -275,4 +281,37 @@ http_archive(
 # ============================================================================
 # Integration Testing
 # ============================================================================
-bazel_dep(name = "score_itf", version = "0.3.0")
+bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
+bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
+
+imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
+imagefs.toolchain(
+    name = "score_qnx_x86_64_ifs_toolchain",
+    sdp_to_import = "@score_qcc_x86_64_toolchain_pkg",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    type = "ifs",
+)
+imagefs.toolchain(
+    name = "score_qnx_aarch64_ifs_toolchain",
+    sdp_to_import = "@score_qcc_aarch64_toolchain_pkg",
+    target_cpu = "aarch64",
+    target_os = "qnx",
+    type = "ifs",
+)
+use_repo(imagefs, "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")
+
+bazel_dep(name = "rules_distroless", version = "0.6.2", dev_dependency = True)
+
+apt = use_extension(
+    "@rules_distroless//apt:extensions.bzl",
+    "apt",
+    dev_dependency = True,
+)
+apt.install(
+    name = "ubuntu24_04",
+    lock = "@@//quality/integration_testing/environments/ubuntu24_04_docker:ubuntu24_04.lock.json",
+    manifest = "//quality/integration_testing/environments/ubuntu24_04_docker:ubuntu24_04.yaml",
+)
+use_repo(apt, "ubuntu24_04")
