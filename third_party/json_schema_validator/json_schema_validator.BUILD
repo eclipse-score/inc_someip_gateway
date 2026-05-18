@@ -16,7 +16,10 @@ package(
 
 cc_library(
     name = "json_schema_validator_lib",
-    srcs = glob(["src/*"]),
+    srcs = glob(
+        ["src/*"],
+        exclude = ["src/CMakeLists.txt"],
+    ),
     hdrs = ["src/nlohmann/json-schema.hpp"],
     features = [
         "third_party_warnings",
@@ -28,6 +31,6 @@ cc_library(
 
 cc_binary(
     name = "json_schema_validator",
-    srcs = ["app/json-schema-validate.cpp"],
+    srcs = ["test/json-schema-validate.cpp"],
     deps = [":json_schema_validator_lib"],
 )

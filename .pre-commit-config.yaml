@@ -21,7 +21,7 @@ repos:
       - id: check-shebang-scripts-are-executable
       - id: check-executables-have-shebangs
       - id: check-added-large-files
-        args: [--maxkb=50, --enforce-all] # increase or add git lfs if too strict
+        args: [--maxkb=125, --enforce-all] # increase or add git lfs if too strict
         exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md|src/socom/test/unit/runtime_tests.cpp
 
   - repo: https://github.com/jumanjihouse/pre-commit-hooks

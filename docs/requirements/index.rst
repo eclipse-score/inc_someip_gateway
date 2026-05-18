@@ -65,7 +65,7 @@ The following component identifiers are used in requirement IDs and file names:
      - Gateway daemon — bridges IPC and SOME/IP, E2E protection, ACL enforcement
    * - ``someipd``
      - QM
-     - SOME/IP stack daemon — wraps vsomeip, handles network I/O and SOME/IP-SD
+     - SOME/IP stack daemon — handles network I/O and SOME/IP-SD
    * - ``network_service``
      - ASIL-B
      - IPC interface between ``gatewayd`` and ``someipd`` (SomeipMessageTransfer)

@@ -1,0 +1,207 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "description": "JSON Schema for vsomeip configuration files used by TC8 conformance tests.",
+    "type": "object",
+    "required": [
+        "unicast",
+        "applications",
+        "routing",
+        "services",
+        "service-discovery",
+        "logging"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "unicast": {
+            "type": "string",
+            "description": "Unicast IP address of the host running someipd. May be a placeholder string such as __TC8_HOST_IP__."
+        },
+        "applications": {
+            "type": "array",
+            "description": "List of vsomeip application registrations.",
+            "items": {
+                "type": "object",
+                "required": ["name", "id"],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Application name used by vsomeip for routing."
+                    },
+                    "id": {
+                        "type": "string",
+                        "description": "Hex-encoded application ID (e.g. 0x1277)."
+                    }
+                },
+                "additionalProperties": true
+            }
+        },
+        "routing": {
+            "type": "string",
+            "description": "Name of the vsomeip routing manager application."
+        },
+        "services": {
+            "type": "array",
+            "description": "List of SOME/IP service definitions offered by this application.",
+            "items": {
+                "type": "object",
+                "required": ["service", "instance"],
+                "additionalProperties": false,
+                "properties": {
+                    "service": {
+                        "type": "string",
+                        "description": "Hex-encoded SOME/IP service ID (e.g. 0x1234)."
+                    },
+                    "instance": {
+                        "type": "string",
+                        "description": "Hex-encoded SOME/IP instance ID (e.g. 0x5678)."
+                    },
+                    "unreliable": {
+                        "type": "string",
+                        "description": "UDP port number as a string (e.g. 30509)."
+                    },
+                    "reliable": {
+                        "type": "string",
+                        "description": "TCP port number as a string (e.g. 30510)."
+                    },
+                    "events": {
+                        "type": "array",
+                        "description": "Event definitions for this service.",
+                        "items": {
+                            "type": "object",
+                            "required": ["event", "is_field", "update-cycle"],
+                            "additionalProperties": true,
+                            "properties": {
+                                "event": {
+                                    "type": "string",
+                                    "description": "Hex-encoded event ID (e.g. 0x0777)."
+                                },
+                                "is_field": {
+                                    "type": "string",
+                                    "description": "Whether this event is a field (getter/setter/notifier). Encoded as string 'true' or 'false'."
+                                },
+                                "is_reliable": {
+                                    "type": "string",
+                                    "description": "Whether this event uses reliable (TCP) transport. Encoded as string 'true' or 'false'."
+                                },
+                                "update-cycle": {
+                                    "description": "Notification cycle in milliseconds. May be a string or integer depending on vsomeip version.",
+                                    "type": ["string", "integer"]
+                                }
+                            }
+                        }
+                    },
+                    "eventgroups": {
+                        "type": "array",
+                        "description": "Eventgroup definitions grouping one or more events.",
+                        "items": {
+                            "type": "object",
+                            "required": ["eventgroup", "events"],
+                            "additionalProperties": true,
+                            "properties": {
+                                "eventgroup": {
+                                    "type": "string",
+                                    "description": "Hex-encoded eventgroup ID (e.g. 0x4455)."
+                                },
+                                "events": {
+                                    "type": "array",
+                                    "description": "List of hex-encoded event IDs belonging to this eventgroup.",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "multicast": {
+                                    "type": "object",
+                                    "description": "Optional multicast configuration for this eventgroup.",
+                                    "required": ["address", "port"],
+                                    "properties": {
+                                        "address": {
+                                            "type": "string",
+                                            "description": "Multicast group IP address."
+                                        },
+                                        "port": {
+                                            "type": "string",
+                                            "description": "Multicast port as a string."
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                },
+                                "threshold": {
+                                    "type": "string",
+                                    "description": "Threshold for switching between unicast and multicast delivery."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "service-discovery": {
+            "type": "object",
+            "description": "vsomeip service discovery (SD) configuration. All numeric values are encoded as strings.",
+            "required": [
+                "enable",
+                "multicast",
+                "port",
+                "protocol",
+                "initial_delay_min",
+                "initial_delay_max",
+                "repetitions_base_delay",
+                "repetitions_max",
+                "ttl",
+                "cyclic_offer_delay",
+                "request_response_delay"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "enable": {
+                    "type": "string",
+                    "description": "Enable service discovery. String 'true' or 'false'."
+                },
+                "multicast": {
+                    "type": "string",
+                    "description": "SD multicast group address."
+                },
+                "port": {
+                    "type": "string",
+                    "description": "SD port as a string (e.g. '30490'). Must equal the source port used by all SD senders; the SOME/IP-SD stack drops messages from other source ports."
+                },
+                "protocol": {
+                    "type": "string",
+                    "description": "SD transport protocol ('udp' or 'tcp')."
+                },
+                "initial_delay_min": {
+                    "type": "string",
+                    "description": "Minimum initial offer delay in milliseconds."
+                },
+                "initial_delay_max": {
+                    "type": "string",
+                    "description": "Maximum initial offer delay in milliseconds."
+                },
+                "repetitions_base_delay": {
+                    "type": "string",
+                    "description": "Base delay for offer repetitions in milliseconds."
+                },
+                "repetitions_max": {
+                    "type": "string",
+                    "description": "Maximum number of offer repetitions."
+                },
+                "ttl": {
+                    "type": "string",
+                    "description": "SD entry time-to-live in seconds."
+                },
+                "cyclic_offer_delay": {
+                    "type": "string",
+                    "description": "Cyclic main-phase offer delay in milliseconds."
+                },
+                "request_response_delay": {
+                    "type": "string",
+                    "description": "Request/response delay in milliseconds."
+                }
+            }
+        },
+        "logging": {
+            "type": "object",
+            "description": "vsomeip logging configuration. Permissive — additional keys are allowed."
+        }
+    }
+}
