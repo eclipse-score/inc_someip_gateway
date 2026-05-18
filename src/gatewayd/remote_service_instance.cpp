@@ -98,8 +98,9 @@ RemoteServiceInstance::RemoteServiceInstance(
                 auto sample = std::move(maybe_sample).value();
 
                 // TODO: deserialization
-                std::memcpy(sample.Get(), payload.data(),
-                            std::min(sizeof(echo_service::EchoResponseTiny), payload.size()));
+                std::memcpy(
+                    sample.Get(), payload.data(),
+                    std::min(sizeof(echo_service::EchoMessagePreSerializedTiny), payload.size()));
 
                 event.Send(std::move(sample));
                 std::cout << "[gatewayd] Forwarded event 0x" << std::hex << rec_event_id << std::dec
@@ -156,9 +157,10 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
         }
 
         // TODO: Get the event type info from serializer. To support the benchmark app, for now just
-        // use the type info of EchoResponseTiny for all events
-        score::mw::com::DataTypeMetaInfo type_info{sizeof(echo_service::EchoResponseTiny),
-                                                   alignof(echo_service::EchoResponseTiny)};
+        // use the type info of EchoMessagePreSerializedTiny for all events
+        score::mw::com::DataTypeMetaInfo type_info{
+            sizeof(echo_service::EchoMessagePreSerializedTiny),
+            alignof(echo_service::EchoMessagePreSerializedTiny)};
         events.emplace_back(
             score::mw::com::EventInfo{event->event_name()->string_view(), type_info});
     }
