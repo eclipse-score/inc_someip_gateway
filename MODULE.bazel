@@ -78,10 +78,10 @@ bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = Tr
 # ============================================================================
 # QNX8 Toolchain Configuration
 # ============================================================================
-bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.2.2", dev_dependency = True)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.5.1", dev_dependency = True)
 git_override(
     module_name = "score_bazel_cpp_toolchains",
-    commit = "bef681a4bf751060d756d9ac21c2afb7981c9204",  # Last verified: 2026-02-09
+    commit = "30d9f4151db55af066e5bbf8a0a3672469ec0293",  # Last verified: 2026-04-09
     remote = "https://github.com/etas-contrib/score_bazel_cpp_toolchains.git",
 )
 
@@ -102,7 +102,7 @@ gcc.toolchain(
 )
 gcc.toolchain(
     name = "score_qcc_x86_64_toolchain",
-    sdp_version = "8.0.0",
+    sdp_version = "8.0.3",
     target_cpu = "x86_64",
     target_os = "qnx",
     use_default_package = True,
@@ -110,7 +110,7 @@ gcc.toolchain(
 )
 gcc.toolchain(
     name = "score_qcc_aarch64_toolchain",
-    sdp_version = "8.0.0",
+    sdp_version = "8.0.3",
     target_cpu = "aarch64",
     target_os = "qnx",
     use_default_package = True,
