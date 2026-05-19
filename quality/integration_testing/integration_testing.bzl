@@ -87,10 +87,8 @@ def integration_test(name, srcs, filesystem, **kwargs):
     linux_qemu_seed_iso = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:seed_iso")
 
     # --- QNX QEMU artifacts ---
-    QNX_TARGET_COMPATIBLE_WITH = select({
-        "@platforms//cpu:x86_64": ["@platforms//cpu:x86_64"],
-        # "@platforms//cpu:arm64": ["@platforms//cpu:arm64"],
-    }) + [
+    QNX_TARGET_COMPATIBLE_WITH = [
+        "@platforms//cpu:x86_64",
         "@platforms//os:qnx",
     ]
 
