@@ -40,6 +40,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
         "@platforms//os:linux",
     ]
 
+    # --- Linux Docker artifacts ---
     pkg_tar(
         name = "_oci_filesystem_{}".format(name),
         srcs = [filesystem],
@@ -74,6 +75,18 @@ def integration_test(name, srcs, filesystem, **kwargs):
         target_compatible_with = LINUX_TARGET_COMPATIBLE_WITH,
     )
 
+    # --- Linux QEMU artifacts ---
+    filesystem_tar = "_qemu_filesystem_{}".format(name)
+    pkg_tar(
+        name = filesystem_tar,
+        srcs = [filesystem],
+    )
+
+    linux_qemu_config = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:qemu_config")
+    linux_qemu_image = Label("@ubuntu_24_04_cloudimg//file")
+    linux_qemu_seed_iso = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:seed_iso")
+
+    # --- QNX QEMU artifacts ---
     QNX_TARGET_COMPATIBLE_WITH = select({
         "@platforms//cpu:x86_64": ["@platforms//cpu:x86_64"],
         "@platforms//cpu:arm64": ["@platforms//cpu:arm64"],
@@ -90,25 +103,39 @@ def integration_test(name, srcs, filesystem, **kwargs):
         target_compatible_with = QNX_TARGET_COMPATIBLE_WITH,
     )
 
-    qemu_config = Label("//quality/integration_testing/environments/qnx8_qemu:qemu_config")
+    qnx_qemu_config = Label("//quality/integration_testing/environments/qnx8_qemu:qemu_config")
 
+    # --- Wire up data deps and args based on platform + linux_backend flag ---
     _extend_list_in_kwargs(kwargs, "data", select({
+        "@platforms//os:qnx": [qemu_image, qnx_qemu_config],
+        "//quality/integration_testing/flags:linux_qemu": [
+            filesystem_tar,
+            linux_qemu_config,
+            linux_qemu_image,
+            linux_qemu_seed_iso,
+        ],
         "//conditions:default": [image_loader],
-        "@platforms//os:qnx": [qemu_image, qemu_config],
     }))
     _extend_list_in_kwargs(
         kwargs,
         "args",
         select({
+            "@platforms//os:qnx": [
+                "--log-cli-level=DEBUG",
+                "--qemu-config=$(location {})".format(qnx_qemu_config),
+                "--qemu-image=$(location {})".format(qemu_image),
+            ],
+            "//quality/integration_testing/flags:linux_qemu": [
+                "--log-cli-level=DEBUG",
+                "--qemu-config=$(location {})".format(linux_qemu_config),
+                "--qemu-image=$(location {})".format(linux_qemu_image),
+                "--qemu-seed-iso=$(location {})".format(linux_qemu_seed_iso),
+                "--qemu-filesystem-tar=$(location {})".format(filesystem_tar),
+            ],
             "//conditions:default": [
                 "--log-cli-level=DEBUG",
                 "--docker-image-bootstrap=$(location {})".format(image_loader),
                 "--docker-image={}".format(repo_tag),
-            ],
-            "@platforms//os:qnx": [
-                "--log-cli-level=DEBUG",
-                "--qemu-config=$(location {})".format(qemu_config),
-                "--qemu-image=$(location {})".format(qemu_image),
             ],
         }),
     )
@@ -130,13 +157,21 @@ def integration_test(name, srcs, filesystem, **kwargs):
 
     py_itf_test(
         name = name,
-        srcs = srcs,
-        plugins = select({
-            "//conditions:default": [
-                "@score_itf//score/itf/plugins:docker_plugin",
+        srcs = srcs + select({
+            "//quality/integration_testing/flags:linux_qemu": [
+                "//quality/integration_testing:conftest.py",
             ],
+            "//conditions:default": [],
+        }),
+        plugins = select({
             "@platforms//os:qnx": [
                 "@score_itf//score/itf/plugins:qemu_plugin",
+            ],
+            "//quality/integration_testing/flags:linux_qemu": [
+                "@score_itf//score/itf/plugins:qemu_plugin",
+            ],
+            "//conditions:default": [
+                "@score_itf//score/itf/plugins:docker_plugin",
             ],
         }),
         env = {"DOCKER_HOST": ""},

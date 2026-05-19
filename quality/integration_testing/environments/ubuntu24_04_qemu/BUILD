@@ -11,13 +11,29 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-filegroup(
-    name = "pip_requirements",
-    srcs = ["requirements.txt"],
-    visibility = ["//:__pkg__"],
+exports_files(
+    [
+        "qemu_config.json",
+        "user-data",
+        "meta-data",
+    ],
+    visibility = ["//:__subpackages__"],
 )
 
-exports_files(
-    ["conftest.py"],
+filegroup(
+    name = "qemu_config",
+    srcs = ["qemu_config.json"],
+    visibility = ["//:__subpackages__"],
+)
+
+# Cloud-init NoCloud seed ISO, generated from user-data and meta-data.
+genrule(
+    name = "seed_iso",
+    srcs = [
+        "user-data",
+        "meta-data",
+    ],
+    outs = ["seed.iso"],
+    cmd = "genisoimage -output $@ -volid cidata -joliet -rock $(SRCS)",
     visibility = ["//:__subpackages__"],
 )
