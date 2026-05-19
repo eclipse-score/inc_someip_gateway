@@ -89,7 +89,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     # --- QNX QEMU artifacts ---
     QNX_TARGET_COMPATIBLE_WITH = select({
         "@platforms//cpu:x86_64": ["@platforms//cpu:x86_64"],
-        "@platforms//cpu:arm64": ["@platforms//cpu:arm64"],
+        # "@platforms//cpu:arm64": ["@platforms//cpu:arm64"],
     }) + [
         "@platforms//os:qnx",
     ]
