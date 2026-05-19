@@ -27,6 +27,7 @@ filegroup(
 )
 
 # Cloud-init NoCloud seed ISO, generated from user-data and meta-data.
+# Tagged "manual" so it is only built when explicitly needed (linux_qemu tests).
 genrule(
     name = "seed_iso",
     srcs = [
@@ -35,5 +36,6 @@ genrule(
     ],
     outs = ["seed.iso"],
     cmd = "genisoimage -output $@ -volid cidata -joliet -rock $(SRCS)",
+    tags = ["manual"],
     visibility = ["//:__subpackages__"],
 )
