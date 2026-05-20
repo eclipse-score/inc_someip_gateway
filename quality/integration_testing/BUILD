@@ -16,8 +16,3 @@ filegroup(
     srcs = ["requirements.txt"],
     visibility = ["//:__pkg__"],
 )
-
-exports_files(
-    ["conftest.py"],
-    visibility = ["//:__subpackages__"],
-)

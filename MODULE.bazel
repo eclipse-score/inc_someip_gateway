@@ -287,13 +287,6 @@ bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
 bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
 
-single_version_override(
-    module_name = "score_itf",
-    patch_strip = 1,
-    patches = ["//:third_party/score_itf-disk_boot.patch"],
-    version = "0.4.0",
-)
-
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
 http_file(

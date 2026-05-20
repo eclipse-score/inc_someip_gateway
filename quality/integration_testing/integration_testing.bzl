@@ -155,18 +155,13 @@ def integration_test(name, srcs, filesystem, **kwargs):
 
     py_itf_test(
         name = name,
-        srcs = srcs + select({
-            "//quality/integration_testing/flags:linux_qemu": [
-                "//quality/integration_testing:conftest.py",
-            ],
-            "//conditions:default": [],
-        }),
+        srcs = srcs,
         plugins = select({
             "@platforms//os:qnx": [
                 "@score_itf//score/itf/plugins:qemu_plugin",
             ],
             "//quality/integration_testing/flags:linux_qemu": [
-                "@score_itf//score/itf/plugins:qemu_plugin",
+                "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
             ],
             "//conditions:default": [
                 "@score_itf//score/itf/plugins:docker_plugin",
