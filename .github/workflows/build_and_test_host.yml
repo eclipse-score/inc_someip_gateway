@@ -60,5 +60,8 @@ jobs:
       - name: Bazel test targets
         run: |
           bazel test //... --build_tests_only
+      - name: Run Linux QEMU integration tests
+        run: |
+          bazel test //quality/integration_testing/test:test_hello_world --//quality/integration_testing/flags:linux_backend=qemu
       - run: df -h
         if: always()
