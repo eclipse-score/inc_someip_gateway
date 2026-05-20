@@ -23,6 +23,7 @@ py_library(
         "qemu_process.py",
     ],
     imports = ["../.."],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
     deps = [
         "@score_itf//score/itf/core/process",
