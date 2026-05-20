@@ -14,7 +14,6 @@
 exports_files(
     [
         "qemu_config.json",
-        "user-data",
         "meta-data",
     ],
     visibility = ["//:__subpackages__"],
@@ -31,7 +30,6 @@ filegroup(
 genrule(
     name = "seed_iso",
     srcs = [
-        "user-data",
         "meta-data",
     ],
     outs = ["seed.iso"],
