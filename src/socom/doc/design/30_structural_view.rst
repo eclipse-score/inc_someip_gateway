@@ -17,8 +17,8 @@ Structural View
 
 The bundle service oriented communication (SOCom) implements components for client/server pattern based communication for the following communication paradigms:
 
-- remote procedure call;
-- publish/subscribe (event communication).
+- remote procedure call
+- publish/subscribe (event communication)
 
 SOCom provides interfaces which enable the implementation of service gateways (bridges).
 This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
@@ -30,9 +30,9 @@ SOCom provides intra-process client/server communication only.
 
 **Software elements**
 
-- :ref:`runtime_component`;
-- :ref:`client_connector_component`;
-- :ref:`server_connector_component`.
+- :ref:`runtime_component`
+- :ref:`client_connector_component`
+- :ref:`server_connector_component`
 
 .. _runtime_component:
 
@@ -52,19 +52,19 @@ A client application owns and uses this component to join client/server pattern 
 The client connector interacts with the server connector in order perform the supported communication primitives.
 The client connector API provides the following features:
 
-- service instance state change indications;
+- service instance state change indications
 - asynchronous remote procedure call:
 
-  - with method reply;
-  - without method reply (fire and forget).
+  - with method reply
+  - without method reply (fire and forget)
 
 - event subscription:
 
-  - with optional initial value request (required for fields).
+  - with optional initial value request (required for fields)
 
-- event subscription acknowledge indication;
-- event update indication;
-- requested event update indication.
+- event subscription acknowledge indication
+- event update indication
+- requested event update indication
 
 .. _server_connector_component:
 

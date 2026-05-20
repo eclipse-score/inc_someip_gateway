@@ -17,8 +17,8 @@ Behavioral View
 
 This component implements the following state machines:
 
-- :ref:`event subscription state <event_subscription_state_machine>`;
-- :ref:`service state <service_state_machine>`.
+- :ref:`event subscription state <event_subscription_state_machine>`
+- :ref:`service state <service_state_machine>`
 
 Runtime
 -------
@@ -35,17 +35,17 @@ A server application owns and uses this component to join client/server pattern 
 The server connector interacts with the client connector in order perform the supported communication primitives.
 The server connector API provides the following features:
 
-- remote procedure called indication;
+- remote procedure called indication
 - event subscription state changed indication:
 
-  - on first subscriber;
-  - on last unsubscriber.
+  - on first subscriber
+  - on last unsubscriber
 
-- event update request indication;
-- event mode getter (event with/without initial update);
-- update event;
-- update requested event;
-- acknowledge event subscription.
+- event update request indication
+- event mode getter (event with/without initial update)
+- update event
+- update requested event
+- acknowledge event subscription
 
 Method Communication
 --------------------
