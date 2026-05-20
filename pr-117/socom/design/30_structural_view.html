@@ -39,10 +39,10 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -446,8 +446,8 @@
 <h1><span class="section-number">1. </span>Structural View<a class="headerlink" href="#structural-view" title="Link to this heading">#</a></h1>
 <p>The bundle service oriented communication (SOCom) implements components for client/server pattern based communication for the following communication paradigms:</p>
 <ul class="simple">
-<li><p>remote procedure call;</p></li>
-<li><p>publish/subscribe (event communication).</p></li>
+<li><p>remote procedure call</p></li>
+<li><p>publish/subscribe (event communication)</p></li>
 </ul>
 <p>SOCom provides interfaces which enable the implementation of service gateways (bridges).
 This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
@@ -461,9 +461,9 @@ SOCom provides intra-process client/server communication only.</p>
 </figure>
 <p><strong>Software elements</strong></p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#runtime-component"><span class="std std-ref">Runtime</span></a>;</p></li>
-<li><p><a class="reference internal" href="#client-connector-component"><span class="std std-ref">Client connector</span></a>;</p></li>
-<li><p><a class="reference internal" href="#server-connector-component"><span class="std std-ref">Server connector</span></a>.</p></li>
+<li><p><a class="reference internal" href="#runtime-component"><span class="std std-ref">Runtime</span></a></p></li>
+<li><p><a class="reference internal" href="#client-connector-component"><span class="std std-ref">Client connector</span></a></p></li>
+<li><p><a class="reference internal" href="#server-connector-component"><span class="std std-ref">Server connector</span></a></p></li>
 </ul>
 <section id="runtime">
 <span id="runtime-component"></span><h2><span class="section-number">1.1. </span>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h2>
@@ -477,21 +477,21 @@ The Runtime must outlive all created Client_connectors and Server_connectors.</p
 The client connector interacts with the server connector in order perform the supported communication primitives.
 The client connector API provides the following features:</p>
 <ul class="simple">
-<li><p>service instance state change indications;</p></li>
+<li><p>service instance state change indications</p></li>
 <li><p>asynchronous remote procedure call:</p>
 <ul>
-<li><p>with method reply;</p></li>
-<li><p>without method reply (fire and forget).</p></li>
+<li><p>with method reply</p></li>
+<li><p>without method reply (fire and forget)</p></li>
 </ul>
 </li>
 <li><p>event subscription:</p>
 <ul>
-<li><p>with optional initial value request (required for fields).</p></li>
+<li><p>with optional initial value request (required for fields)</p></li>
 </ul>
 </li>
-<li><p>event subscription acknowledge indication;</p></li>
-<li><p>event update indication;</p></li>
-<li><p>requested event update indication.</p></li>
+<li><p>event subscription acknowledge indication</p></li>
+<li><p>event update indication</p></li>
+<li><p>requested event update indication</p></li>
 </ul>
 </section>
 <section id="server-connector">

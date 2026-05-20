@@ -39,10 +39,10 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -446,8 +446,8 @@
 <h1><span class="section-number">2. </span>Behavioral View<a class="headerlink" href="#behavioral-view" title="Link to this heading">#</a></h1>
 <p>This component implements the following state machines:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="50_state_dynamics_view.html#event-subscription-state-machine"><span class="std std-ref">event subscription state</span></a>;</p></li>
-<li><p><a class="reference internal" href="50_state_dynamics_view.html#service-state-machine"><span class="std std-ref">service state</span></a>.</p></li>
+<li><p><a class="reference internal" href="50_state_dynamics_view.html#event-subscription-state-machine"><span class="std std-ref">event subscription state</span></a></p></li>
+<li><p><a class="reference internal" href="50_state_dynamics_view.html#service-state-machine"><span class="std std-ref">service state</span></a></p></li>
 </ul>
 <section id="runtime">
 <h2><span class="section-number">2.1. </span>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h2>
@@ -462,18 +462,18 @@ Additionally, it provides a service instance find interface.</p>
 The server connector interacts with the client connector in order perform the supported communication primitives.
 The server connector API provides the following features:</p>
 <ul class="simple">
-<li><p>remote procedure called indication;</p></li>
+<li><p>remote procedure called indication</p></li>
 <li><p>event subscription state changed indication:</p>
 <ul>
-<li><p>on first subscriber;</p></li>
-<li><p>on last unsubscriber.</p></li>
+<li><p>on first subscriber</p></li>
+<li><p>on last unsubscriber</p></li>
 </ul>
 </li>
-<li><p>event update request indication;</p></li>
-<li><p>event mode getter (event with/without initial update);</p></li>
-<li><p>update event;</p></li>
-<li><p>update requested event;</p></li>
-<li><p>acknowledge event subscription.</p></li>
+<li><p>event update request indication</p></li>
+<li><p>event mode getter (event with/without initial update)</p></li>
+<li><p>update event</p></li>
+<li><p>update requested event</p></li>
+<li><p>acknowledge event subscription</p></li>
 </ul>
 </section>
 <section id="method-communication">
