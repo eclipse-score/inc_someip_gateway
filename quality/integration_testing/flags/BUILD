@@ -30,12 +30,6 @@ config_setting(
 )
 
 config_setting(
-    name = "qemu",
-    flag_values = {":linux_backend": "qemu"},
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
     name = "linux_qemu",
     constraint_values = ["@platforms//os:linux"],
     flag_values = {":linux_backend": "qemu"},
