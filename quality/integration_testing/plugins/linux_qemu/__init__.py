@@ -20,17 +20,45 @@ to the upstream score_itf package.
 import logging
 import os
 import socket
+import subprocess
+import tempfile
 
 import pytest
 
 from score.itf.core.utils.bunch import Bunch
-from score.itf.plugins.qemu.checks import pre_tests_phase
 from score.itf.plugins.qemu.qemu_target import QemuTarget
 
 from quality.integration_testing.plugins.linux_qemu.qemu_process import LinuxQemuProcess
 from quality.integration_testing.plugins.linux_qemu.config import load_configuration
 
 logger = logging.getLogger(__name__)
+
+# Cloud-init first-boot needs significantly more time than a pre-configured VM.
+_SSH_BOOT_TIMEOUT = 15
+_SSH_BOOT_RETRIES = 12
+
+
+def _wait_for_target_ready(target):
+    """Wait for SSH and SFTP to become available on the target.
+
+    Uses longer timeouts than the upstream pre_tests_phase to accommodate
+    cloud-init first-boot provisioning on a fresh qcow2 overlay.
+    """
+    with target.ssh(
+        timeout=_SSH_BOOT_TIMEOUT,
+        n_retries=_SSH_BOOT_RETRIES,
+        retry_interval=5,
+    ) as ssh:
+        result = ssh.execute_command("echo ready")
+    if result != 0:
+        raise RuntimeError("SSH command on target failed after boot")
+    logger.info("Target SSH is ready")
+
+    with target.sftp() as sftp:
+        result = sftp.list_dirs_and_files("/")
+    if not result:
+        raise RuntimeError("SFTP command on target failed")
+    logger.info("Target SFTP is ready")
 
 
 def pytest_addoption(parser):
@@ -79,19 +107,47 @@ def config(request):
 def target_init(config, request, dlt):
     logger.info(f"Starting tests on host: {socket.gethostname()}")
 
-    process = LinuxQemuProcess(
-        path_to_qemu_image=config.qemu_image,
-        available_ram=config.qemu_config.qemu_ram_size,
-        available_cores=config.qemu_config.qemu_num_cores,
-        network_adapters=[adapter.name for adapter in config.qemu_config.networks],
-        port_forwarding=config.qemu_config.port_forwarding,
-        seed_iso=config.qemu_seed_iso,
-    )
+    # Create a qcow2 overlay backed by the pristine base image so that each
+    # test session starts from an unmodified disk.  All writes go to the
+    # ephemeral overlay which is discarded after the session.
+    base_image = os.path.abspath(config.qemu_image)
+    overlay_fd, overlay_path = tempfile.mkstemp(suffix=".qcow2", prefix="qemu_overlay_")
+    os.close(overlay_fd)
+    try:
+        subprocess.run(
+            [
+                "qemu-img",
+                "create",
+                "-f",
+                "qcow2",
+                "-b",
+                base_image,
+                "-F",
+                "qcow2",
+                overlay_path,
+            ],
+            check=True,
+            capture_output=True,
+        )
+        logger.info(f"Created qcow2 overlay: {overlay_path} (backing: {base_image})")
 
-    with process:
-        target = QemuTarget(process, config.qemu_config)
-        pre_tests_phase(target)
-        yield target
+        process = LinuxQemuProcess(
+            path_to_qemu_image=overlay_path,
+            available_ram=config.qemu_config.qemu_ram_size,
+            available_cores=config.qemu_config.qemu_num_cores,
+            network_adapters=[adapter.name for adapter in config.qemu_config.networks],
+            port_forwarding=config.qemu_config.port_forwarding,
+            seed_iso=config.qemu_seed_iso,
+        )
+
+        with process:
+            target = QemuTarget(process, config.qemu_config)
+            _wait_for_target_ready(target)
+            yield target
+    finally:
+        if os.path.exists(overlay_path):
+            os.remove(overlay_path)
+            logger.info(f"Removed qcow2 overlay: {overlay_path}")
 
 
 @pytest.fixture(scope="session", autouse=True)
