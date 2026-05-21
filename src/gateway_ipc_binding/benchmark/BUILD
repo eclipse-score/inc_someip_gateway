@@ -48,7 +48,7 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//src/gateway_ipc_binding",
-        "@google_benchmark//:benchmark_main",
+        "@google_benchmark//:benchmark",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
     ],
 )
