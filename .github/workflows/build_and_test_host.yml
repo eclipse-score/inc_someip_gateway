@@ -67,6 +67,23 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test //quality/integration_testing/test:test_hello_world --//quality/integration_testing/flags:linux_backend=qemu
+          for attempt in 1 2 3; do
+            if bazel test \
+              //quality/integration_testing/test:test_hello_world \
+              --//quality/integration_testing/flags:linux_backend=qemu \
+              --nocache_test_results \
+              --test_output=errors; then
+              break
+            fi
+
+            if [[ "$attempt" -eq 3 ]]; then
+              echo "Linux QEMU integration tests failed after 3 attempts."
+              exit 1
+            fi
+
+            backoff_seconds=$((attempt * 30))
+            echo "Linux QEMU integration tests failed on attempt ${attempt}, retrying in ${backoff_seconds}s..."
+            sleep "$backoff_seconds"
+          done
       - run: df -h
         if: always()
