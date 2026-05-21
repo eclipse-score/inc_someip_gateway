@@ -35,10 +35,10 @@ from quality.integration_testing.plugins.linux_qemu.config import load_configura
 logger = logging.getLogger(__name__)
 
 # Cloud-init first-boot needs significantly more time than a pre-configured VM.
-_SSH_BOOT_TIMEOUT = 15
-_SSH_BOOT_RETRIES = 12
-_TARGET_READY_ATTEMPTS = 4
-_TARGET_READY_BACKOFF_SECONDS = 15
+_SSH_BOOT_TIMEOUT = 20
+_SSH_BOOT_RETRIES = 18
+_TARGET_READY_ATTEMPTS = 8
+_TARGET_READY_BACKOFF_SECONDS = 20
 
 
 def _wait_for_target_ready(target):
@@ -82,7 +82,7 @@ def _wait_for_target_ready(target):
             time.sleep(backoff_seconds)
 
     raise RuntimeError(
-        f"Target readiness check failed after {_TARGET_READY_ATTEMPTS} attempts"
+        f"Target readiness check failed after {_TARGET_READY_ATTEMPTS} attempts: {last_error}"
     ) from last_error
 
 
