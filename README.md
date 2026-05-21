@@ -90,6 +90,8 @@ Finally start the benchmark on the someipd-1 container in a third shell:
 docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
 ```
 
+For current Bazel-based integration testing backends (Docker, Linux QEMU, and QNX QEMU) and defaults, see [quality/README.md](quality/README.md).
+
 
 ## 📝 Configuration
 

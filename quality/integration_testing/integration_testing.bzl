@@ -29,6 +29,20 @@ def _extend_list_in_kwargs_without_duplicates(kwargs, key, values):
     return kwargs
 
 def integration_test(name, srcs, filesystem, **kwargs):
+    """Creates an integration test target with Docker or QEMU support.
+
+    By default, the test will run with Docker on Linux. If the `linux_qemu` flag is set,
+    it will run with QEMU on Linux instead. On QNX, the test will run with QEMU.
+    Each test gets a custom OCI image built from the provided filesystem,
+    which is loaded during test execution and can be used to run the test in a hermetic environment that closely resembles production.
+    The test can also be configured to use a custom QEMU image and config when running with QEMU.
+
+    Args:
+        name: The target name.
+        srcs: Test source files.
+        filesystem: Tests and dependencies to be run. Will be added / uploaded into the OS image. The entrypoint is a py_test compatible python file. Must be created using `pkg_files()`.
+        **kwargs: Additional arguments passed to py_itf_test.
+    """
     image_name = "_image_{}".format(name)
     image_loader = "_image_{}_loader".format(name)
     repo_tag = "{}:latest".format(name)
