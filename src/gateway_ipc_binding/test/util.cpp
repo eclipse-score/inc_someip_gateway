@@ -42,8 +42,8 @@ std::string make_unique_name(std::string const& base) {
 
 }  // namespace
 
-Shared_memory_metadata make_metadata(std::string const& path, std::uint32_t slot_size,
-                                     std::uint32_t slot_count) {
+Shared_memory_metadata make_metadata(std::string const& path, std::size_t slot_size,
+                                     std::size_t slot_count) {
     Shared_memory_metadata metadata{};
     // with linux-sandbox make_unique_name() is not really necessary for uniqueness, but it adds an
     // extra layer of safety

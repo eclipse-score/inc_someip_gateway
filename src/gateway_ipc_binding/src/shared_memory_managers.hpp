@@ -65,8 +65,8 @@ class Shared_memory_managers {
         auto result = fixed_string_from_string<Shared_memory_path>(slot_manager.get_path());
         assert(result && "Path should fit into fixed-size metadata path");
 
-        return Shared_memory_metadata{*result, static_cast<uint32_t>(slot_manager.get_slot_size()),
-                                      static_cast<uint32_t>(slot_manager.get_slot_count())};
+        return Shared_memory_metadata{*result, slot_manager.get_slot_size(),
+                                      slot_manager.get_slot_count()};
     }
 
     Shared_memory_metadata get_shared_memory_metadata(Key_t const& key) noexcept {
@@ -103,7 +103,7 @@ class Shared_memory_managers {
         }
 
         auto& allocations = allocations_it->second;
-        auto const slot_handle = static_cast<std::size_t>(msg.handle.slot_index);
+        auto const slot_handle = msg.handle.slot_index;
         if (slot_handle >= allocations.size()) {
             return;
         }

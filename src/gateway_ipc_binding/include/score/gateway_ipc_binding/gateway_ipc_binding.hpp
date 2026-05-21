@@ -104,8 +104,8 @@ using Method_invocation = std::uint64_t;
 
 /// \brief Handle to locate payload in shared memory
 struct Shared_memory_handle {
-    std::uint32_t slot_index;
-    std::uint32_t used_bytes;
+    std::size_t slot_index;
+    std::size_t used_bytes;
 };
 
 bool operator==(Shared_memory_handle const& lhs, Shared_memory_handle const& rhs) noexcept;
@@ -116,8 +116,8 @@ using Shared_memory_path = Fixed_string<kMax_shared_memory_path_size>;
 /// \brief Metadata needed to map and interpret peer shared memory
 struct Shared_memory_metadata {
     Shared_memory_path path;
-    std::uint32_t slot_size;
-    std::uint32_t slot_count;
+    std::size_t slot_size;
+    std::size_t slot_count;
 };
 
 bool operator==(Shared_memory_metadata const& lhs, Shared_memory_metadata const& rhs) noexcept;

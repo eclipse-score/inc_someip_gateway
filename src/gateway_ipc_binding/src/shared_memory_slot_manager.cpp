@@ -160,11 +160,11 @@ class Shared_memory_slot_manager_impl final : public Shared_memory_slot_manager 
 /// Calls the supplied destruction callback when the Payload is destroyed,
 /// allowing the caller to send a Payload_consumed notification.
 static socom::Payload make_read_only_shared_memory_payload(
-    void const* base, Slot_handle slot_index, std::size_t slot_size, std::uint32_t used_bytes,
+    void const* base, Slot_handle slot_index, std::size_t slot_size, std::size_t used_bytes,
     Read_only_shared_memory_slot_manager::On_payload_destruction_callback callback) noexcept {
     using Byte = socom::Payload::Byte;
     auto const* data = static_cast<Byte const*>(base) + slot_index * slot_size;
-    auto const actual_size = std::min(static_cast<std::size_t>(used_bytes), slot_size);
+    auto const actual_size = std::min(used_bytes, slot_size);
     // TODO get rid of const_cast
     // const_cast is safe: Payload::data() returns Span (const), so the data is never modified
     auto span = socom::Payload::Writable_span{

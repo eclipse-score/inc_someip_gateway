@@ -168,8 +168,7 @@ class Service_states {
                                socom::Server_service_interface_definition const& configuration) {
         auto& insert_result = get_or_create(key, interface, instance);
 
-        insert_result.counts = {static_cast<std::uint16_t>(configuration.get_num_methods()),
-                                static_cast<std::uint16_t>(configuration.get_num_events())};
+        insert_result.counts = {configuration.get_num_methods(), configuration.get_num_events()};
         insert_result.requested = true;
 
         return insert_result;
@@ -206,8 +205,7 @@ class Service_states {
         }
 
         assert(msg.in_use);
-        state.counts = {static_cast<std::uint16_t>(configuration.num_methods),
-                        static_cast<std::uint16_t>(configuration.num_events)};
+        state.counts = {configuration.num_methods, configuration.num_events};
         state.requested = msg.in_use;
         result.service_state = state;
         return result;

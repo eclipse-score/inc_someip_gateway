@@ -38,7 +38,7 @@ class Payload_impl final {
 
     /// \brief Called when Payload_impl and memory is released. Can own the memory if it is heap
     /// allocated.
-    using Payload_destroyed = score::cpp::move_only_function<void(), 40>;
+    using Payload_destroyed = score::cpp::move_only_function<void(), 48>;
 
     Payload_impl() = default;
 

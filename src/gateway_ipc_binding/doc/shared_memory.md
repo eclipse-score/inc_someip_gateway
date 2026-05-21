@@ -126,8 +126,8 @@ if (!handle_result) {
 std::memcpy(memory.data(), payload_bytes, payload_size);
 
 Shared_memory_handle handle{
-    static_cast<std::uint32_t>(*handle_result),
-    static_cast<std::uint32_t>(payload_size),
+    *handle_result,
+    payload_size,
 };
 
 // Send handle in Event_update or another payload-carrying IPC message.

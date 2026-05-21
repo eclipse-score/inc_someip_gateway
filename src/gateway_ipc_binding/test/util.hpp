@@ -27,8 +27,8 @@
 
 namespace score::gateway_ipc_binding {
 
-Shared_memory_metadata make_metadata(std::string const& path, std::uint32_t slot_size,
-                                     std::uint32_t slot_count);
+Shared_memory_metadata make_metadata(std::string const& path, std::size_t slot_size,
+                                     std::size_t slot_count);
 
 std::string make_service_name();
 
@@ -90,9 +90,9 @@ inline auto matches_service_definition(socom::Server_service_interface_definitio
     });
 }
 
-inline socom::Writable_payload create_payload(
-    socom::Enabled_server_connector& connector, Event_id const& event_id,
-    std::vector<std::byte> const& expected_payload) {
+inline socom::Writable_payload create_payload(socom::Enabled_server_connector& connector,
+                                              Event_id const& event_id,
+                                              std::vector<std::byte> const& expected_payload) {
     auto payload_handle = connector.allocate_event_payload(event_id);
     assert(payload_handle);
     auto wdata = payload_handle->wdata();

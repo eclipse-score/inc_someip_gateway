@@ -20,8 +20,8 @@ Service_interface_definition::Service_interface_definition(Service_interface_ide
                                                            Num_of_methods const num_of_methods,
                                                            Num_of_events const num_of_events)
     : interface{sif},
-      num_methods{static_cast<std::size_t>(num_of_methods)},
-      num_events{static_cast<std::size_t>(num_of_events)} {}
+      num_methods{static_cast<std::uint16_t>(num_of_methods)},
+      num_events{static_cast<std::uint16_t>(num_of_events)} {}
 
 Service_interface_definition::Service_interface_definition(Service_interface_identifier const sif)
     : interface{sif} {}
@@ -52,11 +52,11 @@ Server_service_interface_definition::operator Service_interface_definition() con
     return m_configuration;
 }
 
-std::size_t Server_service_interface_definition::get_num_methods() const noexcept {
+std::uint16_t Server_service_interface_definition::get_num_methods() const noexcept {
     return m_configuration.num_methods;
 }
 
-std::size_t Server_service_interface_definition::get_num_events() const noexcept {
+std::uint16_t Server_service_interface_definition::get_num_events() const noexcept {
     return m_configuration.num_events;
 }
 

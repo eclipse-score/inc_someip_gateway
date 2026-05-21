@@ -24,7 +24,7 @@ namespace score::gateway_ipc_binding {
 namespace {
 
 void benchmark_event_transmission_client_to_server(benchmark::State& state) {
-    Event_transmission_benchmark_context context(static_cast<std::uint32_t>(state.range(0)));
+    Event_transmission_benchmark_context context(static_cast<std::size_t>(state.range(0)));
 
     for (auto _ : state) {
         auto const duration = context.send_and_measure_once();
@@ -36,8 +36,7 @@ void benchmark_event_transmission_client_to_server(benchmark::State& state) {
         state.SetIterationTime(std::chrono::duration<double>(duration.value()).count());
     }
 
-    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) *
-                            static_cast<std::int64_t>(state.range(0)));
+    state.SetBytesProcessed(state.iterations() * state.range(0));
 }
 
 BENCHMARK(benchmark_event_transmission_client_to_server)

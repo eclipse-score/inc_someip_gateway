@@ -48,8 +48,8 @@ using namespace std::chrono_literals;
 }
 
 [[nodiscard]] inline Shared_memory_metadata make_metadata(std::string const& path,
-                                                          std::uint32_t slot_size,
-                                                          std::uint32_t slot_count) {
+                                                          std::size_t slot_size,
+                                                          std::size_t slot_count) {
     Shared_memory_metadata metadata{};
     auto result = fixed_string_from_string<Shared_memory_path>(path);
     assert(result && "Path should fit into fixed-size metadata path");
@@ -61,7 +61,7 @@ using namespace std::chrono_literals;
 
 class Event_transmission_benchmark_context final {
    public:
-    explicit Event_transmission_benchmark_context(std::uint32_t payload_size)
+    explicit Event_transmission_benchmark_context(std::size_t payload_size)
         : runtime_server_{score::socom::create_runtime()},
           runtime_client_{score::socom::create_runtime()},
           service_name_{make_unique_name("gw_ipc_event_bench")},

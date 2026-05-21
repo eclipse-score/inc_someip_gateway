@@ -272,9 +272,8 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
                 Message_frame<Event_update> update_msg;
                 update_msg.payload.required_id = ids.remote_handle;
                 update_msg.payload.event_id = event_id;
-                update_msg.payload.payload = {
-                    .slot_index = static_cast<std::uint32_t>(payload.get_slot_handle()),
-                    .used_bytes = static_cast<std::uint32_t>(payload.data().size())};
+                update_msg.payload.payload = {.slot_index = payload.get_slot_handle(),
+                                              .used_bytes = payload.data().size()};
                 auto send_result = conn->send(update_msg);
                 if (send_result) {
                     ++recipient_count;
