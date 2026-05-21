@@ -1,0 +1,868 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>IPC Protocol &#8212; Module Template Project  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/score.css?v=6e51530f" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/score_needs.css?v=e97392eb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/score_design.css?v=d9fd870c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-needs/modern.css?v=803738c0" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../../_static/sphinx-data-viewer/jsonview.bundle.js?v=18cd53c5"></script>
+    <script src="../../_static/sphinx-data-viewer/jsonview_loader.js?v=f7ff7e7d"></script>
+    <script src="../../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
+    <script src="../../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
+    <script src="../../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'gateway_ipc_binding/doc/ipc_protocol';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Memory Profiling Results: gateway_ipc_binding_memory" href="../memory_profile/index.html" />
+    <link rel="prev" title="Shared Memory Slot Manager" href="shared_memory.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Eclipse S-CORE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture/index.html">
+    SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tc8_conformance/index.html">
+    TC8 SOME/IP Conformance Testing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../socom/design/index.html">
+    Software design SOCom library
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Gateway IPC Binding
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../architecture/index.html">
+    SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../tc8_conformance/index.html">
+    TC8 SOME/IP Conformance Testing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../socom/design/index.html">
+    Software design SOCom library
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Gateway IPC Binding
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="shared_memory.html">Shared Memory Slot Manager</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">IPC Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory_profile/index.html">Memory Profiling Results: gateway_ipc_binding_memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../profiling/benchmark_event_transmission_client_to_server_analysis.html">benchmark_event_transmission_client_to_server Profiling Analysis</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Gateway IPC Binding</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">IPC Protocol</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="ipc-protocol">
+<h1>IPC Protocol<a class="headerlink" href="#ipc-protocol" title="Link to this heading">#</a></h1>
+<p>This document describes the current on-wire protocol shape and, separately, which parts are actively handled by the implementation.</p>
+<section id="implemented-protocol-phases">
+<h2>Implemented protocol phases<a class="headerlink" href="#implemented-protocol-phases" title="Link to this heading">#</a></h2>
+<p>The binding currently implements four phases:</p>
+<ol class="arabic simple">
+<li><p>IPC connection setup</p></li>
+<li><p>service discovery forwarding</p></li>
+<li><p>per-service connection establishment</p></li>
+<li><p>event subscription and event update forwarding</p></li>
+</ol>
+<p>Method transport messages are defined in the public header for protocol completeness, but they are not yet dispatched by <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_base</span></code>.</p>
+</section>
+<section id="end-to-end-flow-implemented-today">
+<h2>End-to-end flow implemented today<a class="headerlink" href="#end-to-end-flow-implemented-today" title="Link to this heading">#</a></h2>
+<figure class="align-center" id="id1">
+<p class="plantuml">
+<object data="../../_images/plantuml-3eb3fcc609f5aea812cc09941808656fc351284a.svg" type="image/svg+xml" style="width:654px;height:607px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">Current connection and event flow</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="transport-model">
+<h2>Transport model<a class="headerlink" href="#transport-model" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The control channel carries fixed-layout, trivially copyable message structs.</p></li>
+<li><p>Payload bytes are carried out-of-band in shared memory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Shared_memory_handle</span></code> identifies the slot and payload size within a peer-owned shared-memory pool.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Shared_memory_metadata</span></code> tells the peer how to open that shared-memory pool.</p></li>
+</ul>
+</section>
+<section id="message-layout">
+<h2>Message layout<a class="headerlink" href="#message-layout" title="Link to this heading">#</a></h2>
+<p>The implementation sends a <code class="docutils literal notranslate"><span class="pre">Message_frame&lt;T&gt;</span></code> over the control channel, where the first byte is the <code class="docutils literal notranslate"><span class="pre">Message_type</span></code> discriminator and the remainder is the trivially copyable payload for <code class="docutils literal notranslate"><span class="pre">T</span></code>.</p>
+<p>The public message ids are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code>: <code class="docutils literal notranslate"><span class="pre">Connect</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code>: <code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">3</span></code>: <code class="docutils literal notranslate"><span class="pre">Request_service</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">4</span></code>: <code class="docutils literal notranslate"><span class="pre">Offer_service</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">5</span></code>: <code class="docutils literal notranslate"><span class="pre">Connect_service</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">6</span></code>: <code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">7</span></code>: <code class="docutils literal notranslate"><span class="pre">Call_method</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">8</span></code>: <code class="docutils literal notranslate"><span class="pre">Call_method_handle</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">9</span></code>: <code class="docutils literal notranslate"><span class="pre">Call_method_reply</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">10</span></code>: <code class="docutils literal notranslate"><span class="pre">Cancel_method_call</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">11</span></code>: <code class="docutils literal notranslate"><span class="pre">Subscribe_event</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">12</span></code>: <code class="docutils literal notranslate"><span class="pre">Subscribe_event_reply</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">13</span></code>: <code class="docutils literal notranslate"><span class="pre">Event_update</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">14</span></code>: <code class="docutils literal notranslate"><span class="pre">Event_update_request</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">15</span></code>: <code class="docutils literal notranslate"><span class="pre">Payload_consumed</span></code></p></li>
+</ul>
+</section>
+<section id="core-data-structures">
+<h2>Core data structures<a class="headerlink" href="#core-data-structures" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Service</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Fixed_string</span><span class="o">&lt;</span><span class="mi">64</span><span class="o">&gt;</span><span class="w"> </span><span class="n">service_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">socom</span><span class="o">::</span><span class="n">Service_interface</span><span class="o">::</span><span class="n">Version</span><span class="w"> </span><span class="n">version</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">using</span><span class="w"> </span><span class="n">Instance_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Fixed_string</span><span class="o">&lt;</span><span class="mi">64</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">Remote_handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">Method_invocation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="p">;</span>
+
+<span class="k">struct</span><span class="w"> </span><span class="nc">Shared_memory_handle</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">slot_index</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">used_bytes</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span><span class="w"> </span><span class="nc">Shared_memory_metadata</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Fixed_string</span><span class="o">&lt;</span><span class="mi">508</span><span class="o">&gt;</span><span class="w"> </span><span class="n">path</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">slot_size</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">slot_count</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+<section id="message-semantics">
+<h2>Message semantics<a class="headerlink" href="#message-semantics" title="Link to this heading">#</a></h2>
+<section id="connect">
+<h3><code class="docutils literal notranslate"><span class="pre">Connect</span></code><a class="headerlink" href="#connect" title="Link to this heading">#</a></h3>
+<p>Initial handshake message sent automatically by <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client</span></code> when the underlying IPC channel reaches <code class="docutils literal notranslate"><span class="pre">kReady</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Connect</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Fixed_size_container</span><span class="o">&lt;</span><span class="n">Service_instance</span><span class="p">,</span><span class="w"> </span><span class="n">kMax_find_service_elements</span><span class="o">&gt;</span><span class="w"> </span><span class="n">find_service_elements</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Current implementation note:</p>
+<ul class="simple">
+<li><p>the message is sent and parsed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find_service_elements</span></code> is not yet used by the server-side handler</p></li>
+</ul>
+</section>
+<section id="connect-reply">
+<h3><code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code><a class="headerlink" href="#connect-reply" title="Link to this heading">#</a></h3>
+<p>Acknowledges the control-channel handshake.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Connect_reply</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">status</span></code> is true, the client marks itself connected and the shared binding logic may start emitting pending <code class="docutils literal notranslate"><span class="pre">Connect_service</span></code> messages.</p>
+</section>
+<section id="request-service">
+<h3><code class="docutils literal notranslate"><span class="pre">Request_service</span></code><a class="headerlink" href="#request-service" title="Link to this heading">#</a></h3>
+<p>Sent when the local SOCom runtime requests a service through the registered bridge.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Request_service</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Service</span><span class="w"> </span><span class="n">service_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Instance_id</span><span class="w"> </span><span class="n">instance_id</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">in_use</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Current implementation note:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in_use=true</span></code> is handled</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">in_use=false</span></code> is emitted by the bridge logic, but the receive-side teardown path is still minimal</p></li>
+</ul>
+</section>
+<section id="offer-service">
+<h3><code class="docutils literal notranslate"><span class="pre">Offer_service</span></code><a class="headerlink" href="#offer-service" title="Link to this heading">#</a></h3>
+<p>Sent when the local runtime discovers or withdraws an offered service.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Offer_service</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Service</span><span class="w"> </span><span class="n">service_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Instance_id</span><span class="w"> </span><span class="n">instance_id</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">offered</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>If an offered service disappears, the implementation removes local mappings and clears pending connect state for that service key.</p>
+</section>
+<section id="connect-service">
+<h3><code class="docutils literal notranslate"><span class="pre">Connect_service</span></code><a class="headerlink" href="#connect-service" title="Link to this heading">#</a></h3>
+<p>Requests establishment of a service-specific binding after a local request matches a remote offer.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Connect_service</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Service</span><span class="w"> </span><span class="n">service_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Instance_id</span><span class="w"> </span><span class="n">instance_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">required_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Shared_memory_metadata</span><span class="w"> </span><span class="n">metadata</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">in_use</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Semantics:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">required_id</span></code> is generated by the requester and later echoed back in <code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code> describes the requester’s writable shared-memory pool for this service instance</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">in_use=false</span></code> tears down the local connector and mapping for that peer/service pair</p></li>
+</ul>
+</section>
+<section id="connect-service-reply">
+<h3><code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code><a class="headerlink" href="#connect-service-reply" title="Link to this heading">#</a></h3>
+<p>Confirms a service binding and completes the local/remote handle exchange.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Connect_service_reply</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">required_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">provided_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Shared_memory_metadata</span><span class="w"> </span><span class="n">metadata</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">num_methods</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">num_events</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The receiver uses this to create a local SOCom server connector that represents the remote provider.</p>
+</section>
+<section id="subscribe-event">
+<h3><code class="docutils literal notranslate"><span class="pre">Subscribe_event</span></code><a class="headerlink" href="#subscribe-event" title="Link to this heading">#</a></h3>
+<p>Forwards local event subscription state to the peer that owns the provider-side SOCom client connector.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Subscribe_event</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">provided_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Event_id</span><span class="w"> </span><span class="n">event_id</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">subscribe</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Current implementation note:</p>
+<ul class="simple">
+<li><p>this is the only active event-control message today</p></li>
+<li><p>there is no <code class="docutils literal notranslate"><span class="pre">Subscribe_event_reply</span></code> handling path yet</p></li>
+</ul>
+</section>
+<section id="event-update">
+<h3><code class="docutils literal notranslate"><span class="pre">Event_update</span></code><a class="headerlink" href="#event-update" title="Link to this heading">#</a></h3>
+<p>Forwards an event payload stored in the sender’s shared memory.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Event_update</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">required_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Event_id</span><span class="w"> </span><span class="n">event_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Shared_memory_handle</span><span class="w"> </span><span class="n">payload</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The receiver resolves <code class="docutils literal notranslate"><span class="pre">required_id</span></code> to peer shared-memory metadata, opens the peer pool read-only, and passes the resulting payload into the local enabled server connector.</p>
+</section>
+<section id="payload-consumed">
+<h3><code class="docutils literal notranslate"><span class="pre">Payload_consumed</span></code><a class="headerlink" href="#payload-consumed" title="Link to this heading">#</a></h3>
+<p>Signals that a previously received payload is no longer needed.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">Payload_consumed</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">required_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Shared_memory_handle</span><span class="w"> </span><span class="n">handle</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Current implementation note:</p>
+<ul class="simple">
+<li><p>this releases payload ownership on the sender side</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">required_id</span></code> identifies the service connection so the sender can reclaim from the correct per-service allocation table</p></li>
+</ul>
+</section>
+</section>
+<section id="declared-but-not-implemented">
+<h2>Declared but not implemented<a class="headerlink" href="#declared-but-not-implemented" title="Link to this heading">#</a></h2>
+<p>The following message types exist in the public protocol header, but <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_base::on_receive_message()</span></code> does not handle them yet:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Call_method</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Call_method_handle</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Call_method_reply</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cancel_method_call</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Subscribe_event_reply</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Event_update_request</span></code></p></li>
+</ul>
+<p>Those messages should be treated as reserved protocol surface until the corresponding binding logic is added.</p>
+<section id="method-calls">
+<h3>Method calls<a class="headerlink" href="#method-calls" title="Link to this heading">#</a></h3>
+<p>Method calls can be fire and forget or with responses.
+Method calls with responses can be cancelled.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// method call to a method of an offered service</span>
+<span class="c1">// receiver must respond with some identifier if not fire_forget</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Call_method</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">provided_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Method_id</span><span class="w"> </span><span class="n">method_id</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">fire_and_forget</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Shared_memory_handle</span><span class="w"> </span><span class="n">payload</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// handle for active method call</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Call_method_handle</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">required_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Method_invocation</span><span class="w"> </span><span class="n">invocation_id</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// reply to method call</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Call_method_reply</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">required_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Method_invocation</span><span class="w"> </span><span class="n">invocation_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Shared_memory_handle</span><span class="w"> </span><span class="n">payload</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+<section id="events">
+<h3>Events<a class="headerlink" href="#events" title="Link to this heading">#</a></h3>
+<p>Events need to be subscribed to, which can fail.
+After subscription event updates are received.
+For field support the consumer can request an event update.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ack or nack to Subscribe_event</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Subscribe_event_reply</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">required_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Event_id</span><span class="w"> </span><span class="n">event_id</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">subscribed</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// request a new event update</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Event_update_request</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">Remote_handle</span><span class="w"> </span><span class="n">provided_id</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Event_id</span><span class="w"> </span><span class="n">event_id</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="shared_memory.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Shared Memory Slot Manager</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../memory_profile/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Memory Profiling Results: gateway_ipc_binding_memory</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implemented-protocol-phases">Implemented protocol phases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#end-to-end-flow-implemented-today">End-to-end flow implemented today</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transport-model">Transport model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#message-layout">Message layout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-data-structures">Core data structures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#message-semantics">Message semantics</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connect"><code class="docutils literal notranslate"><span class="pre">Connect</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-reply"><code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#request-service"><code class="docutils literal notranslate"><span class="pre">Request_service</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#offer-service"><code class="docutils literal notranslate"><span class="pre">Offer_service</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-service"><code class="docutils literal notranslate"><span class="pre">Connect_service</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connect-service-reply"><code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#subscribe-event"><code class="docutils literal notranslate"><span class="pre">Subscribe_event</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-update"><code class="docutils literal notranslate"><span class="pre">Event_update</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#payload-consumed"><code class="docutils literal notranslate"><span class="pre">Payload_consumed</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#declared-but-not-implemented">Declared but not implemented</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-calls">Method calls</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#events">Events</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/gateway_ipc_binding/doc/ipc_protocol.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

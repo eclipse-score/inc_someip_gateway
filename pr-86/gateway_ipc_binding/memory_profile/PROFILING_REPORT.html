@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Feature Requirements &#8212; Module Template Project  documentation</title>
+    <title>Memory Profiling Report: gateway_ipc_binding_memory &#8212; Module Template Project  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/feature/index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'gateway_ipc_binding/memory_profile/PROFILING_REPORT';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -72,8 +72,8 @@
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Component Requirements" href="../component/index.html" />
-    <link rel="prev" title="Stakeholder Requirements" href="../stakeholder.html" />
+    <link rel="next" title="benchmark_event_transmission_client_to_server Profiling Analysis" href="../profiling/benchmark_event_transmission_client_to_server_analysis.html" />
+    <link rel="prev" title="Memory Profiling Results: gateway_ipc_binding_memory" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -152,8 +152,8 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
     Requirements
   </a>
 </li>
@@ -180,8 +180,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../gateway_ipc_binding/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
     Gateway IPC Binding
   </a>
 </li>
@@ -295,8 +295,8 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
     Requirements
   </a>
 </li>
@@ -323,8 +323,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../gateway_ipc_binding/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
     Gateway IPC Binding
   </a>
 </li>
@@ -393,11 +393,13 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../stakeholder.html">Stakeholder Requirements</a></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="../doc/shared_memory.html">Shared Memory Slot Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../doc/ipc_protocol.html">IPC Protocol</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Memory Profiling Results: gateway_ipc_binding_memory</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Memory Profiling Report: gateway_ipc_binding_memory</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1"><a class="reference internal" href="../component/index.html">Component Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../profiling/benchmark_event_transmission_client_to_server_analysis.html">benchmark_event_transmission_client_to_server Profiling Analysis</a></li>
 </ul>
 </div>
 </nav></div>
@@ -439,9 +441,12 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Requirements</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Gateway IPC Binding</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Feature Requirements</span></li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Memory Profiling Results: gateway_ipc_binding_memory</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Memory Profiling Report: gateway_ipc_binding_memory</span></li>
   </ul>
 </nav>
 </div>
@@ -458,21 +463,233 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="feature-requirements">
-<h1>Feature Requirements<a class="headerlink" href="#feature-requirements" title="Link to this heading">#</a></h1>
-<p>Feature-level requirements for the SOME/IP Gateway. Each feature requirement
-derives from a stakeholder requirement via <code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code> and is scoped to
-a specific gateway capability.</p>
-<p>Feature requirement IDs follow the format:
-<code class="docutils literal notranslate"><span class="pre">feat_req__some_ip_gateway__&lt;title_snake_case&gt;</span></code></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Add feature requirement files to the toctree below as they are created.
-Group requirements by feature area (e.g., <code class="docutils literal notranslate"><span class="pre">service_discovery.rst</span></code>,
-<code class="docutils literal notranslate"><span class="pre">e2e_protection.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">acl.rst</span></code>).</p>
+  <section id="memory-profiling-report-gateway-ipc-binding-memory">
+<h1>Memory Profiling Report: gateway_ipc_binding_memory<a class="headerlink" href="#memory-profiling-report-gateway-ipc-binding-memory" title="Link to this heading">#</a></h1>
+<section id="build-configuration">
+<h2>Build configuration<a class="headerlink" href="#build-configuration" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Build type: Release with <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">opt</span></code></p></li>
+<li><p>Compilation optimizations: enabled</p></li>
+<li><p>Thread sanitizer: disabled by removing the <code class="docutils literal notranslate"><span class="pre">-tsan</span></code> feature</p></li>
+<li><p>Binary: <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding_memory</span></code> dedicated memory profiling application</p></li>
+<li><p>Binary path: <code class="docutils literal notranslate"><span class="pre">bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory</span></code></p></li>
+<li><p>Binary size: about 23 MB</p></li>
+<li><p>Bazel version: 8.4.1</p></li>
+<li><p>Build date: 2026-04-27</p></li>
+</ul>
+</section>
+<section id="profiling-setup">
+<h2>Profiling setup<a class="headerlink" href="#profiling-setup" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Tools: GNU memusage and Valgrind Massif 3.22.0</p></li>
+<li><p>Workload: 1,000,000 iterations with 1 MB payload</p></li>
+<li><p>Test duration: about 5.4 seconds with memusage and about 48 seconds with Massif</p></li>
+<li><p>Profiling data: <code class="docutils literal notranslate"><span class="pre">memusage.data</span></code>, <code class="docutils literal notranslate"><span class="pre">memusage.png</span></code>, and <code class="docutils literal notranslate"><span class="pre">massif.out.1</span></code></p></li>
+</ul>
+</section>
+<section id="memory-usage-summary">
+<h2>Memory usage summary<a class="headerlink" href="#memory-usage-summary" title="Link to this heading">#</a></h2>
+<section id="gnu-memusage-statistics">
+<h3>GNU memusage statistics<a class="headerlink" href="#gnu-memusage-statistics" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Total heap allocated: 201,941 bytes, about 197 KB cumulative, all during setup</p></li>
+<li><p>Peak heap usage: 176,034 bytes, about 172 KB</p></li>
+<li><p>Peak stack usage: 10,960 bytes, about 11 KB</p></li>
+</ul>
+</section>
+<section id="allocation-operations">
+<h3>Allocation operations<a class="headerlink" href="#allocation-operations" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Total malloc calls: 373</p></li>
+<li><p>Total realloc calls: 0</p></li>
+<li><p>Total calloc calls: 3</p></li>
+<li><p>Total free calls: 377</p></li>
+<li><p>Failed allocations: 0</p></li>
+</ul>
+</section>
+<section id="valgrind-massif-statistics">
+<h3>Valgrind Massif statistics<a class="headerlink" href="#valgrind-massif-statistics" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Peak heap usage, useful: 176,002 bytes, about 172 KB</p></li>
+<li><p>Peak heap usage, total with overhead: 178,800 bytes, about 175 KB</p></li>
+<li><p>Number of snapshots: 65</p></li>
+<li><p>Heap profile shape: flat and stable across the entire run</p></li>
+</ul>
+</section>
+<section id="allocation-pattern-histogram">
+<h3>Allocation pattern histogram<a class="headerlink" href="#allocation-pattern-histogram" title="Link to this heading">#</a></h3>
+<p>All 373 allocations occur during setup, with diverse sizes across initialization:</p>
+<ul class="simple">
+<li><p>32 to 47 bytes: 73 blocks, 19 percent</p></li>
+<li><p>16 to 31 bytes: 56 blocks, 14 percent</p></li>
+<li><p>48 to 63 bytes: 40 blocks, 10 percent</p></li>
+<li><p>0 to 15 bytes: 35 blocks, 9 percent</p></li>
+<li><p>4096 to 4111 bytes: 24 blocks, 6 percent</p></li>
+<li><p>112 to 127 bytes: 17 blocks, 4 percent</p></li>
+<li><p>240 to 255 bytes: 16 blocks, 4 percent</p></li>
+<li><p>Other sizes: 112 blocks, 30 percent</p></li>
+</ul>
+</section>
+</section>
+<section id="execution-performance">
+<h2>Execution performance<a class="headerlink" href="#execution-performance" title="Link to this heading">#</a></h2>
+<p>Dedicated memory profiling application with 1 MB payload and 1 million iterations.</p>
+<section id="event-transmission">
+<h3>Event transmission<a class="headerlink" href="#event-transmission" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Total benchmark time: 3,475 ms</p></li>
+<li><p>Total execution time: 5,435 ms including setup and teardown</p></li>
+<li><p>Latency per iteration: about 3.5 microseconds</p></li>
+<li><p>Iterations: 1,000,000</p></li>
+</ul>
+</section>
+<section id="per-iteration-allocation-cost">
+<h3>Per-iteration allocation cost<a class="headerlink" href="#per-iteration-allocation-cost" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Malloc calls per iteration: 0</p></li>
+<li><p>Bytes allocated per iteration: 0</p></li>
+<li><p>Net heap growth per iteration: 0</p></li>
+</ul>
+</section>
+</section>
+<section id="massif-top-allocators-at-peak-snapshot-40">
+<h2>Massif top allocators at peak snapshot 40<a class="headerlink" href="#massif-top-allocators-at-peak-snapshot-40" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Allocator</p></th>
+<th class="head"><p>Size</p></th>
+<th class="head"><p>Percent of peak</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ClientConnection::ClientConnection</span></code> vector reserve</p></td>
+<td><p>81,920 B</p></td>
+<td><p>45.8</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ConsoleRecorderFactory::CreateConsoleLoggingBackend</span></code> logging backend</p></td>
+<td><p>24,792 B</p></td>
+<td><p>13.9</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LogRecord</span></code> circular allocator logging buffer</p></td>
+<td><p>16,384 B</p></td>
+<td><p>9.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>Other, 153 places below threshold</p></td>
+<td><p>23,794 B</p></td>
+<td><p>13.3</p></td>
+</tr>
+<tr class="row-even"><td><p>Allocator overhead, extra heap</p></td>
+<td><p>2,798 B</p></td>
+<td><p>1.6</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="toctree-wrapper compound">
+</section>
+<section id="key-findings">
+<h2>Key findings<a class="headerlink" href="#key-findings" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Allocation-free hot path: zero heap allocations during 1 million iterations, with all 373 mallocs occurring during initialization only.</p></li>
+<li><p>Stable memory profile: peak heap is about 172 KB useful bytes and stays flat across the run.</p></li>
+<li><p>Peak memory: about 172 KB useful heap and about 175 KB total with overhead.</p></li>
+<li><p>No leaks: free and allocation counts balance as expected.</p></li>
+<li><p>Dramatic allocation reduction: 373 total malloc calls, down from more than 1 million in the previous run.</p></li>
+<li><p>Dominant allocator: <code class="docutils literal notranslate"><span class="pre">ClientConnection</span></code> buffer reserve accounts for about 46 percent of peak heap.</p></li>
+<li><p>Logging overhead: console logging backend accounts for about 23 percent of peak heap.</p></li>
+</ol>
+</section>
+<section id="comparison-with-previous-runs">
+<h2>Comparison with previous runs<a class="headerlink" href="#comparison-with-previous-runs" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Apr 22</p></th>
+<th class="head"><p>Apr 27 previous</p></th>
+<th class="head"><p>Current</p></th>
+<th class="head"><p>Change vs previous</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Total malloc calls</p></td>
+<td><p>6,021,543</p></td>
+<td><p>1,005,137</p></td>
+<td><p>373</p></td>
+<td><p>-99.96 percent</p></td>
+</tr>
+<tr class="row-odd"><td><p>Total heap allocated</p></td>
+<td><p>283 MB</p></td>
+<td><p>168 MB</p></td>
+<td><p>197 KB</p></td>
+<td><p>-99.9 percent</p></td>
+</tr>
+<tr class="row-even"><td><p>Peak heap memusage</p></td>
+<td><p>172 KB</p></td>
+<td><p>174 KB</p></td>
+<td><p>172 KB</p></td>
+<td><p>-1 percent</p></td>
+</tr>
+<tr class="row-odd"><td><p>Peak heap Massif useful</p></td>
+<td><p>172 KB</p></td>
+<td><p>173 KB</p></td>
+<td><p>172 KB</p></td>
+<td><p>-1 percent</p></td>
+</tr>
+<tr class="row-even"><td><p>Benchmark latency</p></td>
+<td><p>3.9 microseconds</p></td>
+<td><p>3.6 microseconds</p></td>
+<td><p>3.5 microseconds</p></td>
+<td><p>-3 percent</p></td>
+</tr>
+<tr class="row-odd"><td><p>Total execution time</p></td>
+<td><p>6.2 s</p></td>
+<td><p>5.7 s</p></td>
+<td><p>5.4 s</p></td>
+<td><p>-5 percent</p></td>
+</tr>
+<tr class="row-even"><td><p>Binary size</p></td>
+<td><p>18 MB</p></td>
+<td><p>23 MB</p></td>
+<td><p>23 MB</p></td>
+<td><p>0 percent</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bazel version</p></td>
+<td><p>8.0.0</p></td>
+<td><p>8.4.1</p></td>
+<td><p>8.4.1</p></td>
+<td><p>same</p></td>
+</tr>
+<tr class="row-even"><td><p>Malloc calls per iteration</p></td>
+<td><p>about 6</p></td>
+<td><p>about 1</p></td>
+<td><p>0</p></td>
+<td><p>-100 percent</p></td>
+</tr>
+</tbody>
+</table>
 </div>
+<p>Notable result: per-iteration heap allocations have been completely eliminated. The 373 total malloc calls all occur during initialization. Cumulative heap allocation dropped from 168 MB to 197 KB, confirming the event transmission hot path is now allocation-free.</p>
+</section>
+<section id="recommendations">
+<h2>Recommendations<a class="headerlink" href="#recommendations" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Allocation-free hot path: zero per-iteration allocations confirms real-time suitability without allocator jitter.</p></li>
+<li><p>Light memory footprint: about 172 KB useful heap is suitable for embedded and real-time systems.</p></li>
+<li><p>Flat allocation profile: zero heap growth over 1 million iterations confirms stable memory behavior.</p></li>
+<li><p>Logging overhead: around 23 percent of peak heap is logging infrastructure, so production builds could use a lighter backend.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ClientConnection</span></code> buffer: the 80 KB reserve is a one-time setup cost and acceptable for long-running services.</p></li>
+</ul>
+</section>
+<section id="output-files">
+<h2>Output files<a class="headerlink" href="#output-files" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">memusage.data</span></code>: raw profiling data file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">memusage.png</span></code>: memory usage timeline graph</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">massif.out.1</span></code>: Valgrind Massif heap profile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">benchmark_run.log</span></code>: memusage execution log</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">massif_run.log</span></code>: Massif execution log</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILING_REPORT.rst</span></code>: this report</p></li>
+</ul>
+</section>
 </section>
 
 
@@ -486,20 +703,20 @@ Group requirements by feature area (e.g., <code class="docutils literal notransl
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../stakeholder.html"
+       href="index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Stakeholder Requirements</p>
+        <p class="prev-next-title">Memory Profiling Results: gateway_ipc_binding_memory</p>
       </div>
     </a>
     <a class="right-next"
-       href="../component/index.html"
+       href="../profiling/benchmark_event_transmission_client_to_server_analysis.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Component Requirements</p>
+        <p class="prev-next-title">benchmark_event_transmission_client_to_server Profiling Analysis</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -515,10 +732,40 @@ Group requirements by feature area (e.g., <code class="docutils literal notransl
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-configuration">Build configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profiling-setup">Profiling setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-usage-summary">Memory usage summary</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gnu-memusage-statistics">GNU memusage statistics</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#allocation-operations">Allocation operations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#valgrind-massif-statistics">Valgrind Massif statistics</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#allocation-pattern-histogram">Allocation pattern histogram</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#execution-performance">Execution performance</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-transmission">Event transmission</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#per-iteration-allocation-cost">Per-iteration allocation cost</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#massif-top-allocators-at-peak-snapshot-40">Massif top allocators at peak snapshot 40</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-findings">Key findings</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-with-previous-runs">Comparison with previous runs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#recommendations">Recommendations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-files">Output files</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/feature/index.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/gateway_ipc_binding/memory_profile/PROFILING_REPORT.rst">
       <i class="fa-solid fa-pencil"></i>
       
       

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Feature Requirements &#8212; Module Template Project  documentation</title>
+    <title>2. Behavioral View &#8212; Module Template Project  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/feature/index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'socom/design/40_behavioral_view';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -72,8 +72,8 @@
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Component Requirements" href="../component/index.html" />
-    <link rel="prev" title="Stakeholder Requirements" href="../stakeholder.html" />
+    <link rel="next" title="3. State Dynamics View" href="50_state_dynamics_view.html" />
+    <link rel="prev" title="1. Structural View" href="30_structural_view.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -152,8 +152,8 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
     Requirements
   </a>
 </li>
@@ -173,8 +173,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../socom/design/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     Software design SOCom library
   </a>
 </li>
@@ -295,8 +295,8 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
     Requirements
   </a>
 </li>
@@ -316,8 +316,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../socom/design/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     Software design SOCom library
   </a>
 </li>
@@ -393,11 +393,9 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../stakeholder.html">Stakeholder Requirements</a></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../component/index.html">Component Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="30_structural_view.html">1. Structural View</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">2. Behavioral View</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_state_dynamics_view.html">3. State Dynamics View</a></li>
 </ul>
 </div>
 </nav></div>
@@ -439,9 +437,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Requirements</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Software design SOCom library</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Feature Requirements</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><span class="section-number">2. </span>Behavioral View</span></li>
   </ul>
 </nav>
 </div>
@@ -458,21 +456,161 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="feature-requirements">
-<h1>Feature Requirements<a class="headerlink" href="#feature-requirements" title="Link to this heading">#</a></h1>
-<p>Feature-level requirements for the SOME/IP Gateway. Each feature requirement
-derives from a stakeholder requirement via <code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code> and is scoped to
-a specific gateway capability.</p>
-<p>Feature requirement IDs follow the format:
-<code class="docutils literal notranslate"><span class="pre">feat_req__some_ip_gateway__&lt;title_snake_case&gt;</span></code></p>
+  <section id="behavioral-view">
+<h1><span class="section-number">2. </span>Behavioral View<a class="headerlink" href="#behavioral-view" title="Link to this heading">#</a></h1>
+<p>This component implements the following state machines:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="50_state_dynamics_view.html#event-subscription-state-machine"><span class="std std-ref">event subscription state</span></a></p></li>
+<li><p><a class="reference internal" href="50_state_dynamics_view.html#service-state-machine"><span class="std std-ref">service state</span></a></p></li>
+</ul>
+<section id="runtime">
+<h2><span class="section-number">2.1. </span>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h2>
+<p>The runtime is a (process internal) service instance broker.
+Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
+Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
+Additionally, it provides a service instance find interface.</p>
+</section>
+<section id="server-connector">
+<h2><span class="section-number">2.2. </span>Server connector<a class="headerlink" href="#server-connector" title="Link to this heading">#</a></h2>
+<p>A server application owns and uses this component to join client/server pattern based service oriented communication (SOCom).
+The server connector interacts with the client connector in order perform the supported communication primitives.
+The server connector API provides the following features:</p>
+<ul class="simple">
+<li><p>remote procedure called indication</p></li>
+<li><p>event subscription state changed indication:</p>
+<ul>
+<li><p>on first subscriber</p></li>
+<li><p>on last unsubscriber</p></li>
+</ul>
+</li>
+<li><p>event update request indication</p></li>
+<li><p>event mode getter (event with/without initial update)</p></li>
+<li><p>update event</p></li>
+<li><p>update requested event</p></li>
+<li><p>acknowledge event subscription</p></li>
+</ul>
+</section>
+<section id="method-communication">
+<h2><span class="section-number">2.3. </span>Method Communication<a class="headerlink" href="#method-communication" title="Link to this heading">#</a></h2>
+<p>Methods calls are routed 1:1 from client to server application.
+If a method reply is requested, the calling client is served with the related reply.
+Independent method calls share no state.</p>
+<figure class="align-center" id="id1">
+<p class="plantuml">
+<object data="../../_images/plantuml-758a8aabe4c3eaa6fd44f6db79081850aea05458.svg" type="image/svg+xml" style="width:1166px;height:912px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.1 </span><span class="caption-text">Interaction diagram: Method communication</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="event-communication">
+<h2><span class="section-number">2.4. </span>Event Communication<a class="headerlink" href="#event-communication" title="Link to this heading">#</a></h2>
+<p>The client subscribes to an event.
+On the subscription, SOCom informs the server using the request for events.
+If no client is subscribed to an event, the server will not send any event updates.</p>
+<p>After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
+SOCom keeps track of subscription states and related clients.</p>
+<figure class="align-center" id="id2">
+<p class="plantuml">
+<object data="../../_images/plantuml-5de27aa4614dad5cc002b91bfcb04995fbebbad0.svg" type="image/svg+xml" style="width:842px;height:718px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.2 </span><span class="caption-text">Interaction diagram: Event communication</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="field-notification-communication">
+<h2><span class="section-number">2.5. </span>Field Notification Communication<a class="headerlink" href="#field-notification-communication" title="Link to this heading">#</a></h2>
+<p>A field notification is implemented as an event with event update on subscription.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Add feature requirement files to the toctree below as they are created.
-Group requirements by feature area (e.g., <code class="docutils literal notranslate"><span class="pre">service_discovery.rst</span></code>,
-<code class="docutils literal notranslate"><span class="pre">e2e_protection.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">acl.rst</span></code>).</p>
+<p>Additional behavior compared to field communication:
+since SOCom does not save the current event values, SOCom requests an event update from the server for each new subscriber.</p>
 </div>
-<div class="toctree-wrapper compound">
-</div>
+<p>Servers answer this request with update_requested_event().
+Those updates are indicated to the client which is subscribed and has an initial event update pending.</p>
+<p>Regular update_event() calls update for the events of the subscriber and also fulfills the initial event update use-case.
+Consequently, update_event() satisfies the event update request implicitly.</p>
+<figure class="align-center" id="id3">
+<p class="plantuml">
+<object data="../../_images/plantuml-6ea50a19beee0cbd32633be2cba7de7891aa3c3c.svg" type="image/svg+xml" style="width:1003px;height:819px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.3 </span><span class="caption-text">Interaction diagram: Field notification communication</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="service-gateway-find-service">
+<h2><span class="section-number">2.6. </span>Service Gateway - find service<a class="headerlink" href="#service-gateway-find-service" title="Link to this heading">#</a></h2>
+<p>The creation of client connectors is forwarded to bridges as request_service() calls.
+Service bridges look up the required service instance within their domain.
+If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).</p>
+<figure class="align-center" id="id4">
+<p class="plantuml">
+<object data="../../_images/plantuml-1a2b7186035e3bbe7e85772d4470bc70f84502f4.svg" type="image/svg+xml" style="width:1270px;height:1080px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.4 </span><span class="caption-text">Interaction diagram: Service Gateway - find service</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="service-gateway-require-service">
+<h2><span class="section-number">2.7. </span>Service Gateway - require service<a class="headerlink" href="#service-gateway-require-service" title="Link to this heading">#</a></h2>
+<p>The creation of client connectors is forwarded to bridges as request_service() calls.
+Service bridges look up the required service instance within their domain.
+If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).</p>
+<figure class="align-center" id="id5">
+<p class="plantuml">
+<object data="../../_images/plantuml-6029ae056adc5f881ca3227572d3564b5c376552.svg" type="image/svg+xml" style="width:1404px;height:1042px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.5 </span><span class="caption-text">Interaction diagram: Service Gateway - require service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="service-gateway-provide-service">
+<h2><span class="section-number">2.8. </span>Service Gateway - provide service<a class="headerlink" href="#service-gateway-provide-service" title="Link to this heading">#</a></h2>
+<p>The creation of server connectors is found by service bridges using the SOCom subscribe_find_service() API.
+Service bridges provide this information within their domain.
+If any domain partner requests the service instance, the service bridge creates a proxy client connector (forwarding all communication).</p>
+<figure class="align-center" id="id6">
+<p class="plantuml">
+<object data="../../_images/plantuml-753bbe5fdee0259f2cdd90fcda974782ad9eb982.svg" type="image/svg+xml" style="width:1404px;height:1087px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.6 </span><span class="caption-text">Interaction diagram: Service Gateway - provide service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="deadlock-detection">
+<h2><span class="section-number">2.9. </span>Deadlock detection<a class="headerlink" href="#deadlock-detection" title="Link to this heading">#</a></h2>
+<p>In order to facilitate deadlock detection, before a callback is called by a Client_connector or
+Server_connector the thread id of the caller is saved.
+After the callback returns, the previously saved thread id is removed.
+If the calling object is destructed prematurely the deadlock is detected by checking if the thread
+id is still present, issuing a warning log and terminating the application.</p>
+</section>
+<section id="client-connector-deadlocks">
+<h2><span class="section-number">2.10. </span>Client_connector deadlocks<a class="headerlink" href="#client-connector-deadlocks" title="Link to this heading">#</a></h2>
+<p>When a running callback destroys the calling Client_connector a deadlock will happen, which will cause the application to be terminated.</p>
+<p>The deadlock is caused because the Client_connector destructor waits for the callback to return.
+The callback on the other hand waits for the destructor to return.</p>
+<figure class="align-center" id="id7">
+<p class="plantuml">
+<object data="../../_images/plantuml-d402f57349cd40110a9a5765465972181e8dc254.svg" type="image/svg+xml" style="width:660px;height:1131px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.7 </span><span class="caption-text">Interaction diagram: Client_connector deadlocks</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="server-connector-deadlocks">
+<h2><span class="section-number">2.11. </span>Server_connector deadlocks<a class="headerlink" href="#server-connector-deadlocks" title="Link to this heading">#</a></h2>
+<p>When a running callback destroys the calling Server_connector a deadlock will happen, which will cause the application to be terminated.</p>
+<p>The deadlock is caused because the Server_connector destructor waits for the callback to return.
+The callback on the other hand waits for the destructor to return.</p>
+<figure class="align-center" id="id8">
+<p class="plantuml">
+<object data="../../_images/plantuml-077d955946ef37d8da984e1f822e4bca129ac211.svg" type="image/svg+xml" style="width:567px;height:582px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.8 </span><span class="caption-text">Interaction diagram: Server_connector deadlocks</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
 </section>
 
 
@@ -486,20 +624,20 @@ Group requirements by feature area (e.g., <code class="docutils literal notransl
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../stakeholder.html"
+       href="30_structural_view.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Stakeholder Requirements</p>
+        <p class="prev-next-title"><span class="section-number">1. </span>Structural View</p>
       </div>
     </a>
     <a class="right-next"
-       href="../component/index.html"
+       href="50_state_dynamics_view.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Component Requirements</p>
+        <p class="prev-next-title"><span class="section-number">3. </span>State Dynamics View</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -515,10 +653,32 @@ Group requirements by feature area (e.g., <code class="docutils literal notransl
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">2.1. Runtime</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector">2.2. Server connector</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3. Method Communication</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.4. Event Communication</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.5. Field Notification Communication</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-find-service">2.6. Service Gateway - find service</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-require-service">2.7. Service Gateway - require service</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-provide-service">2.8. Service Gateway - provide service</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlock-detection">2.9. Deadlock detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#client-connector-deadlocks">2.10. Client_connector deadlocks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector-deadlocks">2.11. Server_connector deadlocks</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/feature/index.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/socom/design/40_behavioral_view.rst">
       <i class="fa-solid fa-pencil"></i>
       
       

@@ -171,6 +171,20 @@
   </a>
 </li>
 
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="socom/design/index.html">
+    Software design SOCom library
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="gateway_ipc_binding/index.html">
+    Gateway IPC Binding
+  </a>
+</li>
+
   </ul>
 </nav></div>
       
@@ -302,6 +316,20 @@
   </a>
 </li>
 
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="socom/design/index.html">
+    Software design SOCom library
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="gateway_ipc_binding/index.html">
+    Gateway IPC Binding
+  </a>
+</li>
+
   </ul>
 </nav></div>
           
@@ -390,55 +418,92 @@
                   
   <section id="someip-gateway-documentation">
 <h1>SOMEIP Gateway Documentation<a class="headerlink" href="#someip-gateway-documentation" title="Link to this heading">#</a></h1>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#module-layout" id="id2">Module Layout</a></p></li>
+<li><p><a class="reference internal" href="#module-feature-documentation" id="id3">Module / Feature Documentation</a></p></li>
+<li><p><a class="reference internal" href="#component-documentation" id="id4">Component documentation</a></p></li>
+<li><p><a class="reference internal" href="#examples" id="id5">Examples</a></p></li>
+<li><p><a class="reference internal" href="#quick-start" id="id6">Quick Start</a></p></li>
+<li><p><a class="reference internal" href="#configuration" id="id7">Configuration</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>TBD</p>
+</section>
+<section id="module-layout">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Module Layout</a><a class="headerlink" href="#module-layout" title="Link to this heading">#</a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>someip_gateway/                     # Root folder of the module
+├── .github/
+│   └── workflows/                  # CI/CD pipelines
+├── docs/                           # Global documentation of the module
+│   ├── &lt;TBD&gt;
+├── examples/                       # Usage examples
+├── score/                          # Components of the module
+│   ├── tests/                      # Module-level tests (e.g., feature integration tests, system tests) [wp__verification_comp_int_test]
+│   └── &lt;component_name&gt;/           # Component folder for each component of the module
+│       ├── docs/                   # Documentation of the component
+│       │   ├── architecture/       # Component architecture [wp__component_arch]
+│       │   │                       #   (only if lower level components exist)
+|       |   |                       #   architecture review [wp__sw_arch_verification],
+│       │   ├── detailed_design/    # Detailed design [wp__sw_implementation]
+│       │   │                       #   code inspection [wp__sw_implementation_inspection]
+│       │   ├── requirements/       # Component requirements [wp__requirements_comp],[wp__requirements_inspect]
+│       │   ├── safety_analysis/    # Safety analysis [wp__sw_component_fmea], [wp__sw_component_dfa], [wp__requirements_comp_aou]
+|       |   |                       # Component classification [wp__sw_component_class] for pre-existing software
+│       │   │                       #   (only if component architecture exists)
+│       │   ├── security_analysis/  # Security analysis [wp__sw_component_security_analysis]
+│       │   │                       #   (only if component architecture exists)
+│       │   └── manuals/            # User documentation (of a single component, e.g., user manual of a library component, optional)
+│       └── src/                    # Source files, include files, unit tests [wp__verification_sw_unit_test],
+│           ├── &lt;lower_level_comp&gt;/ # Lower level component (follows &lt;component_name&gt; structure)
+│           └── tests/              # Component-level tests (e.g., unit tests) [wp__verification_sw_unit_test]
+├── MODULE.bazel                    # Bazel module definition
+├── BUILD                           # Root build rules
+├── project_config.bzl              # Project metadata used by Bazel macros
+└── README.md                       # Entry point of the repository
+</pre></div>
+</div>
+</section>
+<section id="module-feature-documentation">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Module / Feature Documentation</a><a class="headerlink" href="#module-feature-documentation" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="requirements/index.html">Requirements</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="requirements/stakeholder.html">Stakeholder Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="requirements/feature/index.html">Feature Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="requirements/component/index.html">Component Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="requirements/index.html#organization">Organization</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="architecture/index.html">SOMEIP Gateway Architecture</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="architecture/index.html#component-definition">Component Definition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture/index.html#design-decisions">Design decisions</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="tc8_conformance/index.html">TC8 SOME/IP Conformance Testing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tc8_conformance/requirements.html">TC8 Conformance Test Requirements</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="requirements/index.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture/index.html">SOMEIP Gateway Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tc8_conformance/index.html">TC8 SOME/IP Conformance Testing</a></li>
 </ul>
 </div>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>This repository provides a standardized setup for projects using <strong>C++</strong> or <strong>Rust</strong> and <strong>Bazel</strong> as a build system.
-It integrates best practices for build, test, CI/CD and documentation.</p>
 </section>
-<section id="project-layout">
-<h2>Project Layout<a class="headerlink" href="#project-layout" title="Link to this heading">#</a></h2>
-<p>The module template includes the following top-level structure:</p>
-<ul class="simple">
-<li><p><cite>src/</cite>: Main C++/Rust sources</p></li>
-<li><p><cite>tests/</cite>: Unit and integration tests</p></li>
-<li><p><cite>examples/</cite>: Usage examples</p></li>
-<li><p><cite>docs/</cite>: Documentation using <cite>docs-as-code</cite></p></li>
-<li><p><cite>.github/workflows/</cite>: CI/CD pipelines</p></li>
+<section id="component-documentation">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Component documentation</a><a class="headerlink" href="#component-documentation" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="socom/design/index.html">Software design SOCom library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gateway_ipc_binding/index.html">Gateway IPC Binding</a></li>
 </ul>
+</div>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading">#</a></h2>
+<p>&lt;TBD&gt;</p>
 </section>
 <section id="quick-start">
-<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Quick Start</a><a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
 <p>To build the module:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bazel<span class="w"> </span>build<span class="w"> </span>//src/...
 </pre></div>
 </div>
-<p>To run tests:</p>
+<p>To run integration tests:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bazel<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//tests/...
 </pre></div>
 </div>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Configuration</a><a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
 <p>The <cite>project_config.bzl</cite> file defines metadata used by Bazel macros.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PROJECT_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
@@ -490,7 +555,10 @@ It integrates best practices for build, test, CI/CD and documentation.</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#project-layout">Project Layout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-layout">Module Layout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-feature-documentation">Module / Feature Documentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-documentation">Component documentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
 </ul>
