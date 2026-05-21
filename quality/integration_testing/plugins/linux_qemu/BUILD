@@ -26,6 +26,7 @@ py_library(
     target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
     deps = [
+        "@score_itf//score/itf/plugins:core",
         "@score_itf//score/itf/core/process",
         "@score_itf//score/itf/core/utils",
         "@score_itf//score/itf/plugins/qemu",
