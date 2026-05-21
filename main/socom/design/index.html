@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Feature Requirements &#8212; Module Template Project  documentation</title>
+    <title>Software design SOCom library &#8212; Module Template Project  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/feature/index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'socom/design/index';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -72,8 +72,8 @@
         </script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Component Requirements" href="../component/index.html" />
-    <link rel="prev" title="Stakeholder Requirements" href="../stakeholder.html" />
+    <link rel="next" title="1. Structural View" href="30_structural_view.html" />
+    <link rel="prev" title="TC8 Conformance Test Requirements" href="../../tc8_conformance/requirements.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -152,8 +152,8 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
     Requirements
   </a>
 </li>
@@ -173,8 +173,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../socom/design/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
     Software design SOCom library
   </a>
 </li>
@@ -288,8 +288,8 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../requirements/index.html">
     Requirements
   </a>
 </li>
@@ -309,8 +309,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../socom/design/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
     Software design SOCom library
   </a>
 </li>
@@ -378,12 +378,10 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../stakeholder.html">Stakeholder Requirements</a></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../component/index.html">Component Requirements</a></li>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="30_structural_view.html">1. Structural View</a></li>
+<li class="toctree-l1"><a class="reference internal" href="40_behavioral_view.html">2. Behavioral View</a></li>
+<li class="toctree-l1"><a class="reference internal" href="50_state_dynamics_view.html">3. State Dynamics View</a></li>
 </ul>
 </div>
 </nav></div>
@@ -424,10 +422,7 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Requirements</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Feature Requirements</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Software design SOCom library</span></li>
   </ul>
 </nav>
 </div>
@@ -444,21 +439,40 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="feature-requirements">
-<h1>Feature Requirements<a class="headerlink" href="#feature-requirements" title="Link to this heading">#</a></h1>
-<p>Feature-level requirements for the SOME/IP Gateway. Each feature requirement
-derives from a stakeholder requirement via <code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code> and is scoped to
-a specific gateway capability.</p>
-<p>Feature requirement IDs follow the format:
-<code class="docutils literal notranslate"><span class="pre">feat_req__some_ip_gateway__&lt;title_snake_case&gt;</span></code></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Add feature requirement files to the toctree below as they are created.
-Group requirements by feature area (e.g., <code class="docutils literal notranslate"><span class="pre">service_discovery.rst</span></code>,
-<code class="docutils literal notranslate"><span class="pre">e2e_protection.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">acl.rst</span></code>).</p>
-</div>
+  <section id="software-design-socom-library">
+<h1>Software design SOCom library<a class="headerlink" href="#software-design-socom-library" title="Link to this heading">#</a></h1>
+<section id="socom-library">
+<span id="software-element-socom"></span><h2>SOCom library<a class="headerlink" href="#socom-library" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="30_structural_view.html">1. Structural View</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="30_structural_view.html#runtime">1.1. Runtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="30_structural_view.html#client-connector">1.2. Client connector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="30_structural_view.html#server-connector">1.3. Server connector</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="40_behavioral_view.html">2. Behavioral View</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#runtime">2.1. Runtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#server-connector">2.2. Server connector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#method-communication">2.3. Method Communication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#event-communication">2.4. Event Communication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#field-notification-communication">2.5. Field Notification Communication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#service-gateway-find-service">2.6. Service Gateway - find service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#service-gateway-require-service">2.7. Service Gateway - require service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#service-gateway-provide-service">2.8. Service Gateway - provide service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#deadlock-detection">2.9. Deadlock detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#client-connector-deadlocks">2.10. Client_connector deadlocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="40_behavioral_view.html#server-connector-deadlocks">2.11. Server_connector deadlocks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="50_state_dynamics_view.html">3. State Dynamics View</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="50_state_dynamics_view.html#event-subscription-state">3.1. Event subscription state</a></li>
+<li class="toctree-l2"><a class="reference internal" href="50_state_dynamics_view.html#service-state">3.2. Service state</a></li>
+</ul>
+</li>
+</ul>
 </div>
+</section>
 </section>
 
 
@@ -472,20 +486,20 @@ Group requirements by feature area (e.g., <code class="docutils literal notransl
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../stakeholder.html"
+       href="../../tc8_conformance/requirements.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Stakeholder Requirements</p>
+        <p class="prev-next-title">TC8 Conformance Test Requirements</p>
       </div>
     </a>
     <a class="right-next"
-       href="../component/index.html"
+       href="30_structural_view.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Component Requirements</p>
+        <p class="prev-next-title"><span class="section-number">1. </span>Structural View</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -501,10 +515,22 @@ Group requirements by feature area (e.g., <code class="docutils literal notransl
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#socom-library">SOCom library</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/feature/index.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/socom/design/index.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
