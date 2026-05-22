@@ -14,6 +14,7 @@
 load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 # Interface between gatewayd and the serializer library. The interface is defined as a C header file and the actual implementation is provided by a shared library which is loaded at runtime by gatewayd.
 cc_library(
@@ -37,6 +38,17 @@ cc_library(
         ":interface",
         ":pre_serialized_data",
         "//src/config:config_flatbuffers",
+    ],
+)
+
+cc_test(
+    name = "null_serializer_test",
+    srcs = ["null_serializer_test.cpp"],
+    deps = [
+        ":null_serializer_impl",
+        ":pre_serialized_data",
+        "//src/config:config_flatbuffers",
+        "@googletest//:gtest_main",
     ],
 )
 
