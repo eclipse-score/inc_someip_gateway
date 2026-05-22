@@ -121,10 +121,17 @@ def dlt():
 
 @pytest.fixture(scope="session")
 def config(request):
+    qemu_image = os.path.abspath(request.config.getoption("qemu_image"))
+    qemu_seed_iso = request.config.getoption("qemu_seed_iso")
+    if qemu_seed_iso:
+        qemu_seed_iso = os.path.abspath(qemu_seed_iso)
+
     return Bunch(
-        qemu_config=load_configuration(request.config.getoption("qemu_config")),
-        qemu_image=request.config.getoption("qemu_image"),
-        qemu_seed_iso=request.config.getoption("qemu_seed_iso"),
+        qemu_config=load_configuration(
+            os.path.abspath(request.config.getoption("qemu_config"))
+        ),
+        qemu_image=qemu_image,
+        qemu_seed_iso=qemu_seed_iso,
     )
 
 
@@ -135,7 +142,7 @@ def target_init(config, request, dlt):
     # Create a qcow2 overlay backed by the pristine base image so that each
     # test session starts from an unmodified disk.  All writes go to the
     # ephemeral overlay which is discarded after the session.
-    base_image = os.path.abspath(config.qemu_image)
+    base_image = config.qemu_image
     overlay_fd, overlay_path = tempfile.mkstemp(suffix=".qcow2", prefix="qemu_overlay_")
     os.close(overlay_fd)
     try:

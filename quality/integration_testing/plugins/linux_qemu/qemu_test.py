@@ -13,6 +13,7 @@
 
 import unittest
 import importlib.util
+import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -43,21 +44,32 @@ class DiskBootQemuTest(unittest.TestCase):
         qemu._accelerator = "tcg"
         return qemu
 
-    def test_build_command_adds_seed_iso_as_cdrom(self):
+    def test_build_command_adds_seed_iso_as_drive(self):
         qemu = self._new_qemu(seed_iso="/tmp/seed.iso")
 
         cmd = qemu._build_command()
 
-        self.assertIn("-cdrom", cmd)
-        self.assertIn("/tmp/seed.iso", cmd)
-        self.assertNotIn("file=/tmp/seed.iso,format=raw,if=virtio,media=cdrom", cmd)
+        self.assertIn("-drive", cmd)
+        self.assertIn("file=/tmp/seed.iso,format=raw,if=virtio,readonly=on", cmd)
 
-    def test_build_command_without_seed_iso_omits_cdrom(self):
+    def test_build_command_without_seed_iso_omits_seed_drive(self):
         qemu = self._new_qemu(seed_iso=None)
 
         cmd = qemu._build_command()
 
-        self.assertNotIn("-cdrom", cmd)
+        self.assertNotIn("file=/tmp/seed.iso,format=raw,if=virtio,readonly=on", cmd)
+
+    def test_build_command_normalizes_relative_seed_iso_to_absolute(self):
+        qemu = self._new_qemu(
+            seed_iso="quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
+        )
+
+        cmd = qemu._build_command()
+
+        expected = os.path.abspath(
+            "quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
+        )
+        self.assertIn(f"file={expected},format=raw,if=virtio,readonly=on", cmd)
 
 
 if __name__ == "__main__":

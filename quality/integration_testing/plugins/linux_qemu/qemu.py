@@ -107,6 +107,7 @@ class DiskBootQemu:
             sys.exit(-1)
 
     def _build_command(self):
+        image_path = os.path.abspath(self._path_to_image)
         cmd = [
             self._qemu_path,
             "--enable-kvm" if self._accelerator == "kvm" else "-accel tcg",
@@ -117,16 +118,19 @@ class DiskBootQemu:
             "-m",
             self._ram,
             "-drive",
-            f"file={self._path_to_image},format=qcow2,if=virtio",
+            f"file={image_path},format=qcow2,if=virtio",
         ]
 
         if self._seed_iso:
+            seed_path = os.path.abspath(self._seed_iso)
             cmd.extend(
                 [
-                    # Attach NoCloud seed as a CD-ROM. This matches common cloud-init
-                    # expectations and avoids backend-specific issues seen with virtio disk.
-                    "-cdrom",
-                    self._seed_iso,
+                    # Attach NoCloud seed as a second disk. With cloud-localds this is a
+                    # vfat image labeled 'cidata', which cloud-init detects reliably.
+                    "-drive",
+                    # Bazel runfiles are read-only; mounting the seed image as read-only
+                    # prevents permission errors when QEMU opens the backing file.
+                    f"file={seed_path},format=raw,if=virtio,readonly=on",
                 ]
             )
 

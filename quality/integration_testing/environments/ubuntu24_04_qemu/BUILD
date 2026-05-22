@@ -34,10 +34,10 @@ genrule(
         "user-data",
         "meta-data",
     ],
-    outs = ["seed.iso"],
-    # Keep user-data/meta-data names intact even when Rock Ridge is ignored.
-    # This avoids ISO9660 8.3 truncation (e.g. user_dat) that breaks NoCloud seed detection.
-    cmd = "genisoimage -output $@ -volid cidata -iso-level 3 -full-iso9660-filenames -relaxed-filenames -joliet -rock $(SRCS)",
+    outs = ["seed.img"],
+    # Prefer cloud-localds with a vfat seed image for robust NoCloud detection.
+    # Fallback to genisoimage when cloud-localds is not installed.
+    cmd = "if command -v cloud-localds >/dev/null 2>&1; then cloud-localds -f vfat $@ $(location user-data) $(location meta-data); else genisoimage -output $@ -volid cidata -iso-level 3 -full-iso9660-filenames -relaxed-filenames -joliet -rock $(SRCS); fi",
     tags = ["manual"],
     visibility = ["//:__subpackages__"],
 )
