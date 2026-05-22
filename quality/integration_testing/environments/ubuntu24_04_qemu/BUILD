@@ -35,7 +35,9 @@ genrule(
         "meta-data",
     ],
     outs = ["seed.iso"],
-    cmd = "genisoimage -output $@ -volid cidata -joliet -rock $(SRCS)",
+    # Keep user-data/meta-data names intact even when Rock Ridge is ignored.
+    # This avoids ISO9660 8.3 truncation (e.g. user_dat) that breaks NoCloud seed detection.
+    cmd = "genisoimage -output $@ -volid cidata -iso-level 3 -full-iso9660-filenames -relaxed-filenames -joliet -rock $(SRCS)",
     tags = ["manual"],
     visibility = ["//:__subpackages__"],
 )
