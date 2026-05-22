@@ -46,8 +46,8 @@ py_itf_plugin(
 py_test(
     name = "linux_qemu_unit_tests",
     srcs = ["qemu_test.py"],
-    main = "qemu_test.py",
     imports = ["../.."],
+    main = "qemu_test.py",
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":linux_qemu_lib",
