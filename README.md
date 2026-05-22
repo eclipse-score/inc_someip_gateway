@@ -20,6 +20,7 @@ The IPC interface between the gatewayd and the someipd serves as isolation bound
 
 ![SOME/IP Gateway Architecture](docs/architecture/score-someip-car-window-overview.drawio.png)
 
+TODO remove this line
 
 ---
 
