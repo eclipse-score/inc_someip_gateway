@@ -72,6 +72,7 @@ jobs:
               //quality/integration_testing/test:test_hello_world \
               --//quality/integration_testing/flags:linux_backend=qemu \
               --nocache_test_results \
+              --test_timeout=1200 \
               --test_output=errors; then
               break
             fi
