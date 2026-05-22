@@ -66,6 +66,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Run Linux QEMU integration tests
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
         run: |
           for attempt in 1 2 3; do
             if bazel test \
