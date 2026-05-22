@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@score_itf//bazel:py_itf_plugin.bzl", "py_itf_plugin")
 
 py_library(
@@ -41,4 +41,15 @@ py_itf_plugin(
     ],
     py_library = ":linux_qemu_lib",
     visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "linux_qemu_unit_tests",
+    srcs = ["qemu_test.py"],
+    main = "qemu_test.py",
+    imports = ["../.."],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        ":linux_qemu_lib",
+    ],
 )

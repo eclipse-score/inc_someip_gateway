@@ -123,8 +123,10 @@ class DiskBootQemu:
         if self._seed_iso:
             cmd.extend(
                 [
-                    "-drive",
-                    f"file={self._seed_iso},format=raw,if=virtio,media=cdrom",
+                    # Attach NoCloud seed as a CD-ROM. This matches common cloud-init
+                    # expectations and avoids backend-specific issues seen with virtio disk.
+                    "-cdrom",
+                    self._seed_iso,
                 ]
             )
 
