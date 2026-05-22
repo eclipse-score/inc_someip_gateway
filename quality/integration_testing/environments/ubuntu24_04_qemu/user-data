@@ -12,6 +12,6 @@ bootcmd:
   - printf 'PermitRootLogin yes\nPermitEmptyPasswords yes\nPasswordAuthentication yes\n' > /etc/ssh/sshd_config.d/99-integration-test.conf
   - printf 'auth sufficient pam_permit.so\naccount sufficient pam_permit.so\nsession sufficient pam_permit.so\n' > /etc/pam.d/sshd
 
-runcmd:
-  - systemctl enable ssh
-  - systemctl restart ssh
+# runcmd:
+#   - systemctl enable ssh
+#   - systemctl restart ssh
