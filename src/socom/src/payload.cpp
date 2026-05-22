@@ -12,7 +12,7 @@
  ********************************************************************************/
 
 #include <cassert>
-#include <score/socom/vector_payload.hpp>
+#include <score/socom/payload.hpp>
 
 namespace score::cpp {
 
@@ -24,15 +24,14 @@ bool operator==(span<T> const& lhs, span<T> const& rhs) {
 
 namespace score::socom {
 
-bool operator==(Payload const& lhs, Payload const& rhs) {
-    return (lhs.header() == rhs.header()) && (lhs.data() == rhs.data());
+namespace detail {
+bool Payload_impl::operator==(Payload_impl const& other) const noexcept {
+    return header() == other.header() && data() == other.data();
 }
+}  // namespace detail
 
-bool operator!=(Payload const& lhs, Payload const& rhs) { return !(lhs == rhs); }
-
-Payload::Sptr empty_payload() {
-    static auto const empty = make_vector_payload({});
-    return empty;
+Payload empty_payload() {
+    return Payload{Payload::Writable_span{}, kNoSlotHandle, []() {}};
 }
 
 }  // namespace score::socom

@@ -21,23 +21,6 @@ using ::testing::Assign;
 namespace score::socom {
 
 Temporary_event_subscription::Temporary_event_subscription(
-    Client_connector& cc, Server_connector_callbacks_mock& sc_callbacks,
-    Client_connector_callbacks_mock& cc_callbacks, Event_id const& event_id,
-    Payload::Sptr const& payload)
-    : m_event_id{event_id}, m_cc{cc} {
-    std::atomic<bool> callback_called{false};
-    EXPECT_CALL(sc_callbacks, on_event_update_request(_, event_id))
-        .WillOnce([&payload](Enabled_server_connector& connector, Event_id const& eid) {
-            connector.update_requested_event(eid, payload);
-        });
-    EXPECT_CALL(cc_callbacks, on_requested_event_update(_, event_id, payload))
-        .WillOnce(Assign(&callback_called, true));
-
-    this->m_cc.subscribe_event(event_id, Event_mode::update_and_initial_value);
-    wait_for_atomics(callback_called);
-}
-
-Temporary_event_subscription::Temporary_event_subscription(
     Client_connector& cc, Server_connector_callbacks_mock& sc_callbacks, Event_id const& event_id,
     Brokenness const& brokenness)
     : m_event_id{event_id}, m_cc{cc} {

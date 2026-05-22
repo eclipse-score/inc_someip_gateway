@@ -51,8 +51,7 @@ class Impl final : public Client_connector {
     ~Impl() noexcept override;
 
     // interface ::score::socom::Client_connector
-    Result<std::unique_ptr<Writable_payload>> allocate_method_call_payload(
-        Method_id method_id) noexcept override;
+    Result<Writable_payload> allocate_method_call_payload(Method_id method_id) noexcept override;
     message::Subscribe_event::Return_type subscribe_event(Event_id client_id,
                                                           Event_mode mode) const noexcept override;
     message::Unsubscribe_event::Return_type unsubscribe_event(
@@ -60,7 +59,7 @@ class Impl final : public Client_connector {
     message::Request_event_update::Return_type request_event_update(
         Event_id client_id) const noexcept override;
     message::Call_method::Return_type call_method(
-        Method_id client_id, Payload::Sptr payload,
+        Method_id client_id, Payload payload,
         Method_call_reply_data_opt reply_data) const noexcept override;
     Result<Posix_credentials> get_peer_credentials() const noexcept override;
     Service_interface_definition const& get_configuration() const noexcept override;

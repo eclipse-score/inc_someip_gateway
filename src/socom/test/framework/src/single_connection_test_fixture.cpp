@@ -15,13 +15,13 @@
 
 namespace score::socom {
 
-Payload::Sptr const& input_data() {
-    static Payload::Sptr const data = make_vector_payload(make_vector_buffer(9U, 0U, 0U, 1U));
+Payload const& input_data() {
+    static Payload const data = make_vector_payload(make_vector_buffer(9U, 0U, 0U, 1U));
     return data;
 }
 
-Payload::Sptr const& error_data() {
-    static Payload::Sptr const data = make_vector_payload(make_vector_buffer(1U, 0U, 0U, 6U));
+Payload const& error_data() {
+    static Payload const data = make_vector_payload(make_vector_buffer(1U, 0U, 0U, 6U));
     return data;
 }
 

@@ -74,3 +74,6 @@ styles/
 
 # Compiler commands database
 /compile_commands.json
+
+# LLM files
+/.llm_tmp

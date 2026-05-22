@@ -89,14 +89,12 @@ class Impl final : virtual public Disabled_server_connector,
     ~Impl() noexcept override;
 
     // interface ::score::socom::Enabled_server_connector
-    Result<Blank> update_event(Event_id server_id, Payload::Sptr payload) noexcept override;
-    Result<Blank> update_requested_event(Event_id server_id,
-                                         Payload::Sptr payload) noexcept override;
+    Result<Blank> update_event(Event_id server_id, Payload payload) noexcept override;
+    Result<Blank> update_requested_event(Event_id server_id, Payload payload) noexcept override;
     Result<Event_mode> get_event_mode(Event_id server_id) const noexcept override;
     Impl* enable() override;
     Impl* disable() noexcept override;
-    Result<std::unique_ptr<Writable_payload>> allocate_event_payload(
-        Event_id event_id) noexcept override;
+    Result<Writable_payload> allocate_event_payload(Event_id event_id) noexcept override;
     Server_service_interface_definition const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
 
@@ -173,19 +171,19 @@ void Impl::send_all(MessageType message) const {
     lock.unlock();
 
     if (locked_client) {
-        locked_client->get_client_endpoint().send(message);
+        locked_client->get_client_endpoint().send(std::move(message));
     }
 }
 
 template <typename MessageType>
 void Impl::send(Client_connector_endpoint const& client, MessageType message) {
-    client.send(message);
+    client.send(std::move(message));
 }
 
 template <typename MessageType>
 void Impl::send(std::optional<Client_connector_endpoint> const& client, MessageType message) {
     if (client) {
-        client->send(message);
+        client->send(std::move(message));
     }
 }
 
@@ -194,7 +192,7 @@ typename MessageType::Return_type Impl::send(
     std::optional<Client_connector_endpoint> const& client, MessageType message,
     typename MessageType::Return_type default_return_value) {
     if (client) {
-        return client->send(message);
+        return client->send(std::move(message));
     }
     return default_return_value;
 }

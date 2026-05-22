@@ -77,6 +77,8 @@ native_binary(
     name = "gatewayd_example",
     src = "//src/gatewayd",
     args = [
+        "--configuration",
+        "$(rootpath //src/config:config_file)",
         "--service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
     ],

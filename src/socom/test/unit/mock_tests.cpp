@@ -15,15 +15,12 @@
 
 #include <score/socom/callback_mocks.hpp>
 #include <score/socom/client_connector_mock.hpp>
-#include <score/socom/payload_mock.hpp>
 #include <score/socom/runtime_mock.hpp>
 #include <score/socom/server_connector_mock.hpp>
 
 namespace score::socom {
 
 TEST(mock_test, runtime_mock) { Runtime_mock runtime; }
-
-TEST(mock_test, payload_mock) { Payload_mock payload; }
 
 TEST(mock_test, client_connector_mock) { Client_connector_mock client_connector; }
 

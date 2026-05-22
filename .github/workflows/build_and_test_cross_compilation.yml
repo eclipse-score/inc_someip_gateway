@@ -32,6 +32,8 @@ jobs:
         run: |
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Create config indicator file
+        run: echo "${{ matrix.bazel-config }}" > .bazel_config
       - name: Setup Bazel
         uses: bazel-contrib/setup-bazel@0.19.0
         with:
@@ -40,7 +42,10 @@ jobs:
           bazelisk-cache: true
           # Store build cache per workflow.
           disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
-          repository-cache: true
+          # Share repository cache between workflows.
+          repository-cache: |
+            - ./MODULE.bazel
+            - ./.bazel_config
           # Cache external/
           external-cache: true
           cache-save: ${{ github.event_name == 'push' }}

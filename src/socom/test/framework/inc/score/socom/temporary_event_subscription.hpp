@@ -37,18 +37,6 @@ class Temporary_event_subscription {
         no_server_reponse_second_requester
     };
 
-    /// \brief Subscribe with Event_mode::update_and_initial_value
-    ///
-    /// \param[in] cc client connector which subscribes to an event of sc
-    /// \param[in] sc_callbacks callbacks of sc
-    /// \param[in] cc_callbacks callbacks of cc
-    /// \param[in] event_id the event to which shall be subscribed
-    /// \param[in] payload data which may be sent with the answer to the update event request
-    Temporary_event_subscription(Client_connector& cc,
-                                 Server_connector_callbacks_mock& sc_callbacks,
-                                 Client_connector_callbacks_mock& cc_callbacks,
-                                 Event_id const& event_id, Payload::Sptr const& payload);
-
     /// \brief Subscribe with Event_mode::update_and_initial_value but without server_response
     ///
     /// \param[in] cc client connector which subscribes to an event
