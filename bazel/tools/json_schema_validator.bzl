@@ -10,6 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+
 """
 Creates "validate_json_schema_test" test rule which validates the input "json" file against its "schema"
 """
