@@ -84,11 +84,6 @@ bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = Tr
 # QNX8 Toolchain Configuration
 # ============================================================================
 bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.5.1", dev_dependency = True)
-git_override(
-    module_name = "score_bazel_cpp_toolchains",
-    commit = "30d9f4151db55af066e5bbf8a0a3672469ec0293",  # Last verified: 2026-04-09
-    remote = "https://github.com/etas-contrib/score_bazel_cpp_toolchains.git",
-)
 
 gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
 gcc.toolchain(
