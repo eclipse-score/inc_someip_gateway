@@ -59,7 +59,7 @@ jobs:
       - run: df -h
         if: always()
 
-  build_and_int_test_host:
+  build_and_int_qemu_test_host:
     runs-on: ubuntu-24.04
     steps:
       - uses: eclipse-score/more-disk-space@v1
@@ -100,6 +100,6 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test //quality/integration_testing/test:test_hello_world --//quality/integration_testing/flags:linux_backend=qemu
+          bazel test //... --//quality/integration_testing/flags:linux_backend=qemu
       - run: df -h
         if: always()
