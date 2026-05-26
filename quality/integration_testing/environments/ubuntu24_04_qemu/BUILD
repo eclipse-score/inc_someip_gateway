@@ -35,9 +35,7 @@ genrule(
         "meta-data",
     ],
     outs = ["seed.img"],
-    # Prefer cloud-localds with vfat for robust NoCloud detection when mkfs.vfat is available.
-    # Fall back to cloud-localds default format, then to genisoimage.
-    cmd = "if command -v cloud-localds >/dev/null 2>&1 && command -v mkfs.vfat >/dev/null 2>&1; then cloud-localds -f vfat $@ $(location user-data) $(location meta-data); elif command -v cloud-localds >/dev/null 2>&1; then cloud-localds $@ $(location user-data) $(location meta-data); elif command -v genisoimage >/dev/null 2>&1; then genisoimage -output $@ -volid cidata -iso-level 3 -full-iso9660-filenames -relaxed-filenames -joliet -rock $(SRCS); else echo 'Neither cloud-localds nor genisoimage is available' >&2; exit 1; fi",
+    cmd = "cloud-localds $@ $(location user-data) $(location meta-data)",
     tags = ["manual"],
     visibility = ["//:__subpackages__"],
 )
