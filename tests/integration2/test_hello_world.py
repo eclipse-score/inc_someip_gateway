@@ -11,8 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-import os
-import subprocess
 from collections.abc import Sequence
 from types import TracebackType
 from typing import Any
@@ -75,7 +73,7 @@ def test_start_someipd(target):
             "--service_instance_manifest",
             "/someipd_mw_com_config.json",
         ],
-        env="VSOMEIP_CONFIGURATION=/vsomeip-local.json",
+        env="VSOMEIP_CONFIGURATION=/vsomeip.json",
     ) as someipd_process:
         assert someipd_process.is_running(), someipd_process.get_output()
 

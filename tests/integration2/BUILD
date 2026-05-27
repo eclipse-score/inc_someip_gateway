@@ -32,10 +32,11 @@ pkg_files(
 pkg_files(
     name = "example-app-pkg",
     srcs = [
-        "vsomeip-local.json",
+        "vsomeip.json",
         ":vsomeip-runtime-pkg",
         "//src/config:config_file",
         "//src/gatewayd",
+        "//src/gatewayd:etc/mw_com_config.json",
         "//src/someipd",
         "//src/someipd:etc/mw_com_config.json",
         "//tests/integration/sample_client",
@@ -46,7 +47,8 @@ pkg_files(
     prefix = "/",
     renames = {
         "//src/config:config_file": "mw_someip_config.bin",
-        "//src/someipd:etc/mw_com_config.json": "mw_com_config.json",
+        "//src/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
+        "//src/gatewayd:etc/mw_com_config.json": "gatewayd_mw_com_config.json",
     },
 )
 
@@ -54,7 +56,6 @@ integration_test(
     name = "test_hello_world",
     timeout = "moderate",
     srcs = [
-        "conftest.py",
         "test_hello_world.py",
     ],
     filesystem = ":example-app-pkg",
