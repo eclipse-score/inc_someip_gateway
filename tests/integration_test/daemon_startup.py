@@ -88,6 +88,11 @@ def test_hello_world_via_shell(target):
     # assert 0 == exit_code, "ifconfig command failed.\n" + output.decode()
 
 
+def test_ip_command_available(target):
+    exit_code, output = target.execute("ip address")
+    assert 0 == exit_code, "ip command not found: " + output.decode()
+
+
 def test_start_someipd(target):
     with BashProcess(
         target,

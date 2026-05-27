@@ -31,5 +31,6 @@ packages:
   - "binutils" # provides addr2line, required for backtraces in sanitizers
   - "coreutils" # for commands like `ls`
   - "dash" # provides /bin/sh (POSIX shell compatible with QNX's ksh)
+  - "iproute2" # provides `ip` command used for network inspection/debugging
   - "libatomic1"
   - "libstdc++6"
