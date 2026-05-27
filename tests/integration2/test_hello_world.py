@@ -12,8 +12,33 @@
 # *******************************************************************************
 
 from collections.abc import Sequence
+from pathlib import Path
+import time
 from types import TracebackType
 from typing import Any
+
+
+def kill_process_by_name(target, application_path: str, timeout: float = 2.0) -> bool:
+    # check if pkill is available on the target
+    exit_code, _ = target.execute("pkill --help")
+    if exit_code != 0:
+        # pkill is not available in a Docker environment, where normal killing works
+        # tried to install procps in the Docker image, but image build fails horribly.
+        # This must be caused by merging /bin and /usr/bin.
+        return True
+
+    # get name of process
+    process_name = Path(application_path).name
+    for signal in ["SIGTERM", "SIGINT", "SIGKILL"]:
+        _, _ = target.execute(f"pkill -{signal} {process_name}")
+
+        for _ in range(int(timeout / 0.1)):
+            exit_code, _ = target.execute(f"pgrep -x {process_name}")
+            if exit_code != 0:
+                return True  # Process has been terminated
+            time.sleep(0.1)
+
+    return False
 
 
 class BashProcess:
@@ -47,6 +72,8 @@ class BashProcess:
         tb: TracebackType | None,
     ) -> None:
         if self._process is not None:
+            # On QEMU the PID returned by _process.pid() is not the actual PID of the process running in the VM, so we need to kill it by name.
+            kill_process_by_name(self._target, self._application_path)
             self._process.stop()
 
 
@@ -73,6 +100,7 @@ def test_start_someipd(target):
         ],
         env="VSOMEIP_CONFIGURATION=/vsomeip.json",
     ) as someipd_process:
+        # someipd likely asserts on startup and this is racy. Need to figure out how to configure the network
         assert someipd_process.is_running(), someipd_process.get_output()
 
 
