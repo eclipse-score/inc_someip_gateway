@@ -56,7 +56,7 @@ integration_test(
     name = "test_hello_world",
     timeout = "moderate",
     srcs = [
-        "test_hello_world.py",
+        "daemon_startup.py",
     ],
     filesystem = ":example-app-pkg",
     deps = [
