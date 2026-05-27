@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <score/socom/final_action.hpp>
 #include <thread>
 
 #include "local_service_instance.h"
@@ -139,6 +140,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    score::socom::Final_action const serializer_cleanup{[]() {
+        if (score_com_serializer_deinit() != score_com_serializer_result_ok) {
+            std::cerr << "Warning: Failed to deinitialize serializer plugin." << std::endl;
+        }
+    }};
+
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
@@ -206,10 +213,6 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Shutting down gateway..." << std::endl;
-
-    if (score_com_serializer_deinit() != score_com_serializer_result_ok) {
-        std::cerr << "Warning: Failed to deinitialize serializer plugin." << std::endl;
-    }
 
     return 0;
 }

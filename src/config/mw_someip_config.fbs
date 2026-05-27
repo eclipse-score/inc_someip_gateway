@@ -47,6 +47,7 @@ table ServiceInstance {
 
 union SerializationConfig {
     NullSerializerConfig,
+    // Add more serialization config types here as needed
 }
 
 /// Configuration for the null serializer, which does not perform actual serialization but

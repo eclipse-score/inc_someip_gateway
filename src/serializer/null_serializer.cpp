@@ -29,6 +29,11 @@
 using score::someip_gateway::serializer::get_size_of_pre_serialized_data;
 using score::someip_gateway::serializer::PreSerializedData;
 
+// We don't know the actual size of the PreSerializedData struct at compile time because it depends
+// on the max_message_size specified in the config, so we use a view with zero-sized array and
+// calculate the size at runtime.
+using PreSerializedDataView = PreSerializedData<0>;
+
 // score_com_serializer is an opaque handle that directly points to
 // score::mw_someip_config::NullSerializerConfig in the flatbuffer config.
 struct score_com_serializer {};
@@ -56,7 +61,7 @@ score_com_serializer_result score_com_serializer_serialize(const struct score_co
     if (buffer == nullptr || object == nullptr) {
         return score_com_serializer_result_general_failure;
     }
-    const auto* pre_serialized_data = static_cast<const PreSerializedData<0>*>(object);
+    const auto* pre_serialized_data = static_cast<const PreSerializedDataView*>(object);
     std::size_t message_size = pre_serialized_data->size;
     if (message_size > buffer_size) {
         return score_com_serializer_result_serialization_failure;
@@ -74,7 +79,7 @@ score_com_serializer_result score_com_serializer_deserialize(
     if (serializer == nullptr || buffer == nullptr || object == nullptr) {
         return score_com_serializer_result_general_failure;
     }
-    auto* pre_serialized_data = static_cast<PreSerializedData<0>*>(object);
+    auto* pre_serialized_data = static_cast<PreSerializedDataView*>(object);
     if (buffer_size > to_null_config(serializer)->max_message_size()) {
         return score_com_serializer_result_deserialization_failure;
     }
@@ -99,7 +104,7 @@ std::size_t score_com_serializer_get_sizeof_object(const struct score_com_serial
 }
 
 std::size_t score_com_serializer_get_alignof_object(const struct score_com_serializer*) {
-    return alignof(PreSerializedData<0>);
+    return alignof(PreSerializedDataView);
 }
 
 score_com_serializer_result score_com_serializer_init(const char* serializer_identifier,

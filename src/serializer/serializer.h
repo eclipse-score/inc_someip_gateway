@@ -10,11 +10,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#ifndef SRC_SERIALIZER_INCLUDE_SERIALIZER
-#define SRC_SERIALIZER_INCLUDE_SERIALIZER
-
-#include <cstddef>  // Required for size_t
-#include <cstdint>
+#ifndef SRC_SERIALIZER_SERIALIZER
+#define SRC_SERIALIZER_SERIALIZER
 
 /// @file
 /// Interface to the serializer "plugin".
@@ -24,6 +21,9 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
+
+#include <stddef.h>
+#include <stdint.h>
 
 /// Result type for the serializer functions
 enum [[nodiscard]] score_com_serializer_result {
@@ -60,18 +60,19 @@ score_com_serializer_result score_com_serializer_deserialize(
     const struct score_com_serializer* serializer, const uint8_t* buffer, size_t buffer_size,
     void* object);
 
-/// Retrieves the maximum serialized size of the serializer.
+/// Retrieves the maximum serialized size from the serializer.
 /// @param serializer Pointer to the serializer
-std::size_t score_com_serializer_get_max_serialized_size(
-    const struct score_com_serializer* serializer);
-/// Retrieves the sizeof() of the C++ data type that the serializer handles.
-/// @param serializer Pointer to the serializer
-/// @retval 0 if not specified by the serializer. Deserialization might not work.
-std::size_t score_com_serializer_get_sizeof_object(const struct score_com_serializer* serializer);
-/// Retrieves the alignof() of the C++ data type that the serializer handles.
+size_t score_com_serializer_get_max_serialized_size(const struct score_com_serializer* serializer);
+
+/// Retrieves the sizeof() of the application data type that the serializer handles.
 /// @param serializer Pointer to the serializer
 /// @retval 0 if not specified by the serializer. Deserialization might not work.
-std::size_t score_com_serializer_get_alignof_object(const struct score_com_serializer* serializer);
+size_t score_com_serializer_get_sizeof_object(const struct score_com_serializer* serializer);
+
+/// Retrieves the alignof() of the application data type that the serializer handles.
+/// @param serializer Pointer to the serializer
+/// @retval 0 if not specified by the serializer. Deserialization might not work.
+size_t score_com_serializer_get_alignof_object(const struct score_com_serializer* serializer);
 
 enum score_com_serializer_element_type {
     score_com_serializer_element_type_event = 0,
@@ -81,10 +82,12 @@ enum score_com_serializer_element_type {
 };
 
 /// Retrieves a serializer for the specified interface and component.
-/// @param service_type Identifies the interface for which the serializer is requested.
+/// @param service_type Identifies the interface for which the serializer is requested (not
+/// null-terminated).
 /// @param service_type_size Size of the `service_type` string in bytes.
 /// @param element_type Specifies the type of element for which the serializer is requested.
-/// @param element_name Identifies the event/field/method for which the serializer is requested.
+/// @param element_name Identifies the event/field/method for which the serializer is requested (not
+/// null-terminated).
 /// @param element_name_size Size of the `element_name` string in bytes.
 /// @param[out] serializer Pointer to a score_com_serializer struct where the function will write
 /// the serializer's methods and properties if found.
@@ -100,7 +103,8 @@ score_com_serializer_result score_com_serializer_get(
 
 /// Initializes the serializer plugin. This function must be called once before any calls to
 /// score_com_serializer_get(). Not thread-safe.
-/// @param serializer_identifier Pointer to a string that identifies the serializer plugin.
+/// @param serializer_identifier Pointer to a string that identifies the serializer plugin (not
+/// null-terminated).
 /// @param serializer_identifier_size Size of the serializer identifier string in bytes.
 /// @retval score_com_serializer_result_ok if initialization is successful.
 /// @retval score_com_serializer_result_serializer_nonexistent if the serializer plugin can't be
@@ -117,4 +121,4 @@ score_com_serializer_result score_com_serializer_deinit();
 }  // end extern "C"
 #endif
 
-#endif  // SRC_SERIALIZER_INCLUDE_SERIALIZER
+#endif  // SRC_SERIALIZER_SERIALIZER

@@ -110,17 +110,29 @@ class BenchmarkFixture {
         }
 
         // auto handler_result = response_proxy_->echo_response_tiny_.SetReceiveHandler(
-        //     [this]() { this->ProcessResponsesTiny(); });
-        auto handler_small_result = response_proxy_->echo_response_small_.SetReceiveHandler(
-            [this]() { this->ProcessResponsesSmall(); });
-        auto handler_medium_result = response_proxy_->echo_response_medium_.SetReceiveHandler(
-            [this]() { this->ProcessResponsesMedium(); });
-        auto handler_large_result = response_proxy_->echo_response_large_.SetReceiveHandler(
-            [this]() { this->ProcessResponsesLarge(); });
-        auto handler_xlarge_result = response_proxy_->echo_response_xlarge_.SetReceiveHandler(
-            [this]() { this->ProcessResponsesXLarge(); });
-        auto handler_xxlarge_result = response_proxy_->echo_response_xxlarge_.SetReceiveHandler(
-            [this]() { this->ProcessResponsesXXLarge(); });
+        //     [this]() {
+        //     this->ProcessResponses<EchoResponseTiny>(response_proxy_->echo_response_tiny_); });
+        auto handler_small_result =
+            response_proxy_->echo_response_small_.SetReceiveHandler([this]() {
+                this->ProcessResponses<EchoResponseSmall>(response_proxy_->echo_response_small_);
+            });
+        auto handler_medium_result =
+            response_proxy_->echo_response_medium_.SetReceiveHandler([this]() {
+                this->ProcessResponses<EchoResponseMedium>(response_proxy_->echo_response_medium_);
+            });
+        auto handler_large_result =
+            response_proxy_->echo_response_large_.SetReceiveHandler([this]() {
+                this->ProcessResponses<EchoResponseLarge>(response_proxy_->echo_response_large_);
+            });
+        auto handler_xlarge_result =
+            response_proxy_->echo_response_xlarge_.SetReceiveHandler([this]() {
+                this->ProcessResponses<EchoResponseXLarge>(response_proxy_->echo_response_xlarge_);
+            });
+        auto handler_xxlarge_result =
+            response_proxy_->echo_response_xxlarge_.SetReceiveHandler([this]() {
+                this->ProcessResponses<EchoResponseXXLarge>(
+                    response_proxy_->echo_response_xxlarge_);
+            });
 
         if (/* !handler_result.has_value() || */ !handler_small_result.has_value() ||
             !handler_medium_result.has_value() || !handler_large_result.has_value() ||
@@ -275,88 +287,48 @@ class BenchmarkFixture {
         return std::chrono::nanoseconds{0};
     }
 
+    template <typename RequestType, typename EventType>
+    void SendRequest(EventType& request_event, PayloadSize size, std::uint64_t sequence_id,
+                     std::uint32_t actual_size) {
+        auto pre_serialized_request = request_event.Allocate().value();
+        pre_serialized_request->size = sizeof(RequestType);
+        auto* request = reinterpret_cast<RequestType*>(pre_serialized_request->data);
+        request->sequence_id = sequence_id;
+        request->timestamp_ns = utils::GetCurrentTimeNanos();
+        request->payload_size = size;
+        request->actual_size = actual_size;
+        utils::FillTestPayload(request->payload, actual_size, sequence_id);
+        request_event.Send(std::move(pre_serialized_request));
+    }
+
     // Helper method to select the correct event based on payload size
     void SendRequestUsingCorrectEvent(PayloadSize size, std::uint64_t sequence_id,
                                       std::uint32_t actual_size) {
         switch (size) {
-            case PayloadSize::Tiny: {
-                auto pre_serialized_request =
-                    request_skeleton_->echo_request_tiny_.Allocate().value();
-                pre_serialized_request->size = sizeof(EchoRequestTiny);
-                auto* request = reinterpret_cast<EchoRequestTiny*>(pre_serialized_request->data);
-                request->sequence_id = sequence_id;
-                request->timestamp_ns = utils::GetCurrentTimeNanos();
-                request->payload_size = size;
-                request->actual_size = actual_size;
-                utils::FillTestPayload(request->payload, actual_size, sequence_id);
-                request_skeleton_->echo_request_tiny_.Send(std::move(pre_serialized_request));
+            case PayloadSize::Tiny:
+                SendRequest<EchoRequestTiny>(request_skeleton_->echo_request_tiny_, size,
+                                             sequence_id, actual_size);
                 break;
-            }
-            case PayloadSize::Small: {
-                auto pre_serialized_request =
-                    request_skeleton_->echo_request_small_.Allocate().value();
-                pre_serialized_request->size = sizeof(EchoRequestSmall);
-                auto* request = reinterpret_cast<EchoRequestSmall*>(pre_serialized_request->data);
-                request->sequence_id = sequence_id;
-                request->timestamp_ns = utils::GetCurrentTimeNanos();
-                request->payload_size = size;
-                request->actual_size = actual_size;
-                utils::FillTestPayload(request->payload, actual_size, sequence_id);
-                request_skeleton_->echo_request_small_.Send(std::move(pre_serialized_request));
+            case PayloadSize::Small:
+                SendRequest<EchoRequestSmall>(request_skeleton_->echo_request_small_, size,
+                                              sequence_id, actual_size);
                 break;
-            }
-            case PayloadSize::Medium: {
-                auto pre_serialized_request =
-                    request_skeleton_->echo_request_medium_.Allocate().value();
-                pre_serialized_request->size = sizeof(EchoRequestMedium);
-                auto* request = reinterpret_cast<EchoRequestMedium*>(pre_serialized_request->data);
-                request->sequence_id = sequence_id;
-                request->timestamp_ns = utils::GetCurrentTimeNanos();
-                request->payload_size = size;
-                request->actual_size = actual_size;
-                utils::FillTestPayload(request->payload, actual_size, sequence_id);
-                request_skeleton_->echo_request_medium_.Send(std::move(pre_serialized_request));
+            case PayloadSize::Medium:
+                SendRequest<EchoRequestMedium>(request_skeleton_->echo_request_medium_, size,
+                                               sequence_id, actual_size);
                 break;
-            }
-            case PayloadSize::Large: {
-                auto pre_serialized_request =
-                    request_skeleton_->echo_request_large_.Allocate().value();
-                pre_serialized_request->size = sizeof(EchoRequestLarge);
-                auto* request = reinterpret_cast<EchoRequestLarge*>(pre_serialized_request->data);
-                request->sequence_id = sequence_id;
-                request->timestamp_ns = utils::GetCurrentTimeNanos();
-                request->payload_size = size;
-                request->actual_size = actual_size;
-                utils::FillTestPayload(request->payload, actual_size, sequence_id);
-                request_skeleton_->echo_request_large_.Send(std::move(pre_serialized_request));
+            case PayloadSize::Large:
+                SendRequest<EchoRequestLarge>(request_skeleton_->echo_request_large_, size,
+                                              sequence_id, actual_size);
                 break;
-            }
-            case PayloadSize::XLarge: {
-                auto pre_serialized_request =
-                    request_skeleton_->echo_request_xlarge_.Allocate().value();
-                pre_serialized_request->size = sizeof(EchoRequestXLarge);
-                auto* request = reinterpret_cast<EchoRequestXLarge*>(pre_serialized_request->data);
-                request->sequence_id = sequence_id;
-                request->timestamp_ns = utils::GetCurrentTimeNanos();
-                request->payload_size = size;
-                request->actual_size = actual_size;
-                utils::FillTestPayload(request->payload, actual_size, sequence_id);
-                request_skeleton_->echo_request_xlarge_.Send(std::move(pre_serialized_request));
+            case PayloadSize::XLarge:
+                SendRequest<EchoRequestXLarge>(request_skeleton_->echo_request_xlarge_, size,
+                                               sequence_id, actual_size);
                 break;
-            }
-            case PayloadSize::XXLarge: {
-                auto pre_serialized_request =
-                    request_skeleton_->echo_request_xxlarge_.Allocate().value();
-                pre_serialized_request->size = sizeof(EchoRequestXXLarge);
-                auto* request = reinterpret_cast<EchoRequestXXLarge*>(pre_serialized_request->data);
-                request->sequence_id = sequence_id;
-                request->timestamp_ns = utils::GetCurrentTimeNanos();
-                request->payload_size = size;
-                request->actual_size = actual_size;
-                utils::FillTestPayload(request->payload, actual_size, sequence_id);
-                request_skeleton_->echo_request_xxlarge_.Send(std::move(pre_serialized_request));
+            case PayloadSize::XXLarge:
+                SendRequest<EchoRequestXXLarge>(request_skeleton_->echo_request_xxlarge_, size,
+                                                sequence_id, actual_size);
                 break;
-            }
         }
     }
 
@@ -365,149 +337,21 @@ class BenchmarkFixture {
         std::chrono::high_resolution_clock::time_point receive_time;
     };
 
-    void ProcessResponsesTiny() {
+    template <typename ResponseType, typename EventType>
+    void ProcessResponses(EventType& response_event) {
         if (g_stop_token.stop_requested()) {
             return;
         }
-        response_proxy_->echo_response_tiny_.GetNewSamples(
+
+        response_event.GetNewSamples(
             [this](auto pre_serialized_response_sample) {
                 if (g_stop_token.stop_requested()) {
                     return;
                 }
 
-                assert(pre_serialized_response_sample->size == sizeof(EchoResponseTiny));
+                assert(pre_serialized_response_sample->size == sizeof(ResponseType));
                 auto* response_sample =
-                    reinterpret_cast<const EchoResponseTiny*>(pre_serialized_response_sample->data);
-
-                std::lock_guard<std::mutex> lock(pending_mutex_);
-                auto it = pending_responses_.find(response_sample->sequence_id);
-                if (it != pending_responses_.end()) {
-                    it->second.received = true;
-                    it->second.receive_time = std::chrono::high_resolution_clock::now();
-                    response_cv_.notify_all();
-                }
-            },
-            MaxSamplesCount);
-    }
-
-    void ProcessResponsesSmall() {
-        if (g_stop_token.stop_requested()) {
-            return;
-        }
-
-        response_proxy_->echo_response_small_.GetNewSamples(
-            [this](auto pre_serialized_response_sample) {
-                if (g_stop_token.stop_requested()) {
-                    return;
-                }
-
-                assert(pre_serialized_response_sample->size == sizeof(EchoResponseSmall));
-                auto* response_sample = reinterpret_cast<const EchoResponseSmall*>(
-                    pre_serialized_response_sample->data);
-
-                std::lock_guard<std::mutex> lock(pending_mutex_);
-                auto it = pending_responses_.find(response_sample->sequence_id);
-                if (it != pending_responses_.end()) {
-                    it->second.received = true;
-                    it->second.receive_time = std::chrono::high_resolution_clock::now();
-                    response_cv_.notify_all();
-                }
-            },
-            MaxSamplesCount);
-    }
-
-    void ProcessResponsesMedium() {
-        if (g_stop_token.stop_requested()) {
-            return;
-        }
-
-        response_proxy_->echo_response_medium_.GetNewSamples(
-            [this](auto pre_serialized_response_sample) {
-                if (g_stop_token.stop_requested()) {
-                    return;
-                }
-
-                assert(pre_serialized_response_sample->size == sizeof(EchoResponseMedium));
-                auto* response_sample = reinterpret_cast<const EchoResponseMedium*>(
-                    pre_serialized_response_sample->data);
-
-                std::lock_guard<std::mutex> lock(pending_mutex_);
-                auto it = pending_responses_.find(response_sample->sequence_id);
-                if (it != pending_responses_.end()) {
-                    it->second.received = true;
-                    it->second.receive_time = std::chrono::high_resolution_clock::now();
-                    response_cv_.notify_all();
-                }
-            },
-            MaxSamplesCount);
-    }
-
-    void ProcessResponsesLarge() {
-        if (g_stop_token.stop_requested()) {
-            return;
-        }
-
-        response_proxy_->echo_response_large_.GetNewSamples(
-            [this](auto pre_serialized_response_sample) {
-                if (g_stop_token.stop_requested()) {
-                    return;
-                }
-
-                assert(pre_serialized_response_sample->size == sizeof(EchoResponseLarge));
-                auto* response_sample = reinterpret_cast<const EchoResponseLarge*>(
-                    pre_serialized_response_sample->data);
-
-                std::lock_guard<std::mutex> lock(pending_mutex_);
-                auto it = pending_responses_.find(response_sample->sequence_id);
-                if (it != pending_responses_.end()) {
-                    it->second.received = true;
-                    it->second.receive_time = std::chrono::high_resolution_clock::now();
-                    response_cv_.notify_all();
-                }
-            },
-            MaxSamplesCount);
-    }
-
-    void ProcessResponsesXLarge() {
-        if (g_stop_token.stop_requested()) {
-            return;
-        }
-
-        response_proxy_->echo_response_xlarge_.GetNewSamples(
-            [this](auto pre_serialized_response_sample) {
-                if (g_stop_token.stop_requested()) {
-                    return;
-                }
-
-                assert(pre_serialized_response_sample->size == sizeof(EchoResponseXLarge));
-                auto* response_sample = reinterpret_cast<const EchoResponseXLarge*>(
-                    pre_serialized_response_sample->data);
-
-                std::lock_guard<std::mutex> lock(pending_mutex_);
-                auto it = pending_responses_.find(response_sample->sequence_id);
-                if (it != pending_responses_.end()) {
-                    it->second.received = true;
-                    it->second.receive_time = std::chrono::high_resolution_clock::now();
-                    response_cv_.notify_all();
-                }
-            },
-            MaxSamplesCount);
-    }
-
-    void ProcessResponsesXXLarge() {
-        if (g_stop_token.stop_requested()) {
-            return;
-        }
-
-        response_proxy_->echo_response_xxlarge_.GetNewSamples(
-            [this](auto pre_serialized_response_sample) {
-                if (g_stop_token.stop_requested()) {
-                    return;
-                }
-
-                assert(pre_serialized_response_sample->size == sizeof(EchoResponseXXLarge));
-                auto* response_sample = reinterpret_cast<const EchoResponseXXLarge*>(
-                    pre_serialized_response_sample->data);
+                    reinterpret_cast<const ResponseType*>(pre_serialized_response_sample->data);
 
                 std::lock_guard<std::mutex> lock(pending_mutex_);
                 auto it = pending_responses_.find(response_sample->sequence_id);
