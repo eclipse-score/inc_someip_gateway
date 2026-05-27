@@ -14,7 +14,6 @@
 from collections.abc import Sequence
 from types import TracebackType
 from typing import Any
-from someip.header import SOMEIPHeader
 
 
 class BashProcess:
@@ -55,12 +54,11 @@ def test_hello_world_via_shell(target):
     exit_code, output = target.execute(
         "ls -lha / /usr /usr/lib /usr/lib/x86_64-linux-gnu"
     )
-    assert 0 == exit_code
+    assert 0 == exit_code, "ls command failed: " + output.decode()
     assert b"someipd" in output
-    # assert False, (
-    #     "This test should not be executed, it is only for debugging purposes.\n"
-    #     + output.decode()
-    # )
+
+    # exit_code, output = target.execute("ifconfig")
+    # assert 0 == exit_code, "ifconfig command failed.\n" + output.decode()
 
 
 def test_start_someipd(target):
@@ -90,26 +88,3 @@ def test_start_gatewayd(target):
         ],
     ) as gatewayd_process:
         assert gatewayd_process.is_running(), gatewayd_process.get_output()
-
-
-# def test_location_of_pytest_environment(target):
-#     command_outputs = []
-#     for command in (["whoami"], ["pwd"], ["ls", "-la"], ["ps", "aux"]):
-#         result = subprocess.run(command, check=True, capture_output=True, text=True)
-#         command_outputs.append(f"$ {' '.join(command)}\n{result.stdout}")
-
-#     environment_dump = "\n".join(
-#         f"{key}={value}" for key, value in sorted(os.environ.items())
-#     )
-#     debug_output = (
-#         "Pytest environment debug information:\n"
-#         + "\n".join(command_outputs)
-#         + "\nEnvironment variables:\n"
-#         + environment_dump
-#     )
-
-#     print(debug_output, flush=True)
-#     assert False, (
-#         "This test should not be executed, it is only for debugging purposes.\n"
-#         + debug_output
-#     )

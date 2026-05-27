@@ -32,13 +32,13 @@ pkg_files(
 pkg_files(
     name = "example-app-pkg",
     srcs = [
-        "vsomeip.json",
         ":vsomeip-runtime-pkg",
         "//src/config:config_file",
         "//src/gatewayd",
         "//src/gatewayd:etc/mw_com_config.json",
         "//src/someipd",
         "//src/someipd:etc/mw_com_config.json",
+        "//tests/integration:vsomeip.json",
         "//tests/integration/sample_client",
     ],
     attributes = pkg_attributes(
