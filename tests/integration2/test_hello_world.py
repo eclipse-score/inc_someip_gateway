@@ -100,8 +100,13 @@ def test_start_someipd(target):
         ],
         env="VSOMEIP_CONFIGURATION=/vsomeip.json",
     ) as someipd_process:
-        # someipd likely asserts on startup and this is racy. Need to figure out how to configure the network
         assert someipd_process.is_running(), someipd_process.get_output()
+        time.sleep(1)  # check that daemon does not crash immediately and prints output
+        assert someipd_process.is_running(), (
+            someipd_process.get_output(),
+            "exit code: ",
+            someipd_process.get_exit_code(),
+        )
 
 
 def test_start_gatewayd(target):
@@ -116,3 +121,9 @@ def test_start_gatewayd(target):
         ],
     ) as gatewayd_process:
         assert gatewayd_process.is_running(), gatewayd_process.get_output()
+        time.sleep(1)  # check that daemon does not crash immediately and prints output
+        assert gatewayd_process.is_running(), (
+            gatewayd_process.get_output(),
+            "exit code: ",
+            gatewayd_process.get_exit_code(),
+        )
