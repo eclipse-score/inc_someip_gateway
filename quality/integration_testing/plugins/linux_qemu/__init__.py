@@ -17,6 +17,7 @@ image (qcow2) with an optional cloud-init seed ISO, without requiring patches
 to the upstream score_itf package.
 """
 
+import getpass
 import logging
 import os
 import socket
@@ -33,6 +34,73 @@ from quality.integration_testing.plugins.linux_qemu.qemu_process import LinuxQem
 from quality.integration_testing.plugins.linux_qemu.config import load_configuration
 
 logger = logging.getLogger(__name__)
+
+
+def _setup_tap_interfaces(networks):
+    """Create and configure TAP interfaces for QEMU networking.
+
+    TAP interface creation requires CAP_NET_ADMIN, which is not available in the
+    Bazel linux-sandbox.  Creating them via sudo (passwordless in this dev
+    environment) before launching QEMU allows QEMU to attach to the pre-existing
+    user-owned interfaces without elevated privileges.
+
+    Args:
+        networks: list of Network config objects with ``name`` and ``gateway`` fields.
+    """
+    current_user = getpass.getuser()
+    for network in networks:
+        if network.name.startswith("lo"):
+            continue
+        logger.info("Creating TAP interface %s owned by %s", network.name, current_user)
+        subprocess.run(
+            [
+                "ip",
+                "tuntap",
+                "add",
+                "dev",
+                network.name,
+                "mode",
+                "tap",
+                "user",
+                current_user,
+            ],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "ip",
+                "addr",
+                "add",
+                f"{network.gateway}/16",
+                "dev",
+                network.name,
+            ],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "ip",
+                "link",
+                "set",
+                network.name,
+                "up",
+            ],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "ping",
+                "-c",
+                "1",
+                network.gateway,
+            ],
+            check=True,
+        )
+
+        logger.info(
+            "TAP interface %s is up with gateway IP %s", network.name, network.gateway
+        )
+
 
 # Cloud-init first-boot needs significantly more time than a pre-configured VM.
 _SSH_BOOT_TIMEOUT = 20
@@ -139,6 +207,8 @@ def config(request):
 def target_init(config, request, dlt):
     logger.info(f"Starting tests on host: {socket.gethostname()}")
 
+    # No teardown needed, because tests are run using linux-sandbox
+    _setup_tap_interfaces(config.qemu_config.networks)
     # Create a qcow2 overlay backed by the pristine base image so that each
     # test session starts from an unmodified disk.  All writes go to the
     # ephemeral overlay which is discarded after the session.

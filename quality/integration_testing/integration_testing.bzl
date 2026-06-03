@@ -37,6 +37,9 @@ def integration_test(name, srcs, filesystem, **kwargs):
     which is loaded during test execution and can be used to run the test in a hermetic environment that closely resembles production.
     The test can also be configured to use a custom QEMU image and config when running with QEMU.
 
+    The network setup makes using linux-sandbox mandatory.
+    Otherwise no parallelism can be achieved.
+
     Args:
         name: The target name.
         srcs: Test source files.
@@ -165,6 +168,16 @@ def integration_test(name, srcs, filesystem, **kwargs):
         kwargs,
         "target_compatible_with",
         ["//quality/sanitizer/constraints:no_tsan"],
+    )
+
+    # QEMU networking requires TAP interfaces, which need CAP_NET_ADMIN.
+    # Thus have root privileges inside the sandbox.
+    _extend_list_in_kwargs_without_duplicates(
+        kwargs,
+        "tags",
+        [
+            "requires-fakeroot",
+        ],
     )
 
     py_itf_test(
