@@ -69,8 +69,13 @@ common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 
 # Force linux-sandbox to integration test execution only.
-# All integration tests, have to have "integration_test" in their rule name, otherwise they will be executed without sandboxing, which is not desired.
-test --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+# All integration tests have to have "integration_test" in their rule name,
+# otherwise they will be executed without sandboxing, which is not desired.
+# QEMU-based integration tests must run in linux-sandbox because they modify
+# network interfaces and IP configuration. Use this config for those runs:
+#   bazel test --config=qemu-integration //...
+test:qemu-integration --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+test:qemu-integration --//quality/integration_testing/flags:linux_backend=qemu
 # Enforce isolated network namespaces for sandboxed tests (linux-sandbox), required by fixed network ports
 test --nosandbox_default_allow_network
 

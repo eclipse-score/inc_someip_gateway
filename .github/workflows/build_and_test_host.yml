@@ -100,6 +100,6 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test //... --//quality/integration_testing/flags:linux_backend=qemu
+          bazel test --config=qemu-integration //...
       - run: df -h
         if: always()
