@@ -15,17 +15,11 @@ load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 string_flag(
     name = "linux_backend",
-    build_setting_default = "docker",
+    build_setting_default = "disabled",
     values = [
-        "docker",
+        "disabled",
         "qemu",
     ],
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
-    name = "docker",
-    flag_values = {":linux_backend": "docker"},
     visibility = ["//visibility:public"],
 )
 

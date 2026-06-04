@@ -45,27 +45,15 @@ bazel test //tests/integration:integration \
 
 ### Execution Backend Selection
 
-Integration tests choose their runtime backend using target platform and the `//quality/integration_testing/flags:linux_backend` build setting.
+Integration tests are enabled only for QEMU-backed runs:
 
-- Default backend on Linux: **Docker** (`linux_backend = "docker"`).
 - Linux QEMU backend: selected when `linux_backend = "qemu"` on Linux.
 - QNX backend: selected by target platform (`@platforms//os:qnx`) and uses QNX QEMU artifacts.
+- Any other Linux backend value keeps integration tests incompatible, so they are skipped.
 
 ### filesystem tar
 
 The tests and their data are packaged into a filesystem tar and either build into (Docker) the image or uploaded after image startup.
-
-### What Runs in Docker
-
-For the Docker backend, the macro builds and uses:
-
-- A filesystem tar from the provided `filesystem` target.
-- An OCI image containing:
-  - that filesystem tar,
-  - sanitizer suppressions tar (only when a sanitizer is enabled),
-  - base image
-
-The test runs with the upstream Docker ITF plugin.
 
 ### What Runs in QEMU
 

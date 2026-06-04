@@ -11,7 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+"""Integration test macro with QEMU-only backends."""
+
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@score_itf//:defs.bzl", "py_itf_test")
 load("@score_rules_imagefs//rules/qnx:ifs.bzl", "qnx_ifs")
@@ -29,13 +30,11 @@ def _extend_list_in_kwargs_without_duplicates(kwargs, key, values):
     return kwargs
 
 def integration_test(name, srcs, filesystem, **kwargs):
-    """Creates an integration test target with Docker or QEMU support.
+    """Creates an integration test target with QEMU-only backends.
 
-    By default, the test will run with Docker on Linux. If the `linux_qemu` flag is set,
-    it will run with QEMU on Linux instead. On QNX, the test will run with QEMU.
-    Each test gets a custom OCI image built from the provided filesystem,
-    which is loaded during test execution and can be used to run the test in a hermetic environment that closely resembles production.
-    The test can also be configured to use a custom QEMU image and config when running with QEMU.
+    On Linux, tests run only when the `linux_qemu` flag is selected.
+    On QNX, tests run with QEMU.
+    The test can be configured to use a custom QEMU image and config when running with QEMU.
 
     The network setup makes using linux-sandbox mandatory.
     Otherwise no parallelism can be achieved.
@@ -46,51 +45,9 @@ def integration_test(name, srcs, filesystem, **kwargs):
         filesystem: Tests and dependencies to be run. Will be added / uploaded into the OS image. The entrypoint is a py_test compatible python file. Must be created using `pkg_files()`.
         **kwargs: Additional arguments passed to py_itf_test.
     """
-    image_name = "_image_{}".format(name)
-    image_loader = "_image_{}_loader".format(name)
-    repo_tag = "{}:latest".format(name)
-
-    LINUX_TARGET_COMPATIBLE_WITH = select({
-        "@platforms//cpu:x86_64": ["@platforms//cpu:x86_64"],
-        "@platforms//cpu:arm64": ["@platforms//cpu:arm64"],
-    }) + [
+    LINUX_TARGET_COMPATIBLE_WITH = [
         "@platforms//os:linux",
     ]
-
-    # --- Linux Docker artifacts ---
-    pkg_tar(
-        name = "_oci_filesystem_{}".format(name),
-        srcs = [filesystem],
-    )
-
-    oci_image(
-        name = image_name,
-        architecture = select({
-            "@platforms//cpu:arm64": "arm64",
-            "@platforms//cpu:x86_64": "amd64",
-        }),
-        os = "linux",
-        env = select({
-            "//quality/sanitizer/flags:none": None,
-            "//quality/sanitizer/flags:any_sanitizer": "//quality/sanitizer:absolute_env",
-        }),
-        tars = [
-            "_oci_filesystem_{}".format(name),
-        ] + select({
-            "//quality/sanitizer/flags:none": [],
-            "//quality/sanitizer/flags:any_sanitizer": ["//quality/sanitizer:suppressions_pkg"],
-        }) + [
-            "@ubuntu24_04//:ubuntu24_04",
-        ],
-        target_compatible_with = LINUX_TARGET_COMPATIBLE_WITH,
-    )
-
-    oci_load(
-        name = image_loader,
-        image = image_name,
-        repo_tags = [repo_tag],
-        target_compatible_with = LINUX_TARGET_COMPATIBLE_WITH,
-    )
 
     # --- Linux QEMU artifacts ---
     filesystem_tar = "_qemu_filesystem_{}".format(name)
@@ -129,7 +86,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
             linux_qemu_image,
             linux_qemu_seed_iso,
         ],
-        "//conditions:default": [image_loader],
+        "//conditions:default": [],
     }))
     _extend_list_in_kwargs(
         kwargs,
@@ -147,11 +104,18 @@ def integration_test(name, srcs, filesystem, **kwargs):
                 "--qemu-seed-iso=$(location {})".format(linux_qemu_seed_iso),
                 "--qemu-filesystem-tar=$(location {})".format(filesystem_tar),
             ],
-            "//conditions:default": [
-                "--log-cli-level=DEBUG",
-                "--docker-image-bootstrap=$(location {})".format(image_loader),
-                "--docker-image={}".format(repo_tag),
-            ],
+            "//conditions:default": [],
+        }),
+    )
+
+    # Integration tests are only executable in Linux QEMU mode or on QNX.
+    _extend_list_in_kwargs(
+        kwargs,
+        "target_compatible_with",
+        select({
+            "@platforms//os:qnx": QNX_TARGET_COMPATIBLE_WITH,
+            "//quality/integration_testing/flags:linux_qemu": LINUX_TARGET_COMPATIBLE_WITH,
+            "//conditions:default": ["@platforms//:incompatible"],
         }),
     )
 
@@ -164,7 +128,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
         kwargs["timeout"] = "short"
 
     # FIXME: Integration tests are highly flaky with TSAN. (Ticket-249859)
-    _extend_list_in_kwargs_without_duplicates(
+    _extend_list_in_kwargs(
         kwargs,
         "target_compatible_with",
         ["//quality/sanitizer/constraints:no_tsan"],
@@ -190,9 +154,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
             "//quality/integration_testing/flags:linux_qemu": [
                 "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
             ],
-            "//conditions:default": [
-                "@score_itf//score/itf/plugins:docker_plugin",
-            ],
+            "//conditions:default": [],
         }),
         env = {"DOCKER_HOST": ""},
         **kwargs

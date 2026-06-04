@@ -26,3 +26,7 @@ def test_hello_world_as_process(target):
     with target.wrap_exec("/example-app2"):
         with target.wrap_exec("/example-app", wait_on_exit=True):
             pass
+
+
+def test_ping(target):
+    assert target.ping(timeout=4)
