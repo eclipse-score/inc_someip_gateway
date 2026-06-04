@@ -76,12 +76,11 @@ common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_he
 #   bazel test --config=qemu-integration //...
 test:qemu-integration --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
 test:qemu-integration --//quality/integration_testing/flags:linux_backend=qemu
+test:x86_64-qnx --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+test:aarch64-qnx --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
 # Enforce isolated network namespaces for sandboxed tests (linux-sandbox), required by fixed network ports
 test --nosandbox_default_allow_network
 
-# QNX workflows do not support linux-sandbox; override integration tests to run local.
-test:x86_64-qnx --strategy_regexp='^Testing .*integration_test.*=worker,local,sandboxed,processwrapper-sandbox'
-test:aarch64-qnx --strategy_regexp='^Testing .*integration_test.*=worker,local,sandboxed,processwrapper-sandbox'
 
 test --test_output=errors
 build --incompatible_strict_action_env
