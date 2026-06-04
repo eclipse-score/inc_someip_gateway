@@ -17,12 +17,10 @@ image (qcow2) with an optional cloud-init seed ISO, without requiring patches
 to the upstream score_itf package.
 """
 
+import getpass
 import logging
 import os
 import socket
-import subprocess
-import getpass
-import logging
 import subprocess
 import tempfile
 import time
@@ -30,19 +28,12 @@ import time
 import pytest
 
 from score.itf.core.utils.bunch import Bunch
-from score.itf.plugins.qemu.config import load_configuration as load_itf_configuration
-from score.itf.plugins.qemu.qemu_target import qemu_target
 from score.itf.plugins.qemu.qemu_target import QemuTarget
 
-
-from quality.integration_testing.plugins.linux_qemu.config import (
-    load_configuration as load_linux_configuration,
-)
 from quality.integration_testing.plugins.linux_qemu.qemu_process import LinuxQemuProcess
+from quality.integration_testing.plugins.linux_qemu.config import load_configuration
 
 logger = logging.getLogger(__name__)
-
-_PING_READY_TIMEOUT_SECONDS = 180
 
 
 def _setup_tap_interfaces(networks):
@@ -96,30 +87,19 @@ def _setup_tap_interfaces(networks):
             ],
             check=True,
         )
+        subprocess.run(
+            [
+                "ping",
+                "-c",
+                "1",
+                network.gateway,
+            ],
+            check=True,
+        )
 
-
-def check_ping(target, check_timeout: int = _PING_READY_TIMEOUT_SECONDS):
-    result = target.ping(timeout=check_timeout)
-    assert result, "Target is not pingable within expected time frame"
-    logger.info("Check target ping: OK")
-
-
-def check_ssh_is_up(target, check_timeout: int = 15, check_n_retries: int = 5):
-    with target.ssh(
-        timeout=check_timeout,
-        n_retries=check_n_retries,
-        retry_interval=2,
-    ) as ssh:
-        result = ssh.execute_command("echo Qnx_S-core!")
-    assert result == 0, "Running SSH command on the target failed"
-    logger.info("Check target ssh: OK")
-
-
-def check_sftp_is_up(target):
-    with target.sftp() as sftp:
-        result = sftp.list_dirs_and_files("/")
-    assert result, "Running SFTP command on the target failed"
-    logger.info("Check target sftp: OK")
+        logger.info(
+            "TAP interface %s is up with gateway IP %s", network.name, network.gateway
+        )
 
 
 # Cloud-init first-boot needs significantly more time than a pre-configured VM.
@@ -174,12 +154,6 @@ def _wait_for_target_ready(target):
     ) from last_error
 
 
-def pre_tests_phase(target):
-    check_ping(target, check_timeout=_PING_READY_TIMEOUT_SECONDS)
-    check_ssh_is_up(target, check_timeout=5, check_n_retries=5)
-    check_sftp_is_up(target)
-
-
 def pytest_addoption(parser):
     parser.addoption(
         "--qemu-config",
@@ -217,30 +191,15 @@ def dlt():
 def config(request):
     qemu_image = os.path.abspath(request.config.getoption("qemu_image"))
     qemu_seed_iso = request.config.getoption("qemu_seed_iso")
-    qemu_filesystem_tar = request.config.getoption("qemu_filesystem_tar")
-
-    use_disk_boot_plugin = bool(qemu_seed_iso or qemu_filesystem_tar)
-
     if qemu_seed_iso:
         qemu_seed_iso = os.path.abspath(qemu_seed_iso)
 
-    if qemu_filesystem_tar:
-        qemu_filesystem_tar = os.path.abspath(qemu_filesystem_tar)
-
     return Bunch(
-        qemu_config=(
-            load_linux_configuration(
-                os.path.abspath(request.config.getoption("qemu_config"))
-            )
-            if use_disk_boot_plugin
-            else load_itf_configuration(
-                os.path.abspath(request.config.getoption("qemu_config"))
-            )
+        qemu_config=load_configuration(
+            os.path.abspath(request.config.getoption("qemu_config"))
         ),
         qemu_image=qemu_image,
         qemu_seed_iso=qemu_seed_iso,
-        qemu_filesystem_tar=qemu_filesystem_tar,
-        use_disk_boot_plugin=use_disk_boot_plugin,
     )
 
 
@@ -250,13 +209,6 @@ def target_init(config, request, dlt):
 
     # No teardown needed, because tests are run using linux-sandbox
     _setup_tap_interfaces(config.qemu_config.networks)
-
-    if not config.use_disk_boot_plugin:
-        with qemu_target(config) as qemu:
-            pre_tests_phase(qemu)
-            yield qemu
-        return
-
     # Create a qcow2 overlay backed by the pristine base image so that each
     # test session starts from an unmodified disk.  All writes go to the
     # ephemeral overlay which is discarded after the session.

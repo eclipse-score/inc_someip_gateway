@@ -185,7 +185,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
         srcs = srcs,
         plugins = select({
             "@platforms//os:qnx": [
-                "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
+                "@score_itf//score/itf/plugins:qemu_plugin",
             ],
             "//quality/integration_testing/flags:linux_qemu": [
                 "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",

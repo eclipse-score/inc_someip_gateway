@@ -69,10 +69,13 @@ The test runs with the upstream Docker ITF plugin.
 
 ### What Runs in QEMU
 
-#### QEMU
+#### Linux QEMU
 
 If QEMU is selected, the custom plugin [`linux_qemu`](integration_testing/plugins/linux_qemu/README.md) is used.
-It supports running both Linux and QNX targets on QEMU with TAP networking.
+
+#### QNX QEMU
+
+For QNX targets, the macro builds a QNX IFS image and passes it to the upstream QEMU ITF plugin with the QNX QEMU config.
 
 ### Default Test Parameters Applied by the Macro
 
