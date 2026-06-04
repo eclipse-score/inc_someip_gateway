@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -45,8 +45,8 @@
 [uid=0 gid=0 perms=0700] startup.sh = {
     # Enable logging via slogger2
     echo "---> Starting slogger2"
-    slogger2 -m -s 253952 -G 7 -V -g 486
-    waitfor /dev/slog2
+    slogger2 -s 4096                        # Start system logger with 4KB buffer size for log messages
+    waitfor /dev/slog                       # Wait for system log device to become available
 
     # PCI server required for virtio-net (QEMU networking)
     echo "---> Starting PCI Services"
@@ -76,14 +76,21 @@
     devb-ram ram capacity=1 blk ramdisk=10m,cache=512k,vnode=256 2>/dev/null
     waitfor /dev/ram0
 
-    echo "---> Mounting RAM disk"
-    mkqnx6fs -q -b 512 -i 4096 /dev/ram0
-    mount -t qnx6 /dev/ram0 /tmp_discovery
-    chmod 777 /tmp_discovery
+    echo "---> mounting ram disk"
+    mkqnx6fs -q /dev/ram0                   # Create QNX6 filesystem on RAM disk (quiet mode)
+    waitfor /dev/ram0                       # Wait for filesystem creation to complete
+    mount -t qnx6 /dev/ram0 /tmp_ram        # Mount RAM disk as QNX6 filesystem at /tmp_ram
 
-    # Pseudo-terminal driver needed by sshd
+    echo "---> Starting mqueue"
+    mqueue                                  # Start POSIX message queue resource manager
+    waitfor /dev/mqueue                     # Wait for message queue device to be available
+
     echo "---> Starting devc-pty"
     devc-pty -n 32
+
+    echo "---> Starting devb-eide"
+    devb-eide cam user=20:20 blk cache=64M,auto=partition,vnode=2000,ncache=2000,commit=low  # Start IDE/SATA block driver
+    waitfor /dev/hd0                        # Wait for first hard disk to be detected
 
     # Networking stack for SSH-based ITF test harness communication
     echo "---> Starting Networking"
@@ -91,63 +98,77 @@
     waitfor /dev/socket
 
     echo "---> Configuring network interface"
+    # Bring up the interface and configure with bridge-accessible IP for direct ping
     if_up -p vtnet0
-    ifconfig vtnet0 10.0.2.15 netmask 255.255.255.0
-    sysctl -w net.inet.icmp.bmcastecho=1
-    sysctl -w qnx.sec.droproot=33:33
+                                             # Bring up the vtnet0 network interface in promiscuous mode
+    ifconfig vtnet0 169.254.158.190 netmask 255.255.0.0     # Configure IP address and subnet mask for vtnet0
+    ifconfig vtnet0 alias 10.0.2.15 netmask 255.255.255.0   # Configure additional IP address and subnet mask for vtnet0
+                                                            # for usage with QEMU port forwarding
+
+    # Configure system network settings
+    sysctl -w net.inet.icmp.bmcastecho=1        # Enable ICMP broadcast echo (responds to broadcast pings)
+    sysctl -w qnx.sec.droproot=33:33            # Set user/group ID (33:33) for dropping root privileges
 
     echo "---> Setting hostname"
-    hostname qnx-score
+    hostname qnx-score                  # Set default hostname if no file exists
+    echo "Qnx_S-core" > /tmp/hostname   # Create temporary hostname file
+    echo "Default hostname set to: Qnx_S-core"
 
-    # SSH daemon - ITF test harness communicates via SSH
-    echo "---> Starting SSH daemon"
-    /proc/boot/sshd -f /var/ssh/sshd_config
+    /proc/boot/sshd -f /var/ssh/sshd_config # Start SSH daemon with specified configuration file
 }
 
-# dynamic loader
-/usr/lib/ldqnx-64.so.2=ldqnx-64.so.2
 
+
+
+#############################################
+### SHARED LIBRARIES ###
+#############################################
+/usr/lib/ldqnx-64.so.2=ldqnx-64.so.2   # 64-bit QNX dynamic linker (loads shared libraries)
+
+cam-cdrom.so                             # CAM (Common Access Method) CD-ROM driver
 cam-disk.so                              # CAM disk driver for storage devices
+fs-dos.so                                # DOS file system support
 fs-qnx6.so                               # QNX6 file system support
 io-blk.so                                # Block I/O manager
+libbz2.so.1                              # BZip2 compression library
 libc++.so.2                              # C++ standard library
 libc.so                                  # C standard library (essential)
 libc.so.6                                # Main C library (malloc, printf, file I/O, etc.)
 libcam.so.2                              # CAM library for device access
-libcrypto.so.3                           # OpenSSL 3 crypto library (needed by qcrypto-openssl-3 plugin)
-libexpat.so.2                            # XML parser library (needed by PCI subsystem)
+libcatalog.so.1                          # Message catalog support
+libcrypto.so.3                           # OpenSSL crypto library (disabled)
+libexpat.so.2                            # Expat XML parser library
+libfscrypto.so.1                         # File system encryption support
 libfsnotify.so.1                         # File system notification library
 libgcc_s.so.1                            # GCC runtime support library
-libiconv.so.1                            # Character encoding conversion library
-libjail.so.1                             # Jail/sandbox library (needed by sshd)
+libiconv.so.1                            # Character encoding conversion
+libjail.so.1                             # QNX jail library for process containment
+liblzma.so.5                             # LZMA compression library
 libm.so                                  # Math library
-libpam.so.2                              # PAM authentication library (needed by sshd)
-libpci.so.3.0                            # PCI access library (needed by pci-server)
+libpam.so.2                              # Pluggable Authentication Modules library
+libpci.so.3.0                            # PCI library v3.0 for hardware access
 libqcrypto.so.1.0                        # QNX cryptographic library
-libqh.so.1                               # QNX helper library
-libqnxnoexcept.so=${QNXNOEXCEPT_LIBRARY}
+libqh.so                                 # QNX helper library
 libregex.so.1                            # Regular expression library
 libsecpol.so.1                           # Security policy library
 libslog2.so.1                            # System logging library (slog2_* functions)
 libslog2parse.so.1                       # System log parsing library
-libsocket.so.4                           # Socket library (needed by libcrypto)
-libssl.so.3                              # OpenSSL TLS library (needed by sshd)
+libsocket.so.4                           # Socket library (TCP/IP, UDP, network I/O functions)
+libssl.so.3                              # OpenSSL SSL/TLS library (disabled)
+libtracelog.so.1                         # Trace logging library
+libxml2.so.2                             # XML parsing library
 libz.so                                  # Zlib compression library
+qcrypto-openssl-3.so                     # QNX cryptographic library with OpenSSL 3 support
 
-# qcrypto plugin loaded by the random service at runtime
-[search=${QNX_TARGET}/x86_64/lib/dll] qcrypto-openssl-3.so
+[type=link] libslog2.so=libslog2.so.1   # Create version-neutral symbolic link
+[type=link] libsocket.so=libsocket.so.4 # Create version-neutral symbolic link
+[type=link] qcrypto-openssl.so=qcrypto-openssl-3.so
+
 
 #############################################
-### NETWORKING COMPONENTS ###
+### Tools ###
 #############################################
-io-sock                                  # Network stack manager
-mods-pci.so                              # PCI network module
-mods-phy.so                              # PHY network module
-devs-vtnet_pci.so                        # VirtIO network PCI driver (QEMU)
-
-[type=link] /bin/sh=/proc/boot/ksh       # Create symbolic link: sh -> ksh (standard shell link)
 [type=link] /bin/ls=/proc/boot/ls        # Link ls to IFS version for compatibility
-
 toybox                                   # Minimal Unix utilities collection (replaces many GNU tools)
 [type=link] cp=toybox                    # Copy files and directories
 [type=link] ls=toybox                    # List directory contents
@@ -248,62 +269,90 @@ toybox                                   # Minimal Unix utilities collection (re
 [type=link] zcat=toybox                  # Display contents of compressed files
 [type=link] nc=toybox                    # Netcat for network connections and packet streaming
 [type=link] netcat=toybox                # Netcat alias for network connections
-[type=link] waitfor=on                   # Create symbolic link: waitfor -> on (waits for resources to become available)
-[type=link] ability=on                   # Create symbolic link: ability -> on (manages process abilities/privileges)
-[type=link] setconf=getconf              # Create symbolic link: setconf -> getconf (sets configuration parameters)
-[type=link] libslog2.so=libslog2.so.1    # Create version-neutral symbolic link
-[type=link] libsocket.so=libsocket.so.4  # Create version-neutral symbolic link
-[type=link] libqh.so=libqh.so.1          # Create version-neutral symbolic link
-[type=link] qcrypto-openssl.so=qcrypto-openssl-3.so
+[type=link] pkill=slay                   # Process killer Linux compatibility layer
+
+[type=link] waitfor=on                  # Create symbolic link: waitfor -> on (waits for resources to become available)
+[type=link] ability=on                  # Create symbolic link: ability -> on (manages process abilities/privileges)
+[type=link] /bin/sh=/proc/boot/ksh      # Create symbolic link: sh -> ksh (standard shell link)
+[type=link] setconf=getconf             # Create symbolic link: setconf -> getconf (sets configuration parameters)
+
+awk                 # Text processing and pattern scanning
+devb-eide           # Block device driver for IDE/SATA hard drives and SSDs
+devb-ram            # RAM disk block device manager
+devc-pty            # Pseudo-terminal device manager
+devc-ser8250        # Serial port driver for 8250/16550 UART controllers (console access)
+dhcpcd              # DHCP client daemon for automatic network configuration
+fsencrypt           # File system encryption utility
+fsevmgr             # File system event manager
+getconf             # System configuration query utility - retrieves system parameters
+hostname            # Set or display system hostname
+if_up               # Network interface configuration
+ifconfig            # Network interface configuration tool
+ksh                 # Korn shell - provides command-line interface and scripting
+ln                  # Create file links
+mkqnx6fs            # Create QNX6 file systems
+mount               # File system mount utility - mounts/unmounts file systems
+mount_ifs           # Mount Image File System (IFS)
+mqueue              # POSIX message queue manager
+on                  # Command execution utility - runs commands with specific options
+openssl             # SSL/TLS cryptographic toolkit
+pci-server          # PCI bus server
+pdebug              # Process debugger
+pfctl               # Packet filter control utility
+pidin               # Process information display - shows running processes (like 'ps' on Linux)
+pipe                # Named pipe manager
+random              # Random number generator service
+route               # Network routing table management utility
+shutdown            # System shutdown utility
+slay                # Process termination utility
+slog2info           # System log viewer - displays logged messages
+slogger2            # System logging daemon - collects and manages log messages
+ssh                 # SSH client for remote connections
+ssh-keygen          # SSH key generation utility
+sshd                # SSH daemon for remote access
+/usr/libexec/sshd-session=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sshd-session  # SSH session handler (required by sshd)
+sync                # Synchronize file system buffers to disk
+sysctl              # Configure kernel parameters at runtime
+tar                 # Archive utility for creating/extracting tar files
+tcpdump             # Network packet capture tool for Wireshark analysis
+umount              # Unmount file systems
+
+/usr/lib/ssh/sftp-server=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sftp-server     # File transfer server to enable scp
+
 
 #############################################
-### Tools ###
+### NETWORKING COMPONENTS ###
 #############################################
-devb-ram                                 # RAM disk block device manager
-devc-pty                                 # Pseudo-terminal driver (needed by sshd)
-devc-ser8250                             # Serial port driver for 8250/16550 UART controllers (console access)
-fsevmgr                                  # File system event manager
-getconf                                  # Get system configuration values
-hostname                                 # Set/display system hostname
-if_up                                    # Bring network interface up
-ifconfig                                 # Configure network interfaces
-ksh                                      # Korn shell - provides command-line interface and scripting
-ln                                       # Create file links
-mkqnx6fs                                 # Create QNX6 file systems
-mount                                    # File system mount utility - mounts/unmounts file systems
-on                                       # Command execution utility - runs commands with specific options
-pci-server                               # PCI server (required for virtio-net)
-pdebug                                   # Process debugger
-pidin                                    # Process information display - shows running processes (like 'ps' on Linux)
-pipe                                     # Named pipe manager
-random                                   # Random number generator service (/dev/random, /dev/urandom)
-route                                    # Manage network routing tables
-slay                                     # Kill or modify a process by name or ID
-slog2info                                # System log viewer - displays logged messages
-slogger2                                 # System logging daemon - collects and manages log messages
-sshd                                     # SSH daemon (ITF test harness communicates via SSH)
-sysctl                                   # View/modify kernel parameters
+io-sock                                  # Network socket manager
+mods-pci.so                              # PCI module support for network hardware
+mods-phy.so                              # Physical layer module for network interfaces
+mods-usb.so                              # USB module support
+libfdt.so.1                              # Flattened Device Tree library
+libusbdci.so.2                           # USB device controller interface library
+devs-vtnet_pci.so                        # VirtIO network device driver for QEMU/KVM
+librpc.so.2                              # For TCP dump
 
-/usr/lib/ssh/sftp-server=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sftp-server  # SFTP server (file transfer for ITF)
-/usr/libexec/sshd-session=${QNX_TARGET}/${PROCESSOR}/usr/libexec/sshd-session  # SSH session handler (required by OpenSSH 9.8+)
 
 #############################################
 ### PCI COMPONENTS ###
 #############################################
-pci/pci_hw-Intel_x86.so
-pci/pci_slog2.so
-pci/pci_cap-0x05.so
-pci/pci_cap-0x10.so
-pci/pci_cap-0x11.so
-pci/pci_strings.so
-pci/pci_bkwd_compat.so
-pci/pci_debug2.so
+# PCI-related shared libraries and modules
+pci/pci_hw-Intel_x86.so                  # Intel x86 PCI hardware support
+pci/pci_slog2.so                         # PCI system logging support
+pci/pci_cap-0x05.so                      # PCI capability handler for MSI
+pci/pci_cap-0x10.so                      # PCI Express capability handler
+pci/pci_cap-0x11.so                      # MSI-X capability handler
+pci/pci_strings.so                       # PCI device string database
+pci/pci_bkwd_compat.so                   # Backward compatibility support
+pci/pci_debug2.so                        # Enhanced PCI debugging support
+
 
 #############################################
 ### SYSTEM DIRECTORIES ###
 #############################################
-[gid=0 uid=0 dperms=755 type=dir] /var/chroot/sshd
-[gid=0 uid=0 dperms=700 type=dir] /var/ssh
+# Create SSH and system directories with appropriate permissions
+[gid=0 uid=0 dperms=755 type=dir] /var/chroot/sshd              # SSH chroot directory for privilege separation
+[gid=0 uid=0 dperms=700 type=dir] /var/ssh                      # SSH configuration and key storage directory
 
 [perms=0444] pci_server.cfg = {
 [buscfg]
@@ -325,6 +374,10 @@ B3:D0:F0     A    18
 B3:D0:F0     B    19
 B3:D0:F0     C    16
 B3:D0:F0     D    17
+}
+
+[uid=0 gid=0 perms=0444] qcrypto.conf = {
+openssl tags=*
 }
 
 [uid=0 gid=0 perms=0444] /etc/passwd = {
@@ -388,22 +441,64 @@ Fu+/MLbJQuA1zpAAAAAAEC
 }
 
 [uid=0 gid=0 perms=0444] /var/ssh/sshd_config = {
+# Port number for SSH
 Port 22
+
+# Protocol version
 Protocol 2
+
+# Host key location
 HostKey /var/ssh/ssh_host_rsa_key
+
+# Enable port forwarding
 AllowTcpForwarding yes
+
+# Enable SCP/SFTP
 Subsystem sftp /usr/lib/ssh/sftp-server
+
+# AUTHENTICATION SETTINGS - Simple passwordless authentication
+# Enable password authentication to check for empty passwords
 PasswordAuthentication yes
+
+# Allow empty passwords (no password required)
 PermitEmptyPasswords yes
+
+# Disable all other authentication methods completely
 PubkeyAuthentication no
 ChallengeResponseAuthentication no
 HostbasedAuthentication no
+
+# Allow root login without authentication
 PermitRootLogin yes
+
+# Allow user environment variables
 PermitUserEnvironment yes
+
+# Don't create PID file
 PidFile none
+
+# Log level for debugging
 LogLevel DEBUG
+
+# Disable strict modes for easier setup
 StrictModes no
+
+# Disable DNS lookups for faster connection
 UseDNS no
+
+# Maximum authentication attempts
 MaxAuthTries 3
+
+# Raise concurrent-connection limit so rapid SSH reconnects
+# under QEMU SLiRP networking do not get dropped.
+MaxStartups 100:30:200
+
+# Disable per-source penalties (OpenSSH >= 9.8).  All test
+# connections originate from 127.0.0.1 via SLiRP port-forwarding
+# and SIGKILLed async processes can trigger crash penalties that
+# block all subsequent connections for 90 s.
+PerSourcePenalties no
+
+# Disable login grace time
 LoginGraceTime 30
 }
