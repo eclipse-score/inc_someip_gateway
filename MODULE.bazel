@@ -21,13 +21,18 @@ module(
 # ============================================================================
 bazel_dep(name = "rules_python", version = "1.9.0", dev_dependency = True)
 
-# rules_python 1.5.0 breaks score_docs_as_code; pin to 1.4.1 until resolved.
-single_version_override(
-    module_name = "rules_python",
-    version = "1.4.1",
-)
-
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+
+# Required because python 3.8 support was dropped in rules_python 1.8.0, but is
+# still needed for score_bazel_tools_python 0.1.3 (latest).
+python.single_version_override(
+    python_version = "3.8.20",
+    sha256 = {
+        "aarch64-unknown-linux-gnu": "9d8798f9e79e0fc0f36fcb95bfa28a1023407d51a8ea5944b4da711f1f75f1ed",
+        "x86_64-unknown-linux-gnu": "285e141c36f88b2e9357654c5f77d1f8fb29cc25132698fe35bb30d787f38e87",
+    },
+    urls = ["https://github.com/astral-sh/python-build-standalone/releases/download/20241002/cpython-{python_version}+20241002-{platform}-{build}.tar.gz"],
+)
 python.toolchain(
     is_default = True,
     python_version = "3.12",
@@ -59,7 +64,7 @@ bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 # ============================================================================
 # Build System Rules & Utilities
 # ============================================================================
-bazel_dep(name = "bazel_lib", version = "3.2.2", dev_dependency = True)
+bazel_dep(name = "bazel_lib", version = "3.3.1", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -78,12 +83,7 @@ bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = Tr
 # ============================================================================
 # QNX8 Toolchain Configuration
 # ============================================================================
-bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.2.2", dev_dependency = True)
-git_override(
-    module_name = "score_bazel_cpp_toolchains",
-    commit = "bef681a4bf751060d756d9ac21c2afb7981c9204",  # Last verified: 2026-02-09
-    remote = "https://github.com/etas-contrib/score_bazel_cpp_toolchains.git",
-)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.5.2", dev_dependency = True)
 
 gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
 gcc.toolchain(
@@ -102,7 +102,7 @@ gcc.toolchain(
 )
 gcc.toolchain(
     name = "score_qcc_x86_64_toolchain",
-    sdp_version = "8.0.0",
+    sdp_version = "8.0.3",
     target_cpu = "x86_64",
     target_os = "qnx",
     use_default_package = True,
@@ -110,7 +110,7 @@ gcc.toolchain(
 )
 gcc.toolchain(
     name = "score_qcc_aarch64_toolchain",
-    sdp_version = "8.0.0",
+    sdp_version = "8.0.3",
     target_cpu = "aarch64",
     target_os = "qnx",
     use_default_package = True,
@@ -154,7 +154,7 @@ register_toolchains(
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "aspect_rules_lint", version = "2.5.0", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "2.6.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
 # ============================================================================
@@ -189,24 +189,12 @@ bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
 # ============================================================================
 # Communication Framework
 # ============================================================================
-bazel_dep(name = "score_communication", version = "0.1.4")
-
-# TODO: Remove override as soon as new release containing the GenericSkeleton is available.
-git_override(
-    module_name = "score_communication",
-    commit = "cb16987ee8dc316aeea8d5209f36e3cb95f47b63",
-    remote = "https://github.com/eclipse-score/communication.git",
-)
+bazel_dep(name = "score_communication", version = "0.2.1")
 
 # ============================================================================
 # Base Libraries
 # ============================================================================
-bazel_dep(name = "score_baselibs", version = "0.2.5")
-git_override(
-    module_name = "score_baselibs",
-    commit = "3e81576c61064c06abb4836282679087a550804b",
-    remote = "https://github.com/eclipse-score/baselibs.git",
-)
+bazel_dep(name = "score_baselibs", version = "0.2.6")
 
 # ============================================================================
 # Code Generation
