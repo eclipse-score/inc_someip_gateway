@@ -64,7 +64,7 @@ bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 # ============================================================================
 # Build System Rules & Utilities
 # ============================================================================
-bazel_dep(name = "bazel_lib", version = "3.2.2", dev_dependency = True)
+bazel_dep(name = "bazel_lib", version = "3.3.1", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -154,7 +154,7 @@ register_toolchains(
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "aspect_rules_lint", version = "2.5.0", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "2.6.0", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
 # ============================================================================
@@ -189,24 +189,12 @@ bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
 # ============================================================================
 # Communication Framework
 # ============================================================================
-bazel_dep(name = "score_communication", version = "0.1.4")
-
-# TODO: Remove override as soon as new release containing the GenericSkeleton is available.
-git_override(
-    module_name = "score_communication",
-    commit = "cb16987ee8dc316aeea8d5209f36e3cb95f47b63",
-    remote = "https://github.com/eclipse-score/communication.git",
-)
+bazel_dep(name = "score_communication", version = "0.2.1")
 
 # ============================================================================
 # Base Libraries
 # ============================================================================
-bazel_dep(name = "score_baselibs", version = "0.2.5")
-git_override(
-    module_name = "score_baselibs",
-    commit = "3e81576c61064c06abb4836282679087a550804b",
-    remote = "https://github.com/eclipse-score/baselibs.git",
-)
+bazel_dep(name = "score_baselibs", version = "0.2.6")
 
 # ============================================================================
 # Code Generation
