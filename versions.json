@@ -20,12 +20,8 @@
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-132/"
   },
   {
-    "version": "pr-134",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-134/"
-  },
-  {
-    "version": "pr-135",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-135/"
+    "version": "pr-137",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-137/"
   },
   {
     "version": "pr-15",
@@ -46,17 +42,5 @@
   {
     "version": "pr-98",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-98/"
-  },
-  {
-    "version": "gh-readonly-queue/main/pr-134-5c37f23339ac133552c6ebd2eb87f65e4dd4471c",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-134-5c37f23339ac133552c6ebd2eb87f65e4dd4471c/"
-  },
-  {
-    "version": "pr-137",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-137/"
-  },
-  {
-    "version": "gh-readonly-queue/main/pr-135-04ae3103e0f5061698cf6548b181756209baa569",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-135-04ae3103e0f5061698cf6548b181756209baa569/"
   }
 ]
