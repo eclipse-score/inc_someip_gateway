@@ -191,8 +191,8 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
         }
 
         score::mw::com::DataTypeMetaInfo type_info{
-            score_com_serializer_get_sizeof_object(serializer),
-            score_com_serializer_get_alignof_object(serializer)};
+            score_com_serializer_get_sizeof_type(serializer),
+            score_com_serializer_get_alignof_type(serializer)};
         events.emplace_back(score::mw::com::EventInfo{event_name, type_info});
     }
 

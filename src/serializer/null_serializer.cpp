@@ -96,14 +96,14 @@ std::size_t score_com_serializer_get_max_serialized_size(
     return to_null_config(serializer)->max_message_size();
 }
 
-std::size_t score_com_serializer_get_sizeof_object(const struct score_com_serializer* serializer) {
+std::size_t score_com_serializer_get_sizeof_type(const struct score_com_serializer* serializer) {
     if (serializer == nullptr) {
         return 0;
     }
     return get_size_of_pre_serialized_data(to_null_config(serializer)->max_message_size());
 }
 
-std::size_t score_com_serializer_get_alignof_object(const struct score_com_serializer*) {
+std::size_t score_com_serializer_get_alignof_type(const struct score_com_serializer*) {
     return alignof(PreSerializedDataView);
 }
 

@@ -229,17 +229,17 @@ TEST_F(NullSerializer_test, get_max_serialized_size_returns_zero_for_null) {
 
 TEST_F(NullSerializer_test, get_sizeof_object_returns_expected_size) {
     const auto* serializer = get_event_serializer();
-    EXPECT_EQ(score_com_serializer_get_sizeof_object(serializer),
+    EXPECT_EQ(score_com_serializer_get_sizeof_type(serializer),
               get_size_of_pre_serialized_data(kTestMaxMessageSize));
 }
 
 TEST_F(NullSerializer_test, get_sizeof_object_returns_zero_for_null) {
-    EXPECT_EQ(score_com_serializer_get_sizeof_object(nullptr), 0U);
+    EXPECT_EQ(score_com_serializer_get_sizeof_type(nullptr), 0U);
 }
 
 TEST_F(NullSerializer_test, get_alignof_object_returns_preserialized_alignment) {
     const auto* serializer = get_event_serializer();
-    EXPECT_EQ(score_com_serializer_get_alignof_object(serializer), alignof(PreSerializedData<0>));
+    EXPECT_EQ(score_com_serializer_get_alignof_type(serializer), alignof(PreSerializedData<0>));
 }
 
 // --- Serialize ---

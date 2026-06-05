@@ -62,17 +62,18 @@ score_com_serializer_result score_com_serializer_deserialize(
 
 /// Retrieves the maximum serialized size from the serializer.
 /// @param serializer Pointer to the serializer
+/// @retval 0 in case of error (e.g. nullptr passed)
 size_t score_com_serializer_get_max_serialized_size(const struct score_com_serializer* serializer);
 
 /// Retrieves the sizeof() of the application data type that the serializer handles.
 /// @param serializer Pointer to the serializer
 /// @retval 0 if not specified by the serializer. Deserialization might not work.
-size_t score_com_serializer_get_sizeof_object(const struct score_com_serializer* serializer);
+size_t score_com_serializer_get_sizeof_type(const struct score_com_serializer* serializer);
 
 /// Retrieves the alignof() of the application data type that the serializer handles.
 /// @param serializer Pointer to the serializer
 /// @retval 0 if not specified by the serializer. Deserialization might not work.
-size_t score_com_serializer_get_alignof_object(const struct score_com_serializer* serializer);
+size_t score_com_serializer_get_alignof_type(const struct score_com_serializer* serializer);
 
 enum score_com_serializer_element_type {
     score_com_serializer_element_type_event = 0,
