@@ -89,7 +89,8 @@ jobs:
       - name: Install tools needed for ITF tests
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 iputils-ping cloud-image-utils
+          sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump
+          sudo setcap cap_net_raw,cap_net_admin=eip $(which tcpdump)
       - name: Allow linux-sandbox
         uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
       - run: df -h
@@ -100,6 +101,6 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration //...
+          bazel test --config=qemu-integration //quality/... //tests/integration_test/...
       - run: df -h
         if: always()
