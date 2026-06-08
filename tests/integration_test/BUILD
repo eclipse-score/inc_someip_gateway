@@ -57,6 +57,8 @@ integration_test(
     timeout = "moderate",
     srcs = [
         "daemon_startup.py",
+        "tcpdump.py",
+        "util.py",
     ],
     filesystem = ":example-app-pkg",
     deps = [
