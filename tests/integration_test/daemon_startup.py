@@ -492,3 +492,9 @@ def test_tcpdump_with_long_running_ping_from_target(target):
     logging.getLogger().info(
         "Finished test_tcpdump_with_long_running_ping_from_target2"
     )
+
+
+def test_killing_tcpdump(target):
+    with _tcpdump_capture("icmp", packet_count=5) as tcpdump_process:
+        # If tcpdump exits early, killing by name will fail because the process is already gone.
+        assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
