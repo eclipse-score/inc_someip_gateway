@@ -114,7 +114,7 @@ score_com_serializer_result score_com_serializer_init(const char* serializer_ide
     // Read config data
     // TODO: Use memory mapped file instead of copying into buffer
     std::ifstream config_file;
-    config_file.open(serializer_id, std::ios::binary | std::ios::in);
+    config_file.open(std::string(serializer_id), std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
         std::cerr << "Error: Could not open config file " << serializer_id << std::endl;

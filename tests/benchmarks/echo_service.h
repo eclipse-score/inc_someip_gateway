@@ -13,6 +13,7 @@
 #ifndef TESTS_BENCHMARKS_ECHO_SERVICE
 #define TESTS_BENCHMARKS_ECHO_SERVICE
 
+#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
