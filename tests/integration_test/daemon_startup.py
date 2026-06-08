@@ -319,7 +319,6 @@ def dtest_start_someipd_and_gatewayd(target):
 
 def test_tcpdump_with_ping_from_host(target) -> None:
     with _tcpdump_capture("icmp", packet_count=2) as tcpdump_process:
-        # If tcpdump exits early, killing by name will fail because the process is already gone.
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
 
         # sanity check that tcpdump is running
@@ -361,7 +360,6 @@ def test_tcpdump_with_ping_from_host(target) -> None:
 
 def test_tcpdump_with_ping_from_target(target):
     with _tcpdump_capture("icmp", packet_count=2) as tcpdump_process:
-        # If tcpdump exits early, killing by name will fail because the process is already gone.
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
 
         # sanity check that tcpdump is running
@@ -418,7 +416,6 @@ def test_tcpdump_with_ping_from_target(target):
 
 def test_tcpdump_with_long_running_ping_from_target(target):
     with _tcpdump_capture("icmp", packet_count=5) as tcpdump_process:
-        # If tcpdump exits early, killing by name will fail because the process is already gone.
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
 
         # sanity check that tcpdump is running
@@ -496,5 +493,4 @@ def test_tcpdump_with_long_running_ping_from_target(target):
 
 def test_killing_tcpdump(target):
     with _tcpdump_capture("icmp", packet_count=5) as tcpdump_process:
-        # If tcpdump exits early, killing by name will fail because the process is already gone.
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
