@@ -52,3 +52,8 @@ repos:
         entry: bazel mod tidy
         language: system
         pass_filenames: false
+      - id: bzlmod-lockfile
+        name: bazel mod deps lockfile check
+        entry: bazel mod deps --lockfile_mode=error
+        language: system
+        pass_filenames: false
