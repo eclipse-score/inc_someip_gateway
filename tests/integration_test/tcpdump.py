@@ -13,14 +13,16 @@
 
 import logging
 import time
-import subprocess
 from util import (
     ShellProcess,
     _as_text,
-    _completed_process_as_text,
     _tcpdump_capture,
     get_content_of_file_object,
+    get_ps_aux_text,
 )
+
+# "tcpdump " because it matches tcpdump.py otherwise
+tcpdump_name = "tcpdump "
 
 
 def test_tcpdump_with_ping_from_host(target) -> None:
@@ -28,22 +30,15 @@ def test_tcpdump_with_ping_from_host(target) -> None:
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
 
         # sanity check that tcpdump is running
-        ps_aux_result = subprocess.run(
-            ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        ps_aux_text = _completed_process_as_text(ps_aux_result)
-        # "tcpdump " because otherwise it matches tcpdump.py
-        assert ps_aux_result.returncode == 0 and "tcpdump " in ps_aux_text, ps_aux_text
+        ps_aux_text = get_ps_aux_text()
+        assert tcpdump_name in ps_aux_text, ps_aux_text
 
         exit_code, output = target.execute("ping -c 1 169.254.158.190")
         assert exit_code == 0, output.decode()
 
         # sanity check that tcpdump is running
-        ps_aux_result = subprocess.run(
-            ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        ps_aux_text = _completed_process_as_text(ps_aux_result)
-        assert ps_aux_result.returncode == 0 and "tcpdump " in ps_aux_text, ps_aux_text
+        ps_aux_text = get_ps_aux_text()
+        assert tcpdump_name in ps_aux_text, ps_aux_text
 
         exit_code, output = target.execute("ping -c 1 169.254.21.88")
         assert exit_code == 0, output.decode()
@@ -56,13 +51,8 @@ def test_tcpdump_with_ping_from_host(target) -> None:
             + _as_text(tcpdump_process.stderr.read())
         )
 
-        ps_aux_result = subprocess.run(
-            ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        ps_aux_text = _completed_process_as_text(ps_aux_result)
-        assert ps_aux_result.returncode == 0 and "tcpdump " not in ps_aux_text, (
-            ps_aux_text
-        )
+        ps_aux_text = get_ps_aux_text()
+        assert tcpdump_name not in ps_aux_text, ps_aux_text
 
 
 def test_tcpdump_with_ping_from_target(target):
@@ -70,12 +60,8 @@ def test_tcpdump_with_ping_from_target(target):
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
 
         # sanity check that tcpdump is running
-        ps_aux_result = subprocess.run(
-            ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        ps_aux_text = _completed_process_as_text(ps_aux_result)
-        # "tcpdump " because otherwise it matches tcpdump.py
-        assert ps_aux_result.returncode == 0 and "tcpdump " in ps_aux_text, ps_aux_text
+        ps_aux_text = get_ps_aux_text()
+        assert tcpdump_name in ps_aux_text, ps_aux_text
 
         with ShellProcess(
             target, "ping", ["-c", "1", "169.254.158.190"]
@@ -85,16 +71,8 @@ def test_tcpdump_with_ping_from_target(target):
             assert bash_process.get_exit_code() == 0, bash_process.get_output().decode()
 
             # sanity check that tcpdump is running
-            ps_aux_result = subprocess.run(
-                ["ps", "aux"],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            ps_aux_text = _completed_process_as_text(ps_aux_result)
-            assert ps_aux_result.returncode == 0 and "tcpdump " in ps_aux_text, (
-                ps_aux_text
-            )
+            ps_aux_text = get_ps_aux_text()
+            assert tcpdump_name in ps_aux_text, ps_aux_text
 
             with ShellProcess(
                 target, "ping", ["-c", "1", "169.254.21.88"]
@@ -113,13 +91,8 @@ def test_tcpdump_with_ping_from_target(target):
             + _as_text(tcpdump_process.stderr.read())
         )
 
-        ps_aux_result = subprocess.run(
-            ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        ps_aux_text = _completed_process_as_text(ps_aux_result)
-        assert ps_aux_result.returncode == 0 and "tcpdump " not in ps_aux_text, (
-            ps_aux_text
-        )
+        ps_aux_text = get_ps_aux_text()
+        assert tcpdump_name not in ps_aux_text, ps_aux_text
 
 
 def test_tcpdump_with_long_running_ping_from_target(target):
@@ -127,12 +100,8 @@ def test_tcpdump_with_long_running_ping_from_target(target):
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
 
         # sanity check that tcpdump is running
-        ps_aux_result = subprocess.run(
-            ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        ps_aux_text = _completed_process_as_text(ps_aux_result)
-        # "tcpdump " because otherwise it matches tcpdump.py
-        assert ps_aux_result.returncode == 0 and "tcpdump " in ps_aux_text, ps_aux_text
+        ps_aux_text = get_ps_aux_text()
+        assert tcpdump_name in ps_aux_text, ps_aux_text
 
         try:
             with ShellProcess(target, "ping", ["169.254.21.88"]) as bash_process:
@@ -140,16 +109,8 @@ def test_tcpdump_with_long_running_ping_from_target(target):
                     "Started ping process with PID: " + str(bash_process.pid())
                 )
                 # sanity check that tcpdump is running
-                ps_aux_result = subprocess.run(
-                    ["ps", "aux"],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-                ps_aux_text = _completed_process_as_text(ps_aux_result)
-                assert ps_aux_result.returncode == 0 and "tcpdump " in ps_aux_text, (
-                    ps_aux_text
-                )
+                ps_aux_text = get_ps_aux_text()
+                assert tcpdump_name in ps_aux_text, ps_aux_text
                 while tcpdump_process.poll() is None:
                     time.sleep(0.1)
 
@@ -187,13 +148,8 @@ def test_tcpdump_with_long_running_ping_from_target(target):
             + get_content_of_file_object(tcpdump_process.stderr)
         )
 
-        ps_aux_result = subprocess.run(
-            ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        ps_aux_text = _completed_process_as_text(ps_aux_result)
-        assert ps_aux_result.returncode == 0 and "tcpdump " not in ps_aux_text, (
-            ps_aux_text
-        )
+        ps_aux_text = get_ps_aux_text()
+        assert tcpdump_name not in ps_aux_text, ps_aux_text
 
     logging.getLogger().info(
         "Finished test_tcpdump_with_long_running_ping_from_target2"
@@ -201,7 +157,7 @@ def test_tcpdump_with_long_running_ping_from_target(target):
 
 
 def test_killing_tcpdump(target):
-    with _tcpdump_capture("icmp", packet_count=5) as tcpdump_process:
+    with _tcpdump_capture("icmp", packet_count=500) as tcpdump_process:
         assert tcpdump_process.poll() is None, _as_text(tcpdump_process.stderr.read())
         # killing tcpdump via exiting the with statement seems to work
         # What does not work is killing it via using any of these:
@@ -209,3 +165,6 @@ def test_killing_tcpdump(target):
         # tcpdump_process.kill()
         # subprocess.run(["pkill", "tcpdump"], check=True)
         # This raises an permission exception. This might be caused by using setcap on tcpdump
+
+    ps_aux_text = get_ps_aux_text()
+    assert tcpdump_name not in ps_aux_text, ps_aux_text

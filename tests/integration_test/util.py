@@ -160,3 +160,11 @@ def wait_until_process_exits(
     raise TimeoutError(
         f"Process did not exit within {timeout} seconds. Last output: {get_content_of_file_object(process.stdout)}\n, stderr: {get_content_of_file_object(process.stderr)}"
     )
+
+
+def get_ps_aux_text() -> str:
+    ps_aux_result = subprocess.run(
+        ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    assert ps_aux_result.returncode == 0
+    return _completed_process_as_text(ps_aux_result)
