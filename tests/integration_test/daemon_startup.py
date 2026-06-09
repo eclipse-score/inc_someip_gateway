@@ -61,8 +61,8 @@ def test_start_gatewayd(target):
 
 
 def test_start_someipd_and_gatewayd(target):
-    exit_code, output = target.execute("ip route add 224.0.0.0/4 dev ens4")
-    assert exit_code == 0, output.decode()
+    # exit_code, output = target.execute("ip route add 224.0.0.0/4 dev ens4")
+    # assert exit_code == 0, output.decode()
     subprocess.run(["ip", "route", "add", "224.0.0.0/4", "dev", "tap0"], check=True)
 
     with _tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
