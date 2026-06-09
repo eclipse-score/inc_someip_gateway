@@ -16,13 +16,11 @@ import io
 import os
 from pathlib import Path
 import pwd
-import re
 import logging
-import select
 import time
 import subprocess
 from types import TracebackType
-from typing import IO, Any
+from typing import Any
 
 
 def kill_process_by_name(target, application_path: str, timeout: float = 2.0) -> bool:
@@ -34,6 +32,9 @@ def kill_process_by_name(target, application_path: str, timeout: float = 2.0) ->
 
     # get name of process
     process_name = Path(application_path).name
+
+    logging.info(f"Attempting to kill process '{process_name}' on target using pkill")
+
     for signal in ["SIGTERM", "SIGINT", "SIGKILL"]:
         _, _ = target.execute(f"pkill -{signal} {process_name}")
 
@@ -115,7 +116,6 @@ class ShellProcess:
             self._process.stop()
 
 
-# TODO tcpdump does not capture anything here, the test is broken
 def _tcpdump_capture(
     filter_expression: str, packet_count: int | None = None
 ) -> subprocess.Popen[bytes]:
@@ -145,77 +145,18 @@ def _tcpdump_capture(
     )
 
 
-def _has_captured_something(capture_text: str) -> bool:
-    packet_count_match = re.search(
-        r"(\d+) packets? received by filter", capture_text, re.IGNORECASE
-    )
-    return bool(packet_count_match and int(packet_count_match.group(1)) > 0)
-
-
-def wait_for_ip_traffic(
-    capture_process: Any, timeout: float = 20.0
-) -> tuple[bool, str]:
-    if capture_process.stdout is None or capture_process.stderr is None:
-        return False, "tcpdump pipes are not available"
-
-    capture_text = ""
-    deadline = time.monotonic() + timeout
-    stdout_fd = capture_process.stdout.fileno()
-
-    def _stop_capture_process() -> None:
-        if capture_process.poll() is not None:
-            return
-        capture_process.terminate()
-        try:
-            capture_process.wait(timeout=1.0)
-        except subprocess.TimeoutExpired:
-            capture_process.kill()
-            capture_process.wait(timeout=1.0)
-
-    while time.monotonic() < deadline:
-        remaining_time = max(0.0, deadline - time.monotonic())
-        wait_time = min(0.1, remaining_time)
-        readable, _, _ = select.select([stdout_fd], [], [], wait_time)
-
-        if readable:
-            chunk = os.read(stdout_fd, 4096)
-            if chunk:
-                capture_text += chunk.decode(errors="replace")
-                if _has_captured_something(capture_text):
-                    _stop_capture_process()
-                    return True, "line 111 " + capture_text
-
-        if capture_process.poll() is not None:
-            stderr_text = _as_text(capture_process.stderr.read())
+def wait_until_process_exits(
+    process: subprocess.Popen[bytes], timeout: float = 10.0
+) -> str:
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if process.poll() is not None:
             return (
-                _has_captured_something(capture_text),
-                "line 114 "
-                + capture_text
-                + "\ntcpdump process has exited unexpectedly with code "
-                + str(capture_process.returncode)
-                + "\n"
-                + stderr_text,
+                get_content_of_file_object(process.stdout)
+                + "\n, stderr: "
+                + get_content_of_file_object(process.stderr)
             )
-
-    _stop_capture_process()
-
-    # Drain any remaining buffered stdout after termination without blocking.
-    while True:
-        readable, _, _ = select.select([stdout_fd], [], [], 0.0)
-        if not readable:
-            break
-        chunk = os.read(stdout_fd, 4096)
-        if not chunk:
-            break
-        capture_text += chunk.decode(errors="replace")
-
-    if _has_captured_something(capture_text):
-        return True, "line 122 " + capture_text
-
-    stderr_text = _as_text(capture_process.stderr.read())
-    return (
-        False,
-        "tcpdump did not capture IP traffic within timeout.\n"
-        + capture_text
-        + ("\n" + stderr_text if stderr_text else ""),
+        time.sleep(0.5)
+    raise TimeoutError(
+        f"Process did not exit within {timeout} seconds. Last output: {get_content_of_file_object(process.stdout)}\n, stderr: {get_content_of_file_object(process.stderr)}"
     )

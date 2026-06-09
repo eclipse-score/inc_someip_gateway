@@ -14,7 +14,7 @@
 import logging
 import time
 import subprocess
-from util import ShellProcess, _tcpdump_capture, wait_for_ip_traffic
+from util import ShellProcess, _tcpdump_capture, wait_until_process_exits
 
 
 def test_start_someipd(target):
@@ -36,6 +36,7 @@ def test_start_someipd(target):
             "exit code: ",
             someipd_process.get_exit_code(),
         )
+        logging.info("someipd output:\n%s", someipd_process.get_output())
 
 
 def test_start_gatewayd(target):
@@ -56,14 +57,15 @@ def test_start_gatewayd(target):
             "exit code: ",
             gatewayd_process.get_exit_code(),
         )
+        logging.info("gatewayd output:\n%s", gatewayd_process.get_output())
 
 
-def dtest_start_someipd_and_gatewayd(target):
+def test_start_someipd_and_gatewayd(target):
+    exit_code, output = target.execute("ip route add 224.0.0.0/4 dev ens4")
+    assert exit_code == 0, output.decode()
+    subprocess.run(["ip", "route", "add", "224.0.0.0/4", "dev", "tap0"], check=True)
+
     with _tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
-        exit_code, output = target.execute("ping -c 1 169.254.158.190")
-        assert exit_code == 0, output.decode()
-        exit_code, output = target.execute("ping -c 1 169.254.21.88")
-        assert exit_code == 0, output.decode()
         with ShellProcess(
             target,
             "/someipd",
@@ -75,7 +77,6 @@ def dtest_start_someipd_and_gatewayd(target):
             ],
             env="VSOMEIP_CONFIGURATION=/vsomeip.json",
         ) as someipd_process:
-            assert False, "someipd: is this reached?"  # TODO remove
             assert someipd_process.is_running(), someipd_process.get_output()
             with ShellProcess(
                 target,
@@ -88,10 +89,11 @@ def dtest_start_someipd_and_gatewayd(target):
                 ],
             ) as gatewayd_process:
                 assert gatewayd_process.is_running(), gatewayd_process.get_output()
-                # assert False, "gatewayd: is this reached?"  # TODO remove
-                sd_traffic_received, sd_capture_output = wait_for_ip_traffic(
-                    tcpdump_process, timeout=20.0
+                console_output = wait_until_process_exits(tcpdump_process, timeout=10.0)
+                logging.info(
+                    "Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output
                 )
+
                 assert gatewayd_process.is_running(), (
                     gatewayd_process.get_output(),
                     "exit code: ",
@@ -102,12 +104,3 @@ def dtest_start_someipd_and_gatewayd(target):
                     "exit code: ",
                     someipd_process.get_exit_code(),
                 )
-                assert sd_traffic_received, (
-                    "Did not observe SOME/IP-SD traffic on UDP port 30490.",
-                    sd_capture_output,
-                    "someipd output:",
-                    someipd_process.get_output(),
-                    "gatewayd output:",
-                    gatewayd_process.get_output(),
-                )
-                assert False, "is this reached?"  # TODO remove
