@@ -300,6 +300,7 @@ pci-server          # PCI bus server
 pdebug              # Process debugger
 pfctl               # Packet filter control utility
 pidin               # Process information display - shows running processes (like 'ps' on Linux)
+ping                # ICMP ping utility for network diagnostics
 pipe                # Named pipe manager
 random              # Random number generator service
 route               # Network routing table management utility
