@@ -37,6 +37,7 @@ pkg_files(
         "//src/config:config_file",
         "//src/gatewayd",
         "//src/gatewayd:etc/mw_com_config.json",
+        "//src/serializer:null_serializer",
         "//src/someipd",
         "//src/someipd:etc/mw_com_config.json",
         "//tests/integration/sample_client",
