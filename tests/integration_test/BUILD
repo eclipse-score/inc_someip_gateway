@@ -84,6 +84,7 @@ integration_test(
     name = "test_someipd_sends_someip-sd_message",
     timeout = "moderate",
     srcs = [
+        "conftest.py",
         "someipd_sends_someip-sd_message.py",
         "util.py",
     ],

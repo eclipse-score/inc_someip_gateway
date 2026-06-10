@@ -12,22 +12,19 @@
 # *******************************************************************************
 
 import logging
-import subprocess
 from util import (
     ShellProcess,
     tcpdump_capture,
     wait_until_process_exits,
-    cleanup,
 )
+from score.itf.plugins.core import Target
 
 
-def test_start_someipd_and_gatewayd(target):
-    cleanup(target)
-    subprocess.run(["ip", "route", "add", "224.0.0.0/4", "dev", "tap0"], check=True)
-
+def test_start_someipd_and_gatewayd(clean_state: Target) -> None:
+    """Test reception of SOME/IP-SD message from someipd in tcpdump"""
     with tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
         with ShellProcess(
-            target,
+            clean_state,
             "/someipd",
             args=[
                 "--configuration",
@@ -39,7 +36,7 @@ def test_start_someipd_and_gatewayd(target):
         ) as someipd_process:
             assert someipd_process.is_running(), someipd_process.get_output()
             with ShellProcess(
-                target,
+                clean_state,
                 "/gatewayd",
                 args=[
                     "--configuration",
@@ -64,3 +61,12 @@ def test_start_someipd_and_gatewayd(target):
                     "exit code: ",
                     someipd_process.get_exit_code(),
                 )
+
+
+def test_start_someipd_and_gatewayd2(gatewayd_with_someipd: Target) -> None:
+    """Same as above but with more complex test fixture"""
+    with tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
+        console_output = wait_until_process_exits(tcpdump_process, timeout=10.0)
+        logging.info(
+            "Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output
+        )
