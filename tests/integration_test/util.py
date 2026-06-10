@@ -121,18 +121,24 @@ class ShellProcess:
 
 
 def tcpdump_capture(
-    filter_expression: str, packet_count: int | None = None
+    filter_expression: str,
+    packet_count: int | None = None,
+    output_file: str | None = None,
 ) -> subprocess.Popen[bytes]:
     tcpdump_user = pwd.getpwuid(os.getuid()).pw_name
     args = [
         "/usr/bin/tcpdump",
         "-n",
-        "-l",
         "-i",
         "any",
         "-Z",
         tcpdump_user,
     ]
+    if output_file is not None:
+        args.extend(["-w", output_file])
+    else:
+        # -l: line-buffered output, only meaningful for text (non-pcap) mode
+        args.append("-l")
     # TODO tcpdump cannot be killed, thus at the moment only packet_count can be used to stop it
     #      When testing it using `linux-sandbox -R -N -- /bin/bash -lc 'tcpdump -n -l -Z root -i any'`
     #      and `sudo nsenter -t $(pidof tcpdump) -a killall tcpdump` it is killable in the second shell
@@ -142,9 +148,8 @@ def tcpdump_capture(
         args.append(filter_expression)
 
     return subprocess.Popen(
-        # Keep tcpdump under the current test user so teardown signals are permitted.
         args,
-        stdout=subprocess.PIPE,
+        stdout=subprocess.PIPE if output_file is None else subprocess.DEVNULL,
         stderr=subprocess.PIPE,
     )
 

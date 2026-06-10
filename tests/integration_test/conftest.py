@@ -16,9 +16,10 @@
 Pytest configuration and fixtures for integration tests.
 """
 
+import os
 import pytest
 from typing import Generator
-from util import ShellProcess, cleanup
+from util import ShellProcess, cleanup, tcpdump_capture
 from score.itf.plugins.core import Target
 
 
@@ -30,37 +31,43 @@ def clean_state(target: Target) -> Generator[Target, None, None]:
 
 @pytest.fixture(scope="function")
 def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
-    with ShellProcess(
-        clean_state,
-        "/someipd",
-        args=[
-            "--configuration",
-            "/mw_someip_config.bin",
-            "--service_instance_manifest",
-            "/someipd_mw_com_config.json",
-        ],
-        env="VSOMEIP_CONFIGURATION=/vsomeip.json",
-    ) as someipd_process:
-        assert someipd_process.is_running(), someipd_process.get_output()
+    # TODO tcpdump cannot be killed when the test is done. Need to figure out why
+    # Store test traffic in file for later analysis of failures
+    # pcap_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")
+    # pcap_file = os.path.join(pcap_dir, "test_traffic.pcap")
+    # with tcpdump_capture("", output_file=pcap_file):
+    if True:
         with ShellProcess(
             clean_state,
-            "/gatewayd",
+            "/someipd",
             args=[
                 "--configuration",
                 "/mw_someip_config.bin",
                 "--service_instance_manifest",
-                "/gatewayd_mw_com_config.json",
+                "/someipd_mw_com_config.json",
             ],
-        ) as gatewayd_process:
-            assert gatewayd_process.is_running(), gatewayd_process.get_output()
-            assert gatewayd_process.is_running(), (
-                gatewayd_process.get_output(),
-                "exit code: ",
-                gatewayd_process.get_exit_code(),
-            )
-            assert someipd_process.is_running(), (
-                someipd_process.get_output(),
-                "exit code: ",
-                someipd_process.get_exit_code(),
-            )
-            yield clean_state
+            env="VSOMEIP_CONFIGURATION=/vsomeip.json",
+        ) as someipd_process:
+            assert someipd_process.is_running(), someipd_process.get_output()
+            with ShellProcess(
+                clean_state,
+                "/gatewayd",
+                args=[
+                    "--configuration",
+                    "/mw_someip_config.bin",
+                    "--service_instance_manifest",
+                    "/gatewayd_mw_com_config.json",
+                ],
+            ) as gatewayd_process:
+                assert gatewayd_process.is_running(), gatewayd_process.get_output()
+                assert gatewayd_process.is_running(), (
+                    gatewayd_process.get_output(),
+                    "exit code: ",
+                    gatewayd_process.get_exit_code(),
+                )
+                assert someipd_process.is_running(), (
+                    someipd_process.get_output(),
+                    "exit code: ",
+                    someipd_process.get_exit_code(),
+                )
+                yield clean_state
