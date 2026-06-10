@@ -105,6 +105,10 @@
     ifconfig vtnet0 alias 10.0.2.15 netmask 255.255.255.0   # Configure additional IP address and subnet mask for vtnet0
                                                             # for usage with QEMU port forwarding
 
+    # add ip multicast route for service discovery to work (multicast address range: 224.0.0.0/4)
+    # route add -net 224.0.0.0/4 169.254.158.190
+    route add -net 224.0.0.0/4 169.254.21.88
+
     # Configure system network settings
     sysctl -w net.inet.icmp.bmcastecho=1        # Enable ICMP broadcast echo (responds to broadcast pings)
     sysctl -w qnx.sec.droproot=33:33            # Set user/group ID (33:33) for dropping root privileges
@@ -351,6 +355,7 @@ pci/pci_debug2.so                        # Enhanced PCI debugging support
 #############################################
 ### SYSTEM DIRECTORIES ###
 #############################################
+# [gid=0 uid=0 dperms=755 type=dir] /var/run                      # runtime data
 # Create SSH and system directories with appropriate permissions
 [gid=0 uid=0 dperms=755 type=dir] /var/chroot/sshd              # SSH chroot directory for privilege separation
 [gid=0 uid=0 dperms=700 type=dir] /var/ssh                      # SSH configuration and key storage directory
