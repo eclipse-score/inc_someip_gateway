@@ -79,3 +79,17 @@ integration_test(
         "@score_someip_gateway_pip//someip",
     ],
 )
+
+integration_test(
+    name = "test_someipd_sends_someip-sd_message",
+    timeout = "moderate",
+    srcs = [
+        "someipd_sends_someip-sd_message.py",
+        "util.py",
+    ],
+    filesystem = ":example-app-pkg",
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+        "@score_someip_gateway_pip//someip",
+    ],
+)

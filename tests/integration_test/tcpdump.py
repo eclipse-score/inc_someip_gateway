@@ -17,7 +17,7 @@ from util import (
     ShellProcess,
     tcpdump_capture,
     get_content_of_file_object,
-    get_ps_aux_text,
+    get_running_processes_on_host,
 )
 
 
@@ -25,7 +25,7 @@ def is_tcpdump_running() -> tuple[bool, str]:
     tcpdump_name = "/usr/bin/tcpdump"
     # do not know why on Github runners tcpdump shows up like that
     tcpdump_name_github = "[tcpdump]"
-    ps_aux_text = get_ps_aux_text()
+    ps_aux_text = get_running_processes_on_host()
 
     return (
         tcpdump_name in ps_aux_text or tcpdump_name_github in ps_aux_text,

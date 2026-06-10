@@ -35,8 +35,8 @@ def kill_process_by_name(target, application_path: str, timeout: float = 2.0) ->
 
     logging.info(f"Attempting to kill process '{process_name}' on target using pkill")
 
-    for signal in ["SIGTERM", "SIGINT", "SIGKILL"]:
-        _, _ = target.execute(f"pkill -{signal} {process_name}")
+    for signal in ["", "-SIGTERM", "-SIGINT", "-SIGKILL"]:
+        _, _ = target.execute(f"pkill {signal} {process_name}")
 
         # Avoid costly repeated SSH roundtrips in teardown; a short settle delay is sufficient.
         time.sleep(min(timeout, 0.2))
@@ -44,6 +44,10 @@ def kill_process_by_name(target, application_path: str, timeout: float = 2.0) ->
         exit_code, _ = target.execute(f"pgrep -x {process_name}")
         if exit_code != 0:
             return True  # Process has been terminated
+
+    logging.warning(
+        f"Failed to kill process '{process_name}' on target after sending SIGTERM, SIGINT, and SIGKILL"
+    )
 
     return False
 
@@ -162,7 +166,7 @@ def wait_until_process_exits(
     )
 
 
-def get_ps_aux_text() -> str:
+def get_running_processes_on_host() -> str:
     ps_aux_result = subprocess.run(
         ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -170,7 +174,13 @@ def get_ps_aux_text() -> str:
     return _completed_process_as_text(ps_aux_result)
 
 
-def cleanup(target):
+def get_running_processes_on_target(target) -> str:
+    exit_code, output = target.execute("ps aux || pidin")
+    assert exit_code == 0, output.decode()
+    return output.decode()
+
+
+def cleanup(target) -> None:
     """The test runner is not restarted from a clean state after each test case. Thus some poor mans cleanup needs to be done."""
 
     # kill someipd and gatewayd in case they are still running from a previous test
@@ -179,15 +189,13 @@ def cleanup(target):
     target.execute("rm -rf /tmp_discovery")
 
     # Linux
-    target.execute(
-        "rm -rf /dev/shm/lola-*; rm -rf /tmp/mw_com_lola/*; rm -rf /tmp/lola-*"
-    )
+    target.execute("rm -rf /dev/shm/lola-* /tmp/mw_com_lola/* /tmp/lola-*")
 
     # QNX
     target.execute(
-        "rm -rf /dev/shmem/lola-*; rm -rf /tmp_discovery/mw_com_lola/*; rm -rf /tmp_discovery/lola-*"
+        "rm -rf /dev/shmem/lola-* /tmp_discovery/mw_com_lola/* /tmp_discovery/lola-*"
     )
 
-    ps_aux_text = get_ps_aux_text()
+    ps_aux_text = get_running_processes_on_target(target)
     assert "someipd" not in ps_aux_text, ps_aux_text
     assert "gatewayd" not in ps_aux_text, ps_aux_text
