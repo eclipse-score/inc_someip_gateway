@@ -21,7 +21,7 @@ module(
 # ============================================================================
 bazel_dep(name = "rules_python", version = "1.9.0", dev_dependency = True)
 
-python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
 
 # Required because python 3.8 support was dropped in rules_python 1.8.0, but is
 # still needed for score_bazel_tools_python 0.1.3 (latest).
@@ -46,7 +46,7 @@ bazel_dep(
 )
 
 # Python pip dependencies
-pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
 pip.parse(
     hub_name = "score_someip_gateway_pip",
     python_version = "3.12",
@@ -159,8 +159,8 @@ bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = Tr
 # ============================================================================
 # JSON Schema Validation
 # ============================================================================
-bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1", dev_dependency = True)
-bazel_dep(name = "download_utils", version = "1.2.3", dev_dependency = True)
+bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1")
+bazel_dep(name = "download_utils", version = "1.2.3")
 
 download_archive = use_repo_rule("@download_utils//download/archive:defs.bzl", "download_archive")
 
@@ -257,7 +257,7 @@ filegroup(
 
 http_archive(
     name = "vsomeip",
-    build_file = "@//:third_party/vsomeip.BUILD.bazel",
+    build_file = "//:third_party/vsomeip.BUILD.bazel",
     integrity = "sha256-hMjkJs3fQ14MVtpwupfno/UbK+rxV+1zih9632bO5Sk=",
     patch_strip = 1,
     patches = ["//:third_party/vsomeip-qnx8.patch"],
