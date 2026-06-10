@@ -16,7 +16,7 @@ import time
 import subprocess
 from util import (
     ShellProcess,
-    _tcpdump_capture,
+    tcpdump_capture,
     wait_until_process_exits,
     get_ps_aux_text,
     cleanup,
@@ -78,7 +78,7 @@ def test_start_someipd_and_gatewayd(target):
     cleanup(target)
     subprocess.run(["ip", "route", "add", "224.0.0.0/4", "dev", "tap0"], check=True)
 
-    with _tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
+    with tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
         with ShellProcess(
             target,
             "/someipd",

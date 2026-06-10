@@ -116,7 +116,7 @@ class ShellProcess:
             self._process.stop()
 
 
-def _tcpdump_capture(
+def tcpdump_capture(
     filter_expression: str, packet_count: int | None = None
 ) -> subprocess.Popen[bytes]:
     tcpdump_user = pwd.getpwuid(os.getuid()).pw_name
