@@ -45,6 +45,18 @@ table ServiceInstance {
     instance_id: uint16 (key);
 }
 
+union SerializationConfig {
+    NullSerializerConfig,
+    // Add more serialization config types here as needed
+}
+
+/// Configuration for the null serializer, which does not perform actual serialization but
+/// instead uses pre-serialized message buffers.
+table NullSerializerConfig {
+    /// Size of the pre-serialized message buffers.
+    max_message_size: uint32;
+}
+
 /// Describes a single event within a service.
 table Event {
     /// 16-bit identifier for this event within the service.
@@ -54,6 +66,9 @@ table Event {
     /// Name of the event. Must exactly match the field name in the score::mw::com
     /// service interface definition to correlate SOME/IP event IDs with IPC events.
     event_name: string (required);
+
+    /// Serialization configuration for this event.
+    serialization_config: SerializationConfig;
 }
 
 /// Describes a single method within a service.
@@ -65,6 +80,12 @@ table Method {
     /// Name of the method. Must exactly match the field name in the score::mw::com
     /// service interface definition to correlate SOME/IP method IDs with IPC methods.
     method_name: string (required);
+
+    /// Serialization configuration for the request (call) of this method.
+    request_serialization_config: SerializationConfig;
+
+    /// Serialization configuration for the response (return) of this method.
+    response_serialization_config: SerializationConfig;
 }
 
 root_type Root;

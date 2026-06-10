@@ -33,6 +33,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/result",
     ],
 )

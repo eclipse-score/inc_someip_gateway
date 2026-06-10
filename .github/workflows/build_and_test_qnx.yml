@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         bazel-config: ["x86_64-qnx", "aarch64-qnx"]
-    uses: elektrobit-contrib/eclipse-score_cicd-workflows/.github/workflows/qnx-build.yml@add-unblock-user-namespaces-to-qnx-workflow # retry 2
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@dfc6ffae7b8db630dbf49865314df6c46802d385 # main (2026-06-09)
     permissions:
       contents: read
       pull-requests: read

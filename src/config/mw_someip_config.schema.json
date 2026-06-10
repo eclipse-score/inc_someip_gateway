@@ -1,6 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "definitions": {
+    "score_mw_someip_config_SerializationConfig" : {
+      "type" : "string",
+      "enum": ["NONE", "NullSerializerConfig"]
+    },
     "score_mw_someip_config_Root" : {
       "type" : "object",
       "description" : "Top-level element of the gateway configuration",
@@ -68,6 +72,17 @@
       "required" : ["instance_specifier"],
       "additionalProperties" : false
     },
+    "score_mw_someip_config_NullSerializerConfig" : {
+      "type" : "object",
+      "description" : "Configuration for the null serializer, which does not perform actual serialization but\ninstead uses pre-serialized message buffers.",
+      "properties" : {
+        "max_message_size" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "description" : "Size of the pre-serialized message buffers."
+              }
+      },
+      "additionalProperties" : false
+    },
     "score_mw_someip_config_Event" : {
       "type" : "object",
       "description" : "Describes a single event within a service.",
@@ -79,6 +94,13 @@
         "event_name" : {
                 "type" : "string",
                 "description" : "Name of the event. Must exactly match the field name in the score::mw::com\nservice interface definition to correlate SOME/IP event IDs with IPC events."
+              },
+        "serialization_config_type" : {
+                "$ref" : "#/definitions/score_mw_someip_config_SerializationConfig"
+              },
+        "serialization_config" : {
+                "anyOf": [{ "$ref" : "#/definitions/score_mw_someip_config_NullSerializerConfig" }],
+                "description" : "Serialization configuration for this event."
               }
       },
       "required" : ["event_name"],
@@ -95,6 +117,20 @@
         "method_name" : {
                 "type" : "string",
                 "description" : "Name of the method. Must exactly match the field name in the score::mw::com\nservice interface definition to correlate SOME/IP method IDs with IPC methods."
+              },
+        "request_serialization_config_type" : {
+                "$ref" : "#/definitions/score_mw_someip_config_SerializationConfig"
+              },
+        "request_serialization_config" : {
+                "anyOf": [{ "$ref" : "#/definitions/score_mw_someip_config_NullSerializerConfig" }],
+                "description" : "Serialization configuration for the request (call) of this method."
+              },
+        "response_serialization_config_type" : {
+                "$ref" : "#/definitions/score_mw_someip_config_SerializationConfig"
+              },
+        "response_serialization_config" : {
+                "anyOf": [{ "$ref" : "#/definitions/score_mw_someip_config_NullSerializerConfig" }],
+                "description" : "Serialization configuration for the response (return) of this method."
               }
       },
       "required" : ["method_name"],

@@ -44,3 +44,16 @@ repos:
     rev: 21ca5323a9c87ee37a434e0ca908efc0a89daa07 # v0.21.0
     hooks:
       - id: yamlfmt
+
+  - repo: local
+    hooks:
+      - id: bzlmod-tidy
+        name: bazel mod tidy
+        entry: bazel mod tidy
+        language: system
+        pass_filenames: false
+      - id: bzlmod-lockfile
+        name: bazel mod deps lockfile check
+        entry: bazel mod deps --lockfile_mode=error
+        language: system
+        pass_filenames: false

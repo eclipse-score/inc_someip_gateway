@@ -14,6 +14,7 @@
 #include "routing.h"
 
 #include <cassert>
+#include <chrono>
 #include <cstring>
 #include <iostream>
 #include <thread>
@@ -26,6 +27,9 @@ namespace score::someipd {
 using score::someip::kAnyInstance;
 using score::someip::kSomeipFullHeaderSize;
 using score::someip::max_sample_count;
+
+using namespace std::chrono_literals;
+constexpr auto POLLING_INTERVAL{10us};
 
 Routing::Routing(std::shared_ptr<const score::mw_someip_config::Root> config,
                  SomeipMessageTransferProxy ipc_proxy, SomeipMessageTransferSkeleton ipc_skeleton)
@@ -198,7 +202,7 @@ void Routing::ProcessMessages(std::atomic<bool>& shutdown_requested) {
             },
             max_sample_count);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(POLLING_INTERVAL);
     }
 
     std::cout << "[someipd] Message loop exited, shutting down..." << std::endl;

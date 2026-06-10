@@ -20,8 +20,7 @@
 #include "score/mw/com/com_error_domain.h"
 #include "score/mw/com/types.h"
 #include "src/common/types.h"
-// TODO: Remove dependency on echo service
-#include "tests/benchmarks/echo_service.h"
+#include "src/serializer/serializer.h"
 
 using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;
@@ -44,6 +43,33 @@ RemoteServiceInstance::RemoteServiceInstance(
       someip_message_proxy_(std::move(someip_message_proxy)) {
     // TODO: Error handling
     (void)ipc_skeleton_.OfferService();
+
+    auto service_type_name = service_type_config_->service_type_name()->string_view();
+    for (auto event_config : *service_type_config_->events()) {
+        auto event_name = event_config->event_name()->string_view();
+
+        auto events_it = ipc_skeleton_.GetEvents().find(*event_config->event_name());
+        if (events_it == ipc_skeleton_.GetEvents().cend()) {
+            std::cerr << "[gatewayd] Event '" << event_name << "' not found in IPC skeleton"
+                      << std::endl;
+            continue;
+        }
+        auto& ipc_event = const_cast<score::mw::com::GenericSkeletonEvent&>(events_it->second);
+
+        const score_com_serializer* serializer = nullptr;
+        auto get_result =
+            score_com_serializer_get(service_type_name.data(), service_type_name.size(),
+                                     score_com_serializer_element_type_event, event_name.data(),
+                                     event_name.size(), &serializer);
+        if (get_result != score_com_serializer_result_ok) {
+            std::cerr << "[gatewayd] Failed to get serializer for " << service_type_name
+                      << "::" << event_name << std::endl;
+            continue;
+        }
+
+        event_contexts_.emplace(event_config->event_id(),
+                                EventContext{event_config, serializer, &ipc_event});
+    }
 
     // TODO: This should be dispatched centrally
     someip_message_proxy_.message_.SetReceiveHandler([this]() {
@@ -71,25 +97,15 @@ RemoteServiceInstance::RemoteServiceInstance(
 
                 auto payload = message.subspan(SOMEIP_FULL_HEADER_SIZE);
 
-                // Look up event config by event ID. This is needed to find the corresponding IPC
-                // event to forward the data.
-                const score::mw_someip_config::Event* cfg_event =
-                    service_type_config_->events()->LookupByKey(rec_event_id);
-                if (cfg_event == nullptr) {
+                auto event_ctx_it = event_contexts_.find(rec_event_id);
+                if (event_ctx_it == event_contexts_.end()) {
                     std::cerr << "[gatewayd] No config entry for event 0x" << std::hex
                               << rec_event_id << std::dec << ", dropping" << std::endl;
                     return;
                 }
+                auto& event_context = event_ctx_it->second;
 
-                auto events_it = ipc_skeleton_.GetEvents().find(*cfg_event->event_name());
-                if (events_it == ipc_skeleton_.GetEvents().cend()) {
-                    std::cerr << "[gatewayd] Event '" << cfg_event->event_name()->string_view()
-                              << "' not found in IPC skeleton, dropping" << std::endl;
-                    return;
-                }
-                auto& event = const_cast<score::mw::com::GenericSkeletonEvent&>(events_it->second);
-
-                auto maybe_sample = event.Allocate();
+                auto maybe_sample = event_context.ipc_event->Allocate();
                 if (!maybe_sample.has_value()) {
                     std::cerr << "[gatewayd] Failed to allocate IPC sample: "
                               << maybe_sample.error().Message() << std::endl;
@@ -97,11 +113,16 @@ RemoteServiceInstance::RemoteServiceInstance(
                 }
                 auto sample = std::move(maybe_sample).value();
 
-                // TODO: deserialization
-                std::memcpy(sample.Get(), payload.data(),
-                            std::min(sizeof(echo_service::EchoResponseTiny), payload.size()));
+                auto deserialize_result = score_com_serializer_deserialize(
+                    event_context.serializer, reinterpret_cast<const uint8_t*>(payload.data()),
+                    payload.size(), sample.Get());
+                if (deserialize_result != score_com_serializer_result_ok) {
+                    std::cerr << "[gatewayd] Deserialization failed for event 0x" << std::hex
+                              << rec_event_id << std::dec << ", dropping" << std::endl;
+                    return;
+                }
 
-                event.Send(std::move(sample));
+                event_context.ipc_event->Send(std::move(sample));
                 std::cout << "[gatewayd] Forwarded event 0x" << std::hex << rec_event_id << std::dec
                           << " to IPC subscribers" << std::endl;
             },
@@ -148,6 +169,8 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
     score::containers::NonRelocatableVector<score::mw::com::EventInfo> events(
         service_type_config->events()->size());
 
+    auto service_type_name = service_type_config->service_type_name()->string_view();
+
     for (const auto& event : *service_type_config->events()) {
         if (event == nullptr) {
             std::cerr << "[gatewayd] ERROR: Encountered nullptr in events configuration!"
@@ -155,12 +178,22 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
             return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
         }
 
-        // TODO: Get the event type info from serializer. To support the benchmark app, for now just
-        // use the type info of EchoResponseTiny for all events
-        score::mw::com::DataTypeMetaInfo type_info{sizeof(echo_service::EchoResponseTiny),
-                                                   alignof(echo_service::EchoResponseTiny)};
-        events.emplace_back(
-            score::mw::com::EventInfo{event->event_name()->string_view(), type_info});
+        auto event_name = event->event_name()->string_view();
+        const score_com_serializer* serializer = nullptr;
+        auto get_result =
+            score_com_serializer_get(service_type_name.data(), service_type_name.size(),
+                                     score_com_serializer_element_type_event, event_name.data(),
+                                     event_name.size(), &serializer);
+        if (get_result != score_com_serializer_result_ok) {
+            std::cerr << "[gatewayd] Failed to get serializer for " << service_type_name
+                      << "::" << event_name << std::endl;
+            return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
+        }
+
+        score::mw::com::DataTypeMetaInfo type_info{
+            score_com_serializer_get_sizeof_type(serializer),
+            score_com_serializer_get_alignof_type(serializer)};
+        events.emplace_back(score::mw::com::EventInfo{event_name, type_info});
     }
 
     score::mw::com::GenericSkeletonServiceElementInfo service_element_info;

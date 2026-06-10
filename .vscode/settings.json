@@ -108,22 +108,27 @@
             "fileMatch": [
                 "**/mw_com_config.json"
             ],
-            "url": "./external/communication+/score/mw/com/impl/configuration/ara_com_config_schema.json"
+            "url": "./external/score_communication+/score/mw/com/impl/configuration/mw_com_config_schema.json"
         }
     ],
     "clangd.arguments": [
         "--compile-commands-dir=${workspaceFolder}/",
         "--pretty",
         "--background-index",
-        "--query-driver=/var/cache/bazel/*/execroot/_main/external/toolchains_llvm++llvm+llvm_toolchain/bin/cc_wrapper.sh"
+        "--query-driver=/var/cache/bazel/*/execroot/_main/external/toolchains_llvm++llvm+llvm_toolchain/bin/cc_wrapper.sh",
+        "--query-driver=${userHome}/.cache/bazel/**/execroot/_main/external/toolchains_llvm++llvm+llvm_toolchain/bin/cc_wrapper.sh"
     ],
     "cSpell.words": [
         "ASIL",
+        "bazelbuild",
         "flatbuffer",
         "flatbuffers",
         "gatewayd",
+        "hdrs",
+        "socom",
         "someip",
         "someipd",
+        "srcs",
         "vsomeip"
     ],
 }

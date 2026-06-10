@@ -14,12 +14,16 @@
 #ifndef SRC_GATEWAYD_REMOTE_SERVICE_INSTANCE
 #define SRC_GATEWAYD_REMOTE_SERVICE_INSTANCE
 
+#include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "score/mw/com/types.h"
 #include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
+
+struct score_com_serializer;
 
 namespace score::someip_gateway::gatewayd {
 
@@ -76,6 +80,13 @@ class RemoteServiceInstance {
     score::mw::com::GenericSkeleton ipc_skeleton_;
     /// Proxy for receiving messages from the someipd daemon
     network_service::interfaces::message_transfer::SomeipMessageTransferProxy someip_message_proxy_;
+
+    struct EventContext {
+        const mw_someip_config::Event* config;
+        const ::score_com_serializer* serializer;
+        score::mw::com::GenericSkeletonEvent* ipc_event;
+    };
+    std::unordered_map<std::uint16_t, EventContext> event_contexts_;
 };
 }  // namespace score::someip_gateway::gatewayd
 

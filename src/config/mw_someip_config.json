@@ -26,27 +26,51 @@
             "events": [
                 {
                     "event_name": "echo_request_tiny",
-                    "event_id": 34680
+                    "event_id": 34680,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 32
+                    }
                 },
                 {
                     "event_name": "echo_request_small",
-                    "event_id": 2
+                    "event_id": 2,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 88
+                    }
                 },
                 {
                     "event_name": "echo_request_medium",
-                    "event_id": 3
+                    "event_id": 3,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1048
+                    }
                 },
                 {
                     "event_name": "echo_request_large",
-                    "event_id": 4
+                    "event_id": 4,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 8216
+                    }
                 },
                 {
                     "event_name": "echo_request_xlarge",
-                    "event_id": 5
+                    "event_id": 5,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 65560
+                    }
                 },
                 {
                     "event_name": "echo_request_xxlarge",
-                    "event_id": 6
+                    "event_id": 6,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1048600
+                    }
                 }
             ],
             "local_service_instances": [
@@ -64,27 +88,51 @@
             "events": [
                 {
                     "event_name": "echo_response_tiny",
-                    "event_id": 34680
+                    "event_id": 34680,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 32
+                    }
                 },
                 {
                     "event_name": "echo_response_small",
-                    "event_id": 1
+                    "event_id": 2,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 88
+                    }
                 },
                 {
                     "event_name": "echo_response_medium",
-                    "event_id": 2
+                    "event_id": 3,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1048
+                    }
                 },
                 {
                     "event_name": "echo_response_large",
-                    "event_id": 3
+                    "event_id": 4,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 8216
+                    }
                 },
                 {
                     "event_name": "echo_response_xlarge",
-                    "event_id": 4
+                    "event_id": 5,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 65560
+                    }
                 },
                 {
                     "event_name": "echo_response_xxlarge",
-                    "event_id": 5
+                    "event_id": 6,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1048600
+                    }
                 }
             ],
             "remote_service_instances": [

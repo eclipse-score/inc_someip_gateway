@@ -35,6 +35,8 @@ cc_binary(
         ":remote_service_instance",
         "//src/config:config_flatbuffers",
         "//src/network_service:consumer",
+        "//src/serializer",
+        "//src/socom",
         "@score_baselibs//score/filesystem",
         "@score_communication//score/mw/com",
     ],
@@ -47,6 +49,7 @@ cc_library(
     deps = [
         "//src/config:config_flatbuffers",
         "//src/network_service:consumer",
+        "//src/serializer",
         "@score_communication//score/mw/com",
     ],
 )
@@ -59,7 +62,7 @@ cc_library(
         "//src/common",
         "//src/config:config_flatbuffers",
         "//src/network_service:consumer",
-        "//tests/benchmarks:echo_service",
+        "//src/serializer",
         "@score_baselibs//score/containers:non_relocatable_vector",
         "@score_communication//score/mw/com",
     ],
@@ -85,5 +88,6 @@ native_binary(
     data = [
         "etc/mw_com_config.json",
         "//src/config:config_file",
+        "//src/serializer:null_serializer",
     ],
 )

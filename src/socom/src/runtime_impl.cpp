@@ -20,12 +20,12 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <score/socom/final_action.hpp>
 #include <score/socom/server_connector.hpp>
 #include <score/socom/service_interface_identifier.hpp>
 #include <tuple>
 
 #include "client_connector_impl.hpp"
-#include "final_action.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/runtime.hpp"
 #include "server_connector_impl.hpp"

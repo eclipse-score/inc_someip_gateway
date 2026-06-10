@@ -96,32 +96,32 @@
                         {
                             "eventName": "echo_request_tiny",
                             "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_small",
                             "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_medium",
                             "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_large",
                             "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_xlarge",
                             "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_xxlarge",
                             "numberOfSampleSlots": 10,
-                            "maxSubscribers": 3
+                            "maxSubscribers": 1
                         }
                     ]
                 }
@@ -141,22 +141,34 @@
                     "binding": "SHM",
                     "events": [
                         {
-                            "eventName": "echo_response_tiny"
+                            "eventName": "echo_response_tiny",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
                         },
                         {
-                            "eventName": "echo_response_small"
+                            "eventName": "echo_response_small",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
                         },
                         {
-                            "eventName": "echo_response_medium"
+                            "eventName": "echo_response_medium",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
                         },
                         {
-                            "eventName": "echo_response_large"
+                            "eventName": "echo_response_large",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
                         },
                         {
-                            "eventName": "echo_response_xlarge"
+                            "eventName": "echo_response_xlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
                         },
                         {
-                            "eventName": "echo_response_xxlarge"
+                            "eventName": "echo_response_xxlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
                         }
                     ]
                 }
