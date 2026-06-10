@@ -29,7 +29,6 @@ RUN if [ "$USERNAME" != "vscode" ]; then \
     fi
 
 RUN apt-get update && apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
-RUN setcap cap_net_raw,cap_net_admin=eip $(which tcpdump)
 
 # Set the default user for the container
 USER ${USERNAME}

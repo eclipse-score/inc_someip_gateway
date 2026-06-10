@@ -90,7 +90,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
-          sudo setcap cap_net_raw,cap_net_admin=eip $(which tcpdump)
       - name: Allow linux-sandbox
         uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
       - run: df -h

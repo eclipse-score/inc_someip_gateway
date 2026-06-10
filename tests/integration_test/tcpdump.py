@@ -163,7 +163,7 @@ def test_killing_tcpdump(target):
         # tcpdump_process.terminate()
         # tcpdump_process.kill()
         # subprocess.run(["pkill", "tcpdump"], check=True)
-        # This raises an permission exception. This might be caused by using setcap on tcpdump
+        # This raises an permission exception.
 
     ps_aux_text = get_ps_aux_text()
     assert tcpdump_name not in ps_aux_text, ps_aux_text
