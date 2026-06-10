@@ -14,10 +14,17 @@
 import logging
 import time
 import subprocess
-from util import ShellProcess, _tcpdump_capture, wait_until_process_exits
+from util import (
+    ShellProcess,
+    _tcpdump_capture,
+    wait_until_process_exits,
+    get_ps_aux_text,
+    cleanup,
+)
 
 
 def test_start_someipd(target):
+    cleanup(target)
     with ShellProcess(
         target,
         "/someipd",
@@ -38,8 +45,12 @@ def test_start_someipd(target):
         )
         logging.info("someipd output:\n%s", someipd_process.get_output())
 
+    ps_aux_text = get_ps_aux_text()
+    assert "someipd" not in ps_aux_text, ps_aux_text
+
 
 def test_start_gatewayd(target):
+    cleanup(target)
     with ShellProcess(
         target,
         "/gatewayd",
@@ -59,10 +70,12 @@ def test_start_gatewayd(target):
         )
         logging.info("gatewayd output:\n%s", gatewayd_process.get_output())
 
+    ps_aux_text = get_ps_aux_text()
+    assert "gatewayd" not in ps_aux_text, ps_aux_text
+
 
 def test_start_someipd_and_gatewayd(target):
-    # exit_code, output = target.execute("ip route add 224.0.0.0/4 dev ens4")
-    # assert exit_code == 0, output.decode()
+    cleanup(target)
     subprocess.run(["ip", "route", "add", "224.0.0.0/4", "dev", "tap0"], check=True)
 
     with _tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:

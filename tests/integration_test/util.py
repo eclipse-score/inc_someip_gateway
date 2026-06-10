@@ -168,3 +168,26 @@ def get_ps_aux_text() -> str:
     )
     assert ps_aux_result.returncode == 0
     return _completed_process_as_text(ps_aux_result)
+
+
+def cleanup(target):
+    """The test runner is not restarted from a clean state after each test case. Thus some poor mans cleanup needs to be done."""
+
+    # kill someipd and gatewayd in case they are still running from a previous test
+    kill_process_by_name(target, "/someipd")
+    kill_process_by_name(target, "/gatewayd")
+    target.execute("rm -rf /tmp_discovery")
+
+    # Linux
+    target.execute(
+        "rm -rf /dev/shm/lola-*; rm -rf /tmp/mw_com_lola/*; rm -rf /tmp/lola-*"
+    )
+
+    # QNX
+    target.execute(
+        "rm -rf /dev/shmem/lola-*; rm -rf /tmp_discovery/mw_com_lola/*; rm -rf /tmp_discovery/lola-*"
+    )
+
+    ps_aux_text = get_ps_aux_text()
+    assert "someipd" not in ps_aux_text, ps_aux_text
+    assert "gatewayd" not in ps_aux_text, ps_aux_text
