@@ -312,18 +312,3 @@ imagefs.toolchain(
     type = "ifs",
 )
 use_repo(imagefs, "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")
-
-bazel_dep(name = "rules_distroless", version = "0.6.2", dev_dependency = True)
-
-apt = use_extension(
-    "@rules_distroless//apt:extensions.bzl",
-    "apt",
-    dev_dependency = True,
-)
-apt.install(
-    name = "ubuntu24_04",
-    lock = "@@//quality/integration_testing/environments/ubuntu24_04_docker:ubuntu24_04.lock.json",
-    manifest = "//quality/integration_testing/environments/ubuntu24_04_docker:ubuntu24_04.yaml",
-    mergedusr = True,
-)
-use_repo(apt, "ubuntu24_04")
