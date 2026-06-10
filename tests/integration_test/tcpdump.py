@@ -21,8 +21,7 @@ from util import (
     get_ps_aux_text,
 )
 
-# "tcpdump " because it matches tcpdump.py otherwise
-tcpdump_name = "tcpdump "
+tcpdump_name = "/usr/bin/tcpdump"
 
 
 def test_tcpdump_with_ping_from_host(target) -> None:

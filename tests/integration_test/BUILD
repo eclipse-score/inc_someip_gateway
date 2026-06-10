@@ -53,11 +53,23 @@ pkg_files(
 )
 
 integration_test(
-    name = "test_hello_world",
+    name = "test_tcpdump",
+    timeout = "moderate",
+    srcs = [
+        "tcpdump.py",
+        "util.py",
+    ],
+    filesystem = ":example-app-pkg",
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+    ],
+)
+
+integration_test(
+    name = "test_daemon_startup",
     timeout = "moderate",
     srcs = [
         "daemon_startup.py",
-        "tcpdump.py",
         "util.py",
     ],
     filesystem = ":example-app-pkg",
