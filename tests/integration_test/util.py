@@ -118,6 +118,9 @@ class ShellProcess:
             # Not clear why the shell process itself is not killable
             kill_process_by_name(self._target, self._application_path)
             self._process.stop()
+            assert not self._process.is_running(), (
+                f"Process {self._application_path} should have been stopped, but is still running. Output: {self.get_output()}"
+            )
 
 
 def tcpdump_capture(
