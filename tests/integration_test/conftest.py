@@ -19,55 +19,68 @@ Pytest configuration and fixtures for integration tests.
 import os
 import pytest
 from typing import Generator
-from util import ShellProcess, cleanup, tcpdump_capture
+from util import ShellProcess, tcpdump_capture, check_environment_and_mark
 from score.itf.plugins.core import Target
 
 
 @pytest.fixture(scope="function")
 def clean_state(target: Target) -> Generator[Target, None, None]:
-    cleanup(target)
+    """This fixture can only be used once per QEMU instance / linux-sandbox instance, to ensure a clean environment.
+
+    Otherwise subsequent tests might fail due to leftover state from previous tests.
+    Additionally killing tcpdump is problematic (kill errors with permission denied), but terminating linux-sandbox should get rid of it.
+    Lastly the output pcap file name should contain the test name, if we want to support multiple tests per run.
+    """
+
+    check_environment_and_mark(target)
     yield target
 
 
 @pytest.fixture(scope="function")
 def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
+    """Start someipd and gatewayd before tests and stop them after."""
+
     # TODO tcpdump cannot be killed when the test is done. Need to figure out why
+
     # Store test traffic in file for later analysis of failures
-    # pcap_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")
-    # pcap_file = os.path.join(pcap_dir, "test_traffic.pcap")
-    # with tcpdump_capture("", output_file=pcap_file):
-    if True:
+    pcap_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")
+    pcap_file = os.path.join(pcap_dir, "test_traffic.pcap")
+
+    # no with statement is used by intention to avoid permission denied error when killing tcpdump
+    tcpdump_host = tcpdump_capture("", output_file=pcap_file)
+    tcpdump_process = tcpdump_host.__enter__()
+
+    with ShellProcess(
+        clean_state,
+        "/someipd",
+        args=[
+            "--configuration",
+            "/mw_someip_config.bin",
+            "--service_instance_manifest",
+            "/someipd_mw_com_config.json",
+        ],
+        env="VSOMEIP_CONFIGURATION=/vsomeip.json",
+    ) as someipd_process:
+        assert someipd_process.is_running(), someipd_process.get_output()
         with ShellProcess(
             clean_state,
-            "/someipd",
+            "/gatewayd",
             args=[
                 "--configuration",
                 "/mw_someip_config.bin",
                 "--service_instance_manifest",
-                "/someipd_mw_com_config.json",
+                "/gatewayd_mw_com_config.json",
             ],
-            env="VSOMEIP_CONFIGURATION=/vsomeip.json",
-        ) as someipd_process:
-            assert someipd_process.is_running(), someipd_process.get_output()
-            with ShellProcess(
-                clean_state,
-                "/gatewayd",
-                args=[
-                    "--configuration",
-                    "/mw_someip_config.bin",
-                    "--service_instance_manifest",
-                    "/gatewayd_mw_com_config.json",
-                ],
-            ) as gatewayd_process:
-                assert gatewayd_process.is_running(), gatewayd_process.get_output()
-                assert gatewayd_process.is_running(), (
-                    gatewayd_process.get_output(),
-                    "exit code: ",
-                    gatewayd_process.get_exit_code(),
-                )
-                assert someipd_process.is_running(), (
-                    someipd_process.get_output(),
-                    "exit code: ",
-                    someipd_process.get_exit_code(),
-                )
-                yield clean_state
+        ) as gatewayd_process:
+            assert gatewayd_process.is_running(), gatewayd_process.get_output()
+            assert gatewayd_process.is_running(), (
+                gatewayd_process.get_output(),
+                "exit code: ",
+                gatewayd_process.get_exit_code(),
+            )
+            assert someipd_process.is_running(), (
+                someipd_process.get_output(),
+                "exit code: ",
+                someipd_process.get_exit_code(),
+            )
+            yield clean_state

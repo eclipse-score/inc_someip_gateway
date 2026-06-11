@@ -67,10 +67,26 @@ integration_test(
 )
 
 integration_test(
-    name = "test_daemon_startup",
+    name = "test_gateway_startup",
     timeout = "moderate",
     srcs = [
-        "daemon_startup.py",
+        "conftest.py",
+        "gatewayd_startup.py",
+        "util.py",
+    ],
+    filesystem = ":example-app-pkg",
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+        "@score_someip_gateway_pip//someip",
+    ],
+)
+
+integration_test(
+    name = "test_someipd_startup",
+    timeout = "moderate",
+    srcs = [
+        "conftest.py",
+        "someipd_startup.py",
         "util.py",
     ],
     filesystem = ":example-app-pkg",
@@ -86,6 +102,21 @@ integration_test(
     srcs = [
         "conftest.py",
         "someipd_sends_someip-sd_message.py",
+        "util.py",
+    ],
+    filesystem = ":example-app-pkg",
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+        "@score_someip_gateway_pip//someip",
+    ],
+)
+
+integration_test(
+    name = "test_someipd_started_by_test",
+    timeout = "moderate",
+    srcs = [
+        "conftest.py",
+        "someipd_started_by_test.py",
         "util.py",
     ],
     filesystem = ":example-app-pkg",

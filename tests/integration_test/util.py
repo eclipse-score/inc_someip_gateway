@@ -19,11 +19,14 @@ import pwd
 import logging
 import time
 import subprocess
+from score.itf.plugins.core import Target
 from types import TracebackType
 from typing import Any
 
 
-def kill_process_by_name(target, application_path: str, timeout: float = 2.0) -> bool:
+def kill_process_by_name(
+    target: Target, application_path: str, timeout: float = 2.0
+) -> bool:
     # check if pkill is available on the target
     exit_code, _ = target.execute("command -v pkill")
     if exit_code != 0:
@@ -192,22 +195,59 @@ def get_running_processes_on_target(target) -> str:
     return output.decode()
 
 
-def cleanup(target) -> None:
-    """The test runner is not restarted from a clean state after each test case. Thus some poor mans cleanup needs to be done."""
+def is_tcpdump_running() -> tuple[bool, str]:
+    tcpdump_name = "/usr/bin/tcpdump"
+    # do not know why on Github runners tcpdump shows up like that
+    tcpdump_name_github = "[tcpdump]"
+    ps_aux_text = get_running_processes_on_host()
 
-    # kill someipd and gatewayd in case they are still running from a previous test
-    kill_process_by_name(target, "/someipd")
-    kill_process_by_name(target, "/gatewayd")
-    target.execute("rm -rf /tmp_discovery")
-
-    # Linux
-    target.execute("rm -rf /dev/shm/lola-* /tmp/mw_com_lola/* /tmp/lola-*")
-
-    # QNX
-    target.execute(
-        "rm -rf /dev/shmem/lola-* /tmp_discovery/mw_com_lola/* /tmp_discovery/lola-*"
+    return (
+        tcpdump_name in ps_aux_text or tcpdump_name_github in ps_aux_text,
+        ps_aux_text,
     )
 
+
+def check_environment_and_mark(target: Target) -> bool:
+    """Check that environment is clean and place marker to fail if not."""
+    marker_name = "/tmp/inc_someip_gateway_test_run"
+    message = "Please ensure that there is only one test per file and one file per bazel label."
+
+    # Check for marker files
+    host_result = subprocess.run(
+        ["ls", marker_name], check=False, stdout=subprocess.PIPE
+    )
+    assert host_result.returncode != 0, (
+        f"Marker file {marker_name} exists on host, environment is not clean. {message}"
+    )
+
+    return_code, output = target.execute(f"ls {marker_name}")
+    assert return_code != 0, (
+        f"Marker file {marker_name} exists on target, environment is not clean. {message}"
+    )
+
+    # Check for running processes
     ps_aux_text = get_running_processes_on_target(target)
-    assert "someipd" not in ps_aux_text, ps_aux_text
-    assert "gatewayd" not in ps_aux_text, ps_aux_text
+    assert "someipd" not in ps_aux_text, "Found stale someipd running: " + ps_aux_text
+    assert "gatewayd" not in ps_aux_text, "Found stale gatewayd running: " + ps_aux_text
+
+    # Check for lola files Linux + QNX
+    for pattern in ["/dev/shm/lola-*", "/tmp/mw_com_lola/*", "/tmp/lola-*"] + [
+        "/dev/shmem/lola-*",
+        "/tmp_discovery/mw_com_lola/*",
+        "/tmp_discovery/lola-*",
+    ]:
+        return_code, output = target.execute(f"ls {pattern}")
+        assert return_code != 0, (
+            f"Found stale lola files in {pattern} on target: " + output.decode()
+        )
+
+    # Check for tcpdump running on host
+    is_running, ps_aux_text = is_tcpdump_running()
+    assert not is_running, "Found stale tcpdump running on host: " + ps_aux_text
+
+    # create marker file to mark that the environment is now dirty
+    subprocess.run(["touch", marker_name], check=True)
+    return_code, output = target.execute(f"touch {marker_name}")
+    assert return_code == 0, (
+        f"Failed to create marker file {marker_name} on target. Output: {output.decode()}"
+    )
