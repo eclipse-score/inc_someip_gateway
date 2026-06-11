@@ -15,6 +15,7 @@ import unittest
 import importlib.util
 import os
 from pathlib import Path
+from subprocess import TimeoutExpired
 from unittest.mock import patch
 
 
@@ -70,6 +71,43 @@ class DiskBootQemuTest(unittest.TestCase):
             "quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
         )
         self.assertIn(f"file={expected},format=raw,if=virtio,readonly=on", cmd)
+
+    def test_build_command_uses_valid_tcg_acceleration_args(self):
+        qemu = self._new_qemu(seed_iso=None)
+        qemu._accelerator = "tcg"
+
+        cmd = qemu._build_command()
+
+        self.assertIn("-accel", cmd)
+        accel_pos = cmd.index("-accel")
+        self.assertEqual(cmd[accel_pos + 1], "tcg")
+
+    def test_build_command_uses_enable_kvm_flag(self):
+        qemu = self._new_qemu(seed_iso=None)
+        qemu._accelerator = "kvm"
+
+        cmd = qemu._build_command()
+
+        self.assertIn("-enable-kvm", cmd)
+
+    def test_stop_handles_unstarted_process(self):
+        qemu = self._new_qemu(seed_iso=None)
+
+        qemu.stop()
+
+    def test_stop_falls_back_to_kill_after_terminate_timeout(self):
+        qemu = self._new_qemu(seed_iso=None)
+
+        process = unittest.mock.MagicMock()
+        process.poll.side_effect = [None, None, 0]
+        process.wait.side_effect = [TimeoutExpired(cmd="qemu", timeout=2), 0]
+        process.returncode = 0
+        qemu._subprocess = process
+
+        qemu.stop()
+
+        process.terminate.assert_called_once()
+        process.kill.assert_called_once()
 
 
 if __name__ == "__main__":

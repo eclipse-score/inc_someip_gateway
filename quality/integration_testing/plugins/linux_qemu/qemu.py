@@ -21,6 +21,7 @@ import logging
 import os
 import subprocess
 import sys
+from subprocess import TimeoutExpired
 
 logger = logging.getLogger(__name__)
 
@@ -73,12 +74,21 @@ class DiskBootQemu:
         return self._subprocess
 
     def stop(self):
+        if self._subprocess is None:
+            return
+
         if self._subprocess.poll() is None:
             self._subprocess.terminate()
-            self._subprocess.wait(2)
+            try:
+                self._subprocess.wait(2)
+            except TimeoutExpired:
+                logger.warning("QEMU did not terminate in time. Killing process.")
         if self._subprocess.poll() is None:
             self._subprocess.kill()
-            self._subprocess.wait(2)
+            try:
+                self._subprocess.wait(2)
+            except TimeoutExpired:
+                logger.error("QEMU did not exit after kill.")
         ret = self._subprocess.returncode
         if ret != 0:
             raise Exception(f"QEMU process returned: {ret}")
