@@ -1,0 +1,71 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+# Interface between gatewayd and the serializer library. The interface is defined as a C header file and the actual implementation is provided by a shared library which is loaded at runtime by gatewayd.
+cc_library(
+    name = "interface",
+    hdrs = ["serializer.h"],
+    visibility = ["//visibility:public"],
+)
+
+# Type definition for pre-serialized data which is used by an application to provide pre-serialized data to gatewayd.
+# The serializer can then be skipped.
+cc_library(
+    name = "pre_serialized_data",
+    hdrs = ["pre_serialized_data.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "null_serializer_impl",
+    srcs = ["null_serializer.cpp"],
+    deps = [
+        ":interface",
+        ":pre_serialized_data",
+        "//src/config:config_flatbuffers",
+    ],
+)
+
+cc_test(
+    name = "null_serializer_test",
+    srcs = ["null_serializer_test.cpp"],
+    deps = [
+        ":null_serializer_impl",
+        ":pre_serialized_data",
+        "//src/config:config_flatbuffers",
+        "@googletest//:gtest_main",
+    ],
+)
+
+# Serializer that can only handle pre-serialized data and is used as default serializer for gatewayd if no other serializer is provided.
+cc_shared_library(
+    name = "null_serializer",
+    shared_lib_name = "score_com_serializer.so",
+    visibility = ["//visibility:public"],
+    deps = [":null_serializer_impl"],
+)
+
+# Import library used as indicator to bazel that this library will be exchanged at runtime
+cc_import(
+    name = "serializer",
+    hdrs = ["serializer.h"],
+    interface_library = ":null_serializer",
+    # TODO: Need workaround for bug bazelbuild/bazel#10190 where bazel adds the .so to the runpath even though it is system_provided.
+    system_provided = True,
+    visibility = ["//src/gatewayd:__subpackages__"],
+)

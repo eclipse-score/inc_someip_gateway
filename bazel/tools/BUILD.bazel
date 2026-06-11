@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -11,10 +11,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# This files allows to access the rules and macros like this:
-#
-# load("@score_someip_gateway//bazel/tools:someip_config.bzl", "...")
-#
-# instead of this:
-#
-# load("@score_someip_gateway//:bazel/tools/someip_config.bzl", "...")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
+
+write_source_files(
+    name = "config_schema.update",
+    check_that_out_file_exists = False,
+    files = {
+        "//src/config:mw_someip_config.schema.json": "//src/config:config_schema.generate",
+    },
+)

@@ -14,12 +14,16 @@
 #ifndef SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE
 #define SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE
 
+#include <map>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include "score/mw/com/types.h"
 #include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
+
+struct score_com_serializer;
 
 namespace score::someip_gateway::gatewayd {
 
@@ -81,6 +85,12 @@ class LocalServiceInstance {
     /// Reference to the SOME/IP message skeleton for forwarding messages to the someipd daemon
     network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
         someip_message_skeleton_;
+
+    struct EventContext {
+        const mw_someip_config::Event* config;
+        const ::score_com_serializer* serializer;
+    };
+    std::map<std::string_view, EventContext> event_contexts_;
 };
 }  // namespace score::someip_gateway::gatewayd
 

@@ -23,15 +23,18 @@
 #include "score/stop_token.hpp"
 
 using namespace echo_service;
+using score::mw::com::impl::SamplePtr;
 
 static std::size_t total_processed{0};
 
+using namespace std::chrono_literals;
+
 constexpr std::uint16_t MaxSamplesCount{10};
 constexpr std::size_t LOAD_BALANCING_INTERVAL{1000};
-constexpr std::chrono::milliseconds LOAD_BALANCING_DELAY{1};
-constexpr std::chrono::milliseconds MAIN_LOOP_SLEEP{50};
-constexpr std::chrono::seconds INITIAL_CLIENT_WAIT{2};
-constexpr std::chrono::seconds STATS_INTERVAL{5};
+constexpr auto LOAD_BALANCING_DELAY{1ms};
+constexpr auto MAIN_LOOP_SLEEP{10us};
+constexpr auto INITIAL_CLIENT_WAIT{2s};
+constexpr auto STATS_INTERVAL{5s};
 
 constexpr const char* EchoRequestInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
@@ -41,8 +44,8 @@ score::cpp::stop_token g_stop_token{g_stop_source.get_token()};
 
 void SigTermHandlerFunction(int signal) { g_stop_source.request_stop(); }
 
-static std::optional<EchoRequestProxy> TryConnectToClient() {
-    auto handles = EchoRequestProxy::FindService(
+static std::optional<EchoRequestPreSerializedProxy> TryConnectToClient() {
+    auto handles = EchoRequestPreSerializedProxy::FindService(
         score::mw::com::InstanceSpecifier::Create(std::string{EchoRequestInstanceSpecifier})
             .value());
 
@@ -50,7 +53,7 @@ static std::optional<EchoRequestProxy> TryConnectToClient() {
         return std::nullopt;
     }
 
-    auto proxy_result = EchoRequestProxy::Create(handles.value().front());
+    auto proxy_result = EchoRequestPreSerializedProxy::Create(handles.value().front());
     if (!proxy_result.has_value()) {
         return std::nullopt;
     }
@@ -58,9 +61,8 @@ static std::optional<EchoRequestProxy> TryConnectToClient() {
     return std::move(proxy_result).value();
 }
 
-template <typename RequestSample>
-static void ProcessSingleEchoRequestTiny(const RequestSample& request_sample,
-                                         EchoResponseSkeleton& response_skeleton,
+static void ProcessSingleEchoRequestTiny(SamplePtr<EchoMessagePreSerializedTiny> request_sample,
+                                         EchoResponsePreSerializedSkeleton& response_skeleton,
                                          std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
@@ -69,17 +71,17 @@ static void ProcessSingleEchoRequestTiny(const RequestSample& request_sample,
     auto response_result = response_skeleton.echo_response_tiny_.Allocate();
     if (!response_result.has_value()) {
         std::cerr << "Failed to allocate tiny response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::Tiny>(*request_sample) << std::endl;
         return;
     }
 
     auto response = std::move(response_result).value();
-    utils::CopyMessageForEcho(*response, *request_sample);
+    utils::CopyMessageForEcho<PayloadSize::Tiny>(*response, *request_sample);
 
     auto send_result = response_skeleton.echo_response_tiny_.Send(std::move(response));
     if (!send_result.has_value()) {
-        std::cerr << "Failed to send tiny response for sequence_id: " << request_sample->sequence_id
-                  << std::endl;
+        std::cerr << "Failed to send tiny response for sequence_id: "
+                  << utils::GetSequenceId<PayloadSize::Tiny>(*request_sample) << std::endl;
         return;
     }
 
@@ -91,9 +93,8 @@ static void ProcessSingleEchoRequestTiny(const RequestSample& request_sample,
     }
 }
 
-template <typename RequestSample>
-static void ProcessSingleEchoRequestSmall(const RequestSample& request_sample,
-                                          EchoResponseSkeleton& response_skeleton,
+static void ProcessSingleEchoRequestSmall(SamplePtr<EchoMessagePreSerializedSmall> request_sample,
+                                          EchoResponsePreSerializedSkeleton& response_skeleton,
                                           std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
@@ -102,17 +103,17 @@ static void ProcessSingleEchoRequestSmall(const RequestSample& request_sample,
     auto response_result = response_skeleton.echo_response_small_.Allocate();
     if (!response_result.has_value()) {
         std::cerr << "Failed to allocate small response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::Small>(*request_sample) << std::endl;
         return;
     }
 
     auto response = std::move(response_result).value();
-    utils::CopyMessageForEcho(*response, *request_sample);
+    utils::CopyMessageForEcho<PayloadSize::Small>(*response, *request_sample);
 
     auto send_result = response_skeleton.echo_response_small_.Send(std::move(response));
     if (!send_result.has_value()) {
         std::cerr << "Failed to send small response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::Small>(*request_sample) << std::endl;
         return;
     }
 
@@ -124,9 +125,8 @@ static void ProcessSingleEchoRequestSmall(const RequestSample& request_sample,
     }
 }
 
-template <typename RequestSample>
-static void ProcessSingleEchoRequestMedium(const RequestSample& request_sample,
-                                           EchoResponseSkeleton& response_skeleton,
+static void ProcessSingleEchoRequestMedium(SamplePtr<EchoMessagePreSerializedMedium> request_sample,
+                                           EchoResponsePreSerializedSkeleton& response_skeleton,
                                            std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
@@ -135,17 +135,17 @@ static void ProcessSingleEchoRequestMedium(const RequestSample& request_sample,
     auto response_result = response_skeleton.echo_response_medium_.Allocate();
     if (!response_result.has_value()) {
         std::cerr << "Failed to allocate medium response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::Medium>(*request_sample) << std::endl;
         return;
     }
 
     auto response = std::move(response_result).value();
-    utils::CopyMessageForEcho(*response, *request_sample);
+    utils::CopyMessageForEcho<PayloadSize::Medium>(*response, *request_sample);
 
     auto send_result = response_skeleton.echo_response_medium_.Send(std::move(response));
     if (!send_result.has_value()) {
         std::cerr << "Failed to send medium response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::Medium>(*request_sample) << std::endl;
         return;
     }
 
@@ -157,9 +157,8 @@ static void ProcessSingleEchoRequestMedium(const RequestSample& request_sample,
     }
 }
 
-template <typename RequestSample>
-static void ProcessSingleEchoRequestLarge(const RequestSample& request_sample,
-                                          EchoResponseSkeleton& response_skeleton,
+static void ProcessSingleEchoRequestLarge(SamplePtr<EchoMessagePreSerializedLarge> request_sample,
+                                          EchoResponsePreSerializedSkeleton& response_skeleton,
                                           std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
@@ -168,17 +167,17 @@ static void ProcessSingleEchoRequestLarge(const RequestSample& request_sample,
     auto response_result = response_skeleton.echo_response_large_.Allocate();
     if (!response_result.has_value()) {
         std::cerr << "Failed to allocate large response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::Large>(*request_sample) << std::endl;
         return;
     }
 
     auto response = std::move(response_result).value();
-    utils::CopyMessageForEcho(*response, *request_sample);
+    utils::CopyMessageForEcho<PayloadSize::Large>(*response, *request_sample);
 
     auto send_result = response_skeleton.echo_response_large_.Send(std::move(response));
     if (!send_result.has_value()) {
         std::cerr << "Failed to send large response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::Large>(*request_sample) << std::endl;
         return;
     }
 
@@ -190,9 +189,8 @@ static void ProcessSingleEchoRequestLarge(const RequestSample& request_sample,
     }
 }
 
-template <typename RequestSample>
-static void ProcessSingleEchoRequestXLarge(const RequestSample& request_sample,
-                                           EchoResponseSkeleton& response_skeleton,
+static void ProcessSingleEchoRequestXLarge(SamplePtr<EchoMessagePreSerializedXLarge> request_sample,
+                                           EchoResponsePreSerializedSkeleton& response_skeleton,
                                            std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
@@ -201,17 +199,17 @@ static void ProcessSingleEchoRequestXLarge(const RequestSample& request_sample,
     auto response_result = response_skeleton.echo_response_xlarge_.Allocate();
     if (!response_result.has_value()) {
         std::cerr << "Failed to allocate xlarge response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::XLarge>(*request_sample) << std::endl;
         return;
     }
 
     auto response = std::move(response_result).value();
-    utils::CopyMessageForEcho(*response, *request_sample);
+    utils::CopyMessageForEcho<PayloadSize::XLarge>(*response, *request_sample);
 
     auto send_result = response_skeleton.echo_response_xlarge_.Send(std::move(response));
     if (!send_result.has_value()) {
         std::cerr << "Failed to send xlarge response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::XLarge>(*request_sample) << std::endl;
         return;
     }
 
@@ -223,10 +221,9 @@ static void ProcessSingleEchoRequestXLarge(const RequestSample& request_sample,
     }
 }
 
-template <typename RequestSample>
-static void ProcessSingleEchoRequestXXLarge(const RequestSample& request_sample,
-                                            EchoResponseSkeleton& response_skeleton,
-                                            std::size_t& requests_processed) {
+static void ProcessSingleEchoRequestXXLarge(
+    SamplePtr<EchoMessagePreSerializedXXLarge> request_sample,
+    EchoResponsePreSerializedSkeleton& response_skeleton, std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -234,17 +231,17 @@ static void ProcessSingleEchoRequestXXLarge(const RequestSample& request_sample,
     auto response_result = response_skeleton.echo_response_xxlarge_.Allocate();
     if (!response_result.has_value()) {
         std::cerr << "Failed to allocate xxlarge response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::XXLarge>(*request_sample) << std::endl;
         return;
     }
 
     auto response = std::move(response_result).value();
-    utils::CopyMessageForEcho(*response, *request_sample);
+    utils::CopyMessageForEcho<PayloadSize::XXLarge>(*response, *request_sample);
 
     auto send_result = response_skeleton.echo_response_xxlarge_.Send(std::move(response));
     if (!send_result.has_value()) {
         std::cerr << "Failed to send xxlarge response for sequence_id: "
-                  << request_sample->sequence_id << std::endl;
+                  << utils::GetSequenceId<PayloadSize::XXLarge>(*request_sample) << std::endl;
         return;
     }
 
@@ -256,53 +253,56 @@ static void ProcessSingleEchoRequestXXLarge(const RequestSample& request_sample,
     }
 }
 
-static void ProcessEchoRequests(
-    EchoRequestProxy& request_proxy, EchoResponseSkeleton& response_skeleton,
-    std::size_t& requests_processed_tiny, std::size_t& requests_processed_small,
-    std::size_t& requests_processed_medium, std::size_t& requests_processed_large,
-    std::size_t& requests_processed_xlarge, std::size_t& requests_processed_xxlarge) {
+static void ProcessEchoRequests(EchoRequestPreSerializedProxy& request_proxy,
+                                EchoResponsePreSerializedSkeleton& response_skeleton,
+                                std::size_t& requests_processed_tiny,
+                                std::size_t& requests_processed_small,
+                                std::size_t& requests_processed_medium,
+                                std::size_t& requests_processed_large,
+                                std::size_t& requests_processed_xlarge,
+                                std::size_t& requests_processed_xxlarge) {
     if (g_stop_token.stop_requested()) {
         return;
     }
 
     request_proxy.echo_request_tiny_.GetNewSamples(
-        [&](const auto& request_sample) {
-            ProcessSingleEchoRequestTiny(request_sample, response_skeleton,
+        [&](auto request_sample) {
+            ProcessSingleEchoRequestTiny(std::move(request_sample), response_skeleton,
                                          requests_processed_tiny);
         },
         MaxSamplesCount);
 
     request_proxy.echo_request_small_.GetNewSamples(
-        [&](const auto& request_sample) {
-            ProcessSingleEchoRequestSmall(request_sample, response_skeleton,
+        [&](auto request_sample) {
+            ProcessSingleEchoRequestSmall(std::move(request_sample), response_skeleton,
                                           requests_processed_small);
         },
         MaxSamplesCount);
 
     request_proxy.echo_request_medium_.GetNewSamples(
-        [&](const auto& request_sample) {
-            ProcessSingleEchoRequestMedium(request_sample, response_skeleton,
+        [&](auto request_sample) {
+            ProcessSingleEchoRequestMedium(std::move(request_sample), response_skeleton,
                                            requests_processed_medium);
         },
         MaxSamplesCount);
 
     request_proxy.echo_request_large_.GetNewSamples(
-        [&](const auto& request_sample) {
-            ProcessSingleEchoRequestLarge(request_sample, response_skeleton,
+        [&](auto request_sample) {
+            ProcessSingleEchoRequestLarge(std::move(request_sample), response_skeleton,
                                           requests_processed_large);
         },
         MaxSamplesCount);
 
     request_proxy.echo_request_xlarge_.GetNewSamples(
-        [&](const auto& request_sample) {
-            ProcessSingleEchoRequestXLarge(request_sample, response_skeleton,
+        [&](auto request_sample) {
+            ProcessSingleEchoRequestXLarge(std::move(request_sample), response_skeleton,
                                            requests_processed_xlarge);
         },
         MaxSamplesCount);
 
     request_proxy.echo_request_xxlarge_.GetNewSamples(
-        [&](const auto& request_sample) {
-            ProcessSingleEchoRequestXXLarge(request_sample, response_skeleton,
+        [&](auto request_sample) {
+            ProcessSingleEchoRequestXXLarge(std::move(request_sample), response_skeleton,
                                             requests_processed_xxlarge);
         },
         MaxSamplesCount);
@@ -321,7 +321,7 @@ int main(int argc, const char* argv[]) {
 
     score::mw::com::runtime::InitializeRuntime(argc, argv);
 
-    auto response_skeleton_result = EchoResponseSkeleton::Create(
+    auto response_skeleton_result = EchoResponsePreSerializedSkeleton::Create(
         score::mw::com::InstanceSpecifier::Create(std::string{EchoResponseInstanceSpecifier})
             .value());
 
@@ -348,7 +348,7 @@ int main(int argc, const char* argv[]) {
     auto last_stats_time = std::chrono::steady_clock::now();
 
     ServerState current_state = ServerState::WaitingForClient;
-    std::optional<EchoRequestProxy> request_proxy;
+    std::optional<EchoRequestPreSerializedProxy> request_proxy;
 
     // Give some time for the benchmark client to start and subscribe
     std::this_thread::sleep_for(INITIAL_CLIENT_WAIT);

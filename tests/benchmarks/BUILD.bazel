@@ -20,6 +20,7 @@ cc_library(
     hdrs = ["echo_service.h"],
     visibility = ["//visibility:public"],
     deps = [
+        "//src/serializer:pre_serialized_data",
         "@score_communication//score/mw/com",
     ],
 )

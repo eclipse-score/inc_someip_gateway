@@ -11,9 +11,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_SOCOM_SRC_FINAL_ACTION
-#define SRC_SOCOM_SRC_FINAL_ACTION
+#ifndef SCORE_SOCOM_FINAL_ACTION_HPP
+#define SCORE_SOCOM_FINAL_ACTION_HPP
 
+#include <algorithm>
 #include <score/move_only_function.hpp>
 
 namespace score {
@@ -32,12 +33,15 @@ class Final_action {
     /// \brief Constructor
     /// \param f functor to be called
     ///
-    explicit Final_action(F f) noexcept;
+    explicit Final_action(F f) noexcept : m_f{std::move(f)} {}
 
     ///
     /// \brief Move constructor
     ///
-    Final_action(Final_action&& other) noexcept;
+    Final_action(Final_action&& other) noexcept : m_f{std::move(other.m_f)} {
+        // Reset it always to get consistent behavior.
+        other.m_f = nullptr;
+    }
 
     Final_action(Final_action const&) = delete;
     Final_action& operator=(Final_action const&) = delete;
@@ -46,12 +50,21 @@ class Final_action {
     ///
     /// \brief Destructor
     ///
-    ~Final_action() noexcept;
+    ~Final_action() noexcept { execute(); }
 
     ///
     /// \brief Runs the functor and disarms the Final_action. It will destroy the stored functor.
     ///
-    void execute() noexcept;
+    void execute() noexcept {
+        F tmp_f = nullptr;
+        std::swap(tmp_f, m_f);
+        try {
+            if (!tmp_f.empty()) {
+                tmp_f();
+            }
+        } catch (...) {
+        }
+    }
 
    private:
     F m_f;
@@ -60,4 +73,4 @@ class Final_action {
 }  // namespace socom
 }  // namespace score
 
-#endif  // SRC_SOCOM_SRC_FINAL_ACTION
+#endif  // SCORE_SOCOM_FINAL_ACTION_HPP

@@ -19,6 +19,7 @@
 
 #include "score/mw/com/com_error_domain.h"
 #include "score/mw/com/types.h"
+#include "src/serializer/serializer.h"
 
 using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;
@@ -51,7 +52,23 @@ LocalServiceInstance::LocalServiceInstance(
         }
         auto& ipc_event = result->second;
 
-        ipc_event.SetReceiveHandler([this, &ipc_event, event_config]() {
+        auto service_type_name = service_type_config_->service_type_name()->string_view();
+        auto event_name = event_config->event_name()->string_view();
+        const score_com_serializer* serializer = nullptr;
+        auto get_result =
+            score_com_serializer_get(service_type_name.data(), service_type_name.size(),
+                                     score_com_serializer_element_type_event, event_name.data(),
+                                     event_name.size(), &serializer);
+        if (get_result != score_com_serializer_result_ok) {
+            std::cerr << "[gatewayd] Failed to get serializer for " << service_type_name
+                      << "::" << event_name << std::endl;
+            continue;
+        }
+        auto& event_context =
+            event_contexts_.emplace(event_name, EventContext{event_config, serializer})
+                .first->second;
+
+        ipc_event.SetReceiveHandler([this, &ipc_event, &event_context]() {
             ipc_event.GetNewSamples(
                 [&](SamplePtr<void> sample) {
                     auto maybe_message = someip_message_skeleton_.message_.Allocate();
@@ -73,7 +90,7 @@ LocalServiceInstance::LocalServiceInstance(
                     message.data()[pos++] = static_cast<std::byte>(service_id >> 8);
                     message.data()[pos++] = static_cast<std::byte>(service_id & 0xFF);
 
-                    std::uint16_t method_id = event_config->event_id();
+                    std::uint16_t method_id = event_context.config->event_id();
                     message.data()[pos++] = static_cast<std::byte>(method_id >> 8);
                     message.data()[pos++] = static_cast<std::byte>(method_id & 0xFF);
 
@@ -102,11 +119,17 @@ LocalServiceInstance::LocalServiceInstance(
                     message.data()[pos++] = static_cast<std::byte>(return_code);
 
                     // Serialize payload
-                    // TODO: Call serialization plugin here
                     auto payload = message.subspan(pos);
-                    std::size_t payload_size = std::min(payload.size(), ipc_event.GetSampleSize());
-                    std::memcpy(payload.data(), sample.get(), payload_size);
-                    pos += payload_size;
+                    std::size_t written_length = 0;
+                    auto serialize_result = score_com_serializer_serialize(
+                        event_context.serializer, reinterpret_cast<uint8_t*>(payload.data()),
+                        payload.size(), sample.get(), &written_length);
+                    if (serialize_result != score_com_serializer_result_ok) {
+                        std::cerr << "[gatewayd] Serialization failed for "
+                                  << event_context.config->event_name()->string_view() << std::endl;
+                        return;
+                    }
+                    pos += written_length;
 
                     message_sample->size = pos;
 
