@@ -67,7 +67,7 @@ def _completed_process_as_text(process: subprocess.CompletedProcess) -> str:
     )
 
 
-def get_content_of_file_object(file_object: io.BufferedReader | None) -> str:
+def _get_content_of_file_object(file_object: io.BufferedReader | None) -> str:
     if file_object is None:
         return ""
 
@@ -79,6 +79,14 @@ def get_content_of_file_object(file_object: io.BufferedReader | None) -> str:
     if data is None:
         return ""
     return data.decode(errors="replace")
+
+
+def get_output(process: subprocess.Popen[bytes]) -> str:
+    return (
+        _get_content_of_file_object(process.stdout)
+        + "\n, stderr: "
+        + _get_content_of_file_object(process.stderr)
+    )
 
 
 class ShellProcess:
@@ -163,14 +171,10 @@ def wait_until_process_exits(
     start_time = time.time()
     while time.time() - start_time < timeout:
         if process.poll() is not None:
-            return (
-                get_content_of_file_object(process.stdout)
-                + "\n, stderr: "
-                + get_content_of_file_object(process.stderr)
-            )
+            return get_output(process)
         time.sleep(0.5)
     raise TimeoutError(
-        f"Process did not exit within {timeout} seconds. Last output: {get_content_of_file_object(process.stdout)}\n, stderr: {get_content_of_file_object(process.stderr)}"
+        f"Process did not exit within {timeout} seconds. Last output: {get_output(process)}"
     )
 
 

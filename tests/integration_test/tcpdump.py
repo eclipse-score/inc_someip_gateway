@@ -16,8 +16,8 @@ import time
 from util import (
     ShellProcess,
     tcpdump_capture,
-    get_content_of_file_object,
     get_running_processes_on_host,
+    get_output,
 )
 
 
@@ -35,9 +35,7 @@ def is_tcpdump_running() -> tuple[bool, str]:
 
 def test_tcpdump_with_ping_from_target_execute(target) -> None:
     with tcpdump_capture("icmp", packet_count=2) as tcpdump_process:
-        assert tcpdump_process.poll() is None, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
         # sanity check that tcpdump is running
         tcpdump_running, ps_aux_text = is_tcpdump_running()
@@ -48,12 +46,9 @@ def test_tcpdump_with_ping_from_target_execute(target) -> None:
 
         # Now tcpdump should terminate with two captured packets
         tcpdump_process.wait(timeout=5.0)
-        assert tcpdump_process.returncode == 0, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.returncode == 0, get_output(tcpdump_process)
         assert tcpdump_process.poll() is not None, (
-            "tcpdump process should have exited by now: "
-            + get_content_of_file_object(tcpdump_process.stderr)
+            "tcpdump process should have exited by now: " + get_output(tcpdump_process)
         )
 
         tcpdump_running, ps_aux_text = is_tcpdump_running()
@@ -62,9 +57,7 @@ def test_tcpdump_with_ping_from_target_execute(target) -> None:
 
 def test_tcpdump_with_ping_from_target(target):
     with tcpdump_capture("icmp", packet_count=2) as tcpdump_process:
-        assert tcpdump_process.poll() is None, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
         # sanity check that tcpdump is running
         tcpdump_running, ps_aux_text = is_tcpdump_running()
@@ -77,12 +70,9 @@ def test_tcpdump_with_ping_from_target(target):
 
         # Now tcpdump should terminate with two captured packets
         tcpdump_process.wait(timeout=5.0)
-        assert tcpdump_process.returncode == 0, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.returncode == 0, get_output(tcpdump_process)
         assert tcpdump_process.poll() is not None, (
-            "tcpdump process should have exited by now: "
-            + get_content_of_file_object(tcpdump_process.stderr)
+            "tcpdump process should have exited by now: " + get_output(tcpdump_process)
         )
 
         tcpdump_running, ps_aux_text = is_tcpdump_running()
@@ -91,9 +81,7 @@ def test_tcpdump_with_ping_from_target(target):
 
 def test_tcpdump_with_long_running_ping_from_target(target):
     with tcpdump_capture("icmp", packet_count=5) as tcpdump_process:
-        assert tcpdump_process.poll() is None, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
         # sanity check that tcpdump is running
         tcpdump_running, ps_aux_text = is_tcpdump_running()
@@ -111,15 +99,10 @@ def test_tcpdump_with_long_running_ping_from_target(target):
                     time.sleep(0.1)
 
                 logging.getLogger().info(
-                    "final iteration"
-                    + get_content_of_file_object(tcpdump_process.stdout)
-                    + ", "
-                    + get_content_of_file_object(tcpdump_process.stderr)
+                    "final iteration" + get_output(tcpdump_process)
                 )
 
-                assert tcpdump_process.returncode == 0, get_content_of_file_object(
-                    tcpdump_process.stderr
-                )
+                assert tcpdump_process.returncode == 0, get_output(tcpdump_process)
                 assert bash_process.is_running(), (
                     "ping process should still be running after tcpdump has exited: "
                     + bash_process.get_output().decode()
@@ -136,12 +119,9 @@ def test_tcpdump_with_long_running_ping_from_target(target):
 
         # Now tcpdump should terminate with two captured packets
         tcpdump_process.wait(timeout=5.0)
-        assert tcpdump_process.returncode == 0, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.returncode == 0, get_output(tcpdump_process)
         assert tcpdump_process.poll() is not None, (
-            "tcpdump process should have exited by now: "
-            + get_content_of_file_object(tcpdump_process.stderr)
+            "tcpdump process should have exited by now: " + get_output(tcpdump_process)
         )
 
         tcpdump_running, ps_aux_text = is_tcpdump_running()
@@ -154,9 +134,7 @@ def test_tcpdump_with_long_running_ping_from_target(target):
 
 def test_killing_tcpdump(target):
     with tcpdump_capture("icmp", packet_count=500) as tcpdump_process:
-        assert tcpdump_process.poll() is None, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.poll() is None, get_output(tcpdump_process)
         # killing tcpdump via exiting the with statement seems to work
         # What does not work is killing it via using any of these:
         # tcpdump_process.terminate()
@@ -170,16 +148,12 @@ def test_killing_tcpdump(target):
 
 def test_killing_tcpdump_while_ping_is_running(target):
     with tcpdump_capture("icmp", packet_count=500) as tcpdump_process:
-        assert tcpdump_process.poll() is None, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.poll() is None, get_output(tcpdump_process)
         bash_process = ShellProcess(target, "ping", ["169.254.21.88"])
         ping_process = bash_process.__enter__()
         assert ping_process is not None, "Failed to start ping process"
         assert ping_process.is_running(), bash_process.get_output().decode()
-        assert tcpdump_process.poll() is None, get_content_of_file_object(
-            tcpdump_process.stderr
-        )
+        assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
     tcpdump_running, ps_aux_text = is_tcpdump_running()
     assert not tcpdump_running, ps_aux_text
