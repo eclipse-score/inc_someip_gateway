@@ -110,7 +110,6 @@ class DiskBootQemu:
         image_path = os.path.abspath(self._path_to_image)
         cmd = [
             self._qemu_path,
-            "--enable-kvm" if self._accelerator == "kvm" else "-accel tcg",
             "-smp",
             f"{self._cores},maxcpus={self._cores},cores={self._cores}",
             "-cpu",
@@ -120,6 +119,8 @@ class DiskBootQemu:
             "-drive",
             f"file={image_path},format=qcow2,if=virtio",
         ]
+
+        cmd += ["-enable-kvm"] if self._accelerator == "kvm" else ["-accel", "tcg"]
 
         if self._seed_iso:
             seed_path = os.path.abspath(self._seed_iso)
