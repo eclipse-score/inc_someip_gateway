@@ -14,11 +14,13 @@
 #include <getopt.h>
 
 #include <atomic>
+#include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <thread>
 
 #include "routing.h"
 #include "score/filesystem/path.h"
@@ -144,6 +146,7 @@ int main(int argc, char* argv[]) {
         if (!find_result.has_value()) {
             std::cerr << "[someipd] Error finding service: " << find_result.error().Message()
                       << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
 
@@ -151,7 +154,7 @@ int main(int argc, char* argv[]) {
 
         if (handles.empty()) {
             std::cout << "[someipd] Waiting for gatewayd to start..." << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
