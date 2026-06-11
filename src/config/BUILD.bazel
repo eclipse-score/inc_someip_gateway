@@ -18,6 +18,7 @@ exports_files(
     [
         "mw_someip_config.fbs",
         "mw_someip_config.json",
+        "mw_someip_config.schema.json",
     ],
 )
 
