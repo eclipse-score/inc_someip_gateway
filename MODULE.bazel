@@ -287,8 +287,8 @@ http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_
 http_file(
     name = "ubuntu_24_04_cloudimg",
     downloaded_file_path = "noble-server-cloudimg-amd64.img",
-    # TODO: Pin sha256 after verifying a working snapshot URL.
-    url = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img",
+    integrity = "sha256-U/3eiY/u2LAn2UuqnP6CKYZ/MwodnEncfYRGXufyKfc=",
+    url = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
 )
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
