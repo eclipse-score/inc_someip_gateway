@@ -14,7 +14,6 @@
 from collections.abc import Sequence
 import io
 import os
-from pathlib import Path
 import pwd
 import logging
 import time
@@ -22,37 +21,7 @@ import subprocess
 from score.itf.plugins.core import Target
 from types import TracebackType
 from typing import Any
-
-
-def kill_process_by_name(
-    target: Target, application_path: str, timeout: float = 2.0
-) -> bool:
-    # check if pkill is available on the target
-    exit_code, _ = target.execute("command -v pkill")
-    if exit_code != 0:
-        # pkill is not available in a Docker environment, where normal killing works
-        return True
-
-    # get name of process
-    process_name = Path(application_path).name
-
-    logging.info(f"Attempting to kill process '{process_name}' on target using pkill")
-
-    for signal in ["", "-SIGTERM", "-SIGINT", "-SIGKILL"]:
-        _, _ = target.execute(f"pkill {signal} {process_name}")
-
-        # Avoid costly repeated SSH roundtrips in teardown; a short settle delay is sufficient.
-        time.sleep(min(timeout, 0.2))
-
-        exit_code, _ = target.execute(f"pgrep -x {process_name}")
-        if exit_code != 0:
-            return True  # Process has been terminated
-
-    logging.warning(
-        f"Failed to kill process '{process_name}' on target after sending SIGTERM, SIGINT, and SIGKILL"
-    )
-
-    return False
+from score.itf.core.process.async_process import AsyncProcess
 
 
 def _as_text(output: Any) -> str:
@@ -93,9 +62,11 @@ def get_output(process: subprocess.Popen[bytes]) -> str:
 
 
 class ShellProcess:
+    """Similar to WrappedProcess, but allows setting environment variables."""
+
     def __init__(
         self,
-        target: Any,
+        target: Target,
         application_path: str,
         args: Sequence[str] | None = None,
         env: str = "",
@@ -104,12 +75,12 @@ class ShellProcess:
         self._application_path = application_path
         self._env = env
         self._args = list(args) if args is not None else []
-        self._process: Any = None
+        self._process: AsyncProcess | None = None
 
-    def __enter__(self) -> Any:
-        self._process = self._target.execute_async(
-            f"LD_LIBRARY_PATH=/ {self._env} {self._application_path} {' '.join(self._args)}"
-        )
+    def __enter__(self) -> AsyncProcess:
+        args = " ".join(self._args)
+        command = f"LD_LIBRARY_PATH=/ {self._env} exec {self._application_path} {args}"
+        self._process = self._target.execute_async(command)
 
         logging.getLogger().info(
             f"Started process {self._application_path} with PID: {self._process.pid()}"
@@ -123,15 +94,8 @@ class ShellProcess:
         exc: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
-        if self._process is not None and self._process.is_running():
-            # stop() on the shell process does not work in QEMU,
-            # but killing the process spawned by the shell command works.
-            # Not clear why the shell process itself is not killable
-            kill_process_by_name(self._target, self._application_path)
+        if self._process is not None:
             self._process.stop()
-            assert not self._process.is_running(), (
-                f"Process {self._application_path} should have been stopped, but is still running. Output: {self.get_output()}"
-            )
 
 
 def tcpdump_capture(
