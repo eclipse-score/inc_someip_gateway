@@ -166,3 +166,23 @@ def test_killing_tcpdump(target):
 
     tcpdump_running, ps_aux_text = is_tcpdump_running()
     assert not tcpdump_running, ps_aux_text
+
+
+def test_killing_tcpdump_while_ping_is_running(target):
+    with tcpdump_capture("icmp", packet_count=500) as tcpdump_process:
+        assert tcpdump_process.poll() is None, get_content_of_file_object(
+            tcpdump_process.stderr
+        )
+        bash_process = ShellProcess(target, "ping", ["169.254.21.88"])
+        ping_process = bash_process.__enter__()
+        assert ping_process is not None, "Failed to start ping process"
+        assert ping_process.is_running(), bash_process.get_output().decode()
+        assert tcpdump_process.poll() is None, get_content_of_file_object(
+            tcpdump_process.stderr
+        )
+
+    tcpdump_running, ps_aux_text = is_tcpdump_running()
+    assert not tcpdump_running, ps_aux_text
+    assert ping_process.is_running(), bash_process.get_output().decode()
+    bash_process.__exit__(None, None, None)
+    assert not ping_process.is_running(), bash_process.get_output().decode()
