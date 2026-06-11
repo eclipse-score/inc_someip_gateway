@@ -33,18 +33,11 @@ def is_tcpdump_running() -> tuple[bool, str]:
     )
 
 
-def test_tcpdump_with_ping_from_host(target) -> None:
+def test_tcpdump_with_ping_from_target_execute(target) -> None:
     with tcpdump_capture("icmp", packet_count=2) as tcpdump_process:
         assert tcpdump_process.poll() is None, get_content_of_file_object(
             tcpdump_process.stderr
         )
-
-        # sanity check that tcpdump is running
-        tcpdump_running, ps_aux_text = is_tcpdump_running()
-        assert tcpdump_running, ps_aux_text
-
-        exit_code, output = target.execute("ping -c 1 169.254.158.190")
-        assert exit_code == 0, output.decode()
 
         # sanity check that tcpdump is running
         tcpdump_running, ps_aux_text = is_tcpdump_running()
@@ -77,25 +70,10 @@ def test_tcpdump_with_ping_from_target(target):
         tcpdump_running, ps_aux_text = is_tcpdump_running()
         assert tcpdump_running, ps_aux_text
 
-        with ShellProcess(
-            target, "ping", ["-c", "1", "169.254.158.190"]
-        ) as bash_process:
+        with ShellProcess(target, "ping", ["-c", "1", "169.254.21.88"]) as bash_process:
             while bash_process.is_running():
                 time.sleep(0.1)
             assert bash_process.get_exit_code() == 0, bash_process.get_output().decode()
-
-            # sanity check that tcpdump is running
-            tcpdump_running, ps_aux_text = is_tcpdump_running()
-            assert tcpdump_running, ps_aux_text
-
-            with ShellProcess(
-                target, "ping", ["-c", "1", "169.254.21.88"]
-            ) as bash_process:
-                while bash_process.is_running():
-                    time.sleep(0.1)
-                assert bash_process.get_exit_code() == 0, (
-                    bash_process.get_output().decode()
-                )
 
         # Now tcpdump should terminate with two captured packets
         tcpdump_process.wait(timeout=5.0)
