@@ -195,6 +195,7 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
+        // TODO: get actual slot size from serializer + 16B SOME/IP header
         if (service_type_config->local_service_instances()) {
             shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
                                        someip::kMaxSampleCount};

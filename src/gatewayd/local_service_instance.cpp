@@ -105,7 +105,8 @@ LocalServiceInstance::LocalServiceInstance(
             continue;
         }
         auto& event_context =
-            event_contexts_.emplace(event_name, EventContext{event_config, serializer})
+            event_contexts_
+                .emplace(event_name, EventContext{event_config, serializer, socom_event_id})
                 .first->second;
 
         ipc_event.SetReceiveHandler([this, &ipc_event, &event_context]() {
@@ -113,24 +114,74 @@ LocalServiceInstance::LocalServiceInstance(
                 [&](SamplePtr<void> sample) {
                     std::cout << "[gatewayd] LocalServiceInstance - Calling GetNewSamples()"
                               << std::endl;
-                    auto maybe_payload = server_connector_->allocate_event_payload(socom_event_id);
+
+                    auto maybe_payload =
+                        server_connector_->allocate_event_payload(event_context.socom_event_id);
                     if (!maybe_payload.has_value()) {
                         std::cout << "[gatewayd] LocalServiceInstance - Failed to allocate event "
                                      "payload for event "
-                                  << socom_event_id << ": " << maybe_payload.error().Message()
-                                  << std::endl;
+                                  << event_context.socom_event_id << ": "
+                                  << maybe_payload.error().Message() << std::endl;
                         return;
                     }
+                    // Writable_payload was constructed with header_size = 0.
+                    // Therefore use .data()[0] to write the header first.
                     auto& payload = *maybe_payload;
-                    auto const copy_size =
-                        std::min(payload.wdata().size(), ipc_event.GetSampleSize());
-                    std::memcpy(payload.wdata().data(), sample.get(), copy_size);
-                    std::cout << "[gatewayd] LocalServiceInstance - "
-                                 "server_connector_->update_event for event_id "
-                              << socom_event_id << " with payload size " << copy_size << std::endl;
-                    server_connector_->update_event(socom_event_id, std::move(payload));
+
+                    std::size_t pos = 0;
+
+                    // TODO: Design decision: the gateway needs to generate the SOME/IP message
+                    // including the header in order to have the E2E protection in the ASIL
+                    // context.
+                    std::uint16_t service_id = service_type_config_->service_id();
+                    payload.wdata()[pos++] = static_cast<std::byte>(service_id >> 8);
+                    payload.wdata()[pos++] = static_cast<std::byte>(service_id & 0xFF);
+
+                    std::uint16_t method_id = event_context.config->event_id();
+                    payload.wdata()[pos++] = static_cast<std::byte>(method_id >> 8);
+                    payload.wdata()[pos++] = static_cast<std::byte>(method_id & 0xFF);
+
+                    // Length set by someipd
+                    pos += 4;
+
+                    // TODO: get client ID during registration at the someipd
+                    std::uint16_t client_id = 0xFFFF;
+                    payload.wdata()[pos++] = static_cast<std::byte>(client_id >> 8);
+                    payload.wdata()[pos++] = static_cast<std::byte>(client_id & 0xFF);
+
+                    std::uint16_t session_id = 0x0000;
+                    payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
+                    payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
+
+                    std::uint8_t protocol_version = 1;
+                    payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
+
+                    std::uint8_t interface_version = service_type_config_->service_version_major();
+                    payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
+
+                    std::uint8_t message_type = 0x02;  // NOTIFICATION
+                    payload.wdata()[pos++] = static_cast<std::byte>(message_type);
+
+                    std::uint8_t return_code = 0x00;  // Unused
+                    payload.wdata()[pos++] = static_cast<std::byte>(return_code);
+
+                    std::size_t written_length = 0;
+                    auto serialize_result = score_com_serializer_serialize(
+                        event_context.serializer,
+                        reinterpret_cast<uint8_t*>(payload.wdata().data() + pos),
+                        payload.wdata().size() - pos, sample.get(), &written_length);
+                    if (serialize_result != score_com_serializer_result_ok) {
+                        std::cerr << "[gatewayd] Serialization failed for "
+                                  << event_context.config->event_name()->string_view() << std::endl;
+                        return;
+                    }
+                    pos += written_length;
+                    // Shrink the payload to the actual written size (header + serialized data)
+                    payload.shrink(pos);
+
+                    server_connector_->update_event(event_context.socom_event_id,
+                                                    std::move(payload));
                 },
-                someip::kMaxSampleCount);
                 someip::kMaxSampleCount);
         });
 

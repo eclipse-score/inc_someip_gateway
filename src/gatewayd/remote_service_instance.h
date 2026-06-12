@@ -45,6 +45,9 @@ class RemoteServiceInstance {
     /// \param service_type_config Configuration for the service type of this instance
     /// \param ipc_skeleton IPC skeleton for forwarding events to local consumer applications
     /// \param socom_runtime SOCom runtime used to create the client connector
+    /// \details This constructor initializes a remote service instance with the necessary
+    ///          components to receive messages from the someipd daemon and forward them to
+    ///          local applications via IPC.
     RemoteServiceInstance(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
@@ -55,7 +58,13 @@ class RemoteServiceInstance {
     /// \param service_type_config Configuration for the service type of the instance to create
     /// \param socom_runtime SOCom runtime used to create the client connector
     /// \param instances Reference to the vector to store the created remote service instance
-    static void CreateAsyncRemoteService(
+    /// \return Result containing an Error on failure.
+    /// \details This static factory method asynchronously searches for and creates a remote
+    ///          service instance. It performs service discovery for services offered via SOME/IP
+    ///          from remote ECUs and, when found, constructs a RemoteServiceInstance object and
+    ///          adds it to the instances vector. The returned FindServiceHandle can be used to
+    ///          manage the asynchronous operation.
+    static Result<void> CreateAsyncRemoteService(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
         socom::Runtime& socom_runtime,

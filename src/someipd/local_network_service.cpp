@@ -81,16 +81,11 @@ LocalNetworkService::LocalNetworkService(
                 },
             .on_event_payload_allocate =
                 [](socom::Client_connector const&,
-                   socom::Event_id event_id) -> score::Result<socom::Writable_payload> {
-                std::cout
-                    << "[someipd] LocalNetworkService - on_event_payload_allocate for event_id "
-                    << event_id << std::endl;
-                auto buffer = std::make_unique<std::byte[]>(someip::kMaxMessageSize);
-                auto* const data_ptr = buffer.get();
-                socom::Writable_payload::Writable_span const span{data_ptr,
-                                                                  someip::kMaxMessageSize};
-                return socom::Writable_payload{span, socom::kNoSlotHandle,
-                                               [buf = std::move(buffer)]() mutable noexcept {}};
+                   socom::Event_id) -> score::Result<socom::Writable_payload> {
+                // Payload allocation is handled by the IPC binding (read-only SHM slot from
+                // gatewayd). This callback is never called in normal operation.
+                assert(false && "on_event_payload_allocate must not be called on LocalNetworkService");
+                return MakeUnexpected(socom::Error::logic_error_id_out_of_range);
             },
         });
 
@@ -111,11 +106,13 @@ void LocalNetworkService::forward_to_vsomeip(socom::Event_id event_id, socom::Pa
     }
     auto const* const event_config = (*events)[event_index];
 
-    auto const src = payload.data();
+    auto const full_msg = payload.data();
+    // Drop the SOME/IP header part, fields are set via config lookup
+    auto const event_data = full_msg.subspan(someip::kSomeipFullHeaderSize, full_msg.size() - someip::kSomeipFullHeaderSize);
 
     auto vsomeip_payload = vsomeip::runtime::get()->create_payload();
-    vsomeip_payload->set_data(reinterpret_cast<const vsomeip_v3::byte_t*>(src.data()),
-                              static_cast<vsomeip_v3::length_t>(src.size()));
+    vsomeip_payload->set_data(reinterpret_cast<const vsomeip_v3::byte_t*>(event_data.data()),
+                              static_cast<vsomeip_v3::length_t>(event_data.size()));
 
     vsomeip_app_->notify(service_type_config_->service_id(),
                          service_instance_config_->instance_id(), event_config->event_id(),
@@ -123,7 +120,7 @@ void LocalNetworkService::forward_to_vsomeip(socom::Event_id event_id, socom::Pa
 
     std::cout << "[someipd] Forwarded SOCom event " << event_index << " (vsomeip event_id=0x"
               << std::hex << event_config->event_id() << std::dec
-              << ") to SOME/IP: payload=" << src.size() << "B\n";
+              << ") to SOME/IP: event_data=" << event_data.size() << "B\n";
 }
 
 void LocalNetworkService::Create(

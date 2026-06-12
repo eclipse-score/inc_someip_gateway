@@ -88,6 +88,7 @@ class LocalServiceInstance {
     struct EventContext {
         const mw_someip_config::Event* config;
         const ::score_com_serializer* serializer;
+        const socom::Event_id socom_event_id;
     };
     std::map<std::string_view, EventContext> event_contexts_;
 };

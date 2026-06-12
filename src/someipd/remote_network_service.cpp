@@ -18,16 +18,15 @@
 #include <iostream>
 #include <set>
 
-#include "score/someip/constants.h"
 #include "score/socom/runtime.hpp"
+#include "score/someip/constants.h"
 
 namespace score::someipd {
 
 RemoteNetworkService::RemoteNetworkService(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app,
-    socom::Runtime& socom_runtime)
+    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime)
     : service_instance_config_(std::move(service_instance_config)),
       service_type_config_(std::move(service_type_config)),
       vsomeip_app_(std::move(vsomeip_app)) {
@@ -39,19 +38,17 @@ RemoteNetworkService::RemoteNetworkService(
     socom::Service_instance const inst{service_type_config_->service_type_name()->string_view()};
 
     socom::Server_service_interface_definition const server_config{
-        iface,
-        socom::to_num_of_methods(0),
+        iface, socom::to_num_of_methods(0),
         socom::to_num_of_events(service_type_config_->events()->size())};
 
     auto disabled = socom_runtime.make_server_connector(
         server_config, inst,
         {
-            .on_method_call = [](socom::Enabled_server_connector&, socom::Method_id,
-                                 socom::Payload, socom::Method_call_reply_data_opt,
-                                 socom::Posix_credentials const&)
+            .on_method_call = [](socom::Enabled_server_connector&, socom::Method_id, socom::Payload,
+                                 socom::Method_call_reply_data_opt, socom::Posix_credentials const&)
                 -> socom::Method_invocation::Uptr { return nullptr; },
-            .on_event_subscription_change =
-                [](socom::Enabled_server_connector&, socom::Event_id, socom::Event_state) {},
+            .on_event_subscription_change = [](socom::Enabled_server_connector&, socom::Event_id,
+                                               socom::Event_state) {},
             .on_event_update_request = [](socom::Enabled_server_connector&, socom::Event_id) {},
             .on_method_call_payload_allocate =
                 [](socom::Enabled_server_connector&,
@@ -89,13 +86,13 @@ void RemoteNetworkService::setup_vsomeip() {
                 auto& payload = *maybe_payload;
                 auto const* const data = msg->get_payload()->get_data();
                 auto const size = static_cast<std::size_t>(msg->get_payload()->get_length());
-                std::memcpy(payload.wdata().data(), data,
-                            std::min(payload.wdata().size(), size));
+                // Shrink payload to actual size
+                payload.shrink(size);
+                std::memcpy(payload.wdata().data(), data, size);
                 server_connector_->update_event(socom_event_id, std::move(payload));
 
-                std::cout << "[someipd] Forwarded SOME/IP event 0x" << std::hex
-                          << msg->get_method() << std::dec << " to SOCom: payload=" << size
-                          << "B\n";
+                std::cout << "[someipd] Forwarded SOME/IP event 0x" << std::hex << msg->get_method()
+                          << std::dec << " to SOCom: payload=" << size << "B\n";
             });
 
         // TODO: Do Eventgroup handling. Currently just create one group per event with the same ID.
@@ -108,8 +105,7 @@ void RemoteNetworkService::setup_vsomeip() {
 void RemoteNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app,
-    socom::Runtime& socom_runtime,
+    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime,
     std::vector<std::unique_ptr<RemoteNetworkService>>& instances) {
     if (service_instance_config == nullptr) {
         std::cerr << "[someipd] ERROR: Service instance config is nullptr!\n";

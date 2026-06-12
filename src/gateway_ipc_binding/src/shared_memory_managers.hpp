@@ -15,7 +15,6 @@
 #define SRC_GATEWAY_IPC_BINDING_SRC_SHARED_MEMORY_MANAGERS
 
 #include <cassert>
-#include <iostream>
 #include <optional>
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
@@ -52,9 +51,6 @@ class Shared_memory_managers {
         auto const& [interface, instance] = interface_instance_opt.value();
 
         // Create new slot manager for this service instance
-        std::cout << "Creating new shared memory slot manager for key " << key
-                  << " (service: " << interface.get().to_socom_identifier().id.string_view()
-                  << ", instance: " << fixed_string_to_string(instance.get()) << ")" << std::endl;
         auto slot_manager_result = m_slot_manager_factory->create(
             interface.get().to_socom_identifier(),
             socom::Service_instance{fixed_string_to_string(instance.get())});
