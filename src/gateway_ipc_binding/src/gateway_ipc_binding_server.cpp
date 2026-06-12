@@ -78,14 +78,6 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
 
     /// \brief Start listening for incoming connections
     Result<void> start() noexcept override {
-        {
-            std::lock_guard<std::mutex> const lock(m_mutex);
-            if (m_listening) {
-                return MakeUnexpected(Bidirectional_channel_error::runtime_error_listen_failed,
-                                      "Server already listening");
-            }
-        }
-
         auto internal_connect_callback =
             [this](score::message_passing::IServerConnection& connection)
             -> score::cpp::expected<score::message_passing::UserData, score::os::Error> {
@@ -149,6 +141,12 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
             return {};
         };
 
+        std::lock_guard<std::mutex> const lock(m_mutex);
+        if (m_listening) {
+            return MakeUnexpected(Bidirectional_channel_error::runtime_error_listen_failed,
+                                  "Server already listening");
+        }
+
         auto result = m_server->StartListening(std::move(internal_connect_callback),
                                                std::move(internal_disconnect_callback),
                                                std::move(internal_message_callback));
@@ -159,10 +157,7 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
             return MakeUnexpected(Bidirectional_channel_error::runtime_error_listen_failed);
         }
 
-        {
-            std::lock_guard<std::mutex> const lock(m_mutex);
-            m_listening = true;
-        }
+        m_listening = true;
         return {};
     }
 
