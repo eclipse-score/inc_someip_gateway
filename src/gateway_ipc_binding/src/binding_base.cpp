@@ -678,6 +678,16 @@ void Gateway_ipc_binding_base::remove_client_state_locked(Client_id client_id) n
     m_service_states.remove_event_subscriptions_for_client(client_id);
     m_service_states.remove_offers(client_id);
 
+    for (auto it = m_service_to_interested_peers.begin();
+         it != m_service_to_interested_peers.end();) {
+        it->second.erase(client_id);
+        if (it->second.empty()) {
+            it = m_service_to_interested_peers.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     m_id_mapping.remove_client(client_id);
     m_pending_connects.clear_pending_connects(
         [&client_id](auto const& val) { return val.client_id == client_id; });

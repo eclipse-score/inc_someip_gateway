@@ -107,20 +107,27 @@ TEST_P(Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
     this->client.reset();
 }
 
-// TEST_P(Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test, reconnect) {
-//     Client_connector_with_callbacks client(get_client_runtime(), socom_server_config, instance);
+TEST_P(Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
+       ipc_server_destruction_with_connected_service) {
+    this->start_and_wait_for_client_connection();
 
-//     this->start_and_wait_for_client_connection();
+    Server_connector_with_callbacks server(get_server_runtime(), socom_server_config, instance);
+    Client_connector_with_callbacks client(get_client_runtime(), socom_server_config, instance);
 
-//     client.expect_client_connected(socom_server_config);
-//     Server_connector_with_callbacks server(get_server_runtime(), socom_server_config, instance);
+    // kill and restart the IPC server
+    this->server.reset();
+    EXPECT_FALSE(this->client->is_connected());
+}
 
-//     EXPECT_EQ(client.client_connected_promise.get_future().wait_for(very_long_timeout),
-//               std::future_status::ready);
+TEST_P(Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
+       ipc_client_destruction_with_connected_service) {
+    this->start_and_wait_for_client_connection();
 
-//     // kill and restart the IPC server
-//     this->server.reset();
-//     EXPECT_FALSE(this->client->is_connected());
-// }
+    Server_connector_with_callbacks server(get_server_runtime(), socom_server_config, instance);
+    Client_connector_with_callbacks client(get_client_runtime(), socom_server_config, instance);
+
+    // kill and restart the IPC client
+    this->client.reset();
+}
 
 }  // namespace score::gateway_ipc_binding
