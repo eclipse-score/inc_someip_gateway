@@ -57,24 +57,12 @@ TEST_F(Gateway_ipc_binding_unconnected_integration_test, connect) {
     }
 }
 
-class Gateway_ipc_binding_bidirectional_integration_test
-    : public Gateway_ipc_binding_integration_test,
-      public ::testing::WithParamInterface<Direction> {
-   protected:
-    socom::Runtime& get_client_runtime() {
-        return GetParam() == Direction::Client_to_server ? *runtime_client : *runtime_server;
-    }
-    socom::Runtime& get_server_runtime() {
-        return GetParam() == Direction::Client_to_server ? *runtime_server : *runtime_client;
-    }
-
-    Shared_memory_metadata const& get_server_metadata() {
-        return GetParam() == Direction::Client_to_server ? server_metadata : client_metadata;
-    }
-};
+using Gateway_ipc_binding_bidirectional_integration_test =
+    Gateway_ipc_binding_bidirectional_test<Gateway_ipc_binding_integration_test>;
 
 INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_bidirectional_integration_test,
-                         Values(Direction::Client_to_server, Direction::Server_to_client));
+                         Values(Direction::Client_to_server, Direction::Server_to_client),
+                         readable_test_names);
 
 TEST_P(Gateway_ipc_binding_bidirectional_integration_test,
        client_connects_to_server_with_client_connector) {
@@ -99,7 +87,8 @@ class Gateway_ipc_binding_connected_bidirectional_integration_test
 };
 
 INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_connected_bidirectional_integration_test,
-                         Values(Direction::Client_to_server, Direction::Server_to_client));
+                         Values(Direction::Client_to_server, Direction::Server_to_client),
+                         readable_test_names);
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subscribes_to_event) {
     std::promise<void> event_subscription_change_promise;

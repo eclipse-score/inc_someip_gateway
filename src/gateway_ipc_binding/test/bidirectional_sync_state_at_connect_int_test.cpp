@@ -23,30 +23,19 @@ using namespace std::chrono_literals;
 
 namespace score::gateway_ipc_binding {
 
-class Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test
-    : public Gateway_ipc_binding_unconnected_integration_test,
-      public ::testing::WithParamInterface<Direction> {
-   protected:
-    socom::Runtime& get_client_runtime() {
-        return GetParam() == Direction::Client_to_server ? *runtime_client : *runtime_server;
-    }
-    socom::Runtime& get_server_runtime() {
-        return GetParam() == Direction::Client_to_server ? *runtime_server : *runtime_client;
-    }
-
-    Shared_memory_metadata const& get_server_metadata() {
-        return GetParam() == Direction::Client_to_server ? server_metadata : client_metadata;
-    }
-};
+using Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test =
+    Gateway_ipc_binding_bidirectional_test<Gateway_ipc_binding_unconnected_integration_test>;
 
 INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
-                         Values(Direction::Client_to_server, Direction::Server_to_client));
+                         Values(Direction::Client_to_server, Direction::Server_to_client),
+                         readable_test_names);
 
 TEST_P(Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
-       client_creates_connector_and_connects_to_server) {
+       client_creates_client_connector_and_connects_to_server) {
     Client_connector_with_callbacks client;
     client.create_connector(get_client_runtime(), socom_server_config, instance);
 
+    // start IPC server and IPC communication
     this->start_and_wait_for_client_connection();
 
     client.expect_client_connected(socom_server_config);

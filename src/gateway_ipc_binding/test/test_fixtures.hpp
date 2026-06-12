@@ -32,6 +32,7 @@
 #include <score/socom/runtime_mock.hpp>
 #include <score/socom/server_connector.hpp>
 #include <score/socom/server_connector_mock.hpp>
+#include <string>
 #include <string_view>
 #include <thread>
 #include <utility>
@@ -105,7 +106,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
 
         // Wait for the client to connect and receive the reply
         while (!client->is_connected()) {
-            std::this_thread::sleep_for(1ms);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 };
@@ -115,6 +116,29 @@ class Gateway_ipc_binding_integration_test
    protected:
     Gateway_ipc_binding_integration_test() : Gateway_ipc_binding_unconnected_integration_test() {
         start_and_wait_for_client_connection();
+    }
+};
+
+inline std::string readable_test_names(testing::TestParamInfo<Direction> const& param) {
+    return param.param == Direction::Client_to_server ? "Client_to_server" : "Server_to_client";
+}
+
+template <typename BASE>
+class Gateway_ipc_binding_bidirectional_test : public BASE,
+                                               public ::testing::WithParamInterface<Direction> {
+   protected:
+    socom::Runtime& get_client_runtime() {
+        return GetParam() == Direction::Client_to_server ? *this->runtime_client
+                                                         : *this->runtime_server;
+    }
+    socom::Runtime& get_server_runtime() {
+        return GetParam() == Direction::Client_to_server ? *this->runtime_server
+                                                         : *this->runtime_client;
+    }
+
+    Shared_memory_metadata const& get_server_metadata() {
+        return GetParam() == Direction::Client_to_server ? this->server_metadata
+                                                         : this->client_metadata;
     }
 };
 

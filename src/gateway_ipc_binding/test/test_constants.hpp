@@ -26,11 +26,6 @@
 
 #include "util.hpp"
 
-using testing::_;
-using testing::AtMost;
-using testing::Values;
-using namespace std::chrono_literals;
-
 namespace score::gateway_ipc_binding {
 
 // When everything works as expected we should never reach a fraction of this timeout
