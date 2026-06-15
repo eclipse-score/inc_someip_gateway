@@ -35,20 +35,9 @@ jobs:
       - name: Create config indicator file
         run: echo "${{ matrix.bazel-config }}" > .bazel_config
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.19.0
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939 # v0.0.0
         with:
-          output-base: /mnt/.bazel
-          # Avoid downloading Bazel every time.
-          bazelisk-cache: true
-          # Store build cache per workflow.
-          disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
-          # Share repository cache between workflows.
-          repository-cache: |
-            - ./MODULE.bazel
-            - ./.bazel_config
-          # Cache external/
-          external-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
+          unique-cache-name: ${{ github.workflow }}-${{ matrix.bazel-config }}
       - name: Allow linux-sandbox
         uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
       - run: df -h
