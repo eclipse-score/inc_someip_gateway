@@ -31,11 +31,11 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939 # v0.0.0
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
         with:
           unique-cache-name: ${{ github.workflow }}-${{ github.job }}
       - name: Allow linux-sandbox
-        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939 # v0.0.0
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939
       - run: df -h
       - name: Bazel build targets
         run: |
