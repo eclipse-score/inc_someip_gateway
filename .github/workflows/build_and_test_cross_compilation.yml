@@ -39,7 +39,7 @@ jobs:
         with:
           unique-cache-name: ${{ github.workflow }}-${{ matrix.bazel-config }}
       - name: Allow linux-sandbox
-        uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939 # v0.0.0
       - run: df -h
       - name: Bazel build targets
         # TODO: build all targets ( //... ) once python toolchain issue is resolved.
