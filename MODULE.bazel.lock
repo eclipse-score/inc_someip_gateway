@@ -941,8 +941,8 @@
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_baselibs/0.2.8/source.json": "6a649da9895fcdcaa58b0a4de11be04770f3180bb7ff176d3dfcb9bfe72ef0f3",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_baselibs_rust/0.1.0/MODULE.bazel": "e9f8781fa23b58a7c4815d662d82a9a472d8dddc306f08cba3853928f3b760fe",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_baselibs_rust/0.1.0/source.json": "f569a33fda1de61ccb962e19b72af745d93ba3f543c98b6ee72f81c9b890185f",
-    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_cpp_toolchains/0.5.2/MODULE.bazel": "c9c02dfbd8548ef4226f20335711405e899aaf68250329bcb7b73a669b8e9cfe",
-    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_cpp_toolchains/0.5.2/source.json": "b8f84e57120b1887312c207ddbb2512cbb0e2b52252a7b3d0b3a72c4ac9df273",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_cpp_toolchains/0.5.3/MODULE.bazel": "2a3ac0887ba307f7236c9e5c99857da43e3f00d5aa0983eeabcda5aaddc4937f",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_cpp_toolchains/0.5.3/source.json": "a3342f794eb554841b4449d8f14496b4c1a240c9dbdb0c21b6d5b0956bb155ce",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/0.0.3/MODULE.bazel": "14c96e378c08705a46abe0799d6236fe3095c342c34f83f8d1b3f6046ce00651",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/0.0.4/MODULE.bazel": "57dce05e4eb4ac25250d67e47caef99f4cbaedf38083de26aa53979ee6a3ae4b",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/0.1.1/MODULE.bazel": "236e5bdff6f2d6de6f96cc4f5f4b1bf2cd6137547ce279668a2dd4c54cd4236c",
@@ -9376,8 +9376,8 @@
     },
     "@@score_bazel_cpp_toolchains+//extensions:gcc.bzl%gcc": {
       "general": {
-        "bzlTransitiveDigest": "B457CHj5W2UdNocg5kgCqkJb7DE/ni/3+zNBUhw1Q8Y=",
-        "usagesDigest": "rE2gRgwrMeGDMEfNDAKTDmaVZkwYXUjKmKWqI7IQPfA=",
+        "bzlTransitiveDigest": "XAwCslSKXdq2LcesCFUHyNA6Ha5meyspik5oz1xLPHE=",
+        "usagesDigest": "y8Pmriwd8Xz4Sr5m/6wtiEMzr3VjDEx83xneNzvpTm0=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -9408,10 +9408,10 @@
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
               "urls": [
-                "https://www.qnx.com/download/download/87174/installation_qnx_803_260305.tar.xz"
+                "https://www.qnx.com/download/download/88447/installation_qnx_804_260520.tar.xz"
               ],
               "build_file": "@@score_bazel_cpp_toolchains+//packages/qnx/x86_64/sdp/8.0.0:sdp.BUILD",
-              "sha256": "9039fd6a4a639f06ea977afb93963a6fe8f8c46db727066709370d999c7232e0",
+              "sha256": "146312c0bf22aab66e8294a06403f2ec6cfeeb074d8fa11549faffd84b7fe778",
               "strip_prefix": ""
             }
           },
@@ -9419,10 +9419,10 @@
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
               "urls": [
-                "https://www.qnx.com/download/download/87174/installation_qnx_803_260305.tar.xz"
+                "https://www.qnx.com/download/download/88447/installation_qnx_804_260520.tar.xz"
               ],
               "build_file": "@@score_bazel_cpp_toolchains+//packages/qnx/aarch64/sdp/8.0.0:sdp.BUILD",
-              "sha256": "9039fd6a4a639f06ea977afb93963a6fe8f8c46db727066709370d999c7232e0",
+              "sha256": "146312c0bf22aab66e8294a06403f2ec6cfeeb074d8fa11549faffd84b7fe778",
               "strip_prefix": ""
             }
           },
@@ -9487,7 +9487,7 @@
               "license_info_value": "",
               "license_path": "/opt/score_qnx/license/licenses",
               "sdk_version": "",
-              "sdp_version": "8.0.3",
+              "sdp_version": "8.0.4",
               "tc_compiler_library_search_paths": [],
               "tc_cpu": "x86_64",
               "tc_identifier": "sdp_8.0.0",
@@ -9512,7 +9512,7 @@
               "license_info_value": "",
               "license_path": "/opt/score_qnx/license/licenses",
               "sdk_version": "",
-              "sdp_version": "8.0.3",
+              "sdp_version": "8.0.4",
               "tc_compiler_library_search_paths": [],
               "tc_cpu": "aarch64",
               "tc_identifier": "sdp_8.0.0",
