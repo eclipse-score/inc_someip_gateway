@@ -94,9 +94,6 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
                 break;
             }
             case score::message_passing::IClientConnection::State::kStopped: {
-                m_connected = false;
-                m_binding_base.remove_client(client_id);
-
                 switch (m_channel->GetStopReason()) {
                     case score::message_passing::IClientConnection::StopReason::
                         kUserRequested:  // fall through
@@ -120,6 +117,9 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
             case score::message_passing::IClientConnection::State::kStopping:
             default:
                 m_connected = false;
+                // Remove client to prevent send() being called by m_binding_base and racing
+                // with the engine thread closing the underlying file descriptor.
+                m_binding_base.remove_client(client_id);
                 break;
         }
     }
