@@ -56,9 +56,12 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
 
     ~Gateway_ipc_binding_client_impl() {
         // ensure no callbacks are in-flight that might access member variables after they've been
-        // destroyed
-        m_channel->Stop();
+        // destroyed.
+        // Stop() uses a CAS that only succeeds when stop_reason_ is kNone. During an active
+        // reconnect cycle (disconnect → auto-restart), stop_reason_ is transiently non-kNone,
+        // causing Stop() to be a no-op. Retry until the channel reaches the stopped state.
         while (!m_stopped) {
+            m_channel->Stop();
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
