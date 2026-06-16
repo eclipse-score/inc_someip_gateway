@@ -187,6 +187,39 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_send
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
+       server_sends_event_update_with_shrunk_payload) {
+    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+
+    auto payload_handle = create_payload(*server.connector, event_id, expected_payload);
+    ASSERT_GT(payload_handle.data().size(), 8);
+    auto const old_size = payload_handle.data().size();
+    auto const new_size = old_size / 2;
+    auto const shrink_success = payload_handle.shrink(new_size);
+    ASSERT_TRUE(shrink_success);
+
+    std::promise<socom::Payload> event_update_received_promise;
+    EXPECT_CALL(client.mock_event_update_cb, Call(_, event_id, _))
+        .Times(1)
+        .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
+            event_update_received_promise.set_value(std::move(payload));
+        });
+    auto update_result = server.connector->update_event(event_id, std::move(payload_handle));
+    ASSERT_TRUE(update_result);
+
+    auto payload_future = event_update_received_promise.get_future();
+    ASSERT_EQ(payload_future.wait_for(very_long_timeout), std::future_status::ready);
+
+    auto received_payload = payload_future.get();
+    EXPECT_EQ(received_payload.data().size(), new_size);
+    ASSERT_GE(received_payload.data().size(),
+              4U);  // ensure shrunk payload can still hold expected data
+    EXPECT_EQ(received_payload.data()[0], expected_payload[0]);
+    EXPECT_EQ(received_payload.data()[1], expected_payload[1]);
+    EXPECT_EQ(received_payload.data()[2], expected_payload[2]);
+    EXPECT_EQ(received_payload.data()[3], expected_payload[3]);
+}
+
+TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_keeps_event_payloads_until_server_receives_consumed_notification) {
     client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
 
