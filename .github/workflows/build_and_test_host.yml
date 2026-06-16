@@ -20,6 +20,8 @@ on:
 jobs:
   build_and_test_host:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
