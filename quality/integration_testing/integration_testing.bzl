@@ -127,13 +127,6 @@ def integration_test(name, srcs, filesystem, **kwargs):
     if "timeout" not in kwargs:
         kwargs["timeout"] = "short"
 
-    # FIXME: Integration tests are highly flaky with TSAN. (Ticket-249859)
-    _extend_list_in_kwargs(
-        kwargs,
-        "target_compatible_with",
-        ["//quality/sanitizer/constraints:no_tsan"],
-    )
-
     # QEMU networking requires TAP interfaces, which need CAP_NET_ADMIN.
     # Thus have root privileges inside the sandbox.
     _extend_list_in_kwargs_without_duplicates(

@@ -20,7 +20,6 @@ This directory contains quality-related Bazel configuration used by tests in thi
 ## Contents
 
 - `integration_testing/`: shared macro and environment/plugin artifacts for integration tests.
-- `sanitizer/`: sanitizer build flags, runtime environment templates, suppressions, and compatibility constraints.
 
 ## Integration Testing
 
@@ -73,21 +72,3 @@ Unless explicitly overridden by the test target:
 - `timeout = "short"`
 
 The macro also always injects `--log-cli-level=DEBUG` for all backends.
-
-### Sanitizer Compatibility Default
-
-Integration tests are marked incompatible with TSAN by default via:
-
-- `target_compatible_with += ["//quality/sanitizer/constraints:no_tsan"]`
-
-Reason in code: integration tests are currently flaky with TSAN.
-
-## Sanitizer Support
-
-`quality/sanitizer/` defines a `//quality/sanitizer/flags:sanitizer` string flag with values:
-
-- `none` (default)
-- `asan_ubsan_lsan`
-- `tsan`
-
-When any sanitizer is enabled, sanitizer-specific environment files and suppressions are produced and consumed by quality targets that opt into them.
