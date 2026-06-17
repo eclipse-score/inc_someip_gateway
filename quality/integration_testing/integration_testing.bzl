@@ -134,6 +134,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
         "tags",
         [
             "requires-fakeroot",
+            "block-network",
         ],
     )
 
