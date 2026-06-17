@@ -76,11 +76,11 @@ class Service_record {
     };
 
     using Server = std::optional<Interfaced_server>;
-    using Clients = std::list<Interfaced_client>;
+    using Client = std::optional<Interfaced_client>;
 
     struct Server_registration {
         Registration registration;
-        Clients current_clients;
+        Client current_client;
     };
 
     struct Client_registration {
@@ -101,7 +101,7 @@ class Service_record {
    private:
     std::mutex& m_runtime_mutex;
     Server m_server;
-    Clients m_clients;
+    Client m_client;
 };
 
 using Instances = std::vector<Service_instance>;

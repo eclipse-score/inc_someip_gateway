@@ -490,17 +490,18 @@ Service_record::Server_registration Service_record::register_server_connector(
 
     return Server_registration{
         std::make_unique<Final_action_registration>(Final_action(std::move(final_action))),
-        m_clients};
+        m_client};
 }
 
 Service_record::Client_registration Service_record::register_client_connector(
     Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update) {
-    auto const it = m_clients.emplace(m_clients.end(),
-                                      Interfaced_client{interface, std::move(on_server_update)});
+    // TODO add proper error code
+    assert(!m_client);
+    m_client.emplace(Interfaced_client{interface, std::move(on_server_update)});
 
-    auto remove_from_registry = [this, it]() {
+    auto remove_from_registry = [this]() {
         std::lock_guard<std::mutex> const lock{m_runtime_mutex};
-        m_clients.erase(it);
+        m_client.reset();
     };
 
     return Client_registration{
@@ -809,8 +810,9 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
         }
     };
 
-    std::for_each(std::begin(result.current_clients), std::end(result.current_clients),
-                  connect_client);
+    if (result.current_client) {
+        connect_client(*result.current_client);
+    }
 
     notify_subscribed_callbacks(m_currently_running_service_report, callbacks_to_notify, interface,
                                 instance, Find_result_status::added);

@@ -61,6 +61,14 @@ inline Payload make_vector_payload(C const& container) {
 /// \return A Writable_payload object.
 Writable_payload make_writable_vector_payload(std::size_t size);
 
+/// \brief Creates a test Writable_payload backed by a heap-allocated buffer.
+/// \param lead_offset Size of the lead offset in bytes.
+/// \param header_size Size of the header in bytes.
+/// \param buffer Payload data.
+/// \return A Writable_payload object.
+Writable_payload make_writable_vector_payload(std::size_t lead_offset, std::size_t header_size,
+                                              Vector_buffer buffer);
+
 /// \brief Creates a copy of a payload's data as a new vector payload (test utility).
 Payload clone_payload(Payload const& p);
 
