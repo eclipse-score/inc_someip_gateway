@@ -81,8 +81,6 @@ test:x86_64-qnx --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
 test:x86_64-qnx --run_under=@score_itf//scripts:run_under_qemu
 test:aarch64-qnx --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
 test:aarch64-qnx --run_under=@score_itf//scripts:run_under_qemu
-# Enforce isolated network namespaces for sandboxed tests (linux-sandbox), required by fixed network ports
-test --nosandbox_default_allow_network
 
 
 test --test_output=errors

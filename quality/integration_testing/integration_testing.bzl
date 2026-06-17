@@ -127,13 +127,14 @@ def integration_test(name, srcs, filesystem, **kwargs):
     if "timeout" not in kwargs:
         kwargs["timeout"] = "short"
 
-    # QEMU networking requires TAP interfaces, which need CAP_NET_ADMIN.
-    # Thus have root privileges inside the sandbox.
     _extend_list_in_kwargs_without_duplicates(
         kwargs,
         "tags",
         [
+            # QEMU networking requires TAP interfaces, which need CAP_NET_ADMIN.
+            # Thus have root privileges inside the sandbox.
             "requires-fakeroot",
+            # Enforce isolated network namespaces for sandboxed tests (linux-sandbox), required by fixed network ports
             "block-network",
         ],
     )
