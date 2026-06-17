@@ -42,15 +42,8 @@ jobs:
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.19.0
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
         with:
-          output-base: /mnt/.bazel
-          # Avoid downloading Bazel every time.
-          bazelisk-cache: true
-          # Share repository cache between workflows.
-          repository-cache: true
-          # Cache external/
-          external-cache: true
-          cache-save: false
+          unique-cache-name: ${{ github.workflow }}-${{ github.job }}
       - name: Allow linux-sandbox
-        uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939
