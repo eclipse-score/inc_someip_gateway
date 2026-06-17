@@ -93,8 +93,8 @@ class Service_record {
     Server_registration register_server_connector(Service_interface_identifier const& interface,
                                                   SC_impl::Listen_endpoint connector);
 
-    Client_registration register_client_connector(Service_interface_identifier const& interface,
-                                                  CC_impl::Server_indication on_server_update);
+    Result<Client_registration> register_client_connector(
+        Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update);
 
     bool is_available() const { return m_server.has_value(); }
 
@@ -241,9 +241,9 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Request_service_function request_service) noexcept override;
     // NOLINTEND(bugprone-exception-escape)
 
-    Registration register_connector(Service_interface_definition const& configuration,
-                                    Service_instance const& instance,
-                                    CC_impl::Server_indication const& on_server_update);
+    Result<Registration> register_connector(Service_interface_definition const& configuration,
+                                            Service_instance const& instance,
+                                            CC_impl::Server_indication const& on_server_update);
 
     Registration register_connector(Service_interface_identifier const& interface,
                                     Service_instance const& instance,

@@ -40,9 +40,8 @@ class Impl final : public Client_connector {
     using Server_indication =
         std::function<void(::score::socom::Server_connector_listen_endpoint const&)>;
 
-    Impl(Runtime_impl& runtime, Service_interface_definition configuration,
-         Service_instance instance, Client_connector::Callbacks callbacks,
-         Posix_credentials const& credentials);
+    Impl(Service_interface_definition configuration, Service_instance instance,
+         Client_connector::Callbacks callbacks, Posix_credentials const& credentials);
     Impl(Impl const&) = delete;
     Impl(Impl&&) = delete;
     Impl& operator=(Impl const&) = delete;
@@ -72,10 +71,12 @@ class Impl final : public Client_connector {
     message::Update_requested_event::Return_type receive(message::Update_requested_event message);
     message::Allocate_event_payload::Return_type receive(message::Allocate_event_payload message);
 
+    Server_indication make_on_server_update_callback();
+    void set_registration(Registration registration);
+
    private:
     template <typename ReturnType, typename F>
     ReturnType lock_server(F const& on_server_locked) const;
-    Server_indication make_on_server_update_callback();
 
     bool set_id_mappings_and_server(message::Connect_return const& connect_return);
 

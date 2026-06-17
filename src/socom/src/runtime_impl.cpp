@@ -493,10 +493,11 @@ Service_record::Server_registration Service_record::register_server_connector(
         m_client};
 }
 
-Service_record::Client_registration Service_record::register_client_connector(
+Result<Service_record::Client_registration> Service_record::register_client_connector(
     Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update) {
-    // TODO add proper error code
-    assert(!m_client);
+    if (m_client) {
+        return MakeUnexpected(Construction_error::duplicate_client);
+    }
     m_client.emplace(Interfaced_client{interface, std::move(on_server_update)});
 
     auto remove_from_registry = [this]() {
@@ -523,8 +524,22 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
         return MakeUnexpected(Construction_error::callback_missing);
     }
 
-    return {std::make_unique<CC_impl>(*this, std::move(configuration), std::move(instance),
-                                      std::move(callbacks), credentials)};
+    // check if one is already registered for this service interface and instance and return error
+    // if yes
+    auto client_connector = std::make_unique<CC_impl>(std::move(configuration), std::move(instance),
+                                                      std::move(callbacks), credentials);
+
+    auto registration = register_connector(client_connector->get_configuration(),
+                                           client_connector->get_service_instance(),
+                                           client_connector->make_on_server_update_callback());
+
+    if (!registration) {
+        return Unexpected{registration.error()};
+    }
+
+    client_connector->set_registration(std::move(*registration));
+
+    return {std::move(client_connector)};
 }
 
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
@@ -760,25 +775,29 @@ Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
     return Result<Service_bridge_registration>{std::move(registration)};
 }
 
-Registration Runtime_impl::register_connector(Service_interface_definition const& configuration,
-                                              Service_instance const& instance,
-                                              CC_impl::Server_indication const& on_server_update) {
+Result<Registration> Runtime_impl::register_connector(
+    Service_interface_definition const& configuration, Service_instance const& instance,
+    CC_impl::Server_indication const& on_server_update) {
     std::unique_lock<std::mutex> lock{m_runtime_mutex};
     auto& sii_record = m_database.get_record(configuration.interface, instance);
     auto result = sii_record.register_client_connector(configuration.interface, on_server_update);
     lock.unlock();
 
+    if (!result) {
+        return Unexpected{result.error()};
+    }
+
     Registration bridged_service_requests;
-    if (result.current_server) {
-        if (is_minor_version_compatible(result.current_server->interface,
+    if (result->current_server) {
+        if (is_minor_version_compatible(result->current_server->interface,
                                         configuration.interface)) {
-            assert(
-                is_interface_compatible(result.current_server->interface, configuration.interface));
-            on_server_update(result.current_server->endpoint);
+            assert(is_interface_compatible(result->current_server->interface,
+                                           configuration.interface));
+            on_server_update(result->current_server->endpoint);
         } else {
             std::cerr << "SOCom error: Bind client to server - minor version incompatible:"
                       << " client=" << configuration.interface.id
-                      << ", server=" << result.current_server->interface.id
+                      << ", server=" << result->current_server->interface.id
                       << ", instance=" << instance.id << std::endl;
         }
     } else {
@@ -786,7 +805,7 @@ Registration Runtime_impl::register_connector(Service_interface_definition const
     }
 
     return std::make_unique<Registration_collection>(std::move(bridged_service_requests),
-                                                     std::move(result.registration));
+                                                     std::move(result->registration));
 }
 
 Registration Runtime_impl::register_connector(Service_interface_identifier const& interface,
