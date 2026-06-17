@@ -195,6 +195,7 @@ struct Connect_service {
     Service service_id;
     Instance_id instance_id;
     Remote_handle required_id;
+    // Memory for method calls
     Shared_memory_metadata metadata;
     bool in_use;
 };
@@ -204,6 +205,7 @@ struct Connect_service_reply {
     DECLARE_MESSAGE_TYPE(Message_type::Connect_service_reply);
     Remote_handle required_id;
     Remote_handle provided_id;
+    // Memory for event updates and method replies
     Shared_memory_metadata metadata;
     std::uint16_t num_methods;
     std::uint16_t num_events;

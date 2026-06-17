@@ -40,12 +40,21 @@ namespace score::gateway_ipc_binding {
 class Gateway_ipc_binding_client {
    public:
     /// \brief Create the client-side IPC binding endpoint
+    ///
+    /// For each service shared memory needs to be configured for both sides.
+    /// On the service providing side shared memory is needed for event updates and method replies.
+    /// On the consuming side shared memory is needed for method calls.
+    /// It is not possible to omit shared memory configuration for e.g. methods, when they are not
+    /// used, but it is possible to configure the tinyest possible shared memory (1 slot of 1 byte):
+    ///
+    ///     Shared_memory_metadata {"/some/path", 1, 1};
+    ///
     /// \param runtime SOCom runtime used to register the binding as a service bridge
     /// \param connection pre-created client transport connection
     /// \param slot_manager factory for per-service writable and read-only shared memory managers
     /// \param find_service_elements Service elements to advertise for finding services
     /// \param server_shared_memory_configs Shared memory configuration for each service instance
-    ///        that the server is expected to create.  Sent to the server in the Connect message so
+    ///        that the server is expected to create. Sent to the server in the Connect message so
     ///        the server needs no upfront static configuration.
     /// \param identifier Optional string identifying this client peer to the server
     /// \return Unique pointer to the created client

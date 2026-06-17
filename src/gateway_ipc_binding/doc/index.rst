@@ -42,6 +42,16 @@ Architecture
 
 ``Gateway_ipc_binding_client`` and ``Gateway_ipc_binding_server`` are thin transport adapters around the shared ``Gateway_ipc_binding_base`` logic.
 
+- ``Shared memory configuration``
+
+  - Shared memory is configured per service instance and advertised in the initial connection handshake when the client connects to the server.
+    - This allows the binding to support different shared memory sizes for different services and avoids the need for static configuration on the server side.
+    - The goal is that the server needs no upfront static configuration for shared memory, and the client can simply specify the shared memory requirements for each service instance it wants to use.
+  - For each service instance, the client specifies shared memory for both sides: one for the server to write event updates and method replies into, and one for the client to write method calls into.
+    - This allows the binding to support method calls in the future without needing to change the initial connection handshake or require static configuration on the server side.
+    - The client can specify the tinyest possible shared memory (1 slot of 1 byte) for unused directions to effectively opt out of method call support until it's implemented.
+    - It would be possible to have no shared memory configured for method calls at all, but that would require more invasive changes to the connection handshake and more special cases in the code, so the current design requires some shared memory to be configured for method calls even if it's not used.
+
 - ``Gateway_ipc_binding_client``
 
   - creates a single outgoing ``message_passing`` connection
