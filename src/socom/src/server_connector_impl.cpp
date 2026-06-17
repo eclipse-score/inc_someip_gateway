@@ -17,6 +17,7 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <score/mw/log/logging.h>
 #include <score/socom/event.hpp>
 #include <score/socom/server_connector.hpp>
 #include <score/socom/service_interface_definition.hpp>
@@ -94,11 +95,10 @@ Impl* Impl::disable() noexcept {
 
         // death tests cannot contribute to code coverage
         auto const log_on_deadlock = [this]() {
-            std::cerr << "SOCom error: A callback causes the Enabled_server_connector instance to "
+            score::mw::log::LogError() << "SOCom error: A callback causes the Enabled_server_connector instance to "
                          "be destroyed by which the callback is called. This leads to a deadlock "
                          "because the destructor waits until all callbacks are done.: interface="
-                      << m_configuration.get_interface().id << "instance=" << m_instance.id
-                      << std::endl;
+                      << m_configuration.get_interface().id << "instance=" << m_instance.id;
         };
 
         m_deadlock_detector.check_deadlock(log_on_deadlock);

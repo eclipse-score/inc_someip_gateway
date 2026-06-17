@@ -23,6 +23,7 @@
 #include "routing.h"
 #include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
+#include "score/mw/log/logging.h"
 #include "src/common/constants.h"
 #include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
@@ -110,7 +111,7 @@ int main(int argc, char* argv[]) {
     config_file.open(configuration_path.CStr(), std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file " << configuration_path.CStr() << std::endl;
+        score::mw::log::LogFatal() << "Error: Could not open config file " << configuration_path;
         return 1;
     }
 
@@ -118,7 +119,7 @@ int main(int argc, char* argv[]) {
     std::streampos length = config_file.tellg();
 
     if (length <= 0) {
-        std::cerr << "Error: Invalid config file size: " << length << std::endl;
+        score::mw::log::LogFatal() << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
         config_file.close();
         return 1;
     }
@@ -156,7 +157,7 @@ int main(int argc, char* argv[]) {
 
     auto routing = score::someipd::Routing::Create(config, std::move(proxy), std::move(skeleton));
     if (!routing.has_value()) {
-        std::cerr << "[someipd] Network stack initialization failed" << std::endl;
+        score::mw::log::LogFatal() << "[someipd] Network stack initialization failed";
         return 1;
     }
 

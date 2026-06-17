@@ -20,6 +20,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <score/mw/log/logging.h>
 #include <score/socom/final_action.hpp>
 #include <score/socom/server_connector.hpp>
 #include <score/socom/service_interface_identifier.hpp>
@@ -775,10 +776,10 @@ Registration Runtime_impl::register_connector(Service_interface_definition const
                 is_interface_compatible(result.current_server->interface, configuration.interface));
             on_server_update(result.current_server->endpoint);
         } else {
-            std::cerr << "SOCom error: Bind client to server - minor version incompatible:"
+            score::mw::log::LogError() << "SOCom error: Bind client to server - minor version incompatible:"
                       << " client=" << configuration.interface.id
                       << ", server=" << result.current_server->interface.id
-                      << ", instance=" << instance.id << std::endl;
+                      << ", instance=" << instance.id;
         }
     } else {
         bridged_service_requests = bridge_service_requests(configuration, instance);
@@ -803,9 +804,9 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
             assert(is_interface_compatible(interface, client.interface));
             client.indication(endpoint);
         } else {
-            std::cerr << "SOCom error: Bind client to server - minor version incompatible:"
+            score::mw::log::LogError() << "SOCom error: Bind client to server - minor version incompatible:"
                       << " client=" << client.interface.id << ", server=" << interface.id
-                      << ", instance=" << instance.id << std::endl;
+                      << ", instance=" << instance.id;
         }
     };
 
