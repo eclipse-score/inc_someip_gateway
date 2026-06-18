@@ -172,7 +172,6 @@ Impl::Server_indication Impl::make_on_server_update_callback() {
 }
 
 void Impl::set_registration(Registration registration) {
-    // std::lock_guard<std::mutex> const lock{m_mutex};
     m_registration = std::move(registration);
     assert(m_registration);
 }
