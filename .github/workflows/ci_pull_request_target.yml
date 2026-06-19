@@ -28,12 +28,14 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/build_and_test_qnx.yml
     permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
       contents: read
       pull-requests: read
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
     permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
       contents: write
       pages: write
       pull-requests: write
@@ -42,6 +44,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/license_check.yml
     permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
       pull-requests: write
       issues: write
   # check if PR can be enqueued to the merge queue or merged to main

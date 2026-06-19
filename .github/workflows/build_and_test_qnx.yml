@@ -23,10 +23,11 @@ jobs:
       fail-fast: false
       matrix:
         bazel-config: ["x86_64-qnx", "aarch64-qnx"]
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # main (2026-06-03)
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@6fa9a537d758f866f164f2629f45af7fe712129f # etas-contrib:simplify_cache
     permissions:
       contents: read
       pull-requests: read
+      actions: write # needed for cache deletion at setup-bazel-cache
     with:
       # TODO: build all targets ( //... ) once python toolchain issue is resolved.
       bazel-target: "//src/... //tests/... //examples/..."
