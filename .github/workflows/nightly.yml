@@ -27,46 +27,20 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
       - name: Check latest default branch commit age
         id: check
-        uses: actions/github-script@v9
-        with:
-          script: |
-            if (context.eventName === 'workflow_dispatch') {
-              core.info('Manual dispatch detected; skipping default branch activity gate.');
-              core.setOutput('should_run', 'true');
-              return;
-            }
-
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const branch = context.payload.repository.default_branch;
-            const { data: branchData } = await github.rest.repos.getBranch({
-              owner,
-              repo,
-              branch,
-            });
-
-            const commitDate =
-              branchData.commit.commit.committer?.date ??
-              branchData.commit.commit.author?.date;
-
-            if (!commitDate) {
-              core.setFailed(`Could not determine the latest commit date for ${branch}.`);
-              return;
-            }
-
-            const commitTimestamp = new Date(commitDate).getTime();
-            const cutoffTimestamp = Date.now() - 24 * 60 * 60 * 1000;
-            const shouldRun = commitTimestamp >= cutoffTimestamp;
-
-            core.info(`Latest commit on ${branch} was at ${commitDate}.`);
-            core.info(
-              shouldRun
-                ? 'Default branch was updated within the last 24 hours; continuing nightly workflow.'
-                : 'Default branch has not been updated within the last 24 hours; skipping nightly workflow.',
-            );
-            core.setOutput('should_run', shouldRun ? 'true' : 'false');
+        run: |
+          # should_run is true if there was at least one commit in the last 24 hours, false otherwise
+          last_commits="$(git log --since="24 hours ago" --oneline)"
+          if [ -n "$last_commits" ]; then
+            echo "Recent activity detected on the default branch. Proceeding with cache refresh."
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No recent activity on the default branch. Skipping cache refresh to save resources."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
 
   # Jobs are run sequentially to avoid race conditions on repository cache deletion and recreation.
   # They will be running even if previous jobs failed, as long as the default branch had recent activity and the workflow was not manually cancelled.
@@ -80,37 +54,7 @@ jobs:
       contents: read
     steps:
       - name: Delete all caches in this repository
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            const caches = await github.paginate(
-              github.rest.actions.getActionsCacheList,
-              {
-                owner,
-                repo,
-                per_page: 100,
-              },
-              (response) => response.data.actions_caches,
-            );
-
-            core.info(`Found ${caches.length} cache entries.`);
-            for (const cache of caches) {
-              if (!cache || !cache.id) {
-                core.warning(`Skipping malformed cache entry: ${JSON.stringify(cache)}`);
-                continue;
-              }
-              core.info(
-                `Deleting cache id=${cache.id}, key=${cache.key}, size=${cache.size_in_bytes}`,
-              );
-              await github.rest.actions.deleteActionsCacheById({
-                owner,
-                repo,
-                cache_id: cache.id,
-              });
-            }
+        run: gh cache delete --repo ${{ github.repository }} --all
 
   pre-commit:
     needs:
