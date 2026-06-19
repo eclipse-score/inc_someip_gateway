@@ -32,6 +32,10 @@
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-157/"
   },
   {
+    "version": "pr-158",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-158/"
+  },
+  {
     "version": "pr-60",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-60/"
   },
@@ -42,9 +46,5 @@
   {
     "version": "pr-98",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-98/"
-  },
-  {
-    "version": "pr-158",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-158/"
   }
 ]
