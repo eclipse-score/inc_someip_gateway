@@ -80,37 +80,7 @@ jobs:
       contents: read
     steps:
       - name: Delete all caches in this repository
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            const caches = await github.paginate(
-              github.rest.actions.getActionsCacheList,
-              {
-                owner,
-                repo,
-                per_page: 100,
-              },
-              (response) => response.data.actions_caches,
-            );
-
-            core.info(`Found ${caches.length} cache entries.`);
-            for (const cache of caches) {
-              if (!cache || !cache.id) {
-                core.warning(`Skipping malformed cache entry: ${JSON.stringify(cache)}`);
-                continue;
-              }
-              core.info(
-                `Deleting cache id=${cache.id}, key=${cache.key}, size=${cache.size_in_bytes}`,
-              );
-              await github.rest.actions.deleteActionsCacheById({
-                owner,
-                repo,
-                cache_id: cache.id,
-              });
-            }
+        run: gh cache delete --repo ${{ github.repository }} --all
 
   pre-commit:
     needs:
