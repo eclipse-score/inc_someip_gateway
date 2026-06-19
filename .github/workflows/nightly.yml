@@ -1,0 +1,197 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: Nightly Cache Refresh
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  check_recent_default_branch_activity:
+    name: Check default branch activity
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Check latest default branch commit age
+        id: check
+        uses: actions/github-script@v9
+        with:
+          script: |
+            if (context.eventName === 'workflow_dispatch') {
+              core.info('Manual dispatch detected; skipping default branch activity gate.');
+              core.setOutput('should_run', 'true');
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const branch = context.payload.repository.default_branch;
+            const { data: branchData } = await github.rest.repos.getBranch({
+              owner,
+              repo,
+              branch,
+            });
+
+            const commitDate =
+              branchData.commit.commit.committer?.date ??
+              branchData.commit.commit.author?.date;
+
+            if (!commitDate) {
+              core.setFailed(`Could not determine the latest commit date for ${branch}.`);
+              return;
+            }
+
+            const commitTimestamp = new Date(commitDate).getTime();
+            const cutoffTimestamp = Date.now() - 24 * 60 * 60 * 1000;
+            const shouldRun = commitTimestamp >= cutoffTimestamp;
+
+            core.info(`Latest commit on ${branch} was at ${commitDate}.`);
+            core.info(
+              shouldRun
+                ? 'Default branch was updated within the last 24 hours; continuing nightly workflow.'
+                : 'Default branch has not been updated within the last 24 hours; skipping nightly workflow.',
+            );
+            core.setOutput('should_run', shouldRun ? 'true' : 'false');
+
+  # Jobs are run sequentially to avoid race conditions on repository cache deletion and recreation.
+  # They will be running even if previous jobs failed, as long as the default branch had recent activity and the workflow was not manually cancelled.
+  delete_all_caches:
+    needs: check_recent_default_branch_activity
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    name: Delete all GitHub Actions caches
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Delete all caches in this repository
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const caches = await github.paginate(
+              github.rest.actions.getActionsCacheList,
+              {
+                owner,
+                repo,
+                per_page: 100,
+              },
+              (response) => response.data.actions_caches,
+            );
+
+            core.info(`Found ${caches.length} cache entries.`);
+            for (const cache of caches) {
+              core.info(
+                `Deleting cache id=${cache.id}, key=${cache.key}, size=${cache.size_in_bytes}`,
+              );
+              await github.rest.actions.deleteActionsCacheById({
+                owner,
+                repo,
+                cache_id: cache.id,
+              });
+            }
+
+  pre-commit:
+    needs:
+      - delete_all_caches
+      - check_recent_default_branch_activity
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/pre-commit.yml
+
+  build_and_test_host:
+    needs:
+      - pre-commit
+      - check_recent_default_branch_activity
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/build_and_test_host.yml
+
+  build_and_test_cross_compilation:
+    needs:
+      - build_and_test_host
+      - check_recent_default_branch_activity
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/build_and_test_cross_compilation.yml
+
+  copyright:
+    needs:
+      - build_and_test_cross_compilation
+      - check_recent_default_branch_activity
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
+      contents: read
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/copyright.yml
+
+  format:
+    needs:
+      - copyright
+      - check_recent_default_branch_activity
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
+      contents: read
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/format.yml
+
+  build_and_test_qnx:
+    needs:
+      - format
+      - check_recent_default_branch_activity
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/build_and_test_qnx.yml
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
+      contents: read
+      pull-requests: read
+
+  docs:
+    needs:
+      - build_and_test_qnx
+      - check_recent_default_branch_activity
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/docs.yml
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
+
+  license_check:
+    needs:
+      - docs
+      - check_recent_default_branch_activity
+    secrets: inherit
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/license_check.yml
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
+      pull-requests: write
+      issues: write

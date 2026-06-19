@@ -20,6 +20,8 @@ on:
 jobs:
   build_and_test_host:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
@@ -33,7 +35,7 @@ jobs:
       - name: Setup Bazel
         uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
         with:
-          unique-cache-name: ${{ github.workflow }}-${{ github.job }}
+          unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939
       - run: df -h
