@@ -20,13 +20,13 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
-#include <score/mw/log/logging.h>
 #include <score/socom/final_action.hpp>
 #include <score/socom/server_connector.hpp>
 #include <score/socom/service_interface_identifier.hpp>
 #include <tuple>
 
 #include "client_connector_impl.hpp"
+#include "score/mw/log/logging.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/runtime.hpp"
 #include "server_connector_impl.hpp"
@@ -776,10 +776,11 @@ Registration Runtime_impl::register_connector(Service_interface_definition const
                 is_interface_compatible(result.current_server->interface, configuration.interface));
             on_server_update(result.current_server->endpoint);
         } else {
-            score::mw::log::LogError() << "SOCom error: Bind client to server - minor version incompatible:"
-                      << " client=" << configuration.interface.id
-                      << ", server=" << result.current_server->interface.id
-                      << ", instance=" << instance.id;
+            score::mw::log::LogError()
+                << "SOCom error: Bind client to server - minor version incompatible:"
+                << " client=" << configuration.interface.id
+                << ", server=" << result.current_server->interface.id
+                << ", instance=" << instance.id;
         }
     } else {
         bridged_service_requests = bridge_service_requests(configuration, instance);
@@ -804,9 +805,10 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
             assert(is_interface_compatible(interface, client.interface));
             client.indication(endpoint);
         } else {
-            score::mw::log::LogError() << "SOCom error: Bind client to server - minor version incompatible:"
-                      << " client=" << client.interface.id << ", server=" << interface.id
-                      << ", instance=" << instance.id;
+            score::mw::log::LogError()
+                << "SOCom error: Bind client to server - minor version incompatible:"
+                << " client=" << client.interface.id << ", server=" << interface.id
+                << ", instance=" << instance.id;
         }
     };
 
