@@ -25,7 +25,7 @@ copyright_checker(
     srcs = [
         "src",
         "tests",
-        "//:BUILD.bazel",
+        "//:BUILD",
         "//:MODULE.bazel",
     ],
     config = "@score_tooling//cr_checker/resources:config",
