@@ -66,10 +66,10 @@ bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 bazel_dep(name = "bazel_lib", version = "3.3.1", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
-bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.2.18")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_cc", version = "0.2.20")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
-bazel_dep(name = "rules_rust", version = "0.68.1-score")
+bazel_dep(name = "rules_rust", version = "0.70.0")
 
 # ============================================================================
 # Toolchains & Platform Configuration
@@ -129,7 +129,7 @@ use_repo(
 
 # LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
 # Integrates with LLVM 19.1.7 and Debian Bullseye sysroots
-bazel_dep(name = "toolchains_llvm", version = "1.7.0", dev_dependency = True)
+bazel_dep(name = "toolchains_llvm", version = "1.8.0", dev_dependency = True)
 
 # Configures LLVM 19.1.7 for C/C++ compilation with cross-architecture support.
 llvm = use_extension(
@@ -153,7 +153,7 @@ register_toolchains(
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "aspect_rules_lint", version = "2.6.0", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "2.7.1", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
 # ============================================================================
