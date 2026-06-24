@@ -1378,6 +1378,39 @@ observe again.</p>
 Notification sent after first SET (value changed from initial); no duplicate
 notification sent when SET issues the same value a second time.</p>
 </section>
+<section id="tc8-evt-008-cyclic-notification-rate">
+<h3>TC8-EVT-008 — Cyclic Notification Rate<a class="headerlink" href="#tc8-evt-008-cyclic-notification-rate" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>§5.1.5.7 — SOMEIPSRV_RPC_15</p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_event_notification.py</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestEventNotificationFormat::test_rpc_15_cyclic_notification_rate</span></code></p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__evt_subscription</span></code></p>
+</dd>
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tc8_someipd_service.json</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that cyclic event notifications arrive at the configured cycle period
+(<code class="docutils literal notranslate"><span class="pre">update-cycle:</span> <span class="pre">500</span></code> ms).</p>
+<p><strong>Preconditions:</strong></p>
+<ul class="simple">
+<li><p>DUT offering service, subscription acknowledged.</p></li>
+<li><p>Event 0x0777 configured with <code class="docutils literal notranslate"><span class="pre">update-cycle:</span> <span class="pre">500</span></code> ms.</p></li>
+</ul>
+<p><strong>Stimuli:</strong>
+Subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x4455</span></code>, collect 4 notification timestamps.</p>
+<p><strong>Expected Result:</strong>
+Inter-notification intervals are within [200 ms, 1200 ms] — a 2.4× tolerance
+band accounting for OS jitter and initial-value notification.</p>
+</section>
 </section>
 <section id="field-conformance-tests">
 <h2>Field Conformance Tests<a class="headerlink" href="#field-conformance-tests" title="Link to this heading">#</a></h2>
@@ -4733,7 +4766,7 @@ of the decoded values (<code class="docutils literal notranslate"><span class="p
 <dd class="field-odd"><p>§5.1.6 — SOMEIP_ETS_058</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__msg_malformed_handling</span></code></p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__msg_malformed</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSomeipFireAndForgetAndErrors::test_ets_058_oversized_length_field_no_crash</span></code></p>
@@ -4748,6 +4781,38 @@ UDP payload is only 16 bytes.</p>
 <p><strong>Expected Result:</strong>
 DUT discards the malformed message; a subsequent valid REQUEST receives a correct
 RESPONSE (DUT alive).</p>
+</section>
+<section id="tc8-msg-032-session-id-echoed-in-error-response-rpc-19">
+<h3>TC8-MSG-032 — Session ID Echoed in Error Response (RPC_19)<a class="headerlink" href="#tc8-msg-032-session-id-echoed-in-error-response-rpc-19" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>§5.1.5.7 — SOMEIPSRV_RPC_19</p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSomeipResponseFields::test_rpc_19_session_id_echoed_in_error</span></code></p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__msg_resp_header</span></code></p>
+</dd>
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tc8_someipd_service.json</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that error response session_id equals the request session_id.</p>
+<p><strong>Preconditions:</strong></p>
+<ul class="simple">
+<li><p>DUT started, service offered.</p></li>
+</ul>
+<p><strong>Stimuli:</strong>
+Send REQUEST with a known <code class="docutils literal notranslate"><span class="pre">session_id</span></code> to an unknown method (triggering
+E_UNKNOWN_METHOD error response).</p>
+<p><strong>Expected Result:</strong>
+Error RESPONSE has <code class="docutils literal notranslate"><span class="pre">session_id</span></code> matching the REQUEST value
+(per PRS_SOMEIP_00137).</p>
 </section>
 </section>
 </section>
@@ -4835,6 +4900,7 @@ RESPONSE (DUT alive).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-evt-005-multicast-notification-delivery">TC8-EVT-005 — Multicast Notification Delivery</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-evt-006-stopsubscribe-ceases-notifications">TC8-EVT-006 — StopSubscribe Ceases Notifications</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-evt-007-field-notifies-only-on-value-change">TC8-EVT-007 — Field Notifies Only on Value Change</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-evt-008-cyclic-notification-rate">TC8-EVT-008 — Cyclic Notification Rate</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-conformance-tests">Field Conformance Tests</a><ul class="nav section-nav flex-column">
@@ -5008,6 +5074,7 @@ RESPONSE (DUT alive).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-msg-029-notification-as-request-ignored-ets-075">TC8-MSG-029 — NOTIFICATION as REQUEST Ignored (ETS_075)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-msg-030-response-uses-big-endian-byte-order-ets-005">TC8-MSG-030 — RESPONSE Uses Big-Endian Byte Order (ETS_005)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-msg-031-oversized-length-field-does-not-crash-dut-ets-058">TC8-MSG-031 — Oversized Length Field Does Not Crash DUT (ETS_058)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-msg-032-session-id-echoed-in-error-response-rpc-19">TC8-MSG-032 — Session ID Echoed in Error Response (RPC_19)</a></li>
 </ul>
 </li>
 </ul>
