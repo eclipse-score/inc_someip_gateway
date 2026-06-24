@@ -147,6 +147,7 @@ jobs:
       - check_recent_default_branch_activity
     permissions:
       actions: write # needed for cache deletion at setup-bazel-cache
+      contents: read
     secrets: inherit
     if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
     uses: ./.github/workflows/ci.yml
@@ -157,6 +158,11 @@ jobs:
       - check_recent_default_branch_activity
     permissions:
       actions: write # needed for cache deletion at setup-bazel-cache
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
+      issues: write
     secrets: inherit
     if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
     uses: ./.github/workflows/ci_pull_request_target.yml
