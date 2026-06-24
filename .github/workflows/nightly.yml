@@ -81,7 +81,7 @@ jobs:
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
+        uses: lurtz/setup-bazel@cache-optimized
         with:
           unique-cache-name: ${{ github.job }}
 

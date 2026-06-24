@@ -33,7 +33,7 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
+        uses: lurtz/setup-bazel@cache-optimized
         with:
           unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
