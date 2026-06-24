@@ -45,7 +45,7 @@ using score::someip_gateway::network_service::interfaces::message_transfer::
 static std::atomic<bool> shutdown_requested{false};
 
 void termination_handler(int /*signal*/) {
-    std::cout << "Received termination signal. Initiating graceful shutdown..." << std::endl;
+    score::mw::log::LogWarn() << "Received termination signal. Initiating graceful shutdown...";
     shutdown_requested.store(true);
 }
 
@@ -225,13 +225,14 @@ static void run_standalone_mode(std::shared_ptr<vsomeip::application> app) {
 
     app->offer_service(kServiceId, kInstanceId);
     SeedStaticFieldCache(app);
-    std::cout << "someipd [TC8 standalone]: offering service 0x" << std::hex << kServiceId
-              << "/0x" << kInstanceId << std::dec
-              << " — no IPC proxy (gatewayd not required)" << std::endl;
+    score::mw::log::LogInfo() << "someipd [TC8 standalone]: offering service 0x"
+                              << score::mw::log::LogHex16{kServiceId} << "/0x"
+                              << score::mw::log::LogHex16{kInstanceId}
+                              << " - no IPC proxy (gatewayd not required)";
 
     NotifyFieldLoop(app, field_mutex, field_buf);
 
-    std::cout << "someipd [TC8 standalone]: shutting down." << std::endl;
+    score::mw::log::LogInfo() << "someipd [TC8 standalone]: shutting down.";
     app->stop();
 }
 
@@ -311,7 +312,7 @@ int main(int argc, char* argv[]) {
         auto runtime = vsomeip::runtime::get();
         auto application = runtime->create_application(someipd_name);
         if (!application->init()) {
-            std::cerr << "SOME/IP application init failed" << std::endl;
+            score::mw::log::LogFatal() << "SOME/IP application init failed";
             return 1;
         }
 
@@ -387,8 +388,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::cout << "[someipd] Starting routing loop..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Starting routing loop...";
     routing.value().Run(shutdown_requested);
 
-    std::cout << "[someipd] Shutting down SOME/IP daemon..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Shutting down SOME/IP daemon...";
 }

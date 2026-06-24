@@ -1896,6 +1896,90 @@ class TestSDSubscribeLifecycleAdvanced:
             sd_sock.close()
             notif_sock.close()
 
+    @add_test_properties(
+        fully_verifies=["comp_req__tc8_conformance__sd_ttl_expiry"],
+        test_type="requirements-based",
+        derivation_technique="requirements-analysis",
+    )
+    def test_ets_095_subscribe_ttl_expires_no_events(
+        self,
+        someipd_dut: subprocess.Popen[bytes],
+        host_ip: str,
+        tester_ip: str,
+    ) -> None:
+        """ETS_095: No NOTIFICATION messages are received after subscription TTL expires.
+
+        SOMEIP_ETS_095 (§5.1.6): After a subscription TTL elapses and is not
+        renewed the server must cease sending event notifications to the expired
+        subscriber.
+
+        Test sequence:
+          1. Subscribe with TTL=1 (~1 second).
+          2. Wait for TTL to expire without sending a renewal.
+          3. Assert no SOME/IP NOTIFICATION messages arrive in the post-expiry
+             observation window.
+        """
+        assert someipd_dut.poll() is None, "someipd DUT is not running"
+
+        # Use TTL=3 (same as TC8-SD-014) — TTL=1 is too short to reliably
+        # process the expiry before the next notify cycle.
+        _TTL_SECS = 3
+
+        sd_sock = open_sender_socket(tester_ip)
+        notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        notif_sock.bind((tester_ip, 0))
+        notif_port: int = notif_sock.getsockname()[1]
+
+        try:
+
+            def _send_sub_ttl() -> None:
+                send_subscribe_eventgroup(
+                    sd_sock,
+                    (host_ip, SD_PORT),
+                    _SERVICE_ID,
+                    _INSTANCE_ID,
+                    _EVENTGROUP_ID,
+                    _MAJOR_VERSION,
+                    subscriber_ip=tester_ip,
+                    subscriber_port=notif_port,
+                    ttl=_TTL_SECS,
+                )
+
+            _send_sub_ttl()
+            acks = capture_unicast_sd_entries(
+                sd_sock,
+                filter_types=(SOMEIPSDEntryType.SubscribeAck,),
+                timeout_secs=5.0,
+                resend=_send_sub_ttl,
+            )
+            assert any(e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks), (
+                "ETS_095: Prerequisite failed — no SubscribeEventgroupAck received"
+            )
+
+            # Drain notifications sent during the active subscription period
+            # so they don't contaminate the post-expiry observation window.
+            pre_expiry = capture_some_ip_messages(
+                notif_sock, _SERVICE_ID, timeout_secs=4.0
+            )
+            assert pre_expiry, "ETS_095: No notifications received before TTL expiry"
+
+            # Wait for TTL to expire (TTL + 2 s margin); do NOT renew.
+            time.sleep(_TTL_SECS + 2)
+
+            # Verify no notifications arrive after TTL expiry.
+            post_expiry = capture_some_ip_messages(
+                notif_sock, _SERVICE_ID, timeout_secs=3.0
+            )
+            assert not post_expiry, (
+                f"ETS_095: {len(post_expiry)} NOTIFICATION(s) received after "
+                f"subscription TTL expired (TTL={_TTL_SECS} s + 2 s margin). "
+                "Server must cease sending events once the subscription TTL elapses."
+            )
+        finally:
+            sd_sock.close()
+            notif_sock.close()
+
 
 # ---------------------------------------------------------------------------
 # ETS_091/099/100/128/130 — FindService and offer lifecycle advanced

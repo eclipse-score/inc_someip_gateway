@@ -1273,7 +1273,7 @@ class TestSdMissingFormatFields:
         """FORMAT_07: SD Flags byte — Unicast flag (bit 6) must be set in OfferService.
 
         PRS_SOMEIPSD_00351: The Unicast flag indicates the sender supports unicast
-        communication.  vsomeip sets this flag in all SD messages it sends.
+        communication.
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
@@ -1380,7 +1380,7 @@ class TestSdMissingFormatFields:
 
 
 class TestSdEntryOptionFields:
-    """SD_MESSAGE_07–09, SD_MESSAGE_11 — entry option-run fields."""
+    """SD_MESSAGE_07–09, SD_MESSAGE_11, SD_MESSAGE_12 — entry option-run fields."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -1523,4 +1523,68 @@ class TestSdEntryOptionFields:
         assert type_byte == 0x06, (
             f"SD_MESSAGE_11: SubscribeEventgroup entry Type byte must be 0x06; "
             f"got 0x{type_byte:02x}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# TestSdStopSubscribeFormat — SD_MESSAGE_12
+# ---------------------------------------------------------------------------
+
+
+class TestSdStopSubscribeFormat:
+    """SD_MESSAGE_12: StopSubscribeEventgroup entry format byte-level assertions.
+
+    Per PRS_SOMEIPSD_00386 a StopSubscribeEventgroup entry is a
+    SubscribeEventgroup entry (Type 0x06) with TTL set to 0x000000.
+    This class verifies the byte-level layout of such an entry without
+    any DUT interaction — the entry is constructed in memory and inspected
+    directly.
+    """
+
+    @add_test_properties(
+        fully_verifies=["comp_req__tc8_conformance__sd_stop_sub_fmt"],
+        test_type="requirements-based",
+        derivation_technique="requirements-analysis",
+    )
+    def test_sd_message_12_stop_subscribe_entry_format(self) -> None:
+        """SD_MESSAGE_12: StopSubscribeEventgroup entry has Type=0x06 and TTL=0.
+
+        SOMEIPSRV_SD_MESSAGE_12 (§5.1.5.3): A StopSubscribeEventgroup message
+        is a SubscribeEventgroup entry (Type=0x06) with TTL=0x000000.
+
+        This test constructs the 16-byte entry in memory and verifies:
+          - byte[0] == 0x06  (entry type field)
+          - byte[9:12] == b'\\x00\\x00\\x00'  (TTL = 0)
+
+        No DUT interaction is required — this is a pure structural assertion on
+        the serialised entry layout.
+        """
+        stop_subscribe_entry = SOMEIPSDEntry(
+            sd_type=SOMEIPSDEntryType.Subscribe,
+            service_id=_SERVICE_ID,
+            instance_id=_INSTANCE_ID,
+            major_version=_MAJOR_VERSION,
+            ttl=0,
+            minver_or_counter=_EVENTGROUP_ID & 0xFFFF,
+            options_1=(),
+        )
+        options: list = []
+        assigned = stop_subscribe_entry.assign_option_index(options)
+        entry = assigned.build()
+
+        assert len(entry) == 16, (
+            f"SD_MESSAGE_12: StopSubscribeEventgroup entry must be 16 bytes; "
+            f"got {len(entry)}"
+        )
+
+        type_byte = entry[0]
+        assert type_byte == 0x06, (
+            f"SD_MESSAGE_12: StopSubscribeEventgroup Type byte must be 0x06 "
+            f"(same as SubscribeEventgroup); got 0x{type_byte:02x}"
+        )
+
+        ttl_bytes = entry[9:12]
+        assert ttl_bytes == b"\x00\x00\x00", (
+            f"SD_MESSAGE_12: StopSubscribeEventgroup TTL bytes[9:12] must be "
+            f"b'\\x00\\x00\\x00'; got {ttl_bytes!r}"
         )

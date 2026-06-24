@@ -16,7 +16,6 @@
 #include <cassert>
 #include <chrono>
 #include <cstring>
-#include <iostream>
 #include <thread>
 
 #include "score/mw/log/logging.h"
@@ -62,7 +61,7 @@ Result<Routing> Routing::Create(std::shared_ptr<const score::mw_someip_config::R
         return MakeUnexpected(score::someip::Errc::kInitializationFailed);
     }
     routing.payload_ = runtime->create_payload();
-    std::cout << "[someipd] vsomeip application initialized successfully" << std::endl;
+    score::mw::log::LogInfo() << "[someipd] vsomeip application initialized successfully";
 
     return Result<Routing>{std::move(routing)};
 }
@@ -80,10 +79,11 @@ void Routing::SetupSubscriptions() {
                     application_->register_message_handler(
                         service_type->service_id(), remote_service_instance->instance_id(),
                         event->event_id(), [this](const std::shared_ptr<vsomeip::message>& msg) {
-                            std::cout << "[someipd] Received SOME/IP event: service=0x" << std::hex
-                                      << msg->get_service() << " event=0x" << msg->get_method()
-                                      << std::dec << " payload=" << msg->get_payload()->get_length()
-                                      << "B" << std::endl;
+                            score::mw::log::LogInfo()
+                                << "[someipd] Received SOME/IP event: service=0x"
+                                << score::mw::log::LogHex16{msg->get_service()} << " event=0x"
+                                << score::mw::log::LogHex16{msg->get_method()} << " payload="
+                                << msg->get_payload()->get_length() << "B";
                             auto maybe_message = ipc_skeleton_.message_.Allocate();
                             if (!maybe_message.has_value()) {
                                 score::mw::log::LogError() << "[someipd] Failed to allocate IPC message: "
@@ -142,9 +142,10 @@ void Routing::SetupOfferings() {
                                               local_service_instance->instance_id(),
                                               event->event_id(), groups);
                 }
-                std::cout << "[someipd] Offering service 0x" << std::hex
-                          << service_type->service_id() << " instance 0x"
-                          << local_service_instance->instance_id() << std::dec << std::endl;
+                score::mw::log::LogInfo()
+                    << "[someipd] Offering service 0x"
+                    << score::mw::log::LogHex16{service_type->service_id()} << " instance 0x"
+                    << score::mw::log::LogHex16{local_service_instance->instance_id()};
                 application_->offer_service(service_type->service_id(),
                                             local_service_instance->instance_id());
             }
@@ -195,9 +196,12 @@ void Routing::ProcessMessages(std::atomic<bool>& shutdown_requested) {
 
                 payload_->set_data(reinterpret_cast<const vsomeip_v3::byte_t*>(payload_data.data()),
                                    payload_data.size());
-                std::cout << "[someipd] Forwarding IPC message to SOME/IP: service=0x" << std::hex
-                          << service_id << " instance=0x" << instance_id << " event=0x" << event_id
-                          << std::dec << " payload=" << payload_data.size() << "B" << std::endl;
+                score::mw::log::LogInfo()
+                    << "[someipd] Forwarding IPC message to SOME/IP: service=0x"
+                    << score::mw::log::LogHex16{service_id} << " instance=0x"
+                    << score::mw::log::LogHex16{instance_id} << " event=0x"
+                    << score::mw::log::LogHex16{event_id} << " payload=" << payload_data.size()
+                    << "B";
                 application_->notify(service_id, instance_id, event_id, payload_);
             },
             max_sample_count);
@@ -205,7 +209,7 @@ void Routing::ProcessMessages(std::atomic<bool>& shutdown_requested) {
         std::this_thread::sleep_for(POLLING_INTERVAL);
     }
 
-    std::cout << "[someipd] Message loop exited, shutting down..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Message loop exited, shutting down...";
 }
 
 void Routing::Run(std::atomic<bool>& shutdown_requested) {
@@ -214,18 +218,18 @@ void Routing::Run(std::atomic<bool>& shutdown_requested) {
     // (ST_REGISTERED).
     application_->register_state_handler([this](vsomeip::state_type_e state) {
         if (state == vsomeip::state_type_e::ST_REGISTERED) {
-            std::cout << "[someipd] Application registered with routing daemon." << std::endl;
-            std::cout << "[someipd] Setting up subscriptions..." << std::endl;
+            score::mw::log::LogInfo() << "[someipd] Application registered with routing daemon.";
+            score::mw::log::LogInfo() << "[someipd] Setting up subscriptions...";
             SetupSubscriptions();
-            std::cout << "[someipd] Setting up offerings..." << std::endl;
+            score::mw::log::LogInfo() << "[someipd] Setting up offerings...";
             SetupOfferings();
         }
     });
-    std::cout << "[someipd] Starting network stack processing..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Starting network stack processing...";
     processing_thread_ = std::thread([this]() { application_->start(); });
-    std::cout << "[someipd] Network stack started, entering message loop." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Network stack started, entering message loop.";
     ProcessMessages(shutdown_requested);
-    std::cout << "[someipd] Stopping network stack processing..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Stopping network stack processing...";
     if (application_) {
         application_->stop();
     }
@@ -233,7 +237,7 @@ void Routing::Run(std::atomic<bool>& shutdown_requested) {
         processing_thread_.join();
     }
 
-    std::cout << "[someipd] Network stack stopped." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Network stack stopped.";
 }
 
 }  // namespace score::someipd
