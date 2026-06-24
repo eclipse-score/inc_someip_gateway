@@ -12,7 +12,7 @@
 # *******************************************************************************
 
 module(
-    name = "score_someip_gateway",
+    name = "score_someip_gatewayy",
     version = "0.0.1",
 )
 
