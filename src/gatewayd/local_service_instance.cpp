@@ -42,13 +42,14 @@ LocalServiceInstance::LocalServiceInstance(
       ipc_proxy_(std::move(ipc_proxy)),
       someip_message_skeleton_(someip_message_skeleton) {
     // Set up IPC event handlers
-    auto& events = ipc_proxy_.GetEvents();
+    auto events = ipc_proxy_.GetEvents();
 
     for (auto event_config : *service_type_config_->events()) {
         auto result = events.find(event_config->event_name()->string_view());
         if (result == events.cend()) {
-            score::mw::log::LogWarn() << "[gatewayd] Failed to find " << event_config->event_name()->string_view()
-                                       << " event in generic ipc_proxy.";
+            score::mw::log::LogWarn()
+                << "[gatewayd] Failed to find " << event_config->event_name()->string_view()
+                << " event in generic ipc_proxy.";
             continue;
         }
         auto& ipc_event = result->second;
@@ -61,8 +62,8 @@ LocalServiceInstance::LocalServiceInstance(
                                      score_com_serializer_element_type_event, event_name.data(),
                                      event_name.size(), &serializer);
         if (get_result != score_com_serializer_result_ok) {
-            score::mw::log::LogError() << "[gatewayd] Failed to get serializer for " << service_type_name
-                                       << "::" << event_name;
+            score::mw::log::LogError() << "[gatewayd] Failed to get serializer for "
+                                       << service_type_name << "::" << event_name;
             continue;
         }
         auto& event_context =
@@ -74,8 +75,9 @@ LocalServiceInstance::LocalServiceInstance(
                 [&](SamplePtr<void> sample) {
                     auto maybe_message = someip_message_skeleton_.message_.Allocate();
                     if (!maybe_message.has_value()) {
-                        score::mw::log::LogError() << "[gatewayd] Failed to allocate SOME/IP message:"
-                                                   << maybe_message.error().Message();
+                        score::mw::log::LogError()
+                            << "[gatewayd] Failed to allocate SOME/IP message:"
+                            << maybe_message.error().Message();
                         return;
                     }
                     auto message_sample = std::move(maybe_message).value();
@@ -126,8 +128,9 @@ LocalServiceInstance::LocalServiceInstance(
                         event_context.serializer, reinterpret_cast<uint8_t*>(payload.data()),
                         payload.size(), sample.get(), &written_length);
                     if (serialize_result != score_com_serializer_result_ok) {
-                        score::mw::log::LogError() << "[gatewayd] Serialization failed for "
-                                                   << event_context.config->event_name()->string_view();
+                        score::mw::log::LogError()
+                            << "[gatewayd] Serialization failed for "
+                            << event_context.config->event_name()->string_view();
                         return;
                     }
                     pos += written_length;
@@ -189,9 +192,10 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
 
             auto proxy_result = GenericProxy::Create(handles.front());
             if (!proxy_result.has_value()) {
-                score::mw::log::LogError() << "[gatewayd] Proxy creation failed for instance specifier: "
-                                           << instance_config->instance_specifier()->string_view()
-                                           << "': " << proxy_result.error().Message();
+                score::mw::log::LogError()
+                    << "[gatewayd] Proxy creation failed for instance specifier: "
+                    << instance_config->instance_specifier()->string_view()
+                    << "': " << proxy_result.error().Message();
                 return;
             }
 
