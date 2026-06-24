@@ -59,24 +59,12 @@ jobs:
         run: gh cache delete --repo ${{ github.repository }} --all
 
   create_repository_cache:
-    name: Create repository cache (${{ matrix.bazel-config }})
+    name: Create repository cache
     needs:
       - delete_all_caches
       - check_recent_default_branch_activity
     runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - bazel-config: "x86_64-linux"
-            bazel-target: "//..."
-          - bazel-config: "aarch64-linux"
-            bazel-target: "//..."
-          - bazel-config: "x86_64-qnx"
-            bazel-target: "//src/... //tests/..."
-          - bazel-config: "aarch64-qnx"
-            bazel-target: "//src/... //tests/..."
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: false
@@ -92,12 +80,10 @@ jobs:
         run: |
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
-      - name: Create config indicator file
-        run: echo "${{ matrix.bazel-config }}" > .bazel_config
       - name: Setup Bazel
         uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
         with:
-          unique-cache-name: ${{ github.job }}-${{ matrix.bazel-config }}
+          unique-cache-name: ${{ github.job }}
 
       - name: Setup QNX SDP usage
         uses: eclipse-score/cicd-actions/setup-qnx-sdp@a2b3c36fc7d1b9d03880d19935c7ac9cfffe58c6 # 2026-05-19
@@ -109,25 +95,53 @@ jobs:
           # qnx-credential-helper: ${{ inputs.credential-helper }}
           qnx-license-dir: /opt/score_qnx/license
 
-      - name: Warm Bazel repository cache (with retries)
+      - name: Warm Bazel repository cache for all variants (with retries)
         run: |
-          max_attempts=3
-          for attempt in $(seq 1 "$max_attempts"); do
-            echo "Running bazel fetch for --config=${{ matrix.bazel-config }} and targets '${{ matrix.bazel-target }}' (attempt ${attempt}/${max_attempts})"
-            if bazel fetch --config="${{ matrix.bazel-config }}" ${{ matrix.bazel-target }}; then
-              echo "Successfully fetched dependencies for --config=${{ matrix.bazel-config }} and targets '${{ matrix.bazel-target }}'"
-              exit 0
-            fi
+          variants=(
+            "x86_64-linux|//..."
+            "aarch64-linux|//..."
+            "x86_64-qnx|//src/... //tests/..."
+            "aarch64-qnx|//src/... //tests/..."
+          )
 
-            if [ "$attempt" -lt "$max_attempts" ]; then
-              backoff_seconds=$((attempt * 20))
-              echo "bazel fetch failed (likely transient). Retrying in ${backoff_seconds}s..."
-              sleep "$backoff_seconds"
+          max_attempts=3
+          failed_variants=()
+
+          for variant in "${variants[@]}"; do
+            config="${variant%%|*}"
+            targets="${variant#*|}"
+            success=false
+
+            for attempt in $(seq 1 "$max_attempts"); do
+              echo "Running bazel fetch for --config=${config} and targets '${targets}' (attempt ${attempt}/${max_attempts})"
+              if bazel fetch --config="${config}" ${targets}; then
+                echo "Successfully fetched dependencies for --config=${config} and targets '${targets}'"
+                success=true
+                break
+              fi
+
+              if [ "$attempt" -lt "$max_attempts" ]; then
+                backoff_seconds=$((attempt * 20))
+                echo "bazel fetch failed (likely transient). Retrying in ${backoff_seconds}s..."
+                sleep "$backoff_seconds"
+              fi
+            done
+
+            if [ "$success" != "true" ]; then
+              echo "bazel fetch failed for --config=${config} and targets '${targets}' after ${max_attempts} attempts"
+              failed_variants+=("${config}|${targets}")
             fi
           done
 
-          echo "bazel fetch failed for --config=${{ matrix.bazel-config }} and targets '${{ matrix.bazel-target }}' after ${max_attempts} attempts"
-          exit 1
+          if [ "${#failed_variants[@]}" -ne 0 ]; then
+            echo "Bazel fetch failed for the following variants:"
+            for variant in "${failed_variants[@]}"; do
+              echo "  - ${variant}"
+            done
+            exit 1
+          fi
+
+          exit 0
 
   pre-commit:
     needs:
