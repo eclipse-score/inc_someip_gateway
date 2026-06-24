@@ -34,6 +34,7 @@ cc_binary(
         "//src/config:config_flatbuffers",
         "//src/network_service:provider",
         "@score_baselibs//score/filesystem",
+        "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
         "@vsomeip",  # Direct dep for TC8 standalone mode (vsomeip API usage in main.cpp)
     ],
@@ -52,6 +53,7 @@ cc_library(
         "//src/network_service:provider",
         "@score_baselibs//score/containers:non_relocatable_vector",
         "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
         "@vsomeip",

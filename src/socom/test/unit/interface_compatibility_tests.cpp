@@ -16,6 +16,7 @@
 #include <sstream>
 #include <string_view>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "score/socom/clients_t.hpp"
 #include "score/socom/connector_factory.hpp"
@@ -56,14 +57,14 @@ Check_log expect_logs(Expectation const expected_connection,
     if ((Expectation::no_connect == expected_connection) &&
         (client_conf.get_interface().version.major == server_conf.get_interface().version.major) &&
         (client_conf.get_interface().id == server_conf.get_interface().id)) {
-        // start capturing stderr
-        testing::internal::CaptureStderr();
-        // return lambda that encapsulates the reading of stderr and verification
+        // start capturing stdout
+        testing::internal::CaptureStdout();
+        // return lambda that encapsulates the reading of stdout and verification
         return []() {
             auto const expected_message =
                 "SOCom error: Bind client to server - minor version incompatible";
-            auto const output_err = testing::internal::GetCapturedStderr();
-            ASSERT_EQ(output_err.substr(0, strlen(expected_message)), expected_message);
+            auto const output_cout = testing::internal::GetCapturedStdout();
+            ASSERT_THAT(output_cout, ::testing::HasSubstr(expected_message));
         };
     }
     return []() {};

@@ -82,7 +82,7 @@ bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = Tr
 # ============================================================================
 # QNX8 Toolchain Configuration
 # ============================================================================
-bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.5.2", dev_dependency = True)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.5.4", dev_dependency = True)
 
 gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
 gcc.toolchain(
@@ -101,7 +101,7 @@ gcc.toolchain(
 )
 gcc.toolchain(
     name = "score_qcc_x86_64_toolchain",
-    sdp_version = "8.0.3",
+    sdp_version = "8.0.4",
     target_cpu = "x86_64",
     target_os = "qnx",
     use_default_package = True,
@@ -109,7 +109,7 @@ gcc.toolchain(
 )
 gcc.toolchain(
     name = "score_qcc_aarch64_toolchain",
-    sdp_version = "8.0.3",
+    sdp_version = "8.0.4",
     target_cpu = "aarch64",
     target_os = "qnx",
     use_default_package = True,
@@ -175,12 +175,11 @@ download_archive(
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "3.0.0", dev_dependency = True)
-# Pinned at 3.0.0: upgrading is blocked by three upstream issues (verified 2026-04-09):
-#   1. BCR 3.1.0 has compatibility_level=3 vs baselibs' dep on 3.0.0 (compat=0)
-#   2. score_baselibs does not mark score_docs_as_code as dev_dependency
-#   3. score_tooling@1.2.0 pip_tooling hub lacks sphinx packages needed by 3.0.1
-# Track: eclipse-score/bazel_registry, eclipse-score/baselibs, eclipse-score/tooling
+bazel_dep(name = "score_docs_as_code", version = "4.5.0", dev_dependency = True)
+single_version_override(
+    module_name = "score_docs_as_code",
+    version = "4.5.0",
+)
 
 # ============================================================================
 # Communication Framework
