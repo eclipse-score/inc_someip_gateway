@@ -14,9 +14,11 @@
 name: Nightly Cache Refresh
 
 on:
-  schedule:
-    - cron: "0 2 * * *"
+  # schedule:
+  #   - cron: "0 2 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   check_recent_default_branch_activity:
@@ -42,11 +44,63 @@ jobs:
             echo "should_run=false" >> "$GITHUB_OUTPUT"
           fi
 
+  check_repository_cache_inputs:
+    name: Check repository cache inputs
+    needs: check_recent_default_branch_activity
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      should_refresh_cache: ${{ steps.check.outputs.should_refresh_cache }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check if Bazel repository cache inputs changed
+        id: check
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "push" ] && [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            base_sha="$BEFORE_SHA"
+          elif git rev-parse "${CURRENT_SHA}^" >/dev/null 2>&1; then
+            base_sha="$(git rev-parse "${CURRENT_SHA}^")"
+          else
+            echo "No base commit available. Refreshing cache conservatively."
+            echo "should_refresh_cache=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed_files="$(git diff --name-only "$base_sha" "$CURRENT_SHA")"
+
+          echo "Changed files between $base_sha and $CURRENT_SHA:"
+          if [ -n "$changed_files" ]; then
+            printf '%s\n' "$changed_files"
+          else
+            echo "  (none)"
+          fi
+
+          if printf '%s\n' "$changed_files" | grep -Eq '^(MODULE\.bazel|\.bazelrc|\.bazelversion|.*\.bzl$)'; then
+            echo "Bazel repository cache inputs changed. Proceeding with cache refresh."
+            echo "should_refresh_cache=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Bazel repository cache inputs changed. Skipping cache deletion and recreation."
+            echo "should_refresh_cache=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # Jobs are run sequentially to avoid race conditions on repository cache deletion and recreation.
   # They will be running even if previous jobs failed, as long as the default branch had recent activity and the workflow was not manually cancelled.
   delete_all_caches:
-    needs: check_recent_default_branch_activity
-    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    needs:
+      - check_recent_default_branch_activity
+      - check_repository_cache_inputs
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' && needs.check_repository_cache_inputs.outputs.should_refresh_cache == 'true' }}
     name: Delete all GitHub Actions caches
     runs-on: ubuntu-latest
     permissions:
@@ -63,8 +117,9 @@ jobs:
     needs:
       - delete_all_caches
       - check_recent_default_branch_activity
+      - check_repository_cache_inputs
     runs-on: ubuntu-24.04
-    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' }}
+    if: ${{ !cancelled() && needs.check_recent_default_branch_activity.outputs.should_run == 'true' && needs.check_repository_cache_inputs.outputs.should_refresh_cache == 'true' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: false
