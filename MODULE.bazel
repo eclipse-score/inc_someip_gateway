@@ -198,6 +198,16 @@ bazel_dep(name = "score_communication", version = "0.2.1")
 # Base Libraries
 # ============================================================================
 bazel_dep(name = "score_baselibs", version = "0.2.8")
+git_override(
+    module_name = "score_baselibs",
+    # Required until a new release of baselibs is available that includes the tracing API
+    commit = "8d4e0847424a565846e7a8a24c4c0018e3b14da9",
+    patch_strip = 1,
+    # Patch baselibs with a QNX8 workaround for poll
+    # until a fix is provided by the QNX SDP
+    patches = ["//third_party/score_baselibs:restore_qnx8_poll_workaround.patch"],
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
 
 # Upgrade grpc-java to 1.70.0 for compatibility with newer grpc (1.70.1).
 # The transitive grpc dependency (via flatbuffers) resolves to grpc 1.70.1, which removed
