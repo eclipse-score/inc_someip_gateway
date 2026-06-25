@@ -1,14 +1,5 @@
 --- a/MODULE.bazel
 +++ b/MODULE.bazel
-@@ -38,7 +38,7 @@
- # flatbuffers depends on this transitively, but older grpc-java version
- # The main problem is that there the command `bazel mod deps` is broken, which
- # we want and need to support for dependant modules
--bazel_dep(name = "grpc-java", version = "1.75.0.bcr.1")
-+bazel_dep(name = "grpc-java", version = "1.75.0.bcr.1", dev_dependency = True)
- 
- ###############################################################################
- # CC Toolchain
 @@ -266,9 +266,9 @@
  ###############################################################################
  # Blueprint Maven
