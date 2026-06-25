@@ -20,6 +20,7 @@ Components
    :status: valid
    :safety: ASIL_B
    :security: NO
+   :belongs_to: feat__someip_gateway
 
    Connects the :need:`comp__someipd` to the application via LoLa IPC (mw::com).
 
@@ -41,6 +42,7 @@ Components
    :status: valid
    :safety: ASIL_B
    :security: NO
+   :belongs_to: feat__someip_gateway
 
    Serializer and deserializer for SOME/IP messages. Used by the :need:`comp__gatewayd`.
    The serializer is built or configured especially for the application data types that it handles.
@@ -51,6 +53,7 @@ Components
    :status: valid
    :safety: ASIL_B
    :security: NO
+   :belongs_to: feat__someip_gateway
 
    A serializer that does not actually serialize or deserialize data, but only handles messages that are already serialized by the application.
 
@@ -60,5 +63,6 @@ Components
    :status: valid
    :safety: QM
    :security: NO
+   :belongs_to: feat__someip_gateway
 
    Handles the SOME/IP communication with the network.

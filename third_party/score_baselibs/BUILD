@@ -10,17 +10,4 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-name: pre-commit
-on:
-  workflow_call:
-jobs:
-  self_test:
-    name: 🔬 Self Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Check out
-        uses: actions/checkout@v7
-      - name: ⚙️ Setup uv
-        uses: astral-sh/setup-uv@v7
-      - name: 🛠️ Run pre-commit
-        run: uvx pre-commit run --all-files
+exports_files(["restore_qnx8_poll_workaround.patch"])

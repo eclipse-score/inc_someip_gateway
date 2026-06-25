@@ -38,6 +38,7 @@ cc_library(
         ":interface",
         ":pre_serialized_data",
         "//src/config:config_flatbuffers",
+        "@score_baselibs//score/mw/log",
     ],
 )
 
