@@ -12,5 +12,5 @@
 # *******************************************************************************
 
 exports_files([
-    "score_tooling-grpc-java-dev-dependency.patch",
+    "score_tooling-rules-jvm-external-dev-dependency.patch",
 ])
