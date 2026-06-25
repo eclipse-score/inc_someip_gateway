@@ -25,6 +25,7 @@
 #include "src/config/mw_someip_config_generated.h"
 #include "src/serializer/pre_serialized_data.h"
 #include "src/serializer/serializer.h"
+#include "score/mw/log/logging.h"
 
 using score::someip_gateway::serializer::get_size_of_pre_serialized_data;
 using score::someip_gateway::serializer::PreSerializedData;
@@ -117,7 +118,7 @@ score_com_serializer_result score_com_serializer_init(const char* serializer_ide
     config_file.open(std::string(serializer_id), std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file " << serializer_id << std::endl;
+        score::mw::log::LogError() << "Error: Could not open config file " << serializer_id;
         return score_com_serializer_result_serializer_nonexistent;
     }
 
@@ -125,7 +126,7 @@ score_com_serializer_result score_com_serializer_init(const char* serializer_ide
     std::streampos length = config_file.tellg();
 
     if (length <= 0) {
-        std::cerr << "Error: Invalid config file size: " << length << std::endl;
+        score::mw::log::LogError() << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
         config_file.close();
         return score_com_serializer_result_serializer_nonexistent;
     }
@@ -216,8 +217,8 @@ score_com_serializer_result score_com_serializer_get(
     const auto* serializer_config =
         lookup_serialization_config(service_type_name, element_type, element_name_view);
     if (serializer_config == nullptr) {
-        std::cerr << "Error: No serialization config found for service_type=" << service_type_name
-                  << " element=" << element_name_view << std::endl;
+        score::mw::log::LogError() << "Error: No serialization config found for service_type=" << service_type_name
+                  << " element=" << element_name_view;
         return score_com_serializer_result_serializer_nonexistent;
     }
 
