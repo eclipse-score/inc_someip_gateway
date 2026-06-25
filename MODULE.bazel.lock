@@ -1703,7 +1703,7 @@
     "@@googleapis+//:extensions.bzl%switched_rules": {
       "general": {
         "bzlTransitiveDigest": "vG6fuTzXD8MMvHWZEQud0MMH7eoC4GXY0va7VrFFh04=",
-        "usagesDigest": "vhFFJVFeycO5R7ySy4bclj2C6wMCYag2m28PhEwsn8s=",
+        "usagesDigest": "tX+FD0830h3Fwe9CV5jVlWNMhm+7RDliUzn2XHKURHo=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
