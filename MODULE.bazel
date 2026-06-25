@@ -160,8 +160,6 @@ bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
 git_override(
     module_name = "score_tooling",
     commit = "bd09ae241b94f9d77d4c837a38c93b04e2df8cc8",
-    patch_strip = 1,
-    patches = ["//third_party/score_tooling:score_tooling-grpc-java-dev-dependency.patch"],
     remote = "https://github.com/eclipse-score/tooling.git",
 )
 
