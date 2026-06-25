@@ -17,8 +17,6 @@ Integration Tests
 
 load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 
-exports_files(["vsomeip.json"])
-
 py_pytest(
     name = "integration",
     size = "medium",
