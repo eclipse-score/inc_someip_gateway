@@ -1,14 +1,11 @@
 --- a/MODULE.bazel
 +++ b/MODULE.bazel
-@@ -266,9 +266,9 @@
+@@ -266,7 +266,7 @@ bazel_dep(name = "googletest", version = "1.17.0.bcr.2", dev_dependency = True)
  ###############################################################################
  # Blueprint Maven
  ###############################################################################
 -bazel_dep(name = "rules_jvm_external", version = "6.10")
-+bazel_dep(name = "rules_jvm_external", version = "6.10", dev_dependency = True)
++bazel_dep(name = "rules_jvm_external", version = "6.9")
  
--maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
-+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven", dev_dependency = True)
+ maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
  maven.install(
-     name = "blueprint_maven_dependencies",
-     artifacts = [
