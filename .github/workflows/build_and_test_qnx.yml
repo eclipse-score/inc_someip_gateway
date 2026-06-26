@@ -23,7 +23,8 @@ jobs:
       fail-fast: false
       matrix:
         bazel-config: ["x86_64-qnx", "aarch64-qnx"]
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # main (2026-06-03)
+    uses: elektrobit-contrib/eclipse-score_cicd-workflows/.github/workflows/qnx-build.yml@use-more-disk-space-without-android-sdk-removal
+    # uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # main (2026-06-03)
     permissions:
       contents: read
       pull-requests: read
