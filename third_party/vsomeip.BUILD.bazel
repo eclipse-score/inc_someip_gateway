@@ -62,7 +62,7 @@ cmake(
     } | select({
         # Workaround for bazel-contrib/rules_foreign_cc#869
         "@platforms//os:qnx": {"CMAKE_SYSTEM_NAME": "QNX"},
-        "//conditions:default": {},
+        "//conditions:default": {"CMAKE_CXX_FLAGS": "-Wno-error=unused-command-line-argument"},
     }),
     generate_args = ["-GNinja"],
     lib_source = ":all_srcs",
