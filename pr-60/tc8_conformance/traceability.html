@@ -1763,106 +1763,13 @@ responding with E_UNKNOWN_SERVICE.</p>
 </section>
 <section id="coverage-summary">
 <h2>Coverage Summary<a class="headerlink" href="#coverage-summary" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table">
-<colgroup>
-<col style="width: 30.8%" />
-<col style="width: 23.1%" />
-<col style="width: 23.1%" />
-<col style="width: 23.1%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>TC8 Area</p></th>
-<th class="head"><p>Total Test IDs</p></th>
-<th class="head"><p>Implemented</p></th>
-<th class="head"><p>OA Spec Mapped</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Service Discovery</p></td>
-<td><p>14</p></td>
-<td><p>14</p></td>
-<td><p>14</p></td>
-</tr>
-<tr class="row-odd"><td><p>SD Format and Options Compliance</p></td>
-<td><p>40</p></td>
-<td><p>40</p></td>
-<td><p>40</p></td>
-</tr>
-<tr class="row-even"><td><p>SD Entry Semantics</p></td>
-<td><p>18</p></td>
-<td><p>18</p></td>
-<td><p>18</p></td>
-</tr>
-<tr class="row-odd"><td><p>SD Lifecycle Advanced</p></td>
-<td><p>25</p></td>
-<td><p>25</p></td>
-<td><p>25</p></td>
-</tr>
-<tr class="row-even"><td><p>SD Robustness</p></td>
-<td><p>36</p></td>
-<td><p>36</p></td>
-<td><p>36</p></td>
-</tr>
-<tr class="row-odd"><td><p>Message Format (existing)</p></td>
-<td><p>8</p></td>
-<td><p>8</p></td>
-<td><p>8</p></td>
-</tr>
-<tr class="row-even"><td><p>SOME/IP Message Protocol Compliance</p></td>
-<td><p>24</p></td>
-<td><p>24</p></td>
-<td><p>24</p></td>
-</tr>
-<tr class="row-odd"><td><p>Event Notification</p></td>
-<td><p>8</p></td>
-<td><p>8</p></td>
-<td><p>8</p></td>
-</tr>
-<tr class="row-even"><td><p>Field Conformance</p></td>
-<td><p>4</p></td>
-<td><p>4</p></td>
-<td><p>4</p></td>
-</tr>
-<tr class="row-odd"><td><p>TCP Transport Binding</p></td>
-<td><p>9</p></td>
-<td><p>9</p></td>
-<td><p>9</p></td>
-</tr>
-<tr class="row-even"><td><p>UDP Transport Binding</p></td>
-<td><p>1</p></td>
-<td><p>1</p></td>
-<td><p>1</p></td>
-</tr>
-<tr class="row-odd"><td><p>Multi-service and Multi-instance</p></td>
-<td><p>2</p></td>
-<td><p>2</p></td>
-<td><p>2</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Total</strong></p></td>
-<td><p><strong>189</strong></p></td>
-<td><p><strong>189</strong></p></td>
-<td><p><strong>189</strong></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Some TC8 test IDs are implemented by multiple test functions to separate
-independent assertions.  The 189 IDs above correspond to approximately
-215 pytest functions in total.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Three tests are expected to <strong>FAIL</strong> against vsomeip 3.6.1 due to known
-stack limitations.  See <a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Coverage is reported against the subset of TC8 test cases implemented.
-For the full OA TC8 v3.0 Chapter 5 scope analysis see
-<a class="reference internal" href="#tc8-specification-alignment-analysis">TC8 Specification Alignment Analysis</a> below.</p>
-</div>
+<p>All 189 internal TC8 test IDs are implemented and mapped to OA spec references.
+Some IDs are covered by multiple pytest functions (~215 total).
+Three tests are expected to fail against vsomeip 3.6.1 — see
+<a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p>
+<p>For the full OA TC8 v3.0 Chapter 5 scope analysis (including blocked tests
+requiring the ETS application), see <a class="reference internal" href="#tc8-specification-alignment-analysis">TC8 Specification Alignment Analysis</a>
+below.</p>
 </section>
 <section id="tc8-specification-alignment-analysis">
 <h2>TC8 Specification Alignment Analysis<a class="headerlink" href="#tc8-specification-alignment-analysis" title="Link to this heading">#</a></h2>
@@ -1960,107 +1867,10 @@ checks the DUT’s response. <strong>No C++ application code or gatewayd is need
 <p>The table below uses these status labels:</p>
 <ul class="simple">
 <li><p><strong>Complete</strong> — every specification item in this category has a passing test.</p></li>
-<li><p><strong>Near-complete</strong> — one or two items do not yet have a test, but they can
-be added using the existing framework. No new software is needed.</p></li>
-<li><p><strong>Complete (loopback skip)</strong> — all tests are written and pass on a
-non-loopback interface. Tests that require vsomeip to include
-<code class="docutils literal notranslate"><span class="pre">IPv4MulticastOption</span></code> in SD messages skip automatically on loopback.</p></li>
 </ul>
-<p class="rubric">SOMEIPSRV Coverage Mapping</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<colgroup>
-<col style="width: 24.0%" />
-<col style="width: 7.0%" />
-<col style="width: 8.0%" />
-<col style="width: 17.0%" />
-<col style="width: 44.0%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>TC8 Category (Section)</p></th>
-<th class="head"><p>Total</p></th>
-<th class="head"><p>Written</p></th>
-<th class="head"><p>Status</p></th>
-<th class="head"><p>Notes</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>SD Message Format (5.1.5.1)</p></td>
-<td><p>27</p></td>
-<td><p>27</p></td>
-<td><p><strong>Complete</strong></p></td>
-<td><p>All SD SOME/IP header fields (Client ID, Session ID, Protocol Version,
-Interface Version, Message Type, Return Code, Reboot flag, Unicast
-flag, Reserved) and all OfferService and SubscribeAck entry fields
-(FORMAT_01 through FORMAT_28) have dedicated byte-level assertions in
-<code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance.py</span></code>.</p></td>
-</tr>
-<tr class="row-odd"><td><p>SD Options Array (5.1.5.2)</p></td>
-<td><p>15</p></td>
-<td><p>15</p></td>
-<td><p><strong>Complete</strong> (7 skip in CI)</p></td>
-<td><p>IPv4 Endpoint Option (OPTIONS_01–07), IPv4 Multicast Option
-(OPTIONS_08–14), and TCP Endpoint Option (OPTIONS_15) are all tested.
-The 7 multicast sub-field tests (OPTIONS_08–14) skip on loopback
-because vsomeip 3.6.1 does not include <code class="docutils literal notranslate"><span class="pre">IPv4MulticastOption</span></code> in
-SubscribeEventgroupAck when bound to a loopback address.  They run
-and pass on a non-loopback interface.</p></td>
-</tr>
-<tr class="row-even"><td><p>SD Message Entries (5.1.5.3)</p></td>
-<td><p>17</p></td>
-<td><p>17</p></td>
-<td><p><strong>Complete</strong></p></td>
-<td><p>Tested: FindService responses (SD_MESSAGE_01–06), OfferService raw
-entry fields including entry Type byte and both option-run fields
-(SD_MESSAGE_07–09), Subscribe request entry Type byte
-(SD_MESSAGE_11), SubscribeAck entry (SD_MESSAGE_13), NAck conditions
-(SD_MESSAGE_14–19), and Stop Subscribe raw entry format
-(SD_MESSAGE_12). All items covered.</p></td>
-</tr>
-<tr class="row-odd"><td><p>SD Communication Behavior (5.1.5.4)</p></td>
-<td><p>4</p></td>
-<td><p>4</p></td>
-<td><p><strong>Complete</strong></p></td>
-<td><p>Repetition phase doubling (SD_BEHAVIOR_01), Main Phase cyclic offers
-(SD_BEHAVIOR_02), and FindService response timing (SD_BEHAVIOR_03/04
-— wall-clock assertions checking the DUT responds within
-<code class="docutils literal notranslate"><span class="pre">request_response_delay</span> <span class="pre">*</span> <span class="pre">1.5</span></code>) are all covered.
-StopSubscribe behavior (SD_BEHAVIOR_06) is covered by TC8-SD-008.
-SD_BEHAVIOR_05 (client reaction to StopOffer) does not apply: the DUT
-is a server only and has no active client subscriptions to cancel.</p></td>
-</tr>
-<tr class="row-even"><td><p>Basic Service Identifiers (5.1.5.5)</p></td>
-<td><p>3</p></td>
-<td><p>3</p></td>
-<td><p><strong>Complete</strong></p></td>
-<td><p>Service ID (BASIC_01), Instance ID (BASIC_02), and event notification
-method ID bit — bit 15 = 1 (BASIC_03) — are all verified. Note:
-vsomeip 3.6.1 fails BASIC_03 (sends a RESPONSE to event-ID messages).
-See <a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p></td>
-</tr>
-<tr class="row-odd"><td><p>On-Wire Format (5.1.5.6)</p></td>
-<td><p>10</p></td>
-<td><p>10</p></td>
-<td><p><strong>Complete</strong></p></td>
-<td><p>Protocol version, message type, request/response ID echo, interface
-version, return codes, and error responses for unknown service or
-method are all verified (ONWIRE_01–07/10–12) in
-<code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code>.</p></td>
-</tr>
-<tr class="row-even"><td><p>Remote Procedure Call (5.1.5.7)</p></td>
-<td><p>17</p></td>
-<td><p>17</p></td>
-<td><p><strong>Complete</strong></p></td>
-<td><p>Tested: TCP request/response (RPC_01/02), Fire-and-Forget
-(RPC_04/05), return code handling (RPC_06–10), field getter/setter
-(RPC_03/11), multiple service instances (RPC_13/14), cyclic
-notification rate (RPC_15), on-change-only notification (RPC_16),
-TCP event and field notification (RPC_17), error header echo
-(RPC_18/19/20). All items covered.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p><strong>Summary: All 93 SOMEIPSRV items have passing tests.</strong></p>
+<p>All 93 SOMEIPSRV specification items have passing tests across the seven
+subsections (SD Message Format, SD Options, SD Message Entries, SD Communication
+Behavior, Basic Service Identifiers, On-Wire Format, Remote Procedure Call).</p>
 </section>
 <section id="ets-tests-coverage">
 <h3>ETS Tests Coverage<a class="headerlink" href="#ets-tests-coverage" title="Link to this heading">#</a></h3>
@@ -2081,15 +1891,6 @@ behavior, TTL expiry, reboot detection, and multicast/unicast interactions.</p>
 are now implemented. The 60 implemented tests cover session ID behavior,
 FindService responses, subscribe edge cases, malformed SD entries and
 options, TTL expiry, reboot detection, and multicast/unicast interactions.</p>
-<p>Implemented examples:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_088</span></code> — two subscribes with the same session ID</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_091</span></code> — session ID increments correctly</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_092</span></code> — TTL=0 stop-subscribe</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_120</span></code> — subscribe endpoint IP matches tester</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_111–142</span></code> — malformed SD entries and options (robustness)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_081/082/084</span></code> — SD client stop-subscribe, reboot detection</p></li>
-</ul>
 <p class="rubric">ETS SD Protocol — Blocked Tests (14 items, require ETS application)</p>
 <p>The following 14 ETS SD test cases cannot be implemented without the ETS
 C++ application:</p>
@@ -2114,16 +1915,6 @@ ETS C++ application is implemented.</p>
 <p>These tests send wrong protocol versions, wrong message types, wrong IDs,
 truncated messages, oversized messages, and unaligned packets.</p>
 <p><em>Status: 14 of 14 implemented.</em></p>
-<p>All implemented:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_068</span></code> — unaligned SOME/IP messages over TCP (TC8-TCP-009 in
-<code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_069</span></code> — unaligned SOME/IP messages over UDP (TC8-UDP-001)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_074/075/076/077/078</span></code> — wrong interface version, message
-type, method ID, service ID, protocol version</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_054/055</span></code> — length field zero or less than 8 bytes</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOMEIP_ETS_004</span></code> — burst of 10 sequential requests</p></li>
-</ul>
 <p class="rubric">Track B — Tests requiring an ETS application (49 items)</p>
 <p id="ets-application-gap">These tests <strong>cannot run yet</strong> because they require a C++ test application
 that does not exist. The tests cannot be written until that application is
