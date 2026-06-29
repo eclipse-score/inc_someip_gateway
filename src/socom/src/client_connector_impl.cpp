@@ -18,27 +18,22 @@
 #include <score/socom/event.hpp>
 
 #include "messages.hpp"
-#include "runtime_impl.hpp"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/final_action.hpp"
 #include "server_connector_impl.hpp"
 
 namespace score {
 namespace socom {
 namespace client_connector {
 
-Impl::Impl(Runtime_impl& runtime, Service_interface_definition configuration,
-           Service_instance instance, Client_connector::Callbacks callbacks,
-           Posix_credentials const& credentials)
+Impl::Impl(Service_interface_definition configuration, Service_instance instance,
+           Client_connector::Callbacks callbacks, Posix_credentials const& credentials)
     : m_configuration{std::move(configuration)},
       m_instance{std::move(instance)},
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
           std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
-      m_registration{runtime.register_connector(m_configuration, m_instance,
-                                                make_on_server_update_callback())},
-      m_credentials{credentials} {
-    assert(m_registration);
-}
+      m_credentials{credentials} {}
 
 Impl::~Impl() noexcept {
     {
@@ -174,6 +169,11 @@ Impl::Server_indication Impl::make_on_server_update_callback() {
             receive(connect_return->service_state);
         }
     };
+}
+
+void Impl::set_registration(Registration registration) {
+    m_registration = std::move(registration);
+    assert(m_registration);
 }
 
 bool Impl::set_id_mappings_and_server(message::Connect_return const& connect_return) {

@@ -491,17 +491,19 @@ Service_record::Server_registration Service_record::register_server_connector(
 
     return Server_registration{
         std::make_unique<Final_action_registration>(Final_action(std::move(final_action))),
-        m_clients};
+        m_client};
 }
 
-Service_record::Client_registration Service_record::register_client_connector(
+Result<Service_record::Client_registration> Service_record::register_client_connector(
     Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update) {
-    auto const it = m_clients.emplace(m_clients.end(),
-                                      Interfaced_client{interface, std::move(on_server_update)});
+    if (m_client) {
+        return MakeUnexpected(Construction_error::duplicate_client);
+    }
+    m_client.emplace(Interfaced_client{interface, std::move(on_server_update)});
 
-    auto remove_from_registry = [this, it]() {
+    auto remove_from_registry = [this]() {
         std::lock_guard<std::mutex> const lock{m_runtime_mutex};
-        m_clients.erase(it);
+        m_client.reset();
     };
 
     return Client_registration{
@@ -523,8 +525,22 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
         return MakeUnexpected(Construction_error::callback_missing);
     }
 
-    return {std::make_unique<CC_impl>(*this, std::move(configuration), std::move(instance),
-                                      std::move(callbacks), credentials)};
+    // check if one is already registered for this service interface and instance and return error
+    // if yes
+    auto client_connector = std::make_unique<CC_impl>(std::move(configuration), std::move(instance),
+                                                      std::move(callbacks), credentials);
+
+    auto registration = register_connector(client_connector->get_configuration(),
+                                           client_connector->get_service_instance(),
+                                           client_connector->make_on_server_update_callback());
+
+    if (!registration) {
+        return Unexpected{registration.error()};
+    }
+
+    client_connector->set_registration(std::move(*registration));
+
+    return {std::move(client_connector)};
 }
 
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
@@ -760,26 +776,30 @@ Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
     return Result<Service_bridge_registration>{std::move(registration)};
 }
 
-Registration Runtime_impl::register_connector(Service_interface_definition const& configuration,
-                                              Service_instance const& instance,
-                                              CC_impl::Server_indication const& on_server_update) {
+Result<Registration> Runtime_impl::register_connector(
+    Service_interface_definition const& configuration, Service_instance const& instance,
+    CC_impl::Server_indication const& on_server_update) {
     std::unique_lock<std::mutex> lock{m_runtime_mutex};
     auto& sii_record = m_database.get_record(configuration.interface, instance);
     auto result = sii_record.register_client_connector(configuration.interface, on_server_update);
     lock.unlock();
 
+    if (!result) {
+        return Unexpected{result.error()};
+    }
+
     Registration bridged_service_requests;
-    if (result.current_server) {
-        if (is_minor_version_compatible(result.current_server->interface,
+    if (result->current_server) {
+        if (is_minor_version_compatible(result->current_server->interface,
                                         configuration.interface)) {
-            assert(
-                is_interface_compatible(result.current_server->interface, configuration.interface));
-            on_server_update(result.current_server->endpoint);
+            assert(is_interface_compatible(result->current_server->interface,
+                                           configuration.interface));
+            on_server_update(result->current_server->endpoint);
         } else {
             score::mw::log::LogError()
                 << "SOCom error: Bind client to server - minor version incompatible:"
                 << " client=" << configuration.interface.id
-                << ", server=" << result.current_server->interface.id
+                << ", server=" << result->current_server->interface.id
                 << ", instance=" << instance.id;
         }
     } else {
@@ -787,7 +807,7 @@ Registration Runtime_impl::register_connector(Service_interface_definition const
     }
 
     return std::make_unique<Registration_collection>(std::move(bridged_service_requests),
-                                                     std::move(result.registration));
+                                                     std::move(result->registration));
 }
 
 Registration Runtime_impl::register_connector(Service_interface_identifier const& interface,
@@ -812,8 +832,9 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
         }
     };
 
-    std::for_each(std::begin(result.current_clients), std::end(result.current_clients),
-                  connect_client);
+    if (result.current_client) {
+        connect_client(*result.current_client);
+    }
 
     notify_subscribed_callbacks(m_currently_running_service_report, callbacks_to_notify, interface,
                                 instance, Find_result_status::added);

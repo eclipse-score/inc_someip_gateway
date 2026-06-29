@@ -38,7 +38,7 @@ class Payload_impl final {
 
     /// \brief Called when Payload_impl and memory is released. Can own the memory if it is heap
     /// allocated.
-    using Payload_destroyed = score::cpp::move_only_function<void(), 40>;
+    using Payload_destroyed = score::cpp::move_only_function<void(), 48>;
 
     Payload_impl() = default;
 
@@ -83,6 +83,20 @@ class Payload_impl final {
     /// \brief Retrieves the slot handle associated with this payload.
     /// \return The slot handle, or kNoSlotHandle if not associated with a slot.
     [[nodiscard]] std::size_t get_slot_handle() const noexcept { return m_slot_handle; }
+
+    /// \brief Reduces the data size.
+    /// \param size The new data size. Must not exceed the current data size.
+    /// \return True if successful, false if the new size exceeds the current size.
+    bool shrink(std::size_t const size) noexcept {
+        auto const data_size = data().size();
+        if (size > data_size) {
+            return false;
+        }
+
+        m_data = m_data.subspan(0, m_lead_offset + m_header_size + size);
+
+        return true;
+    }
 
     bool operator==(Payload_impl const& other) const noexcept;
 
@@ -216,6 +230,13 @@ class Writable_payload : public Payload {
     /// \brief Retrieves the writable payload data.
     /// \return Span of payload data.
     [[nodiscard]] Writable_span wdata() noexcept { return m_impl.data(); }
+
+    /// \brief Reduces the size of the payload data.
+    /// \details Allows the payload to report a smaller size than its allocated capacity.
+    /// This is useful for zero-copy scenarios where a pre-allocated buffer is partially filled.
+    /// \param size The new data size. Must not exceed the current data size.
+    /// \return True if successful, false if the new size exceeds the current size.
+    bool shrink(std::size_t size) noexcept { return m_impl.shrink(size); }
 };
 
 /// \brief An empty payload instance, which may be used as default value for the payload parameter.
