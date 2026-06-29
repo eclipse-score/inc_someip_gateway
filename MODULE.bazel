@@ -163,7 +163,7 @@ git_override(
 
 # Required because of the non-dev_dependency in overridden score_tooling.
 # Remove as soon as the dependency problem is resolved.
-bazel_dep(name = "lobster", version = "0.0.0", dev_dependency = True)
+bazel_dep(name = "lobster", version = "1.0.3", dev_dependency = True)
 git_override(
     module_name = "lobster",
     commit = "2792e2daee2cf524fdc7b1545fd3537791ebc36c",
@@ -179,7 +179,7 @@ git_override(
     remote = "https://github.com/bmw-software-engineering/trlc.git",
 )
 
-bazel_dep(name = "aspect_rules_lint", version = "2.6.0", dev_dependency = True)
+bazel_dep(name = "aspect_rules_lint", version = "2.7.2", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
 # ============================================================================
