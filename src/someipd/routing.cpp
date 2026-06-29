@@ -19,6 +19,7 @@
 #include <iostream>
 #include <thread>
 
+#include "score/mw/log/logging.h"
 #include "src/common/constants.h"
 #include "src/common/someip_error.h"
 
@@ -57,7 +58,7 @@ Result<Routing> Routing::Create(std::shared_ptr<const score::mw_someip_config::R
     auto runtime = vsomeip::runtime::get();
     routing.application_ = runtime->create_application("someipd");
     if (!routing.application_->init()) {
-        std::cerr << "[someipd] vsomeip application initialization failed" << std::endl;
+        score::mw::log::LogFatal() << "[someipd] vsomeip application initialization failed";
         return MakeUnexpected(score::someip::Errc::kInitializationFailed);
     }
     routing.payload_ = runtime->create_payload();
@@ -85,8 +86,8 @@ void Routing::SetupSubscriptions() {
                                       << "B" << std::endl;
                             auto maybe_message = ipc_skeleton_.message_.Allocate();
                             if (!maybe_message.has_value()) {
-                                std::cerr << "[someipd] Failed to allocate IPC message: "
-                                          << maybe_message.error().Message() << std::endl;
+                                score::mw::log::LogError() << "[someipd] Failed to allocate IPC message: "
+                                                          << maybe_message.error().Message();
                                 return;
                             }
                             auto message_sample = std::move(maybe_message).value();
@@ -173,9 +174,8 @@ void Routing::ProcessMessages(std::atomic<bool>& shutdown_requested) {
 
                 // Check if sample size is valid and contains at least a SOME/IP header
                 if (message.size() < kSomeipFullHeaderSize) {
-                    std::cerr << "[someipd] IPC message too small (size=" << message.size()
-                              << ", expected >=" << kSomeipFullHeaderSize << "), dropping"
-                              << std::endl;
+                    score::mw::log::LogError() << "[someipd] IPC message too small (size=" << message.size()
+                                               << ", expected >=" << kSomeipFullHeaderSize << "), dropping";
                     return;
                 }
 

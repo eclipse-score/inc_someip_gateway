@@ -26,6 +26,7 @@
 #include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/com/types.h"
+#include "score/mw/log/logging.h"
 #include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
 #include "src/serializer/serializer.h"
@@ -111,7 +112,7 @@ int main(int argc, char* argv[]) {
     config_file.open(configuration_path.CStr(), std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file " << configuration_path.CStr() << std::endl;
+        score::mw::log::LogFatal() << "Error: Could not open config file " << configuration_path;
         return 1;
     }
 
@@ -119,7 +120,7 @@ int main(int argc, char* argv[]) {
     std::streampos length = config_file.tellg();
 
     if (length <= 0) {
-        std::cerr << "Error: Invalid config file size: " << length << std::endl;
+        score::mw::log::LogFatal() << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
         config_file.close();
         return 1;
     }
@@ -136,13 +137,13 @@ int main(int argc, char* argv[]) {
     if (score_com_serializer_init(configuration_path.Native().data(),
                                   configuration_path.Native().size()) !=
         score_com_serializer_result_ok) {
-        std::cerr << "Error: Failed to initialize serializer plugin." << std::endl;
+        score::mw::log::LogFatal() << "Error: Failed to initialize serializer plugin.";
         return 1;
     }
 
     score::socom::Final_action const serializer_cleanup{[]() {
         if (score_com_serializer_deinit() != score_com_serializer_result_ok) {
-            std::cerr << "Warning: Failed to deinitialize serializer plugin." << std::endl;
+            score::mw::log::LogError() << "Warning: Failed to deinitialize serializer plugin.";
         }
     }};
 
