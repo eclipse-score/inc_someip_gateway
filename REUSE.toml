@@ -42,15 +42,13 @@ SPDX-License-Identifier = "Apache-2.0"
 path = [
     "docs/architecture/score-someip-car-window-overview.drawio*",
     "examples/car_window_sim/config/mw_com_config.json",
-    "src/gateway_ipc_binding/profiling/event_transmission_client_to_server_1024_notsan_flamegraph.svg",
     "src/config/mw_someip_config.*",
     "src/gatewayd/etc/mw_com_config.json",
     "src/someipd/etc/mw_com_config.json",
     "tests/integration/sample_client/vsomeip.json",
     "tests/integration/vsomeip-local.json",
     "tests/integration/vsomeip.json",
-    "tests/benchmarks/config/benchmark_mw_com_config.json",
-    "src/gateway_ipc_binding/memory_profile/**"
+    "tests/benchmarks/config/benchmark_mw_com_config.json"
 ]
 SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
 SPDX-License-Identifier = "Apache-2.0"
