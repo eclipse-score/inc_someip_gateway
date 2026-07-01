@@ -14,15 +14,18 @@
 #include <getopt.h>
 
 #include <atomic>
+#include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <thread>
 
 #include "routing.h"
 #include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
+#include "score/mw/log/logging.h"
 #include "src/common/constants.h"
 #include "src/config/mw_someip_config_generated.h"
 #include "src/network_service/interfaces/message_transfer.h"
@@ -101,7 +104,7 @@ int main(int argc, char* argv[]) {
     // Both configurations are required, otherwise print help and exit
     if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
         print_help();
-        return 1;
+        return EXIT_FAILURE;
     }
 
     // Read config data
@@ -110,17 +113,18 @@ int main(int argc, char* argv[]) {
     config_file.open(configuration_path.CStr(), std::ios::binary | std::ios::in);
 
     if (!config_file.is_open()) {
-        std::cerr << "Error: Could not open config file " << configuration_path.CStr() << std::endl;
-        return 1;
+        score::mw::log::LogFatal() << "Error: Could not open config file " << configuration_path;
+        return EXIT_FAILURE;
     }
 
     config_file.seekg(0, std::ios::end);
     std::streampos length = config_file.tellg();
 
     if (length <= 0) {
-        std::cerr << "Error: Invalid config file size: " << length << std::endl;
+        score::mw::log::LogFatal()
+            << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
         config_file.close();
-        return 1;
+        return EXIT_FAILURE;
     }
 
     config_file.seekg(0, std::ios::beg);
@@ -134,11 +138,31 @@ int main(int argc, char* argv[]) {
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
-    auto handles =
-        SomeipMessageTransferProxy::FindService(
+    std::vector<score::mw::com::HandleType> handles;
+
+    while (handles.empty() && !shutdown_requested.load()) {
+        auto find_result = SomeipMessageTransferProxy::FindService(
             score::mw::com::InstanceSpecifier::Create(std::string("someipd/gatewayd_messages"))
-                .value())
-            .value();
+                .value());
+
+        if (!find_result.has_value()) {
+            std::cerr << "[someipd] Error finding service: " << find_result.error().Message()
+                      << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
+
+        handles = find_result.value();
+
+        if (handles.empty()) {
+            std::cout << "[someipd] Waiting for gatewayd to start..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+
+    if (shutdown_requested.load()) {
+        return EXIT_SUCCESS;
+    }
 
     // Proxy for receiving messages from gatewayd to be sent via SOME/IP
     auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
@@ -156,7 +180,7 @@ int main(int argc, char* argv[]) {
 
     auto routing = score::someipd::Routing::Create(config, std::move(proxy), std::move(skeleton));
     if (!routing.has_value()) {
-        std::cerr << "[someipd] Network stack initialization failed" << std::endl;
+        score::mw::log::LogFatal() << "[someipd] Network stack initialization failed";
         return 1;
     }
 
@@ -164,4 +188,5 @@ int main(int argc, char* argv[]) {
     routing.value().Run(shutdown_requested);
 
     std::cout << "[someipd] Shutting down SOME/IP daemon..." << std::endl;
+    return EXIT_SUCCESS;
 }

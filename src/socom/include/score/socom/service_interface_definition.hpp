@@ -14,6 +14,7 @@
 #ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_DEFINITION
 #define SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_DEFINITION
 
+#include <cstdint>
 #include <score/socom/event.hpp>
 #include <score/socom/method.hpp>
 #include <score/socom/service_interface_identifier.hpp>
@@ -21,10 +22,10 @@
 namespace score::socom {
 
 /// description: Strong type for forced proper construction.
-enum class Num_of_events : std::size_t {};
+enum class Num_of_events : std::uint16_t {};
 
 /// description: Strong type for forced proper construction.
-enum class Num_of_methods : std::size_t {};
+enum class Num_of_methods : std::uint16_t {};
 
 inline Num_of_events to_num_of_events(std::size_t const value) noexcept {
     return static_cast<Num_of_events>(value);
@@ -61,8 +62,8 @@ struct Service_interface_definition final {
 
     /// \brief Service interface identification information.
     Service_interface_identifier const interface;
-    std::size_t num_methods{0U};
-    std::size_t num_events{0U};
+    std::uint16_t num_methods{0U};
+    std::uint16_t num_events{0U};
 };
 
 bool operator==(Service_interface_definition const& lhs, Service_interface_definition const& rhs);
@@ -98,8 +99,8 @@ class Server_service_interface_definition final {
     /// \return The stored configuration.
     operator Service_interface_definition() const;
 
-    std::size_t get_num_methods() const noexcept;
-    std::size_t get_num_events() const noexcept;
+    std::uint16_t get_num_methods() const noexcept;
+    std::uint16_t get_num_events() const noexcept;
     Service_interface_identifier const& get_interface() const noexcept;
 };
 

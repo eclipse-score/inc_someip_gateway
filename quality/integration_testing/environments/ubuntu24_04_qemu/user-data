@@ -1,0 +1,17 @@
+#cloud-config
+# Cloud-init configuration for QEMU-based integration tests.
+# Enables root SSH access with empty password for the ITF test harness.
+# All config is in bootcmd to ensure it runs before sshd starts.
+
+ssh_pwauth: true
+disable_root: false
+
+bootcmd:
+  - sed -i 's/^root:[^:]*:/root::/' /etc/shadow
+  - printf 'PermitRootLogin yes\nPermitEmptyPasswords yes\nPasswordAuthentication yes\n' > /etc/ssh/sshd_config.d/99-integration-test.conf
+  - printf 'auth sufficient pam_permit.so\naccount sufficient pam_permit.so\nsession sufficient pam_permit.so\n' > /etc/pam.d/sshd
+  - ip route add 224.0.0.0/4 dev ens4
+
+# runcmd:
+#   - systemctl enable ssh
+#   - systemctl restart ssh

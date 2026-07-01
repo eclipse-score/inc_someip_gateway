@@ -28,5 +28,7 @@ RUN if [ "$USERNAME" != "vscode" ]; then \
         && chmod 0440 /etc/sudoers.d/${USERNAME}; \
     fi
 
+RUN apt-get update && apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
+
 # Set the default user for the container
 USER ${USERNAME}

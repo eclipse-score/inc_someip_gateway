@@ -15,6 +15,14 @@
 SOMEIP Gateway Architecture
 ===========================
 
+Feature Definition
+------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   features.rst
+
 Component Definition
 --------------------
 

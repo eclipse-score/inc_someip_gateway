@@ -275,4 +275,81 @@ TEST(Payload, DestructorDoesNotCallOnPayloadDestroyedForMoveConstructed) {
     EXPECT_EQ(1U, destroyed_count);
 }
 
+TEST(Payload, WritablePayloadSetSizeReducesDataSize) {
+    auto payload = make_writable_vector_payload(100);
+    EXPECT_EQ(100U, payload.data().size());
+
+    bool result = payload.shrink(50);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(50U, payload.data().size());
+}
+
+TEST(Payload, WritablePayloadSetSizeReturnsFalseWhenIncreasingSize) {
+    auto payload = make_writable_vector_payload(50);
+    EXPECT_EQ(50U, payload.data().size());
+
+    bool result = payload.shrink(100);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(50U, payload.data().size());
+}
+
+TEST(Payload, WritablePayloadSetSizeWithZero) {
+    auto payload = make_writable_vector_payload(100);
+    EXPECT_EQ(100U, payload.data().size());
+
+    bool result = payload.shrink(0);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(0U, payload.data().size());
+}
+
+TEST(Payload, WritablePayloadSetSizeToSameSizeSucceeds) {
+    auto payload = make_writable_vector_payload(100);
+    EXPECT_EQ(100U, payload.data().size());
+
+    bool result = payload.shrink(100);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(100U, payload.data().size());
+}
+
+TEST(Payload, WritablePayloadSetSizeMultipleTimes) {
+    auto payload = make_writable_vector_payload(100);
+
+    EXPECT_TRUE(payload.shrink(80));
+    EXPECT_EQ(80U, payload.data().size());
+
+    EXPECT_TRUE(payload.shrink(50));
+    EXPECT_EQ(50U, payload.data().size());
+
+    EXPECT_TRUE(payload.shrink(25));
+    EXPECT_EQ(25U, payload.data().size());
+
+    // Try to increase - should fail
+    EXPECT_FALSE(payload.shrink(30));
+    EXPECT_EQ(25U, payload.data().size());
+}
+
+TEST(Payload, WritablePayloadSetSizeWithHeaderDoesNotAffectHeader) {
+    Vector_buffer m_data{create_vector_payload_with_random_data(100)};
+    auto payload = make_writable_vector_payload(20UL, 25UL, Vector_buffer{m_data});
+
+    EXPECT_EQ(55, payload.data().size());
+    EXPECT_EQ(25, payload.header().size());
+
+    check_span(payload.header(), create_span_with_offsets(m_data, 20, 45));
+    check_span(payload.wdata(), create_span_with_offsets(m_data, 45, 100));
+    check_span(payload.data(), create_span_with_offsets(m_data, 45, 100));
+
+    // Reduce data size
+    EXPECT_TRUE(payload.shrink(50));
+    check_span(payload.header(), create_span_with_offsets(m_data, 20, 45));
+    check_span(payload.wdata(), create_span_with_offsets(m_data, 45, 95));
+    check_span(payload.data(), create_span_with_offsets(m_data, 45, 95));
+
+    // // Reduce data size to zero
+    EXPECT_TRUE(payload.shrink(0));
+    check_span(payload.header(), create_span_with_offsets(m_data, 20, 45));
+    check_span(payload.wdata(), create_span_with_offsets(m_data, 45, 45));
+    check_span(payload.data(), create_span_with_offsets(m_data, 45, 45));
+}
+
 }  // namespace score::socom

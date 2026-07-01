@@ -246,6 +246,22 @@ class UnconnectedClientConnectorTest : public ::testing::TestWithParam<test_valu
         score::MakeUnexpected(Error::runtime_error_service_not_available);
 };
 
+TEST_P(UnconnectedClientConnectorTest, CreationOfSecondClientConnectorReturnsDuplicateError) {
+    // Creation fails when Client_connector already exists for the same service instance and
+    // interface
+    auto second_cc = connector_factory.create_client_connector_with_result(
+        GetParam().service_interface_configuration, test_values::service_instance,
+        create_client_callbacks(callbacks));
+    EXPECT_EQ(second_cc.error(), Construction_error::duplicate_client);
+
+    // Freeing previous Client_connector allows creation again
+    cc.reset();
+    second_cc = connector_factory.create_client_connector_with_result(
+        GetParam().service_interface_configuration, test_values::service_instance,
+        create_client_callbacks(callbacks));
+    EXPECT_TRUE(second_cc);
+}
+
 TEST_P(UnconnectedClientConnectorTest, SubscribeEventReturnsServiceNotAvailable) {
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->subscribe_event(input.client_id, Event_mode::update));
@@ -635,8 +651,9 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
 
-    Client_data sanity_client{connector_factory, conf, connector_factory.get_instance()};
-
+    {
+        Client_data sanity_client{connector_factory, conf, connector_factory.get_instance()};
+    }
     Client_data client{connector_factory, Client_data::no_connect};
 }
 
@@ -652,8 +669,9 @@ TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
 
-    Client_data sanity_client{connector_factory, conf, connector_factory.get_instance()};
-
+    {
+        Client_data sanity_client{connector_factory, conf, connector_factory.get_instance()};
+    }
     Client_data client1{connector_factory, Client_data::no_connect};
 }
 

@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "score/containers/non_relocatable_vector.h"
+#include "score/mw/log/logging.h"
 #include "score/mw/com/com_error_domain.h"
 #include "score/mw/com/types.h"
 #include "src/common/types.h"
@@ -50,8 +51,7 @@ RemoteServiceInstance::RemoteServiceInstance(
 
         auto events_it = ipc_skeleton_.GetEvents().find(*event_config->event_name());
         if (events_it == ipc_skeleton_.GetEvents().cend()) {
-            std::cerr << "[gatewayd] Event '" << event_name << "' not found in IPC skeleton"
-                      << std::endl;
+            score::mw::log::LogWarn() << "[gatewayd] Event '" << event_name << "' not found in generic IPC skeleton";
             continue;
         }
         auto& ipc_event = const_cast<score::mw::com::GenericSkeletonEvent&>(events_it->second);
@@ -62,8 +62,8 @@ RemoteServiceInstance::RemoteServiceInstance(
                                      score_com_serializer_element_type_event, event_name.data(),
                                      event_name.size(), &serializer);
         if (get_result != score_com_serializer_result_ok) {
-            std::cerr << "[gatewayd] Failed to get serializer for " << service_type_name
-                      << "::" << event_name << std::endl;
+            score::mw::log::LogError() << "[gatewayd] Failed to get serializer for " << service_type_name
+                      << "::" << event_name;
             continue;
         }
 
@@ -79,8 +79,8 @@ RemoteServiceInstance::RemoteServiceInstance(
                 score::cpp::span<const std::byte> message(message_sample->data,
                                                           message_sample->size);
                 if (message.size() < SOMEIP_FULL_HEADER_SIZE) {
-                    std::cerr << "[gatewayd] Received SOME/IP message is too small: "
-                              << message.size() << "B, dropping" << std::endl;
+                    score::mw::log::LogError() << "[gatewayd] Received SOME/IP message is too small: "
+                              << message.size() << "B, dropping";
                     return;
                 }
 
@@ -99,16 +99,16 @@ RemoteServiceInstance::RemoteServiceInstance(
 
                 auto event_ctx_it = event_contexts_.find(rec_event_id);
                 if (event_ctx_it == event_contexts_.end()) {
-                    std::cerr << "[gatewayd] No config entry for event 0x" << std::hex
-                              << rec_event_id << std::dec << ", dropping" << std::endl;
+                    score::mw::log::LogError() << "[gatewayd] No config entry for event 0x" << std::hex
+                              << rec_event_id << std::dec << ", dropping";
                     return;
                 }
                 auto& event_context = event_ctx_it->second;
 
                 auto maybe_sample = event_context.ipc_event->Allocate();
                 if (!maybe_sample.has_value()) {
-                    std::cerr << "[gatewayd] Failed to allocate IPC sample: "
-                              << maybe_sample.error().Message() << std::endl;
+                    score::mw::log::LogError() << "[gatewayd] Failed to allocate IPC sample: "
+                              << maybe_sample.error().Message();
                     return;
                 }
                 auto sample = std::move(maybe_sample).value();
@@ -117,8 +117,8 @@ RemoteServiceInstance::RemoteServiceInstance(
                     event_context.serializer, reinterpret_cast<const uint8_t*>(payload.data()),
                     payload.size(), sample.Get());
                 if (deserialize_result != score_com_serializer_result_ok) {
-                    std::cerr << "[gatewayd] Deserialization failed for event 0x" << std::hex
-                              << rec_event_id << std::dec << ", dropping" << std::endl;
+                    score::mw::log::LogError() << "[gatewayd] Deserialization failed for event 0x" << std::hex
+                              << rec_event_id << std::dec << ", dropping";
                     return;
                 }
 
@@ -157,7 +157,7 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     std::vector<std::unique_ptr<RemoteServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
-        std::cerr << "[gatewayd] ERROR: Service instance config is nullptr!" << std::endl;
+        score::mw::log::LogError() << "[gatewayd] ERROR: Service instance config is nullptr!";
         return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
     }
 
@@ -173,8 +173,7 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
 
     for (const auto& event : *service_type_config->events()) {
         if (event == nullptr) {
-            std::cerr << "[gatewayd] ERROR: Encountered nullptr in events configuration!"
-                      << std::endl;
+            score::mw::log::LogError() << "[gatewayd] ERROR: Encountered nullptr in events configuration!";
             return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
         }
 
@@ -185,8 +184,8 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
                                      score_com_serializer_element_type_event, event_name.data(),
                                      event_name.size(), &serializer);
         if (get_result != score_com_serializer_result_ok) {
-            std::cerr << "[gatewayd] Failed to get serializer for " << service_type_name
-                      << "::" << event_name << std::endl;
+            score::mw::log::LogError() << "[gatewayd] Failed to get serializer for " << service_type_name
+                      << "::" << event_name;
             return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
         }
 
@@ -220,9 +219,9 @@ Result<mw::com::FindServiceHandle> RemoteServiceInstance::CreateAsyncRemoteServi
 
             auto proxy_result = SomeipMessageTransferProxy::Create(handles.front());
             if (!proxy_result.has_value()) {
-                std::cerr << "[gatewayd] Proxy creation failed for '"
+                score::mw::log::LogError() << "[gatewayd] Proxy creation failed for '"
                           << instance_config->instance_specifier()->string_view()
-                          << "': " << proxy_result.error().Message() << std::endl;
+                          << "': " << proxy_result.error().Message();
                 return;
             }
 

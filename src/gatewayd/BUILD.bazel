@@ -38,6 +38,7 @@ cc_binary(
         "//src/serializer",
         "//src/socom",
         "@score_baselibs//score/filesystem",
+        "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
     ],
 )
@@ -50,6 +51,7 @@ cc_library(
         "//src/config:config_flatbuffers",
         "//src/network_service:consumer",
         "//src/serializer",
+        "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
     ],
 )
@@ -64,6 +66,7 @@ cc_library(
         "//src/network_service:consumer",
         "//src/serializer",
         "@score_baselibs//score/containers:non_relocatable_vector",
+        "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
     ],
 )

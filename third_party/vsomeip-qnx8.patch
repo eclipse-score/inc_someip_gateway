@@ -57,3 +57,35 @@ diff --git a/implementation/routing/src/routing_manager_impl.cpp b/implementatio
  #endif
  
      if (routing_ready_handler_) {
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 770ef56b..3df22b9c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -416,7 +416,8 @@ set(EXAMPLE_CONFIG_FILES
+ # Configuration parameters
+ ################################################################################
+ if(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
+-    set (VSOMEIP_BASE_PATH "/var")
++    # /var is not writable in the QNX image
++    set (VSOMEIP_BASE_PATH "/tmp")
+ else()
+     set (VSOMEIP_BASE_PATH "/tmp")
+ endif()
+diff --git a/implementation/utility/src/utility.cpp b/implementation/utility/src/utility.cpp
+index ef7a2889..6c340ecb 100644
+--- a/implementation/utility/src/utility.cpp
++++ b/implementation/utility/src/utility.cpp
+@@ -172,7 +172,12 @@ bool utility::is_routing_manager(const std::string& _network) {
+         VSOMEIP_ERROR << __func__ << ": Could not open " << its_lockfile << ": errno " << errno;
+     }
+ 
+-    return (its_lock_ctrl != -1);
++    // TODO Many functions are stubbed on the QNX image.
++    //      Will have to eventually figure out what needs to be done to get file locking working.
++    //      This fails: fcntl(r.first->second.lock_fd_, F_SETLK, &its_lock_data)
++    VSOMEIP_WARNING << __func__ << ": Lock file \"" << its_lockfile << "\" " << ((its_lock_ctrl != -1) ? "is locked" : "locking failed")
++                    << ". error: " << errno << " (" << strerror(errno) << ")";
++    return true;
+ #endif
+ }
+ 
