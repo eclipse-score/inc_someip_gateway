@@ -14,8 +14,6 @@
 name: License Check
 
 on:
-  push:
-    branches: [main]
   workflow_call:
 
 permissions:

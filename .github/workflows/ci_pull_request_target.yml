@@ -17,8 +17,6 @@ on:
     types: [opened, reopened, synchronize, labeled, unlabeled]
   merge_group:
     types: [checks_requested]
-  push:
-    branches: [main]
   workflow_dispatch:
   workflow_call:
 jobs:
