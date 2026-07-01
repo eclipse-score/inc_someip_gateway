@@ -17,9 +17,10 @@ on:
     types: [opened, reopened, synchronize, labeled, unlabeled]
   merge_group:
     types: [checks_requested]
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
   workflow_dispatch:
+  workflow_call:
 jobs:
   build_and_test_qnx:
     # Do not run by default for every PR.
