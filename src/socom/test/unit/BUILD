@@ -17,8 +17,8 @@ cc_test(
     name = "socom_test",
     srcs = glob(include = ["*.cpp"]),
     deps = [
-        "//src/socom:mock",
-        "//src/socom/test/framework:socom_test_framework",
+        "//score/socom:mock",
+        "//score/socom/test/framework:socom_test_framework",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],

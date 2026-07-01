@@ -27,9 +27,9 @@
 #include "score/mw/com/runtime.h"
 #include "score/mw/com/types.h"
 #include "score/mw/log/logging.h"
-#include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
-#include "src/serializer/serializer.h"
+#include "score/config/mw_someip_config_generated.h"
+#include "score/network_service/interfaces/message_transfer.h"
+#include "score/serializer/serializer.h"
 
 // In the main file we are not in any namespace
 using namespace score::someip_gateway::gatewayd;

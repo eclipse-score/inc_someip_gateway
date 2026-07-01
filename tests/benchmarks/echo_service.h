@@ -19,7 +19,7 @@
 #include <cstring>
 
 #include "score/mw/com/types.h"
-#include "src/serializer/pre_serialized_data.h"
+#include "score/serializer/pre_serialized_data.h"
 
 namespace echo_service {
 

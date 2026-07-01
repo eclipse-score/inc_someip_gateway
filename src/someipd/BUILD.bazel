@@ -31,8 +31,8 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":routing",
-        "//src/config:config_flatbuffers",
-        "//src/network_service:provider",
+        "//score/config:config_flatbuffers",
+        "//score/network_service:provider",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
@@ -47,9 +47,9 @@ cc_library(
     srcs = ["routing.cpp"],
     hdrs = ["routing.h"],
     deps = [
-        "//src/common",
-        "//src/config:config_flatbuffers",
-        "//src/network_service:provider",
+        "//score/common",
+        "//score/config:config_flatbuffers",
+        "//score/network_service:provider",
         "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
@@ -71,15 +71,15 @@ validate_json_schema_test(
 
 native_binary(
     name = "someipd_example",
-    src = "//src/someipd",
+    src = "//score/someipd",
     args = [
         "--configuration",
-        "$(rootpath //src/config:config_file)",
+        "$(rootpath //score/config:config_file)",
         "--service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
     ],
     data = [
         "etc/mw_com_config.json",
-        "//src/config:config_file",
+        "//score/config:config_file",
     ],
 )

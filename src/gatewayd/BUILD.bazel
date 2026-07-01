@@ -33,10 +33,10 @@ cc_binary(
     deps = [
         ":local_service_instance",
         ":remote_service_instance",
-        "//src/config:config_flatbuffers",
-        "//src/network_service:consumer",
-        "//src/serializer",
-        "//src/socom",
+        "//score/config:config_flatbuffers",
+        "//score/network_service:consumer",
+        "//score/serializer",
+        "//score/socom",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
@@ -48,9 +48,9 @@ cc_library(
     srcs = ["local_service_instance.cpp"],
     hdrs = ["local_service_instance.h"],
     deps = [
-        "//src/config:config_flatbuffers",
-        "//src/network_service:consumer",
-        "//src/serializer",
+        "//score/config:config_flatbuffers",
+        "//score/network_service:consumer",
+        "//score/serializer",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
     ],
@@ -61,10 +61,10 @@ cc_library(
     srcs = ["remote_service_instance.cpp"],
     hdrs = ["remote_service_instance.h"],
     deps = [
-        "//src/common",
-        "//src/config:config_flatbuffers",
-        "//src/network_service:consumer",
-        "//src/serializer",
+        "//score/common",
+        "//score/config:config_flatbuffers",
+        "//score/network_service:consumer",
+        "//score/serializer",
         "@score_baselibs//score/containers:non_relocatable_vector",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
@@ -81,16 +81,16 @@ validate_json_schema_test(
 
 native_binary(
     name = "gatewayd_example",
-    src = "//src/gatewayd",
+    src = "//score/gatewayd",
     args = [
         "--configuration",
-        "$(rootpath //src/config:config_file)",
+        "$(rootpath //score/config:config_file)",
         "--service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
     ],
     data = [
         "etc/mw_com_config.json",
-        "//src/config:config_file",
-        "//src/serializer:null_serializer",
+        "//score/config:config_file",
+        "//score/serializer:null_serializer",
     ],
 )

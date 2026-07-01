@@ -20,9 +20,9 @@
 #include <vsomeip/vsomeip.hpp>
 
 #include "score/result/result.h"
-#include "src/common/types.h"
-#include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
+#include "score/common/types.h"
+#include "score/config/mw_someip_config_generated.h"
+#include "score/network_service/interfaces/message_transfer.h"
 
 namespace score::someipd {
 

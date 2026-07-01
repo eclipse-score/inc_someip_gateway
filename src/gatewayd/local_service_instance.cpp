@@ -20,7 +20,7 @@
 #include "score/mw/com/com_error_domain.h"
 #include "score/mw/com/types.h"
 #include "score/mw/log/logging.h"
-#include "src/serializer/serializer.h"
+#include "score/serializer/serializer.h"
 
 using score::mw::com::GenericProxy;
 using score::mw::com::SamplePtr;

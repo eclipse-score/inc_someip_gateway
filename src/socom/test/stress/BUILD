@@ -21,7 +21,7 @@ cc_test(
         "TSAN_OPTIONS": "suppressions=$(location tsan.supp)",
     },
     deps = [
-        "//src/socom/test/framework:socom_test_framework",
+        "//score/socom/test/framework:socom_test_framework",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],

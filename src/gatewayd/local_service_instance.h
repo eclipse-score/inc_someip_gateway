@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "score/mw/com/types.h"
-#include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
+#include "score/config/mw_someip_config_generated.h"
+#include "score/network_service/interfaces/message_transfer.h"
 
 struct score_com_serializer;
 
