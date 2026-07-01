@@ -37,7 +37,7 @@ jobs:
       - name: Create config indicator file
         run: echo "${{ matrix.bazel-config }}" > .bazel_config
       - name: Setup Bazel
-        uses: elektrobit-contrib/eclipse-score_cicd-actions/setup-bazel-cache@use-lurtz-setup-bazel
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@use-lurtz-setup-bazel
         with:
           unique-cache-name: ${{ github.job }}-${{ matrix.bazel-config }}
       - name: Allow linux-sandbox
