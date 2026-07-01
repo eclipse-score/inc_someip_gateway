@@ -17,6 +17,6 @@ write_source_files(
     name = "config_schema.update",
     check_that_out_file_exists = False,
     files = {
-        "//src/config:mw_someip_config.schema.json": "//src/config:config_schema.generate",
+        "//score/config:mw_someip_config.schema.json": "//score/config:config_schema.generate",
     },
 )

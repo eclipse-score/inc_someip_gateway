@@ -26,9 +26,9 @@
 #include "score/filesystem/path.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
-#include "src/common/constants.h"
-#include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
+#include "score/common/constants.h"
+#include "score/config/mw_someip_config_generated.h"
+#include "score/network_service/interfaces/message_transfer.h"
 
 const char* someipd_name = "someipd";
 

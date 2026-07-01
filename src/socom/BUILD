@@ -29,7 +29,7 @@ cc_library(
     features = COMPILER_WARNING_FEATURES,
     includes = [
         "include",
-        "src/socom/include",
+        "score/socom/include",
     ],
     visibility = ["//visibility:public"],
     deps = [
