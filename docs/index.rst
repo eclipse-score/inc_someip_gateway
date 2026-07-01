@@ -95,7 +95,7 @@ To build the module:
 
 .. code-block:: bash
 
-   bazel build //src/...
+   bazel build //score/...
 
 To run integration tests:
 

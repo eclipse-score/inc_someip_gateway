@@ -37,7 +37,7 @@ cc_library(
     deps = [
         ":interface",
         ":pre_serialized_data",
-        "//src/config:config_flatbuffers",
+        "//score/config:config_flatbuffers",
         "@score_baselibs//score/mw/log",
     ],
 )
@@ -48,7 +48,7 @@ cc_test(
     deps = [
         ":null_serializer_impl",
         ":pre_serialized_data",
-        "//src/config:config_flatbuffers",
+        "//score/config:config_flatbuffers",
         "@googletest//:gtest_main",
     ],
 )
@@ -70,5 +70,5 @@ cc_import(
     interface_library = ":null_serializer",
     # TODO: Need workaround for bug bazelbuild/bazel#10190 where bazel adds the .so to the runpath even though it is system_provided.
     system_provided = True,
-    visibility = ["//src/gatewayd:__subpackages__"],
+    visibility = ["//score/gatewayd:__subpackages__"],
 )

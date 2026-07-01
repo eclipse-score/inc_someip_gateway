@@ -15,16 +15,16 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 cc_library(
     name = "socom_test_framework",
-    srcs = glob(include = ["src/**"]),
+    srcs = glob(include = ["score/**"]),
     hdrs = glob(["inc/**"]),
     includes = [
         "inc",
-        "src/socom/test/framework/inc",
+        "score/socom/test/framework/inc",
     ],
-    visibility = ["//src/socom/test:__subpackages__"],
+    visibility = ["//score/socom/test:__subpackages__"],
     deps = [
-        "//src/socom",
-        "//src/socom:mock",
+        "//score/socom",
+        "//score/socom:mock",
         "@googletest//:gtest_for_library",
     ],
 )

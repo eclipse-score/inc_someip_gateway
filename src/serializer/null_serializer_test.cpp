@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
-#include "src/config/mw_someip_config_generated.h"
-#include "src/serializer/pre_serialized_data.h"
-#include "src/serializer/serializer.h"
+#include "score/config/mw_someip_config_generated.h"
+#include "score/serializer/pre_serialized_data.h"
+#include "score/serializer/serializer.h"
 
 namespace {
 

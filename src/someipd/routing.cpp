@@ -20,8 +20,8 @@
 #include <thread>
 
 #include "score/mw/log/logging.h"
-#include "src/common/constants.h"
-#include "src/common/someip_error.h"
+#include "score/common/constants.h"
+#include "score/common/someip_error.h"
 
 namespace score::someipd {
 
