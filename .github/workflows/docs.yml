@@ -21,9 +21,8 @@ permissions:
   actions: write # needed for cache deletion at setup-bazel-cache
 
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches: [main]
   workflow_call:
 
 jobs:
