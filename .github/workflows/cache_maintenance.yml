@@ -58,27 +58,3 @@ jobs:
     secrets: inherit
     if: ${{ !cancelled() }}
     uses: ./.github/workflows/ci_pull_request_target.yml
-
-  docs:
-    needs:
-      - repository_cache_maintenance
-    permissions:
-      actions: write # needed for cache deletion at setup-bazel-cache
-      contents: write
-      pages: write
-      pull-requests: write
-      id-token: write
-    secrets: inherit
-    if: ${{ !cancelled() }}
-    uses: ./.github/workflows/docs.yml
-
-  license_check:
-    needs:
-      - repository_cache_maintenance
-    permissions:
-      actions: write # needed for cache deletion at setup-bazel-cache
-      pull-requests: write
-      issues: write
-    secrets: inherit
-    if: ${{ !cancelled() }}
-    uses: ./.github/workflows/license_check.yml
