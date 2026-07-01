@@ -19,165 +19,24 @@ on:
     branches: [main]
 
 jobs:
-  check_repository_cache_inputs:
-    name: Check repository cache inputs
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      should_refresh_cache: ${{ steps.check.outputs.should_refresh_cache }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Check if Bazel repository cache inputs changed
-        id: check
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BEFORE_SHA: ${{ github.event.before }}
-          CURRENT_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          if [ "$EVENT_NAME" = "push" ] && [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
-            base_sha="$BEFORE_SHA"
-          elif git rev-parse "${CURRENT_SHA}^" >/dev/null 2>&1; then
-            base_sha="$(git rev-parse "${CURRENT_SHA}^")"
-          else
-            echo "No base commit available. Refreshing cache conservatively."
-            echo "should_refresh_cache=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          changed_files="$(git diff --name-only "$base_sha" "$CURRENT_SHA")"
-
-          echo "Changed files between $base_sha and $CURRENT_SHA:"
-          if [ -n "$changed_files" ]; then
-            printf '%s\n' "$changed_files"
-          else
-            echo "  (none)"
-          fi
-
-          if printf '%s\n' "$changed_files" | grep -Eq '^MODULE\.bazel'; then
-            echo "Bazel repository cache inputs changed. Proceeding with cache refresh."
-            echo "should_refresh_cache=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "No Bazel repository cache inputs changed. Skipping cache deletion and recreation."
-            echo "should_refresh_cache=false" >> "$GITHUB_OUTPUT"
-          fi
-
-  recreate_repository_cache:
-    # Delete all caches and create a new repository cache if Bazel repository cache inputs changed.
-    # Fetch dependencies for all variants and upload single repository cache.
-    # This job should be the only one which uploads a repository cache.
-    name: Recreate repository cache
-    needs:
-      - check_repository_cache_inputs
-    runs-on: ubuntu-24.04
-    if: ${{ !cancelled() && needs.check_repository_cache_inputs.outputs.should_refresh_cache == 'true' }}
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false
-      queue: max
+  repository_cache_maintenance:
     permissions:
       actions: write # needed for cache deletion at setup-bazel-cache
       contents: read
-    env:
-      GH_TOKEN: ${{ github.token }}
-      OLD_CACHES_JSON: /tmp/old_caches.json
-    steps:
-      - name: List and save current caches
-        id: list_caches
-        run: |
-          gh cache list --repo ${{ github.repository }} --json id > $OLD_CACHES_JSON
-          echo "Found $(jq 'length' $OLD_CACHES_JSON) existing caches"
-      - uses: eclipse-score/more-disk-space@v1
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      - name: Create Bazel output base directory
-        run: |
-          sudo mkdir -p /mnt/.bazel
-          sudo chown -R $USER:$USER /mnt/.bazel
-
-      - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@use-lurtz-setup-bazel
-        with:
-          unique-cache-name: ${{ github.job }}
-          skip-cache-restore: true
-
-      - name: Setup QNX SDP usage
-        uses: eclipse-score/cicd-actions/setup-qnx-sdp@a2b3c36fc7d1b9d03880d19935c7ac9cfffe58c6 # 2026-05-19
-        with:
-          qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
-          qnx-user: ${{ secrets.SCORE_QNX_USER }}
-          qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
-          qnx-license-dir: /opt/score_qnx/license
-
-      - name: Warm Bazel repository cache for all variants (with retries)
-        run: |
-          variants=(
-            "x86_64-linux|//..."
-            "aarch64-linux|//..."
-            "x86_64-qnx|//src/... //tests/..."
-            "aarch64-qnx|//src/... //tests/..."
-          )
-
-          max_attempts=3
-          failed_variants=()
-
-          for variant in "${variants[@]}"; do
-            config="${variant%%|*}"
-            targets="${variant#*|}"
-            success=false
-
-            for attempt in $(seq 1 "$max_attempts"); do
-              echo "Running bazel fetch for --config=${config} and targets '${targets}' (attempt ${attempt}/${max_attempts})"
-              if bazel fetch --config="${config}" ${targets}; then
-                echo "Successfully fetched dependencies for --config=${config} and targets '${targets}'"
-                success=true
-                break
-              fi
-
-              if [ "$attempt" -lt "$max_attempts" ]; then
-                backoff_seconds=$((attempt * 20))
-                echo "bazel fetch failed (likely transient). Retrying in ${backoff_seconds}s..."
-                sleep "$backoff_seconds"
-              fi
-            done
-
-            if [ "$success" != "true" ]; then
-              echo "bazel fetch failed for --config=${config} and targets '${targets}' after ${max_attempts} attempts"
-              failed_variants+=("${config}|${targets}")
-            fi
-          done
-
-          if [ "${#failed_variants[@]}" -ne 0 ]; then
-            echo "Bazel fetch failed for the following variants:"
-            for variant in "${failed_variants[@]}"; do
-              echo "  - ${variant}"
-            done
-            exit 1
-          fi
-
-          exit 0
-
-      - name: Delete old caches
-        if: ${{ !cancelled() }}
-        run: |
-          if [ -s $OLD_CACHES_JSON ]; then
-            echo "Deleting $(jq 'length' $OLD_CACHES_JSON) old caches..."
-            jq -r '.[].id' $OLD_CACHES_JSON | while read -r cache_id; do
-              echo "Deleting old cache: $cache_id"
-              gh cache delete "$cache_id" --repo ${{ github.repository }} || true
-            done
-          else
-            echo "No old caches to delete"
-          fi
-
+    secrets:
+      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
+      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@improved-caching
+    with:
+      variants: |
+        x86_64-linux|//...
+        aarch64-linux|//...
+        x86_64-qnx|//src/... //tests/...
+        aarch64-qnx|//src/... //tests/...
   ci:
     needs:
-      - recreate_repository_cache
+      - repository_cache_maintenance
     permissions:
       actions: write # needed for cache deletion at setup-bazel-cache
       contents: read
@@ -187,7 +46,7 @@ jobs:
 
   ci_pull_request_target:
     needs:
-      - recreate_repository_cache
+      - repository_cache_maintenance
     permissions:
       actions: write # needed for cache deletion at setup-bazel-cache
       contents: write
