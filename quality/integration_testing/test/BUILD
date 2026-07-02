@@ -44,3 +44,17 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
 )
+
+integration_test(
+    name = "test_hello_world_ebclfsa_refint",
+    timeout = "moderate",
+    srcs = [
+        "test_hello_world.py",
+    ],
+    filesystem = ":example-app-pkg",
+    linux_qemu_architecture = "aarch64",
+    linux_qemu_config = "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:qemu_config",
+    linux_qemu_image = "@score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
+    linux_qemu_kernel = "@score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
+    linux_qemu_seed_iso = None,
+)

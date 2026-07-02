@@ -1,0 +1,23 @@
+diff --git a/score/datarouter/BUILD b/score/datarouter/BUILD
+--- a/score/datarouter/BUILD
++++ b/score/datarouter/BUILD
+@@ -585,13 +585,13 @@
+             "//score/datarouter/src/dlt/nonverbose_dlt_stub:nonverbose_dlt_handler_stub",
+             "//score/datarouter/src/configuration/dynamic_config/dynamic_config_impl:dynamic_config_session",
+             "//score/datarouter/src/configuration/dynamic_config/dynamic_config_stub:config_session_stub",
+-            "//score/datarouter/src/file_transfer/file_transfer_impl:file_transfer_stream_handler",
++            "//score/datarouter/src/file_transfer/file_transfer_stub:file_transfer_stream_handler_stub",
+             False,
+         ),
+         (
+             "_testing",
+             "//score/datarouter/src/persistency/ara_per_persistent_dictionary:ara_per_persistent_dictionary_factory_testing",
+             "//score/datarouter/src/dlt/nonverbose_dlt_impl:nonverbose_dlt_handler_testing",
+             "//score/datarouter/src/dlt/nonverbose_dlt_stub:nonverbose_dlt_handler_stub_testing",
+             "//score/datarouter/src/configuration/dynamic_config/dynamic_config_impl:dynamic_config_session_testing",
+             "//score/datarouter/src/configuration/dynamic_config/dynamic_config_stub:config_session_stub_testing",
+-            "//score/datarouter/src/file_transfer/file_transfer_impl:file_transfer_stream_handler_testing",
++            "//score/datarouter/src/file_transfer/file_transfer_stub:file_transfer_stream_handler_stub_testing",
+             True,
+         ),
+     ]

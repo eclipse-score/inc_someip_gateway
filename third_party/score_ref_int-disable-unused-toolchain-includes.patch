@@ -1,0 +1,42 @@
+diff --git a/MODULE.bazel b/MODULE.bazel
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -18,13 +18,13 @@
+ include("//bazel_common:score_basic_bazel.MODULE.bazel")
+ 
+ # GCC toolchains
+-include("//bazel_common:score_gcc_toolchains.MODULE.bazel")  # WIP: Not used yet as have problems with IFS toolchain
++# include("//bazel_common:score_gcc_toolchains.MODULE.bazel")
+ 
+ # GCC toolchains
+-include("//bazel_common:score_qnx_toolchains.MODULE.bazel")  # WIP: Not used yet as have problems with IFS toolchain
++# include("//bazel_common:score_qnx_toolchains.MODULE.bazel")
+ 
+ # Rust toolchains
+-include("//bazel_common:score_rust_toolchains.MODULE.bazel")
++# include("//bazel_common:score_rust_toolchains.MODULE.bazel")
+ 
+ # Python support
+ include("//bazel_common:score_python.MODULE.bazel")
+
+diff --git a/images/ebclfsa_aarch64/build/BUILD b/images/ebclfsa_aarch64/build/BUILD
+--- a/images/ebclfsa_aarch64/build/BUILD
++++ b/images/ebclfsa_aarch64/build/BUILD
+@@ -103,8 +103,6 @@
+         "//feature_integration_tests/configs:etc_configs",
+         ":extract-fastdev-image",
+         ":network_config_tar",
+-        ":datarouter_bin_tar",
+-        ":datarouter_etc_tar",
+         "build_image.sh",
+     ],
+     outs = [
+@@ -117,8 +115,6 @@
+             $(RULEDIR)/ebcl-qemuarm64 \
+             $(RULEDIR)/ebcl-qemuarm64-itf \
+             $(location :network_config_tar) \
+-            $(location :datarouter_bin_tar) \
+-            $(location :datarouter_etc_tar) \
+     ",
+     visibility = [
+         "//visibility:public",
