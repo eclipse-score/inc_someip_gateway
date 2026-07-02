@@ -33,9 +33,24 @@ chmod u+w "${output_image}"
 
 cat >"${tmp_dir}/user-data" <<'EOF'
 #cloud-config
+# Prepare base image: minimize boot overhead by disabling non-essential packages and services.
+
 package_update: true
 packages:
   - iputils-ping
+
+# Remove unnecessary packages to reduce image size and boot time
+bootcmd:
+  # Disable non-essential services - be conservative to avoid breaking system
+  # Disable update services (not needed for test environment)
+  - systemctl mask apt-daily.timer apt-daily-upgrade.timer unattended-upgrades
+  # Disable hardware-specific services not needed for QEMU
+  - systemctl mask accounts-daemon multipathd e2scrub.timer e2scrub_all.timer
+  # Disable bluetooth, printing, and mDNS services
+  - systemctl mask bluetooth cups cups-browsed avahi-daemon
+  # Disable unnecessary timer jobs
+  - systemctl mask motd-news.timer
+
 power_state:
   mode: poweroff
   timeout: 120
