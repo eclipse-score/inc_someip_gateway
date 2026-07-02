@@ -10,20 +10,23 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+def test_hello_world_via_shell(target):
+    exit_code, output = target.execute("echo Hello World!")
+    assert 0 == exit_code
+    assert b"Hello World!" in output
 
-name: Documentation Cleanup
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+def test_hello_world_via_binary_execution(target):
+    exit_code, output = target.execute("/example-app")
+    assert 0 == exit_code
+    assert b"Hello!" in output
 
-on:
-  schedule:
-    - cron: "0 0 * * *" # Runs every day at midnight UTC
 
-jobs:
-  docs-cleanup:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs-cleanup.yml@improved-caching
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+def test_hello_world_as_process(target):
+    with target.wrap_exec("/example-app2"):
+        with target.wrap_exec("/example-app", wait_on_exit=True):
+            pass
+
+
+def test_ping(target):
+    assert target.ping(timeout=4)

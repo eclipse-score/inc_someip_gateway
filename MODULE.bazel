@@ -120,7 +120,9 @@ use_repo(
     "score_gcc_aarch64_toolchain",
     "score_gcc_x86_64_toolchain",
     "score_qcc_aarch64_toolchain",
+    "score_qcc_aarch64_toolchain_pkg",
     "score_qcc_x86_64_toolchain",
+    "score_qcc_x86_64_toolchain_pkg",
 )
 
 # ============================================================================
@@ -311,3 +313,36 @@ http_archive(
         "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
     ],
 )
+
+# ============================================================================
+# Integration Testing
+# ============================================================================
+bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
+bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "ubuntu_24_04_cloudimg",
+    downloaded_file_path = "noble-server-cloudimg-amd64.img",
+    integrity = "sha256-X6WwXl7COYWMRTFIXWAjsIlkSMLffGOzT42ubqYFGkQ=",
+    url = "https://cloud-images.ubuntu.com/releases/noble/release-20260615/ubuntu-24.04-server-cloudimg-amd64.img",
+)
+
+imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
+imagefs.toolchain(
+    name = "score_qnx_x86_64_ifs_toolchain",
+    sdp_to_import = "@score_qcc_x86_64_toolchain_pkg",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    type = "ifs",
+)
+imagefs.toolchain(
+    name = "score_qnx_aarch64_ifs_toolchain",
+    sdp_to_import = "@score_qcc_aarch64_toolchain_pkg",
+    target_cpu = "aarch64",
+    target_os = "qnx",
+    type = "ifs",
+)
+use_repo(imagefs, "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")

@@ -11,19 +11,28 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: Documentation Cleanup
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+filegroup(
+    name = "init_build",
+    srcs = ["init_x86_64.build"],
+    visibility = ["//:__subpackages__"],
+)
 
-on:
-  schedule:
-    - cron: "0 0 * * *" # Runs every day at midnight UTC
+exports_files(
+    ["qemu_config.json"],
+    visibility = ["//:__subpackages__"],
+)
 
-jobs:
-  docs-cleanup:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs-cleanup.yml@improved-caching
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+filegroup(
+    name = "qemu_config",
+    srcs = ["qemu_config.json"],
+    visibility = ["//:__subpackages__"],
+)
+
+pkg_files(
+    name = "qnx_config",
+    srcs = ["qcrypto.conf"],
+    prefix = "/etc",
+    visibility = ["//:__subpackages__"],
+)

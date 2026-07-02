@@ -131,4 +131,5 @@
         "srcs",
         "vsomeip"
     ],
+    "python.analysis.typeCheckingMode": "off",
 }

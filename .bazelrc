@@ -56,15 +56,32 @@ common:x86_64-qnx --config=_toolchain_common
 common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 common:x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:all
 common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
+common:x86_64-qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:all
 common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
 
 common:aarch64-qnx --config=_toolchain_common
 common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 common:aarch64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:all
 common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
+common:aarch64-qnx --extra_toolchains=@score_qnx_aarch64_ifs_toolchain//:all
 common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
 
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
+
+# Force linux-sandbox to integration test execution only.
+# All integration tests have to have "integration_test" in their rule name,
+# otherwise they will be executed without sandboxing, which is not desired.
+# QEMU-based integration tests must run in linux-sandbox because they modify
+# network interfaces and IP configuration. Use this config for those runs:
+#   bazel test --config=qemu-integration //...
+test:qemu-integration --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+test:qemu-integration --//quality/integration_testing/flags:linux_backend=qemu
+test:qemu-integration --run_under=@score_itf//scripts:run_under_qemu
+test:x86_64-qnx --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+test:x86_64-qnx --run_under=@score_itf//scripts:run_under_qemu
+test:aarch64-qnx --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+test:aarch64-qnx --run_under=@score_itf//scripts:run_under_qemu
+
 
 test --test_output=errors
 build --incompatible_strict_action_env

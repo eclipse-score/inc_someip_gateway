@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2024 Contributors to the Eclipse Foundation
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -11,17 +11,21 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: Formatting checks
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
-on:
-  workflow_call:
+string_flag(
+    name = "linux_backend",
+    build_setting_default = "disabled",
+    values = [
+        "disabled",
+        "qemu",
+    ],
+    visibility = ["//visibility:public"],
+)
 
-permissions:
-  contents: read
-  actions: write # needed for cache deletion at setup-bazel-cache
-
-jobs:
-  formatting-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@improved-caching
-    with:
-      bazel-target: "test //:format.check" # optional, this is the default
+config_setting(
+    name = "linux_qemu",
+    constraint_values = ["@platforms//os:linux"],
+    flag_values = {":linux_backend": "qemu"},
+    visibility = ["//visibility:public"],
+)

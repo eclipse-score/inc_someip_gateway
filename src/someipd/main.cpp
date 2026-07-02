@@ -14,11 +14,13 @@
 #include <getopt.h>
 
 #include <atomic>
+#include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <thread>
 
 #include "routing.h"
 #include "score/filesystem/path.h"
@@ -102,7 +104,7 @@ int main(int argc, char* argv[]) {
     // Both configurations are required, otherwise print help and exit
     if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
         print_help();
-        return 1;
+        return EXIT_FAILURE;
     }
 
     // Read config data
@@ -112,16 +114,17 @@ int main(int argc, char* argv[]) {
 
     if (!config_file.is_open()) {
         score::mw::log::LogFatal() << "Error: Could not open config file " << configuration_path;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     config_file.seekg(0, std::ios::end);
     std::streampos length = config_file.tellg();
 
     if (length <= 0) {
-        score::mw::log::LogFatal() << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
+        score::mw::log::LogFatal()
+            << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
         config_file.close();
-        return 1;
+        return EXIT_FAILURE;
     }
 
     config_file.seekg(0, std::ios::beg);
@@ -135,11 +138,31 @@ int main(int argc, char* argv[]) {
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
-    auto handles =
-        SomeipMessageTransferProxy::FindService(
+    std::vector<score::mw::com::HandleType> handles;
+
+    while (handles.empty() && !shutdown_requested.load()) {
+        auto find_result = SomeipMessageTransferProxy::FindService(
             score::mw::com::InstanceSpecifier::Create(std::string("someipd/gatewayd_messages"))
-                .value())
-            .value();
+                .value());
+
+        if (!find_result.has_value()) {
+            std::cerr << "[someipd] Error finding service: " << find_result.error().Message()
+                      << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
+
+        handles = find_result.value();
+
+        if (handles.empty()) {
+            std::cout << "[someipd] Waiting for gatewayd to start..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+
+    if (shutdown_requested.load()) {
+        return EXIT_SUCCESS;
+    }
 
     // Proxy for receiving messages from gatewayd to be sent via SOME/IP
     auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
@@ -165,4 +188,5 @@ int main(int argc, char* argv[]) {
     routing.value().Run(shutdown_requested);
 
     std::cout << "[someipd] Shutting down SOME/IP daemon..." << std::endl;
+    return EXIT_SUCCESS;
 }
