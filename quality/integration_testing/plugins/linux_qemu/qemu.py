@@ -30,10 +30,12 @@ _SUPPORTED_ARCHITECTURES = {
     "x86_64": {
         "qemu_path": "/usr/bin/qemu-system-x86_64",
         "cpu": "Cascadelake-Server-v5",
+        "network_device": "virtio-net-pci",
     },
     "aarch64": {
         "qemu_path": "/usr/bin/qemu-system-aarch64",
         "cpu": "cortex-a53",
+        "network_device": "virtio-net-device",
     },
 }
 
@@ -73,9 +75,7 @@ class DiskBootQemu:
         self._seed_iso = seed_iso
         self._cpu = _SUPPORTED_ARCHITECTURES[architecture]["cpu"]
         self._kernel_cmdline = kernel_cmdline
-        self._network_device = (
-            "virtio-net-pci" if self._architecture == "x86_64" else "virtio-net-device"
-        )
+        self._network_device = _SUPPORTED_ARCHITECTURES[architecture]["network_device"]
 
         image_lower = path_to_image.lower()
         if image_lower.endswith(".wic") or image_lower.endswith(".img"):
