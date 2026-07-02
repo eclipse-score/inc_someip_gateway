@@ -101,6 +101,25 @@ def pytest_addoption(parser):
         help="Path to a QEMU disk image (qcow2).",
     )
     parser.addoption(
+        "--qemu-architecture",
+        action="store",
+        choices=("x86_64", "aarch64"),
+        default="x86_64",
+        help="Target CPU architecture used to select the QEMU binary and CPU model.",
+    )
+    parser.addoption(
+        "--qemu-kernel",
+        action="store",
+        default=None,
+        help="Path to a Linux kernel image for booting raw aarch64 disk images.",
+    )
+    parser.addoption(
+        "--qemu-kernel-cmdline",
+        action="store",
+        default="root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit",
+        help="Kernel command line used when --qemu-kernel is provided.",
+    )
+    parser.addoption(
         "--qemu-seed-iso",
         action="store",
         default=None,
@@ -123,16 +142,24 @@ def dlt():
 @pytest.fixture(scope="session")
 def config(request):
     qemu_image = os.path.abspath(request.config.getoption("qemu_image"))
+    qemu_architecture = request.config.getoption("qemu_architecture")
     qemu_seed_iso = request.config.getoption("qemu_seed_iso")
     if qemu_seed_iso:
         qemu_seed_iso = os.path.abspath(qemu_seed_iso)
+    qemu_kernel = request.config.getoption("qemu_kernel")
+    if qemu_kernel:
+        qemu_kernel = os.path.abspath(qemu_kernel)
+    qemu_kernel_cmdline = request.config.getoption("qemu_kernel_cmdline")
 
     return Bunch(
         qemu_config=load_configuration(
             os.path.abspath(request.config.getoption("qemu_config"))
         ),
         qemu_image=qemu_image,
+        qemu_architecture=qemu_architecture,
         qemu_seed_iso=qemu_seed_iso,
+        qemu_kernel=qemu_kernel,
+        qemu_kernel_cmdline=qemu_kernel_cmdline,
     )
 
 
@@ -156,7 +183,7 @@ def target_init(config, request, dlt):
                 "-b",
                 base_image,
                 "-F",
-                "qcow2",
+                "raw" if base_image.endswith(".wic") else "qcow2",
                 overlay_path,
             ],
             check=True,
@@ -168,9 +195,12 @@ def target_init(config, request, dlt):
             path_to_qemu_image=overlay_path,
             available_ram=config.qemu_config.qemu_ram_size,
             available_cores=config.qemu_config.qemu_num_cores,
+            architecture=config.qemu_architecture,
             network_adapters=[adapter.name for adapter in config.qemu_config.networks],
             port_forwarding=config.qemu_config.port_forwarding,
             seed_iso=config.qemu_seed_iso,
+            path_to_qemu_kernel=config.qemu_kernel,
+            qemu_kernel_cmdline=config.qemu_kernel_cmdline,
         )
 
         with process:

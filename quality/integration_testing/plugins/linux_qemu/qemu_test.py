@@ -32,7 +32,7 @@ DiskBootQemu = _load_qemu_module().DiskBootQemu
 
 
 class DiskBootQemuTest(unittest.TestCase):
-    def _new_qemu(self, seed_iso=None):
+    def _new_qemu(self, seed_iso=None, architecture="x86_64"):
         with (
             patch.object(DiskBootQemu, "_check_qemu_is_installed"),
             patch.object(DiskBootQemu, "_find_available_kvm_support"),
@@ -41,9 +41,30 @@ class DiskBootQemuTest(unittest.TestCase):
             qemu = DiskBootQemu(
                 path_to_image="/tmp/image.qcow2",
                 seed_iso=seed_iso,
+                architecture=architecture,
             )
         qemu._accelerator = "tcg"
         return qemu
+
+    def test_build_command_uses_x86_64_qemu_binary_and_cpu(self):
+        qemu = self._new_qemu(architecture="x86_64")
+
+        cmd = qemu._build_command()
+
+        self.assertEqual(cmd[0], "/usr/bin/qemu-system-x86_64")
+        self.assertIn("-cpu", cmd)
+        cpu_pos = cmd.index("-cpu")
+        self.assertEqual(cmd[cpu_pos + 1], "Cascadelake-Server-v5")
+
+    def test_build_command_uses_aarch64_qemu_binary_and_cpu(self):
+        qemu = self._new_qemu(architecture="aarch64")
+
+        cmd = qemu._build_command()
+
+        self.assertEqual(cmd[0], "/usr/bin/qemu-system-aarch64")
+        self.assertIn("-cpu", cmd)
+        cpu_pos = cmd.index("-cpu")
+        self.assertEqual(cmd[cpu_pos + 1], "cortex-a53")
 
     def test_build_command_adds_seed_iso_as_drive(self):
         qemu = self._new_qemu(seed_iso="/tmp/seed.iso")
