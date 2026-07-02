@@ -27,11 +27,3 @@ The implementation is intentionally symmetric after the control channel is estab
 ## Design
 
 [The design](doc/index.rst) describes the behavior and architecture of the Gateway IPC Binding.
-
-## Profiling
-
-[The CPU profiling](profiling/benchmark_event_transmission_client_to_server_analysis.md) shows no significant bottlenecks.
-
-## Memory Profiling
-
-[The memory profiling](memory_profile/README.md) shows no heap allocations in the hot path.
