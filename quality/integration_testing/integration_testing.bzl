@@ -57,7 +57,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     )
 
     linux_qemu_config = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:qemu_config")
-    linux_qemu_image = Label("@ubuntu_24_04_cloudimg//file")
+    linux_qemu_image = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:prepared_image")
     linux_qemu_seed_iso = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:seed_iso")
 
     # --- QNX QEMU artifacts ---
