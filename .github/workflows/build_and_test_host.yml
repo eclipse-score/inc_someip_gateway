@@ -21,7 +21,7 @@ jobs:
   build_and_test_host:
     runs-on: ubuntu-24.04
     permissions:
-      actions: write
+      actions: write # needed for cache deletion at setup-bazel-cache
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
@@ -52,6 +52,8 @@ jobs:
 
   build_and_int_qemu_test_host:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write # needed for cache deletion at setup-bazel-cache
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
@@ -63,9 +65,9 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@use-lurtz-setup-bazel
         with:
-          unique-cache-name: ${{ github.workflow }}-${{ github.job }}
+          unique-cache-name: ${{ github.job }}
       - name: Install tools needed for ITF tests
         run: |
           sudo apt-get update
