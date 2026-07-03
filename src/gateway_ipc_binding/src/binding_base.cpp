@@ -48,9 +48,9 @@ Gateway_ipc_binding_base::Gateway_ipc_binding_base(score::socom::Runtime& runtim
       m_read_only_slot_managers(std::move(slot_manager)) {
     // Create callbacks for service bridge registration
     auto subscribe_find_service_callback =
-        [](score::socom::Find_result_change_callback callback,
-           score::socom::Service_interface_identifier const& interface,
-           std::optional<score::socom::Service_instance> instance)
+        [](score::socom::Find_result_change_callback /*callback*/,
+           score::socom::Service_interface_identifier const& /*interface*/,
+           std::optional<score::socom::Service_instance> /*instance*/)
         -> score::socom::Find_subscription {
         // TODO: Implement find service subscription logic
         assert(false && "subscribe_find_service_callback not implemented");
@@ -198,8 +198,8 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
     }
 }
 
-void Gateway_ipc_binding_base::handle_connect_message(Client_id client_id, Reply_channel& conn,
-                                                      Connect const& msg) {
+void Gateway_ipc_binding_base::handle_connect_message(Client_id /*client_id*/, Reply_channel& conn,
+                                                      Connect const& /*msg*/) {
     // serialize reply and send back to client
     Message_frame<Connect_reply> reply;
     reply.payload.status = true;
@@ -298,8 +298,7 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
                 Message_frame<Event_update> update_msg;
                 update_msg.payload.required_id = ids.remote_handle;
                 update_msg.payload.event_id = event_id;
-                update_msg.payload.payload = {.slot_index = payload.get_slot_handle(),
-                                              .used_bytes = payload.data().size()};
+                update_msg.payload.payload = {payload.get_slot_handle(), payload.data().size()};
                 auto send_result = conn->send(update_msg);
                 if (send_result) {
                     ++recipient_count;
@@ -310,7 +309,7 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
     };
 
     auto const service_state_change =
-        [this, key](score::socom::Client_connector const& connector,
+        [this, key](score::socom::Client_connector const& /*connector*/,
                     score::socom::Service_state state,
                     score::socom::Server_service_interface_definition const& configuration) {
             log_it("");
@@ -341,8 +340,9 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
         };
 
     auto const event_payload_allocate =
-        [this, key](score::socom::Client_connector const&,
-                    score::socom::Event_id) -> score::Result<score::socom::Writable_payload> {
+        [this, key](
+            score::socom::Client_connector const& /*connector*/,
+            score::socom::Event_id /*event_id*/) -> score::Result<score::socom::Writable_payload> {
         std::lock_guard<std::recursive_mutex> const lock{m_mutex};
 
         auto allocation = m_slot_managers.get_shared_memory_slot_manager(key).allocate_slot();

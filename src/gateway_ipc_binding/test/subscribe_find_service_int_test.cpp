@@ -53,8 +53,8 @@ class Gateway_ipc_binding_subscribe_find_service_integration_test
     std::vector<std::unique_ptr<Gateway_ipc_binding_client>> clients;
 };
 
-Service const service0{.service_id = {"fake_service_id"}, .version = {1, 2}};
-Service const service1{.service_id = {"test"}, .version = {4, 2}};
+Service const service0{{"fake_service_id"}, {1, 2}};
+Service const service1{{"test"}, {4, 2}};
 Instance_id const instance_id{"fake_instance_id"};
 
 Find_service_elements const find_service_elements0{{service0, instance_id}};

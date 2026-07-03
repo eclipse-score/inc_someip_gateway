@@ -373,9 +373,7 @@ TEST_P(Gateway_ipc_binding_param_test, server_sends_event_update) {
         payload_destruction_callback;
 
     EXPECT_CALL(*mock_read_only_slot_manager,
-                get_payload(Shared_memory_handle{.slot_index = 0,
-                                                 .used_bytes = get_server_metadata().slot_size},
-                            _))
+                get_payload(Shared_memory_handle{0, get_server_metadata().slot_size}, _))
         .WillOnce([&server_memory, &payload_destruction_callback](auto, auto callback) {
             payload_destruction_callback = std::move(callback);
 

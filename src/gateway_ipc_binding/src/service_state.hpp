@@ -66,6 +66,9 @@ struct Service_state {
     score::socom::Enabled_server_connector::Uptr enabled_connector{};
     Event_subscribers event_subscriptions;
 
+    Service_state(socom::Service_interface_identifier service, socom::Service_instance instance)
+        : service{std::move(service)}, instance{std::move(instance)} {}
+
     // iterate over offers and send connect IPC message
     void send_connect_service(
         Id_generator<Remote_handle>& next_local_id, Keys& keys,
@@ -176,7 +179,7 @@ class Service_states {
                                                       Offer_service const& msg) {
         auto& state = get_or_create(key, msg.service_id, msg.instance_id);
 
-        Delayed_destruction<Service_state&> result{.service_state = state, .connector = nullptr};
+        Delayed_destruction<Service_state&> result{state, nullptr};
         if (!msg.offered) {
             state.offers.erase(client_id);
             result.connector = std::move(state.enabled_connector);
@@ -192,7 +195,7 @@ class Service_states {
                             socom::Service_interface_definition const& configuration,
                             Request_service const& msg) {
         Delayed_destruction<std::optional<std::reference_wrapper<Service_state>>> result{
-            .service_state = std::nullopt, .connector = nullptr};
+            std::nullopt, nullptr};
         auto& state = get_or_create(key, msg.service_id, msg.instance_id);
 
         if (!msg.in_use) {
