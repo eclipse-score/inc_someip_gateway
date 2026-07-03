@@ -11,8 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# ThreadSanitizer suppressions for inc_someip_gateway
-
+# Standard library is not build for thread sanitizer and causes false positives
 race:std::__1::ios_base::width
 race:std::__1::basic_ios*
 race:std::__1::__shared_ptr_emplace<*>::__on_zero_shared_weak()
