@@ -415,7 +415,7 @@ http_archive(
 bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
 git_override(
     module_name = "score_itf",
-    commit = "bf5294d7618e361c224edbd754060cee810285eb",
+    commit = "98118b1fcd6c53244fb276e2c7668faaf15d2e10",
     remote = "https://github.com/eclipse-score/itf.git",
 )
 
