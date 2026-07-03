@@ -14,8 +14,6 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_SHARED_MEMORY_SLOT_MANAGER
 #define SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_SHARED_MEMORY_SLOT_MANAGER
 
-#include <score/result/result.h>
-
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -25,6 +23,8 @@
 #include <score/socom/service_interface_identifier.hpp>
 #include <score/span.hpp>
 #include <string>
+
+#include "score/result/result.h"
 
 namespace score {
 namespace memory {

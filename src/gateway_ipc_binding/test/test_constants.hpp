@@ -14,16 +14,14 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_TEST_TEST_CONSTANTS
 #define SRC_GATEWAY_IPC_BINDING_TEST_TEST_CONSTANTS
 
-#include <score/message_passing/service_protocol_config.h>
-#include <score/message_passing/unix_domain/unix_domain_client_factory.h>
-#include <score/message_passing/unix_domain/unix_domain_server_factory.h>
-
 #include <chrono>
 #include <cstddef>
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <score/socom/service_interface_definition.hpp>
 #include <string>
 
+#include "score/message_passing/i_client_factory.h"
+#include "score/message_passing/i_server_factory.h"
 #include "util.hpp"
 
 namespace score::gateway_ipc_binding {

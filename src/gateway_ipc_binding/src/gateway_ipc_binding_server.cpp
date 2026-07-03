@@ -11,9 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/message_passing/i_server.h>
-#include <score/message_passing/i_server_connection.h>
-
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -25,6 +22,7 @@
 
 #include "binding_base.hpp"
 #include "reply_channel.hpp"
+#include "score/message_passing/i_server_connection.h"
 
 namespace score::gateway_ipc_binding {
 

@@ -12,9 +12,6 @@
  ********************************************************************************/
 
 #include <benchmark/benchmark.h>
-#include <score/message_passing/service_protocol_config.h>
-#include <score/message_passing/unix_domain/unix_domain_client_factory.h>
-#include <score/message_passing/unix_domain/unix_domain_server_factory.h>
 #include <unistd.h>
 
 #include <atomic>
@@ -37,6 +34,9 @@
 #include <score/socom/server_connector.hpp>
 #include <string>
 #include <thread>
+
+#include "score/message_passing/client_factory.h"
+#include "score/message_passing/server_factory.h"
 
 namespace score::gateway_ipc_binding {
 
@@ -169,7 +169,7 @@ class Event_transmission_benchmark_context final {
         Shared_memory_manager_factory::Shared_memory_configuration const client_shm_config{
             {interface_, {{instance_, client_shm_metadata_}}}};
 
-        score::message_passing::UnixDomainServerFactory server_factory;
+        score::message_passing::ServerFactory server_factory;
         auto ipc_server = server_factory.Create(protocol_config_, server_config_);
         assert(ipc_server);
         gateway_server_ = Gateway_ipc_binding_server::create(
@@ -177,7 +177,7 @@ class Event_transmission_benchmark_context final {
             [](auto, auto const&, auto) {});
         assert(gateway_server_);
 
-        score::message_passing::UnixDomainClientFactory client_factory;
+        score::message_passing::ClientFactory client_factory;
         auto connection = client_factory.Create(protocol_config_, client_config_);
         gateway_client_ = Gateway_ipc_binding_client::create(
             *runtime_client_, std::move(connection),

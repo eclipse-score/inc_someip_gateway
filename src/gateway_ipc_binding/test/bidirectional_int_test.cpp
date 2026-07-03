@@ -13,8 +13,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <score/message_passing/unix_domain/unix_domain_client_factory.h>
-#include <score/message_passing/unix_domain/unix_domain_server_factory.h>
 #include <score/result/result.h>
 
 #include <cstddef>

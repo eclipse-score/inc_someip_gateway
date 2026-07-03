@@ -14,19 +14,16 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING_SERVER
 #define SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING_SERVER
 
-#include <score/message_passing/i_server_factory.h>
-#include <score/message_passing/server_types.h>
-#include <score/message_passing/service_protocol_config.h>
-#include <score/result/result.h>
-
 #include <cstddef>
 #include <memory>
 #include <score/callback.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
 #include <score/socom/runtime.hpp>
-#include <string>
 #include <unordered_map>
+
+#include "score/message_passing/i_server.h"
+#include "score/result/result.h"
 
 namespace score::gateway_ipc_binding {
 

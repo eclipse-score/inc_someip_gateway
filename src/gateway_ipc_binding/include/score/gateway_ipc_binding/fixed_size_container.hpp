@@ -14,8 +14,6 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER
 #define SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER
 
-#include <score/result/result.h>
-
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -25,6 +23,8 @@
 #include <score/gateway_ipc_binding/error.hpp>
 #include <string>
 #include <string_view>
+
+#include "score/result/result.h"
 
 namespace score::gateway_ipc_binding {
 

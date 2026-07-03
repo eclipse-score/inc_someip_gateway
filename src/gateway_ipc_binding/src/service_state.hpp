@@ -14,8 +14,6 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_SERVICE_STATE
 #define SRC_GATEWAY_IPC_BINDING_SRC_SERVICE_STATE
 
-#include <score/os/errno.h>
-
 #include <cassert>
 #include <cerrno>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>

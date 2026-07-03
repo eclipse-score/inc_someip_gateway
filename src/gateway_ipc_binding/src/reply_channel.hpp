@@ -14,10 +14,10 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_REPLY_CHANNEL
 #define SRC_GATEWAY_IPC_BINDING_SRC_REPLY_CHANNEL
 
-#include <score/result/result.h>
-
 #include <cstdint>
 #include <score/span.hpp>
+
+#include "score/result/result.h"
 
 namespace score::gateway_ipc_binding {
 

@@ -16,8 +16,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <score/message_passing/unix_domain/unix_domain_client_factory.h>
-#include <score/message_passing/unix_domain/unix_domain_server_factory.h>
 #include <score/result/result.h>
 
 #include <cstddef>
@@ -38,6 +36,8 @@
 #include <utility>
 
 #include "mocks.hpp"
+#include "score/message_passing/client_factory.h"
+#include "score/message_passing/server_factory.h"
 #include "test_constants.hpp"
 
 namespace score::gateway_ipc_binding {
@@ -72,7 +72,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     }
 
     std::unique_ptr<Gateway_ipc_binding_server> create_ipc_server(socom::Runtime& runtime) {
-        score::message_passing::UnixDomainServerFactory server_factory;
+        score::message_passing::ServerFactory server_factory;
         auto ipc_server = server_factory.Create(protocol_config, server_config);
 
         // Create gateway IPC binding server with pre-created IPC server
@@ -89,7 +89,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
         Shared_memory_manager_factory::Shared_memory_configuration shm_config,
         Find_service_elements find_service_elements = {},
         Shared_memory_configs server_shared_memory_configs = {}, std::string_view identifier = {}) {
-        score::message_passing::UnixDomainClientFactory client_factory;
+        score::message_passing::ClientFactory client_factory;
         auto connection = client_factory.Create(protocol_config, client_config);
         auto client = Gateway_ipc_binding_client::create(
             runtime, std::move(connection), Shared_memory_manager_factory::create(shm_config),

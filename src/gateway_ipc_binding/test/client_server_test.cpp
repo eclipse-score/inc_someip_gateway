@@ -13,8 +13,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <score/message_passing/unix_domain/unix_domain_client_factory.h>
-#include <score/message_passing/unix_domain/unix_domain_server_factory.h>
 #include <score/result/result.h>
 
 #include <cstddef>
@@ -34,6 +32,8 @@
 #include <thread>
 
 #include "mocks.hpp"
+#include "score/message_passing/client_factory.h"
+#include "score/message_passing/server_factory.h"
 #include "test_constants.hpp"
 #include "util.hpp"
 
@@ -64,7 +64,7 @@ class Gateway_ipc_binding_unconnected_test : public ::testing::Test, protected T
             throw std::runtime_error("Failed to create client runtime");
         }
 
-        score::message_passing::UnixDomainServerFactory server_factory;
+        score::message_passing::ServerFactory server_factory;
         auto ipc_server = server_factory.Create(protocol_config, server_config);
         auto mock_server_factory =
             create_mock_unique_ptr(mock_server_shared_memory_manager_factory);
@@ -76,7 +76,7 @@ class Gateway_ipc_binding_unconnected_test : public ::testing::Test, protected T
         assert(server && "Server creation failed");
 
         // Create gateway IPC binding client
-        score::message_passing::UnixDomainClientFactory client_factory;
+        score::message_passing::ClientFactory client_factory;
         auto connection = client_factory.Create(protocol_config, client_config);
         auto mock_client_factory =
             create_mock_unique_ptr(mock_client_shared_memory_manager_factory);
@@ -419,7 +419,7 @@ TEST_P(Gateway_ipc_binding_param_test, server_sends_event_update) {
 TEST_F(Gateway_ipc_binding_unconnected_test, get_client_identifiers_reports_identifier_on_connect) {
     // Create two named clients and verify get_client_identifiers() returns their identifiers.
     auto make_named_client = [&](std::string_view identifier) {
-        score::message_passing::UnixDomainClientFactory client_factory;
+        score::message_passing::ClientFactory client_factory;
         auto connection = client_factory.Create(protocol_config, client_config);
         auto mock_factory_raw = create_mock_unique_ptr(mock_client_shared_memory_manager_factory);
         auto client =
