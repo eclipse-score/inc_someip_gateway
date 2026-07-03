@@ -13,6 +13,12 @@
 
 #include <gtest/gtest.h>
 
+#include <cerrno>
+#include <csignal>
+#include <cstring>
+#include <stdexcept>
+#include <string>
+
 void set_signal_handler(int const signal, void (*const handler)(int)) {
     struct sigaction sa{};
     sa.sa_handler = handler;

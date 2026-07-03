@@ -14,6 +14,7 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING
 #define SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <score/gateway_ipc_binding/fixed_size_container.hpp>

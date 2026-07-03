@@ -12,7 +12,6 @@
  ********************************************************************************/
 
 #include <gtest/gtest.h>
-#include <score/memory/shared/shared_memory_factory.h>
 #include <unistd.h>
 
 #include <cstring>

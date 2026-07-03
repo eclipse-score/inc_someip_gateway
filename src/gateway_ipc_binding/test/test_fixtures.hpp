@@ -16,7 +16,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <score/result/result.h>
 
 #include <cstddef>
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>

@@ -13,7 +13,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <score/result/result.h>
 
 #include <cstddef>
 #include <future>
@@ -34,6 +33,7 @@
 #include "mocks.hpp"
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/server_factory.h"
+#include "score/result/result.h"
 #include "test_constants.hpp"
 #include "util.hpp"
 

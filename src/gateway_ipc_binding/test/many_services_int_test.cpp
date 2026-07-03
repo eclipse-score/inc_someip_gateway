@@ -13,7 +13,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <score/result/result.h>
 
 #include <cstddef>
 #include <future>
