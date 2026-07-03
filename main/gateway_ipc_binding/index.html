@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Components &#8212; Module Template Project  documentation</title>
+    <title>Gateway IPC Binding &#8212; Module Template Project  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/components';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'gateway_ipc_binding/index';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.17.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Architectural Design Decision: Dynamic Registration for SOME/IP Gateway" href="dec_someipgw_registration.html" />
-    <link rel="prev" title="Features" href="features.html" />
+    <link rel="next" title="Shared Memory Slot Manager" href="shared_memory.html" />
+    <link rel="prev" title="3. State Dynamics View" href="../socom/design/50_state_dynamics_view.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -164,8 +164,8 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -185,8 +185,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../gateway_ipc_binding/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
     Gateway IPC Binding
   </a>
 </li>
@@ -307,8 +307,8 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -328,8 +328,8 @@
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../gateway_ipc_binding/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
     Gateway IPC Binding
   </a>
 </li>
@@ -405,13 +405,8 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
-</ul>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Components</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shared_memory.html">Shared Memory Slot Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ipc_protocol.html">IPC Protocol</a></li>
 </ul>
 </div>
 </nav></div>
@@ -452,10 +447,7 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOMEIP Gateway Architecture</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Components</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Gateway IPC Binding</span></li>
   </ul>
 </nav>
 </div>
@@ -472,182 +464,124 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="components">
-<h1>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-c4a8be59">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__gatewayd">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Gateway Daemon</span></span></span></div>
+  <section id="gateway-ipc-binding">
+<h1>Gateway IPC Binding<a class="headerlink" href="#gateway-ipc-binding" title="Link to this heading">#</a></h1>
+<p>Gateway IPC Binding bridges SOCom service discovery and event transport across a local IPC link.
+It combines:</p>
+<ul class="simple">
+<li><p>a control channel built on <code class="docutils literal notranslate"><span class="pre">score::message_passing</span></code></p></li>
+<li><p>per-service shared memory segments for payload transport</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">score::socom::Runtime</span></code> bridge registration on each side</p></li>
+</ul>
+<p>The implementation is intentionally symmetric after the control channel is established: both peers can request services, offer services, subscribe to events, and publish event updates. In the deployed topology, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> typically hosts <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> typically hosts <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client</span></code>.</p>
+<section id="current-scope">
+<h2>Current scope<a class="headerlink" href="#current-scope" title="Link to this heading">#</a></h2>
+<p>The code currently supports these flows end to end:</p>
+<ul class="simple">
+<li><p>initial client/server IPC connection setup</p></li>
+<li><p>forwarding <code class="docutils literal notranslate"><span class="pre">Request_service</span></code> and <code class="docutils literal notranslate"><span class="pre">Offer_service</span></code></p></li>
+<li><p>establishing per-service bindings with <code class="docutils literal notranslate"><span class="pre">Connect_service</span></code> and <code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code></p></li>
+<li><p>propagating event subscriptions</p></li>
+<li><p>forwarding event updates through shared memory plus <code class="docutils literal notranslate"><span class="pre">Payload_consumed</span></code></p></li>
+</ul>
+<p>The message model already defines method-call related messages, but the binding does not currently dispatch them. Documentation in this directory describes the implemented behavior first and calls out the gaps explicitly.</p>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client</span></code> and <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server</span></code> are thin transport adapters around the shared <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_base</span></code> logic.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Shared</span> <span class="pre">memory</span> <span class="pre">configuration</span></code></p>
+<ul>
+<li><p>Shared memory is configured per service instance and advertised in the initial connection handshake when the client connects to the server.
+- This allows the binding to support different shared memory sizes for different services and avoids the need for static configuration on the server side.
+- The goal is that the server needs no upfront static configuration for shared memory, and the client can simply specify the shared memory requirements for each service instance it wants to use.</p></li>
+<li><p>For each service instance, the client specifies shared memory for both sides: one for the server to write event updates and method replies into, and one for the client to write method calls into.
+- This allows the binding to support method calls in the future without needing to change the initial connection handshake or require static configuration on the server side.
+- The client can specify the tinyest possible shared memory (1 slot of 1 byte) for unused directions to effectively opt out of method call support until it’s implemented.
+- It would be possible to have no shared memory configured for method calls at all, but that would require more invasive changes to the connection handshake and more special cases in the code, so the current design requires some shared memory to be configured for method calls even if it’s not used.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client</span></code></p>
+<ul>
+<li><p>creates a single outgoing <code class="docutils literal notranslate"><span class="pre">message_passing</span></code> connection</p></li>
+<li><p>starts the connection in its constructor</p></li>
+<li><p>sends <code class="docutils literal notranslate"><span class="pre">Connect</span></code> automatically when the channel becomes ready</p></li>
+<li><p>marks itself connected after receiving <code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server</span></code></p>
+<ul>
+<li><p>owns a <code class="docutils literal notranslate"><span class="pre">message_passing</span></code> server</p></li>
+<li><p>accepts multiple incoming IPC connections</p></li>
+<li><p>assigns a <code class="docutils literal notranslate"><span class="pre">Client_id</span></code> to each accepted connection</p></li>
+<li><p>forwards all received control messages into the shared binding logic</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_base</span></code></p>
+<ul>
+<li><p>registers a SOCom service bridge in the local runtime</p></li>
+<li><p>subscribes to local service offers and forwards them over IPC</p></li>
+<li><p>tracks remote offers and local requests per service instance</p></li>
+<li><p>exchanges service-specific shared-memory metadata</p></li>
+<li><p>creates SOCom client or server connectors once a remote service becomes usable</p></li>
+</ul>
+</li>
+</ul>
+<figure class="align-center" id="id1">
+<p class="plantuml">
+<object data="../_images/plantuml-4f47cc282c549c357ed2e23fbc890a6fab211909.svg" type="image/svg+xml" style="width:1912px;height:346px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Gateway IPC Binding component diagram</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="control-plane-and-data-plane-split">
+<h2>Control-plane and data-plane split<a class="headerlink" href="#control-plane-and-data-plane-split" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Control-plane messages are trivially copyable structs sent directly over the IPC connection.</p></li>
+<li><p>Payload bytes are not copied onto the control channel. They are written into a service-specific shared-memory slot and referenced by <code class="docutils literal notranslate"><span class="pre">Shared_memory_handle</span></code>.</p></li>
+<li><p>The receiving side opens the sender’s shared-memory pool read-only and turns the referenced slot into a SOCom payload.</p></li>
+<li><p>Payload lifetime is closed by <code class="docutils literal notranslate"><span class="pre">Payload_consumed</span></code>, which lets the sender release the underlying slot.</p></li>
+</ul>
+</section>
+<section id="service-binding-model">
+<h2>Service binding model<a class="headerlink" href="#service-binding-model" title="Link to this heading">#</a></h2>
+<p>The binding keeps a per-service-instance state machine keyed by service interface plus instance id.</p>
+<ul class="simple">
+<li><p>A local SOCom request produces <code class="docutils literal notranslate"><span class="pre">Request_service</span></code> for every connected peer.</p></li>
+<li><p>A local SOCom offer produces <code class="docutils literal notranslate"><span class="pre">Offer_service</span></code> for every connected peer.</p></li>
+<li><p>Once a service is both locally requested and remotely offered, <code class="docutils literal notranslate"><span class="pre">Connect_service</span></code> is sent.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code> carries the peer’s shared-memory metadata and method/event counts needed to build the local SOCom connector.</p></li>
+<li><p>Each established service mapping stores:</p>
+<ul>
+<li><p>a local handle</p></li>
+<li><p>a remote handle</p></li>
+<li><p>local shared-memory metadata</p></li>
+<li><p>remote shared-memory metadata</p></li>
+</ul>
+</li>
+</ul>
+<p>Those handles are used in follow-up event and payload messages instead of repeating the full service identifier.</p>
+</section>
+<section id="known-limitations">
+<h2>Known limitations<a class="headerlink" href="#known-limitations" title="Link to this heading">#</a></h2>
+<p>The implementation is not yet feature-complete. Important gaps to keep in mind:</p>
+<ul class="simple">
+<li><p>method call messages are declared, but there is no <code class="docutils literal notranslate"><span class="pre">Call_method</span></code> handling path in <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_base</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Subscribe_event_reply</span></code> and <code class="docutils literal notranslate"><span class="pre">Event_update_request</span></code> are declared, but not handled</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subscribe_find_service_callback</span></code> registered with the SOCom bridge is still a stub with an assertion</p></li>
+</ul>
+<p>These limitations are design constraints of the current code, not documentation omissions.</p>
+</section>
+<section id="further-details">
+<h2>Further details<a class="headerlink" href="#further-details" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="shared_memory.html">Shared Memory Slot Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ipc_protocol.html">IPC Protocol</a></li>
+</ul>
 </div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>0</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="features.html#feat__someip_gateway" title="comp__gatewayd">feat__someip_gateway</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Connects the <a class="reference internal" href="#comp__someipd" title="comp__someipd"><em class="xref need">SOME/IP Network Daemon (comp__someipd)</em></a> to the application via LoLa IPC (mw::com).</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__gatewayd" title="comp__gatewayd">comp__gatewayd</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-8a60e109">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__serializer">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Serializer</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>0</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="features.html#feat__someip_gateway" title="comp__serializer">feat__someip_gateway</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Serializer and deserializer for SOME/IP messages. Used by the <a class="reference internal" href="#comp__gatewayd" title="comp__gatewayd"><em class="xref need">SOME/IP Gateway Daemon (comp__gatewayd)</em></a>.
-The serializer is built or configured especially for the application data types that it handles.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__serializer" title="comp__serializer">comp__serializer</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-72ddcd0a">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__null_serializer">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Null Serializer</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>0</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="features.html#feat__someip_gateway" title="comp__null_serializer">feat__someip_gateway</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>A serializer that does not actually serialize or deserialize data, but only handles messages that are already serialized by the application.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__null_serializer" title="comp__null_serializer">comp__null_serializer</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-d6e3b4be">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__someipd">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Network Daemon</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>0</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="features.html#feat__someip_gateway" title="comp__someipd">feat__someip_gateway</a></span></span></div>
-<div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_offer_format" title="comp__someipd">comp_req__tc8_conformance__sd_offer_format</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_cyclic_timing" title="comp__someipd">comp_req__tc8_conformance__sd_cyclic_timing</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_find_response" title="comp__someipd">comp_req__tc8_conformance__sd_find_response</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle" title="comp__someipd">comp_req__tc8_conformance__sd_sub_lifecycle</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__sd_phases_timing" title="comp__someipd">comp_req__tc8_conformance__sd_phases_timing</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_resp_header" title="comp__someipd">comp_req__tc8_conformance__msg_resp_header</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__msg_error_codes" title="comp__someipd">comp_req__tc8_conformance__msg_error_codes</a>, <a class="reference internal" href="../tc8_conformance/requirements.html#comp_req__tc8_conformance__evt_subscription" title="comp__someipd">comp_req__tc8_conformance__evt_subscription</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Handles the SOME/IP communication with the network.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__someipd" title="comp__someipd">comp__someipd</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+</section>
 </section>
 
 
@@ -661,20 +595,20 @@ The serializer is built or configured especially for the application data types 
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="features.html"
+       href="../socom/design/50_state_dynamics_view.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Features</p>
+        <p class="prev-next-title"><span class="section-number">3. </span>State Dynamics View</p>
       </div>
     </a>
     <a class="right-next"
-       href="dec_someipgw_registration.html"
+       href="shared_memory.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</p>
+        <p class="prev-next-title">Shared Memory Slot Manager</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -690,10 +624,27 @@ The serializer is built or configured especially for the application data types 
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#current-scope">Current scope</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#control-plane-and-data-plane-split">Control-plane and data-plane split</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#service-binding-model">Service binding model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#known-limitations">Known limitations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#further-details">Further details</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/components.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/gateway_ipc_binding/index.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
