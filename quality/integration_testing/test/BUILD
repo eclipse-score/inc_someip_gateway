@@ -77,19 +77,19 @@ py_itf_test(
         "//quality/integration_testing/flags:linux_qemu": [
             "--log-cli-level=DEBUG",
             "--qemu-config=$(location //quality/integration_testing/environments/ebclfsa_aarch64_qemu:qemu_config)",
-            "--qemu-image=$(location @score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic)",
+            "--qemu-image=$(location //quality/integration_testing/environments/ebclfsa_aarch64_qemu:image)",
             "--qemu-architecture=aarch64",
             "--qemu-filesystem-tar=$(location _qemu_filesystem_test_hello_world_ebclfsa_aarch64_integration_test)",
-            "--qemu-kernel=$(location @score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux)",
+            "--qemu-kernel=$(location //quality/integration_testing/environments/ebclfsa_aarch64_qemu:kernel)",
         ],
         "//conditions:default": [],
     }),
     data = select({
         "//quality/integration_testing/flags:linux_qemu": [
             "_qemu_filesystem_test_hello_world_ebclfsa_aarch64_integration_test",
+            "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:image",
+            "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:kernel",
             "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:qemu_config",
-            "@score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
-            "@score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
         ],
         "//conditions:default": [],
     }),

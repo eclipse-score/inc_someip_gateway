@@ -21,3 +21,17 @@ filegroup(
     srcs = ["qemu_config.json"],
     visibility = ["//:__subpackages__"],
 )
+
+# Convenience alias for accessing the image
+alias(
+    name = "image",
+    actual = "@score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
+    visibility = ["//visibility:public"],
+)
+
+# Convenience alias for accessing the kernel image
+alias(
+    name = "kernel",
+    actual = "@score_ref_int//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
+    visibility = ["//visibility:public"],
+)
