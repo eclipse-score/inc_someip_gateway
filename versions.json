@@ -12,16 +12,28 @@
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-141/"
   },
   {
-    "version": "pr-155",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-155/"
-  },
-  {
     "version": "pr-172",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-172/"
   },
   {
-    "version": "pr-173",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-173/"
+    "version": "pr-176",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-176/"
+  },
+  {
+    "version": "pr-177",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-177/"
+  },
+  {
+    "version": "pr-178",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-178/"
+  },
+  {
+    "version": "pr-179",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-179/"
+  },
+  {
+    "version": "pr-180",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-180/"
   },
   {
     "version": "pr-60",
@@ -34,33 +46,5 @@
   {
     "version": "pr-98",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-98/"
-  },
-  {
-    "version": "pr-176",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-176/"
-  },
-  {
-    "version": "pr-177",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-177/"
-  },
-  {
-    "version": "gh-readonly-queue/main/pr-155-b4971d151c711589fc21df60bdb3e040b9eab8c8",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-155-b4971d151c711589fc21df60bdb3e040b9eab8c8/"
-  },
-  {
-    "version": "pr-178",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-178/"
-  },
-  {
-    "version": "pr-179",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-179/"
-  },
-  {
-    "version": "gh-readonly-queue/main/pr-178-90fb9096ca370160b96ba9befda5846cad11350c",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-178-90fb9096ca370160b96ba9befda5846cad11350c/"
-  },
-  {
-    "version": "pr-180",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-180/"
   }
 ]
