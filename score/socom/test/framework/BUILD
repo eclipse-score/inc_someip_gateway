@@ -15,7 +15,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 cc_library(
     name = "socom_test_framework",
-    srcs = glob(include = ["score/**"]),
+    srcs = glob(include = ["src/**"]),
     hdrs = glob(["inc/**"]),
     includes = [
         "inc",
