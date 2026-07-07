@@ -68,8 +68,9 @@ LocalServiceInstance::LocalServiceInstance(
         });
 
     if (!disabled_server_connector.has_value()) {
-        std::cerr << "[gatewayd] Failed to create server connector for '"
-                  << service_type_config_->service_type_name()->string_view() << "'\n";
+        score::mw::log::LogError()
+            << "[gatewayd] Failed to create server connector for '"
+            << service_type_config_->service_type_name()->string_view() << "'";
         return;
     }
     std::cout << "[gatewayd] LocalServiceInstance - Enabled server_connector for "
@@ -171,8 +172,9 @@ LocalServiceInstance::LocalServiceInstance(
                         reinterpret_cast<uint8_t*>(payload.wdata().data() + pos),
                         payload.wdata().size() - pos, sample.get(), &written_length);
                     if (serialize_result != score_com_serializer_result_ok) {
-                        std::cerr << "[gatewayd] Serialization failed for "
-                                  << event_context.config->event_name()->string_view() << std::endl;
+                        score::mw::log::LogError()
+                            << "[gatewayd] Serialization failed for "
+                            << event_context.config->event_name()->string_view();
                         return;
                     }
                     pos += written_length;

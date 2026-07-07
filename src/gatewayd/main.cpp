@@ -192,7 +192,8 @@ int main(int argc, char* argv[]) {
             gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
                 shm_path);
         if (!shm_path_result.has_value()) {
-            std::cerr << "[gatewayd] shm path too long for service_id " << service_id << "\n";
+            score::mw::log::LogError()
+                << "[gatewayd] shm path too long for service_id " << service_id;
             continue;
         }
 
@@ -210,10 +211,9 @@ int main(int argc, char* argv[]) {
             // possible size for now.
             shm_config[iface][inst] = {*shm_path_result, 1, 1};
         } else {
-            std::cerr << "[gatewayd] Service "
-                      << service_type_config->service_type_name()->string_view()
-                      << " has no local or remote instances, skipping shared memory config"
-                      << std::endl;
+            score::mw::log::LogError()
+                << "[gatewayd] Service " << service_type_config->service_type_name()->string_view()
+                << " has no local or remote instances, skipping shared memory config";
         }
     }
 

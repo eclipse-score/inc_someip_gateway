@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
 
     auto start_result = binding_server->start();
     if (!start_result.has_value()) {
-        std::cerr << "[someipd] Failed to start IPC server" << std::endl;
+        score::mw::log::LogFatal() << "[someipd] Failed to start IPC server";
         return 1;
     }
     std::cout << "[someipd] IPC server started, waiting for gatewayd connection..." << std::endl;

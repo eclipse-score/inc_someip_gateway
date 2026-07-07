@@ -18,6 +18,7 @@
 #include <iostream>
 #include <set>
 
+#include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
 
@@ -58,8 +59,9 @@ RemoteNetworkService::RemoteNetworkService(
         });
 
     if (!disabled.has_value()) {
-        std::cerr << "[someipd] Failed to create server connector for '"
-                  << service_type_config_->service_type_name()->string_view() << "'\n";
+        score::mw::log::LogError()
+            << "[someipd] Failed to create server connector for '"
+            << service_type_config_->service_type_name()->string_view() << "'";
         return;
     }
     server_connector_ = socom::Disabled_server_connector::enable(std::move(disabled).value());
@@ -108,7 +110,7 @@ void RemoteNetworkService::Create(
     std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime,
     std::vector<std::unique_ptr<RemoteNetworkService>>& instances) {
     if (service_instance_config == nullptr) {
-        std::cerr << "[someipd] ERROR: Service instance config is nullptr!\n";
+        score::mw::log::LogError() << "[someipd] ERROR: Service instance config is nullptr!";
         return;
     }
     instances.push_back(std::make_unique<RemoteNetworkService>(
