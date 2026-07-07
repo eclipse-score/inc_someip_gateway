@@ -122,7 +122,8 @@ int main(int argc, char* argv[]) {
     std::streampos length = config_file.tellg();
 
     if (length <= 0) {
-        score::mw::log::LogFatal() << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
+        score::mw::log::LogFatal()
+            << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
         config_file.close();
         return 1;
     }
@@ -199,17 +200,15 @@ int main(int argc, char* argv[]) {
         if (service_type_config->local_service_instances()) {
             shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
                                        someip::kMaxSampleCount};
-            // TODO: this here should not be necessary as only the shm config of the producer is
-            // interesting for these local_service_instances
-            server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                              someip::kMaxSampleCount};
+            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
+            // possible size for now.
+            server_shm_config[iface][inst] = {*shm_path_result, 1, 1};
         } else if (service_type_config->remote_service_instances()) {
             server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
                                               someip::kMaxSampleCount};
-            // TODO: this here should not be necessary as only the shm config of the producer is
-            // interesting for these remote_service_instances.
-            shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                       someip::kMaxSampleCount};
+            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
+            // possible size for now.
+            shm_config[iface][inst] = {*shm_path_result, 1, 1};
         } else {
             std::cerr << "[gatewayd] Service "
                       << service_type_config->service_type_name()->string_view()
