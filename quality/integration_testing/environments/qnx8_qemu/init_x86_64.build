@@ -145,6 +145,7 @@ libexpat.so.2                            # Expat XML parser library
 libfscrypto.so.1                         # File system encryption support
 libfsnotify.so.1                         # File system notification library
 libgcc_s.so.1                            # GCC runtime support library
+libatomic.so.1                           # GCC atomic operations library (required by gateway_ipc_binding)
 libiconv.so.1                            # Character encoding conversion
 libjail.so.1                             # QNX jail library for process containment
 liblzma.so.5                             # LZMA compression library
