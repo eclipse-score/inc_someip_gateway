@@ -32,6 +32,7 @@ jobs:
       # If you want to clone the repository as part of your setup steps, for example to install dependencies, you'll need the `contents: read` permission.
       # If you don't clone the repository in your setup steps, Copilot will do this for you automatically after the steps complete.
       contents: read
+      actions: write # needed for cache deletion at setup-bazel-cache
 
     steps:
       - uses: eclipse-score/more-disk-space@v1
@@ -42,8 +43,8 @@ jobs:
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@659dcbed63f6b7fbde88c7850125ea0a0a92f939
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@use-lurtz-setup-bazel
         with:
-          unique-cache-name: ${{ github.workflow }}-${{ github.job }}
+          unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939
