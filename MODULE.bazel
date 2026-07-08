@@ -325,9 +325,9 @@ http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_
 
 http_file(
     name = "ubuntu_24_04_cloudimg",
-    downloaded_file_path = "noble-server-cloudimg-amd64.img",
-    integrity = "sha256-X6WwXl7COYWMRTFIXWAjsIlkSMLffGOzT42ubqYFGkQ=",
-    url = "https://cloud-images.ubuntu.com/releases/noble/release-20260615/ubuntu-24.04-server-cloudimg-amd64.img",
+    downloaded_file_path = "noble-minimal-cloudimg-amd64.img",
+    integrity = "sha256-vZAj5xt7tb3tFOT7DJmODZPXFJ6QVsPmi0b/kJfdF9U=",
+    url = "https://cloud-images.ubuntu.com/minimal/releases/noble/release-20260626/ubuntu-24.04-minimal-cloudimg-amd64.img",
 )
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)

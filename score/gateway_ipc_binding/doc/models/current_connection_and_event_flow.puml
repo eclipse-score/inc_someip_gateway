@@ -1,0 +1,52 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+title Current connection and event flow
+
+participant "Gateway_ipc_binding_client side" as client
+participant "Gateway_ipc_binding_server side" as server
+
+client -> server : Connect
+server --> client : Connect_reply(status=true)
+
+note over client, server
+Either side may request or offer services after
+the control channel is ready.
+end note
+
+client -> server : Request_service(service, instance, in_use=true)
+server --> client : Offer_service(service, instance, offered=true)
+
+note over client, server
+When a local request matches a remote offer,
+Connect_service is sent.
+end note
+
+client -> server : Connect_service(service, instance,\nrequired_id, local_shm_metadata, in_use=true)
+server --> client : Connect_service_reply(required_id, provided_id,\nremote_shm_metadata, num_methods, num_events)
+
+note over client, server
+A local SOCom server connector is created from the reply.
+end note
+
+client -> server : Subscribe_event(provided_id, event_id, subscribe=true)
+server --> client : Event_update(required_id, event_id, payload_handle)
+
+note over client
+Open peer shared memory read-only
+and build payload.
+end note
+
+client --> server : Payload_consumed(required_id, payload_handle)
+@enduml

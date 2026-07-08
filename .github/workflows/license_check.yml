@@ -14,17 +14,15 @@
 name: License Check
 
 on:
-  push:
-    branches:
-      - main
   workflow_call:
 
 permissions:
   pull-requests: write
   issues: write
+  actions: write # needed for cache deletion at setup-bazel-cache
 
 jobs:
   license-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@0d27a2f54f06fd701f4597895aa08d0138f8ebf9
+    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@improved-caching
     secrets:
       dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}

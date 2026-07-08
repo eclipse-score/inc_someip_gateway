@@ -16,6 +16,7 @@ exports_files(
         "qemu_config.json",
         "user-data",
         "meta-data",
+        "prepare_image.sh",
     ],
     visibility = ["//:__subpackages__"],
 )
@@ -84,5 +85,20 @@ genrule(
     outs = ["seed.img"],
     cmd = "cloud-localds -N $(location :network_config) $@ $(location user-data) $(location meta-data)",
     tags = ["manual"],
+    visibility = ["//:__subpackages__"],
+)
+
+# Build a persistent Ubuntu base image with tools needed by integration tests.
+# It boots once with internet access and installs iputils-ping into the base image.
+genrule(
+    name = "prepared_image",
+    srcs = ["@ubuntu_24_04_cloudimg//file"],
+    outs = ["ubuntu24_04_prepared.qcow2"],
+    cmd = "bash $(location prepare_image.sh) $(location @ubuntu_24_04_cloudimg//file) $@",
+    tags = [
+        "manual",
+        "requires-network",
+    ],
+    tools = ["prepare_image.sh"],
     visibility = ["//:__subpackages__"],
 )

@@ -24,6 +24,6 @@ on:
 
 jobs:
   docs-cleanup:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs-cleanup.yml@0d27a2f54f06fd701f4597895aa08d0138f8ebf9
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-cleanup.yml@improved-caching
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
