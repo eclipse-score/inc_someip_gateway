@@ -56,7 +56,9 @@ cc_test(
 # Serializer that can only handle pre-serialized data and is used as default serializer for gatewayd if no other serializer is provided.
 cc_shared_library(
     name = "null_serializer",
+    additional_linker_inputs = ["exported_symbols.lds"],
     shared_lib_name = "score_com_serializer.so",
+    user_link_flags = ["-Wl,--version-script=$(location exported_symbols.lds)"],
     visibility = ["//visibility:public"],
     deps = [":null_serializer_impl"],
 )

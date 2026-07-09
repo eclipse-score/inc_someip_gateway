@@ -56,6 +56,8 @@ class Construction_error_domain final : public score::result::ErrorDomain {
         switch (static_cast<Construction_error>(code)) {
             case Construction_error::duplicate_service:
                 return "Duplicate service";
+            case Construction_error::duplicate_client:
+                return "Duplicate client";
             case Construction_error::callback_missing:
                 return "Callback missing";
             default:

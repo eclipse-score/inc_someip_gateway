@@ -231,7 +231,7 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
         return MakeUnexpected(Error::runtime_error_service_not_available);
     }
 
-    // TODO add error code
+    // should have been checked already in Runtime
     assert(!m_client.has_value());
 
     m_client.emplace(*this, message.endpoint);

@@ -79,6 +79,7 @@ Component documentation
    :maxdepth: 1
 
    socom/design/index.rst
+   gateway_ipc_binding/index.rst
 
 
 Examples

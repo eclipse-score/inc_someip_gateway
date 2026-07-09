@@ -48,7 +48,12 @@ path = [
     "tests/integration/sample_client/vsomeip.json",
     "tests/integration/vsomeip-local.json",
     "tests/integration/vsomeip.json",
-    "tests/benchmarks/config/benchmark_mw_com_config.json"
+    "tests/integration_test/sample_client/vsomeip.json",
+    "tests/integration_test/vsomeip-local.json",
+    "tests/integration_test/vsomeip.json",
+    "tests/benchmarks/config/benchmark_mw_com_config.json",
+    "quality/integration_testing/environments/qnx8_qemu/qemu_config.json",
+    "quality/integration_testing/environments/ubuntu24_04_qemu/*"
 ]
 SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
 SPDX-License-Identifier = "Apache-2.0"

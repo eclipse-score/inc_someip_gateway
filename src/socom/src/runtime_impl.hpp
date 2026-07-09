@@ -76,11 +76,11 @@ class Service_record {
     };
 
     using Server = std::optional<Interfaced_server>;
-    using Clients = std::list<Interfaced_client>;
+    using Client = std::optional<Interfaced_client>;
 
     struct Server_registration {
         Registration registration;
-        Clients current_clients;
+        Client current_client;
     };
 
     struct Client_registration {
@@ -93,15 +93,15 @@ class Service_record {
     Server_registration register_server_connector(Service_interface_identifier const& interface,
                                                   SC_impl::Listen_endpoint connector);
 
-    Client_registration register_client_connector(Service_interface_identifier const& interface,
-                                                  CC_impl::Server_indication on_server_update);
+    Result<Client_registration> register_client_connector(
+        Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update);
 
     bool is_available() const { return m_server.has_value(); }
 
    private:
     std::mutex& m_runtime_mutex;
     Server m_server;
-    Clients m_clients;
+    Client m_client;
 };
 
 using Instances = std::vector<Service_instance>;
@@ -241,9 +241,9 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Request_service_function request_service) noexcept override;
     // NOLINTEND(bugprone-exception-escape)
 
-    Registration register_connector(Service_interface_definition const& configuration,
-                                    Service_instance const& instance,
-                                    CC_impl::Server_indication const& on_server_update);
+    Result<Registration> register_connector(Service_interface_definition const& configuration,
+                                            Service_instance const& instance,
+                                            CC_impl::Server_indication const& on_server_update);
 
     Registration register_connector(Service_interface_identifier const& interface,
                                     Service_instance const& instance,

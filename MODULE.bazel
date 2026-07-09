@@ -120,7 +120,9 @@ use_repo(
     "score_gcc_aarch64_toolchain",
     "score_gcc_x86_64_toolchain",
     "score_qcc_aarch64_toolchain",
+    "score_qcc_aarch64_toolchain_pkg",
     "score_qcc_x86_64_toolchain",
+    "score_qcc_x86_64_toolchain_pkg",
 )
 
 # ============================================================================
@@ -153,7 +155,33 @@ register_toolchains(
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "aspect_rules_lint", version = "2.6.0", dev_dependency = True)
+
+# override to same version as communication
+git_override(
+    module_name = "score_tooling",
+    commit = "bd09ae241b94f9d77d4c837a38c93b04e2df8cc8",
+    remote = "https://github.com/eclipse-score/tooling.git",
+)
+
+# Required because of the non-dev_dependency in overridden score_tooling.
+# Remove as soon as the dependency problem is resolved.
+bazel_dep(name = "lobster", version = "1.0.3", dev_dependency = True)
+git_override(
+    module_name = "lobster",
+    commit = "2792e2daee2cf524fdc7b1545fd3537791ebc36c",
+    remote = "https://github.com/bmw-software-engineering/lobster.git",
+)
+
+# Required because of the non-dev_dependency in overridden score_tooling.
+# Remove as soon as the dependency problem is resolved.
+bazel_dep(name = "trlc", version = "0.0.0", dev_dependency = True)
+git_override(
+    module_name = "trlc",
+    commit = "c4c531b9d667085daa09dfc1590edacc314bfda4",
+    remote = "https://github.com/bmw-software-engineering/trlc.git",
+)
+
+bazel_dep(name = "aspect_rules_lint", version = "2.7.2", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
 # ============================================================================
@@ -185,11 +213,26 @@ single_version_override(
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.2.1")
+git_override(
+    module_name = "score_communication",
+    commit = "f913fd2545415d75847e42dd982e1f3e95fe0b36",
+    remote = "https://github.com/eclipse-score/communication.git",
+)
 
 # ============================================================================
 # Base Libraries
 # ============================================================================
 bazel_dep(name = "score_baselibs", version = "0.2.8")
+git_override(
+    module_name = "score_baselibs",
+    # Required until a new release of baselibs is available that includes the tracing API
+    commit = "8d4e0847424a565846e7a8a24c4c0018e3b14da9",
+    patch_strip = 1,
+    # Patch baselibs with a QNX8 workaround for poll
+    # until a fix is provided by the QNX SDP
+    patches = ["//third_party/score_baselibs:restore_qnx8_poll_workaround.patch"],
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
 
 # Upgrade grpc-java to 1.70.0 for compatibility with newer grpc (1.70.1).
 # The transitive grpc dependency (via flatbuffers) resolves to grpc 1.70.1, which removed
@@ -262,3 +305,36 @@ http_archive(
         "https://github.com/COVESA/vsomeip/archive/refs/tags/3.6.1.tar.gz",
     ],
 )
+
+# ============================================================================
+# Integration Testing
+# ============================================================================
+bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
+bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "ubuntu_24_04_cloudimg",
+    downloaded_file_path = "noble-minimal-cloudimg-amd64.img",
+    integrity = "sha256-vZAj5xt7tb3tFOT7DJmODZPXFJ6QVsPmi0b/kJfdF9U=",
+    url = "https://cloud-images.ubuntu.com/minimal/releases/noble/release-20260626/ubuntu-24.04-minimal-cloudimg-amd64.img",
+)
+
+imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
+imagefs.toolchain(
+    name = "score_qnx_x86_64_ifs_toolchain",
+    sdp_to_import = "@score_qcc_x86_64_toolchain_pkg",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    type = "ifs",
+)
+imagefs.toolchain(
+    name = "score_qnx_aarch64_ifs_toolchain",
+    sdp_to_import = "@score_qcc_aarch64_toolchain_pkg",
+    target_cpu = "aarch64",
+    target_os = "qnx",
+    type = "ifs",
+)
+use_repo(imagefs, "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")
