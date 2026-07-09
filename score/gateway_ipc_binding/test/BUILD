@@ -26,9 +26,9 @@ cc_test(
     },
     features = COMPILER_WARNING_FEATURES,
     deps = [
-        "//src/gateway_ipc_binding",
-        "//src/socom",
-        "//src/socom:mock",
+        "//score/gateway_ipc_binding",
+        "//score/socom",
+        "//score/socom:mock",
         "@googletest//:gtest",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
     ],

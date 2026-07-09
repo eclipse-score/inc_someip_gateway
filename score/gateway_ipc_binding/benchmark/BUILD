@@ -28,7 +28,7 @@ cc_binary(
     features = COMPILER_WARNING_FEATURES,
     visibility = ["//visibility:public"],
     deps = [
-        "//src/gateway_ipc_binding",
+        "//score/gateway_ipc_binding",
         "@google_benchmark//:benchmark_main",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
     ],
@@ -47,7 +47,7 @@ cc_binary(
     features = COMPILER_WARNING_FEATURES,
     visibility = ["//visibility:public"],
     deps = [
-        "//src/gateway_ipc_binding",
+        "//score/gateway_ipc_binding",
         "@google_benchmark//:benchmark",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
     ],

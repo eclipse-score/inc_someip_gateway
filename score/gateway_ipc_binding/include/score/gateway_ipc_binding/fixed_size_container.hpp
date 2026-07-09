@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER
-#define SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER
+#ifndef SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER
+#define SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER
 
 #include <algorithm>
 #include <array>
@@ -101,4 +101,4 @@ std::string fixed_string_to_string(Fixed_string<Max_size> const& value) {
 
 }  // namespace score::gateway_ipc_binding
 
-#endif  // SRC_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER
+#endif  // SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_FIXED_SIZE_CONTAINER

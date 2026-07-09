@@ -21,12 +21,12 @@ cc_library(
     features = COMPILER_WARNING_FEATURES,
     includes = [
         "include",
-        "src/gateway_ipc_binding/include",
+        "score/gateway_ipc_binding/include",
     ],
     linkopts = ["-latomic"],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/socom",
+        "//score/socom",
         "@score_baselibs//score/memory/shared",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/message_passing",

@@ -48,7 +48,7 @@ Memory profiling uses the dedicated `gateway_ipc_binding_memory` application, wh
 
 ```bash
 cd /workspaces/score_inc_someip_gateway
-bazel build //src/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory -c opt --features=-tsan
+bazel build //score/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory -c opt --features=-tsan
 ```
 
 **Note**: The `-c opt --features=-tsan` flags disable ThreadSanitizer instrumentation to get representative release build profiling.
@@ -65,7 +65,7 @@ mkdir -p ../memory_profile
 /usr/bin/memusage \
   -d ../memory_profile/memusage.data \
   -p ../memory_profile/memusage.png \
-  ./bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
+  ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
   2>&1 | tee ../memory_profile/benchmark_run.log
 ```
 
@@ -82,7 +82,7 @@ Detailed heap profiler with full call-tree attribution:
 # Run Massif (generates massif.out.1)
 valgrind --tool=massif \
   --massif-out-file=../memory_profile/massif.out.1 \
-  ./bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
+  ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
   2>&1 | tee ../memory_profile/massif_run.log
 
 # View profile (first 80 lines)
@@ -118,7 +118,7 @@ Performance profiling uses the `gateway_ipc_binding_benchmark` Google Benchmark 
 
 ```bash
 cd /workspaces/score_inc_someip_gateway
-bazel build //src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark -c opt --features=-tsan
+bazel build //score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark -c opt --features=-tsan
 ```
 
 ### Run Benchmark
@@ -126,7 +126,7 @@ bazel build //src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark -c
 First, run the benchmark to establish a baseline and identify which test case to profile:
 
 ```bash
-./bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_benchmark \
+./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_benchmark \
   --benchmark_filter=benchmark_event_transmission_client_to_server \
   --benchmark_format=console \
   2>&1 | tee benchmark_results.log
@@ -149,7 +149,7 @@ mkdir -p ../profiling
 
 # Run with perf recording
 perf record -F 999 -g --call-graph dwarf,16384 -o ../profiling/perf_event_c2s_1024.data \
-  ./bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_benchmark \
+  ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_benchmark \
   --benchmark_filter=benchmark_event_transmission_client_to_server/1024 \
   --benchmark_time_unit=ns \
   2>&1 | tee ../profiling/benchmark_run.log
@@ -215,37 +215,37 @@ cd /workspaces/score_inc_someip_gateway
 
 # Build both targets
 echo "Building memory profiling app..."
-bazel build //src/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory -c opt --features=-tsan
+bazel build //score/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory -c opt --features=-tsan
 
 echo "Building benchmark suite..."
-bazel build //src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark -c opt --features=-tsan
+bazel build //score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark -c opt --features=-tsan
 
 # Memory profiling
 echo "Running memory profiling..."
-mkdir -p src/gateway_ipc_binding/memory_profile
+mkdir -p score/gateway_ipc_binding/memory_profile
 /usr/bin/memusage \
-  -d src/gateway_ipc_binding/memory_profile/memusage.data \
-  -p src/gateway_ipc_binding/memory_profile/memusage.png \
-  ./bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
-  2>&1 | tee src/gateway_ipc_binding/memory_profile/benchmark_run.log
+  -d score/gateway_ipc_binding/memory_profile/memusage.data \
+  -p score/gateway_ipc_binding/memory_profile/memusage.png \
+  ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
+  2>&1 | tee score/gateway_ipc_binding/memory_profile/benchmark_run.log
 
 echo "Running Massif profiling..."
 valgrind --tool=massif \
-  --massif-out-file=src/gateway_ipc_binding/memory_profile/massif.out.1 \
-  ./bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
-  2>&1 | tee src/gateway_ipc_binding/memory_profile/massif_run.log
+  --massif-out-file=score/gateway_ipc_binding/memory_profile/massif.out.1 \
+  ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
+  2>&1 | tee score/gateway_ipc_binding/memory_profile/massif_run.log
 
 # Performance profiling
 echo "Running performance profiling..."
-mkdir -p src/gateway_ipc_binding/profiling
-perf record -F 999 -g --call-graph dwarf,16384 -o src/gateway_ipc_binding/profiling/perf_event_c2s_1024.data \
-  ./bazel-bin/src/gateway_ipc_binding/benchmark/gateway_ipc_binding_benchmark \
+mkdir -p score/gateway_ipc_binding/profiling
+perf record -F 999 -g --call-graph dwarf,16384 -o score/gateway_ipc_binding/profiling/perf_event_c2s_1024.data \
+  ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_benchmark \
   --benchmark_filter=benchmark_event_transmission_client_to_server/1024 \
   --benchmark_time_unit=ns \
-  2>&1 | tee src/gateway_ipc_binding/profiling/benchmark_run.log
+  2>&1 | tee score/gateway_ipc_binding/profiling/benchmark_run.log
 
 # Generate reports
-cd src/gateway_ipc_binding/profiling
+cd score/gateway_ipc_binding/profiling
 perf script -i perf_event_c2s_1024.data | stackcollapse-perf.pl > perf_event_c2s_1024.folded
 flamegraph.pl perf_event_c2s_1024.folded > event_transmission_client_to_server_1024_flamegraph.svg
 perf report -i perf_event_c2s_1024.data --stdio --no-call-graph > perf_event_c2s_1024_percent_summary.txt
