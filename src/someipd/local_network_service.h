@@ -40,8 +40,7 @@ class LocalNetworkService {
     LocalNetworkService(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        std::shared_ptr<vsomeip::application> vsomeip_app,
-        socom::Runtime& socom_runtime);
+        std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime);
 
     /// \brief Creates a LocalNetworkService and adds it to the instances vector
     /// \param service_instance_config Configuration for the service instance to create
@@ -52,8 +51,7 @@ class LocalNetworkService {
     static void Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        std::shared_ptr<vsomeip::application> vsomeip_app,
-        socom::Runtime& socom_runtime,
+        std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime,
         std::vector<std::unique_ptr<LocalNetworkService>>& instances);
 
     LocalNetworkService(const LocalNetworkService&) = delete;
