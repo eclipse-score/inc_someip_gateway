@@ -42,6 +42,7 @@ RemoteServiceInstance::RemoteServiceInstance(
     // TODO: Error handling
     (void)ipc_skeleton_.OfferService();
 
+    socom::Event_id socom_event_id{0U};
     auto service_type_name = service_type_config_->service_type_name()->string_view();
     for (auto event_config : *service_type_config_->events()) {
         auto event_name = event_config->event_name()->string_view();
@@ -50,6 +51,7 @@ RemoteServiceInstance::RemoteServiceInstance(
         if (events_it == ipc_skeleton_.GetEvents().cend()) {
             score::mw::log::LogWarn()
                 << "[gatewayd] Event '" << event_name << "' not found in generic IPC skeleton";
+            ++socom_event_id;
             continue;
         }
         auto& ipc_event = const_cast<score::mw::com::GenericSkeletonEvent&>(events_it->second);
@@ -65,8 +67,8 @@ RemoteServiceInstance::RemoteServiceInstance(
             continue;
         }
 
-        event_contexts_.emplace(event_config->event_id(),
-                                EventContext{event_config, serializer, &ipc_event});
+        event_contexts_.emplace(socom_event_id, EventContext{event_config, serializer, &ipc_event});
+        ++socom_event_id;
     }
 
     socom::Service_interface_identifier const iface{
@@ -141,8 +143,7 @@ void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Paylo
     auto& ipc_event = const_cast<score::mw::com::GenericSkeletonEvent&>(events_it->second);
 
     // Extract payload
-    auto const message =
-        payload.data().subspan(someip::kSomeipFullHeaderSize, payload.data().size());
+    auto const message = payload.data().subspan(someip::kSomeipFullHeaderSize);
 
     auto maybe_sample = ipc_event.Allocate();
     if (!maybe_sample.has_value()) {
@@ -164,26 +165,6 @@ void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Paylo
 
     ipc_event.Send(std::move(sample));
 };
-
-namespace {
-struct FindServiceContext {
-    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config;
-    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config;
-    score::mw::com::GenericSkeleton skeleton;
-    std::vector<std::unique_ptr<RemoteServiceInstance>>& instances;
-
-    FindServiceContext(
-        std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_,
-        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_,
-        score::mw::com::GenericSkeleton&& skeleton_,
-        std::vector<std::unique_ptr<RemoteServiceInstance>>& instances_)
-        : service_instance_config(std::move(service_instance_config_)),
-          service_type_config(std::move(service_type_config_)),
-          skeleton(std::move(skeleton_)),
-          instances(instances_) {}
-};
-
-}  // namespace
 
 Result<void> RemoteServiceInstance::CreateAsyncRemoteService(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,

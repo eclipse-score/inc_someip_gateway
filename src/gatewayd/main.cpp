@@ -225,8 +225,13 @@ int main(int argc, char* argv[]) {
         score::gateway_ipc_binding::make_shared_memory_configs(server_shm_config), "gatewayd");
 
     // Wait for the IPC handshake to complete (requires someipd to be running).
-    while (!binding_client->is_connected()) {
+    while (!binding_client->is_connected() && !shutdown_requested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    if (shutdown_requested.load()) {
+        score::mw::log::LogInfo()
+            << "[gatewayd] Shutdown requested during IPC handshake with someipd, exiting...";
+        return 0;
     }
     std::cout << "[gatewayd] IPC connection to someipd established" << std::endl;
 
