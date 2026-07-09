@@ -14,6 +14,7 @@
 #include "remote_network_service.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <set>
@@ -80,7 +81,7 @@ void RemoteNetworkService::setup_vsomeip() {
 
         vsomeip_app_->register_message_handler(
             service_id, instance_id, vsomeip_event_id,
-            [this, socom_event_id](const std::shared_ptr<vsomeip::message>& msg) {
+            [this, socom_event_id, vsomeip_event_id](const std::shared_ptr<vsomeip::message>& msg) {
                 auto maybe_payload = server_connector_->allocate_event_payload(socom_event_id);
                 if (!maybe_payload.has_value()) {
                     return;
@@ -88,9 +89,55 @@ void RemoteNetworkService::setup_vsomeip() {
                 auto& payload = *maybe_payload;
                 auto const* const data = msg->get_payload()->get_data();
                 auto const size = static_cast<std::size_t>(msg->get_payload()->get_length());
-                // Shrink payload to actual size
-                payload.shrink(size);
-                std::memcpy(payload.wdata().data(), data, size);
+
+                // Build SOME/IP header (16 bytes) + payload
+                // This matches what gatewayd expects when receiving events from someipd.
+                // TODO: Check if this is actually required. E2E?
+                std::size_t pos = 0;
+
+                std::uint16_t service_id_val = msg->get_service();
+                payload.wdata()[pos++] = static_cast<std::byte>(service_id_val >> 8);
+                payload.wdata()[pos++] = static_cast<std::byte>(service_id_val & 0xFF);
+
+                std::uint16_t method_id = vsomeip_event_id;
+                payload.wdata()[pos++] = static_cast<std::byte>(method_id >> 8);
+                payload.wdata()[pos++] = static_cast<std::byte>(method_id & 0xFF);
+
+                // Length (4 bytes) - set to actual payload size + 8 (remaining header bytes)
+                std::uint32_t length = static_cast<std::uint32_t>(size + 8);
+                payload.wdata()[pos++] = static_cast<std::byte>((length >> 24) & 0xFF);
+                payload.wdata()[pos++] = static_cast<std::byte>((length >> 16) & 0xFF);
+                payload.wdata()[pos++] = static_cast<std::byte>((length >> 8) & 0xFF);
+                payload.wdata()[pos++] = static_cast<std::byte>(length & 0xFF);
+
+                std::uint16_t client_id = msg->get_client();
+                payload.wdata()[pos++] = static_cast<std::byte>(client_id >> 8);
+                payload.wdata()[pos++] = static_cast<std::byte>(client_id & 0xFF);
+
+                std::uint16_t session_id = msg->get_session();
+                payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
+                payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
+
+                std::uint8_t protocol_version =
+                    static_cast<std::uint8_t>(msg->get_protocol_version());
+                payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
+
+                std::uint8_t interface_version =
+                    static_cast<std::uint8_t>(msg->get_interface_version());
+                payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
+
+                std::uint8_t message_type = static_cast<std::uint8_t>(msg->get_message_type());
+                payload.wdata()[pos++] = static_cast<std::byte>(message_type);
+
+                std::uint8_t return_code = static_cast<std::uint8_t>(msg->get_return_code());
+                payload.wdata()[pos++] = static_cast<std::byte>(return_code);
+
+                // Copy payload data after header
+                std::memcpy(payload.wdata().data() + pos, data, size);
+                pos += size;
+
+                // Shrink to actual size (header + payload)
+                payload.shrink(pos);
                 server_connector_->update_event(socom_event_id, std::move(payload));
 
                 std::cout << "[someipd] Forwarded SOME/IP event 0x" << std::hex << msg->get_method()

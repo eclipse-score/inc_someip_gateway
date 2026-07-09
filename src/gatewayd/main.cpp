@@ -188,6 +188,11 @@ int main(int argc, char* argv[]) {
             .append("_")
             .append(std::to_string(service_id));
 
+        std::string counterpart_shm_path = "/counterpart_";
+        counterpart_shm_path.append(service_type_config->service_type_name()->string_view())
+            .append("_")
+            .append(std::to_string(service_id));
+
         auto shm_path_result =
             gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
                 shm_path);
@@ -197,19 +202,28 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
+        auto counterpart_shm_path_result =
+            gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
+                counterpart_shm_path);
+        if (!counterpart_shm_path_result.has_value()) {
+            score::mw::log::LogError()
+                << "[gatewayd] counterpart shm path too long for service_id " << service_id;
+            continue;
+        }
+
         // TODO: get actual slot size from serializer + 16B SOME/IP header
         if (service_type_config->local_service_instances()) {
             shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
                                        someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
-            server_shm_config[iface][inst] = {*shm_path_result, 1, 1};
+            server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
         } else if (service_type_config->remote_service_instances()) {
             server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
                                               someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
-            shm_config[iface][inst] = {*shm_path_result, 1, 1};
+            shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
         } else {
             score::mw::log::LogError()
                 << "[gatewayd] Service " << service_type_config->service_type_name()->string_view()
