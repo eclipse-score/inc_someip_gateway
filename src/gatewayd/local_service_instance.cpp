@@ -123,9 +123,6 @@ Result<std::unique_ptr<LocalServiceInstance>> LocalServiceInstance::Create(
         ipc_event.SetReceiveHandler([instance_ptr = instance.get(), &ipc_event, &event_context]() {
             ipc_event.GetNewSamples(
                 [instance_ptr, &event_context](SamplePtr<void> sample) {
-                    std::cout << "[gatewayd] LocalServiceInstance - Calling GetNewSamples()"
-                              << std::endl;
-
                     auto maybe_payload = instance_ptr->server_connector_->allocate_event_payload(
                         event_context.socom_event_id);
                     if (!maybe_payload.has_value()) {

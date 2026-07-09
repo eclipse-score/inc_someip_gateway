@@ -84,9 +84,6 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
             .on_event_update =
                 [instance_ptr = instance.get()](socom::Client_connector const&,
                                                 socom::Event_id event_id, socom::Payload payload) {
-                    std::cout << "[someipd] LocalNetworkService - on_event_update for event_id "
-                              << event_id << " with payload size " << payload.data().size()
-                              << std::endl;
                     instance_ptr->forward_to_vsomeip(event_id, std::move(payload));
                 },
             .on_event_requested_update =
@@ -135,10 +132,6 @@ void LocalNetworkService::forward_to_vsomeip(socom::Event_id event_id, socom::Pa
     vsomeip_app_->notify(service_type_config_->service_id(),
                          service_instance_config_->instance_id(), event_config->event_id(),
                          vsomeip_payload);
-
-    std::cout << "[someipd] Forwarded SOCom event " << event_index << " (vsomeip event_id=0x"
-              << std::hex << event_config->event_id() << std::dec
-              << ") to SOME/IP: event_data=" << event_data.size() << "B\n";
 }
 
 }  // namespace score::someipd

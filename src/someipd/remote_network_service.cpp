@@ -151,9 +151,6 @@ void RemoteNetworkService::setup_vsomeip() {
                 // Shrink to actual size (header + payload)
                 payload.shrink(pos);
                 server_connector_->update_event(socom_event_id, std::move(payload));
-
-                std::cout << "[someipd] Forwarded SOME/IP event 0x" << std::hex << msg->get_method()
-                          << std::dec << " to SOCom: payload=" << size << "B\n";
             });
 
         // TODO: Do Eventgroup handling. Currently just create one group per event with the same ID.
