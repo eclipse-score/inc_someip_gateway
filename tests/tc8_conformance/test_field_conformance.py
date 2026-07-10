@@ -83,6 +83,7 @@ class TestFieldInitialValue:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-FLD-001: Subscribing to a field eventgroup triggers an immediate NOTIFICATION.
@@ -107,7 +108,7 @@ class TestFieldInitialValue:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -143,6 +144,7 @@ class TestFieldInitialValue:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-FLD-002: Initial notification for a field arrives within 1 s of subscribe ACK.
@@ -162,7 +164,7 @@ class TestFieldInitialValue:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -210,12 +212,13 @@ class TestFieldGetSet:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-FLD-003: GET request (method 0x0001) returns a RESPONSE with the current value."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         resp = send_get_field(
-            host_ip,
+            dut_ip,
             _SERVICE_ID,
             _GET_METHOD_ID,
             DUT_UNRELIABLE_PORT,
@@ -240,6 +243,7 @@ class TestFieldGetSet:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-FLD-004: SET request (method 0x0002) updates the field and notifies subscribers."""
@@ -257,7 +261,7 @@ class TestFieldGetSet:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -273,7 +277,7 @@ class TestFieldGetSet:
 
             # Send the SET request.
             set_resp = send_set_field(
-                host_ip,
+                dut_ip,
                 _SERVICE_ID,
                 _SET_METHOD_ID,
                 new_value,
@@ -331,12 +335,13 @@ class TestFieldTcpTransport:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_17: GET field request over TCP returns the current value."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         resp = send_get_field_tcp(
-            host_ip,
+            dut_ip,
             _SERVICE_ID,
             _GET_METHOD_ID,
             DUT_RELIABLE_PORT,
@@ -361,13 +366,14 @@ class TestFieldTcpTransport:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_17: SET field request over TCP updates the value."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         new_value = b"\xbe\xef"
         set_resp = send_set_field_tcp(
-            host_ip,
+            dut_ip,
             _SERVICE_ID,
             _SET_METHOD_ID,
             new_value,
@@ -383,7 +389,7 @@ class TestFieldTcpTransport:
 
         # Verify the value was updated by reading it back over TCP.
         get_resp = send_get_field_tcp(
-            host_ip,
+            dut_ip,
             _SERVICE_ID,
             _GET_METHOD_ID,
             DUT_RELIABLE_PORT,

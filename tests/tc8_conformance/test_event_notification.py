@@ -78,6 +78,7 @@ class TestEventNotificationFormat:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-001: Event notification has message_type = NOTIFICATION (0x02)."""
@@ -99,7 +100,7 @@ class TestEventNotificationFormat:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -134,6 +135,7 @@ class TestEventNotificationFormat:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-002: Notification carries the correct event_id in the method_id field."""
@@ -148,7 +150,7 @@ class TestEventNotificationFormat:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -179,6 +181,7 @@ class TestEventNotificationFormat:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_15: Cyclic event notifications arrive at the configured cycle period.
@@ -211,7 +214,7 @@ class TestEventNotificationFormat:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -271,6 +274,7 @@ class TestEventNotificationFormat:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_16: Field event 0x0779 sends one initial notification then stays silent.
@@ -299,7 +303,7 @@ class TestEventNotificationFormat:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -354,6 +358,7 @@ class TestEventSubscriptionGating:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-003: Subscribed endpoint receives notifications; unsubscribed does not."""
@@ -374,7 +379,7 @@ class TestEventSubscriptionGating:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -413,6 +418,7 @@ class TestEventSubscriptionGating:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-004: No notifications arrive before subscribing."""
@@ -452,6 +458,7 @@ class TestEventStopSubscribe:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-006: Notifications stop after StopSubscribeEventgroup (TTL=0)."""
@@ -467,7 +474,7 @@ class TestEventStopSubscribe:
             # Subscribe and verify notifications
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -489,7 +496,7 @@ class TestEventStopSubscribe:
             # StopSubscribe (TTL=0)
             send_subscribe_eventgroup(
                 sd_sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 _EVENTGROUP_ID,
@@ -534,6 +541,7 @@ class TestMulticastEventDelivery:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-005: Notifications arrive on the multicast group after subscribing to 0x4465."""
@@ -563,7 +571,7 @@ class TestMulticastEventDelivery:
         try:
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
-                host_ip,
+                dut_ip,
                 SD_PORT,
                 _SERVICE_ID,
                 _INSTANCE_ID,
@@ -613,6 +621,7 @@ class TestEventTcpNotification:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_17: Notification arrives on TCP after subscribing with TCP endpoint.
@@ -641,7 +650,7 @@ class TestEventTcpNotification:
         tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_sock.settimeout(5.0)
         tcp_sock.bind((tester_ip, 0))
-        tcp_sock.connect((host_ip, DUT_RELIABLE_PORT))
+        tcp_sock.connect((dut_ip, DUT_RELIABLE_PORT))
         local_port = tcp_sock.getsockname()[1]
 
         sd_sock = open_sender_socket(tester_ip)
@@ -650,7 +659,7 @@ class TestEventTcpNotification:
             # source port so the DUT's TCP-connected check passes.
             send_subscribe_eventgroup(
                 sd_sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 _TCP_EVENTGROUP_ID,
@@ -667,7 +676,7 @@ class TestEventTcpNotification:
                 timeout_secs=5.0,
                 resend=lambda: send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _TCP_EVENTGROUP_ID,

@@ -24,7 +24,11 @@ import pytest
 
 from attribute_plugin import add_test_properties
 
-from conftest import launch_someipd, render_someip_config, terminate_someipd
+from helpers.dut_lifecycle import (
+    launch_someipd,
+    render_someip_config,
+    terminate_someipd,
+)
 from helpers.sd_helpers import open_multicast_socket
 from helpers.timing import collect_sd_offers_from_socket
 from someip.header import SOMEIPSDEntry
@@ -57,13 +61,26 @@ _PHASE_CAPTURE_TIMEOUT_SECS: float = 20.0
 def sd_phase_capture(
     tmp_path_factory: pytest.TempPathFactory,
     host_ip: str,
+    request: pytest.FixtureRequest,
 ) -> Generator[List[Tuple[float, SOMEIPSDEntry]], None, None]:
     """Start a fresh someipd and capture timestamped SD offers.
 
-    Opens the multicast socket BEFORE launching someipd to capture
-    the very first offer. Yields the captured data to the tests.
+    Opens the multicast socket BEFORE launching someipd to guarantee the first
+    offer is captured.  Yields the captured data to the tests.
+
+    someipd runs on the QEMU guest; ``host_ip`` is the host TAP interface
+    (169.254.21.88) used for multicast join.
     """
+    target_init = request.getfixturevalue("target_init")
+
+    # Ensure guest vsomeip configs are rendered (sed on QEMU guest).
+    # Without this the guest /tc8_sd.json is absent or has literal placeholders,
+    # causing vsomeip to bind loopback and SD multicast to never reach the host.
+    request.getfixturevalue("tc8_itf_config_setup")
+
     tmp_dir = tmp_path_factory.mktemp("tc8_phase_config")
+    # Host-side render is harmless; launch_someipd uses the filename to select
+    # the pre-rendered guest config.
     config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
     # 1. Open multicast socket before starting someipd (captures first offer).
@@ -76,8 +93,8 @@ def sd_phase_capture(
             "sudo ip route add 224.0.0.0/4 dev lo"
         )
 
-    # 2. Launch someipd.
-    proc = launch_someipd(config_path)
+    # 2. Launch someipd on the QEMU guest.
+    proc = launch_someipd(config_path, target_init=target_init)
 
     # 3. Capture: initial + repetition phase + 1 cyclic gap.
     try:

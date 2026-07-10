@@ -99,14 +99,14 @@ _SUBSCRIBER_PORT: int = 34567
 # ---------------------------------------------------------------------------
 
 
-def _verify_dut_alive(sock: socket.socket, host_ip: str) -> None:
+def _verify_dut_alive(sock: socket.socket, dut_ip: str) -> None:
     """Verify the DUT is still alive by checking it responds to a valid FindService.
 
     Sends a FindService and waits up to ``_DUT_ALIVE_TIMEOUT`` seconds for an
     OfferService reply.  Fails the calling test if no reply arrives, which
     indicates the DUT crashed or is unresponsive after malformed packet injection.
     """
-    sd_dest = (host_ip, SD_PORT)
+    sd_dest = (dut_ip, SD_PORT)
 
     def _resend() -> None:
         send_find_service(sock, sd_dest, _SERVICE_ID)
@@ -157,11 +157,12 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_111: SD packet with entries_array_length=0 — DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
-        send_sd_empty_entries(sender, (host_ip, SD_PORT))
-        _verify_dut_alive(sender, host_ip)
+        send_sd_empty_entries(sender, (dut_ip, SD_PORT))
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -173,13 +174,14 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_112/113: SubscribeEventgroup with option length=1 (too short). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_empty_option(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -191,13 +193,14 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_114: entries_array_length=0 but one entry is present. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entries_length_wrong(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, entries_length_override=0
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, entries_length_override=0
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -209,13 +212,14 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_114: entries_array_length=8 (not a multiple of 16). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entries_length_wrong(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, entries_length_override=8
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, entries_length_override=8
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -227,20 +231,21 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_115: Entry num_options_1=3 but options array has only 1. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_refs_more_options(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -252,13 +257,14 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_116/174: SubscribeEventgroup with unknown option type 0x77. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_unknown_option_type(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -270,20 +276,21 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_117: Two entries sharing option index 0 (index overlap). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_same_option_twice(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -295,6 +302,7 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_118: FindService entry with an unexpected endpoint option attached.
@@ -303,10 +311,10 @@ class TestSDMalformedEntries:
         """
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_find_with_options(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, tester_ip, _SUBSCRIBER_PORT
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, tester_ip, _SUBSCRIBER_PORT
         )
         # The DUT should still respond to this FindService (options are ignored on Find)
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -318,11 +326,12 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_123/124: entries_array_length=0xFFFF (far exceeds packet size). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
-        send_sd_oversized_entries_length(sender, (host_ip, SD_PORT), _SERVICE_ID)
-        _verify_dut_alive(sender, host_ip)
+        send_sd_oversized_entries_length(sender, (dut_ip, SD_PORT), _SERVICE_ID)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -334,11 +343,12 @@ class TestSDMalformedEntries:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_125: entries_array_length=16 but only 8 bytes of entry data present. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
-        send_sd_truncated_entry(sender, (host_ip, SD_PORT), _SERVICE_ID)
-        _verify_dut_alive(sender, host_ip)
+        send_sd_truncated_entry(sender, (dut_ip, SD_PORT), _SERVICE_ID)
+        _verify_dut_alive(sender, dut_ip)
 
 
 # ---------------------------------------------------------------------------
@@ -359,13 +369,14 @@ class TestSDMalformedOptions:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_134: IPv4EndpointOption length field = 0x00FF (way larger than 0x0009). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_too_long(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
@@ -373,7 +384,7 @@ class TestSDMalformedOptions:
             _SUBSCRIBER_PORT,
             option_length_override=0x00FF,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -385,13 +396,14 @@ class TestSDMalformedOptions:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_135: IPv4EndpointOption length field = 0x000A (one larger than 0x0009). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_too_long(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
@@ -399,7 +411,7 @@ class TestSDMalformedOptions:
             _SUBSCRIBER_PORT,
             option_length_override=0x000A,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -411,20 +423,21 @@ class TestSDMalformedOptions:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_136: IPv4EndpointOption length field = 0x0001 (shorter than minimum). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_too_short(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -436,20 +449,21 @@ class TestSDMalformedOptions:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_137: IPv4EndpointOption length field = 0x000A (unaligned/odd). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_unaligned(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -461,20 +475,21 @@ class TestSDMalformedOptions:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_138: options_array_length claims 100 bytes but only 12 present. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_options_array_length_too_long(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -486,20 +501,21 @@ class TestSDMalformedOptions:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_139: options_array_length claims 2 bytes but 12 are present. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_options_array_length_too_short(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -511,13 +527,14 @@ class TestSDMalformedOptions:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_174: Option type 0x77 (unknown/reserved). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_unknown_option_type(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
 
 # ---------------------------------------------------------------------------
@@ -538,6 +555,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_109: SubscribeEventgroup with num_options_1=0 (no endpoint).
 
@@ -545,9 +563,9 @@ class TestSDSubscribeEdgeCases:
         """
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_no_endpoint(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -559,6 +577,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_110: SubscribeEventgroup with endpoint IP = 0.0.0.0.
 
@@ -567,13 +586,13 @@ class TestSDSubscribeEdgeCases:
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_zero_ip(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             subscriber_port=_SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -585,6 +604,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_119: SubscribeEventgroup with L4 protocol byte = 0x00 (unknown).
@@ -594,7 +614,7 @@ class TestSDSubscribeEdgeCases:
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_wrong_l4proto(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
@@ -602,7 +622,7 @@ class TestSDSubscribeEdgeCases:
             _SUBSCRIBER_PORT,
             l4proto=0x00,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -614,6 +634,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_140: SubscribeEventgroup for an unknown service_id (0xDEAD).
@@ -623,14 +644,14 @@ class TestSDSubscribeEdgeCases:
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _UNKNOWN_SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -642,6 +663,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_141: SubscribeEventgroup for correct service_id but unknown instance_id.
@@ -651,14 +673,14 @@ class TestSDSubscribeEdgeCases:
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _UNKNOWN_INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -670,6 +692,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_142: SubscribeEventgroup for correct service/instance but unknown eventgroup.
@@ -679,14 +702,14 @@ class TestSDSubscribeEdgeCases:
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _UNKNOWN_EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -698,6 +721,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_143: SubscribeEventgroup with service, instance, and eventgroup all unknown.
@@ -707,14 +731,14 @@ class TestSDSubscribeEdgeCases:
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _UNKNOWN_SERVICE_ID,
             _UNKNOWN_INSTANCE_ID,
             _UNKNOWN_EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -726,6 +750,7 @@ class TestSDSubscribeEdgeCases:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_144: SubscribeEventgroup with reserved option type 0x20.
@@ -735,14 +760,14 @@ class TestSDSubscribeEdgeCases:
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_reserved_option(
             sender,
-            (host_ip, SD_PORT),
+            (dut_ip, SD_PORT),
             _SERVICE_ID,
             _INSTANCE_ID,
             _EVENTGROUP_ID,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
 
 # ---------------------------------------------------------------------------
@@ -763,13 +788,14 @@ class TestSDMessageFramingErrors:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_152a: FindService with session_id=0xFFFE. DUT must not be confused by near-wrap session ID."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, session_id=0xFFFE
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, session_id=0xFFFE
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -781,13 +807,14 @@ class TestSDMessageFramingErrors:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_152b: FindService with session_id=0xFFFF (maximum). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, session_id=0xFFFF
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, session_id=0xFFFF
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -799,13 +826,14 @@ class TestSDMessageFramingErrors:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_152c: FindService with session_id=0x0001 after high session_id. DUT must accept wrap."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, session_id=0x0001
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, session_id=0x0001
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -817,13 +845,14 @@ class TestSDMessageFramingErrors:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_153a: SOME/IP length field smaller than actual payload (length=8). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_wrong_someip_length(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, length_override=8
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, length_override=8
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -835,13 +864,14 @@ class TestSDMessageFramingErrors:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_153b: SOME/IP length field larger than actual payload (length=0x1000). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_wrong_someip_length(
-            sender, (host_ip, SD_PORT), _SERVICE_ID, length_override=0x1000
+            sender, (dut_ip, SD_PORT), _SERVICE_ID, length_override=0x1000
         )
-        _verify_dut_alive(sender, host_ip)
+        _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -853,11 +883,12 @@ class TestSDMessageFramingErrors:
         someipd_dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_178: SD packet with SOME/IP service_id=0x1234 (not 0xFFFF).
 
         DUT must silently discard (not recognized as SD) and remain alive.
         """
         assert someipd_dut.poll() is None, "DUT is not running before injection"
-        send_sd_wrong_someip_message_id(sender, (host_ip, SD_PORT))
-        _verify_dut_alive(sender, host_ip)
+        send_sd_wrong_someip_message_id(sender, (dut_ip, SD_PORT))
+        _verify_dut_alive(sender, dut_ip)

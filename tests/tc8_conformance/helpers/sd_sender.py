@@ -329,4 +329,9 @@ def _parse_sd_entries(data: bytes) -> List[SOMEIPSDEntry]:
         sd_header, _ = SOMEIPSDHeader.parse(someip_msg.payload)
     except Exception:
         return []
-    return list(sd_header.entries)
+    # resolve_options() links each entry's options_1/options_2 tuples to the
+    # actual SOMEIPSDOption objects from sd_header.options.  Without this call
+    # options_1 and options_2 on every SOMEIPSDEntry remain empty tuples even
+    # when the wire packet carries options (e.g. the multicast IPv4Endpoint
+    # option in a SubscribeEventgroupAck for TC8-SD-013).
+    return list(sd_header.resolve_options().entries)

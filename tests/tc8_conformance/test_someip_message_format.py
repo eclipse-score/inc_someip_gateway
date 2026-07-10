@@ -74,7 +74,7 @@ def _wait_for_dut_offer(host_ip: str, timeout: float = 5.0) -> None:
 
 
 def _send_request_and_receive(
-    host_ip: str,
+    dut_ip: str,
     request_bytes: bytes,
     timeout_secs: float = 3.0,
 ) -> SOMEIPHeader:
@@ -83,7 +83,7 @@ def _send_request_and_receive(
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         sock.bind(("", 0))
-        sock.sendto(request_bytes, (host_ip, DUT_UNRELIABLE_PORT))
+        sock.sendto(request_bytes, (dut_ip, DUT_UNRELIABLE_PORT))
         sock.settimeout(timeout_secs)
         data, _ = sock.recvfrom(65535)
         resp, _ = SOMEIPHeader.parse(data)
@@ -93,7 +93,7 @@ def _send_request_and_receive(
 
 
 def _send_request_expect_no_response(
-    host_ip: str,
+    dut_ip: str,
     request_bytes: bytes,
     timeout_secs: float = 2.0,
 ) -> list:
@@ -103,7 +103,7 @@ def _send_request_expect_no_response(
     collected = []
     try:
         sock.bind(("", 0))
-        sock.sendto(request_bytes, (host_ip, DUT_UNRELIABLE_PORT))
+        sock.sendto(request_bytes, (dut_ip, DUT_UNRELIABLE_PORT))
         deadline = time.monotonic() + timeout_secs
         while time.monotonic() < deadline:
             remaining = deadline - time.monotonic()
@@ -140,6 +140,7 @@ class TestSomeipResponseHeader:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-001: RESPONSE has protocol_version = 0x01."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -148,7 +149,7 @@ class TestSomeipResponseHeader:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0001
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert resp.protocol_version == 1, (
             f"TC8-MSG-001: protocol_version = {resp.protocol_version}, expected 1 (0x01)"
@@ -163,6 +164,7 @@ class TestSomeipResponseHeader:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-002: Response to REQUEST has message_type = RESPONSE (0x80)."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -171,7 +173,7 @@ class TestSomeipResponseHeader:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0002
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
 
@@ -184,6 +186,7 @@ class TestSomeipResponseHeader:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-002 (fire-and-forget): REQUEST_NO_RETURN must not produce a RESPONSE."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -192,7 +195,7 @@ class TestSomeipResponseHeader:
         req = build_request_no_return(
             _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0009
         )
-        responses = _send_request_expect_no_response(host_ip, req, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         assert not responses, (
             f"TC8-MSG-002: {len(responses)} response(s) received for REQUEST_NO_RETURN; "
@@ -208,6 +211,7 @@ class TestSomeipResponseHeader:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-005: RESPONSE session_id matches REQUEST session_id."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -217,7 +221,7 @@ class TestSomeipResponseHeader:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=session_id
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_session_echo(resp, session_id)
 
@@ -230,6 +234,7 @@ class TestSomeipResponseHeader:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-008: RESPONSE client_id matches REQUEST client_id."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -239,7 +244,7 @@ class TestSomeipResponseHeader:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=client_id, session_id=0x0003
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_client_echo(resp, client_id)
 
@@ -261,6 +266,7 @@ class TestSomeipErrorCodes:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-003: Request to unknown service gets E_UNKNOWN_SERVICE or no response.
 
@@ -275,7 +281,7 @@ class TestSomeipErrorCodes:
         req = build_request(
             unknown_service, _METHOD_ID, client_id=0x0010, session_id=0x0004
         )
-        responses = _send_request_expect_no_response(host_ip, req, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         if responses:
             # If the DUT responds, it must be E_UNKNOWN_SERVICE
@@ -290,6 +296,7 @@ class TestSomeipErrorCodes:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-004: Request with unknown method_id gets E_UNKNOWN_METHOD."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -298,7 +305,7 @@ class TestSomeipErrorCodes:
         req = build_request(
             _SERVICE_ID, _UNKNOWN_METHOD_ID, client_id=0x0010, session_id=0x0005
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_return_code(resp, SOMEIPReturnCode.E_UNKNOWN_METHOD)
 
@@ -311,6 +318,7 @@ class TestSomeipErrorCodes:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-006: Request with wrong interface version gets E_WRONG_INTERFACE_VERSION or error.
 
@@ -329,7 +337,7 @@ class TestSomeipErrorCodes:
             session_id=0x0006,
             interface_version=0xFF,
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         # Accept E_WRONG_INTERFACE_VERSION, E_UNKNOWN_METHOD, or E_OK.
         # The DUT may check interface version at routing level, at handler level,
@@ -362,13 +370,14 @@ class TestMalformedMessages:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-007: Truncated message (< 8 bytes) does not crash the DUT."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
-            sock.sendto(build_truncated_message(), (host_ip, DUT_UNRELIABLE_PORT))
+            sock.sendto(build_truncated_message(), (dut_ip, DUT_UNRELIABLE_PORT))
         finally:
             sock.close()
 
@@ -386,6 +395,7 @@ class TestMalformedMessages:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-007: Message with protocol_version=0xFF does not crash the DUT."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -397,7 +407,7 @@ class TestMalformedMessages:
             session_id=0x0007,
         )
         # DUT may respond with E_MALFORMED_MESSAGE or drop silently — both are valid.
-        _send_request_expect_no_response(host_ip, malformed, timeout_secs=1.0)
+        _send_request_expect_no_response(dut_ip, malformed, timeout_secs=1.0)
 
         assert someipd_dut.poll() is None, (
             "TC8-MSG-007: someipd crashed after receiving a wrong-protocol-version message"
@@ -412,6 +422,7 @@ class TestMalformedMessages:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-MSG-007: Message whose length field claims 0x7FF3 bytes does not crash the DUT."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -422,7 +433,7 @@ class TestMalformedMessages:
                 build_oversized_message(
                     _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0008
                 ),
-                (host_ip, DUT_UNRELIABLE_PORT),
+                (dut_ip, DUT_UNRELIABLE_PORT),
             )
         finally:
             sock.close()
@@ -455,6 +466,7 @@ class TestSomeipTcpTransport:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_01: REQUEST over TCP receives a valid RESPONSE.
 
@@ -464,7 +476,7 @@ class TestSomeipTcpTransport:
         assert someipd_dut.poll() is None, "someipd DUT is not running"
         _wait_for_dut_offer(host_ip)
 
-        sock = tcp_connect(host_ip, DUT_RELIABLE_PORT)
+        sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             req = build_request(
                 _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0050
@@ -485,13 +497,14 @@ class TestSomeipTcpTransport:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_01: TCP RESPONSE echoes the REQUEST session_id."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
         _wait_for_dut_offer(host_ip)
 
         session_id = 0x5678
-        sock = tcp_connect(host_ip, DUT_RELIABLE_PORT)
+        sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             req = build_request(
                 _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=session_id
@@ -512,13 +525,14 @@ class TestSomeipTcpTransport:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_01: TCP RESPONSE echoes the REQUEST client_id."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
         _wait_for_dut_offer(host_ip)
 
         client_id = 0x0015
-        sock = tcp_connect(host_ip, DUT_RELIABLE_PORT)
+        sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             req = build_request(
                 _SERVICE_ID, _METHOD_ID, client_id=client_id, session_id=0x0051
@@ -539,6 +553,7 @@ class TestSomeipTcpTransport:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_02: Multiple SOME/IP methods on a single TCP connection.
 
@@ -548,7 +563,7 @@ class TestSomeipTcpTransport:
         assert someipd_dut.poll() is None, "someipd DUT is not running"
         _wait_for_dut_offer(host_ip)
 
-        sock = tcp_connect(host_ip, DUT_RELIABLE_PORT)
+        sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             # First request
             req1 = build_request(
@@ -579,6 +594,7 @@ class TestSomeipTcpTransport:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_OPTIONS_15: SD OfferService includes a TCP endpoint option.
 
@@ -591,7 +607,7 @@ class TestSomeipTcpTransport:
         offers = capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
         assert offers, "No SD OfferService received"
 
-        assert_offer_has_tcp_endpoint_option(offers[0], host_ip, DUT_RELIABLE_PORT)
+        assert_offer_has_tcp_endpoint_option(offers[0], dut_ip, DUT_RELIABLE_PORT)
 
 
 # ---------------------------------------------------------------------------
@@ -616,6 +632,7 @@ class TestTcpUnalignedMessages:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIP_ETS_068: Three REQUEST messages in one TCP segment; third is unaligned.
 
@@ -643,7 +660,7 @@ class TestTcpUnalignedMessages:
             _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0073, payload=b""
         )
 
-        sock = tcp_connect(host_ip, DUT_RELIABLE_PORT)
+        sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             tcp_send_concatenated(sock, [msg1, msg2, msg3])
             responses = tcp_receive_n_responses(sock, count=3, timeout_secs=5.0)
@@ -687,6 +704,7 @@ class TestUdpUnalignedMessages:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIP_ETS_069: Three REQUEST messages in one UDP datagram; third is unaligned.
 
@@ -719,7 +737,7 @@ class TestUdpUnalignedMessages:
         sock.bind(("", 0))
         try:
             udp_send_concatenated(
-                sock, (host_ip, DUT_UNRELIABLE_PORT), [msg1, msg2, msg3]
+                sock, (dut_ip, DUT_UNRELIABLE_PORT), [msg1, msg2, msg3]
             )
             responses = udp_receive_responses(sock, count=3, timeout_secs=5.0)
         finally:
@@ -749,7 +767,7 @@ _EVENT_METHOD_ID: int = 0x8001  # bit 15 set → event notification indicator
 
 
 def _send_request_and_receive_with_addr(
-    host_ip: str,
+    dut_ip: str,
     request_bytes: bytes,
     timeout_secs: float = 3.0,
 ) -> tuple[SOMEIPHeader, tuple[str, int]]:
@@ -758,7 +776,7 @@ def _send_request_and_receive_with_addr(
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         sock.bind(("", 0))
-        sock.sendto(request_bytes, (host_ip, DUT_UNRELIABLE_PORT))
+        sock.sendto(request_bytes, (dut_ip, DUT_UNRELIABLE_PORT))
         sock.settimeout(timeout_secs)
         data, addr = sock.recvfrom(65535)
         resp, _ = SOMEIPHeader.parse(data)
@@ -779,6 +797,7 @@ class TestSomeipBasicIdentifiers:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_BASIC_01: REQUEST to known service/method receives RESPONSE with E_OK."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -787,7 +806,7 @@ class TestSomeipBasicIdentifiers:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0020, session_id=0x0001
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
         assert_return_code(resp, SOMEIPReturnCode.E_OK)
@@ -801,6 +820,7 @@ class TestSomeipBasicIdentifiers:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_BASIC_02: REQUEST to unknown service_id must return E_UNKNOWN_SERVICE.
 
@@ -813,7 +833,7 @@ class TestSomeipBasicIdentifiers:
         req = build_request(
             _UNKNOWN_SERVICE_ID, _METHOD_ID, client_id=0x0020, session_id=0x0002
         )
-        responses = _send_request_expect_no_response(host_ip, req, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         assert responses, (
             "SOMEIPSRV_BASIC_02: No response received for unknown service_id "
@@ -839,6 +859,7 @@ class TestSomeipBasicIdentifiers:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_BASIC_03: REQUEST with event method_id (bit 15 set) must not produce a RESPONSE.
 
@@ -852,7 +873,7 @@ class TestSomeipBasicIdentifiers:
         req = build_request(
             _SERVICE_ID, _EVENT_METHOD_ID, client_id=0x0020, session_id=0x0003
         )
-        responses = _send_request_expect_no_response(host_ip, req, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         response_msgs = [
             r for r in responses if r.message_type == SOMEIPMessageType.RESPONSE
@@ -881,6 +902,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ONWIRE_01: RESPONSE originates from the DUT's offering address and port."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -889,12 +911,12 @@ class TestSomeipResponseFields:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0010
         )
-        resp, addr = _send_request_and_receive_with_addr(host_ip, req)
+        resp, addr = _send_request_and_receive_with_addr(dut_ip, req)
 
         assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
-        assert addr[0] == host_ip, (
+        assert addr[0] == dut_ip, (
             f"SOMEIPSRV_ONWIRE_01: RESPONSE source IP mismatch: "
-            f"got {addr[0]}, expected {host_ip}"
+            f"got {addr[0]}, expected {dut_ip}"
         )
         assert addr[1] == DUT_UNRELIABLE_PORT, (
             f"SOMEIPSRV_ONWIRE_01: RESPONSE source port mismatch: "
@@ -910,6 +932,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ONWIRE_02: RESPONSE method_id has bit 15 = 0 (not an event)."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -918,7 +941,7 @@ class TestSomeipResponseFields:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0011
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert (resp.method_id & 0x8000) == 0, (
             f"SOMEIPSRV_ONWIRE_02: RESPONSE method_id bit 15 is set "
@@ -934,6 +957,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ONWIRE_04: Each RESPONSE echoes the corresponding request_id (client:session).
 
@@ -950,7 +974,7 @@ class TestSomeipResponseFields:
             req = build_request(
                 _SERVICE_ID, _METHOD_ID, client_id=client_id, session_id=session_id
             )
-            resp = _send_request_and_receive(host_ip, req)
+            resp = _send_request_and_receive(dut_ip, req)
 
             assert resp.client_id == client_id, (
                 f"SOMEIPSRV_ONWIRE_04: client_id mismatch: "
@@ -970,6 +994,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ONWIRE_06: RESPONSE interface_version matches the REQUEST interface_version.
 
@@ -987,7 +1012,7 @@ class TestSomeipResponseFields:
             session_id=0x0012,
             interface_version=iface_ver,
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert resp.interface_version == iface_ver, (
             f"SOMEIPSRV_ONWIRE_06: interface_version mismatch: "
@@ -1003,6 +1028,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ONWIRE_11: A normal RESPONSE to a valid REQUEST has return_code E_OK."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1011,7 +1037,7 @@ class TestSomeipResponseFields:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0013
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_return_code(resp, SOMEIPReturnCode.E_OK)
 
@@ -1024,6 +1050,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_18: RESPONSE message_id (service_id:method_id) echoes REQUEST values."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1032,7 +1059,7 @@ class TestSomeipResponseFields:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0014
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert resp.service_id == _SERVICE_ID, (
             f"SOMEIPSRV_RPC_18: service_id mismatch in RESPONSE: "
@@ -1052,6 +1079,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_19: Error response session_id must equal the request session_id.
 
@@ -1066,7 +1094,7 @@ class TestSomeipResponseFields:
         req = build_request(
             _SERVICE_ID, _UNKNOWN_METHOD_ID, client_id=0x0021, session_id=session_id
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_session_echo(resp, session_id)
 
@@ -1079,6 +1107,7 @@ class TestSomeipResponseFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_20: RESPONSE interface_version is copied from the REQUEST (variant).
 
@@ -1096,7 +1125,7 @@ class TestSomeipResponseFields:
             session_id=0x0015,
             interface_version=iface_ver,
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert resp.interface_version == iface_ver, (
             f"SOMEIPSRV_RPC_20: interface_version mismatch: "
@@ -1121,6 +1150,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_05: REQUEST_NO_RETURN produces neither a RESPONSE nor an ERROR."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1129,7 +1159,7 @@ class TestSomeipFireAndForgetAndErrors:
         req = build_request_no_return(
             _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0020
         )
-        responses = _send_request_expect_no_response(host_ip, req, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         error_msgs = [
             r
@@ -1158,6 +1188,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_06: RESPONSE return_code has bits 7-5 = 0 (only bits 4-0 are used)."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1166,7 +1197,7 @@ class TestSomeipFireAndForgetAndErrors:
         req = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0021
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         rc_value: int = (
             resp.return_code.value
@@ -1187,6 +1218,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_07: DUT processes REQUEST normally even if return_code field is non-zero.
 
@@ -1203,7 +1235,7 @@ class TestSomeipFireAndForgetAndErrors:
             client_id=0x0030,
             session_id=0x0022,
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
 
@@ -1225,6 +1257,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_08: DUT does not reply to REQUEST with return_code = E_NOT_OK (0x01).
 
@@ -1241,7 +1274,7 @@ class TestSomeipFireAndForgetAndErrors:
             client_id=0x0030,
             session_id=0x0023,
         )
-        responses = _send_request_expect_no_response(host_ip, req, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         assert not responses, (
             f"SOMEIPSRV_RPC_08: {len(responses)} response(s) received; "
@@ -1257,6 +1290,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_09: ERROR response to unknown method has length = 8 (no payload).
 
@@ -1270,7 +1304,7 @@ class TestSomeipFireAndForgetAndErrors:
         req = build_request(
             _SERVICE_ID, _UNKNOWN_METHOD_ID, client_id=0x0030, session_id=0x0024
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         # Compute the actual length field from the serialised response.
         raw_resp = resp.build()
@@ -1289,6 +1323,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_10: REQUEST_NO_RETURN with patched reserved message_type byte is dropped.
 
@@ -1309,7 +1344,7 @@ class TestSomeipFireAndForgetAndErrors:
         responses = []
         try:
             sock.bind(("", 0))
-            sock.sendto(patched, (host_ip, DUT_UNRELIABLE_PORT))
+            sock.sendto(patched, (dut_ip, DUT_UNRELIABLE_PORT))
             deadline = time.monotonic() + 2.0
             while time.monotonic() < deadline:
                 remaining = deadline - time.monotonic()
@@ -1341,6 +1376,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ETS_004: 10 sequential REQUESTs each produce a correctly echoed RESPONSE.
 
@@ -1356,7 +1392,7 @@ class TestSomeipFireAndForgetAndErrors:
             req = build_request(
                 _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=session_id
             )
-            resp = _send_request_and_receive(host_ip, req, timeout_secs=3.0)
+            resp = _send_request_and_receive(dut_ip, req, timeout_secs=3.0)
             assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
             assert_session_echo(resp, session_id)
 
@@ -1369,6 +1405,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ETS_054: REQUEST with empty payload (length=8) gets E_OK RESPONSE."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1381,7 +1418,7 @@ class TestSomeipFireAndForgetAndErrors:
             session_id=0x0030,
             payload=b"",
         )
-        resp = _send_request_and_receive(host_ip, req)
+        resp = _send_request_and_receive(dut_ip, req)
 
         assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
         assert_return_code(resp, SOMEIPReturnCode.E_OK)
@@ -1395,6 +1432,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ETS_059: REQUEST_NO_RETURN to non-existent service gets no ERROR reply."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1403,7 +1441,7 @@ class TestSomeipFireAndForgetAndErrors:
         req = build_request_no_return(
             _UNKNOWN_SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0031
         )
-        responses = _send_request_expect_no_response(host_ip, req, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         assert not responses, (
             f"SOMEIPSRV_ETS_059: {len(responses)} message(s) received after sending "
@@ -1419,6 +1457,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ETS_061: Two sequential REQUESTs each receive RESPONSE with correct session_id."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1428,7 +1467,7 @@ class TestSomeipFireAndForgetAndErrors:
             req = build_request(
                 _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=session_id
             )
-            resp = _send_request_and_receive(host_ip, req)
+            resp = _send_request_and_receive(dut_ip, req)
             assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
             assert_session_echo(resp, session_id)
 
@@ -1441,6 +1480,7 @@ class TestSomeipFireAndForgetAndErrors:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """SOMEIPSRV_ETS_075: DUT ignores a message with message_type=NOTIFICATION (0x02).
 
@@ -1453,7 +1493,7 @@ class TestSomeipFireAndForgetAndErrors:
         msg = build_notification_as_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0050
         )
-        responses = _send_request_expect_no_response(host_ip, msg, timeout_secs=2.0)
+        responses = _send_request_expect_no_response(dut_ip, msg, timeout_secs=2.0)
 
         assert not responses, (
             f"SOMEIPSRV_ETS_075: {len(responses)} response(s) received for a "
@@ -1478,6 +1518,7 @@ class TestSomeipByteOrder:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_005: SOME/IP RESPONSE is encoded in big-endian byte order.
 
@@ -1500,7 +1541,7 @@ class TestSomeipByteOrder:
         parsed: SOMEIPHeader
         try:
             sock.bind(("", 0))
-            sock.sendto(req, (host_ip, DUT_UNRELIABLE_PORT))
+            sock.sendto(req, (dut_ip, DUT_UNRELIABLE_PORT))
             sock.settimeout(3.0)
             raw_data, _ = sock.recvfrom(65535)
             parsed, _ = SOMEIPHeader.parse(raw_data)
@@ -1535,6 +1576,7 @@ class TestSomeipByteOrder:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """ETS_058: SOME/IP message with oversized length field (0xFFFFFFF0) does not crash DUT.
 
@@ -1560,7 +1602,7 @@ class TestSomeipByteOrder:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             sock.bind(("", 0))
-            sock.sendto(bytes(oversized), (host_ip, DUT_UNRELIABLE_PORT))
+            sock.sendto(bytes(oversized), (dut_ip, DUT_UNRELIABLE_PORT))
         finally:
             sock.close()
 
@@ -1574,5 +1616,5 @@ class TestSomeipByteOrder:
         follow_up = build_request(
             _SERVICE_ID, _METHOD_ID, client_id=0x0022, session_id=0x0092
         )
-        resp = _send_request_and_receive(host_ip, follow_up)
+        resp = _send_request_and_receive(dut_ip, follow_up)
         assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)

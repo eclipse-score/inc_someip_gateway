@@ -1,5 +1,6 @@
 {
     "unicast": "__TC8_HOST_IP__",
+    "netmask": "255.255.0.0",
     "logging": {
         "level": "info",
         "console": "true",

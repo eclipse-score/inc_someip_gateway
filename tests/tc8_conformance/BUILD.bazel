@@ -12,248 +12,293 @@
 # *******************************************************************************
 """TC8 SOME/IP conformance and enhanced testability tests for someipd."""
 
-load("@score_tooling//:defs.bzl", "score_py_pytest")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("//quality/integration_testing:integration_testing.bzl", "integration_test")
 
-# Network namespace wrapper for TC8 tests.  Used via --config=tc8 which sets
-# --run_under=//tests/tc8_conformance:tc8_net_wrapper.  Uses Bazel's own
-# linux-sandbox (-N -R) to create a private network namespace with loopback
-# multicast routing (no sudo required).
-sh_binary(
-    name = "tc8_net_wrapper",
-    srcs = ["tc8_net_wrapper.sh"],
-    target_compatible_with = ["@platforms//os:linux"],
-    visibility = ["//visibility:public"],
+# ---------------------------------------------------------------------------
+# ITF (QEMU) target infrastructure
+# ---------------------------------------------------------------------------
+
+# Shared Python helper library for all integration_test targets.
+# Centralising helpers here avoids conflicting .pyc compilation actions that
+# occur when multiple targets independently compile the same helpers/*.py
+# source files.
+py_library(
+    name = "tc8-helpers-lib",
+    srcs = glob(["helpers/*.py"]),
+    imports = ["."],
+    deps = [
+        "@score_someip_gateway_pip//someip",
+    ],
 )
 
-_COMMON_DEPS = [
-    "//src/someipd",
-    "@score_someip_gateway_pip//someip",
-]
-
-# Force colored pytest output.
-_COMMON_ARGS = ["--color=yes"]
-
-# Each TC8 target uses unique SD and service ports assigned via the Bazel
-# ``env`` attribute.  The SOME/IP-SD protocol requires the SD source port to
-# equal the configured SD port; this is satisfied because both the DUT config
-# and Python sockets read the same TC8_SD_PORT env var for each process.  The
-# ``exclusive`` tag is removed from the medium targets; timing-sensitive and
-# reboot-lifecycle targets retain it via ``_EXCLUSIVE_TAGS`` for scheduling
-# accuracy.  All TC8 pytest targets use ``size = "medium"`` (300 s timeout),
-# which accommodates slow CI/container environments (max observed: ~175 s).
-_COMMON_TAGS = [
-    "tc8",
-    "conformance",
-    "requires-fakeroot",
-]
-
-# Used by timing and reboot targets that are sensitive to scheduler jitter
-# or manage external someipd processes outside the shared someipd_dut fixture.
-_EXCLUSIVE_TAGS = _COMMON_TAGS + ["exclusive"]
-
-score_py_pytest(
-    name = "tc8_service_discovery",
-    size = "medium",
+# vsomeip shared libraries bundled at /usr on the QEMU guest.  Mirrors the
+# vsomeip-runtime-pkg in tests/integration_test/BUILD.
+pkg_files(
+    name = "tc8-vsomeip-runtime-pkg",
     srcs = [
-        "conftest.py",
+        "@vsomeip",
+    ],
+    attributes = pkg_attributes(
+        mode = "0777",
+    ),
+    prefix = "/usr",
+)
+
+# All artifacts deployed to the QEMU guest for TC8 ITF tests.
+# Binaries and libraries land at /; config templates land as *.tmpl files
+# which tc8_itf_config_setup renders in-place via sed (session-scoped).
+pkg_files(
+    name = "tc8-itf-pkg",
+    srcs = [
+        "config/tc8_someipd_multi.json",
+        "config/tc8_someipd_sd.json",
+        "config/tc8_someipd_service.json",
+        ":tc8-vsomeip-runtime-pkg",
+        "//src/serializer:null_serializer",
+        "//src/someipd",
+        "//src/someipd:etc/mw_com_config.json",
+    ],
+    attributes = pkg_attributes(
+        mode = "0777",
+    ),
+    prefix = "/",
+    renames = {
+        "//src/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
+        "config/tc8_someipd_multi.json": "tc8_multi.json.tmpl",
+        "config/tc8_someipd_sd.json": "tc8_sd.json.tmpl",
+        "config/tc8_someipd_service.json": "tc8_service.json.tmpl",
+    },
+)
+
+# py_library that makes tc8_itf_conftest and helpers importable inside the
+# ITF test binary.  imports=["."] adds tests/tc8_conformance to PYTHONPATH
+# (via PyInfo.imports propagated to the inner py_test), enabling:
+#   -p tc8_itf_conftest    (plugin load in pytest args)
+#   from helpers.xxx       (helper imports in test files)
+# Note: py_itf_test does not support the imports= attribute directly; the
+# py_library dep is the correct way to add a package root.
+# Helpers are provided via tc8-helpers-lib dep (not in srcs) to avoid
+# conflicting .pyc compilation actions with other targets.
+py_library(
+    name = "tc8-itf-lib",
+    srcs = ["tc8_itf_conftest.py"],
+    imports = ["."],
+    deps = [
+        ":tc8-helpers-lib",
+        # @score_itf//:itf is NOT declared here — py_itf_test already adds it
+        # to .test_binary.deps automatically.  Declaring it here would pull in
+        # itf_pip_312_pynacl (a C-extension wheel) into tc8-itf-lib's dep
+        # graph, causing a Python toolchain resolution failure when this target
+        # is analyzed for the QNX target platform (no QNX Python toolchain).
+        "@score_someip_gateway_pip//someip",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# ITF (QEMU) integration_test() targets — one per TC8 test file.
+#
+# All targets share the same pattern as the Phase 1 pilot:
+#   - tc8_itf_conftest.py loaded as a plugin via "-p tc8_itf_conftest"
+#   - tc8-itf-lib dep provides PYTHONPATH entry (imports=["."])
+#   - tc8-itf-pkg filesystem deployed to QEMU guest at /
+#   - timeout="long" — QEMU boot + SD phase + test suite duration
+#
+# The ITF macro hard-codes env={"DOCKER_HOST": ""} internally; passing extra
+# env kwargs causes a "got multiple values" Starlark error.  All IP and port
+# defaults are therefore baked into tc8_itf_conftest.py (TC8_DUT_IP=169.254.158.190,
+# TC8_TESTER_IP=169.254.21.88, TC8_SD_PORT=30490, TC8_SVC_PORT=30509,
+# TC8_SVC_TCP_PORT=30510).  Since each target gets its own QEMU instance, port
+# collisions between targets are impossible.
+#
+# The "exclusive" tag is preserved for timing and lifecycle targets:
+#   tc8_sd_phases_timing, tc8_sd_reboot, tc8_sd_client
+# to prevent QEMU scheduler interference during timing-sensitive capture.
+#
+# Run all ITF targets with:
+#   bazel test --//quality/integration_testing/flags:linux_backend=qemu \
+#     //tests/tc8_conformance:test_tc8_<name>
+# ---------------------------------------------------------------------------
+
+_ITF_ARGS = [
+    "--color=yes",
+    "-p",
+    "tc8_itf_conftest",
+]
+
+_ITF_DEPS = [
+    ":tc8-itf-lib",
+    "@score_tooling//python_basics/score_pytest:attribute_plugin",
+]
+
+# Phase 1 pilot: TC8 service-discovery tests running in Linux QEMU via ITF.
+integration_test(
+    name = "test_tc8_service_discovery",
+    timeout = "long",
+    srcs = [
         "test_service_discovery.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
-    data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30490",
-        "TC8_SVC_PORT": "30500",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _COMMON_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
 )
 
-score_py_pytest(
-    name = "tc8_sd_phases_timing",
-    size = "medium",
+# Phase 3: remaining 9 ITF targets.
+
+# TC8-SD-009/010 — SD phase timing (exclusive: timing-sensitive)
+integration_test(
+    name = "test_tc8_sd_phases_timing",
+    timeout = "long",
     srcs = [
-        "conftest.py",
         "test_sd_phases_timing.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
+    ],
+    args = _ITF_ARGS,
     data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30491",
-        "TC8_SVC_PORT": "30501",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _EXCLUSIVE_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
 )
 
-score_py_pytest(
-    name = "tc8_message_format",
-    size = "medium",
+# TC8-SD-012, TC8-SDLC-017/018 — Reboot detection (exclusive: lifecycle-sensitive)
+integration_test(
+    name = "test_tc8_sd_reboot",
+    timeout = "long",
     srcs = [
-        "conftest.py",
-        "test_someip_message_format.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
-    data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30492",
-        "TC8_SVC_PORT": "30502",
-        "TC8_SVC_TCP_PORT": "30503",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _COMMON_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
-)
-
-score_py_pytest(
-    name = "tc8_event_notification",
-    size = "medium",
-    srcs = [
-        "conftest.py",
-        "test_event_notification.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
-    data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30493",
-        "TC8_SVC_PORT": "30504",
-        "TC8_SVC_TCP_PORT": "30505",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _COMMON_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
-)
-
-score_py_pytest(
-    name = "tc8_sd_reboot",
-    size = "medium",
-    srcs = [
-        "conftest.py",
         "test_sd_reboot.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
+    ],
+    args = _ITF_ARGS,
     data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30494",
-        "TC8_SVC_PORT": "30506",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _EXCLUSIVE_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
 )
 
-score_py_pytest(
-    name = "tc8_field_conformance",
-    size = "medium",
+# FORMAT_01…OPTIONS_14 — SD format compliance
+integration_test(
+    name = "test_tc8_sd_format_compliance",
+    timeout = "long",
     srcs = [
-        "conftest.py",
-        "test_field_conformance.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
-    data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30495",
-        "TC8_SVC_PORT": "30507",
-        "TC8_SVC_TCP_PORT": "30508",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _COMMON_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
-)
-
-score_py_pytest(
-    name = "tc8_sd_format",
-    size = "medium",
-    srcs = [
-        "conftest.py",
         "test_sd_format_compliance.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
-    data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30496",
-        "TC8_SVC_PORT": "30509",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _COMMON_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
 )
 
-score_py_pytest(
-    name = "tc8_sd_robustness",
-    size = "medium",
+# Group 4 — Malformed SD robustness
+integration_test(
+    name = "test_tc8_sd_robustness",
+    timeout = "long",
     srcs = [
-        "conftest.py",
         "test_sd_robustness.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
-    data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30497",
-        "TC8_SVC_PORT": "30510",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _COMMON_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
 )
 
-score_py_pytest(
-    name = "tc8_sd_client",
-    size = "medium",
+# ETS_081/082/084/096/097 — SD client lifecycle (exclusive: manages own DUT lifecycle)
+integration_test(
+    name = "test_tc8_sd_client",
+    timeout = "long",
     srcs = [
-        "conftest.py",
         "test_sd_client.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
+    ],
+    args = _ITF_ARGS,
     data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30498",
-        "TC8_SVC_PORT": "30511",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _EXCLUSIVE_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
 )
 
-score_py_pytest(
-    name = "tc8_multi_service",
-    size = "medium",
+# TC8-MSG-001…008 — SOME/IP message format (uses tc8_service.json → TCP port)
+integration_test(
+    name = "test_tc8_someip_message_format",
+    timeout = "long",
     srcs = [
-        "conftest.py",
+        "test_someip_message_format.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# TC8-EVT-001…006 — Event notification (uses tc8_service.json → TCP port)
+integration_test(
+    name = "test_tc8_event_notification",
+    timeout = "long",
+    srcs = [
+        "test_event_notification.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# TC8-FLD-001…004 — Field conformance (uses tc8_service.json → TCP port)
+integration_test(
+    name = "test_tc8_field_conformance",
+    timeout = "long",
+    srcs = [
+        "test_field_conformance.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# SOMEIPSRV_RPC_13 — Multi-service (uses tc8_multi.json → TCP port)
+integration_test(
+    name = "test_tc8_multi_service",
+    timeout = "long",
+    srcs = [
         "test_multi_service.py",
-    ] + glob(["helpers/*.py"]),
-    args = _COMMON_ARGS,
-    data = glob(["config/*.json"]),
-    env = {
-        "TC8_SD_PORT": "30499",
-        "TC8_SVC_PORT": "30512",
-        "TC8_SVC_TCP_PORT": "30513",
-    },
-    env_inherit = ["TC8_HOST_IP"],
-    imports = ["."],
-    tags = _COMMON_TAGS,
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = _COMMON_DEPS,
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
 )
 
 [validate_json_schema_test(

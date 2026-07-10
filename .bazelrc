@@ -110,19 +110,20 @@ test --sandbox_tmpfs_path=/tmp
 # Default: exclude TC8 from `bazel test //...` (no network prerequisites needed).
 test --test_tag_filters=-tc8
 
-# Opt-in: `bazel test --config=tc8 //tests/tc8_conformance/...`
-# Each test runs inside a Bazel linux-sandbox network namespace with
-# loopback enabled.  The tc8_net_wrapper adds the multicast route that
-# linux-sandbox does not provide.
-test:tc8 --test_tag_filters=tc8
-test:tc8 --test_env=TC8_HOST_IP=127.0.0.1
-test:tc8 --sandbox_default_allow_network=false
-# Scope linux-sandbox to test execution only (not build actions like CMake).
-# --spawn_strategy would affect all actions; --strategy=TestRunner targets only
-# the test runner mnemonic, so build actions use the default strategy with
-# network access.
-test:tc8 --strategy=TestRunner=worker,linux-sandbox
-test:tc8 --run_under=//tests/tc8_conformance:tc8_net_wrapper
+# ITF (QEMU) TC8 runs.
+# Usage: bazel test --config=tc8-itf //tests/tc8_conformance:test_tc8_<name>
+test:tc8-itf --test_tag_filters=tc8
+test:tc8-itf --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+test:tc8-itf --//quality/integration_testing/flags:linux_backend=qemu
+test:tc8-itf --run_under=@score_itf//scripts:run_under_qemu
+
+# QNX8 QEMU ITF TC8 runs; mirrors tc8-itf but targets QNX8 platform.
+# common: (not build:/test:) prevents "expanded more than once" warning when bazel test applies both stanzas.
+# Usage: bazel test --config=tc8-itf-qnx //tests/tc8_conformance:test_tc8_<name>
+common:tc8-itf-qnx --config=x86_64-qnx
+# precompile must be force_disabled: "disabled" still causes a NoneType crash via QNX TARGET toolchain lookup.
+common:tc8-itf-qnx --@rules_python//python/config_settings:precompile=force_disabled
+test:tc8-itf-qnx --test_tag_filters=tc8
 
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc

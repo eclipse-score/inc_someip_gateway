@@ -194,6 +194,7 @@ class TestSDFindResponse:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-004: FindService for offered service triggers a unicast OfferService."""
@@ -208,7 +209,7 @@ class TestSDFindResponse:
             def _send_find() -> None:
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                 )
@@ -240,6 +241,7 @@ class TestSDFindResponse:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-005: FindService for unknown service does not trigger OfferService."""
@@ -283,6 +285,7 @@ class TestSDSubscribeLifecycle:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-006: Valid SubscribeEventgroup receives SubscribeEventgroupAck (TTL>0)."""
@@ -297,7 +300,7 @@ class TestSDSubscribeLifecycle:
             def _send_subscribe() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -332,6 +335,7 @@ class TestSDSubscribeLifecycle:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-007: SubscribeEventgroup for unknown eventgroup receives Nack (TTL=0)."""
@@ -344,7 +348,7 @@ class TestSDSubscribeLifecycle:
             def _send_subscribe_unknown() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _UNKNOWN_EVENTGROUP_ID,
@@ -381,6 +385,7 @@ class TestSDSubscribeLifecycle:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-008: StopSubscribeEventgroup (TTL=0) ceases event notifications."""
@@ -399,7 +404,7 @@ class TestSDSubscribeLifecycle:
             def _send_sub_008() -> None:
                 send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -428,7 +433,7 @@ class TestSDSubscribeLifecycle:
             # Stop subscription (TTL=0).
             send_subscribe_eventgroup(
                 sd_sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 _EVENTGROUP_ID,
@@ -465,6 +470,7 @@ class TestSDOptionFormat:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
     ) -> None:
         """TC8-SD-011: SD OFFER entry includes IPv4EndpointOption with correct address/port/proto."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -509,7 +515,7 @@ class TestSDOptionFormat:
         )
         assert_offer_has_ipv4_endpoint_option(
             found_entry,
-            expected_ip=host_ip,
+            expected_ip=dut_ip,
             expected_port=DUT_UNRELIABLE_PORT,
         )
 
@@ -540,6 +546,7 @@ class TestSDMulticastEventgroup:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-013: Subscribing to multicast eventgroup 0x4465 yields a multicast endpoint option."""
@@ -562,7 +569,7 @@ class TestSDMulticastEventgroup:
             def _send_subscribe_multicast() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _MULTICAST_EVENTGROUP_ID,
@@ -588,9 +595,12 @@ class TestSDMulticastEventgroup:
                 f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
             )
             ack = acks[0]
-            # The ACK for a multicast eventgroup must carry a multicast IPv4EndpointOption.
+            # The ACK for a multicast eventgroup must carry an IPv4MulticastOption
+            # (SD option type 0x14).  This is distinct from IPv4EndpointOption (0x04)
+            # which is used for unicast endpoints; isinstance(o, IPv4EndpointOption)
+            # would silently exclude all multicast options.
             from someip.header import (
-                IPv4EndpointOption,
+                IPv4MulticastOption,
             )  # local import to keep module-level clean
 
             options = list(getattr(ack, "options_1", ())) + list(
@@ -599,12 +609,12 @@ class TestSDMulticastEventgroup:
             multicast_opts = [
                 o
                 for o in options
-                if isinstance(o, IPv4EndpointOption)
+                if isinstance(o, IPv4MulticastOption)
                 and ipaddress.ip_address(str(o.address)).is_multicast
             ]
             assert multicast_opts, (
                 f"TC8-SD-013: SUBSCRIBE_ACK for eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x} "
-                f"does not carry a multicast IPv4EndpointOption. "
+                f"does not carry an IPv4MulticastOption (SD option type 0x14). "
                 f"Options found: {options}"
             )
         finally:
@@ -628,6 +638,7 @@ class TestSDTTLExpiry:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-014: No notifications after subscription TTL expires."""
@@ -646,7 +657,7 @@ class TestSDTTLExpiry:
             def _send_sub_ttl() -> None:
                 send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -706,6 +717,7 @@ class TestSDVersionMatching:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_01: FindService with instance_id=0xFFFF returns specific instance."""
@@ -717,7 +729,7 @@ class TestSDVersionMatching:
             def _send() -> None:
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=0xFFFF,
                 )
@@ -750,6 +762,7 @@ class TestSDVersionMatching:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_02: FindService with exact instance_id returns that instance."""
@@ -761,7 +774,7 @@ class TestSDVersionMatching:
             def _send() -> None:
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                 )
@@ -794,6 +807,7 @@ class TestSDVersionMatching:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_03: FindService with major_version=0xFF (any) returns service."""
@@ -805,7 +819,7 @@ class TestSDVersionMatching:
             def _send() -> None:
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                     major_version=0xFF,
@@ -835,6 +849,7 @@ class TestSDVersionMatching:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_04: FindService with exact major_version returns service."""
@@ -846,7 +861,7 @@ class TestSDVersionMatching:
             def _send() -> None:
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                     major_version=_MAJOR_VERSION,
@@ -880,6 +895,7 @@ class TestSDVersionMatching:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_05: FindService with minor_version=0xFFFFFFFF (any) returns service."""
@@ -891,7 +907,7 @@ class TestSDVersionMatching:
             def _send() -> None:
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                     major_version=_MAJOR_VERSION,
@@ -922,6 +938,7 @@ class TestSDVersionMatching:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_06: FindService with exact minor_version=0x00000000 returns service."""
@@ -933,7 +950,7 @@ class TestSDVersionMatching:
             def _send() -> None:
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                     major_version=_MAJOR_VERSION,
@@ -976,6 +993,7 @@ class TestSDSubscribeNAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_14: Subscribe with wrong major_version receives NAck (TTL=0)."""
@@ -988,7 +1006,7 @@ class TestSDSubscribeNAck:
             def _send() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -1023,6 +1041,7 @@ class TestSDSubscribeNAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_15: Subscribe to unknown service_id receives NAck (TTL=0).
@@ -1040,7 +1059,7 @@ class TestSDSubscribeNAck:
             def _send() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_UNKNOWN_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                     eventgroup_id=_EVENTGROUP_ID,
@@ -1075,6 +1094,7 @@ class TestSDSubscribeNAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_16: Subscribe to wrong instance_id receives NAck (TTL=0)."""
@@ -1087,7 +1107,7 @@ class TestSDSubscribeNAck:
             def _send() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     instance_id=_UNKNOWN_INSTANCE_ID,
                     eventgroup_id=_EVENTGROUP_ID,
@@ -1122,6 +1142,7 @@ class TestSDSubscribeNAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_17: Subscribe to unknown eventgroup_id receives NAck (TTL=0)."""
@@ -1135,7 +1156,7 @@ class TestSDSubscribeNAck:
             def _send() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     eventgroup_id=_UNKNOWN_EVENTGROUP_ID,
@@ -1172,6 +1193,7 @@ class TestSDSubscribeNAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_18: StopSubscribeEventgroup (TTL=0) produces no SubscribeAck."""
@@ -1184,7 +1206,7 @@ class TestSDSubscribeNAck:
             # Per spec, a TTL=0 subscribe is a StopSubscribe and must not generate an Ack.
             send_subscribe_eventgroup(
                 sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 _EVENTGROUP_ID,
@@ -1227,6 +1249,7 @@ class TestSDSubscribeNAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_19: Subscribe with reserved field set receives NAck or is ignored."""
@@ -1239,7 +1262,7 @@ class TestSDSubscribeNAck:
             def _send() -> None:
                 send_subscribe_eventgroup_reserved_set(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -1286,6 +1309,7 @@ class TestSDFindServiceTiming:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_BEHAVIOR_03: Unicast FindService response arrives within request_response_delay * 1.5.
@@ -1310,7 +1334,7 @@ class TestSDFindServiceTiming:
                 t0 = time.monotonic()
                 send_find_service(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     service_id=_SERVICE_ID,
                     instance_id=_INSTANCE_ID,
                     major_version=_MAJOR_VERSION,
@@ -1358,6 +1382,7 @@ class TestSDFindServiceTiming:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_BEHAVIOR_04: Multicast FindService (Unicast flag=0) triggers a multicast OfferService.
@@ -1449,6 +1474,7 @@ class TestSDSubscribeLifecycleAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_088: Two SubscribeEventgroup entries (different eventgroups) both receive ACKs.
@@ -1466,7 +1492,7 @@ class TestSDSubscribeLifecycleAdvanced:
             def _subscribe_eg1() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -1478,7 +1504,7 @@ class TestSDSubscribeLifecycleAdvanced:
             def _subscribe_eg2() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _MULTICAST_EVENTGROUP_ID,
@@ -1523,6 +1549,7 @@ class TestSDSubscribeLifecycleAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_092: SubscribeEventgroup with TTL=0 is treated as StopSubscribe — no NAck sent.
@@ -1538,7 +1565,7 @@ class TestSDSubscribeLifecycleAdvanced:
             sender_port = sock.getsockname()[1]
             send_subscribe_eventgroup(
                 sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 _EVENTGROUP_ID,
@@ -1574,6 +1601,7 @@ class TestSDSubscribeLifecycleAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_098: SubscribeEventgroup is accepted without a prior method call.
@@ -1590,7 +1618,7 @@ class TestSDSubscribeLifecycleAdvanced:
             def _send() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -1625,6 +1653,7 @@ class TestSDSubscribeLifecycleAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_107: DUT processes SD entries independently of arrival order.
@@ -1655,7 +1684,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 )
                 send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -1725,6 +1754,7 @@ class TestSDSubscribeLifecycleAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_120: SubscribeEventgroup with explicit subscriber IP receives OfferService ACK.
@@ -1742,7 +1772,7 @@ class TestSDSubscribeLifecycleAdvanced:
             def _send() -> None:
                 send_subscribe_eventgroup(
                     sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -1824,6 +1854,7 @@ class TestSDSubscribeLifecycleAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_155: Re-subscribe after StopSubscribe receives a new ACK and resumes events.
@@ -1844,7 +1875,7 @@ class TestSDSubscribeLifecycleAdvanced:
             def _subscribe() -> None:
                 send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -1868,7 +1899,7 @@ class TestSDSubscribeLifecycleAdvanced:
             # Step 2: Stop subscribe.
             send_subscribe_eventgroup(
                 sd_sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 _EVENTGROUP_ID,
@@ -1905,6 +1936,7 @@ class TestSDSubscribeLifecycleAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_095: No NOTIFICATION messages are received after subscription TTL expires.
@@ -1936,7 +1968,7 @@ class TestSDSubscribeLifecycleAdvanced:
             def _send_sub_ttl() -> None:
                 send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -2060,6 +2092,7 @@ class TestSDFindServiceAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_099: DUT sends initial field value as event after SubscribeEventgroup ACK.
@@ -2080,7 +2113,7 @@ class TestSDFindServiceAdvanced:
             def _subscribe() -> None:
                 send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -2119,6 +2152,7 @@ class TestSDFindServiceAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_100: DUT (server) must not emit FindService entries in main phase.
@@ -2153,6 +2187,7 @@ class TestSDFindServiceAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_101: DUT is server-only; client StopSubscribe reaction to server StopOfferService is not applicable."""
@@ -2169,6 +2204,7 @@ class TestSDFindServiceAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_128: Multicast FindService with major=0xFF/minor=0xFFFFFFFF triggers OfferService.
@@ -2215,6 +2251,7 @@ class TestSDFindServiceAdvanced:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_130: FindService with unicast_flag=0 (flags byte bit 6 clear) is processed.

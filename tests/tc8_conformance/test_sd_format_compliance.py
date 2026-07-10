@@ -140,7 +140,7 @@ def _capture_raw_sd_offer(
 
 
 def _capture_subscribe_ack(
-    host_ip: str,
+    dut_ip: str,
     tester_ip: str,
     eventgroup_id: int,
     timeout_secs: float = 5.0,
@@ -156,7 +156,7 @@ def _capture_subscribe_ack(
         def _send_sub() -> None:
             send_subscribe_eventgroup(
                 sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 eventgroup_id,
@@ -184,7 +184,7 @@ def _capture_subscribe_ack(
 
 
 def _capture_subscribe_ack_with_options(
-    host_ip: str,
+    dut_ip: str,
     tester_ip: str,
     eventgroup_id: int,
     timeout_secs: float = 5.0,
@@ -201,7 +201,7 @@ def _capture_subscribe_ack_with_options(
         def _send_sub() -> None:
             send_subscribe_eventgroup(
                 sock,
-                (host_ip, SD_PORT),
+                (dut_ip, SD_PORT),
                 _SERVICE_ID,
                 _INSTANCE_ID,
                 eventgroup_id,
@@ -591,12 +591,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_19: SubscribeEventgroupAck SD entry type must be 0x07."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         assert ack.sd_type == SOMEIPSDEntryType.SubscribeAck, (
             f"FORMAT_19: sd_type must be SubscribeAck (0x07); got {ack.sd_type!r}"
@@ -611,12 +612,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_20: SubscribeEventgroupAck SD entry must be exactly 16 bytes."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         assigned = ack.assign_option_index([])
         entry_bytes = assigned.build()
@@ -634,12 +636,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_21: SubscribeAck option_index_1 matches the attached options."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         # When no options are present, option_index_1 must be 0.
         # When options are present, option_index_1 must be a valid index.
@@ -669,12 +672,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_23: SubscribeAck service_id must match the subscribed service."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         assert ack.service_id == _SERVICE_ID, (
             f"FORMAT_23: service_id must be 0x{_SERVICE_ID:04x}; "
@@ -690,12 +694,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_24: SubscribeAck instance_id must match the subscribed instance."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         assert ack.instance_id == _INSTANCE_ID, (
             f"FORMAT_24: instance_id must be 0x{_INSTANCE_ID:04x}; "
@@ -711,12 +716,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_25: SubscribeAck major_version must match the service definition."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         assert ack.major_version == _MAJOR_VERSION, (
             f"FORMAT_25: major_version must be 0x{_MAJOR_VERSION:02x}; "
@@ -732,12 +738,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_26: SubscribeEventgroupAck TTL must be > 0 (TTL=0 means Nack)."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         assert ack.ttl > 0, f"FORMAT_26: SubscribeAck TTL must be > 0; got {ack.ttl}"
 
@@ -750,6 +757,7 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_27: Reserved bits (high 12 bits of last 4 bytes) of SubscribeAck must be 0.
@@ -763,7 +771,7 @@ class TestSdHeaderFieldsSubscribeAck:
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         reserved_high = (ack.minver_or_counter >> 16) & 0xFFFF
         assert reserved_high == 0, (
@@ -780,12 +788,13 @@ class TestSdHeaderFieldsSubscribeAck:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_28: SubscribeAck eventgroup_id must match the subscribed eventgroup."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(host_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
 
         assert (ack.minver_or_counter & 0xFFFF) == _EVENTGROUP_ID, (
             f"FORMAT_28: eventgroup_id in SubscribeAck must be "
@@ -963,6 +972,7 @@ class TestSdOptionsMulticast:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_08: IPv4MulticastOption length field must be 0x0009."""
@@ -975,7 +985,7 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
@@ -1003,6 +1013,7 @@ class TestSdOptionsMulticast:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_09: IPv4MulticastOption type byte must be 0x14 (decimal 20)."""
@@ -1015,7 +1026,7 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
@@ -1043,6 +1054,7 @@ class TestSdOptionsMulticast:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_10: Reserved byte at offset [3] of IPv4MulticastOption must be 0x00."""
@@ -1055,7 +1067,7 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
@@ -1083,6 +1095,7 @@ class TestSdOptionsMulticast:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_11: IPv4MulticastOption address must match the configured multicast address."""
@@ -1095,7 +1108,7 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
@@ -1122,6 +1135,7 @@ class TestSdOptionsMulticast:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_12: Reserved byte at offset [8] of IPv4MulticastOption must be 0x00."""
@@ -1134,7 +1148,7 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
@@ -1162,6 +1176,7 @@ class TestSdOptionsMulticast:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_13: IPv4MulticastOption L4 protocol must be UDP (0x11)."""
@@ -1174,7 +1189,7 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
@@ -1200,6 +1215,7 @@ class TestSdOptionsMulticast:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_14: IPv4MulticastOption port must match the configured multicast port."""
@@ -1212,7 +1228,7 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
@@ -1352,6 +1368,7 @@ class TestSdMissingFormatFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_22: SubscribeAck entry num_options_1 must equal len(options_1) list.
@@ -1363,7 +1380,7 @@ class TestSdMissingFormatFields:
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         unresolved_ack, resolved_ack = _capture_subscribe_ack_with_options(
-            host_ip, tester_ip, _EVENTGROUP_ID
+            dut_ip, tester_ip, _EVENTGROUP_ID
         )
 
         # unresolved_ack.num_options_1 is the raw counter from the wire.
@@ -1482,6 +1499,7 @@ class TestSdEntryOptionFields:
         self,
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SD_MESSAGE_11: A SubscribeEventgroup entry must have Type byte 0x06.

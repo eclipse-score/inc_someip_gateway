@@ -39,3 +39,22 @@ jobs:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
       score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+
+  # TC8 SOME/IP conformance tests with someipd in QNX8 QEMU (x86_64 only).
+  # --config=tc8-itf-qnx bundles QNX platform, QEMU runner, and tc8 tag filter.
+  tc8_itf_qnx_conformance:
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@improved-caching
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: write # needed for cache deletion at setup-bazel-cache
+    with:
+      bazel-target: "//src/someipd/... //tests/tc8_conformance/..."
+      bazel-test-target: "//tests/tc8_conformance/..."
+      bazel-config: tc8-itf-qnx
+      credential-helper: ".github/tools/qnx_credential_helper.py"
+      bazel-disk-cache: ${{ github.workflow }}-tc8-itf-qnx
+    secrets:
+      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
+      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}

@@ -61,13 +61,12 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 770ef56b..3df22b9c 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -416,7 +416,8 @@ set(EXAMPLE_CONFIG_FILES
+@@ -416,7 +416,7 @@ set(EXAMPLE_CONFIG_FILES
  # Configuration parameters
  ################################################################################
  if(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
 -    set (VSOMEIP_BASE_PATH "/var")
-+    # /var is not writable in the QNX image
-+    set (VSOMEIP_BASE_PATH "/tmp")
++    set (VSOMEIP_BASE_PATH "/var/run")
  else()
      set (VSOMEIP_BASE_PATH "/tmp")
  endif()
@@ -75,7 +74,7 @@ diff --git a/implementation/utility/src/utility.cpp b/implementation/utility/src
 index ef7a2889..6c340ecb 100644
 --- a/implementation/utility/src/utility.cpp
 +++ b/implementation/utility/src/utility.cpp
-@@ -172,7 +172,12 @@ bool utility::is_routing_manager(const std::string& _network) {
+@@ -172,6 +172,11 @@ bool utility::is_routing_manager(const std::string& _network) {
          VSOMEIP_ERROR << __func__ << ": Could not open " << its_lockfile << ": errno " << errno;
      }
  
@@ -88,4 +87,3 @@ index ef7a2889..6c340ecb 100644
 +    return true;
  #endif
  }
- 

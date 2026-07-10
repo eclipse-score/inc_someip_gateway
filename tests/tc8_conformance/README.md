@@ -68,23 +68,6 @@ Tests join multicast group `224.244.224.245:30490`.
 | Manual loopback | ``bazel test --test_env=TC8_HOST_IP=127.0.0.1 ...`` | ``sudo ip route add 224.0.0.0/4 dev lo`` | ✅ Yes |
 | ``bazel test //...`` | — | — | ⏭️ Excluded |
 
-### How ``--config=tc8`` works
-
-The ``tc8`` Bazel config (defined in ``.bazelrc``) does three things:
-
-1. **Overrides the tag filter** — ``--test_tag_filters=tc8`` selects TC8 targets
-2. **Sets the host IP** — ``--test_env=TC8_HOST_IP=127.0.0.1``
-3. **Wraps each test** — ``--run_under=//tests/tc8_conformance:tc8_net_wrapper``
-
-The wrapper script (``tc8_net_wrapper.sh``) uses ``unshare`` to create a
-private network namespace per test with loopback and multicast routing —
-no ``sudo`` required.  ``someipd`` (spawned as a subprocess) inherits
-the namespace.
-
-If namespace creation fails, the wrapper falls back to direct execution
-with a warning.  ``conftest.py`` detects the missing multicast route and
-skips with an actionable message.
-
 ### Loopback vs. non-loopback interface
 
 Most TC8 tests work on loopback (``--config=tc8``).  A **non-loopback
@@ -237,7 +220,6 @@ Every new test follows this pattern:
 tests/tc8_conformance/
 ├── BUILD.bazel                        # Protocol conformance score_py_pytest targets
 ├── README.md                          # This file
-├── tc8_net_wrapper.sh                 # Network namespace wrapper (--config=tc8 --run_under)
 ├── conftest.py                        # Fixtures: someipd_dut, host_ip, tester_ip
 ├── test_service_discovery.py          # TC8-SD-001 … 008, 011, 013, 014
 ├── test_sd_phases_timing.py           # TC8-SD-009 / 010

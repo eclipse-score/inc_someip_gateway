@@ -25,7 +25,6 @@ See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 """
 
 import socket
-import subprocess
 import time
 from pathlib import Path
 from typing import List, Tuple
@@ -34,7 +33,7 @@ import pytest
 
 from attribute_plugin import add_test_properties
 
-from conftest import (
+from helpers.dut_lifecycle import (
     cleanup_vsomeip_sockets,
     launch_someipd,
     render_someip_config,
@@ -125,11 +124,20 @@ def _wait_port_free(port: int, retries: int = 20, delay: float = 0.1) -> None:
 def sd_client_config(
     tmp_path_factory: pytest.TempPathFactory,
     host_ip: str,
+    request: pytest.FixtureRequest,
 ) -> Path:
     """Render the DUT config template and return the path.
 
-    Tests manage DUT lifecycle themselves (launch/terminate per test).
+    Triggers ``tc8_itf_config_setup`` (session-scoped) to render vsomeip JSON
+    templates on the QEMU guest before any ``launch_someipd`` call.  Without
+    this the guest ``/tc8_sd.json`` is absent or has literal ``__TC8_*__``
+    placeholders, causing vsomeip to bind loopback and SD multicast to never
+    egress the TAP interface.
+
+    ``launch_someipd`` uses the path's filename to select the correct
+    pre-rendered guest config; the host-side file is harmless.
     """
+    request.getfixturevalue("tc8_itf_config_setup")
     tmp_dir = tmp_path_factory.mktemp("tc8_sd_client_config")
     return render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
@@ -186,14 +194,18 @@ class TestSDClientStopSubscribe:
         self,
         sd_client_config: Path,
         host_ip: str,
+        dut_ip: str,
         tester_ip: str,
+        request: pytest.FixtureRequest,
     ) -> None:
         """ETS_084: After StopSubscribeEventgroup (TTL=0) the DUT stops sending events.
 
         This test has its own DUT lifecycle so that the StopSubscribe is verified
         on a fresh subscription with a known notification history.
         """
-        proc = launch_someipd(sd_client_config)
+        target_init = request.getfixturevalue("target_init")
+
+        proc = launch_someipd(sd_client_config, target_init=target_init)
         try:
             # Wait for DUT to reach SD main phase (first OfferService multicast).
             if not wait_for_sd_readiness(host_ip, timeout_secs=15.0):
@@ -211,7 +223,7 @@ class TestSDClientStopSubscribe:
                 def _subscribe() -> None:
                     send_subscribe_eventgroup(
                         sd_sock,
-                        (host_ip, SD_PORT),
+                        (dut_ip, SD_PORT),
                         _SERVICE_ID,
                         _INSTANCE_ID,
                         _EVENTGROUP_ID,
@@ -242,7 +254,7 @@ class TestSDClientStopSubscribe:
                 # Send StopSubscribe.
                 send_subscribe_eventgroup(
                     sd_sock,
-                    (host_ip, SD_PORT),
+                    (dut_ip, SD_PORT),
                     _SERVICE_ID,
                     _INSTANCE_ID,
                     _EVENTGROUP_ID,
@@ -284,6 +296,7 @@ class TestSDClientReboot:
         self,
         sd_client_config: Path,
         host_ip: str,
+        request: pytest.FixtureRequest,
     ) -> None:
         """ETS_081: After restart the first SD message has the reboot flag (bit 7) set.
 
@@ -294,6 +307,8 @@ class TestSDClientReboot:
           4. Assert first captured SD message has flag_reboot=True.
           5. Assert session_id resets to ≤ 2.
         """
+        target_init = request.getfixturevalue("target_init")
+
         # --- First run: drain to stable state ---
         try:
             pre_sock = open_multicast_socket(host_ip)
@@ -301,7 +316,7 @@ class TestSDClientReboot:
             pytest.skip(f"Multicast socket unavailable on {host_ip}")
 
         try:
-            proc1 = launch_someipd(sd_client_config)
+            proc1 = launch_someipd(sd_client_config, target_init=target_init)
         except Exception:
             pre_sock.close()
             raise
@@ -314,8 +329,7 @@ class TestSDClientReboot:
             pre_sock.close()
             terminate_someipd(proc1)
 
-        _wait_port_free(SD_PORT)
-        cleanup_vsomeip_sockets()
+        cleanup_vsomeip_sockets(target_init=target_init)
 
         # --- Second run: capture first post-reboot message ---
         try:
@@ -324,7 +338,7 @@ class TestSDClientReboot:
             pytest.skip("Multicast socket unavailable for post-reboot capture")
 
         try:
-            proc2 = launch_someipd(sd_client_config)
+            proc2 = launch_someipd(sd_client_config, target_init=target_init)
         except Exception:
             post_sock.close()
             raise
@@ -365,6 +379,7 @@ class TestSDClientReboot:
         self,
         sd_client_config: Path,
         host_ip: str,
+        request: pytest.FixtureRequest,
     ) -> None:
         """ETS_082: Reboot flag and session reset hold across a second consecutive restart.
 
@@ -372,11 +387,12 @@ class TestSDClientReboot:
         This verifies that the DUT correctly resets SD state on every cold start,
         not just the first one.
         """
+        target_init = request.getfixturevalue("target_init")
 
         def _drain_and_stop(pre_sock: socket.socket) -> None:
-            """Launch DUT, drain 3 messages, terminate, wait for port release."""
+            """Launch DUT, drain 3 messages, terminate, clean up sockets."""
             try:
-                proc = launch_someipd(sd_client_config)
+                proc = launch_someipd(sd_client_config, target_init=target_init)
             except Exception:
                 pre_sock.close()
                 raise
@@ -387,8 +403,7 @@ class TestSDClientReboot:
             finally:
                 pre_sock.close()
                 terminate_someipd(proc)
-            _wait_port_free(SD_PORT)
-            cleanup_vsomeip_sockets()
+            cleanup_vsomeip_sockets(target_init=target_init)
 
         # First run.
         try:
@@ -411,7 +426,7 @@ class TestSDClientReboot:
             pytest.skip("Multicast socket unavailable for post-reboot capture")
 
         try:
-            proc3 = launch_someipd(sd_client_config)
+            proc3 = launch_someipd(sd_client_config, target_init=target_init)
         except Exception:
             post_sock.close()
             raise

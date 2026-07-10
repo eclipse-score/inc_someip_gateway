@@ -50,11 +50,6 @@ jobs:
       - name: Bazel test targets
         run: |
           bazel test //... --build_tests_only
-      - name: Bazel TC8 SOME/IP Conformance Targets
-        run: |
-          # --config=tc8 creates a private network namespace per test (no sudo),
-          # configures loopback multicast routing, and sets TC8_HOST_IP=127.0.0.1.
-          bazel test --config=tc8 --test_output=all //tests/tc8_conformance/...
       - run: df -h
         if: always()
 
@@ -91,5 +86,8 @@ jobs:
       - name: Run Linux QEMU integration tests
         run: |
           bazel test --config=qemu-integration //quality/... //tests/integration_test/...
+      - name: Run TC8 ITF SOME/IP Conformance Tests
+        run: |
+          bazel test --config=tc8-itf //tests/tc8_conformance/...
       - run: df -h
         if: always()

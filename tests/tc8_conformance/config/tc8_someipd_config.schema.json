@@ -16,6 +16,10 @@
             "type": "string",
             "description": "Unicast IP address of the host running someipd. May be a placeholder string such as __TC8_HOST_IP__."
         },
+        "netmask": {
+            "type": "string",
+            "description": "Subnet mask used by vsomeip to validate that subscriber endpoint IPs are on the same subnet as the host. Default is 255.255.255.0 (/24). Set to 255.255.0.0 (/16) when the tester IP and DUT IP are in different /24 subnets (e.g. QEMU TAP: DUT 169.254.158.190, tester 169.254.21.88)."
+        },
         "applications": {
             "type": "array",
             "description": "List of vsomeip application registrations.",

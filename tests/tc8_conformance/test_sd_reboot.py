@@ -21,7 +21,6 @@ See ``docs/tc8_conformance/requirements.rst`` for requirement traceability.
 """
 
 import socket
-import subprocess
 import time
 from typing import List, Tuple
 
@@ -29,7 +28,7 @@ import pytest
 
 from attribute_plugin import add_test_properties
 
-from conftest import (
+from helpers.dut_lifecycle import (
     cleanup_vsomeip_sockets,
     launch_someipd,
     render_someip_config,
@@ -61,14 +60,26 @@ _SD_CAPTURE_TIMEOUT_SECS: float = 15.0
 def sd_reboot_capture(
     tmp_path_factory: pytest.TempPathFactory,
     host_ip: str,
+    request: pytest.FixtureRequest,
 ) -> List[Tuple[SOMEIPHeader, SOMEIPSDHeader]]:
     """Start someipd, drain stable SD messages, restart, return post-reboot messages.
 
     Returns a list of (outer_header, sd_header) tuples captured after the restart.
     The multicast socket is opened *before* the second launch so the very first
     post-reboot SD packet is captured.
+
+    someipd runs on the QEMU guest; vsomeip socket cleanup also runs on the guest.
     """
+    target_init = request.getfixturevalue("target_init")
+
+    # Ensure guest vsomeip configs are rendered (sed on QEMU guest).
+    # Without this the guest /tc8_sd.json is absent or has literal placeholders,
+    # causing vsomeip to bind loopback and SD multicast to never reach the host.
+    request.getfixturevalue("tc8_itf_config_setup")
+
     tmp_dir = tmp_path_factory.mktemp("tc8_reboot_config")
+    # Host-side render is harmless; launch_someipd uses the filename to select
+    # the pre-rendered guest config.
     config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
     def _collect_sd_messages(
@@ -110,7 +121,7 @@ def sd_reboot_capture(
         )
 
     try:
-        proc1 = launch_someipd(config_path)
+        proc1 = launch_someipd(config_path, target_init=target_init)
     except Exception:
         pre_sock.close()
         raise
@@ -122,19 +133,9 @@ def sd_reboot_capture(
         pre_sock.close()
         terminate_someipd(proc1)
 
-    # Wait for someipd to release the port before restarting.
-    for _ in range(20):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
-                probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                probe.bind(("", SD_PORT))
-            break
-        except OSError:
-            time.sleep(0.05)
-
     # Remove stale vsomeip routing-manager sockets so the second instance
     # can become routing manager immediately.
-    cleanup_vsomeip_sockets()
+    cleanup_vsomeip_sockets(target_init=target_init)
 
     # ---------------------------------------------------------------------------
     # Second run — open capture socket BEFORE launch to catch the first packet.
@@ -145,7 +146,7 @@ def sd_reboot_capture(
         pytest.skip("Multicast socket unavailable for post-reboot capture.")
 
     try:
-        proc2 = launch_someipd(config_path)
+        proc2 = launch_someipd(config_path, target_init=target_init)
     except Exception:
         post_sock.close()
         raise
@@ -236,6 +237,7 @@ class TestSDRebootDetectionETS:
         self,
         tmp_path_factory: pytest.TempPathFactory,
         host_ip: str,
+        request: pytest.FixtureRequest,
     ) -> None:
         """TC8-SDLC-017: First unicast SD OFFER after DUT restart has reboot flag set and session_id = 1.
 
@@ -245,6 +247,9 @@ class TestSDRebootDetectionETS:
         3. Assert that the very first post-restart OFFER has reboot_flag = True
            AND session_id = 1 (per PRS_SOMEIPSD_00157, counter resets to 1 on boot).
         """
+        target_init = request.getfixturevalue("target_init")
+        request.getfixturevalue("tc8_itf_config_setup")
+
         tmp_dir = tmp_path_factory.mktemp("tc8_ets093_config")
         config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
@@ -257,7 +262,7 @@ class TestSDRebootDetectionETS:
                 "Set TC8_HOST_IP to a non-loopback IP."
             )
 
-        proc1 = launch_someipd(config_path)
+        proc1 = launch_someipd(config_path, target_init=target_init)
         drained: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline and len(drained) < 3:
@@ -277,17 +282,7 @@ class TestSDRebootDetectionETS:
         pre_sock.close()
         terminate_someipd(proc1)
 
-        # Wait for port release.
-        for _ in range(20):
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
-                    probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    probe.bind(("", SD_PORT))
-                break
-            except OSError:
-                time.sleep(0.05)
-
-        cleanup_vsomeip_sockets()
+        cleanup_vsomeip_sockets(target_init=target_init)
 
         # --- Second run: capture post-reboot offer ---
         try:
@@ -295,7 +290,7 @@ class TestSDRebootDetectionETS:
         except OSError:
             pytest.skip("Multicast socket unavailable for post-reboot capture.")
 
-        proc2 = launch_someipd(config_path)
+        proc2 = launch_someipd(config_path, target_init=target_init)
         post_messages: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline2 = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline2 and len(post_messages) < 1:
@@ -341,6 +336,7 @@ class TestSDRebootDetectionETS:
         self,
         tmp_path_factory: pytest.TempPathFactory,
         host_ip: str,
+        request: pytest.FixtureRequest,
     ) -> None:
         """TC8-SDLC-018: After restart the SD session_id resets to 1 and the reboot flag is set.
 
@@ -348,6 +344,9 @@ class TestSDRebootDetectionETS:
         OfferService multicast after a clean restart must have session_id = 1
         and the reboot flag bit set regardless of what session_id was before.
         """
+        target_init = request.getfixturevalue("target_init")
+        request.getfixturevalue("tc8_itf_config_setup")
+
         tmp_dir = tmp_path_factory.mktemp("tc8_ets094_config")
         config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
@@ -360,7 +359,7 @@ class TestSDRebootDetectionETS:
                 "Set TC8_HOST_IP to a non-loopback IP."
             )
 
-        proc1 = launch_someipd(config_path)
+        proc1 = launch_someipd(config_path, target_init=target_init)
         pre_messages: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline and len(pre_messages) < 3:
@@ -380,17 +379,7 @@ class TestSDRebootDetectionETS:
         pre_sock.close()
         terminate_someipd(proc1)
 
-        # Wait for port release.
-        for _ in range(20):
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
-                    probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    probe.bind(("", SD_PORT))
-                break
-            except OSError:
-                time.sleep(0.05)
-
-        cleanup_vsomeip_sockets()
+        cleanup_vsomeip_sockets(target_init=target_init)
 
         # --- Second run: verify session_id and reboot flag reset ---
         try:
@@ -398,7 +387,7 @@ class TestSDRebootDetectionETS:
         except OSError:
             pytest.skip("Multicast socket unavailable for post-reboot capture.")
 
-        proc2 = launch_someipd(config_path)
+        proc2 = launch_someipd(config_path, target_init=target_init)
         post_messages: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline2 = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline2 and len(post_messages) < 1:
