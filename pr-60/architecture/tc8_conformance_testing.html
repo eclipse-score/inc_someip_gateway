@@ -602,11 +602,10 @@ Client</strong> (<strong>ETC</strong>) implement the TC8 service interface defin
 test and process lifecycle.</p>
 <p class="plantuml">
 <object data="../_images/plantuml-aadc22ed53747593fdcd4115930e414922ce2681.svg" type="image/svg+xml" style="width:800px;height:270px;background:#FFFFFF;"></object></p>
-<p>The orchestrator starts the ETS application, <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>, and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>
-via <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code> subprocess fixtures — the same <code class="docutils literal notranslate"><span class="pre">subprocess.Popen</span></code>
-pattern used for the standalone <code class="docutils literal notranslate"><span class="pre">someipd</span></code> fixture. The S-CORE ITF
-framework is the preferred long-term orchestrator for multi-node or
-structured CI reporting scenarios.</p>
+<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> runs as the DUT in the QEMU guest. The Python socket-based tester
+and pytest run on the host side. This project provides <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code> and
+<code class="docutils literal notranslate"><span class="pre">helpers/dut_lifecycle.py</span></code> as the glue between the two sides. <code class="docutils literal notranslate"><span class="pre">TC8_DUT_IP</span></code>
+addresses the QEMU guest; <code class="docutils literal notranslate"><span class="pre">TC8_TESTER_IP</span></code> addresses the host TAP interface.</p>
 </section>
 </section>
 </section>

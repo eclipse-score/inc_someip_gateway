@@ -483,6 +483,16 @@ built on <code class="docutils literal notranslate"><span class="pre">score::mw:
 <code class="docutils literal notranslate"><span class="pre">conformance</span></code> Bazel tags. For the architectural overview, test topology
 diagrams, and module structure, see
 <a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Protocol conformance tests run <code class="docutils literal notranslate"><span class="pre">someipd</span></code> in <code class="docutils literal notranslate"><span class="pre">--tc8-standalone</span></code> mode.
+Fixture defaults (DUT IP, tester IP, port numbers) are defined in
+<code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code>.  To run all protocol conformance tests:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="o">/...</span>
+</pre></div>
+</div>
+<p>For QNX x86_64 use <code class="docutils literal notranslate"><span class="pre">--config=tc8-itf-qnx</span></code>.</p>
+</div>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="requirements.html">TC8 Conformance Test Requirements</a><ul>

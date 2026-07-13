@@ -1097,7 +1097,7 @@ TCP connection) is not covered — multi-instance TCP is a known gap.</p>
 <tr class="row-even"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_08</p></td>
 <td><p>TC8-SDF-037</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdMissingFormatFields::test_format_07_unicast_flag_set</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdMissingFormatFields::test_format_08_unicast_flag_set</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>§5.1.5.1 — SOMEIPSRV_FORMAT_14</p></td>
 <td><p>TC8-SDF-038</p></td>
@@ -1125,11 +1125,10 @@ fields) require a non-loopback interface and are skipped on loopback with
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><strong>TC8-SDF-037 naming:</strong> The test function is named
-<code class="docutils literal notranslate"><span class="pre">test_format_07_unicast_flag_set</span></code> but verifies the <strong>Unicast Flag (bit 6)</strong>
-of the SD Flags byte, which corresponds to <code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_FORMAT_08</span></code> in the OA
-spec.  <code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_FORMAT_07</span></code> (Reboot Flag) is a separate requirement covered
-by <code class="docutils literal notranslate"><span class="pre">TC8-SD-012</span></code>.</p>
+<p><strong>TC8-SDF-037:</strong> The test function <code class="docutils literal notranslate"><span class="pre">test_format_08_unicast_flag_set</span></code>
+verifies the <strong>Unicast Flag (bit 6)</strong> of the SD Flags byte, which corresponds
+to <code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_FORMAT_08</span></code> in the OA spec.  <code class="docutils literal notranslate"><span class="pre">SOMEIPSRV_FORMAT_07</span></code> (Reboot
+Flag) is a separate requirement covered by <code class="docutils literal notranslate"><span class="pre">TC8-SD-012</span></code>.</p>
 </div>
 </section>
 <section id="sd-entry-semantics">
