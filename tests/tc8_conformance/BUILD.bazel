@@ -130,6 +130,7 @@ _ITF_ARGS = [
 
 _ITF_DEPS = [
     ":tc8-itf-lib",
+    "//tests/common:capture",
     "@score_tooling//python_basics/score_pytest:attribute_plugin",
 ]
 

@@ -62,6 +62,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
     ],
 )
@@ -76,6 +77,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],
@@ -91,6 +93,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],
@@ -106,6 +109,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],
@@ -121,6 +125,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],

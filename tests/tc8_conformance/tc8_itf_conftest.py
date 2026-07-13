@@ -38,11 +38,13 @@ import logging
 import os
 import socket
 import struct
+import subprocess
 import time
 from typing import Generator
 
 import pytest
 
+from capture import stop_capture, tcpdump_capture
 from score.itf.core.process.async_process import AsyncProcess
 
 _logger = logging.getLogger(__name__)
@@ -190,6 +192,84 @@ def _cleanup_vsomeip_sockets_on_target(target_init: object) -> None:
                 exit_code,
                 output.decode(errors="replace"),
             )
+
+
+# ---------------------------------------------------------------------------
+# Host-side tcpdump capture (session-scoped, autouse)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session", autouse=True)
+def someip_pcap_capture() -> Generator[None, None, None]:
+    """Capture SOME/IP traffic on the host TAP interface for the whole session.
+
+    Output: ``TEST_UNDECLARED_OUTPUTS_DIR/someip_capture.pcap`` (preserved by
+    Bazel under ``bazel-testlogs/<target>/test.outputs/``).
+
+    Unavailable tcpdump or denied CAP_NET_RAW becomes a warning, not a failure.
+    """
+    _tc8_dut_ip_key = "TC8_DUT_IP"
+    _tc8_dut_ip_default = "169.254.158.190"
+    if _tc8_dut_ip_key not in os.environ:
+        _logger.warning(
+            "someip_pcap_capture: TC8_DUT_IP env var is not set; "
+            "defaulting to %s (the QEMU TAP bridge IP). "
+            "Override via: export TC8_DUT_IP=<dut-ip>",
+            _tc8_dut_ip_default,
+        )
+    dut_ip = os.environ.get(_tc8_dut_ip_key, _tc8_dut_ip_default)
+    sd_port = os.environ.get("TC8_SD_PORT", "30490")
+    svc_tcp_port = os.environ.get("TC8_SVC_TCP_PORT", "30510")
+
+    # Multicast event group port (fixed in tc8_someipd_sd.json eventgroup 0x4465).
+    _multicast_event_port = "40490"
+
+    # Config-derived BPF:
+    #   udp port <sd_port>   — SOME/IP-SD (multicast + unicast)
+    #   udp port 40490       — multicast event data (eventgroup 0x4465)
+    #   host <dut_ip> udp    — all UDP to/from DUT (static TC8_SVC_PORT + dynamic ucei ports)
+    #   host <dut_ip> tcp    — SOME/IP TCP service only; excludes SSH (22)
+    bpf = (
+        f"(udp port {sd_port})"
+        f" or (udp port {_multicast_event_port})"
+        f" or (host {dut_ip} and (udp or (tcp and port {svc_tcp_port})))"
+    )
+
+    output_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")
+    output_file = os.path.join(output_dir, "someip_capture.pcap")
+
+    proc: subprocess.Popen[bytes] | None = None
+    try:
+        proc = tcpdump_capture(bpf, output_file=output_file)
+        _logger.info(
+            "someip_pcap_capture: tcpdump started (filter=%r output=%s)",
+            bpf,
+            output_file,
+        )
+    except (RuntimeError, OSError) as exc:
+        _logger.warning(
+            "someip_pcap_capture: tcpdump unavailable — continuing without pcap. %s",
+            exc,
+        )
+
+    try:
+        yield
+    finally:
+        if proc is not None:
+            clean = stop_capture(proc, timeout=5.0)
+            if clean:
+                _logger.info(
+                    "someip_pcap_capture: tcpdump stopped cleanly, pcap complete. "
+                    "output=%s",
+                    output_file,
+                )
+            else:
+                _logger.warning(
+                    "someip_pcap_capture: tcpdump did not respond to SIGINT within "
+                    "5 s; SIGKILL used. All captured packets are present (written "
+                    "per-packet via -U) but pcap trailer may be absent. output=%s",
+                    output_file,
+                )
 
 
 # ---------------------------------------------------------------------------
