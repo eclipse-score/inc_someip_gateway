@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "someip_error.h"
+#include "score/someip/someip_error.h"
 
 namespace score::someip {
 

@@ -38,6 +38,7 @@ cat >"${tmp_dir}/user-data" <<'EOF'
 package_update: true
 packages:
   - iputils-ping
+  - libatomic1
 
 # Remove unnecessary packages to reduce image size and boot time
 bootcmd:

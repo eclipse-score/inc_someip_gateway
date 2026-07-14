@@ -18,10 +18,25 @@
 
 namespace score::someip {
 
+// =============================================================================
+// SOME/IP related constants
+// =============================================================================
+
+// Size of a SOME/IP message header in bytes.
 constexpr std::size_t kSomeipFullHeaderSize = 16;
+// Ethernet MTU-derived cap on a single SOME/IP message to avoid fragmentation.
 constexpr std::size_t kMaxMessageSize = 1500;
+// Wildcard instance ID used to match any service instance in find/subscribe calls.
 constexpr InstanceId kAnyInstance = 0xFFFF;
-constexpr std::size_t max_sample_count = 10;
+// Maximum number of event samples buffered per subscriber before oldest samples are dropped.
+constexpr std::size_t kMaxSampleCount = 10;
+
+// =============================================================================
+// SOCom IPC bridge constants
+// =============================================================================
+
+// Maximum size of IPC messages for the SOCom control channel.
+constexpr std::size_t kMaxIpcMessageSize = 32768;
 
 }  // namespace score::someip
 #endif  // SCORE_SOMEIP_CONSTANTS_H
