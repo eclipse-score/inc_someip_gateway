@@ -24,17 +24,19 @@
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
 #include "score/filesystem/path.h"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/message_passing/client_factory.h"
+#include "score/message_passing/service_protocol_config.h"
 #include "score/mw/com/runtime.h"
-#include "score/mw/com/types.h"
 #include "score/mw/log/logging.h"
+#include "score/socom/runtime.hpp"
+#include "score/someip/constants.h"
 #include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
 #include "src/serializer/serializer.h"
 
 // In the main file we are not in any namespace
+using namespace score;
 using namespace score::someip_gateway::gatewayd;
-using score::someip_gateway::network_service::interfaces::message_transfer::
-    SomeipMessageTransferSkeleton;
 
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
@@ -120,7 +122,8 @@ int main(int argc, char* argv[]) {
     std::streampos length = config_file.tellg();
 
     if (length <= 0) {
-        score::mw::log::LogFatal() << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
+        score::mw::log::LogFatal()
+            << "Error: Invalid config file size: " << static_cast<std::size_t>(length);
         config_file.close();
         return 1;
     }
@@ -150,15 +153,101 @@ int main(int argc, char* argv[]) {
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
-    // TODO: Need to come up with a proper scheme how to generate instance specifiers
-    auto create_result = SomeipMessageTransferSkeleton::Create(
-        score::mw::com::InstanceSpecifier::Create(std::string("gatewayd/gatewayd_messages"))
-            .value());
-    // TODO: Error handling
-    auto someip_message_skeleton = std::move(create_result).value();
+    // Create the SOCom runtime
+    auto socom_runtime = socom::create_runtime();
 
-    // TODO: Error handling
-    (void)someip_message_skeleton.OfferService();
+    // "Connect" is the largest IPC message due to the embedded SHM metadata
+    static_assert(sizeof(gateway_ipc_binding::Connect{}) <= score::someip::kMaxIpcMessageSize,
+                  "Connect message exceeds max_send_size");
+
+    message_passing::ServiceProtocolConfig proto_config{
+        "someipd_gatewayd_ipc", score::someip::kMaxIpcMessageSize,
+        score::someip::kMaxIpcMessageSize, score::someip::kMaxIpcMessageSize};
+
+    auto ipc_connection =
+        message_passing::ClientFactory{}.Create(proto_config, {10, 10, false, false, false});
+
+    // Build shared memory configuration
+    // TODO: figure out why both server and client config is required, otherwise CRASH
+    gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration shm_config;
+    gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration
+        server_shm_config;
+    for (auto service_type_config : *config->service_types()) {
+        socom::Service_interface_identifier const iface{
+            service_type_config->service_type_name()->string_view(),
+            {service_type_config->service_version_major(),
+             static_cast<uint16_t>(service_type_config->service_version_minor())}};
+        // TODO: Handle multiple instances. Needs to be converted from integer ID to string.
+        // For initial impl, just use service name again.
+        socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
+
+        auto const service_id = service_type_config->service_id();
+
+        std::string shm_path = "/";
+        shm_path.append(service_type_config->service_type_name()->string_view())
+            .append("_")
+            .append(std::to_string(service_id));
+
+        std::string counterpart_shm_path = "/counterpart_";
+        counterpart_shm_path.append(service_type_config->service_type_name()->string_view())
+            .append("_")
+            .append(std::to_string(service_id));
+
+        auto shm_path_result =
+            gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
+                shm_path);
+        if (!shm_path_result.has_value()) {
+            score::mw::log::LogError()
+                << "[gatewayd] shm path too long for service_id " << service_id;
+            continue;
+        }
+
+        auto counterpart_shm_path_result =
+            gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
+                counterpart_shm_path);
+        if (!counterpart_shm_path_result.has_value()) {
+            score::mw::log::LogError()
+                << "[gatewayd] counterpart shm path too long for service_id " << service_id;
+            continue;
+        }
+
+        // TODO: get actual slot size from serializer + 16B SOME/IP header
+        if (service_type_config->local_service_instances()) {
+            shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
+                                       someip::kMaxSampleCount};
+            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
+            // possible size for now.
+            server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
+        } else if (service_type_config->remote_service_instances()) {
+            server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
+                                              someip::kMaxSampleCount};
+            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
+            // possible size for now.
+            shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
+        } else {
+            score::mw::log::LogError()
+                << "[gatewayd] Service " << service_type_config->service_type_name()->string_view()
+                << " has no local or remote instances, skipping shared memory config";
+        }
+    }
+
+    // Create the binding client (auto-sends Connect when the socket is ready).
+    auto binding_client = gateway_ipc_binding::Gateway_ipc_binding_client::create(
+        *socom_runtime, std::move(ipc_connection),
+        gateway_ipc_binding::Shared_memory_manager_factory::create(shm_config),
+        {},  // find_service_elements
+        score::gateway_ipc_binding::make_shared_memory_configs(server_shm_config), "gatewayd");
+
+    // Wait for the IPC handshake to complete (requires someipd to be running).
+    while (!binding_client->is_connected() && !shutdown_requested.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    if (shutdown_requested.load()) {
+        score::mw::log::LogInfo()
+            << "[gatewayd] Shutdown requested during IPC handshake with someipd, exiting...";
+        return 0;
+    }
+    std::cout << "[gatewayd] IPC connection to someipd established" << std::endl;
 
     // Create local service instances from configuration
     std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
@@ -173,12 +262,13 @@ int main(int argc, char* argv[]) {
                           << service_instance_config->instance_id() << std::dec << ", specifier="
                           << service_instance_config->instance_specifier()->string_view() << ")"
                           << std::endl;
+
                 LocalServiceInstance::CreateAsyncLocalServices(
                     std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
                         config, service_instance_config),
                     std::shared_ptr<const score::mw_someip_config::ServiceType>(
                         config, service_type_config),
-                    someip_message_skeleton, local_service_instances);
+                    *socom_runtime, local_service_instances);
             }
         }
     }
@@ -201,7 +291,7 @@ int main(int argc, char* argv[]) {
                         config, service_instance_config),
                     std::shared_ptr<const score::mw_someip_config::ServiceType>(
                         config, service_type_config),
-                    remote_service_instances);
+                    *socom_runtime, remote_service_instances);
             }
         }
     }

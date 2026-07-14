@@ -15,14 +15,14 @@
 #define SRC_SOMEIPD_ROUTING
 
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <thread>
 #include <vsomeip/vsomeip.hpp>
 
 #include "score/result/result.h"
-#include "src/common/types.h"
+#include "score/someip/types.h"
 #include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
 
 namespace score::someipd {
 
@@ -30,36 +30,25 @@ using score::someip::EventId;
 using score::someip::InstanceId;
 using score::someip::ServiceId;
 
-using score::someip_gateway::network_service::interfaces::message_transfer::
-    SomeipMessageTransferProxy;
-using score::someip_gateway::network_service::interfaces::message_transfer::
-    SomeipMessageTransferSkeleton;
-
-/// Bridges SOME/IP messages between the vsomeip stack and the IPC layer.
+/// Manages the vsomeip application lifecycle and SOME/IP service registrations.
 ///
 /// Owns a vsomeip application instance, registers event subscriptions and
 /// service offerings from configuration, and dispatches incoming SOME/IP
-/// messages to the IPC skeleton while forwarding IPC-originated messages
-/// onto the SOME/IP network via the proxy.
+/// messages. IPC forwarding to/from gatewayd is handled via SOCom connectors
+/// that are wired in externally (see main.cpp).
 class Routing {
    public:
-    /// @brief Creates a Routing instance from the given configuration and IPC endpoints.
+    /// @brief Creates a Routing instance from the given configuration.
     ///
-    /// Initialises a vsomeip application, registers it with the vsomeip runtime, and wires up
-    /// the IPC proxy and skeleton. Subscriptions and service offerings are applied once Run()
-    /// is called and the application has registered with the vsomeip routing daemon.
+    /// Initialises a vsomeip application and registers it with the vsomeip runtime.
+    /// Subscriptions and service offerings are applied once Run() is called and the
+    /// application has registered with the vsomeip routing daemon.
     ///
-    /// @param config       SOME/IP gateway configuration describing the services, instances,
-    ///                     events, and methods to subscribe to or offer on the network.
-    /// @param ipc_proxy    IPC proxy used to receive outgoing messages from local publishers
-    ///                     and forward them onto the SOME/IP network.
-    /// @param ipc_skeleton IPC skeleton used to forward incoming SOME/IP events to local
-    ///                     consumers.
+    /// @param config SOME/IP gateway configuration describing the services, instances,
+    ///               events, and methods to subscribe to or offer on the network.
     /// @return A fully initialised Routing instance, or an error if the vsomeip application
     ///         could not be created or initialised.
-    static Result<Routing> Create(std::shared_ptr<const score::mw_someip_config::Root> config,
-                                  SomeipMessageTransferProxy ipc_proxy,
-                                  SomeipMessageTransferSkeleton ipc_skeleton);
+    static Result<Routing> Create(std::shared_ptr<const score::mw_someip_config::Root> config);
 
     ~Routing() = default;
 
@@ -68,13 +57,16 @@ class Routing {
     Routing(Routing&&) noexcept;
     Routing& operator=(Routing&&) noexcept;
 
+    /// Returns the vsomeip application instance.
+    std::shared_ptr<vsomeip::application> get_application() const noexcept { return application_; }
+
     /// Runs the routing loop, blocking until @p shutdown_requested is set to true.
-    void Run(std::atomic<bool>& shutdown_requested);
+    /// \param on_registered Optional callback invoked once vsomeip reaches ST_REGISTERED.
+    ///        Use this to call setup_vsomeip() on RemoteNetworkService instances.
+    void Run(std::atomic<bool>& shutdown_requested, std::function<void()> on_registered = {});
 
    private:
-    Routing(std::shared_ptr<const score::mw_someip_config::Root> config,
-            SomeipMessageTransferProxy ipc_proxy, SomeipMessageTransferSkeleton ipc_skeleton);
-    void SetupSubscriptions();
+    explicit Routing(std::shared_ptr<const score::mw_someip_config::Root> config);
     void SetupOfferings();
     void ProcessMessages(std::atomic<bool>& shutdown_requested);
     InstanceId LookupInstanceId(ServiceId service_id) const;
@@ -83,10 +75,6 @@ class Routing {
     std::shared_ptr<vsomeip::application> application_{};
     std::shared_ptr<vsomeip::payload> payload_{};
     std::thread processing_thread_{};
-
-    // TODO: Replace with SOCOM implementation
-    SomeipMessageTransferProxy ipc_proxy_;
-    SomeipMessageTransferSkeleton ipc_skeleton_;
 };
 
 }  // namespace score::someipd

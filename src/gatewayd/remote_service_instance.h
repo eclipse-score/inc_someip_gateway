@@ -20,10 +20,14 @@
 #include <vector>
 
 #include "score/mw/com/types.h"
+#include "score/socom/client_connector.hpp"
 #include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
 
 struct score_com_serializer;
+
+namespace score::socom {
+class Runtime;
+}  // namespace score::socom
 
 namespace score::someip_gateway::gatewayd {
 
@@ -36,34 +40,35 @@ namespace score::someip_gateway::gatewayd {
 ///          remote services accessible to applications on this ECU.
 class RemoteServiceInstance {
    public:
-    /// \brief Constructs a RemoteServiceInstance
+    /// \brief Creates a RemoteServiceInstance
     /// \param service_instance_config Configuration for this service instance
     /// \param service_type_config Configuration for the service type of this instance
-    /// \param ipc_skeleton IPC skeleton for communication with local consumer applications
-    /// \param someip_message_proxy Proxy for receiving messages from the someipd daemon
-    /// \details This constructor initializes a remote service instance with the necessary
+    /// \param ipc_skeleton IPC skeleton for forwarding events to local consumer applications
+    /// \param socom_runtime SOCom runtime used to create the client connector
+    /// \return Result containing the created instance on success, or an error on failure
+    /// \details This factory method creates a remote service instance with the necessary
     ///          components to receive messages from the someipd daemon and forward them to
     ///          local applications via IPC.
-    RemoteServiceInstance(
+    static Result<std::unique_ptr<RemoteServiceInstance>> Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        score::mw::com::GenericSkeleton&& ipc_skeleton,
-        network_service::interfaces::message_transfer::SomeipMessageTransferProxy
-            someip_message_proxy);
+        score::mw::com::GenericSkeleton&& ipc_skeleton, socom::Runtime& socom_runtime);
 
     /// \brief Asynchronously creates a remote service instance
     /// \param service_instance_config Configuration for the service instance to create
     /// \param service_type_config Configuration for the service type of the instance to create
+    /// \param socom_runtime SOCom runtime used to create the client connector
     /// \param instances Reference to the vector to store the created remote service instance
-    /// \return Result containing a FindServiceHandle on success, or an error on failure
+    /// \return Result containing an Error on failure.
     /// \details This static factory method asynchronously searches for and creates a remote
     ///          service instance. It performs service discovery for services offered via SOME/IP
     ///          from remote ECUs and, when found, constructs a RemoteServiceInstance object and
     ///          adds it to the instances vector. The returned FindServiceHandle can be used to
     ///          manage the asynchronous operation.
-    static Result<mw::com::FindServiceHandle> CreateAsyncRemoteService(
+    static Result<void> CreateAsyncRemoteService(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
+        socom::Runtime& socom_runtime,
         std::vector<std::unique_ptr<RemoteServiceInstance>>& instances);
 
     RemoteServiceInstance(const RemoteServiceInstance&) = delete;
@@ -72,22 +77,36 @@ class RemoteServiceInstance {
     RemoteServiceInstance& operator=(RemoteServiceInstance&&) = delete;
 
    private:
-    /// Configuration for this service instance
-    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_;
-    /// Configuration for the service type of this instance
-    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_;
-    /// IPC skeleton for forwarding messages to local consumer applications
-    score::mw::com::GenericSkeleton ipc_skeleton_;
-    /// Proxy for receiving messages from the someipd daemon
-    network_service::interfaces::message_transfer::SomeipMessageTransferProxy someip_message_proxy_;
-
     struct EventContext {
         const mw_someip_config::Event* config;
         const ::score_com_serializer* serializer;
         score::mw::com::GenericSkeletonEvent* ipc_event;
     };
+
+    /// \brief Private constructor
+    RemoteServiceInstance(
+        std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
+        score::mw::com::GenericSkeleton&& ipc_skeleton,
+        socom::Client_connector::Uptr client_connector,
+        std::unordered_map<std::uint16_t, EventContext> event_contexts);
+
+    void forward_event(socom::Event_id event_id, socom::Payload payload);
+
+    /// Configuration for this service instance
+    std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_;
+    /// Configuration for the service type of this instance
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_;
+    /// IPC skeleton for forwarding events to local consumer applications
+    score::mw::com::GenericSkeleton ipc_skeleton_;
+    /// SOCom client connector for receiving event updates from the someipd daemon.
+    /// Declared last so it is destroyed first, ensuring no callbacks fire after ipc_skeleton_
+    /// or service_type_config_ are gone.
+    socom::Client_connector::Uptr client_connector_;
+
     std::unordered_map<std::uint16_t, EventContext> event_contexts_;
 };
+
 }  // namespace score::someip_gateway::gatewayd
 
 #endif  // SRC_GATEWAYD_REMOTE_SERVICE_INSTANCE

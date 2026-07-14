@@ -65,7 +65,7 @@ bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 # ============================================================================
 # Build System Rules & Utilities
 # ============================================================================
-bazel_dep(name = "bazel_lib", version = "3.3.1", dev_dependency = True)
+bazel_dep(name = "bazel_lib", version = "3.5.0", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -324,7 +324,7 @@ http_archive(
 # ============================================================================
 # Integration Testing
 # ============================================================================
-bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
+bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 git_override(
     module_name = "score_itf",
     commit = "98118b1fcd6c53244fb276e2c7668faaf15d2e10",
@@ -332,10 +332,10 @@ git_override(
 )
 
 bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
-bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
+bazel_dep(name = "rules_oci", version = "2.3.0", dev_dependency = True)
 single_version_override(
     module_name = "rules_oci",
-    version = "2.2.7",
+    version = "2.3.0",
 )
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")

@@ -22,20 +22,21 @@
 #include <memory>
 #include <thread>
 
+#include "local_network_service.h"
+#include "remote_network_service.h"
 #include "routing.h"
 #include "score/filesystem/path.h"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
+#include "score/message_passing/server_factory.h"
+#include "score/message_passing/service_protocol_config.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
-#include "src/common/constants.h"
+#include "score/socom/runtime.hpp"
+#include "score/someip/constants.h"
 #include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
 
-const char* someipd_name = "someipd";
-
-using score::someip_gateway::network_service::interfaces::message_transfer::
-    SomeipMessageTransferProxy;
-using score::someip_gateway::network_service::interfaces::message_transfer::
-    SomeipMessageTransferSkeleton;
+using namespace score;
+using namespace score::someipd;
 
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
@@ -138,54 +139,102 @@ int main(int argc, char* argv[]) {
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
-    std::vector<score::mw::com::HandleType> handles;
+    auto socom_runtime = socom::create_runtime();
 
-    while (handles.empty() && !shutdown_requested.load()) {
-        auto find_result = SomeipMessageTransferProxy::FindService(
-            score::mw::com::InstanceSpecifier::Create(std::string("someipd/gatewayd_messages"))
-                .value());
+    // Create the IPC server — socket name and message sizes must match gatewayd's client config
+    message_passing::ServiceProtocolConfig const proto{
+        "someipd_gatewayd_ipc", someip::kMaxIpcMessageSize, someip::kMaxIpcMessageSize,
+        someip::kMaxIpcMessageSize};
 
-        if (!find_result.has_value()) {
-            std::cerr << "[someipd] Error finding service: " << find_result.error().Message()
-                      << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            continue;
-        }
+    auto ipc_server = message_passing::ServerFactory{}.Create(proto, {10, 1, 10});
 
-        handles = find_result.value();
+    // Create the IPC binding server.
+    auto binding_server = gateway_ipc_binding::Gateway_ipc_binding_server::create(
+        *socom_runtime, std::move(ipc_server),
+        gateway_ipc_binding::Shared_memory_manager_factory::create({}),
+        [](gateway_ipc_binding::Client_id, gateway_ipc_binding::Find_service_elements const&,
+           bool) {});
 
-        if (handles.empty()) {
-            std::cout << "[someipd] Waiting for gatewayd to start..." << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
+    auto start_result = binding_server->start();
+    if (!start_result.has_value()) {
+        score::mw::log::LogFatal() << "[someipd] Failed to start IPC server";
+        return 1;
     }
+    std::cout << "[someipd] IPC server started, waiting for gatewayd connection..." << std::endl;
 
-    if (shutdown_requested.load()) {
-        return EXIT_SUCCESS;
-    }
-
-    // Proxy for receiving messages from gatewayd to be sent via SOME/IP
-    auto proxy = SomeipMessageTransferProxy::Create(handles.front()).value();
-    proxy.message_.Subscribe(score::someip::max_sample_count);
-
-    // Skeleton for transmitting messages from the network to gatewayd
-    // TODO: Error handling for instance specifier creation
-    auto create_result = SomeipMessageTransferSkeleton::Create(
-        score::mw::com::InstanceSpecifier::Create(std::string("someipd/someipd_messages")).value());
-
-    auto skeleton = std::move(create_result).value();
-
-    // TODO: Error handling
-    (void)skeleton.OfferService();
-
-    auto routing = score::someipd::Routing::Create(config, std::move(proxy), std::move(skeleton));
+    auto routing = Routing::Create(config);
     if (!routing.has_value()) {
         score::mw::log::LogFatal() << "[someipd] Network stack initialization failed";
         return 1;
     }
 
+    // Create local network services — one client_connector per local service instance,
+    // receiving events from gatewayd's server_connectors and forwarding to vsomeip notify().
+    std::vector<std::unique_ptr<LocalNetworkService>> local_network_services;
+    for (auto service_type_config : *config->service_types()) {
+        auto service_instances = service_type_config->local_service_instances();
+        if (!service_instances) {
+            continue;
+        }
+        for (auto const& service_instance_config : *service_instances) {
+            std::cout << "[someipd] Creating LocalNetworkService: "
+                      << service_type_config->service_type_name()->string_view()
+                      << " (service_id=0x" << std::hex << service_type_config->service_id()
+                      << std::dec << ", instance_id=0x" << std::hex
+                      << service_instance_config->instance_id() << std::dec << ")" << std::endl;
+            auto create_result = LocalNetworkService::Create(
+                std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                    config, service_instance_config),
+                std::shared_ptr<const score::mw_someip_config::ServiceType>(config,
+                                                                            service_type_config),
+                routing.value().get_application(), *socom_runtime);
+            if (!create_result.has_value()) {
+                score::mw::log::LogError()
+                    << "[someipd] Failed to create LocalNetworkService for "
+                    << service_type_config->service_type_name()->string_view();
+                continue;
+            }
+            local_network_services.push_back(std::move(create_result).value());
+        }
+    }
+
+    // Create remote network services — one server_connector per remote service instance,
+    // receiving SOME/IP events via vsomeip and pushing to gatewayd's client_connectors.
+    // setup_vsomeip() is deferred until vsomeip reaches ST_REGISTERED (via on_registered below).
+    std::vector<std::unique_ptr<RemoteNetworkService>> remote_network_services;
+    for (auto service_type_config : *config->service_types()) {
+        auto service_instances = service_type_config->remote_service_instances();
+        if (!service_instances) {
+            continue;
+        }
+        for (auto const& service_instance_config : *service_instances) {
+            std::cout << "[someipd] Creating RemoteNetworkService: "
+                      << service_type_config->service_type_name()->string_view()
+                      << " (service_id=0x" << std::hex << service_type_config->service_id()
+                      << std::dec << ", instance_id=0x" << std::hex
+                      << service_instance_config->instance_id() << std::dec << ")" << std::endl;
+            auto create_result = RemoteNetworkService::Create(
+                std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                    config, service_instance_config),
+                std::shared_ptr<const score::mw_someip_config::ServiceType>(config,
+                                                                            service_type_config),
+                routing.value().get_application(), *socom_runtime);
+            if (!create_result.has_value()) {
+                score::mw::log::LogError()
+                    << "[someipd] Failed to create RemoteNetworkService for "
+                    << service_type_config->service_type_name()->string_view();
+                continue;
+            }
+            remote_network_services.push_back(std::move(create_result).value());
+        }
+    }
+
     std::cout << "[someipd] Starting routing loop..." << std::endl;
-    routing.value().Run(shutdown_requested);
+    routing.value().Run(shutdown_requested, [&remote_network_services]() {
+        for (auto& svc : remote_network_services) {
+            svc->setup_vsomeip();
+        }
+    });
 
     std::cout << "[someipd] Shutting down SOME/IP daemon..." << std::endl;
     return EXIT_SUCCESS;

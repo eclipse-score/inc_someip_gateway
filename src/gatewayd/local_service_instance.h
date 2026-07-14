@@ -20,8 +20,12 @@
 #include <vector>
 
 #include "score/mw/com/types.h"
+#include "score/socom/server_connector.hpp"
 #include "src/config/mw_someip_config_generated.h"
-#include "src/network_service/interfaces/message_transfer.h"
+
+namespace score::socom {
+class Runtime;
+}  // namespace score::socom
 
 struct score_com_serializer;
 
@@ -36,26 +40,24 @@ namespace score::someip_gateway::gatewayd {
 ///          the someipd daemon, ultimately making the local service accessible to remote ECUs.
 class LocalServiceInstance {
    public:
-    /// \brief Constructs a LocalServiceInstance
+    /// \brief Creates a LocalServiceInstance
     /// \param service_instance_config Configuration for this service instance
     /// \param service_type_config Configuration for the service type of this instance
     /// \param ipc_proxy Generic proxy for IPC communication with the local service
-    /// \param someip_message_skeleton Skeleton for message transfer to the someipd daemon
-    /// \details This constructor initializes a local service instance with the necessary
+    /// \param socom_runtime SOCom runtime used to create the server connector
+    /// \return Result containing the created instance on success, or an error on failure
+    /// \details This factory method creates a local service instance with the necessary
     ///          components to forward local service messages to the someipd daemon, which
     ///          then handles the SOME/IP network communication with remote ECUs.
-    LocalServiceInstance(
+    static Result<std::unique_ptr<LocalServiceInstance>> Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        score::mw::com::GenericProxy&& ipc_proxy,
-        // TODO: Decouple this via an interface
-        network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
-            someip_message_skeleton);
+        score::mw::com::GenericProxy&& ipc_proxy, socom::Runtime& socom_runtime);
 
     /// \brief Asynchronously creates a local service instance
     /// \param service_instance_config Configuration for the service instance to create
     /// \param service_type_config Configuration for the service type of the instance to create
-    /// \param someip_message_skeleton Skeleton for message transfer to the someipd daemon
+    /// \param socom_runtime SOCom runtime used to create the server connector
     /// \param instances Reference to the vector to store the created local service instance
     /// \return Result containing a FindServiceHandle on success, or an error on failure
     /// \details This static factory method asynchronously searches for and creates a local
@@ -66,8 +68,7 @@ class LocalServiceInstance {
     static Result<mw::com::FindServiceHandle> CreateAsyncLocalServices(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
-            someip_message_skeleton,
+        socom::Runtime& socom_runtime,
         std::vector<std::unique_ptr<LocalServiceInstance>>& instances);
 
     LocalServiceInstance(const LocalServiceInstance&) = delete;
@@ -76,19 +77,26 @@ class LocalServiceInstance {
     LocalServiceInstance& operator=(LocalServiceInstance&&) = delete;
 
    private:
+    /// \brief Private constructor
+    LocalServiceInstance(
+        std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
+        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
+        score::mw::com::GenericProxy&& ipc_proxy,
+        score::socom::Enabled_server_connector::Uptr server_connector);
+
     /// Configuration for this service instance
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_;
     /// Configuration for the service type of this instance
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_;
     /// Generic proxy for IPC communication with the local service providing application
     score::mw::com::GenericProxy ipc_proxy_;
-    /// Reference to the SOME/IP message skeleton for forwarding messages to the someipd daemon
-    network_service::interfaces::message_transfer::SomeipMessageTransferSkeleton&
-        someip_message_skeleton_;
+    /// SOCom server connector for handling communication with the someipd daemon
+    score::socom::Enabled_server_connector::Uptr server_connector_;
 
     struct EventContext {
         const mw_someip_config::Event* config;
         const ::score_com_serializer* serializer;
+        const socom::Event_id socom_event_id;
     };
     std::map<std::string_view, EventContext> event_contexts_;
 };

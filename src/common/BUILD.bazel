@@ -20,17 +20,19 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 cc_library(
     name = "common",
     hdrs = [
-        "constants.h",
-        "types.h",
+        "include/score/someip/constants.h",
+        "include/score/someip/types.h",
     ],
+    includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [":someip_error"],
 )
 
 cc_library(
     name = "someip_error",
-    srcs = ["someip_error.cpp"],
-    hdrs = ["someip_error.h"],
+    srcs = ["src/someip_error.cpp"],
+    hdrs = ["include/score/someip/someip_error.h"],
+    includes = ["include"],
     visibility = ["//visibility:public"],
     deps = ["@score_baselibs//score/result"],
 )
