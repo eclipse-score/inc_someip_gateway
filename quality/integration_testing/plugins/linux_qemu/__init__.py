@@ -27,6 +27,7 @@ import time
 import pytest
 
 from score.itf.core.utils.bunch import Bunch
+from score.itf.plugins.qemu.qemu_process import QemuProcess
 from score.itf.plugins.qemu.qemu_target import QemuTarget
 
 from quality.integration_testing.plugins.linux_qemu.qemu_process import LinuxQemuProcess
@@ -146,6 +147,13 @@ def pytest_addoption(parser):
         default=None,
         help="Path to a tar archive containing the test filesystem to deploy onto the QEMU target.",
     )
+    parser.addoption(
+        "--qemu-boot-mode",
+        action="store",
+        choices=("disk", "kernel-image"),
+        default="disk",
+        help="QEMU boot mode: disk overlay boot (Linux) or kernel image boot (QNX IFS).",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -168,6 +176,7 @@ def config(request):
         request.config.getoption("qemu_kernel_cmdline"),
         request.config.getoption("qemu_kernel_cmdline_file"),
     )
+    qemu_boot_mode = request.config.getoption("qemu_boot_mode")
 
     return Bunch(
         qemu_config=load_configuration(
@@ -178,12 +187,29 @@ def config(request):
         qemu_seed_iso=qemu_seed_iso,
         qemu_kernel=qemu_kernel,
         qemu_kernel_cmdline=qemu_kernel_cmdline,
+        qemu_boot_mode=qemu_boot_mode,
     )
 
 
 @pytest.fixture(scope="session")
 def target_init(config, request, dlt):
     logger.info(f"Starting tests on host: {socket.gethostname()}")
+
+    if config.qemu_boot_mode == "kernel-image":
+        logger.info("Starting QEMU in kernel-image boot mode")
+        process = QemuProcess(
+            path_to_qemu_image=config.qemu_image,
+            available_ram=config.qemu_config.qemu_ram_size,
+            available_cores=config.qemu_config.qemu_num_cores,
+            network_adapters=[adapter.name for adapter in config.qemu_config.networks],
+            port_forwarding=config.qemu_config.port_forwarding,
+        )
+
+        with process:
+            target = QemuTarget(process, config.qemu_config)
+            _wait_for_target_ready(target)
+            yield target
+        return
 
     # Create a qcow2 overlay backed by the pristine base image so that each
     # test session starts from an unmodified disk.  All writes go to the

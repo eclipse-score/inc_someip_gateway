@@ -14,6 +14,7 @@
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@score_itf//:defs.bzl", "py_itf_test")
+load("@score_rules_imagefs//rules/qnx:ifs.bzl", "qnx_ifs")
 load("//quality/integration_testing:integration_testing.bzl", "integration_test")
 
 cc_binary(
@@ -68,6 +69,20 @@ pkg_tar(
     srcs = [":example-app-ebclfsa-pkg"],
 )
 
+qnx_ifs(
+    name = "_qemu_image_test_hello_world_ebclfsa_x86_64_qnx_integration_test",
+    srcs = [
+        ":example-app-ebclfsa-pkg",
+        "//quality/integration_testing/environments/qnx8_qemu:qnx_config",
+    ],
+    out = "init_ifs_test_hello_world_ebclfsa_x86_64_qnx_integration_test.img",
+    build_file = "//quality/integration_testing/environments/qnx8_qemu:init_build",
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:qnx",
+    ],
+)
+
 py_itf_test(
     name = "test_hello_world_ebclfsa_aarch64_integration_test",
     size = "enormous",
@@ -109,6 +124,48 @@ py_itf_test(
     target_compatible_with = select({
         "//quality/integration_testing/flags:linux_qemu": [
             "@platforms//os:linux",
+        ],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+py_itf_test(
+    name = "test_hello_world_ebclfsa_x86_64_qnx_integration_test",
+    size = "enormous",
+    timeout = "moderate",
+    srcs = ["test_hello_world.py"],
+    args = select({
+        "@platforms//os:qnx": [
+            "--log-cli-level=DEBUG",
+            "--qemu-config=$(location //quality/integration_testing/environments/qnx8_qemu:qemu_config)",
+            "--qemu-image=$(location _qemu_image_test_hello_world_ebclfsa_x86_64_qnx_integration_test)",
+            "--qemu-architecture=x86_64",
+            "--qemu-boot-mode=kernel-image",
+        ],
+        "//conditions:default": [],
+    }),
+    data = select({
+        "@platforms//os:qnx": [
+            "_qemu_image_test_hello_world_ebclfsa_x86_64_qnx_integration_test",
+            "//quality/integration_testing/environments/qnx8_qemu:qemu_config",
+        ],
+        "//conditions:default": [],
+    }),
+    env = {"DOCKER_HOST": ""},
+    plugins = select({
+        "@platforms//os:qnx": [
+            "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
+        ],
+        "//conditions:default": [],
+    }),
+    tags = [
+        "block-network",
+        "requires-fakeroot",
+    ],
+    target_compatible_with = select({
+        "@platforms//os:qnx": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:qnx",
         ],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
