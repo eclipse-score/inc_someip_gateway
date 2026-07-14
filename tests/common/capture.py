@@ -76,33 +76,33 @@ def stop_capture(
     proc: subprocess.Popen[bytes],
     timeout: float = 5.0,
 ) -> bool:
-    """Send SIGINT to *proc* (tcpdump flushes pcap cleanly), wait, fall back to SIGKILL.
+    """Send SIGINT to the process group of *proc* (tcpdump flushes pcap cleanly), wait,
+    fall back to SIGKILL on the group.
 
-    Returns True if SIGINT was sufficient; False if SIGKILL was needed.
+    Killing the entire process group ensures that any child forked by tcpdump
+    (e.g. due to -Z privilege-separation) is also terminated, preventing orphans.
+
+    Returns True if the process exited cleanly (or was already gone), False if
+    SIGKILL was required.
     """
     if proc.poll() is not None:
         return True  # already exited
 
     try:
-        proc.send_signal(signal.SIGINT)
-    except OSError:
-        # Process may have exited between poll() and send_signal().
-        return True
+        os.killpg(os.getpgid(proc.pid), signal.SIGINT)
+    except ProcessLookupError:
+        return True  # group already gone
 
     try:
         proc.wait(timeout=timeout)
         return True
     except subprocess.TimeoutExpired:
-        pass
-
-    # Graceful shutdown timed out — force kill.
-    try:
-        proc.kill()
-        proc.wait(timeout=5.0)
-    except (OSError, subprocess.TimeoutExpired):
-        pass
-
-    return False
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except ProcessLookupError:
+            pass  # group gone between timeout and SIGKILL
+        proc.wait()
+        return False
 
 
 class CaptureProcess:
@@ -175,10 +175,16 @@ def tcpdump_capture(
     if filter_expression:
         args.append(filter_expression)
 
+    if output_file is not None:
+        pcap_dir = os.path.dirname(output_file)
+        if pcap_dir:
+            os.makedirs(pcap_dir, exist_ok=True)
+
     proc = subprocess.Popen(
         args,
         stdout=subprocess.PIPE if output_file is None else subprocess.DEVNULL,
         stderr=subprocess.PIPE,
+        start_new_session=True,
     )
 
     # tcpdump exits within milliseconds if CAP_NET_RAW is missing or binary absent.
