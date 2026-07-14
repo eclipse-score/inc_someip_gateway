@@ -37,6 +37,7 @@ py_library(
     name = "capture",
     srcs = ["capture.py"],
     imports = ["."],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//tests:__subpackages__"],
 )
 
@@ -44,6 +45,7 @@ score_py_pytest(
     name = "test_capture",
     size = "small",
     srcs = ["test_capture.py"],
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":capture",
     ],
