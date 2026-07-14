@@ -138,6 +138,8 @@ py_itf_test(
         "@platforms//os:qnx": [
             "--log-cli-level=DEBUG",
             "--qemu-config=$(location //quality/integration_testing/environments/qnx8_qemu:qemu_config)",
+            "--qemu-kernel=$(location _qemu_image_test_hello_world_ebclfsa_x86_64_qnx_integration_test)",
+            # "--qemu-kernel-cmdline=test",
             "--qemu-image=$(location _qemu_image_test_hello_world_ebclfsa_x86_64_qnx_integration_test)",
             "--qemu-architecture=x86_64",
             "--qemu-boot-mode=kernel-image",

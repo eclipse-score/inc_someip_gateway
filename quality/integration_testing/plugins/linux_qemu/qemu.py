@@ -91,13 +91,7 @@ class DiskBootQemu:
         self._machine = _SUPPORTED_ARCHITECTURES[architecture]["machine"]
         self._block_device = _SUPPORTED_ARCHITECTURES[architecture]["block_device"]
         self._disk_format = get_image_type(path_to_image)
-
-        # EBcLfSA images require an explicit kernel when booting the raw .wic disk.
         self._use_kernel_boot = path_to_kernel is not None
-        if self._use_kernel_boot and not kernel_cmdline:
-            raise ValueError(
-                "kernel_cmdline must be provided when booting with an explicit kernel"
-            )
         self._network_adapters = network_adapters or []
         self._port_forwarding = port_forwarding or []
 
@@ -203,8 +197,17 @@ class DiskBootQemu:
                     self._machine,
                     "-kernel",
                     kernel_path,
-                    "-append",
-                    self._kernel_cmdline,
+                ]
+            )
+            if self._kernel_cmdline:
+                cmd.extend(
+                    [
+                        "-append",
+                        self._kernel_cmdline,
+                    ]
+                )
+            cmd.extend(
+                [
                     "-device",
                     f"{self._block_device},drive=vd0",
                     "-drive",
