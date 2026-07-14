@@ -231,21 +231,7 @@ class DiskBootQemu:
                 ]
             )
 
-        cmd.extend(
-            [
-                "-nographic",
-                "-chardev",
-                "stdio,id=char0,signal=on,mux=on",
-                "-mon",
-                "chardev=char0,mode=readline",
-                "-serial",
-                "chardev:char0",
-                "-object",
-                "rng-random,filename=/dev/urandom,id=rng0",
-                "-device",
-                "virtio-rng-pci,rng=rng0",
-            ]
-        )
+        cmd.extend(["-nographic"])
 
         cmd.extend(self._network_devices_args())
         cmd.extend(self._port_forwarding_args())
