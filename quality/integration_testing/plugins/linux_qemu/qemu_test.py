@@ -33,11 +33,7 @@ DiskBootQemu = _load_qemu_module().DiskBootQemu
 
 class DiskBootQemuTest(unittest.TestCase):
     def _new_qemu(self, seed_iso=None, architecture="x86_64"):
-        with (
-            patch.object(DiskBootQemu, "_check_qemu_is_installed"),
-            patch.object(DiskBootQemu, "_find_available_kvm_support"),
-            patch.object(DiskBootQemu, "_check_kvm_readable_when_necessary"),
-        ):
+        with patch.object(DiskBootQemu, "_check_qemu_is_installed"):
             qemu = DiskBootQemu(
                 path_to_image="/tmp/image.qcow2",
                 seed_iso=seed_iso,
@@ -93,36 +89,24 @@ class DiskBootQemuTest(unittest.TestCase):
         )
         self.assertIn(f"file={expected},format=raw,if=virtio,readonly=on", cmd)
 
-    def test_build_command_uses_valid_tcg_acceleration_args(self):
+    def test_build_command_uses_acceleration_args(self):
         qemu = self._new_qemu(seed_iso=None)
-        qemu._accelerator = "tcg"
 
         cmd = qemu._build_command()
 
         self.assertIn("-accel", cmd)
         accel_pos = cmd.index("-accel")
-        self.assertEqual(cmd[accel_pos + 1], "tcg")
-
-    def test_build_command_uses_enable_kvm_flag(self):
-        qemu = self._new_qemu(seed_iso=None)
-        qemu._accelerator = "kvm"
-
-        cmd = qemu._build_command()
-
-        self.assertIn("-enable-kvm", cmd)
+        self.assertEqual(cmd[accel_pos + 1], "kvm")
+        self.assertEqual(cmd[accel_pos + 2], "-accel")
+        self.assertEqual(cmd[accel_pos + 3], "tcg")
 
     def _new_qemu_with_kernel(self, architecture="x86_64"):
-        with (
-            patch.object(DiskBootQemu, "_check_qemu_is_installed"),
-            patch.object(DiskBootQemu, "_find_available_kvm_support"),
-            patch.object(DiskBootQemu, "_check_kvm_readable_when_necessary"),
-        ):
+        with patch.object(DiskBootQemu, "_check_qemu_is_installed"):
             qemu = DiskBootQemu(
                 path_to_image="/tmp/image.qcow2",
                 path_to_kernel="/tmp/kernel.img",
                 architecture=architecture,
             )
-        qemu._accelerator = "tcg"
         return qemu
 
     def test_x86_64_kernel_boot_omits_machine_flag(self):

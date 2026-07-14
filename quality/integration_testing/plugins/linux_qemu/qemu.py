@@ -31,7 +31,7 @@ _SUPPORTED_ARCHITECTURES = {
         "qemu_path": "/usr/bin/qemu-system-x86_64",
         "cpu": "Cascadelake-Server-v5",
         "network_device": "virtio-net-pci",
-        "machine": "q35,accel=kvm:tcg",
+        "machine": "q35",
         # When booting via -kernel the default pc (i440fx) machine is used.
         # q35 changes the PCI topology (LPC bridge moves from D17 to D31),
         # which breaks guests whose PCI interrupt config targets i440fx,
@@ -105,8 +105,6 @@ class DiskBootQemu:
         self._port_forwarding = port_forwarding or []
 
         self._check_qemu_is_installed()
-        self._find_available_kvm_support()
-        self._check_kvm_readable_when_necessary()
 
         self._subprocess = None
 
@@ -147,29 +145,6 @@ class DiskBootQemu:
             logger.fatal(f"QEMU is not installed under {self._qemu_path}")
             sys.exit(-1)
 
-    def _find_available_kvm_support(self):
-        self._accelerator = "kvm"
-        if self._host_architecture != self._architecture:
-            logger.warning(
-                "Cross-architecture emulation from %s to %s; using TCG accelerator.",
-                self._host_architecture,
-                self._architecture,
-            )
-            self._accelerator = "tcg"
-            return
-
-        if self._host_architecture == "x86_64":
-            with open("/proc/cpuinfo") as cpuinfo:
-                cpu_options = str(cpuinfo.read())
-                if "vmx" not in cpu_options and "svm" not in cpu_options:
-                    logger.error("No virtualization capability. Using TCG accel.")
-                    self._accelerator = "tcg"
-                    return
-
-        if not os.path.exists("/dev/kvm"):
-            logger.error("No KVM available. Using TCG accel.")
-            self._accelerator = "tcg"
-
     @staticmethod
     def _normalize_architecture(machine):
         normalized = machine.lower()
@@ -178,13 +153,6 @@ class DiskBootQemu:
         if normalized == "arm64":
             return "aarch64"
         return normalized
-
-    def _check_kvm_readable_when_necessary(self):
-        if self._accelerator == "kvm" and not os.access("/dev/kvm", os.R_OK):
-            logger.fatal(
-                "No access to /dev/kvm. Consider adding yourself to kvm group."
-            )
-            sys.exit(-1)
 
     def _build_command(self):
         image_path = os.path.abspath(self._path_to_image)
@@ -196,6 +164,10 @@ class DiskBootQemu:
             self._cpu,
             "-m",
             self._ram,
+            "-accel",
+            "kvm",
+            "-accel",
+            "tcg",
         ]
 
         if self._use_kernel_boot:
@@ -225,8 +197,6 @@ class DiskBootQemu:
                     f"file={image_path},format={self._disk_format},if=virtio",
                 ]
             )
-
-        cmd += ["-enable-kvm"] if self._accelerator == "kvm" else ["-accel", "tcg"]
 
         if self._seed_iso:
             seed_path = os.path.abspath(self._seed_iso)
