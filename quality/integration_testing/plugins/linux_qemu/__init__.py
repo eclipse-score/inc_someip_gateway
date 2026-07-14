@@ -43,6 +43,14 @@ _TARGET_READY_ATTEMPTS = 8
 _TARGET_READY_BACKOFF_SECONDS = 20
 
 
+def _resolve_kernel_cmdline(kernel_cmdline, kernel_cmdline_file):
+    if kernel_cmdline_file:
+        with open(os.path.abspath(kernel_cmdline_file), encoding="utf-8") as handle:
+            return handle.read().strip()
+
+    return kernel_cmdline
+
+
 def _wait_for_target_ready(target):
     """Wait for SSH and SFTP to become available on the target.
 
@@ -117,8 +125,14 @@ def pytest_addoption(parser):
     parser.addoption(
         "--qemu-kernel-cmdline",
         action="store",
-        default="root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit",
+        default=None,
         help="Kernel command line used when --qemu-kernel is provided.",
+    )
+    parser.addoption(
+        "--qemu-kernel-cmdline-file",
+        action="store",
+        default=None,
+        help="Path to a file containing the kernel command line used when --qemu-kernel is provided.",
     )
     parser.addoption(
         "--qemu-seed-iso",
@@ -150,7 +164,10 @@ def config(request):
     qemu_kernel = request.config.getoption("qemu_kernel")
     if qemu_kernel:
         qemu_kernel = os.path.abspath(qemu_kernel)
-    qemu_kernel_cmdline = request.config.getoption("qemu_kernel_cmdline")
+    qemu_kernel_cmdline = _resolve_kernel_cmdline(
+        request.config.getoption("qemu_kernel_cmdline"),
+        request.config.getoption("qemu_kernel_cmdline_file"),
+    )
 
     return Bunch(
         qemu_config=load_configuration(

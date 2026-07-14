@@ -63,7 +63,7 @@ class DiskBootQemu:
         seed_iso=None,
         architecture="x86_64",
         path_to_kernel=None,
-        kernel_cmdline="root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit",
+        kernel_cmdline=None,
         network_adapters=None,
         port_forwarding=None,
     ):
@@ -88,8 +88,10 @@ class DiskBootQemu:
 
         # EBcLfSA images require an explicit kernel when booting the raw .wic disk.
         self._use_kernel_boot = path_to_kernel is not None
-        if self._use_kernel_boot and self._architecture != "aarch64":
-            raise ValueError("kernel boot is only supported for aarch64 images")
+        if self._use_kernel_boot and not kernel_cmdline:
+            raise ValueError(
+                "kernel_cmdline must be provided when booting with an explicit kernel"
+            )
         self._network_adapters = network_adapters or []
         self._port_forwarding = port_forwarding or []
 
