@@ -101,19 +101,16 @@ class DiskBootQemu:
 
         self._subprocess = None
 
-    def __enter__(self):
-        return self.start()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.stop()
-
-    def start(self, subprocess_params=None):
+    def start(self):
         cmd = self._build_command()
         logger.debug(cmd)
-        subprocess_args = {"args": cmd}
-        if subprocess_params:
-            subprocess_args.update(subprocess_params)
-        self._subprocess = subprocess.Popen(**subprocess_args)
+
+        self._subprocess = subprocess.Popen(
+            args=cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
         return self._subprocess
 
     def stop(self):

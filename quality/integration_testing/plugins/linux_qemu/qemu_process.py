@@ -64,12 +64,7 @@ class LinuxQemuProcess:
     def start(self):
         logger.info("Starting QEMU (disk boot)...")
         logger.info(f"Using QEMU image: {self._path_to_qemu_image}")
-        subprocess_params = {
-            "stdin": subprocess.PIPE,
-            "stdout": subprocess.PIPE,
-            "stderr": subprocess.STDOUT,
-        }
-        qemu_subprocess = self._qemu.start(subprocess_params)
+        qemu_subprocess = self._qemu.start()
         self._console = PipeConsole("QEMU", qemu_subprocess)
         return self
 
