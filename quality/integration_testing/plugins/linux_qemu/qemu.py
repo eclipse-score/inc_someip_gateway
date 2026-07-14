@@ -32,6 +32,12 @@ _SUPPORTED_ARCHITECTURES = {
         "cpu": "Cascadelake-Server-v5",
         "network_device": "virtio-net-pci",
         "machine": "q35,accel=kvm:tcg",
+        # When booting via -kernel the default pc (i440fx) machine is used.
+        # q35 changes the PCI topology (LPC bridge moves from D17 to D31),
+        # which breaks guests whose PCI interrupt config targets i440fx,
+        # e.g. QNX pci_hw.cfg.  Setting kernel_machine to None lets QEMU
+        # default to its pc machine so interrupt routing works correctly.
+        "kernel_machine": None,
         "block_device": "virtio-blk-pci",
     },
     "aarch64": {
@@ -39,6 +45,8 @@ _SUPPORTED_ARCHITECTURES = {
         "cpu": "cortex-a53",
         "network_device": "virtio-net-device",
         "machine": "virt,virtualization=true,gic-version=3",
+        # aarch64 requires an explicit machine type for -kernel boot.
+        "kernel_machine": "virt,virtualization=true,gic-version=3",
         "block_device": "virtio-blk-device",
     },
 }
@@ -89,6 +97,7 @@ class DiskBootQemu:
         self._kernel_cmdline = kernel_cmdline
         self._network_device = _SUPPORTED_ARCHITECTURES[architecture]["network_device"]
         self._machine = _SUPPORTED_ARCHITECTURES[architecture]["machine"]
+        self._kernel_machine = _SUPPORTED_ARCHITECTURES[architecture]["kernel_machine"]
         self._block_device = _SUPPORTED_ARCHITECTURES[architecture]["block_device"]
         self._disk_format = get_image_type(path_to_image)
         self._use_kernel_boot = path_to_kernel is not None
@@ -191,14 +200,9 @@ class DiskBootQemu:
 
         if self._use_kernel_boot:
             kernel_path = os.path.abspath(self._path_to_kernel)
-            cmd.extend(
-                [
-                    "-machine",
-                    self._machine,
-                    "-kernel",
-                    kernel_path,
-                ]
-            )
+            if self._kernel_machine:
+                cmd.extend(["-machine", self._kernel_machine])
+            cmd.extend(["-kernel", kernel_path])
             if self._kernel_cmdline:
                 cmd.extend(
                     [

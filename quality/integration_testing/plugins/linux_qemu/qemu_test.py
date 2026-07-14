@@ -111,6 +111,42 @@ class DiskBootQemuTest(unittest.TestCase):
 
         self.assertIn("-enable-kvm", cmd)
 
+    def _new_qemu_with_kernel(self, architecture="x86_64"):
+        with (
+            patch.object(DiskBootQemu, "_check_qemu_is_installed"),
+            patch.object(DiskBootQemu, "_find_available_kvm_support"),
+            patch.object(DiskBootQemu, "_check_kvm_readable_when_necessary"),
+        ):
+            qemu = DiskBootQemu(
+                path_to_image="/tmp/image.qcow2",
+                path_to_kernel="/tmp/kernel.img",
+                architecture=architecture,
+            )
+        qemu._accelerator = "tcg"
+        return qemu
+
+    def test_x86_64_kernel_boot_omits_machine_flag(self):
+        """x86_64 kernel-image boot must not add -machine so QEMU uses its
+        default pc (i440fx) machine.  q35 shifts the LPC bridge from D17 to
+        D31, which breaks guests (e.g. QNX) whose PCI interrupt config targets
+        the i440fx topology."""
+        qemu = self._new_qemu_with_kernel(architecture="x86_64")
+
+        cmd = qemu._build_command()
+
+        self.assertNotIn("-machine", cmd)
+
+    def test_aarch64_kernel_boot_includes_virt_machine(self):
+        """aarch64 -kernel boot requires -machine virt; QEMU has no default
+        machine for aarch64 and will refuse to start without one."""
+        qemu = self._new_qemu_with_kernel(architecture="aarch64")
+
+        cmd = qemu._build_command()
+
+        self.assertIn("-machine", cmd)
+        machine_pos = cmd.index("-machine")
+        self.assertIn("virt", cmd[machine_pos + 1])
+
     def test_stop_handles_unstarted_process(self):
         qemu = self._new_qemu(seed_iso=None)
 
