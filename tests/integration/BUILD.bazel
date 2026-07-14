@@ -31,7 +31,7 @@ filegroup(
 
 score_py_pytest(
     name = "integration",
-    size = "medium",
+    size = "small",
     srcs = glob(["test_*.py"]) + ["conftest.py"],
     data = ["vsomeip-local.json"],
     # Restrict the test execution to Linux for the moment due to dependency on Python

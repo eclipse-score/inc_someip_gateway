@@ -26,6 +26,7 @@
                 {
                     "event": "0x0777",
                     "is_field": "true",
+                    "is_reliable": "false",
                     "update-cycle": "500"
                 },
                 {
@@ -37,6 +38,7 @@
                 {
                     "event": "0x0779",
                     "is_field": "true",
+                    "is_reliable": "false",
                     "update-cycle": "60000"
                 }
             ],

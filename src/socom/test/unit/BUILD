@@ -15,6 +15,7 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_test(
     name = "socom_test",
+    size = "small",
     srcs = glob(include = ["*.cpp"]),
     deps = [
         "//src/socom:mock",

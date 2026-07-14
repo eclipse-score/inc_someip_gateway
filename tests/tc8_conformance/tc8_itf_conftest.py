@@ -211,7 +211,7 @@ def someip_pcap_capture() -> Generator[None, None, None]:
     _tc8_dut_ip_key = "TC8_DUT_IP"
     _tc8_dut_ip_default = "169.254.158.190"
     if _tc8_dut_ip_key not in os.environ:
-        _logger.warning(
+        _logger.info(
             "someip_pcap_capture: TC8_DUT_IP env var is not set; "
             "defaulting to %s (the QEMU TAP bridge IP). "
             "Override via: export TC8_DUT_IP=<dut-ip>",

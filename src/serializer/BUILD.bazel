@@ -44,6 +44,7 @@ cc_library(
 
 cc_test(
     name = "null_serializer_test",
+    size = "small",
     srcs = ["null_serializer_test.cpp"],
     deps = [
         ":null_serializer_impl",
