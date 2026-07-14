@@ -31,6 +31,7 @@ from score.itf.plugins.qemu.qemu_target import QemuTarget
 
 from quality.integration_testing.plugins.linux_qemu.qemu_process import LinuxQemuProcess
 from quality.integration_testing.plugins.linux_qemu.config import load_configuration
+from quality.integration_testing.plugins.linux_qemu.qemu import get_image_type
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +184,7 @@ def target_init(config, request, dlt):
                 "-b",
                 base_image,
                 "-F",
-                "raw" if base_image.endswith(".wic") else "qcow2",
+                get_image_type(base_image),
                 overlay_path,
             ],
             check=True,

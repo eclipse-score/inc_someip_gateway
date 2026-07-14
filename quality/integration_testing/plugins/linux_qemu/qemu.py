@@ -40,6 +40,14 @@ _SUPPORTED_ARCHITECTURES = {
 }
 
 
+def get_image_type(path_to_image: str) -> str:
+    """Determine the disk image type based on the file extension."""
+    image_lower = path_to_image.lower()
+    if image_lower.endswith(".wic") or image_lower.endswith(".img"):
+        return "raw"
+    return "qcow2"
+
+
 class DiskBootQemu:
     """QEMU instance that boots from a qcow2 disk image.
 
@@ -49,7 +57,7 @@ class DiskBootQemu:
 
     def __init__(
         self,
-        path_to_image,
+        path_to_image: str,
         ram="1G",
         cores="2",
         seed_iso=None,
@@ -76,12 +84,7 @@ class DiskBootQemu:
         self._cpu = _SUPPORTED_ARCHITECTURES[architecture]["cpu"]
         self._kernel_cmdline = kernel_cmdline
         self._network_device = _SUPPORTED_ARCHITECTURES[architecture]["network_device"]
-
-        image_lower = path_to_image.lower()
-        if image_lower.endswith(".wic") or image_lower.endswith(".img"):
-            self._disk_format = "raw"
-        else:
-            self._disk_format = "qcow2"
+        self._disk_format = get_image_type(path_to_image)
 
         # EBcLfSA images require an explicit kernel when booting the raw .wic disk.
         self._use_kernel_boot = path_to_kernel is not None
