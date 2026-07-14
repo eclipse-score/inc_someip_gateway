@@ -234,7 +234,17 @@ class DiskBootQemu:
                 ]
             )
 
-        cmd.extend(["-nographic"])
+        cmd.extend(
+            [
+                "-nographic",
+                "-serial",
+                "mon:stdio",  # Redirect serial output to console
+                "-object",
+                "rng-random,filename=/dev/urandom,id=rng0",  # Provide hardware random number generation
+                "-device",
+                "virtio-rng-pci,rng=rng0",  # Provide hardware random number generation
+            ]
+        )
 
         cmd.extend(self._network_devices_args())
         cmd.extend(self._port_forwarding_args())
