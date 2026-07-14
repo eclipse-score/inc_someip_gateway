@@ -31,11 +31,15 @@ _SUPPORTED_ARCHITECTURES = {
         "qemu_path": "/usr/bin/qemu-system-x86_64",
         "cpu": "Cascadelake-Server-v5",
         "network_device": "virtio-net-pci",
+        "machine": "q35,accel=kvm:tcg",
+        "block_device": "virtio-blk-pci",
     },
     "aarch64": {
         "qemu_path": "/usr/bin/qemu-system-aarch64",
         "cpu": "cortex-a53",
         "network_device": "virtio-net-device",
+        "machine": "virt,virtualization=true,gic-version=3",
+        "block_device": "virtio-blk-device",
     },
 }
 
@@ -84,6 +88,8 @@ class DiskBootQemu:
         self._cpu = _SUPPORTED_ARCHITECTURES[architecture]["cpu"]
         self._kernel_cmdline = kernel_cmdline
         self._network_device = _SUPPORTED_ARCHITECTURES[architecture]["network_device"]
+        self._machine = _SUPPORTED_ARCHITECTURES[architecture]["machine"]
+        self._block_device = _SUPPORTED_ARCHITECTURES[architecture]["block_device"]
         self._disk_format = get_image_type(path_to_image)
 
         # EBcLfSA images require an explicit kernel when booting the raw .wic disk.
@@ -194,13 +200,13 @@ class DiskBootQemu:
             cmd.extend(
                 [
                     "-machine",
-                    "virt,virtualization=true,gic-version=3",
+                    self._machine,
                     "-kernel",
                     kernel_path,
                     "-append",
                     self._kernel_cmdline,
                     "-device",
-                    "virtio-blk-device,drive=vd0",
+                    f"{self._block_device},drive=vd0",
                     "-drive",
                     f"if=none,format={self._disk_format},file={image_path},id=vd0",
                 ]
