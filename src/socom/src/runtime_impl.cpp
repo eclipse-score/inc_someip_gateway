@@ -153,67 +153,6 @@ void cleanup(std::list<std::weak_ptr<T const>>& list,
     list.remove_if(equals_cb);
 }
 
-/// \brief Removes key from map if value is empty
-///
-/// \param map Map to clean up.
-/// \param key Key to remove from map if value is empty.
-/// \param value Value associated with the key.
-template <template <typename, typename> class Map, typename Key, typename Value>
-void cleanup(Map<Key, Value>& map, Key const& key, Value const& value) noexcept {
-    if (value.empty()) {
-        map.erase(key);
-    }
-}
-
-/// \brief Removes key from inner maps of map
-///
-/// \param map Map to clean up.
-/// \param key Key to remove from inner maps.
-template <typename Key0, typename Key1, typename Value>
-void cleanup(std::map<Key0, std::tuple<std::weak_ptr<std::map<Key1, Value>>,
-                                       std::vector<std::optional<Bridge_identity>>>>& map,
-             Key1 const& key) noexcept {
-    for (auto const& values : map) {
-        auto const value_locked = std::get<0>(values.second).lock();
-
-        if (nullptr != value_locked) {
-            value_locked->erase(key);
-        }
-        // Cannot be covered, there is no reliable way to delete values.second other than using
-        // stop_registration which calls this cleanup-function.
-        // Sporadically covered by
-        // TEST_F(RuntimeMultiThreadingTest,
-        //     BridgesAndSubscribeFindServiceHaveNoRaceConditions)
-        else {
-        }
-    }
-}
-
-/// \brief Removes key from map if its pointed to value is empty
-///
-/// \param map Map to clean up.
-/// \param key Key to remove from map if its pointed to value is empty.
-template <typename Key, typename Value>
-void cleanup(
-    std::map<Key, std::tuple<std::weak_ptr<Value>, std::vector<std::optional<Bridge_identity>>>>&
-        map,
-    Key const& key) noexcept {
-    auto const request = map.find(key);
-    // Cannot be covered, there is no reliable way to delete key from map other than using
-    // stop_subscription which calls this cleanup-function.
-    // Sporadically covered by
-    // TEST_F(RuntimeMultiThreadingTest,
-    // CreationOfMultipleServerAndClientConnectorsHasNoRaceCondition)
-
-    if (std::end(map) == request) {
-        return;
-    }
-
-    auto const request_locked = std::get<0>(request->second).lock();
-    if (nullptr == request_locked) {
-        map.erase(request);
-    }
-}
 
 class Final_action_registration final : public IRegistration {
     // will be executed as a final action on destruction.
@@ -909,44 +848,6 @@ void Runtime_impl::stop_registration(Bridge_registration_id const& id) noexcept 
             catch (...) {
             }
         }
-    }
-}
-
-void Runtime_impl::update_bridges_provided_services(Bridge_registration_id const& bridge_id,
-                                                    Service_interface_identifier const& interface,
-                                                    Service_instance const& instance,
-                                                    Find_result_status status) {
-    std::lock_guard<std::mutex> const lock{m_bridge_mutex};
-    auto const bridge_to_callbacks = m_bridge_to_callbacks.find(bridge_id);
-
-    // If statement expression may evaluate to true because Runtime_impl implements
-    // Stop_registration where map element with bridge_id is removed. For that reason further access
-    // to m_bridge_to_callbacks map element makes no sense. An early return takes place.
-    //
-    // Sporadically in TEST_F(RuntimeMultiThreadingTest,
-    // BridgesAndSubscribeFindServiceHaveNoRaceConditions) where tight loops of
-    // register_service_bridge are made, could be observed early return takes on place because of
-    // thread aware, concurrent API calls. Code is excluded from Bullseye coverage to prevent false
-    // reports.
-
-    if (std::end(m_bridge_to_callbacks) == bridge_to_callbacks) {
-        return;
-    }
-
-    auto& available_services = std::get<2>(bridge_to_callbacks->second);
-    if (Find_result_status::added == status) {
-        available_services[interface].emplace_back(instance);
-    } else {
-        auto const if_iter = available_services.find(interface);
-        if (std::end(available_services) == if_iter) {
-            return;
-        }
-        Instances& instances = if_iter->second;
-        auto const end =
-            std::remove_if(std::begin(instances), std::end(instances),
-                           [&instance](Service_instance const& elem) { return instance == elem; });
-        instances.erase(end, std::end(instances));
-        cleanup(available_services, interface, instances);
     }
 }
 
