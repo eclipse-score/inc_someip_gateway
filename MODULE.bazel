@@ -16,8 +16,6 @@ module(
     version = "0.0.1",
 )
 
-include("//dependencies:ref_int_deps.MODULE.bazel")
-
 # ============================================================================
 # Python Configuration
 # ============================================================================
@@ -324,19 +322,9 @@ http_archive(
 # ============================================================================
 # Integration Testing
 # ============================================================================
-bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
-git_override(
-    module_name = "score_itf",
-    commit = "98118b1fcd6c53244fb276e2c7668faaf15d2e10",
-    remote = "https://github.com/eclipse-score/itf.git",
-)
-
+bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
-bazel_dep(name = "rules_oci", version = "2.3.0", dev_dependency = True)
-single_version_override(
-    module_name = "rules_oci",
-    version = "2.3.0",
-)
+bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
