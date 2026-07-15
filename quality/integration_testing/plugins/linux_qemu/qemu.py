@@ -189,15 +189,16 @@ class DiskBootQemu:
             )
 
         if self._seed_iso:
-            seed_path = os.path.abspath(self._seed_iso)
             cmd.extend(
                 [
+                    "-device",
+                    f"{self._block_device},drive=vd1",
                     # Attach NoCloud seed as a second disk. With cloud-localds this is a
                     # vfat image labeled 'cidata', which cloud-init detects reliably.
                     "-drive",
                     # Bazel runfiles are read-only; mounting the seed image as read-only
                     # prevents permission errors when QEMU opens the backing file.
-                    f"file={seed_path},format=raw,if=virtio,readonly=on",
+                    f"if=none,format=raw,file={self._seed_iso},id=vd1,readonly=on",
                 ]
             )
 

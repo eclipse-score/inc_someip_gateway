@@ -68,26 +68,16 @@ class DiskBootQemuTest(unittest.TestCase):
         cmd = qemu._build_command()
 
         self.assertIn("-drive", cmd)
-        self.assertIn("file=/tmp/seed.iso,format=raw,if=virtio,readonly=on", cmd)
+        self.assertIn("if=none,format=raw,file=/tmp/seed.iso,id=vd1,readonly=on", cmd)
 
     def test_build_command_without_seed_iso_omits_seed_drive(self):
         qemu = self._new_qemu(seed_iso=None)
 
         cmd = qemu._build_command()
 
-        self.assertNotIn("file=/tmp/seed.iso,format=raw,if=virtio,readonly=on", cmd)
-
-    def test_build_command_normalizes_relative_seed_iso_to_absolute(self):
-        qemu = self._new_qemu(
-            seed_iso="quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
+        self.assertNotIn(
+            "if=none,format=raw,file=/tmp/seed.iso,id=vd1,readonly=on", cmd
         )
-
-        cmd = qemu._build_command()
-
-        expected = os.path.abspath(
-            "quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
-        )
-        self.assertIn(f"file={expected},format=raw,if=virtio,readonly=on", cmd)
 
     def test_build_command_uses_acceleration_args(self):
         qemu = self._new_qemu(seed_iso=None)
