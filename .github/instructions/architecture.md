@@ -13,7 +13,7 @@ SPDX-License-Identifier: Apache-2.0
 *******************************************************************************
 -->
 ---
-applyTo: "src/**"
+applyTo: "score/**"
 ---
 
 # Architecture & Key Patterns
@@ -28,15 +28,15 @@ The gateway also includes Rust examples and comprehensive Python integration tes
 
 ## Core Components
 
-- [src/gatewayd/](../../src/gatewayd/) - Main daemon
-- [src/config](../../src/config/) configuration via FlatBuffers
-- [src/socom/](../../src/socom/) - Service Oriented Communication abstraction with plugin interface for IPC binding
-- [src/someipd/](../../src/someipd/) - SOME/IP binding layer
+- [score/gatewayd/](../../score/gatewayd/) - Main daemon
+- [score/config](../../score/config/) configuration via FlatBuffers
+- [score/socom/](../../score/socom/) - Service Oriented Communication abstraction with plugin interface for IPC binding
+- [score/someipd/](../../score/someipd/) - SOME/IP binding layer
 
 ## Design Patterns
 
-- Configuration injection via FlatBuffers binary (see [main.cpp](../../src/gatewayd/main.cpp) for loading pattern)
-- JSON schemas validate configuration ([mw_someip_config.schema.json](../../src/config/mw_someip_config.schema.json))
+- Configuration injection via FlatBuffers binary (see [main.cpp](../../score/gatewayd/main.cpp) for loading pattern)
+- JSON schemas validate configuration ([mw_someip_config.schema.json](../../score/config/mw_someip_config.schema.json))
 - Software elements not allowed to allocate on the heap after they have fully started:
-  - [src/socom](../../src/socom/)
-  - [src/gatewayd](../../src/gatewayd/)
+  - [src/socom](../../score/socom/)
+  - [src/gatewayd](../../score/gatewayd/)
