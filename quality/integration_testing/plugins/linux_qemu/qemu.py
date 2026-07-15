@@ -19,7 +19,6 @@ score_itf Qemu class whose private methods use Python name mangling.
 
 import logging
 import os
-import platform
 import subprocess
 import sys
 from subprocess import TimeoutExpired
@@ -80,19 +79,13 @@ class DiskBootQemu:
                 + ", ".join(sorted(_SUPPORTED_ARCHITECTURES))
             )
 
-        self._architecture = architecture
-        self._host_architecture = self._normalize_architecture(platform.machine())
-        self._qemu_path = _SUPPORTED_ARCHITECTURES[architecture]["qemu_path"]
+        self._architecture_config = _SUPPORTED_ARCHITECTURES[architecture]
         self._path_to_image = path_to_image
         self._path_to_kernel = path_to_kernel
         self._ram = ram
         self._cores = cores
         self._seed_iso = seed_iso
-        self._cpu = _SUPPORTED_ARCHITECTURES[architecture]["cpu"]
         self._kernel_cmdline = kernel_cmdline
-        self._network_device = _SUPPORTED_ARCHITECTURES[architecture]["network_device"]
-        self._machine = _SUPPORTED_ARCHITECTURES[architecture]["machine"]
-        self._block_device = _SUPPORTED_ARCHITECTURES[architecture]["block_device"]
         self._network_adapters = network_adapters or []
         self._port_forwarding = port_forwarding or []
 
@@ -133,27 +126,19 @@ class DiskBootQemu:
             raise Exception(f"QEMU process returned: {ret}")
 
     def _check_qemu_is_installed(self):
-        if not os.path.isfile(self._qemu_path):
-            logger.fatal(f"QEMU is not installed under {self._qemu_path}")
+        qemu_path = self._architecture_config["qemu_path"]
+        if not os.path.isfile(qemu_path):
+            logger.fatal(f"QEMU is not installed under {qemu_path}")
             sys.exit(-1)
-
-    @staticmethod
-    def _normalize_architecture(machine):
-        normalized = machine.lower()
-        if normalized == "amd64":
-            return "x86_64"
-        if normalized == "arm64":
-            return "aarch64"
-        return normalized
 
     def _build_command(self):
         cmd = (
             [
-                self._qemu_path,
+                self._architecture_config["qemu_path"],
                 "-smp",
                 f"{self._cores},maxcpus={self._cores},cores={self._cores}",
                 "-cpu",
-                self._cpu,
+                self._architecture_config["cpu"],
                 "-m",
                 self._ram,
                 "-accel",
@@ -161,7 +146,7 @@ class DiskBootQemu:
                 "-accel",
                 "tcg",
                 "-machine",
-                self._machine,
+                self._architecture_config["machine"],
             ]
             + self._network_devices_args()
             + self._port_forwarding_args()
@@ -182,7 +167,7 @@ class DiskBootQemu:
             cmd.extend(
                 [
                     "-device",
-                    f"{self._block_device},drive=vd0",
+                    f"{self._architecture_config['block_device']},drive=vd0",
                     "-drive",
                     f"if=none,format={disk_format},file={self._path_to_image},id=vd0",
                 ]
@@ -192,7 +177,7 @@ class DiskBootQemu:
             cmd.extend(
                 [
                     "-device",
-                    f"{self._block_device},drive=vd1",
+                    f"{self._architecture_config['block_device']},drive=vd1",
                     # Attach NoCloud seed as a second disk. With cloud-localds this is a
                     # vfat image labeled 'cidata', which cloud-init detects reliably.
                     "-drive",
@@ -225,7 +210,7 @@ class DiskBootQemu:
                         "-netdev",
                         f"tap,id=t{idx},ifname={adapter},script=no,downscript=no",
                         "-device",
-                        f"{self._network_device},netdev=t{idx},id=nic{idx},guest_csum=off",
+                        f"{self._architecture_config['network_device']},netdev=t{idx},id=nic{idx},guest_csum=off",
                     ]
                 )
         return result
@@ -238,7 +223,7 @@ class DiskBootQemu:
                     "-netdev",
                     f"user,id=net{idx},hostfwd=tcp::{forwarding.host_port}-:{forwarding.guest_port}",
                     "-device",
-                    f"{self._network_device},netdev=net{idx}",
+                    f"{self._architecture_config['network_device']},netdev=net{idx}",
                 ]
             )
         return result
