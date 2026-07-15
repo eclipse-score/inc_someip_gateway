@@ -13,6 +13,7 @@
 
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
+# Tagged "manual" so the image pipeline only runs when tests explicitly depend on it.
 genrule(
     name = "extract-fastdev-image",
     srcs = ["@eb_corbos_toolkit_fastdev_archive//file"],
@@ -21,6 +22,7 @@ genrule(
         "ebcl-qemuarm64/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
     ],
     cmd = "mkdir -p $(RULEDIR)/ebcl-qemuarm64 && tar xzf $(location @eb_corbos_toolkit_fastdev_archive//file) -C $(RULEDIR)/ebcl-qemuarm64 && chmod +w $(RULEDIR)/ebcl-qemuarm64/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )
 
@@ -31,6 +33,7 @@ pkg_tar(
     ],
     mode = "0755",
     package_dir = "/etc/config/network",
+    tags = ["manual"],
 )
 
 genrule(
@@ -51,17 +54,20 @@ genrule(
             $(RULEDIR)/ebcl-qemuarm64-itf \
             $(location :network_config_tar)
     """,
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )
 
 filegroup(
     name = "image",
     srcs = [":ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic"],
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
 filegroup(
     name = "kernel",
     srcs = [":ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux"],
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
