@@ -93,8 +93,6 @@ class DiskBootQemu:
         self._network_device = _SUPPORTED_ARCHITECTURES[architecture]["network_device"]
         self._machine = _SUPPORTED_ARCHITECTURES[architecture]["machine"]
         self._block_device = _SUPPORTED_ARCHITECTURES[architecture]["block_device"]
-        self._disk_format = get_image_type(path_to_image)
-        self._use_kernel_boot = path_to_kernel is not None
         self._network_adapters = network_adapters or []
         self._port_forwarding = port_forwarding or []
 
@@ -149,7 +147,6 @@ class DiskBootQemu:
         return normalized
 
     def _build_command(self):
-        image_path = os.path.abspath(self._path_to_image)
         cmd = (
             [
                 self._qemu_path,
@@ -170,9 +167,8 @@ class DiskBootQemu:
             + self._port_forwarding_args()
         )
 
-        if self._use_kernel_boot:
-            kernel_path = os.path.abspath(self._path_to_kernel)
-            cmd.extend(["-kernel", kernel_path])
+        if self._path_to_kernel:
+            cmd.extend(["-kernel", self._path_to_kernel])
             if self._kernel_cmdline:
                 cmd.extend(
                     [
@@ -180,21 +176,25 @@ class DiskBootQemu:
                         self._kernel_cmdline,
                     ]
                 )
-            cmd.extend(
-                [
-                    "-device",
-                    f"{self._block_device},drive=vd0",
-                    "-drive",
-                    f"if=none,format={self._disk_format},file={image_path},id=vd0",
-                ]
-            )
+            if self._path_to_image:
+                disk_format = get_image_type(self._path_to_image)
+                cmd.extend(
+                    [
+                        "-device",
+                        f"{self._block_device},drive=vd0",
+                        "-drive",
+                        f"if=none,format={disk_format},file={self._path_to_image},id=vd0",
+                    ]
+                )
         else:
-            cmd.extend(
-                [
-                    "-drive",
-                    f"file={image_path},format={self._disk_format},if=virtio",
-                ]
-            )
+            if self._path_to_image:
+                disk_format = get_image_type(self._path_to_image)
+                cmd.extend(
+                    [
+                        "-drive",
+                        f"file={self._path_to_image},format={disk_format},if=virtio",
+                    ]
+                )
 
         if self._seed_iso:
             seed_path = os.path.abspath(self._seed_iso)

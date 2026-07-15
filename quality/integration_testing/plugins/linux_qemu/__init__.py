@@ -107,7 +107,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--qemu-image",
         action="store",
-        required=True,
+        default=None,
+        # required=True,
         help="Path to a QEMU disk image (qcow2).",
     )
     parser.addoption(
@@ -121,7 +122,7 @@ def pytest_addoption(parser):
         "--qemu-kernel",
         action="store",
         default=None,
-        help="Path to a Linux kernel image for booting raw aarch64 disk images.",
+        help="Path to a kernel image.",
     )
     parser.addoption(
         "--qemu-kernel-cmdline",
@@ -164,7 +165,9 @@ def dlt():
 
 @pytest.fixture(scope="session")
 def config(request):
-    qemu_image = os.path.abspath(request.config.getoption("qemu_image"))
+    qemu_image = request.config.getoption("qemu_image")
+    if qemu_image:
+        qemu_image = os.path.abspath(qemu_image)
     qemu_architecture = request.config.getoption("qemu_architecture")
     qemu_seed_iso = request.config.getoption("qemu_seed_iso")
     if qemu_seed_iso:
@@ -191,6 +194,35 @@ def config(request):
     )
 
 
+def create_overlay(base_image: str):
+    # Create a qcow2 overlay backed by the pristine base image so that each
+    # test session starts from an unmodified disk.  All writes go to the
+    # ephemeral overlay which is discarded after the session.
+    if not base_image:
+        return None
+
+    overlay_fd, overlay_path = tempfile.mkstemp(suffix=".qcow2", prefix="qemu_overlay_")
+    os.close(overlay_fd)
+    _ = subprocess.run(
+        [
+            "qemu-img",
+            "create",
+            "-f",
+            "qcow2",
+            "-b",
+            base_image,
+            "-F",
+            get_image_type(base_image),
+            overlay_path,
+        ],
+        check=True,
+        capture_output=True,
+    )
+    logger.info(f"Created qcow2 overlay: {overlay_path} (backing: {base_image})")
+
+    return overlay_path
+
+
 @pytest.fixture(scope="session")
 def target_init(config, request, dlt):
     logger.info(f"Starting tests on host: {socket.gethostname()}")
@@ -214,29 +246,11 @@ def target_init(config, request, dlt):
     # Create a qcow2 overlay backed by the pristine base image so that each
     # test session starts from an unmodified disk.  All writes go to the
     # ephemeral overlay which is discarded after the session.
-    base_image = config.qemu_image
-    overlay_fd, overlay_path = tempfile.mkstemp(suffix=".qcow2", prefix="qemu_overlay_")
-    os.close(overlay_fd)
-    try:
-        subprocess.run(
-            [
-                "qemu-img",
-                "create",
-                "-f",
-                "qcow2",
-                "-b",
-                base_image,
-                "-F",
-                get_image_type(base_image),
-                overlay_path,
-            ],
-            check=True,
-            capture_output=True,
-        )
-        logger.info(f"Created qcow2 overlay: {overlay_path} (backing: {base_image})")
+    image_overlay_path = create_overlay(config.qemu_image)
 
+    try:
         process = LinuxQemuProcess(
-            path_to_qemu_image=overlay_path,
+            path_to_qemu_image=image_overlay_path,
             available_ram=config.qemu_config.qemu_ram_size,
             available_cores=config.qemu_config.qemu_num_cores,
             architecture=config.qemu_architecture,
@@ -252,9 +266,9 @@ def target_init(config, request, dlt):
             _wait_for_target_ready(target)
             yield target
     finally:
-        if os.path.exists(overlay_path):
-            os.remove(overlay_path)
-            logger.info(f"Removed qcow2 overlay: {overlay_path}")
+        if image_overlay_path is not None and os.path.exists(image_overlay_path):
+            os.remove(image_overlay_path)
+            logger.info(f"Removed qcow2 overlay: {image_overlay_path}")
 
 
 @pytest.fixture(scope="session", autouse=True)
