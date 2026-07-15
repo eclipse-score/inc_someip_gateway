@@ -34,7 +34,7 @@ _SUPPORTED_ARCHITECTURES = {
         # The default pc (i440fx) machine is used.
         # Other machines change the PCI topology, which can break guests whose
         # PCI interrupt config targets i440fx like QNX.
-        "machine": None,
+        "machine": "pc",
         "block_device": "virtio-blk-pci",
     },
     "aarch64": {
@@ -162,12 +162,12 @@ class DiskBootQemu:
             "kvm",
             "-accel",
             "tcg",
+            "-machine",
+            self._machine,
         ]
 
         if self._use_kernel_boot:
             kernel_path = os.path.abspath(self._path_to_kernel)
-            if self._machine:
-                cmd.extend(["-machine", self._machine])
             cmd.extend(["-kernel", kernel_path])
             if self._kernel_cmdline:
                 cmd.extend(

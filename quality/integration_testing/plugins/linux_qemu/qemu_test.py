@@ -109,7 +109,7 @@ class DiskBootQemuTest(unittest.TestCase):
             )
         return qemu
 
-    def test_x86_64_kernel_boot_omits_machine_flag(self):
+    def test_x86_64_kernel_boot_adds_machine_flag(self):
         """x86_64 kernel-image boot must not add -machine so QEMU uses its
         default pc (i440fx) machine.  q35 shifts the LPC bridge from D17 to
         D31, which breaks guests (e.g. QNX) whose PCI interrupt config targets
@@ -118,7 +118,7 @@ class DiskBootQemuTest(unittest.TestCase):
 
         cmd = qemu._build_command()
 
-        self.assertNotIn("-machine", cmd)
+        self.assertIn("-machine", cmd)
 
     def test_aarch64_kernel_boot_includes_virt_machine(self):
         """aarch64 -kernel boot requires -machine virt; QEMU has no default
