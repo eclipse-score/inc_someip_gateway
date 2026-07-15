@@ -76,11 +76,6 @@ bazel_dep(name = "rules_rust", version = "0.68.1-score")
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
 bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
-git_override(
-    module_name = "score_bazel_platforms",
-    commit = "82b6df6ce93fb2960c52d992939fc6c3cf0e1f0f",
-    remote = "https://github.com/eclipse-score/bazel_platforms.git",
-)
 
 bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = True)
 
@@ -322,9 +317,8 @@ http_archive(
 # ============================================================================
 # Integration Testing
 # ============================================================================
-bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
+bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
-bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
