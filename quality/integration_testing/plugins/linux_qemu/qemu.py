@@ -176,25 +176,17 @@ class DiskBootQemu:
                         self._kernel_cmdline,
                     ]
                 )
-            if self._path_to_image:
-                disk_format = get_image_type(self._path_to_image)
-                cmd.extend(
-                    [
-                        "-device",
-                        f"{self._block_device},drive=vd0",
-                        "-drive",
-                        f"if=none,format={disk_format},file={self._path_to_image},id=vd0",
-                    ]
-                )
-        else:
-            if self._path_to_image:
-                disk_format = get_image_type(self._path_to_image)
-                cmd.extend(
-                    [
-                        "-drive",
-                        f"file={self._path_to_image},format={disk_format},if=virtio",
-                    ]
-                )
+
+        if self._path_to_image:
+            disk_format = get_image_type(self._path_to_image)
+            cmd.extend(
+                [
+                    "-device",
+                    f"{self._block_device},drive=vd0",
+                    "-drive",
+                    f"if=none,format={disk_format},file={self._path_to_image},id=vd0",
+                ]
+            )
 
         if self._seed_iso:
             seed_path = os.path.abspath(self._seed_iso)
