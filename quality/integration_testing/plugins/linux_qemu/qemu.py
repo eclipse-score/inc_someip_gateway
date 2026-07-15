@@ -150,21 +150,25 @@ class DiskBootQemu:
 
     def _build_command(self):
         image_path = os.path.abspath(self._path_to_image)
-        cmd = [
-            self._qemu_path,
-            "-smp",
-            f"{self._cores},maxcpus={self._cores},cores={self._cores}",
-            "-cpu",
-            self._cpu,
-            "-m",
-            self._ram,
-            "-accel",
-            "kvm",
-            "-accel",
-            "tcg",
-            "-machine",
-            self._machine,
-        ]
+        cmd = (
+            [
+                self._qemu_path,
+                "-smp",
+                f"{self._cores},maxcpus={self._cores},cores={self._cores}",
+                "-cpu",
+                self._cpu,
+                "-m",
+                self._ram,
+                "-accel",
+                "kvm",
+                "-accel",
+                "tcg",
+                "-machine",
+                self._machine,
+            ]
+            + self._network_devices_args()
+            + self._port_forwarding_args()
+        )
 
         if self._use_kernel_boot:
             kernel_path = os.path.abspath(self._path_to_kernel)
@@ -216,9 +220,6 @@ class DiskBootQemu:
                 "virtio-rng-pci,rng=rng0",  # Provide hardware random number generation
             ]
         )
-
-        cmd.extend(self._network_devices_args())
-        cmd.extend(self._port_forwarding_args())
 
         return cmd
 
