@@ -35,6 +35,7 @@ filegroup(
 alias(
     name = "image",
     actual = "//quality/integration_testing/images/ebclfsa_aarch64:image",
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
@@ -42,5 +43,6 @@ alias(
 alias(
     name = "kernel",
     actual = "//quality/integration_testing/images/ebclfsa_aarch64:kernel",
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
