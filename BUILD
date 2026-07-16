@@ -26,6 +26,7 @@ copyright_checker(
         "src",
         "//:BUILD",
         "//:MODULE.bazel",
+        # NOTE: new tests/ subdirectories must be added here for copyright checking.
         "//tests/benchmarks:all_files",
         "//tests/common:all_files",
         "//tests/integration:all_files",
