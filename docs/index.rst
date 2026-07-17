@@ -52,7 +52,7 @@ Module Layout
     │       │   ├── security_analysis/  # Security analysis [wp__sw_component_security_analysis]
     │       │   │                       #   (only if component architecture exists)
     │       │   └── manuals/            # User documentation (of a single component, e.g., user manual of a library component, optional)
-    │       └── score/                  # Source files, include files, unit tests [wp__verification_sw_unit_test],
+    │       └── src/                  # Source files, include files, unit tests [wp__verification_sw_unit_test],
     │           ├── <lower_level_comp>/ # Lower level component (follows <component_name> structure)
     │           └── tests/              # Component-level tests (e.g., unit tests) [wp__verification_sw_unit_test]
     ├── MODULE.bazel                    # Bazel module definition
@@ -78,8 +78,8 @@ Component documentation
 .. toctree::
    :maxdepth: 1
 
-   socom/design/index.rst
-   gateway_ipc_binding/index.rst
+   socom/design/index
+   gateway_ipc_binding/index
 
 
 Examples

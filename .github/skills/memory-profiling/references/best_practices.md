@@ -230,7 +230,7 @@ If tail is much smaller: Spike was transient (initialization), not a leak.
 - name: Baseline Memory Profile
   run: |
     ./.github/skills/memory-profiling/scripts/run_memusage_profile.sh \
-      "//src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
+      "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
     cp memusage.out baseline_memusage.txt
 
 - name: Report
@@ -259,5 +259,5 @@ memory_profile:
 ## References
 
 - [Valgrind Massif Advanced Usage](https://valgrind.org/docs/manual/ms-manual.html#ms-command-line-options)
-- [Creating Custom Allocators](../../../src/gateway_ipc_binding/doc/)
+- [Creating Custom Allocators](../../../score/gateway_ipc_binding/doc/)
 - [Project Profiling Results](../../../memory_profile/PROFILING_REPORT.md)

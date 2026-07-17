@@ -1,7 +1,7 @@
 ---
 name: fix-failing-test
 description: 'Fix a failing test in this C++/Bazel/Python project. Use when a test is red, flaky, or crashes (segfault, assertion, timeout). Covers: reproducing the failure, root-cause analysis, surgical fix, and verification. Trigger phrases: fix failing test, test is broken, test crashes, test flakes, make test pass.'
-argument-hint: 'test target or test name, e.g. //src/socom/test/unit:socom_test'
+argument-hint: 'test target or test name, e.g. //score/socom/test/unit:socom_test'
 ---
 
 <!--

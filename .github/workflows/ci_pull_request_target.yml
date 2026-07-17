@@ -55,8 +55,7 @@ jobs:
     name: ci_pull_request_target/can_merge
     if: always()
     needs:
-      # No need to pass as long as SDK download is unstable
-      # - build_and_test_qnx
+      - build_and_test_qnx
       - docs
       - license_check
     permissions:
