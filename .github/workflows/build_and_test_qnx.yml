@@ -30,7 +30,7 @@ jobs:
       actions: write # needed for cache deletion at setup-bazel-cache
     with:
       # TODO: build all targets ( //... ) once python toolchain issue is resolved.
-      bazel-target: "//src/... //tests/... //examples/..."
+      bazel-target: "//score/... //tests/... //examples/..."
       bazel-test-target: "//quality/... //tests/integration_test/..."
       bazel-config: ${{ matrix.bazel-config }}
       credential-helper: ".github/tools/qnx_credential_helper.py"
