@@ -17,9 +17,8 @@ on:
 
 permissions:
   contents: read
-  actions: write # needed for cache deletion at setup-bazel-cache
 jobs:
   copyright-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/copyright.yml@improved-caching
+    uses: eclipse-score/cicd-workflows/.github/workflows/copyright.yml@improved-caching-part-2
     with:
       bazel-target: "run //:copyright.check"
