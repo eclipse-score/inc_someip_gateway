@@ -27,7 +27,7 @@ jobs:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
       score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
-    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@improved-caching-part-2
+    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@4ce43f957a0e164827ad2906a2ec69fd7f420b5d
     with:
       variants: |
         //...
