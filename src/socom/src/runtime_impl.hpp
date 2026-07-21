@@ -304,6 +304,60 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
     Currently_running_subscribe_find_service_report m_currently_running_service_report;
 };
 
+// Helper cleanup template functions
+namespace {
+
+/// \brief Removes key from map if value is empty
+///
+/// \param map Map to clean up.
+/// \param key Key to remove from map if value is empty.
+/// \param value Value associated with the key.
+template <template <typename, typename> class Map, typename Key, typename Value>
+void cleanup(Map<Key, Value>& map, Key const& key, Value const& value) noexcept {
+    if (value.empty()) {
+        map.erase(key);
+    }
+}
+
+/// \brief Removes key from inner maps of map
+///
+/// \param map Map to clean up.
+/// \param key Key to remove from inner maps.
+template <typename Key0, typename Key1, typename Value>
+void cleanup(std::map<Key0, std::tuple<std::weak_ptr<std::map<Key1, Value>>,
+                                       std::vector<std::optional<Bridge_identity>>>>& map,
+             Key1 const& key) noexcept {
+    for (auto const& values : map) {
+        auto const value_locked = std::get<0>(values.second).lock();
+
+        if (nullptr != value_locked) {
+            value_locked->erase(key);
+        }
+    }
+}
+
+/// \brief Removes key from map if its pointed to value is empty
+///
+/// \param map Map to clean up.
+/// \param key Key to remove from map if its pointed to value is empty.
+template <typename Key, typename Value>
+void cleanup(
+    std::map<Key, std::tuple<std::weak_ptr<Value>, std::vector<std::optional<Bridge_identity>>>>&
+        map,
+    Key const& key) noexcept {
+    auto const request = map.find(key);
+
+    if (std::end(map) == request) {
+        return;
+    }
+
+    auto const request_locked = std::get<0>(request->second).lock();
+    if (nullptr == request_locked) {
+        map.erase(request);
+    }
+}
+
+}  // namespace
 }  // namespace socom
 }  // namespace score
 
