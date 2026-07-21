@@ -48,7 +48,6 @@ jobs:
     needs:
       - repository_cache_maintenance
     permissions:
-      actions: read
       contents: write
       pages: write
       pull-requests: write
