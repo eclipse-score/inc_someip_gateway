@@ -19,10 +19,9 @@ on:
 permissions:
   pull-requests: write
   issues: write
-  actions: write # needed for cache deletion at setup-bazel-cache
 
 jobs:
   license-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@improved-caching
+    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@4ce43f957a0e164827ad2906a2ec69fd7f420b5d
     secrets:
       dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}
