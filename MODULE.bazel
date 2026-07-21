@@ -214,6 +214,10 @@ download_archive(
 bazel_dep(name = "score_docs_as_code", version = "4.5.0", dev_dependency = True)
 single_version_override(
     module_name = "score_docs_as_code",
+    patch_strip = 1,
+    patches = [
+        "//:third_party/score_docs_as_code-fix-needs-json-serve.patch",
+    ],
     version = "4.5.0",
 )
 
