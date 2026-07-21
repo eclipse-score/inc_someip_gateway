@@ -42,5 +42,9 @@
   {
     "version": "gh-readonly-queue/main/pr-175-8361af89ee6fef51d03d2033efd19c3e7f703854",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-175-8361af89ee6fef51d03d2033efd19c3e7f703854/"
+  },
+  {
+    "version": "pr-195",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-195/"
   }
 ]
