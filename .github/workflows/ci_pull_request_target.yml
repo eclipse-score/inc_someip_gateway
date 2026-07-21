@@ -49,7 +49,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/repository_cache_maintenance.yml
     permissions:
-      actions: write # needed for cache deletion after cache refresh
+      actions: write # required by the repository_cache_maintenance job but not used
       contents: read
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
