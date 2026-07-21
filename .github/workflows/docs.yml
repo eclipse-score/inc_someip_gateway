@@ -18,20 +18,18 @@ permissions:
   pages: write
   pull-requests: write
   id-token: write
-  actions: write # needed for cache deletion at setup-bazel-cache
 
 on:
   workflow_call:
 
 jobs:
   build-docs:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@improved-caching
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@4ce43f957a0e164827ad2906a2ec69fd7f420b5d
     permissions:
       contents: write
       pages: write
       pull-requests: write
       id-token: write
-      actions: write # needed for cache deletion at setup-bazel-cache
 
     with:
       # the bazel-target depends on your repo specific docs_targets configuration (e.g. "suffix")
