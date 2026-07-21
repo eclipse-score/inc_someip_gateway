@@ -34,5 +34,9 @@
   {
     "version": "pr-98",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-98/"
+  },
+  {
+    "version": "gh-readonly-queue/main/pr-194-3e661b443cfc9ce17439b05d1a23edb5fef4b944",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-194-3e661b443cfc9ce17439b05d1a23edb5fef4b944/"
   }
 ]
