@@ -57,7 +57,6 @@ common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posi
 common:x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:all
 common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
 common:x86_64-qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:all
-common:x86_64-qnx --extra_toolchains=//bazel/toolchains:qnx_python_toolchain
 common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
 
 common:aarch64-qnx --config=_toolchain_common
@@ -65,7 +64,6 @@ common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-po
 common:aarch64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:all
 common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
 common:aarch64-qnx --extra_toolchains=@score_qnx_aarch64_ifs_toolchain//:all
-common:aarch64-qnx --extra_toolchains=//bazel/toolchains:qnx_python_toolchain
 common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
 
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
