@@ -37,7 +37,6 @@ jobs:
     needs:
       - repository_cache_maintenance
     permissions:
-      actions: write # required by the repository_cache_maintenance job but not used
       contents: write
       pages: write
       pull-requests: write

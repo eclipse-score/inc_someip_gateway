@@ -38,6 +38,11 @@ jobs:
   format:
     secrets: inherit
     uses: ./.github/workflows/format.yml
+  repository_cache_maintenance:
+    # This is only executed to test the workflow. Real action happens at `warm_main_branch_cache.yml` after the PR has been merged to main.
+    if: ${{ github.event_name != 'push' }}
+    secrets: inherit
+    uses: ./.github/workflows/repository_cache_maintenance.yml
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
@@ -52,6 +57,7 @@ jobs:
       - build_and_test_cross_compilation
       - copyright
       - format
+      - repository_cache_maintenance
     permissions: {}
     runs-on: ubuntu-latest
     steps:
