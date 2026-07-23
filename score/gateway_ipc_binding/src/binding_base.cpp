@@ -47,16 +47,6 @@ Gateway_ipc_binding_base::Gateway_ipc_binding_base(score::socom::Runtime& runtim
       m_slot_managers(slot_manager, m_keys),
       m_read_only_slot_managers(std::move(slot_manager)) {
     // Create callbacks for service bridge registration
-    auto subscribe_find_service_callback =
-        [](score::socom::Find_result_change_callback /*callback*/,
-           score::socom::Service_interface_identifier const& /*interface*/,
-           std::optional<score::socom::Service_instance> /*instance*/)
-        -> score::socom::Find_subscription {
-        // TODO: Implement find service subscription logic
-        assert(false && "subscribe_find_service_callback not implemented");
-        return nullptr;
-    };
-
     auto request_service_callback =
         [this](score::socom::Service_interface_definition const& configuration,
                score::socom::Service_instance const& instance) -> score::socom::Service_request {
@@ -65,9 +55,8 @@ Gateway_ipc_binding_base::Gateway_ipc_binding_base(score::socom::Runtime& runtim
 
     // Register this server as a service bridge with the runtime
     auto bridge_identity = score::socom::Bridge_identity::make(this);
-    auto bridge_registration_result = m_runtime.register_service_bridge(
-        bridge_identity, std::move(subscribe_find_service_callback),
-        std::move(request_service_callback));
+    auto bridge_registration_result =
+        m_runtime.register_service_bridge(bridge_identity, std::move(request_service_callback));
     assert(bridge_registration_result && "Failed to register service bridge with runtime");
     m_bridge_registration = std::move(bridge_registration_result).value();
 }
