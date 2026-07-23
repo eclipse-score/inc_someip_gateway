@@ -23,26 +23,19 @@ jobs:
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Create Bazel output base directory
         run: |
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Create config indicator file
+        run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.19.0
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@af1be61755b13c1f33b6c250080dc6ac025012f1
         with:
-          output-base: /mnt/.bazel
-          # Avoid downloading Bazel every time.
-          bazelisk-cache: true
-          # Store build cache per workflow.
-          disk-cache: ${{ github.workflow }}
-          # Share repository cache between workflows.
-          repository-cache: true
-          # Cache external/
-          external-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
+          unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
-        uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939
       - run: df -h
       - name: Bazel build targets
         run: |
@@ -52,5 +45,39 @@ jobs:
       - name: Bazel test targets
         run: |
           bazel test //... --build_tests_only
+      - run: df -h
+        if: always()
+
+  build_and_int_qemu_test_host:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: eclipse-score/more-disk-space@v1
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Create Bazel output base directory
+        run: |
+          sudo mkdir -p /mnt/.bazel
+          sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Create config indicator file
+        run: echo "host" > .bazel_config
+      - name: Setup Bazel
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@af1be61755b13c1f33b6c250080dc6ac025012f1
+        with:
+          unique-cache-name: ${{ github.job }}
+      - name: Install tools needed for ITF tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
+      - name: Allow linux-sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939
+      - run: df -h
+      - name: Enable KVM group permissons
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Linux QEMU integration tests
+        run: |
+          bazel test --config=qemu-integration //quality/... //tests/integration_test/...
       - run: df -h
         if: always()

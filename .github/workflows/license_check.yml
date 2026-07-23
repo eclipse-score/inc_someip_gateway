@@ -14,18 +14,14 @@
 name: License Check
 
 on:
-  push:
-    branches:
-      - main
   workflow_call:
 
 permissions:
   pull-requests: write
   issues: write
 
-
 jobs:
   license-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@829b3e11ccbf924a5782f7bfed647cb1619fdf78 # v0.0.1
+    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@4ce43f957a0e164827ad2906a2ec69fd7f420b5d
     secrets:
       dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}

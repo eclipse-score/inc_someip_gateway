@@ -1,0 +1,71 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: Cache maintenance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  repository_cache_maintenance:
+    permissions:
+      actions: write # needed for cache deletion after cache refresh
+      contents: read
+    secrets:
+      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
+      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@4ce43f957a0e164827ad2906a2ec69fd7f420b5d
+    with:
+      variants: |
+        //...
+        --config=qemu-integration //quality/... //tests/...
+        --config=x86_64-linux //...
+        --config=aarch64-linux //...
+        --config=x86_64-qnx //quality/... //score/... //tests/...
+        --config=aarch64-qnx //quality/... //score/... //tests/...
+
+  ci:
+    needs:
+      - repository_cache_maintenance
+    secrets: inherit
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/ci.yml
+
+  ci_pull_request_target:
+    needs:
+      - repository_cache_maintenance
+    permissions:
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
+      issues: write
+    secrets: inherit
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/ci_pull_request_target.yml
+
+  delete_old_caches:
+    runs-on: ubuntu-24.04
+    needs:
+      - ci
+      - ci_pull_request_target
+    permissions:
+      actions: write # needed for deletion of old caches
+      contents: read
+    if: ${{ !cancelled() }}
+    steps:
+      - name: Prune obsolete Bazel caches
+        uses: eclipse-score/cicd-actions/prune-cache@af1be61755b13c1f33b6c250080dc6ac025012f1

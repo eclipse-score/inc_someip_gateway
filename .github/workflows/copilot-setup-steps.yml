@@ -36,21 +36,14 @@ jobs:
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Create Bazel output base directory
         run: |
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.19.0
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@af1be61755b13c1f33b6c250080dc6ac025012f1
         with:
-          output-base: /mnt/.bazel
-          # Avoid downloading Bazel every time.
-          bazelisk-cache: true
-          # Share repository cache between workflows.
-          repository-cache: true
-          # Cache external/
-          external-cache: true
-          cache-save: false
+          unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
-        uses: ./.github/actions/unblock_user_namespace_for_linux_sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@659dcbed63f6b7fbde88c7850125ea0a0a92f939

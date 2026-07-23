@@ -37,13 +37,13 @@ cd inc_someip_gateway
 Start the daemons in this order:
 
 ```sh
-bazel run //src/gatewayd:gatewayd_example
+bazel run //score/gatewayd:gatewayd_example
 ```
 
 and in a separate terminal
 
 ```sh
-bazel run //src/someipd
+bazel run //score/someipd:someipd_example
 ```
 
 ### Run Example app
@@ -73,7 +73,7 @@ Start up the containers:
 docker compose --project-directory tests/integration/docker_setup/ up
 ```
 
-Those containers are pre-configured (IP adresses, multicast route, ...).
+Those containers are pre-configured (IP addresses, multicast route, ...).
 The someipd-1 container already starts up the `gatewayd` and the `someipd`.
 
 In Wireshark the network traffic can be seen by capturing on `any` with `ip.addr== 192.168.87.2 || ip.addr ==192.168.87.3`.
@@ -90,22 +90,24 @@ Finally start the benchmark on the someipd-1 container in a third shell:
 docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
 ```
 
+For current Bazel-based integration testing backends (Docker, Linux QEMU, and QNX QEMU) and defaults, see [quality/README.md](quality/README.md).
+
 
 ## 📝 Configuration
 
-### Gatewayd Config Schema Validation
+### Daemon Config Schema Validation
 
-The `gatewayd` module is configured using a flatbuffer binary file generated from a JSON file. We provide a JSON schema which helps when editing the JSON file, and can also be used to validate it.
+Both the `gatewayd` and `someipd` daemons are configured using a single flatbuffer binary file generated from a JSON file. We provide a JSON schema which helps when editing the JSON file, and can also be used to validate it.
 
 #### Configuration Schema
 
-The JSON schema for the `gatewayd` configuration is located at:
+The JSON schema for the configuration is located at:
 
 ```bash
-src/gatewayd/etc/gatewayd_config.schema.json
+score/config/mw_someip_config.schema.json
 ```
 
-This schema defines the expected properties, data types, and constraints for a valid `gatewayd_config.json` configuration file.
+This schema defines the expected properties, data types, and constraints for a valid JSON configuration file to be used for flatbuffer generation.
 
 #### Generate Configuration Binary
 
@@ -115,8 +117,8 @@ To generate a someip config binary for your project, add the following to your `
 load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 generate_someip_config_bin(
     name = "<generation_rule_name>",
-    json = "//<package>:<path_to_gatewayd_config_json>",
-    output = "etc/gatewayd_config.bin",
+    json = "//<package>:<path_to_config_json>",
+    output = "<path_to_config>/<name_of_config>.bin",
 )
 ```
 
@@ -130,9 +132,11 @@ generate_someip_config_bin(
 
 native_binary(
     name = "gatewayd",
-    src = "@score_someip_gateway//src/gatewayd",
+    src = "@score_someip_gateway//score/gatewayd",
     args = [
-        "-service_instance_manifest",
+        "--configuration",
+        "$(rootpath :someipd_config)",
+        "--service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
     ],
     data = [
@@ -142,13 +146,13 @@ native_binary(
 )
 ```
 
-Or you can manually generate the `gatewayd_config.bin` with the following command:
+Or you can manually generate the flatbuffer binary with the following command:
 
 ```bash
 bazel build //:someipd_config # if the macro has been added to root BUILD.bazel
 ```
 
-On success you can retrieve the generated `gatewayd_config.bin` from `bazel-bin/`. Check the success message for the exact path.
+On success you can retrieve the generated flatbuffer binary from `bazel-bin/`. Check the success message for the exact path.
 
 
 #### Configuration Validation

@@ -45,20 +45,20 @@ names_from_toolchains(
 pkg_files(
     name = "gatewayd_config_files",
     srcs = [
-        "//src/config:config_file",
-        "//src/gatewayd:etc/mw_com_config.json",
+        "//score/config:config_file",
+        "//score/gatewayd:etc/mw_com_config.json",
     ],
     renames = {
-        "//src/config:config_file": "gatewayd_config.bin",
-        "//src/gatewayd:etc/mw_com_config.json": "gatewayd_mw_com_config.json",
+        "//score/config:config_file": "gatewayd_config.bin",
+        "//score/gatewayd:etc/mw_com_config.json": "gatewayd_mw_com_config.json",
     },
 )
 
 pkg_files(
     name = "someipd_config_files",
-    srcs = ["//src/someipd:etc/mw_com_config.json"],
+    srcs = ["//score/someipd:etc/mw_com_config.json"],
     renames = {
-        "//src/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
+        "//score/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
     },
 )
 
@@ -85,8 +85,8 @@ scoreipgw_pkg_tar(
         "run_gateway.sh",
         ":gatewayd_config_files",
         ":someipd_config_files",
-        "//src/gatewayd",
-        "//src/someipd",
+        "//score/gatewayd",
+        "//score/someipd",
     ],
     package_dir = module_name() + "/gateway",
 )

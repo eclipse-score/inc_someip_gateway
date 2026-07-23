@@ -12,7 +12,7 @@
 # *******************************************************************************
 
 # Use Dockerfile to get dependabot version bumps after new image is released
-FROM ghcr.io/eclipse-score/devcontainer:v1.4.1
+FROM ghcr.io/eclipse-score/devcontainer:v1.8.0
 
 # Build argument for dynamic username (defaults to 'vscode' if not provided)
 ARG USERNAME=vscode
@@ -27,6 +27,8 @@ RUN if [ "$USERNAME" != "vscode" ]; then \
         && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} \
         && chmod 0440 /etc/sudoers.d/${USERNAME}; \
     fi
+
+RUN apt-get update && apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
 
 # Set the default user for the container
 USER ${USERNAME}

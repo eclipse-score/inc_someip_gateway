@@ -22,7 +22,7 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-added-large-files
         args: [--maxkb=50, --enforce-all] # increase or add git lfs if too strict
-        exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md|src/socom/test/unit/runtime_tests.cpp
+        exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md|score/socom/test/unit/runtime_tests.cpp
 
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 38980559e3a605691d6579f96222c30778e5a69e # 3.0.0
@@ -44,3 +44,16 @@ repos:
     rev: 21ca5323a9c87ee37a434e0ca908efc0a89daa07 # v0.21.0
     hooks:
       - id: yamlfmt
+
+  - repo: local
+    hooks:
+      - id: bzlmod-tidy
+        name: bazel mod tidy
+        entry: bazel mod tidy
+        language: system
+        pass_filenames: false
+      - id: bzlmod-lockfile
+        name: bazel mod deps lockfile check
+        entry: bazel mod deps --lockfile_mode=error
+        language: system
+        pass_filenames: false

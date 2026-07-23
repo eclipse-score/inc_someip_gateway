@@ -17,9 +17,8 @@ on:
     types: [opened, reopened, synchronize, labeled, unlabeled]
   merge_group:
     types: [checks_requested]
-  push:
-    branches: [main]
   workflow_dispatch:
+  workflow_call:
 jobs:
   pre-commit:
     secrets: inherit
@@ -53,18 +52,14 @@ jobs:
       - build_and_test_cross_compilation
       - copyright
       - format
-    permissions:
-      actions: read
+    permissions: {}
     runs-on: ubuntu-latest
     steps:
-      - env:
-          NEEDS_JSON: "${{toJSON(needs)}}"
-        name: Transform outcomes
+      - name: Fail if any required job did not succeed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          echo "ALL_SUCCESS=$(echo "$NEEDS_JSON" | jq '. | to_entries | map([.value.result == "success", .value.result == "skipped"] | any) | all')" >>$GITHUB_ENV
-      - name: check
-        run: |
-          [ $ALL_SUCCESS == true ]
+          echo "One or more required jobs failed or were cancelled."
+          exit 1
   # workaround to get running merge queue checks visible in the PR checks list, as GitHub does not show merge group check runs in the UI.
   can_see_status:
     runs-on: ubuntu-latest
