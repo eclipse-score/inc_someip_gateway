@@ -111,7 +111,6 @@ The implementation is not yet feature-complete. Important gaps to keep in mind:
 
 - method call messages are declared, but there is no ``Call_method`` handling path in ``Gateway_ipc_binding_base``
 - ``Subscribe_event_reply`` and ``Event_update_request`` are declared, but not handled
-- ``subscribe_find_service_callback`` registered with the SOCom bridge is still a stub with an assertion
 
 These limitations are design constraints of the current code, not documentation omissions.
 
