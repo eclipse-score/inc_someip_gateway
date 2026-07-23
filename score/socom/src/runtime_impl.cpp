@@ -17,7 +17,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 #include <iterator>
 #include <memory>
 #include <score/socom/final_action.hpp>

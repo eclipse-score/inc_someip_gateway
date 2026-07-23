@@ -14,7 +14,6 @@
 #ifndef SCORE_SOCOM_RUNTIME_IMPL_HPP
 #define SCORE_SOCOM_RUNTIME_IMPL_HPP
 
-#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
