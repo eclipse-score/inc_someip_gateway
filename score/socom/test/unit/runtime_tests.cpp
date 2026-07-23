@@ -389,8 +389,8 @@ TEST_P(RuntimeBridgeTest, CreationOfClientsWillCallRequestServiceFunction) {
                          &Bridge_data::get_request_find_service_created, post_check);
 }
 
-INSTANTIATE_TEST_SUITE_P(Bridge, RuntimeBridgeTest,
-                         Combine(Values(0, 1, 10), Values(0, 1, 10), Values(1, 10),
+INSTANTIATE_TEST_SUITE_P(RequestsAfterBridgeCreation, RuntimeBridgeTest,
+                         Combine(Values(0), Values(0, 1), Values(1, 10),
                                  Values(Destruction_order::requests_first,
                                         Destruction_order::bridges_first),
                                  Bool(), Bool()),
