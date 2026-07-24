@@ -29,17 +29,12 @@ namespace score::socom {
 class Bridge_data {
    public:
     /// \brief Expect which callbacks will be called and thus need to be configured
-    enum Expect { nothing, subscribe_find_service, request_service_function, both };
+    enum Expect { nothing, request_service_function };
 
    private:
     Bridge_identity m_identity{Bridge_identity::make(*this)};
-    Subscribe_find_service_function_mock m_sfsf_mock;
     Request_service_function_mock m_rsf_mock;
 
-    Find_result_change_callback m_find_result_callback;
-
-    std::atomic<bool> m_subscribe_find_service_created{false};
-    std::atomic<bool> m_subscribe_find_service_destroyed{true};
     std::atomic<bool> m_request_find_service_created{false};
     std::atomic<bool> m_request_find_service_destroyed{true};
 
@@ -55,20 +50,16 @@ class Bridge_data {
     /// the runtime
     enum Creation_sequence { bridge_then_expect, expect_then_bridge };
 
-    static Subscribe_find_service_function sfs_do_nothing();
-
     /// \brief Create new Bridge facade
     ///
     /// \param[in] sequence whether to register or configure callbacks first
     /// \param[in] expect which callbacks will be called
     /// \param[in] connector_factory the runtime facade to register to
     /// \param[in] ctor_callback will be called from constructor
-    /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
     Bridge_data(
         Creation_sequence const& sequence, Expect const& expect,
         Connector_factory& connector_factory,
-        std::function<void(Bridge_data&)>&& ctor_callback = [](Bridge_data& /*unused*/) {},
-        Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
+        std::function<void(Bridge_data&)>&& ctor_callback = [](Bridge_data& /*unused*/) {});
 
     Bridge_data(Bridge_data const&) = delete;
     Bridge_data(Bridge_data&&) = delete;
@@ -82,40 +73,11 @@ class Bridge_data {
     ///
     /// \param[in] expect which callbacks will be called
     /// \param[in] connector_factory container of configuration and instance id
-    /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
-    void expect_callbacks(Expect const& expect, Connector_factory const& connector_factory,
-                          Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
+    void expect_callbacks(Expect const& expect, Connector_factory const& connector_factory);
 
     /// \brief Allow the Bridge_data instance to be destroyed before the expectations of the
     /// callbacks have been fulfilled
     void no_destroyed_check();
-
-    /// \brief Report found service to the runtime
-    ///
-    /// \param[in] interface the interface to be reported
-    /// \param[in] instance the instance to be reported
-    /// \param[in] status the status of the reported service
-    void find_service(Service_interface_identifier const& interface,
-                      Service_instance const& instance, Find_result_status const& status) const;
-
-    /// \brief Expect call to subscribe_find_service()
-    ///
-    /// \param[in] interface
-    /// \param[in] instance
-    /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
-    void expect_subscribe_find_service(
-        Service_interface_identifier const& interface, std::optional<Service_instance> instance,
-        Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
-
-    /// \brief Expect call to subscribe_find_service(), callback only, for use with additional
-    ///        requests not managed by Bridge_data
-    ///
-    /// \param[in] interface
-    /// \param[in] instance
-    /// \param[in] sfs_callback will be called during create_value for subscribe_find_service
-    void expect_another_subscribe_find_service(
-        Service_interface_identifier const& interface, std::optional<Service_instance> instance,
-        Subscribe_find_service_function const& sfs_callback = sfs_do_nothing());
 
     /// \brief Expect call to request_find_service()
     ///
@@ -132,12 +94,6 @@ class Bridge_data {
 
     /// \return atomic to check if request_find_service handle was destroyed by the runtime
     std::atomic<bool> const& get_request_find_service_destroyed() const;
-
-    /// \return atomic to check if runtime called subscribe_find_service
-    std::atomic<bool> const& get_subscribe_find_service_created() const;
-
-    /// \return atomic to check if subscribe_find_service handle was destroyed by the runtime
-    std::atomic<bool> const& get_subscribe_find_service_destroyed() const;
 
     std::optional<Bridge_identity> get_identity() const;
 };

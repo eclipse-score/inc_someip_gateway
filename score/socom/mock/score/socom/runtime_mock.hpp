@@ -44,17 +44,8 @@ class Runtime_mock : public Runtime {
                 (Server_service_interface_definition, Service_instance,
                  Disabled_server_connector::Callbacks, Posix_credentials const&),
                 (noexcept, override));
-    MOCK_METHOD(Find_subscription, subscribe_find_service,
-                (Find_result_callback, Service_interface_identifier const&,
-                 std::optional<Service_instance>),
-                (noexcept, override));
-    MOCK_METHOD(Find_subscription, subscribe_find_service,
-                (Find_result_change_callback, std::optional<Service_interface_identifier>,
-                 std::optional<Service_instance>, std::optional<Bridge_identity>),
-                (noexcept, override));
     MOCK_METHOD(Result<Service_bridge_registration>, register_service_bridge,
-                (Bridge_identity, Subscribe_find_service_function, Request_service_function),
-                (noexcept, override));
+                (Bridge_identity, Request_service_function), (noexcept, override));
 };
 
 }  // namespace score::socom

@@ -92,17 +92,6 @@ Consequently, update_event() satisfies the event update request implicitly.
    :align: center
    :caption: Interaction diagram: Field notification communication
 
-Service Gateway - find service
--------------------------------
-
-The creation of client connectors is forwarded to bridges as request_service() calls.
-Service bridges look up the required service instance within their domain.
-If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).
-
-.. uml:: models/interaction_diagram_service_gateway_find_service.puml
-   :align: center
-   :caption: Interaction diagram: Service Gateway - find service
-
 Service Gateway - require service
 ----------------------------------
 
@@ -117,9 +106,9 @@ If available, they connect to the remote counterpart and locally create a proxy 
 Service Gateway - provide service
 ----------------------------------
 
-The creation of server connectors is found by service bridges using the SOCom subscribe_find_service() API.
+The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
 Service bridges provide this information within their domain.
-If any domain partner requests the service instance, the service bridge creates a proxy client connector (forwarding all communication).
+If any domain partner requests the service instance, the service bridge forwards all communication using this proxy client connector.
 
 .. uml:: models/interaction_diagram_service_gateway_provide_service.puml
    :align: center

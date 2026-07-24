@@ -25,29 +25,48 @@ activate socom
 app  -> bridge ** : create_bridge_component()
 activate bridge
 
-bridge -> socom :  register_service_bridge(bridge_subscribe_find_service, bridge_request_service)
-activate socom
-return
-
-bridge -> socom : subscribe_find_service(bridge_find_callback)
+bridge -> socom :  register_service_bridge(bridge_request_service)
 activate socom
 return
 
 note right
-A generic service bridge (e.g. bridge::ipc)
-is interested in every service instance
-within the local process.
-This enables a config-free (dynamic)
-implementation of service discovery functionality
-based on the pure internal service instance identifiers.
+To get information about services the
+bridge needs to create a client connector.
 end note
 
+== service instance remote usage ==
+
+group Implementation detail
+bridge -> bridge
+note right
+A remote counterpart is interested
+in a service and informed the
+service bridge about.
+end note
+end
+
+bridge -> socom : make_client_connector(interface_A, instance_1)
+activate socom
+return
+
+group !!! Important: break circle !!!
+socom X--> bridge : bridge_request_service(interface_A, instance_1)
+note right #FFAAAA
+SOCom shall call bridge_request_service()
+only if service instance is locally not available.
+end note
+end
 
 == Application creates a service instance ==
 
 app -> socom : make_server_connector(interface_A, instance_1)
 activate socom
-socom -> bridge : bridge_find_callback(interface_A, instance_1, State::added)
+socom -> socom
+note right
+SOCom connects client_connector to server_connector.
+end note
+
+socom -> bridge : Client_connector::Service_state_change_callback(Service_state::available)
 activate bridge
 
 group Implementation detail
@@ -65,31 +84,4 @@ return
 
 return
 
-== service instance remote usage ==
-
-group Implementation detail
-bridge -> bridge
-note right
-A remote counterpart is interested
-in the local service and informed the
-generic service bridge about.
-end note
-end
-
-bridge -> socom : make_client_connector(interface_A, instance_1)
-activate socom
-return
-
-group !!! Important: break circle !!!
-socom X--> bridge : bridge_request_service(interface_A, instance_1)
-note right #FFAAAA
-SOCom shall call bridge_request_service()
-only if service instance is locally not available.
-end note
-end
-
-socom -> socom
-note right
-SOCom connects client_connector to server_connector.
-end note
 @enduml

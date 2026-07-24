@@ -108,38 +108,12 @@ class Client_to_connect {
     }
 };
 
-struct Subscribe_find_service_to_call {
-    std::atomic<bool> cb_called{false};
-    Find_result_change_callback_mock fsus_mock;
-
-    explicit Subscribe_find_service_to_call(Connector_factory const& connector_factory) {
-        EXPECT_CALL(fsus_mock, Call(connector_factory.get_configuration().get_interface(),
-                                    connector_factory.get_instance(), Find_result_status::added))
-            .Times(AnyNumber())
-            .WillRepeatedly(Assign(&cb_called, true));
-
-        EXPECT_CALL(fsus_mock, Call(connector_factory.get_configuration().get_interface(),
-                                    connector_factory.get_instance(), Find_result_status::deleted))
-            .Times(AnyNumber());
-    }
-
-    Loop_function_t create_thread_function(Connector_factory& connector_factory) {
-        cb_called = false;
-        return [&connector_factory, cb = fsus_mock.AsStdFunction()]() {
-            auto const find_subscription = connector_factory.subscribe_find_service(cb);
-        };
-    }
-};
-
 class RuntimeMultiThreadingTest : public SingleConnectionTest {
    protected:
     std::vector<Service_instance> const input_find_result{
         Service_instance{"first instance", Literal_tag{}},
         Service_instance{"second instance", Literal_tag{}}, connector_factory.get_instance()};
 
-    Find_result_change_callback_mock fsus_mock;
-
-    Subscribe_find_service_function_mock sfsf_mock;
     Request_service_function_mock rsf_mock;
 
     Loop_function_t create_servers_thread_main() {
@@ -155,10 +129,9 @@ class RuntimeMultiThreadingTest : public SingleConnectionTest {
     }
 
     Loop_function_t create_bridges_thread_main() {
-        auto const register_bridges = [this, sfsf_mock_function = sfsf_mock.AsStdFunction(),
-                                       rsf_mock_function = rsf_mock.AsStdFunction()]() {
+        auto const register_bridges = [this, rsf_mock_function = rsf_mock.AsStdFunction()]() {
             auto const registration = connector_factory.register_service_bridge(
-                Bridge_identity::make(*this), sfsf_mock_function, rsf_mock_function);
+                Bridge_identity::make(*this), rsf_mock_function);
             ASSERT_TRUE(registration);
         };
         return register_bridges;
@@ -182,29 +155,6 @@ TEST_F(RuntimeMultiThreadingTest, CreationOfServerAndClientConnectorsCallsCallba
 
     multi_threaded_test_template({create_servers_thread_main(), start_clients},
                                  [&client]() { return static_cast<bool>(client.is_satisfied()); });
-}
-
-TEST_F(RuntimeMultiThreadingTest,
-       SubscribeFindServiceAndServerConnectorCreationHasNoRaceCondition) {
-    Subscribe_find_service_to_call subscribe{connector_factory};
-
-    auto const start_subscription = subscribe.create_thread_function(connector_factory);
-
-    multi_threaded_test_template({create_servers_thread_main(), start_subscription},
-                                 [&subscribe]() { return static_cast<bool>(subscribe.cb_called); });
-}
-
-TEST_F(RuntimeMultiThreadingTest,
-       MultipleSubscribeFindServiceAndServerConnectorCreationHasNoRaceCondition) {
-    Subscribe_find_service_to_call subscribe0{connector_factory};
-    auto const start_subscription0 = subscribe0.create_thread_function(connector_factory);
-
-    Subscribe_find_service_to_call subscribe1{connector_factory};
-    auto const start_subscription1 = subscribe1.create_thread_function(connector_factory);
-
-    multi_threaded_test_template(
-        {create_servers_thread_main(), start_subscription0, start_subscription1},
-        [&subscribe0, &subscribe1]() { return subscribe0.cb_called && subscribe1.cb_called; });
 }
 
 TEST_F(RuntimeMultiThreadingTest,
@@ -247,40 +197,6 @@ TEST_F(RuntimeMultiThreadingTest, BridgesAndClientConnectorsHaveNoRaceCondition)
 
     multi_threaded_test_template({create_bridges_thread_main(), start_clients},
                                  []() { return true; });
-}
-
-TEST_F(RuntimeMultiThreadingTest, BridgesAndSubscribeFindServiceHaveNoRaceConditions) {
-    EXPECT_CALL(sfsf_mock, Call(_, _, _))
-        .Times(AnyNumber())
-        .WillRepeatedly([this](auto cb, auto const& /*interface*/, auto /*instance*/) {
-            for (auto const& result : input_find_result) {
-                cb(connector_factory.get_configuration().get_interface(), result,
-                   Find_result_status::added);
-            }
-            return nullptr;
-        });
-    std::atomic<bool> fsus_called_added{false};
-    std::atomic<bool> fsus_called_delete{false};
-    for (auto const& result : input_find_result) {
-        EXPECT_CALL(fsus_mock, Call(connector_factory.get_configuration().get_interface(), result,
-                                    Find_result_status::added))
-            .Times(AnyNumber())
-            .WillRepeatedly(Assign(&fsus_called_added, true));
-        EXPECT_CALL(fsus_mock, Call(connector_factory.get_configuration().get_interface(), result,
-                                    Find_result_status::deleted))
-            .Times(AnyNumber())
-            .WillRepeatedly(Assign(&fsus_called_delete, true));
-    }
-
-    auto const subscribe_find_service = [this, fsus_mock_function = fsus_mock.AsStdFunction()]() {
-        auto const handle = connector_factory.subscribe_find_service(fsus_mock_function);
-    };
-
-    multi_threaded_test_template({create_bridges_thread_main(), subscribe_find_service},
-                                 [&fsus_called_added, &fsus_called_delete]() {
-                                     return static_cast<bool>(fsus_called_added) &&
-                                            static_cast<bool>(fsus_called_delete);
-                                 });
 }
 
 }  // namespace score::socom
