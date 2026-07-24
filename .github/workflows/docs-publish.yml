@@ -35,4 +35,3 @@ jobs:
       id-token: write
       contents: write
       pull-requests: write
-      actions: write
