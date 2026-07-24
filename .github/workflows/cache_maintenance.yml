@@ -76,4 +76,4 @@ jobs:
     if: ${{ !cancelled() && github.event_name == 'push' }}
     steps:
       - name: Prune obsolete Bazel caches
-        uses: eclipse-score/cicd-actions/prune-cache@af1be61755b13c1f33b6c250080dc6ac025012f1
+        uses: eclipse-score/cicd-actions/prune-cache@07cd8ac969b01fbab47f1a0b91040bcd83008fa7
