@@ -24,13 +24,13 @@ applyTo: "**/BUILD*,**/MODULE*,tests/**,**/*_test.{cpp,cc,py},**/*_test.rs"
 
 ```bash
 # Build specific target
-bazel build //src/gatewayd:gatewayd
+bazel build //score/gatewayd:gatewayd
 
 # Run all tests
 bazel test //...
 
 # Run unit tests
-bazel test //src/...
+bazel test //score/...
 
 # Run integration tests
 bazel test //tests/integration:integration

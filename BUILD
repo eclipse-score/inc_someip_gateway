@@ -23,7 +23,8 @@ load("//:project_config.bzl", "PROJECT_CONFIG")
 copyright_checker(
     name = "copyright",
     srcs = [
-        "src",
+        "score",
+        "tests",
         "//:BUILD",
         "//:MODULE.bazel",
         # NOTE: new tests/ subdirectories must be added here for copyright checking.
