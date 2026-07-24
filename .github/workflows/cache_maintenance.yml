@@ -13,7 +13,15 @@
 
 name: Cache maintenance
 
+# Refreshes caches and rebuilds a new bazel repository cache when MODULE.bazel.lock changes.
+# Caches are only saved on pushes to the main branch or on workflow_dispatch events.
+# In merge_groups and pull requests a fast dry-run is executed to ensure inputs are valid and caches can be rebuilt successfully.
+
 on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
   push:
     branches: [main]
@@ -27,7 +35,7 @@ jobs:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
       score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
-    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@4ce43f957a0e164827ad2906a2ec69fd7f420b5d
+    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@0bd0be843039a465d2f485607a31e8df4268efa0
     with:
       variants: |
         //...
@@ -41,7 +49,7 @@ jobs:
     needs:
       - repository_cache_maintenance
     secrets: inherit
-    if: ${{ !cancelled() }}
+    if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/ci.yml
 
   ci_pull_request_target:
@@ -54,7 +62,7 @@ jobs:
       id-token: write
       issues: write
     secrets: inherit
-    if: ${{ !cancelled() }}
+    if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/ci_pull_request_target.yml
 
   delete_old_caches:
@@ -65,7 +73,7 @@ jobs:
     permissions:
       actions: write # needed for deletion of old caches
       contents: read
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.event_name == 'push' }}
     steps:
       - name: Prune obsolete Bazel caches
-        uses: eclipse-score/cicd-actions/prune-cache@af1be61755b13c1f33b6c250080dc6ac025012f1
+        uses: eclipse-score/cicd-actions/prune-cache@07cd8ac969b01fbab47f1a0b91040bcd83008fa7
