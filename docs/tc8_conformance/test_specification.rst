@@ -499,8 +499,7 @@ Verify error handling for requests with wrong interface version.
 Send REQUEST with ``interface_version = 0xFF``.
 
 **Expected Result:**
-``E_WRONG_INTERFACE_VERSION``, ``E_UNKNOWN_METHOD``, or ``E_OK``
-(vsomeip behavior varies — all accepted).
+``E_WRONG_INTERFACE_VERSION`` (0x08).
 
 TC8-MSG-007 — Malformed Message Handling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

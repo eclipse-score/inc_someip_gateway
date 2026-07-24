@@ -109,7 +109,7 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    :id: feat_req__tc8_conformance__conformance
    :status: valid
    :tags: tc8, conformance, someip, verification
-   :satisfies: stkh_req__docgen_enabled__example
+   :satisfies: stkh_req__someip_gw__interoperability
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -119,9 +119,12 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    specifications at the wire protocol level, without requiring application
    processes.
 
-   Note: The ``:satisfies:`` link targets a placeholder stakeholder requirement.
-   This shall be updated to reference the upstream S-CORE stakeholder requirement
-   for SOME/IP interoperability once it is formally defined.
+   **Scope boundary:** The TC8 conformance tests run ``someipd`` in
+   standalone mode (``--tc8-standalone`` flag). They validate the wire-level
+   SOME/IP behavior of ``someipd`` only. They do not exercise the full
+   middleware path from ``score::mw::com`` through ``gatewayd`` to
+   ``someipd``. End-to-end middleware integration is covered by the
+   integration test suite under ``tests/integration``.
 
 Component Requirements — Service Discovery
 -------------------------------------------

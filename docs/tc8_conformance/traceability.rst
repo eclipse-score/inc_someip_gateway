@@ -261,15 +261,15 @@ TCP Transport Binding
      - TC8-TCP-005
      - ``tcp_transport``
      - ``test_someip_message_format::test_tc8_sd_options_15_tcp_endpoint_advertised``
-   * - §5.1.5.7 — SOMEIPSRV_RPC_17
+   * - §5.1.5.7 — SOMEIPSRV_RPC_17 **(partial — single-instance only)**
      - TC8-TCP-006
      - ``tcp_transport``
      - ``test_field_conformance::test_tc8_rpc_17_tcp_field_getter``
-   * - §5.1.5.7 — SOMEIPSRV_RPC_17
+   * - §5.1.5.7 — SOMEIPSRV_RPC_17 **(partial — single-instance only)**
      - TC8-TCP-007
      - ``tcp_transport``
      - ``test_field_conformance::test_tc8_rpc_17_tcp_field_setter``
-   * - §5.1.5.7 — SOMEIPSRV_RPC_17
+   * - §5.1.5.7 — SOMEIPSRV_RPC_17 **(partial — single-instance only)**
      - TC8-TCP-008
      - ``tcp_transport``
      - ``test_event_notification::test_tc8_rpc_17_tcp_event_notification_delivery``

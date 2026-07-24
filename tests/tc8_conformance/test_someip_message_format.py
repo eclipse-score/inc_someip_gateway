@@ -320,12 +320,12 @@ class TestSomeipErrorCodes:
         host_ip: str,
         dut_ip: str,
     ) -> None:
-        """TC8-MSG-006: Request with wrong interface version gets E_WRONG_INTERFACE_VERSION or error.
+        """TC8-MSG-006: Request with wrong interface version must get E_WRONG_INTERFACE_VERSION.
 
-        Note: DUT behavior for interface version mismatch varies. The DUT
-        may respond with E_WRONG_INTERFACE_VERSION, another error code,
-        or handle the request normally (E_OK). This test sends
-        interface_version=0xFF (clearly wrong for a service with version 0x00).
+        Per SOME/IP spec PRS_SOMEIP_00191, a server receiving a REQUEST whose
+        interface_version does not match the offered service version must respond
+        with E_WRONG_INTERFACE_VERSION (0x08). vsomeip 3.6.1 returns the conformant
+        E_WRONG_INTERFACE_VERSION for such requests.
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
         _wait_for_dut_offer(host_ip)
@@ -339,18 +339,7 @@ class TestSomeipErrorCodes:
         )
         resp = _send_request_and_receive(dut_ip, req)
 
-        # Accept E_WRONG_INTERFACE_VERSION, E_UNKNOWN_METHOD, or E_OK.
-        # The DUT may check interface version at routing level, at handler level,
-        # or not at all — all are valid SOME/IP stack behaviors.
-        acceptable = (
-            SOMEIPReturnCode.E_WRONG_INTERFACE_VERSION,
-            SOMEIPReturnCode.E_UNKNOWN_METHOD,
-            SOMEIPReturnCode.E_OK,
-        )
-        assert resp.return_code in acceptable, (
-            f"TC8-MSG-006: return_code 0x{resp.return_code:02x} not in "
-            f"{[f'0x{rc.value:02x} ({rc.name})' for rc in acceptable]}"
-        )
+        assert_return_code(resp, SOMEIPReturnCode.E_WRONG_INTERFACE_VERSION)
 
 
 # ---------------------------------------------------------------------------
