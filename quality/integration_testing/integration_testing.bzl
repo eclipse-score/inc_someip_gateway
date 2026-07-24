@@ -95,7 +95,8 @@ def integration_test(name, srcs, filesystem, **kwargs):
             "@platforms//os:qnx": [
                 "--log-cli-level=DEBUG",
                 "--qemu-config=$(location {})".format(qnx_qemu_config),
-                "--qemu-image=$(location {})".format(qemu_image),
+                "--qemu-kernel=$(location {})".format(qemu_image),
+                "--qemu-architecture=x86_64",
             ],
             "//quality/integration_testing/flags:linux_qemu": [
                 "--log-cli-level=DEBUG",
@@ -144,7 +145,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
         srcs = srcs,
         plugins = select({
             "@platforms//os:qnx": [
-                "@score_itf//score/itf/plugins:qemu_plugin",
+                "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
             ],
             "//quality/integration_testing/flags:linux_qemu": [
                 "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",

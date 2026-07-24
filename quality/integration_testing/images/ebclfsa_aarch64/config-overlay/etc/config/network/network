@@ -1,0 +1,36 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+config device
+    option name     lo
+    option ipv6     0
+
+config interface loopback
+    option device       lo
+    option proto        static
+    option ipaddr       127.0.0.1
+    option netmask      255.0.0.0
+
+config interface lan
+    option device   eth0
+    option proto    static
+    option ipaddr   192.168.7.2/24
+    option gateway  192.168.7.1
+    list dns        8.8.8.8
+
+config interface lan_itf
+    option device   eth0
+    option proto    static
+    option ipaddr   169.254.158.190/16
+    option gateway  169.254.21.88
+    list dns        8.8.8.8

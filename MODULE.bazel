@@ -322,6 +322,14 @@ bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
+# EB Linux (EBcLfSA) fastdev image for aarch64 QEMU
+http_file(
+    name = "eb_corbos_toolkit_fastdev_archive",
+    downloaded_file_path = "fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.tar.gz",
+    sha256 = "9ca3891b27e4b7bbf6c519d8924283e89c03b62513a988f751a3ee3d10c293e4",
+    urls = ["https://github.com/elektrobit/eb_corbos_toolkit/releases/download/v2.0.0-beta1/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.tar.gz"],
+)
+
 http_file(
     name = "ubuntu_24_04_cloudimg",
     downloaded_file_path = "noble-minimal-cloudimg-amd64.img",

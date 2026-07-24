@@ -29,13 +29,17 @@ class LinuxQemuProcess:
         path_to_qemu_image,
         available_ram,
         available_cores,
+        architecture="x86_64",
         network_adapters=None,
         port_forwarding=None,
         seed_iso=None,
+        path_to_qemu_kernel=None,
+        qemu_kernel_cmdline=None,
     ):
         self._path_to_qemu_image = path_to_qemu_image
         self._available_ram = available_ram
         self._available_cores = available_cores
+        self._architecture = architecture
         self._network_adapters = network_adapters or []
         self._port_forwarding = port_forwarding or []
         self._qemu = DiskBootQemu(
@@ -43,6 +47,9 @@ class LinuxQemuProcess:
             self._available_ram,
             self._available_cores,
             seed_iso=seed_iso,
+            architecture=self._architecture,
+            path_to_kernel=path_to_qemu_kernel,
+            kernel_cmdline=qemu_kernel_cmdline,
             network_adapters=self._network_adapters,
             port_forwarding=self._port_forwarding,
         )
@@ -57,12 +64,7 @@ class LinuxQemuProcess:
     def start(self):
         logger.info("Starting QEMU (disk boot)...")
         logger.info(f"Using QEMU image: {self._path_to_qemu_image}")
-        subprocess_params = {
-            "stdin": subprocess.PIPE,
-            "stdout": subprocess.PIPE,
-            "stderr": subprocess.STDOUT,
-        }
-        qemu_subprocess = self._qemu.start(subprocess_params)
+        qemu_subprocess = self._qemu.start()
         self._console = PipeConsole("QEMU", qemu_subprocess)
         return self
 
