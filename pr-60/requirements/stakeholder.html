@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -474,16 +474,16 @@
 Stakeholder requirements capture high-level needs from users, integrators,
 and safety standards. They are the top of the requirements hierarchy —
 feature and component requirements derive from these.</p>
-<div class="need_container docutils container" id="SNCB-d3c9ccf8">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_stkh_req table" id="stkh_req__docgen_enabled__example">
+<div class="need_container docutils container" id="SNCB-ac61f7ba">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_stkh_req table" id="stkh_req__someip_gw__interoperability">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Example Functional Requirement</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Wire-Level Protocol Interoperability</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">YES</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
 <div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
 </div>
 </td>
@@ -493,20 +493,22 @@ feature and component requirements derive from these.</p>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_rationale"><span class="needs_label">rationale: </span><span class="needs_data">Ensure documentation builds are possible for all modules</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_rationale"><span class="needs_label">rationale: </span><span class="needs_data">Automotive ECUs from different manufacturers communicate over SOME/IP. The SOME/IP Gateway network-facing component must conform to the SOME/IP wire-level protocol specification so that it interoperates with any compliant SOME/IP implementation.</span></span></div>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>0</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">satisfied by: <span class="satisfies"><span><a class="reference internal" href="../tc8_conformance/requirements.html#feat_req__tc8_conformance__conformance" title="stkh_req__docgen_enabled__example">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">satisfied by: <span class="satisfies"><span><a class="reference internal" href="../tc8_conformance/requirements.html#feat_req__tc8_conformance__conformance" title="stkh_req__someip_gw__interoperability">feat_req__tc8_conformance__conformance</a></span></span></div>
 </span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP Gateway shall ensure that its SOME/IP network interface
+component conforms to the SOME/IP wire-level protocol specification,
+enabling correct interoperation with SOME/IP-compliant devices.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#stkh_req__docgen_enabled__example" title="stkh_req__docgen_enabled__example">stkh_req__docgen_enabled__example</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#stkh_req__someip_gw__interoperability" title="stkh_req__someip_gw__interoperability">stkh_req__someip_gw__interoperability</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
@@ -521,9 +523,10 @@ feature and component requirements derive from these.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The requirement above is a placeholder inherited from the module template.
-It should be replaced with proper SOME/IP Gateway stakeholder requirements
-as they are defined.</p>
+<p>This is a module-local stakeholder requirement. An upstream S-CORE
+stakeholder requirement for SOME/IP interoperability does not yet exist.
+If one is defined in a future S-CORE release, the <code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code> link
+on the feature requirement should be updated to reference it.</p>
 </div>
 </section>
 

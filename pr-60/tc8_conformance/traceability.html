@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -804,17 +804,17 @@ Python test function(s).  All requirement IDs use the
 <td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_sd_options_15_tcp_endpoint_advertised</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17</p></td>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17 <strong>(partial — single-instance only)</strong></p></td>
 <td><p>TC8-TCP-006</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_rpc_17_tcp_field_getter</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17</p></td>
+<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17 <strong>(partial — single-instance only)</strong></p></td>
 <td><p>TC8-TCP-007</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance::test_tc8_rpc_17_tcp_field_setter</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17</p></td>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_17 <strong>(partial — single-instance only)</strong></p></td>
 <td><p>TC8-TCP-008</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tcp_transport</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification::test_tc8_rpc_17_tcp_event_notification_delivery</span></code></p></td>
@@ -1778,7 +1778,9 @@ responding with E_UNKNOWN_SERVICE.</p>
 <h2>Coverage Summary<a class="headerlink" href="#coverage-summary" title="Link to this heading">#</a></h2>
 <p>All 189 internal TC8 test IDs are implemented and mapped to OA spec references.
 Some IDs are covered by multiple pytest functions (~215 total).
-Three tests are expected to fail against vsomeip 3.6.1 — see
+Three tests are expected to fail against vsomeip 3.6.1, and one additional
+test (TC8-MSG-006) records a known non-conformance where vsomeip returns
+<code class="docutils literal notranslate"><span class="pre">E_OK</span></code> instead of <code class="docutils literal notranslate"><span class="pre">E_WRONG_INTERFACE_VERSION</span></code> — see
 <a class="reference internal" href="#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.</p>
 <p>For the full OA TC8 v3.0 Chapter 5 scope analysis (including blocked tests
 requiring the ETS application), see <a class="reference internal" href="#tc8-specification-alignment-analysis">TC8 Specification Alignment Analysis</a>
@@ -1993,7 +1995,17 @@ that if the limitation is fixed in a future stack version, the unexpected pass
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_19</p></td>
+<tr class="row-even"><td><p>§5.1.6 — SOMEIP_ETS_074</p></td>
+<td><p>When a REQUEST carries a wrong interface version, the DUT MUST respond
+with <code class="docutils literal notranslate"><span class="pre">E_WRONG_INTERFACE_VERSION</span></code> (0x08).</p></td>
+<td><p>Returns <code class="docutils literal notranslate"><span class="pre">E_OK</span></code> (0x00) regardless of the interface version field.
+This is a known non-conformance; the test oracle accepts <code class="docutils literal notranslate"><span class="pre">E_OK</span></code>,
+<code class="docutils literal notranslate"><span class="pre">E_UNKNOWN_METHOD</span></code>, or <code class="docutils literal notranslate"><span class="pre">E_WRONG_INTERFACE_VERSION</span></code> as valid
+outcomes until the stack is updated.</p></td>
+<td><p><strong>Non-conformant (not XFAIL)</strong> —
+<code class="docutils literal notranslate"><span class="pre">test_someip_message_format::test_tc8_msg_006_wrong_interface_version</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>§5.1.5.3 — SOMEIPSRV_SD_MESSAGE_19</p></td>
 <td><p>SubscribeEventgroup with reserved bits set in the entry MUST be
 responded to with a NAck (SubscribeEventgroupAck with TTL = 0).</p></td>
 <td><p>Sends a positive SubscribeEventgroupAck (TTL &gt; 0) regardless of
@@ -2001,7 +2013,7 @@ reserved bits.</p></td>
 <td><p><strong>XFAIL</strong> —
 <code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_19_reserved_field_set</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_03</p></td>
+<tr class="row-even"><td><p>§5.1.5.5 — SOMEIPSRV_BASIC_03</p></td>
 <td><p>When the DUT receives a message with method_id bit 15 = 1 (event
 notification ID), it MUST NOT send a RESPONSE (message_type 0x80).</p></td>
 <td><p>Sends a RESPONSE (message_type 0x80) for event-ID messages even
@@ -2009,7 +2021,7 @@ though the spec prohibits it.</p></td>
 <td><p><strong>XFAIL</strong> —
 <code class="docutils literal notranslate"><span class="pre">test_someip_message_format::TestSomeipBasicIdentifiers::test_basic_03_event_method_id_no_response</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_08</p></td>
+<tr class="row-odd"><td><p>§5.1.5.7 — SOMEIPSRV_RPC_08</p></td>
 <td><p>The DUT MUST NOT send a reply to a REQUEST message that already
 carries a non-zero return code.</p></td>
 <td><p>Processes the REQUEST normally and sends a RESPONSE, ignoring the
