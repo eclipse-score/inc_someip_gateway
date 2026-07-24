@@ -18,10 +18,9 @@ on:
 
 permissions:
   contents: read
-  actions: write # needed for cache deletion at setup-bazel-cache
 
 jobs:
   formatting-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@improved-caching
+    uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@0bd0be843039a465d2f485607a31e8df4268efa0
     with:
       bazel-target: "test //:format.check" # optional, this is the default

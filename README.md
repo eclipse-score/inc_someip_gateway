@@ -37,13 +37,13 @@ cd inc_someip_gateway
 Start the daemons in this order:
 
 ```sh
-bazel run //src/gatewayd:gatewayd_example
+bazel run //score/gatewayd:gatewayd_example
 ```
 
 and in a separate terminal
 
 ```sh
-bazel run //src/someipd:someipd_example
+bazel run //score/someipd:someipd_example
 ```
 
 ### Run Example app
@@ -104,7 +104,7 @@ Both the `gatewayd` and `someipd` daemons are configured using a single flatbuff
 The JSON schema for the configuration is located at:
 
 ```bash
-src/config/mw_someip_config.schema.json
+score/config/mw_someip_config.schema.json
 ```
 
 This schema defines the expected properties, data types, and constraints for a valid JSON configuration file to be used for flatbuffer generation.
@@ -132,7 +132,7 @@ generate_someip_config_bin(
 
 native_binary(
     name = "gatewayd",
-    src = "@score_someip_gateway//src/gatewayd",
+    src = "@score_someip_gateway//score/gatewayd",
     args = [
         "--configuration",
         "$(rootpath :someipd_config)",

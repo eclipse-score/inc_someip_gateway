@@ -22,7 +22,7 @@
 # 3. Outputs massif.out for analysis
 #
 # Example:
-#   ./run_massif_profile.sh "//src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark" \
+#   ./run_massif_profile.sh "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark" \
 #     --benchmark_filter='cached_read_only' --benchmark_min_time=0.01s
 
 set -euo pipefail

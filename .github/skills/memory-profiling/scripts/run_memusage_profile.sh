@@ -22,7 +22,7 @@
 # 3. Outputs memusage.data and optionally memusage.png
 #
 # Example:
-#   ./run_memusage_profile.sh "//src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
+#   ./run_memusage_profile.sh "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
 
 set -euo pipefail
 

@@ -25,7 +25,7 @@ py_pytest(
     # Restrict the test execution to Linux for the moment due to dependency on Python
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
-        "//src/someipd",
+        "//score/someipd",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],
