@@ -1125,11 +1125,7 @@ Verify error handling for requests with wrong interface version.</p>
 <p><strong>Stimuli:</strong>
 Send REQUEST with <code class="docutils literal notranslate"><span class="pre">interface_version</span> <span class="pre">=</span> <span class="pre">0xFF</span></code>.</p>
 <p><strong>Expected Result:</strong>
-The SOME/IP specification (SOMEIP_ETS_074) requires <code class="docutils literal notranslate"><span class="pre">E_WRONG_INTERFACE_VERSION</span></code>
-(0x08). vsomeip 3.6.1 returns <code class="docutils literal notranslate"><span class="pre">E_OK</span></code> (0x00), which is not spec-conformant.
-This is a known stack limitation recorded in <a class="reference internal" href="traceability.html#known-stack-limitations"><span class="std std-ref">Known SOME/IP Stack Limitations</span></a>.
-The test oracle currently accepts <code class="docutils literal notranslate"><span class="pre">E_WRONG_INTERFACE_VERSION</span></code>,
-<code class="docutils literal notranslate"><span class="pre">E_UNKNOWN_METHOD</span></code>, or <code class="docutils literal notranslate"><span class="pre">E_OK</span></code> so that CI is not blocked pending a stack fix.</p>
+<code class="docutils literal notranslate"><span class="pre">E_WRONG_INTERFACE_VERSION</span></code> (0x08).</p>
 </section>
 <section id="tc8-msg-007-malformed-message-handling">
 <h3>TC8-MSG-007 — Malformed Message Handling<a class="headerlink" href="#tc8-msg-007-malformed-message-handling" title="Link to this heading">#</a></h3>
