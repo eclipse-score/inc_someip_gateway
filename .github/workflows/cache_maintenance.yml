@@ -27,7 +27,7 @@ jobs:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
       score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
-    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@4ce43f957a0e164827ad2906a2ec69fd7f420b5d
+    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@084772bbb8242f0b7f782726772c62794ce5ee9c
     with:
       variants: |
         //...
@@ -68,4 +68,4 @@ jobs:
     if: ${{ !cancelled() }}
     steps:
       - name: Prune obsolete Bazel caches
-        uses: eclipse-score/cicd-actions/prune-cache@af1be61755b13c1f33b6c250080dc6ac025012f1
+        uses: eclipse-score/cicd-actions/prune-cache@07cd8ac969b01fbab47f1a0b91040bcd83008fa7
