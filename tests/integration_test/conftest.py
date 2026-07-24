@@ -16,6 +16,7 @@
 Pytest configuration and fixtures for integration tests.
 """
 
+import logging
 import os
 import pytest
 from typing import Generator
@@ -40,15 +41,17 @@ def clean_state(target: Target) -> Generator[Target, None, None]:
 def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
     """Start someipd and gatewayd before tests and stop them after."""
 
-    # TODO tcpdump cannot be killed when the test is done. Need to figure out why
-
-    # Store test traffic in file for later analysis of failures
+    # Store test traffic in file for later analysis of failures.
+    # tcpdump is kept alive for the entire fixture scope; the sandbox tears it
+    # down on exit so we do not call stop_capture here.
     pcap_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")
     pcap_file = os.path.join(pcap_dir, "test_traffic.pcap")
 
-    # no with statement is used by intention to avoid permission denied error when killing tcpdump
-    tcpdump_host = tcpdump_capture("", output_file=pcap_file)
-    tcpdump_process = tcpdump_host.__enter__()
+    try:
+        tcpdump_host = tcpdump_capture("", output_file=pcap_file)
+        tcpdump_host.__enter__()
+    except RuntimeError:
+        logging.warning("tcpdump could not start; pcap capture skipped")
 
     with ShellProcess(
         clean_state,

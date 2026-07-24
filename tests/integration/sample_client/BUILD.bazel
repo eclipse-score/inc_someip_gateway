@@ -13,6 +13,18 @@
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
 cc_binary(
     name = "sample_client",
     srcs = ["sample_client.cpp"],

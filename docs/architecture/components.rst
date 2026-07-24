@@ -57,7 +57,6 @@ Components
 
    A serializer that does not actually serialize or deserialize data, but only handles messages that are already serialized by the application.
 
-
 .. comp:: SOME/IP Network Daemon
    :id: comp__someipd
    :status: valid

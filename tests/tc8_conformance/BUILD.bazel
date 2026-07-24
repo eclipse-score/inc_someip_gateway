@@ -1,0 +1,272 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("//quality/integration_testing:integration_testing.bzl", "integration_test")
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+# Linux only: QNX has no Python toolchain and is excluded from the QNX build sweep.
+py_library(
+    name = "tc8-helpers-lib",
+    srcs = glob(["helpers/*.py"]),
+    imports = ["."],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        "@score_someip_gateway_pip//someip",
+    ],
+)
+
+pkg_files(
+    name = "tc8-vsomeip-runtime-pkg",
+    srcs = [
+        "@vsomeip",
+    ],
+    attributes = pkg_attributes(
+        mode = "0777",
+    ),
+    prefix = "/usr",
+)
+
+pkg_files(
+    name = "tc8-itf-pkg",
+    srcs = [
+        "config/tc8_someipd_multi.json",
+        "config/tc8_someipd_sd.json",
+        "config/tc8_someipd_service.json",
+        ":tc8-vsomeip-runtime-pkg",
+        "//score/serializer:null_serializer",
+        "//score/someipd",
+        "//score/someipd:etc/mw_com_config.json",
+    ],
+    attributes = pkg_attributes(
+        mode = "0777",
+    ),
+    prefix = "/",
+    renames = {
+        "//score/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
+        "config/tc8_someipd_multi.json": "tc8_multi.json.tmpl",
+        "config/tc8_someipd_sd.json": "tc8_sd.json.tmpl",
+        "config/tc8_someipd_service.json": "tc8_service.json.tmpl",
+    },
+)
+
+# Linux only: QNX has no Python toolchain and is excluded from the QNX build sweep.
+py_library(
+    name = "tc8-itf-lib",
+    srcs = ["tc8_itf_conftest.py"],
+    imports = ["."],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        ":tc8-helpers-lib",
+        "@score_someip_gateway_pip//someip",
+    ],
+)
+
+_ITF_ARGS = [
+    "--color=yes",
+    "-p",
+    "tc8_itf_conftest",
+]
+
+_ITF_DEPS = [
+    ":tc8-itf-lib",
+    "//tests/common:capture",
+    "@score_tooling//python_basics/score_pytest:attribute_plugin",
+]
+
+integration_test(
+    name = "test_tc8_service_discovery",
+    timeout = "long",
+    srcs = [
+        "test_service_discovery.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# exclusive: timing sensitive capture
+integration_test(
+    name = "test_tc8_sd_phases_timing",
+    timeout = "long",
+    srcs = [
+        "test_sd_phases_timing.py",
+    ],
+    args = _ITF_ARGS,
+    data = glob(["config/*.json"]),
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# exclusive: lifecycle sensitive reboot detection
+integration_test(
+    name = "test_tc8_sd_reboot",
+    timeout = "long",
+    srcs = [
+        "test_sd_reboot.py",
+    ],
+    args = _ITF_ARGS,
+    data = glob(["config/*.json"]),
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_format_compliance",
+    timeout = "long",
+    srcs = [
+        "test_sd_format_compliance.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_robustness",
+    timeout = "long",
+    srcs = [
+        "test_sd_robustness.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# exclusive: manages DUT lifecycle directly
+integration_test(
+    name = "test_tc8_sd_client",
+    timeout = "long",
+    srcs = [
+        "test_sd_client.py",
+    ],
+    args = _ITF_ARGS,
+    data = glob(["config/*.json"]),
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_someip_message_format",
+    timeout = "long",
+    srcs = [
+        "test_someip_message_format.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_event_notification",
+    timeout = "long",
+    srcs = [
+        "test_event_notification.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_field_conformance",
+    timeout = "long",
+    srcs = [
+        "test_field_conformance.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_multi_service",
+    timeout = "long",
+    srcs = [
+        "test_multi_service.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+[validate_json_schema_test(
+    name = cfg.replace(".json", "_schema_valid"),
+    size = "small",
+    json = "config/" + cfg,
+    schema = "config/tc8_someipd_config.schema.json",
+    tags = [
+        "lint",
+        "tc8",
+    ],
+) for cfg in [
+    "tc8_someipd_sd.json",
+    "tc8_someipd_service.json",
+    "tc8_someipd_multi.json",
+]]

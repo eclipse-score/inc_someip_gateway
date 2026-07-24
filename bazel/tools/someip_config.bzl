@@ -59,6 +59,7 @@ def _generate_someip_config_bin_impl(name, json, output, **kwargs):
         name = name + "_test",
         json = json,
         expected_failure = False,
+        size = "small",
         tags = ["lint"],
     )
 
