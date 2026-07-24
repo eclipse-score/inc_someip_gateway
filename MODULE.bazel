@@ -44,6 +44,15 @@ bazel_dep(
     dev_dependency = True,
     repo_name = "bazel_tools_python",
 )
+archive_override(
+    module_name = "score_bazel_tools_python",
+    integrity = "sha256-jtgSYfUTwfei2mzpHma7iMzQNTKtf37LCGeOVuYy9LE=",
+    strip_prefix = "bazel-tools-python-0.1.3",
+    urls = [
+        "https://github.com/eclipse-score/bazel-tools-python/archive/refs/tags/v0.1.3.tar.gz",
+        "https://codeload.github.com/eclipse-score/bazel-tools-python/tar.gz/refs/tags/v0.1.3",
+    ],
+)
 
 # Python pip dependencies
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
