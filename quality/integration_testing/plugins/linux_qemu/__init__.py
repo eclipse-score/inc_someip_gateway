@@ -37,10 +37,9 @@ logger = logging.getLogger(__name__)
 
 
 # Cloud-init first-boot needs significantly more time than a pre-configured VM.
-_SSH_BOOT_TIMEOUT = 20
-_SSH_BOOT_RETRIES = 18
-_TARGET_READY_ATTEMPTS = 8
-_TARGET_READY_BACKOFF_SECONDS = 20
+_SSH_BOOT_TIMEOUT = 100
+_SSH_BOOT_RETRIES = 100
+_SSH_BOOT_RETRY_INTERVAL = 1
 
 
 def _resolve_kernel_cmdline(kernel_cmdline, kernel_cmdline_file):
@@ -57,43 +56,22 @@ def _wait_for_target_ready(target):
     Uses longer timeouts than the upstream pre_tests_phase to accommodate
     cloud-init first-boot provisioning on a fresh qcow2 overlay.
     """
-    last_error = None
-    for attempt in range(1, _TARGET_READY_ATTEMPTS + 1):
-        try:
-            with target.ssh(
-                timeout=_SSH_BOOT_TIMEOUT,
-                n_retries=_SSH_BOOT_RETRIES,
-                retry_interval=5,
-            ) as ssh:
-                result = ssh.execute_command("echo ready")
-            if result != 0:
-                raise RuntimeError("SSH command on target failed after boot")
-            logger.info("Target SSH is ready")
+    with target.ssh(
+        timeout=_SSH_BOOT_TIMEOUT,
+        n_retries=_SSH_BOOT_RETRIES,
+        retry_interval=_SSH_BOOT_RETRY_INTERVAL,
+    ) as ssh:
+        result = ssh.execute_command("echo ready")
+    if result != 0:
+        raise RuntimeError("SSH command on target failed after boot")
+    logger.info("Target SSH is ready")
 
-            with target.sftp() as sftp:
-                result = sftp.list_dirs_and_files("/")
-            if not result:
-                raise RuntimeError("SFTP command on target failed")
-            logger.info("Target SFTP is ready")
-            return
-        except Exception as error:  # noqa: BLE001 - external transport exceptions vary by backend.
-            last_error = error
-            if attempt >= _TARGET_READY_ATTEMPTS:
-                break
-
-            backoff_seconds = attempt * _TARGET_READY_BACKOFF_SECONDS
-            logger.warning(
-                "Target is not ready yet (attempt %d/%d): %s. Retrying in %ds...",
-                attempt,
-                _TARGET_READY_ATTEMPTS,
-                error,
-                backoff_seconds,
-            )
-            time.sleep(backoff_seconds)
-
-    raise RuntimeError(
-        f"Target readiness check failed after {_TARGET_READY_ATTEMPTS} attempts: {last_error}"
-    ) from last_error
+    with target.sftp() as sftp:
+        result = sftp.list_dirs_and_files("/")
+    if not result:
+        raise RuntimeError("SFTP command on target failed")
+    logger.info("Target SFTP is ready")
+    return
 
 
 def pytest_addoption(parser):
