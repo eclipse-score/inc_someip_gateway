@@ -21,6 +21,9 @@ on:
 
 jobs:
   docs-deploy:
+    # In pull requests both the `CI` and `Cache maintenance` workflows are executed,
+    # but only `CI` builds documentation in pull requests.
+    # Otherwise on pushes to main, the `Cache maintenance` workflow is executed instead and builds the documentation.
     if: >-
       github.event.workflow_run.conclusion == 'success' && !(
         github.event.workflow_run.name == 'Cache maintenance' &&
