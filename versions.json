@@ -12,52 +12,8 @@
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-177/"
   },
   {
-    "version": "pr-192",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-192/"
-  },
-  {
     "version": "pr-193",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-193/"
-  },
-  {
-    "version": "pr-197",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-197/"
-  },
-  {
-    "version": "pr-60",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-60/"
-  },
-  {
-    "version": "pr-98",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-98/"
-  },
-  {
-    "version": "pr-199",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-199/"
-  },
-  {
-    "version": "pr-200",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-200/"
-  },
-  {
-    "version": "gh-readonly-queue/main/pr-197-a9d8ac3620522b704441205d3c81efdd06dce054",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-197-a9d8ac3620522b704441205d3c81efdd06dce054/"
-  },
-  {
-    "version": "gh-readonly-queue/main/pr-98-c4bb27aed160b1a02b23dbda6c8844aff8c1556a",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-98-c4bb27aed160b1a02b23dbda6c8844aff8c1556a/"
-  },
-  {
-    "version": "pr-201",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-201/"
-  },
-  {
-    "version": "gh-readonly-queue/main/pr-201-94bd2ee0d094e11dddddd887695fb894b705bfa1",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/gh-readonly-queue/main/pr-201-94bd2ee0d094e11dddddd887695fb894b705bfa1/"
-  },
-  {
-    "version": "pr-202",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-202/"
   },
   {
     "version": "pr-203",
@@ -66,5 +22,9 @@
   {
     "version": "pr-205",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-205/"
+  },
+  {
+    "version": "pr-60",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-60/"
   }
 ]
