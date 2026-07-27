@@ -54,14 +54,6 @@ pkg_files(
     },
 )
 
-pkg_files(
-    name = "someipd_config_files",
-    srcs = ["//score/someipd:etc/mw_com_config.json"],
-    renames = {
-        "//score/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
-    },
-)
-
 # =============================================================================
 # gateway_tar — gateway daemon package
 #
@@ -84,7 +76,6 @@ scoreipgw_pkg_tar(
     srcs = [
         "run_gateway.sh",
         ":gatewayd_config_files",
-        ":someipd_config_files",
         "//score/gatewayd",
         "//score/someipd",
     ],
