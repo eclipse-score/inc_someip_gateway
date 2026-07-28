@@ -27,6 +27,7 @@ feature and component requirements derive from these.
    :security: YES
    :reqtype: Functional
    :rationale: Ensure documentation builds are possible for all modules
+   :valid_from: v0.0.0
 
 .. note::
 
