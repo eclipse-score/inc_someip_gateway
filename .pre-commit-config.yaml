@@ -18,6 +18,8 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+        # bug in current yamlfmt version, will be fixed via devcontainer update.
+        exclude: ^tests/integration/docker_setup/docker-compose.yaml$
       - id: check-shebang-scripts-are-executable
       - id: check-executables-have-shebangs
       - id: check-added-large-files
@@ -33,11 +35,6 @@ repos:
     rev: a1bb792acda6fd0724936b4ebbdbc8eceb9c0459 # v6.2.0
     hooks:
       - id: reuse-lint-file
-
-  - repo: https://github.com/google/yamlfmt
-    rev: 21ca5323a9c87ee37a434e0ca908efc0a89daa07 # v0.21.0
-    hooks:
-      - id: yamlfmt
 
   - repo: local
     hooks:
@@ -59,3 +56,8 @@ repos:
         language: system
         types: [shell]
         args: [-e, SC1091] # copied from pre-commit defaults
+      - id: yamlfmt
+        name: yamlfmt
+        entry: .devcontainer/run_tool.sh yamlfmt
+        language: system
+        types: [yaml]
