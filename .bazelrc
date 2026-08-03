@@ -104,6 +104,27 @@ common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 test --sandbox_tmpfs_path=/dev/shm
 test --sandbox_tmpfs_path=/tmp
 
+# ============================================================================
+# TC8 SOME/IP Conformance Test Configuration
+# ============================================================================
+# Default: exclude TC8 from 'bazel test //...' (TC8 tests require QEMU + network; use --config=tc8-itf).
+test --test_tag_filters=-tc8
+
+# ITF (QEMU) TC8 runs.
+# Usage: bazel test --config=tc8-itf //tests/tc8_conformance:test_tc8_<name>
+test:tc8-itf --config=qemu-integration
+test:tc8-itf --test_tag_filters=tc8
+test:tc8-itf --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
+
+# QNX8 QEMU ITF TC8 runs.
+# common: (not build:/test:) prevents "expanded more than once" warning.
+# Usage: bazel test --config=tc8-itf-qnx //tests/tc8_conformance:test_tc8_<name>
+common:tc8-itf-qnx --config=x86_64-qnx
+# precompile must be force_disabled: "disabled" still causes a NoneType crash via QNX TARGET toolchain lookup.
+common:tc8-itf-qnx --@rules_python//python/config_settings:precompile=force_disabled
+test:tc8-itf-qnx --test_tag_filters=tc8
+test:tc8-itf-qnx --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
+
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
 # For definition of sanitizer features see https://github.com/eclipse-score/bazel_cpp_toolchains/blob/main/templates/linux/cc_toolchain_config.bzl.template
