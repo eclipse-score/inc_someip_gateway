@@ -221,6 +221,13 @@ git_override(
     remote = "https://github.com/eclipse-score/communication.git",
 )
 
+single_version_override(
+    module_name = "score_crates",
+    patch_strip = 1,
+    patches = ["//third_party/score_crates:pin_libc_0_2_186.patch"],
+    version = "0.0.10",
+)
+
 # ============================================================================
 # Base Libraries
 # ============================================================================
