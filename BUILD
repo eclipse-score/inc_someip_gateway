@@ -27,6 +27,13 @@ copyright_checker(
         "tests",
         "//:BUILD",
         "//:MODULE.bazel",
+        # NOTE: new tests/ subdirectories must be added here for copyright checking.
+        "//tests/benchmarks:all_files",
+        "//tests/common:all_files",
+        "//tests/integration:all_files",
+        "//tests/integration/sample_client:all_files",
+        "//tests/integration_test:all_files",
+        "//tests/tc8_conformance:all_files",
     ],
     config = "@score_tooling//cr_checker/resources:config",
     template = "@score_tooling//cr_checker/resources:templates",

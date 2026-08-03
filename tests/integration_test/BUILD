@@ -18,6 +18,18 @@ Integration Tests
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("//quality/integration_testing:integration_testing.bzl", "integration_test")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
 pkg_files(
     name = "vsomeip-runtime-pkg",
     srcs = [
@@ -62,6 +74,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
     ],
 )
@@ -76,6 +89,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],
@@ -91,6 +105,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],
@@ -106,6 +121,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],
@@ -121,6 +137,7 @@ integration_test(
     ],
     filesystem = ":example-app-pkg",
     deps = [
+        "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
         "@score_someip_gateway_pip//someip",
     ],

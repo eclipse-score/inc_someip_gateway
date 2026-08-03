@@ -20,16 +20,21 @@ Stakeholder requirements capture high-level needs from users, integrators,
 and safety standards. They are the top of the requirements hierarchy —
 feature and component requirements derive from these.
 
-.. stkh_req:: Example Functional Requirement
-   :id: stkh_req__docgen_enabled__example
+.. stkh_req:: SOME/IP Wire-Level Protocol Interoperability
+   :id: stkh_req__someip_gw__interoperability
    :status: valid
    :safety: QM
-   :security: YES
+   :security: NO
    :reqtype: Functional
-   :rationale: Ensure documentation builds are possible for all modules
+   :rationale: Automotive ECUs from different manufacturers communicate over SOME/IP. The SOME/IP Gateway network-facing component must conform to the SOME/IP wire-level protocol specification so that it interoperates with any compliant SOME/IP implementation.
+
+   The SOME/IP Gateway shall ensure that its SOME/IP network interface
+   component conforms to the SOME/IP wire-level protocol specification,
+   enabling correct interoperation with SOME/IP-compliant devices.
 
 .. note::
 
-   The requirement above is a placeholder inherited from the module template.
-   It should be replaced with proper SOME/IP Gateway stakeholder requirements
-   as they are defined.
+   This is a module-local stakeholder requirement. An upstream S-CORE
+   stakeholder requirement for SOME/IP interoperability does not yet exist.
+   If one is defined in a future S-CORE release, the ``:satisfies:`` link
+   on the feature requirement should be updated to reference it.

@@ -40,6 +40,7 @@ cc_binary(
         "@score_baselibs//score/mw/log",
         "@score_communication//score/message_passing",
         "@score_communication//score/mw/com",
+        "@vsomeip",  # Direct dep for TC8 standalone mode (vsomeip API usage in main.cpp)
     ],
 )
 
