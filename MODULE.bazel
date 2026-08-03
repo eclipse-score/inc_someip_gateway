@@ -221,13 +221,6 @@ git_override(
     remote = "https://github.com/eclipse-score/communication.git",
 )
 
-single_version_override(
-    module_name = "score_crates",
-    patch_strip = 1,
-    patches = ["//third_party/score_crates:pin_libc_0_2_186.patch"],
-    version = "0.0.10",
-)
-
 # ============================================================================
 # Base Libraries
 # ============================================================================
@@ -271,14 +264,13 @@ car_window_sim_crate.spec(
 car_window_sim_crate.from_specs(name = "car_window_sim_crate")
 use_repo(car_window_sim_crate, "car_window_sim_crate")
 
-# libc 0.2.189 fails to compile, this should be removed once a fixed version is released
-rust_crate_overrides = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate", dev_dependency = True)
-rust_crate_overrides.spec(
-    package = "libc",
-    version = "=0.2.186",
+# pin libc to 0.2.186 to avoid a build failure
+single_version_override(
+    module_name = "score_crates",
+    patch_strip = 1,
+    patches = ["//third_party/score_crates:pin_libc_0_2_186.patch"],
+    version = "0.0.10",
 )
-rust_crate_overrides.from_specs(name = "rust_crate_overrides")
-use_repo(rust_crate_overrides, "rust_crate_overrides")
 
 # ============================================================================
 # SOME/IP Stack Integration
