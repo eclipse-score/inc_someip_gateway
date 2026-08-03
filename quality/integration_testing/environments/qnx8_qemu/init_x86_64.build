@@ -112,6 +112,7 @@
     # Configure system network settings
     sysctl -w net.inet.icmp.bmcastecho=1        # Enable ICMP broadcast echo (responds to broadcast pings)
     sysctl -w qnx.sec.droproot=33:33            # Set user/group ID (33:33) for dropping root privileges
+    sysctl -w net.link.ether.inet.allow_multicast=1  # Enable multicast (QNX8 default=0; silently drops all SD multicast)
 
     echo "---> Setting hostname"
     hostname qnx-score                  # Set default hostname if no file exists
@@ -355,7 +356,7 @@ pci/pci_debug2.so                        # Enhanced PCI debugging support
 #############################################
 ### SYSTEM DIRECTORIES ###
 #############################################
-# [gid=0 uid=0 dperms=755 type=dir] /var/run                      # runtime data
+[gid=0 uid=0 dperms=755 type=dir] /var/run                      # runtime data
 # Create SSH and system directories with appropriate permissions
 [gid=0 uid=0 dperms=755 type=dir] /var/chroot/sshd              # SSH chroot directory for privilege separation
 [gid=0 uid=0 dperms=700 type=dir] /var/ssh                      # SSH configuration and key storage directory
