@@ -107,9 +107,6 @@ test --sandbox_tmpfs_path=/tmp
 # ============================================================================
 # TC8 SOME/IP Conformance Test Configuration
 # ============================================================================
-# Default: exclude TC8 from 'bazel test //...' (TC8 tests require QEMU + network; use --config=tc8-itf).
-test --test_tag_filters=-tc8
-
 # ITF (QEMU) TC8 runs.
 # Usage: bazel test --config=tc8-itf //tests/tc8_conformance:test_tc8_<name>
 test:tc8-itf --config=qemu-integration
