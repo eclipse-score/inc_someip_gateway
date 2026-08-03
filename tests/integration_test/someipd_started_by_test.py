@@ -29,8 +29,6 @@ def test_start_someipd_and_gatewayd(clean_state: Target) -> None:
             args=[
                 "--configuration",
                 "/mw_someip_config.bin",
-                "--service_instance_manifest",
-                "/someipd_mw_com_config.json",
             ],
             env="VSOMEIP_CONFIGURATION=/vsomeip.json",
         ) as someipd_process:
