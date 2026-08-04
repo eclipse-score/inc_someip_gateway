@@ -38,6 +38,7 @@
 #include "util.hpp"
 
 using testing::_;
+using testing::AnyNumber;
 using testing::AtMost;
 using testing::Return;
 using testing::Values;
@@ -219,8 +220,8 @@ class Gateway_ipc_binding_test : public Gateway_ipc_binding_unconnected_test {
                 event_subscription_change_promise.set_value();
             });
 
-        // EXPECT_CALL(mock_event_subscription_change_cb,
-        //             Call(_, event_id, socom::Event_state::unsubscribed));
+        EXPECT_CALL(mock_event_subscription_change_cb,
+                    Call(_, event_id, socom::Event_state::unsubscribed)).Times(AnyNumber());
 
         auto const subscribe_result =
             client_connector.subscribe_event(event_id, score::socom::Event_mode::update);
