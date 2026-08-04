@@ -12,69 +12,100 @@
     },
     "applications": [
         {
-            "name": "someipd",
+            "name": "tc8_dut",
             "id": "0x1277"
         }
     ],
     "services": [
         {
-            "service": "0x1234",
-            "instance": "0x5678",
+            "service": "__TC8_SERVICE_ID__",
+            "instance": "__TC8_INSTANCE_ID__",
             "unreliable": "__TC8_SVC_PORT__",
             "reliable": "__TC8_SVC_TCP_PORT__",
             "events": [
                 {
-                    "event": "0x0777",
+                    "event": "0x8001",
                     "is_field": "true",
                     "is_reliable": "false",
                     "update-cycle": "500"
                 },
                 {
-                    "event": "0x0778",
+                    "event": "0x8002",
+                    "is_field": "false",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
+                },
+                {
+                    "event": "0x8003",
                     "is_field": "false",
                     "is_reliable": "true",
                     "update-cycle": "500"
                 },
                 {
-                    "event": "0x0779",
+                    "event": "0x8004",
+                    "is_field": "false",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
+                },
+                {
+                    "event": "0x8005",
                     "is_field": "true",
                     "is_reliable": "false",
-                    "update-cycle": "60000"
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x8006",
+                    "is_field": "true",
+                    "is_reliable": "false",
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x8007",
+                    "is_field": "true",
+                    "is_reliable": "false",
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x8008",
+                    "is_field": "true",
+                    "is_reliable": "true",
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x800B",
+                    "is_field": "false",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
                 }
             ],
             "eventgroups": [
                 {
-                    "eventgroup": "0x4455",
+                    "eventgroup": "0x0002",
                     "events": [
-                        "0x777"
+                        "0x8001", "0x8002", "0x8004", "0x8005", "0x8006", "0x8007", "0x800B"
                     ]
                 },
                 {
-                    "eventgroup": "0x4465",
+                    "eventgroup": "0x0005",
                     "events": [
-                        "0x777"
+                        "0x8001", "0x8002", "0x8003", "0x8004", "0x8005", "0x8006", "0x8007",
+                        "0x8008", "0x800B"
+                    ]
+                },
+                {
+                    "eventgroup": "0x0006",
+                    "events": [
+                        "0x8001", "0x8002", "0x8004", "0x800B"
                     ],
                     "multicast": {
                         "address": "239.0.0.1",
                         "port": "40490"
                     }
-                },
-                {
-                    "eventgroup": "0x4475",
-                    "events": [
-                        "0x778"
-                    ]
-                },
-                {
-                    "eventgroup": "0x4480",
-                    "events": [
-                        "0x779"
-                    ]
                 }
             ]
         }
     ],
-    "routing": "someipd",
+    "routing": "tc8_dut",
     "service-discovery": {
         "enable": "true",
         "multicast": "224.244.224.245",

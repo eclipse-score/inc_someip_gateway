@@ -53,20 +53,20 @@ pkg_files(
 pkg_files(
     name = "tc8-itf-pkg",
     srcs = [
+        "config/tc8_dut_config.json",
         "config/tc8_someipd_multi.json",
         "config/tc8_someipd_sd.json",
         "config/tc8_someipd_service.json",
         ":tc8-vsomeip-runtime-pkg",
         "//score/serializer:null_serializer",
-        "//score/someipd",
-        "//score/someipd:etc/mw_com_config.json",
+        "//score/someipd_tc8:tc8_dut",
     ],
     attributes = pkg_attributes(
         mode = "0777",
     ),
     prefix = "/",
     renames = {
-        "//score/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
+        "config/tc8_dut_config.json": "tc8_dut_config.json",
         "config/tc8_someipd_multi.json": "tc8_multi.json.tmpl",
         "config/tc8_someipd_sd.json": "tc8_sd.json.tmpl",
         "config/tc8_someipd_service.json": "tc8_service.json.tmpl",

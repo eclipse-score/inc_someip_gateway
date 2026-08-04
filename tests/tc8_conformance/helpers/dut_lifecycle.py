@@ -65,7 +65,7 @@ class _TargetProcess:
     def terminate(self) -> None:
         """Stop the remote process.
 
-        Force-kills someipd on the QEMU guest (``pkill -9 someipd``) before
+        Force-kills tc8_dut on the QEMU guest (``pkill -9 tc8_dut``) before
         calling ``proc.stop()``.  ``pkill`` is portable: procps on Linux,
         ``slay`` symlink on QNX8 (pgrep absent from the QNX IFS).
 
@@ -75,7 +75,7 @@ class _TargetProcess:
         if self._target_init is not None:
             try:
                 self._target_init.execute(  # type: ignore[attr-defined]
-                    "pkill -9 someipd 2>/dev/null || true"
+                    "pkill -9 tc8_dut 2>/dev/null || true"
                 )
             except Exception:  # noqa: BLE001
                 _logger.warning(
@@ -151,17 +151,19 @@ def launch_someipd(
     config_path: Union[Path, str],
     target_init: object = None,
 ) -> object:
-    """Start ``someipd --tc8-standalone`` on the QEMU guest and return a handle.
+    """Start ``tc8_dut`` on the QEMU guest and return a handle.
 
     *target_init* is a ``QemuTarget`` provided by the ITF framework.  The
-    *config_path* filename selects the pre-rendered guest config (written to
-    ``/tmp`` by ``tc8_itf_config_setup`` via sed, session-scoped).
+    *config_path* filename selects the pre-rendered guest vsomeip config
+    (written to ``/tmp`` by ``tc8_itf_config_setup`` via sed, session-scoped).
+    The DUT service interface config is always ``/tc8_dut_config.json``
+    (deployed by the ``tc8-itf-pkg`` bundle).
 
     Returns a ``_TargetProcess`` adapter whose ``.terminate()`` / ``.wait()``
     interface is compatible with :func:`terminate_someipd`.
     """
     if target_init is not None:
-        # ITF path: someipd runs on the QEMU guest.  Configs are pre-rendered.
+        # ITF path: tc8_dut runs on the QEMU guest.  Configs are pre-rendered.
         name = (
             Path(config_path).name
             if isinstance(config_path, Path)
@@ -171,9 +173,8 @@ def launch_someipd(
         proc = target_init.execute_async(  # type: ignore[attr-defined]
             f"LD_LIBRARY_PATH=/ "
             f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
-            f"/someipd "
-            f"--tc8-standalone "
-            f"--service_instance_manifest /someipd_mw_com_config.json"
+            f"/tc8_dut "
+            f"-c /tc8_dut_config.json"
         )
         return _TargetProcess(proc, target_init=target_init)
 

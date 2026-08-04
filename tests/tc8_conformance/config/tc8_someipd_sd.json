@@ -12,33 +12,33 @@
     },
     "applications": [
         {
-            "name": "someipd",
+            "name": "tc8_dut",
             "id": "0x1277"
         }
     ],
     "services": [
         {
-            "service": "0x1234",
-            "instance": "0x5678",
+            "service": "__TC8_SERVICE_ID__",
+            "instance": "__TC8_INSTANCE_ID__",
             "unreliable": "__TC8_SVC_PORT__",
             "events": [
                 {
-                    "event": "0x0777",
+                    "event": "0x8001",
                     "is_field": "true",
-                    "update-cycle": 2000
+                    "update-cycle": 500
                 }
             ],
             "eventgroups": [
                 {
-                    "eventgroup": "0x4455",
+                    "eventgroup": "0x0002",
                     "events": [
-                        "0x777"
+                        "0x8001"
                     ]
                 },
                 {
-                    "eventgroup": "0x4465",
+                    "eventgroup": "0x0006",
                     "events": [
-                        "0x777"
+                        "0x8001"
                     ],
                     "multicast": {
                         "address": "239.0.0.1",
@@ -49,7 +49,7 @@
             ]
         }
     ],
-    "routing": "someipd",
+    "routing": "tc8_dut",
     "service-discovery": {
         "enable": "true",
         "multicast": "224.244.224.245",
