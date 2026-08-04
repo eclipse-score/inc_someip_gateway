@@ -78,7 +78,8 @@ Component documentation
 .. toctree::
    :maxdepth: 1
 
-   socom/design/index.rst
+   socom/design/index
+   gateway_ipc_binding/index
 
 
 Examples
@@ -94,7 +95,7 @@ To build the module:
 
 .. code-block:: bash
 
-   bazel build //src/...
+   bazel build //score/...
 
 To run integration tests:
 

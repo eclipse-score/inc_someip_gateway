@@ -8,7 +8,8 @@
     },
     "remoteUser": "${localEnv:USER}",
     "runArgs": [
-        "--privileged"
+        "--privileged",
+        "--device=/dev/kvm"
     ],
     "mounts": [
         {
@@ -22,6 +23,9 @@
             "type": "bind"
         }
     ],
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:3": {}
+    },
     "initializeCommand": {
         "Make sure QNX licenses exists": "mkdir -p ~/.qnx/license && touch -a ~/.qnx/license/licenses",
         "Make sure .netrc exists": "touch -a ~/.netrc"
@@ -29,6 +33,7 @@
     "onCreateCommand": {
         "Setup external symlink": "[ -L external ] || ln -s \"bazel-$(basename $PWD)/external\" external"
     },
+    "postStartCommand": "sudo chmod 666 /dev/kvm",
     "customizations": {
         "vscode": {
             "extensions": [

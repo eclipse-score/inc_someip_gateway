@@ -32,7 +32,7 @@ def someipd_config() -> Path:
 def someipd(someipd_config) -> Generator[None, None, None]:
     """Start someipd before tests and stop it after."""
     someipd = subprocess.Popen(
-        ["src/someipd/someipd"],
+        ["score/someipd/someipd"],
         env={"VSOMEIP_CONFIGURATION": str(someipd_config.absolute())},
     )
     yield

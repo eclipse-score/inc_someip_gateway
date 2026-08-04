@@ -1,0 +1,57 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+left to right direction
+skinparam componentStyle rectangle
+
+component "Gateway_ipc_binding_client\nC++" as client
+component "Gateway_ipc_binding_server\nC++" as server
+component "Gateway_ipc_binding_base\nC++" as base
+component "Shared_memory managers\nC++" as shm
+component "SOCom runtime\nC++" as runtime
+
+note bottom of client
+  Owns one outgoing message_passing
+  connection and auto-sends Connect
+  when ready.
+end note
+
+note bottom of server
+  Accepts multiple incoming
+  message_passing connections.
+end note
+
+note bottom of base
+  Shared bridge logic for service discovery,
+  per-service connection state,
+  and event forwarding.
+end note
+
+note bottom of shm
+  Create one writable shared-memory pool
+  per service instance and open peer pools
+  read-only.
+end note
+
+note bottom of runtime
+  Local service bridge registration plus
+  client/server connector creation.
+end note
+
+client --> server : Connect / control messages
+client --> base : Delegates protocol handling to
+server --> base : Delegates protocol handling to
+base --> shm : Allocates and opens payload memory
+base --> runtime : Registers bridge and creates connectors
+@enduml

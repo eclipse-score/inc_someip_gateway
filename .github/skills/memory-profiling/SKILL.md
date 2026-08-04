@@ -1,7 +1,7 @@
 ---
 name: memory-profiling
 description: 'Memory profiling for C++ targets with release optimizations and no sanitizers. Use to profile heap usage, memory peaks, and performance with Valgrind Massif or GNU memusage.'
-argument-hint: 'Target path (e.g., //src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark)'
+argument-hint: 'Target path (e.g., //score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark)'
 ---
 
 <!--
@@ -77,7 +77,7 @@ Use the [Massif wrapper script](./scripts/run_massif_profile.sh):
 ```bash
 # Profile a benchmark with custom flags
 ./.github/skills/memory-profiling/scripts/run_massif_profile.sh \
-  "//src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark" \
+  "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark" \
   --benchmark_filter='benchmark_cached_read_only_lookup/32' \
   --benchmark_min_time=0.01s
 
@@ -96,7 +96,7 @@ Use the [memusage wrapper script](./scripts/run_memusage_profile.sh):
 ```bash
 # Profile a binary (lighter-weight)
 ./.github/skills/memory-profiling/scripts/run_memusage_profile.sh \
-  "//src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
+  "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
 
 # Output: memusage.data, memusage.png (if gnuplot installed)
 ```
@@ -133,11 +133,11 @@ See [INTERPRETATION.md](./references/INTERPRETATION.md) for understanding:
 
 ```bash
 # 1. Build release
-bazel build -c opt --features=-tsan //src/gateway_ipc_binding/benchmark
+bazel build -c opt --features=-tsan //score/gateway_ipc_binding/benchmark
 
 # 2. Profile with Massif
 ./.github/skills/memory-profiling/scripts/run_massif_profile.sh \
-  "//src/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
+  "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark"
 
 # 3. Visualize
 ms_print massif.out | head -100

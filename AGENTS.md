@@ -22,8 +22,8 @@ The S-CORE SOME/IP Gateway bridges the SCORE middleware with SOME/IP communicati
 | What | Value |
 |------|-------|
 | Build system | **Bazel** |
-| Build | `bazel build //src/...` |
-| Unit tests | `bazel test //src/...` |
+| Build | `bazel build //score/...` |
+| Unit tests | `bazel test //score/...` |
 | Test all | `bazel test //...` |
 | Integration tests | `bazel test //tests/integration:integration` |
 | Compile commands | `bazel run //:bazel-compile-commands` |
@@ -41,10 +41,10 @@ Topic-specific guidelines are in [.github/instructions/](.github/instructions/):
 | File | Scope | Content |
 |------|-------|---------|
 | [agent-behavior.md](.github/instructions/agent-behavior.md) | All tasks | Think before coding, simplicity, surgical changes, goal-driven execution |
-| [architecture.md](.github/instructions/architecture.md) | `src/**` | Components, IPC boundary, ASIL separation, external dependencies |
+| [architecture.md](.github/instructions/architecture.md) | `score/**` | Components, IPC boundary, ASIL separation, external dependencies |
 | [code-style.md](.github/instructions/code-style.md) | `*.cpp,*.h,*.rs,*.py` | License header template, C++ conventions, style application rules |
 | [build-and-test.md](.github/instructions/build-and-test.md) | `BUILD*`, `tests/**` | Full Bazel command reference, test requirements |
-| [project-structure.md](.github/instructions/project-structure.md) | `src/**` | Directory layout, config management, logging, example patterns |
+| [project-structure.md](.github/instructions/project-structure.md) | `score/**` | Directory layout, config management, logging, example patterns |
 | [contributing.md](.github/instructions/contributing.md) | `.github/**` | PR templates, Eclipse Foundation rules |
 
 ---

@@ -48,7 +48,6 @@
 
 # Bazel
 bazel-*
-MODULE.bazel.lock
 user.bazelrc
 external
 

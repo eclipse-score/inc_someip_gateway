@@ -23,13 +23,14 @@ jobs:
       fail-fast: false
       matrix:
         bazel-config: ["x86_64-qnx", "aarch64-qnx"]
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@39939c97ac17f9e262860cf325bdd52d4a2d21a5 # main (2026-05-18)
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@d5dfe332bab87edb629ae691dd4c83923712ec3d
     permissions:
       contents: read
       pull-requests: read
     with:
       # TODO: build all targets ( //... ) once python toolchain issue is resolved.
-      bazel-target: "//src/... //tests/... //examples/..."
+      bazel-target: "//score/... //tests/... //examples/..."
+      bazel-test-target: "//quality/... //tests/integration_test/..."
       bazel-config: ${{ matrix.bazel-config }}
       credential-helper: ".github/tools/qnx_credential_helper.py"
       bazel-disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}

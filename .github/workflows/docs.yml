@@ -13,28 +13,14 @@
 
 name: Documentation
 
-permissions:
-  contents: write
-  pages: write
-  pull-requests: write
-  id-token: write
-
 on:
-  push:
-    branches:
-      - main
   workflow_call:
 
 jobs:
   build-docs:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@39939c97ac17f9e262860cf325bdd52d4a2d21a5 # main (2026-05-18)
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@d5dfe332bab87edb629ae691dd4c83923712ec3d
     permissions:
-      contents: write
-      pages: write
-      pull-requests: write
-      id-token: write
+      contents: read
 
     with:
-      # the bazel-target depends on your repo specific docs_targets configuration (e.g. "suffix")
-      bazel-target: "//:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
       retention-days: 3
