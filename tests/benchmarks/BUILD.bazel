@@ -15,6 +15,18 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "echo_service",
     hdrs = ["echo_service.h"],
