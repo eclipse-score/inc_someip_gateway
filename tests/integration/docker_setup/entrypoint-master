@@ -30,7 +30,7 @@ sleep 2s
 
 VSOMEIP_CONFIGURATION="$(pwd)/tests/integration/vsomeip.json"
 export VSOMEIP_CONFIGURATION
-/home/source/bazel-bin/score/someipd/someipd --service_instance_manifest /home/source/score/someipd/etc/mw_com_config.json --configuration /home/source/bazel-bin/score/config/mw_someip_config.bin &
+/home/source/bazel-bin/score/someipd/someipd --configuration /home/source/bazel-bin/score/config/mw_someip_config.bin &
 
 # /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
 

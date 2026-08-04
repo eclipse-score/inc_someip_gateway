@@ -55,7 +55,6 @@ repos:
         entry: .devcontainer/run_tool.sh shellcheck
         language: system
         types: [shell]
-        args: [-e, SC1091] # copied from pre-commit defaults
       - id: yamlfmt
         name: yamlfmt
         entry: .devcontainer/run_tool.sh yamlfmt
