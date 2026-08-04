@@ -114,8 +114,15 @@ class _TargetProcess:
 # ---------------------------------------------------------------------------
 
 
-def render_someip_config(config_name: str, host_ip: str, dest_dir: Path) -> Path:
-    """Replace ``__TC8_HOST_IP__``, ``__TC8_SD_PORT__``, ``__TC8_SVC_PORT__``,
+def render_someip_config(
+    config_name: str,
+    host_ip: str,
+    dest_dir: Path,
+    service_id: str = "",
+    instance_id: str = "",
+) -> Path:
+    """Replace ``__TC8_HOST_IP__``, ``__TC8_SERVICE_ID__``,
+    ``__TC8_INSTANCE_ID__``, ``__TC8_SD_PORT__``, ``__TC8_SVC_PORT__``,
     ``__TC8_SVC_TCP_PORT__``, and ``__TC8_LOG_DIR__`` in a config template.
 
     Writes the rendered config to *dest_dir* and returns the path.
@@ -128,10 +135,16 @@ def render_someip_config(config_name: str, host_ip: str, dest_dir: Path) -> Path
     sd_port = os.environ.get("TC8_SD_PORT", "30490")
     svc_port = os.environ.get("TC8_SVC_PORT", "30509")
     svc_tcp_port = os.environ.get("TC8_SVC_TCP_PORT", "30510")
+    if not service_id:
+        service_id = os.environ.get("TC8_SERVICE_ID", "0x1234")
+    if not instance_id:
+        instance_id = os.environ.get("TC8_INSTANCE_ID", "0x5678")
     template_path = Path(__file__).parent.parent / "config" / config_name
     rendered = (
         template_path.read_text(encoding="utf-8")
         .replace("__TC8_HOST_IP__", host_ip)
+        .replace("__TC8_SERVICE_ID__", service_id)
+        .replace("__TC8_INSTANCE_ID__", instance_id)
         .replace("__TC8_SD_PORT__", sd_port)
         .replace("__TC8_SVC_PORT__", svc_port)
         .replace("__TC8_SVC_TCP_PORT__", svc_tcp_port)

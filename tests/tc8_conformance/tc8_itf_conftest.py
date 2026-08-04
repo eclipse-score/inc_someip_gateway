@@ -246,6 +246,8 @@ def tc8_itf_config_setup(target_init: object, dut_ip: str) -> None:
     sd_port = os.environ.get("TC8_SD_PORT", "30490")
     svc_port = os.environ.get("TC8_SVC_PORT", "30509")
     svc_tcp_port = os.environ.get("TC8_SVC_TCP_PORT", "30510")
+    service_id = os.environ.get("TC8_SERVICE_ID", "0x1234")
+    instance_id = os.environ.get("TC8_INSTANCE_ID", "0x5678")
 
     _logger.info(
         "Rendering TC8 vsomeip configs on QEMU guest: DUT=%s SD=%s SVC=%s TCP=%s",
@@ -265,6 +267,8 @@ def tc8_itf_config_setup(target_init: object, dut_ip: str) -> None:
         cmd = (
             f"sed"
             f" -e 's/__TC8_HOST_IP__/{dut_ip}/g'"
+            f" -e 's/__TC8_SERVICE_ID__/{service_id}/g'"
+            f" -e 's/__TC8_INSTANCE_ID__/{instance_id}/g'"
             f" -e 's/__TC8_SD_PORT__/{sd_port}/g'"
             f" -e 's/__TC8_SVC_PORT__/{svc_port}/g'"
             f" -e 's/__TC8_SVC_TCP_PORT__/{svc_tcp_port}/g'"

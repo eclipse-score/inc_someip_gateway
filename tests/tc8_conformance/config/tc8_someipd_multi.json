@@ -58,7 +58,7 @@
             ]
         }
     ],
-    "routing": "someipd",
+    "routing": "tc8_dut",
     "service-discovery": {
         "enable": "true",
         "multicast": "224.244.224.245",
