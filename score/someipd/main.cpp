@@ -29,7 +29,6 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/message_passing/server_factory.h"
 #include "score/message_passing/service_protocol_config.h"
-#include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
@@ -50,14 +49,12 @@ void termination_handler(int /*signal*/) {
 // Help text, showing usage syntax and available options
 void print_help() {
     std::cout << "Syntax: someipd -h/--help\n"
-              << "        someipd -c/--configuration <config.bin> "
-              << "-s/--service_instance_manifest <manifest.json>\n"
+              << "        someipd -c/--configuration <config.bin>\n"
               << "\n";
 
     std::cout << "Options:\n"
               << " -h/--help Displays this help\n"
               << " -c/--configuration Specifies the configuration file\n"
-              << " -s/--service_instance_manifest Specifies the service instance manifest file\n"
               << "\n";
 }
 
@@ -66,13 +63,11 @@ int main(int argc, char* argv[]) {
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
 
-    const char* const short_opts = "hc:s:";
+    const char* const short_opts = "hc:";
     const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
                                 {"configuration", required_argument, nullptr, 'c'},
-                                {"service_instance_manifest", required_argument, nullptr, 's'},
                                 {nullptr, no_argument, nullptr, 0}};
 
-    score::filesystem::Path service_instance_manifest_path{};
     score::filesystem::Path configuration_path{};
 
     while (true) {
@@ -90,10 +85,6 @@ int main(int argc, char* argv[]) {
                 configuration_path = score::filesystem::Path{optarg};
                 break;
             }
-            case 's': {
-                service_instance_manifest_path = score::filesystem::Path{optarg};
-                break;
-            }
             // Unknown option
             default: {
                 print_help();
@@ -102,8 +93,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Both configurations are required, otherwise print help and exit
-    if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
+    // Configuration is required, otherwise print help and exit
+    if (configuration_path.Empty()) {
         print_help();
         return EXIT_FAILURE;
     }
@@ -135,9 +126,6 @@ int main(int argc, char* argv[]) {
 
     auto config = std::shared_ptr<const score::mw_someip_config::Root>(
         config_buffer, score::mw_someip_config::GetRoot(config_buffer.get()));
-
-    score::mw::com::runtime::InitializeRuntime(
-        score::mw::com::runtime::RuntimeConfiguration{service_instance_manifest_path});
 
     auto socom_runtime = socom::create_runtime();
 

@@ -18,32 +18,23 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+        # bug in current yamlfmt version, will be fixed via devcontainer update.
+        exclude: ^tests/integration/docker_setup/docker-compose.yaml$
       - id: check-shebang-scripts-are-executable
       - id: check-executables-have-shebangs
       - id: check-added-large-files
-        args: [--maxkb=50, --enforce-all] # increase or add git lfs if too strict
+        args: [--maxkb=125, --enforce-all] # increase or add git lfs if too strict
         exclude: MODULE.bazel.lock|tests/benchmarks/benchmarks_analysis.md|score/socom/test/unit/runtime_tests.cpp
 
-  - repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: 38980559e3a605691d6579f96222c30778e5a69e # 3.0.0
-    hooks:
-      - id: shellcheck
-
-  - repo: https://github.com/eclipse-score/tooling
-    rev: 31ff8eee214e4e97ef8f5cb46e443273515b63ec
+  - repo: https://github.com/eclipse-score/tools
+    rev: 7694bf823421b5542cd2f45239b8bdf205dbface
     hooks:
       - id: copyright
-        exclude: defs.bzl
 
   - repo: https://codeberg.org/fsfe/reuse-tool
     rev: a1bb792acda6fd0724936b4ebbdbc8eceb9c0459 # v6.2.0
     hooks:
       - id: reuse-lint-file
-
-  - repo: https://github.com/google/yamlfmt
-    rev: 21ca5323a9c87ee37a434e0ca908efc0a89daa07 # v0.21.0
-    hooks:
-      - id: yamlfmt
 
   - repo: local
     hooks:
@@ -57,3 +48,15 @@ repos:
         entry: bazel mod deps --lockfile_mode=error
         language: system
         pass_filenames: false
+      - id: shellcheck
+        name: shellcheck
+        # Hint: running this avoids users having to run inside the devcontainer,
+        # while pinning the version of shellcheck to the one in the devcontainer.
+        entry: .devcontainer/run_tool.sh shellcheck
+        language: system
+        types: [shell]
+      - id: yamlfmt
+        name: yamlfmt
+        entry: .devcontainer/run_tool.sh yamlfmt
+        language: system
+        types: [yaml]

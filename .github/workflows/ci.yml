@@ -20,9 +20,9 @@ on:
   workflow_dispatch:
   workflow_call:
 jobs:
-  pre-commit:
-    secrets: inherit
-    uses: ./.github/workflows/pre-commit.yml
+  on-pr:
+    name: Common PR checks
+    uses: eclipse-score/cicd-workflows/.github/workflows/on-pr.yml@on-pr/v0.0.0
   build_and_test_host:
     secrets: inherit
     uses: ./.github/workflows/build_and_test_host.yml
@@ -32,12 +32,9 @@ jobs:
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test-cross')
     secrets: inherit
     uses: ./.github/workflows/build_and_test_cross_compilation.yml
-  copyright:
+  docs:
     secrets: inherit
-    uses: ./.github/workflows/copyright.yml
-  format:
-    secrets: inherit
-    uses: ./.github/workflows/format.yml
+    uses: ./.github/workflows/docs.yml
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
@@ -47,11 +44,10 @@ jobs:
     name: ci/can_merge
     if: always()
     needs:
-      - pre-commit
+      - on-pr
       - build_and_test_host
       - build_and_test_cross_compilation
-      - copyright
-      - format
+      - docs
     permissions: {}
     runs-on: ubuntu-latest
     steps:

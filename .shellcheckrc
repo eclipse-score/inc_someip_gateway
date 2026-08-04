@@ -22,3 +22,7 @@ external-sources=true
 
 # SC2292: [[ ]] not available in #!/bin/sh scripts — legitimate false positive
 disable=SC2292
+
+# SC1091: Not following sourced files that are not specified as input
+# copied from pre-commit defaults
+disable=SC1091

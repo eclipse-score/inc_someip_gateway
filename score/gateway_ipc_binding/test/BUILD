@@ -16,6 +16,7 @@ load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER
 
 cc_test(
     name = "gateway_ipc_binding_test",
+    size = "small",
     srcs = glob(include = [
         "*.cpp",
         "*.hpp",
