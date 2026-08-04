@@ -66,15 +66,12 @@ bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.18")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
-bazel_dep(name = "rules_rust", version = "0.68.1-score")
 
 # ============================================================================
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
 bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
-
-bazel_dep(name = "score_toolchains_rust", version = "0.10.0", dev_dependency = True)
 
 # ============================================================================
 # QNX8 Toolchain Configuration
@@ -240,29 +237,6 @@ single_version_override(
 # Code Generation
 # ============================================================================
 bazel_dep(name = "flatbuffers", version = "25.12.19")
-
-# ============================================================================
-# Examples: Car Window Simulator
-# ============================================================================
-car_window_sim_crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate", dev_dependency = True)
-car_window_sim_crate.spec(
-    package = "anyhow",
-    version = "1",
-)
-car_window_sim_crate.spec(
-    package = "async-trait",
-    version = "0.1",
-)
-car_window_sim_crate.from_specs(name = "car_window_sim_crate")
-use_repo(car_window_sim_crate, "car_window_sim_crate")
-
-# pin libc to 0.2.186 to avoid a build failure
-single_version_override(
-    module_name = "score_crates",
-    patch_strip = 1,
-    patches = ["//third_party/score_crates:pin_libc_0_2_186.patch"],
-    version = "0.0.10",
-)
 
 # ============================================================================
 # SOME/IP Stack Integration
