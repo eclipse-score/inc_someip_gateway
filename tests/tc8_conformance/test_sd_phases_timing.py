@@ -29,6 +29,7 @@ from helpers.dut_lifecycle import (
     render_someip_config,
     terminate_someipd,
 )
+from helpers.constants import SERVICE_ID
 from helpers.sd_helpers import open_multicast_socket
 from helpers.timing import collect_sd_offers_from_socket
 from someip.header import SOMEIPSDEntry
@@ -41,7 +42,6 @@ from someip.header import SOMEIPSDEntry
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: SD configuration values from ``tc8_someipd_sd.json``.
-_SERVICE_ID: int = 0x1234
 _CYCLIC_OFFER_DELAY_MS: float = 2000.0
 _REPETITIONS_BASE_DELAY_MS: float = 200.0
 _REPETITIONS_MAX: int = 3
@@ -133,7 +133,7 @@ class TestSDPhasesTiming:
     ) -> None:
         """TC8-SD-009: Repetition Phase offer gaps are shorter than cyclic_offer_delay."""
         service_offers = [
-            (ts, e) for ts, e in sd_phase_capture if e.service_id == _SERVICE_ID
+            (ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID
         ]
         assert len(service_offers) >= 2, (
             "TC8-SD-009: Not enough OfferService entries captured for timing analysis"
@@ -164,7 +164,7 @@ class TestSDPhasesTiming:
         still proves the Repetition Phase happened with doubling intervals.
         """
         service_offers = [
-            (ts, e) for ts, e in sd_phase_capture if e.service_id == _SERVICE_ID
+            (ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID
         ]
         assert len(service_offers) >= 2, (
             "TC8-SD-010: Not enough OfferService entries captured for phase counting"

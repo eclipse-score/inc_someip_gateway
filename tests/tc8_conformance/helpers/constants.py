@@ -49,3 +49,51 @@ DUT_UNRELIABLE_PORT: int = int(os.environ.get("TC8_SVC_PORT", "30509"))
 #: the DUT's ``tc8_someipd_*.json`` configuration templates.  Read from
 #: ``TC8_SVC_TCP_PORT`` env var; defaults to 30510 for local development.
 DUT_RELIABLE_PORT: int = int(os.environ.get("TC8_SVC_TCP_PORT", "30510"))
+
+# ---------------------------------------------------------------------------
+# ETS Sec. 5 service identity
+# ---------------------------------------------------------------------------
+SERVICE_ID: int = int(os.environ.get("TC8_SERVICE_ID", "0x1234"), 16)
+INSTANCE_ID: int = int(os.environ.get("TC8_INSTANCE_ID", "0x5678"), 16)
+MAJOR_VERSION: int = 1
+MINOR_VERSION: int = 0
+
+# ---------------------------------------------------------------------------
+# ETS Sec. 5.2 event and field notification IDs
+# ---------------------------------------------------------------------------
+EVENT_TEST_UINT8: int = 0x8001
+EVENT_TEST_UINT8_ARRAY: int = 0x8002
+EVENT_TEST_UINT8_RELIABLE: int = 0x8003
+EVENT_TEST_UINT8_E2E: int = 0x8004
+EVENT_INTERFACE_VERSION: int = 0x8005
+EVENT_FIELD_UINT8: int = 0x8006
+EVENT_FIELD_UINT8_ARRAY: int = 0x8007
+EVENT_FIELD_UINT8_RELIABLE: int = 0x8008
+EVENT_TEST_UINT8_MULTICAST: int = 0x800B
+
+# ---------------------------------------------------------------------------
+# ETS Sec. 5.1 method IDs
+# ---------------------------------------------------------------------------
+METHOD_ECHO_UINT8: int = 0x08
+METHOD_ECHO_UINT8_ARRAY: int = 0x09
+METHOD_ECHO_UINT8_RELIABLE: int = 0x0A
+METHOD_INTERFACE_VERSION_GET: int = 0x25
+METHOD_FIELD_UINT8_GET: int = 0x26
+METHOD_FIELD_UINT8_SET: int = 0x27
+METHOD_FIELD_UINT8_ARRAY_GET: int = 0x28
+METHOD_FIELD_UINT8_ARRAY_SET: int = 0x29
+METHOD_FIELD_UINT8_RELIABLE_GET: int = 0x2A
+METHOD_FIELD_UINT8_RELIABLE_SET: int = 0x2B
+
+# ---------------------------------------------------------------------------
+# ETS Sec. 5.2 eventgroup IDs
+# ---------------------------------------------------------------------------
+EVENTGROUP_UDP_UNICAST: int = 0x0002
+EVENTGROUP_TCP_RELIABLE: int = 0x0005
+EVENTGROUP_UDP_MULTICAST: int = 0x0006
+
+# ---------------------------------------------------------------------------
+# Multicast transport
+# ---------------------------------------------------------------------------
+MULTICAST_ADDR: str = "239.0.0.1"
+MULTICAST_EVENT_PORT: int = 40490

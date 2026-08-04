@@ -40,7 +40,13 @@ from helpers.dut_lifecycle import (
     terminate_someipd,
     wait_for_sd_readiness,
 )
-from helpers.constants import SD_PORT
+from helpers.constants import (
+    EVENTGROUP_UDP_UNICAST,
+    INSTANCE_ID,
+    MAJOR_VERSION,
+    SD_PORT,
+    SERVICE_ID,
+)
 from helpers.sd_helpers import open_multicast_socket
 from helpers.sd_sender import (
     SOMEIPSDEntryType,
@@ -58,16 +64,10 @@ from someip.header import SOMEIPHeader, SOMEIPSDHeader
 #: Uses the SD config (service 0x1234/0x5678, eventgroup 0x4455 UDP).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
-#: Maximum wait time for SD messages, derived from TC8 spec §4 IUT parameters:
+#: Maximum wait time for SD messages, derived from TC8 spec Sec. 4 IUT parameters:
 #: Listen Time (10 s) + Tolerance Time (1 s) + Process Time (2 s) = 13 s,
 #: plus 2 s buffer for container/CI overhead.
 _SD_CAPTURE_TIMEOUT_SECS: float = 15.0
-
-#: Service and eventgroup IDs (matches tc8_someipd_sd.json).
-_SERVICE_ID: int = 0x1234
-_INSTANCE_ID: int = 0x5678
-_EVENTGROUP_ID: int = 0x4455
-_MAJOR_VERSION: int = 0x00
 
 
 # ---------------------------------------------------------------------------
@@ -224,10 +224,10 @@ class TestSDClientStopSubscribe:
                     send_subscribe_eventgroup(
                         sd_sock,
                         (dut_ip, SD_PORT),
-                        _SERVICE_ID,
-                        _INSTANCE_ID,
-                        _EVENTGROUP_ID,
-                        _MAJOR_VERSION,
+                        SERVICE_ID,
+                        INSTANCE_ID,
+                        EVENTGROUP_UDP_UNICAST,
+                        MAJOR_VERSION,
                         subscriber_ip=tester_ip,
                         subscriber_port=notif_port,
                     )
@@ -240,12 +240,13 @@ class TestSDClientStopSubscribe:
                     resend=_subscribe,
                 )
                 assert any(
-                    e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks
+                    e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
+                    for e in acks
                 ), "ETS_084: Prerequisite failed — no SubscribeAck received"
 
                 # Verify at least one notification arrives before StopSubscribe.
                 pre_notifs = capture_some_ip_messages(
-                    notif_sock, _SERVICE_ID, timeout_secs=4.0
+                    notif_sock, SERVICE_ID, timeout_secs=4.0
                 )
                 assert pre_notifs, (
                     "ETS_084: No notifications received after subscribe (prerequisite)"
@@ -255,10 +256,10 @@ class TestSDClientStopSubscribe:
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
                     ttl=0,
@@ -266,7 +267,7 @@ class TestSDClientStopSubscribe:
 
                 # Verify no further notifications within 4 s.
                 post_notifs = capture_some_ip_messages(
-                    notif_sock, _SERVICE_ID, timeout_secs=4.0
+                    notif_sock, SERVICE_ID, timeout_secs=4.0
                 )
                 assert not post_notifs, (
                     f"ETS_084: {len(post_notifs)} notification(s) received after "

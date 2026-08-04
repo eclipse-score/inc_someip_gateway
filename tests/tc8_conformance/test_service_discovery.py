@@ -37,7 +37,17 @@ from helpers.someip_assertions import (
     assert_offer_has_ipv4_endpoint_option,
     assert_sd_offer_entry,
 )
-from helpers.constants import DUT_UNRELIABLE_PORT, SD_MULTICAST_ADDR, SD_PORT
+from helpers.constants import (
+    DUT_UNRELIABLE_PORT,
+    EVENTGROUP_UDP_MULTICAST,
+    EVENTGROUP_UDP_UNICAST,
+    INSTANCE_ID,
+    MAJOR_VERSION,
+    MINOR_VERSION,
+    SD_MULTICAST_ADDR,
+    SD_PORT,
+    SERVICE_ID,
+)
 from helpers.timing import capture_sd_offers_with_timestamps
 from someip.header import SOMEIPHeader, SOMEIPSDHeader
 
@@ -49,24 +59,15 @@ from someip.header import SOMEIPHeader, SOMEIPSDHeader
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: Service and instance IDs declared in ``tc8_someipd_sd.json``.
-_SERVICE_ID: int = 0x1234
-_INSTANCE_ID: int = 0x5678
-_EVENTGROUP_ID: int = 0x4455
-_MULTICAST_EVENTGROUP_ID: int = 0x4465
-_UNKNOWN_EVENTGROUP_ID: int = 0xBEEF
-_UNKNOWN_SERVICE_ID: int = 0xBEEF
+_UNKNOWNEVENTGROUP_UDP_UNICAST: int = 0xBEEF
+_UNKNOWNSERVICE_ID: int = 0xBEEF
 
 #: SD configuration values from ``tc8_someipd_sd.json``.
 _CYCLIC_OFFER_DELAY_MS: float = 2000.0
 _REQUEST_RESPONSE_DELAY_MS: float = 500.0
 
 #: Unknown IDs used in negative tests.
-_UNKNOWN_INSTANCE_ID: int = 0xBEEF
-
-#: Defaults — no version configured in tc8_someipd_sd.json.
-#: (0xFFFFFFFF is the FindService wildcard, not used in OfferService entries.)
-_MAJOR_VERSION: int = 0x00
-_MINOR_VERSION: int = 0x00000000
+_UNKNOWNINSTANCE_ID: int = 0xBEEF
 
 
 # ---------------------------------------------------------------------------
@@ -112,18 +113,18 @@ class TestSDOfferFormat:
 
         offers = capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
 
-        service_offers = [e for e in offers if e.service_id == _SERVICE_ID]
+        service_offers = [e for e in offers if e.service_id == SERVICE_ID]
         assert service_offers, (
-            f"TC8-SD-002: No OfferService entry found for service 0x{_SERVICE_ID:04x} "
+            f"TC8-SD-002: No OfferService entry found for service 0x{SERVICE_ID:04x} "
             f"in {len(offers)} captured SD entries."
         )
 
         assert_sd_offer_entry(
             service_offers[0],
-            expected_service_id=_SERVICE_ID,
-            expected_instance_id=_INSTANCE_ID,
-            expected_major_version=_MAJOR_VERSION,
-            expected_minor_version=_MINOR_VERSION,
+            expected_service_id=SERVICE_ID,
+            expected_instance_id=INSTANCE_ID,
+            expected_major_version=MAJOR_VERSION,
+            expected_minor_version=MINOR_VERSION,
         )
 
     @add_test_properties(
@@ -149,7 +150,7 @@ class TestSDOfferFormat:
         # so we capture extra and de-duplicate within a 500 ms window.
         timed = capture_sd_offers_with_timestamps(host_ip, count=5, timeout_secs=15.0)
 
-        service_offers = [(ts, e) for ts, e in timed if e.service_id == _SERVICE_ID]
+        service_offers = [(ts, e) for ts, e in timed if e.service_id == SERVICE_ID]
         assert len(service_offers) >= 2, (
             "TC8-SD-003: Not enough OfferService entries for timing analysis"
         )
@@ -210,8 +211,8 @@ class TestSDFindResponse:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
                 )
 
             _send_find()
@@ -224,10 +225,10 @@ class TestSDFindResponse:
                 timeout_secs=5.0,
                 resend=_send_find,
             )
-            service_offers = [e for e in entries if e.service_id == _SERVICE_ID]
+            service_offers = [e for e in entries if e.service_id == SERVICE_ID]
             assert service_offers, (
                 f"TC8-SD-004: No unicast OfferService received for service "
-                f"0x{_SERVICE_ID:04x} within 5 s of FindService"
+                f"0x{SERVICE_ID:04x} within 5 s of FindService"
             )
         finally:
             sock.close()
@@ -252,17 +253,17 @@ class TestSDFindResponse:
             send_find_service(
                 sock,
                 (SD_MULTICAST_ADDR, SD_PORT),
-                service_id=_UNKNOWN_SERVICE_ID,
+                service_id=_UNKNOWNSERVICE_ID,
             )
             entries = capture_unicast_sd_entries(
                 sock,
                 filter_types=(SOMEIPSDEntryType.OfferService,),
                 timeout_secs=2.0,
             )
-            unknown_offers = [e for e in entries if e.service_id == _UNKNOWN_SERVICE_ID]
+            unknown_offers = [e for e in entries if e.service_id == _UNKNOWNSERVICE_ID]
             assert not unknown_offers, (
                 f"TC8-SD-005: Unexpected OfferService received for unknown service "
-                f"0x{_UNKNOWN_SERVICE_ID:04x}"
+                f"0x{_UNKNOWNSERVICE_ID:04x}"
             )
         finally:
             sock.close()
@@ -301,10 +302,10 @@ class TestSDSubscribeLifecycle:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -317,11 +318,13 @@ class TestSDSubscribeLifecycle:
                 resend=_send_subscribe,
             )
             acks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
             ]
             assert acks, (
                 f"TC8-SD-006: No SubscribeEventgroupAck received for eventgroup "
-                f"0x{_EVENTGROUP_ID:04x}"
+                f"0x{EVENTGROUP_UDP_UNICAST:04x}"
             )
         finally:
             sock.close()
@@ -349,10 +352,10 @@ class TestSDSubscribeLifecycle:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _UNKNOWN_EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    _UNKNOWNEVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -367,11 +370,11 @@ class TestSDSubscribeLifecycle:
             nacks = [
                 e
                 for e in entries
-                if e.eventgroup_id == _UNKNOWN_EVENTGROUP_ID and e.ttl == 0
+                if e.eventgroup_id == _UNKNOWNEVENTGROUP_UDP_UNICAST and e.ttl == 0
             ]
             assert nacks, (
                 f"TC8-SD-007: No SubscribeEventgroupNack received for unknown eventgroup "
-                f"0x{_UNKNOWN_EVENTGROUP_ID:04x} (expected SubscribeAck with TTL=0)"
+                f"0x{_UNKNOWNEVENTGROUP_UDP_UNICAST:04x} (expected SubscribeAck with TTL=0)"
             )
         finally:
             sock.close()
@@ -405,10 +408,10 @@ class TestSDSubscribeLifecycle:
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
                 )
@@ -420,12 +423,12 @@ class TestSDSubscribeLifecycle:
                 timeout_secs=5.0,
                 resend=_send_sub_008,
             )
-            assert any(e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks), (
-                "TC8-SD-008: Prerequisite failed — no SubscribeEventgroupAck received"
-            )
+            assert any(
+                e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks
+            ), "TC8-SD-008: Prerequisite failed — no SubscribeEventgroupAck received"
 
             # Expect at least one notification (DUT fires notify() every 2 s).
-            notifs = capture_some_ip_messages(notif_sock, _SERVICE_ID, timeout_secs=4.0)
+            notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
             assert notifs, (
                 "TC8-SD-008: No SOME/IP notifications received after subscribe"
             )
@@ -434,17 +437,17 @@ class TestSDSubscribeLifecycle:
             send_subscribe_eventgroup(
                 sd_sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=notif_port,
                 ttl=0,
             )
 
             # Verify no further notifications arrive within 4 s.
-            post = capture_some_ip_messages(notif_sock, _SERVICE_ID, timeout_secs=4.0)
+            post = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
             assert not post, (
                 f"TC8-SD-008: {len(post)} notification(s) received after StopSubscribeEventgroup"
             )
@@ -500,7 +503,7 @@ class TestSDOptionFormat:
                     for entry in sd_hdr.entries:
                         if (
                             entry.sd_type == SOMEIPSDEntryType.OfferService
-                            and entry.service_id == _SERVICE_ID
+                            and entry.service_id == SERVICE_ID
                         ):
                             found_entry = entry
                             break
@@ -510,7 +513,7 @@ class TestSDOptionFormat:
             sock.close()
 
         assert found_entry is not None, (
-            f"TC8-SD-011: No OfferService entry found for service 0x{_SERVICE_ID:04x} "
+            f"TC8-SD-011: No OfferService entry found for service 0x{SERVICE_ID:04x} "
             "within 5 s"
         )
         assert_offer_has_ipv4_endpoint_option(
@@ -570,10 +573,10 @@ class TestSDMulticastEventgroup:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _MULTICAST_EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_MULTICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -588,11 +591,11 @@ class TestSDMulticastEventgroup:
             acks = [
                 e
                 for e in entries
-                if e.eventgroup_id == _MULTICAST_EVENTGROUP_ID and e.ttl > 0
+                if e.eventgroup_id == EVENTGROUP_UDP_MULTICAST and e.ttl > 0
             ]
             assert acks, (
                 f"TC8-SD-013: No SubscribeEventgroupAck received for multicast "
-                f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+                f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
             )
             ack = acks[0]
             # The ACK for a multicast eventgroup must carry an IPv4MulticastOption
@@ -613,7 +616,7 @@ class TestSDMulticastEventgroup:
                 and ipaddress.ip_address(str(o.address)).is_multicast
             ]
             assert multicast_opts, (
-                f"TC8-SD-013: SUBSCRIBE_ACK for eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x} "
+                f"TC8-SD-013: SUBSCRIBE_ACK for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x} "
                 f"does not carry an IPv4MulticastOption (SD option type 0x14). "
                 f"Options found: {options}"
             )
@@ -658,10 +661,10 @@ class TestSDTTLExpiry:
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
                     ttl=_TTL_SECS,
@@ -674,13 +677,13 @@ class TestSDTTLExpiry:
                 timeout_secs=5.0,
                 resend=_send_sub_ttl,
             )
-            assert any(e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks), (
-                "TC8-SD-014: Prerequisite failed — no SubscribeEventgroupAck received"
-            )
+            assert any(
+                e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks
+            ), "TC8-SD-014: Prerequisite failed — no SubscribeEventgroupAck received"
 
             # Verify at least one notification arrives before TTL expiry.
             pre_expiry = capture_some_ip_messages(
-                notif_sock, _SERVICE_ID, timeout_secs=4.0
+                notif_sock, SERVICE_ID, timeout_secs=4.0
             )
             assert pre_expiry, "TC8-SD-014: No notifications received before TTL expiry"
 
@@ -689,7 +692,7 @@ class TestSDTTLExpiry:
 
             # Verify no further notifications arrive in a 3 s window.
             post_expiry = capture_some_ip_messages(
-                notif_sock, _SERVICE_ID, timeout_secs=3.0
+                notif_sock, SERVICE_ID, timeout_secs=3.0
             )
             assert not post_expiry, (
                 f"TC8-SD-014: {len(post_expiry)} notification(s) received after TTL expiry "
@@ -730,7 +733,7 @@ class TestSDVersionMatching:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
+                    service_id=SERVICE_ID,
                     instance_id=0xFFFF,
                 )
 
@@ -741,14 +744,14 @@ class TestSDVersionMatching:
                 timeout_secs=5.0,
                 resend=_send,
             )
-            matching = [e for e in entries if e.service_id == _SERVICE_ID]
+            matching = [e for e in entries if e.service_id == SERVICE_ID]
             assert matching, (
                 "SOMEIPSRV_SD_MESSAGE_01: No OfferService received for instance_id=0xFFFF "
                 "(wildcard) FindService"
             )
-            assert matching[0].instance_id == _INSTANCE_ID, (
+            assert matching[0].instance_id == INSTANCE_ID, (
                 f"SOMEIPSRV_SD_MESSAGE_01: OfferService instance_id "
-                f"0x{matching[0].instance_id:04x} != 0x{_INSTANCE_ID:04x}"
+                f"0x{matching[0].instance_id:04x} != 0x{INSTANCE_ID:04x}"
             )
         finally:
             sock.close()
@@ -775,8 +778,8 @@ class TestSDVersionMatching:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
                 )
 
             _send()
@@ -789,11 +792,11 @@ class TestSDVersionMatching:
             matching = [
                 e
                 for e in entries
-                if e.service_id == _SERVICE_ID and e.instance_id == _INSTANCE_ID
+                if e.service_id == SERVICE_ID and e.instance_id == INSTANCE_ID
             ]
             assert matching, (
                 f"SOMEIPSRV_SD_MESSAGE_02: No OfferService received for specific "
-                f"instance_id=0x{_INSTANCE_ID:04x}"
+                f"instance_id=0x{INSTANCE_ID:04x}"
             )
         finally:
             sock.close()
@@ -820,8 +823,8 @@ class TestSDVersionMatching:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
                     major_version=0xFF,
                 )
 
@@ -832,7 +835,7 @@ class TestSDVersionMatching:
                 timeout_secs=5.0,
                 resend=_send,
             )
-            matching = [e for e in entries if e.service_id == _SERVICE_ID]
+            matching = [e for e in entries if e.service_id == SERVICE_ID]
             assert matching, (
                 "SOMEIPSRV_SD_MESSAGE_03: No OfferService received for major_version=0xFF "
                 "(wildcard) FindService"
@@ -862,9 +865,9 @@ class TestSDVersionMatching:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
-                    major_version=_MAJOR_VERSION,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
+                    major_version=MAJOR_VERSION,
                 )
 
             _send()
@@ -877,11 +880,11 @@ class TestSDVersionMatching:
             matching = [
                 e
                 for e in entries
-                if e.service_id == _SERVICE_ID and e.major_version == _MAJOR_VERSION
+                if e.service_id == SERVICE_ID and e.major_version == MAJOR_VERSION
             ]
             assert matching, (
                 f"SOMEIPSRV_SD_MESSAGE_04: No OfferService received for specific "
-                f"major_version=0x{_MAJOR_VERSION:02x}"
+                f"major_version=0x{MAJOR_VERSION:02x}"
             )
         finally:
             sock.close()
@@ -908,9 +911,9 @@ class TestSDVersionMatching:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
-                    major_version=_MAJOR_VERSION,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
+                    major_version=MAJOR_VERSION,
                     minor_version=0xFFFFFFFF,
                 )
 
@@ -921,7 +924,7 @@ class TestSDVersionMatching:
                 timeout_secs=5.0,
                 resend=_send,
             )
-            matching = [e for e in entries if e.service_id == _SERVICE_ID]
+            matching = [e for e in entries if e.service_id == SERVICE_ID]
             assert matching, (
                 "SOMEIPSRV_SD_MESSAGE_05: No OfferService received for minor_version=0xFFFFFFFF "
                 "(wildcard) FindService"
@@ -951,10 +954,10 @@ class TestSDVersionMatching:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
-                    major_version=_MAJOR_VERSION,
-                    minor_version=_MINOR_VERSION,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
+                    major_version=MAJOR_VERSION,
+                    minor_version=MINOR_VERSION,
                 )
 
             _send()
@@ -964,10 +967,10 @@ class TestSDVersionMatching:
                 timeout_secs=5.0,
                 resend=_send,
             )
-            matching = [e for e in entries if e.service_id == _SERVICE_ID]
+            matching = [e for e in entries if e.service_id == SERVICE_ID]
             assert matching, (
                 f"SOMEIPSRV_SD_MESSAGE_06: No OfferService received for specific "
-                f"minor_version=0x{_MINOR_VERSION:08x}"
+                f"minor_version=0x{MINOR_VERSION:08x}"
             )
         finally:
             sock.close()
@@ -1007,9 +1010,9 @@ class TestSDSubscribeNAck:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
                     major_version=0xFF,  # DUT expects 0x00
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
@@ -1023,7 +1026,9 @@ class TestSDSubscribeNAck:
                 resend=_send,
             )
             nacks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl == 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl == 0
             ]
             assert nacks, (
                 "SOMEIPSRV_SD_MESSAGE_14: No SubscribeEventgroupNAck (TTL=0) received "
@@ -1060,10 +1065,10 @@ class TestSDSubscribeNAck:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_UNKNOWN_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
-                    eventgroup_id=_EVENTGROUP_ID,
-                    major_version=_MAJOR_VERSION,
+                    service_id=_UNKNOWNSERVICE_ID,
+                    instance_id=INSTANCE_ID,
+                    eventgroup_id=EVENTGROUP_UDP_UNICAST,
+                    major_version=MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1076,11 +1081,13 @@ class TestSDSubscribeNAck:
                 resend=_send,
             )
             nacks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl == 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl == 0
             ]
             assert nacks, (
                 f"SOMEIPSRV_SD_MESSAGE_15: No SubscribeEventgroupNAck (TTL=0) received "
-                f"for unknown service_id=0x{_UNKNOWN_SERVICE_ID:04x}"
+                f"for unknown service_id=0x{_UNKNOWNSERVICE_ID:04x}"
             )
         finally:
             sock.close()
@@ -1108,10 +1115,10 @@ class TestSDSubscribeNAck:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    instance_id=_UNKNOWN_INSTANCE_ID,
-                    eventgroup_id=_EVENTGROUP_ID,
-                    major_version=_MAJOR_VERSION,
+                    SERVICE_ID,
+                    instance_id=_UNKNOWNINSTANCE_ID,
+                    eventgroup_id=EVENTGROUP_UDP_UNICAST,
+                    major_version=MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1124,11 +1131,13 @@ class TestSDSubscribeNAck:
                 resend=_send,
             )
             nacks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl == 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl == 0
             ]
             assert nacks, (
                 "SOMEIPSRV_SD_MESSAGE_16: No SubscribeEventgroupNAck (TTL=0) received "
-                f"for wrong instance_id=0x{_UNKNOWN_INSTANCE_ID:04x}"
+                f"for wrong instance_id=0x{_UNKNOWNINSTANCE_ID:04x}"
             )
         finally:
             sock.close()
@@ -1157,10 +1166,10 @@ class TestSDSubscribeNAck:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    eventgroup_id=_UNKNOWN_EVENTGROUP_ID,
-                    major_version=_MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    eventgroup_id=_UNKNOWNEVENTGROUP_UDP_UNICAST,
+                    major_version=MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1175,11 +1184,11 @@ class TestSDSubscribeNAck:
             nacks = [
                 e
                 for e in entries
-                if e.eventgroup_id == _UNKNOWN_EVENTGROUP_ID and e.ttl == 0
+                if e.eventgroup_id == _UNKNOWNEVENTGROUP_UDP_UNICAST and e.ttl == 0
             ]
             assert nacks, (
                 f"SOMEIPSRV_SD_MESSAGE_17: No SubscribeEventgroupNAck (TTL=0) received "
-                f"for unknown eventgroup_id=0x{_UNKNOWN_EVENTGROUP_ID:04x}"
+                f"for unknown eventgroup_id=0x{_UNKNOWNEVENTGROUP_UDP_UNICAST:04x}"
             )
         finally:
             sock.close()
@@ -1207,10 +1216,10 @@ class TestSDSubscribeNAck:
             send_subscribe_eventgroup(
                 sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=sender_port,
                 ttl=0,
@@ -1221,7 +1230,9 @@ class TestSDSubscribeNAck:
                 timeout_secs=2.0,
             )
             acks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
             ]
             assert not acks, (
                 f"SOMEIPSRV_SD_MESSAGE_18: Unexpected SubscribeAck(TTL>0) received "
@@ -1242,7 +1253,7 @@ class TestSDSubscribeNAck:
             "SubscribeEventgroupAck (TTL > 0) even when reserved bits are set in the "
             "Subscribe entry; spec requires a NAck (TTL = 0). "
             "See docs/architecture/tc8_conformance_testing.rst "
-            "§Known SOME/IP Stack Limitations."
+            "see: Known SOME/IP Stack Limitations."
         ),
     )
     def test_sd_message_19_reserved_field_set(
@@ -1263,10 +1274,10 @@ class TestSDSubscribeNAck:
                 send_subscribe_eventgroup_reserved_set(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                     reserved_value=0x0F,
@@ -1282,7 +1293,9 @@ class TestSDSubscribeNAck:
             # Accept either: a NAck (TTL=0) or no response at all (DUT silently ignores).
             # A positive Ack (TTL>0) would indicate the DUT accepted the malformed entry.
             acks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
             ]
             assert not acks, (
                 "SOMEIPSRV_SD_MESSAGE_19: DUT sent a positive SubscribeAck (TTL>0) for a "
@@ -1335,9 +1348,9 @@ class TestSDFindServiceTiming:
                 send_find_service(
                     sock,
                     (dut_ip, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
-                    major_version=_MAJOR_VERSION,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
+                    major_version=MAJOR_VERSION,
                 )
                 # Wait only for the allowed window.
                 entries = capture_unicast_sd_entries(
@@ -1347,7 +1360,7 @@ class TestSDFindServiceTiming:
                     max_results=1,
                 )
                 t1 = time.monotonic()
-                matching = [e for e in entries if e.service_id == _SERVICE_ID]
+                matching = [e for e in entries if e.service_id == SERVICE_ID]
                 if matching:
                     elapsed_ms = (t1 - t0) * 1000.0
                     assert elapsed_ms <= _max_allowed_ms, (
@@ -1406,7 +1419,7 @@ class TestSDFindServiceTiming:
             send_find_service(
                 send_sock,
                 (SD_MULTICAST_ADDR, SD_PORT),
-                service_id=_SERVICE_ID,
+                service_id=SERVICE_ID,
                 instance_id=0xFFFF,
                 major_version=0xFF,
             )
@@ -1434,7 +1447,7 @@ class TestSDFindServiceTiming:
                     for entry in sd_hdr.entries:
                         if (
                             entry.sd_type == SOMEIPSDEntryType.OfferService
-                            and entry.service_id == _SERVICE_ID
+                            and entry.service_id == SERVICE_ID
                         ):
                             matching.append(entry)
                 except Exception:  # noqa: BLE001
@@ -1493,10 +1506,10 @@ class TestSDSubscribeLifecycleAdvanced:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1505,10 +1518,10 @@ class TestSDSubscribeLifecycleAdvanced:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _MULTICAST_EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_MULTICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1523,19 +1536,21 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=lambda: (_subscribe_eg1(), _subscribe_eg2()),  # type: ignore[func-returns-value]
             )
             acks_eg1 = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
             ]
             acks_eg2 = [
                 e
                 for e in entries
-                if e.eventgroup_id == _MULTICAST_EVENTGROUP_ID and e.ttl > 0
+                if e.eventgroup_id == EVENTGROUP_UDP_MULTICAST and e.ttl > 0
             ]
             assert acks_eg1, (
-                f"ETS_088: No SubscribeAck received for eventgroup 0x{_EVENTGROUP_ID:04x}"
+                f"ETS_088: No SubscribeAck received for eventgroup 0x{EVENTGROUP_UDP_UNICAST:04x}"
             )
             assert acks_eg2, (
                 f"ETS_088: No SubscribeAck received for eventgroup "
-                f"0x{_MULTICAST_EVENTGROUP_ID:04x}"
+                f"0x{EVENTGROUP_UDP_MULTICAST:04x}"
             )
         finally:
             sock.close()
@@ -1566,10 +1581,10 @@ class TestSDSubscribeLifecycleAdvanced:
             send_subscribe_eventgroup(
                 sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=sender_port,
                 ttl=0,
@@ -1582,7 +1597,9 @@ class TestSDSubscribeLifecycleAdvanced:
             )
             # Per spec a NAck (TTL=0 Ack) must NOT be sent for a stop-subscribe.
             nacks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl == 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl == 0
             ]
             assert not nacks, (
                 f"ETS_092: DUT sent NAck (TTL=0 SubscribeAck) in response to "
@@ -1619,10 +1636,10 @@ class TestSDSubscribeLifecycleAdvanced:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1635,7 +1652,9 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=_send,
             )
             acks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
             ]
             assert acks, (
                 "ETS_098: No SubscribeAck (TTL>0) received without a prior method call. "
@@ -1679,16 +1698,16 @@ class TestSDSubscribeLifecycleAdvanced:
                 send_find_service(
                     sd_sock,
                     (SD_MULTICAST_ADDR, SD_PORT),
-                    service_id=_SERVICE_ID,
-                    instance_id=_INSTANCE_ID,
+                    service_id=SERVICE_ID,
+                    instance_id=INSTANCE_ID,
                 )
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1703,7 +1722,9 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=_send_both,
             )
             acks_valid = [
-                e for e in acks if e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0
+                e
+                for e in acks
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
             ]
 
             # Capture OfferService on the multicast socket (FindService response).
@@ -1727,7 +1748,7 @@ class TestSDSubscribeLifecycleAdvanced:
                     for entry in sd_hdr.entries:
                         if (
                             entry.sd_type == SOMEIPSDEntryType.OfferService
-                            and entry.service_id == _SERVICE_ID
+                            and entry.service_id == SERVICE_ID
                         ):
                             offers.append(entry)
                 except Exception:  # noqa: BLE001
@@ -1773,10 +1794,10 @@ class TestSDSubscribeLifecycleAdvanced:
                 send_subscribe_eventgroup(
                     sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1789,7 +1810,9 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=_send,
             )
             acks = [
-                e for e in entries if e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0
+                e
+                for e in entries
+                if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
             ]
             assert acks, (
                 f"ETS_120: No SubscribeAck received at tester_ip={tester_ip} "
@@ -1876,10 +1899,10 @@ class TestSDSubscribeLifecycleAdvanced:
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
                 )
@@ -1893,17 +1916,17 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=_subscribe,
             )
             assert any(
-                e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks1
+                e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks1
             ), "ETS_155: Prerequisite failed — no initial SubscribeAck received"
 
             # Step 2: Stop subscribe.
             send_subscribe_eventgroup(
                 sd_sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=notif_port,
                 ttl=0,
@@ -1919,7 +1942,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=_subscribe,
             )
             assert any(
-                e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks2
+                e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks2
             ), (
                 "ETS_155: No SubscribeAck received after re-subscribe following StopSubscribe"
             )
@@ -1941,7 +1964,7 @@ class TestSDSubscribeLifecycleAdvanced:
     ) -> None:
         """ETS_095: No NOTIFICATION messages are received after subscription TTL expires.
 
-        SOMEIP_ETS_095 (§5.1.6): After a subscription TTL elapses and is not
+        SOMEIP_ETS_095 (Sec. 5.1.6): After a subscription TTL elapses and is not
         renewed the server must cease sending event notifications to the expired
         subscriber.
 
@@ -1969,10 +1992,10 @@ class TestSDSubscribeLifecycleAdvanced:
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
                     ttl=_TTL_SECS,
@@ -1985,14 +2008,14 @@ class TestSDSubscribeLifecycleAdvanced:
                 timeout_secs=5.0,
                 resend=_send_sub_ttl,
             )
-            assert any(e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks), (
-                "ETS_095: Prerequisite failed — no SubscribeEventgroupAck received"
-            )
+            assert any(
+                e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks
+            ), "ETS_095: Prerequisite failed — no SubscribeEventgroupAck received"
 
             # Drain notifications sent during the active subscription period
             # so they don't contaminate the post-expiry observation window.
             pre_expiry = capture_some_ip_messages(
-                notif_sock, _SERVICE_ID, timeout_secs=4.0
+                notif_sock, SERVICE_ID, timeout_secs=4.0
             )
             assert pre_expiry, "ETS_095: No notifications received before TTL expiry"
 
@@ -2001,7 +2024,7 @@ class TestSDSubscribeLifecycleAdvanced:
 
             # Verify no notifications arrive after TTL expiry.
             post_expiry = capture_some_ip_messages(
-                notif_sock, _SERVICE_ID, timeout_secs=3.0
+                notif_sock, SERVICE_ID, timeout_secs=3.0
             )
             assert not post_expiry, (
                 f"ETS_095: {len(post_expiry)} NOTIFICATION(s) received after "
@@ -2059,7 +2082,7 @@ class TestSDFindServiceAdvanced:
                     sd_hdr, _ = SOMEIPSDHeader.parse(someip_msg.payload)
                     has_offer = any(
                         e.sd_type == SOMEIPSDEntryType.OfferService
-                        and e.service_id == _SERVICE_ID
+                        and e.service_id == SERVICE_ID
                         for e in sd_hdr.entries
                     )
                     if has_offer:
@@ -2114,10 +2137,10 @@ class TestSDFindServiceAdvanced:
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_UDP_UNICAST,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
                 )
@@ -2129,12 +2152,12 @@ class TestSDFindServiceAdvanced:
                 timeout_secs=5.0,
                 resend=_subscribe,
             )
-            assert any(e.eventgroup_id == _EVENTGROUP_ID and e.ttl > 0 for e in acks), (
-                "ETS_099: Prerequisite failed — no SubscribeAck received"
-            )
+            assert any(
+                e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks
+            ), "ETS_099: Prerequisite failed — no SubscribeAck received"
 
             # Expect at least one notification (field sends initial value + cyclic updates).
-            notifs = capture_some_ip_messages(notif_sock, _SERVICE_ID, timeout_secs=5.0)
+            notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=5.0)
             assert notifs, (
                 "ETS_099: No SOME/IP notifications received after subscribe. "
                 "DUT must send initial field value on subscription."
@@ -2221,7 +2244,7 @@ class TestSDFindServiceAdvanced:
                 send_find_service(
                     sock,
                     (SD_MULTICAST_ADDR, SD_PORT),
-                    service_id=_SERVICE_ID,
+                    service_id=SERVICE_ID,
                     instance_id=0xFFFF,
                     major_version=0xFF,
                     minor_version=0xFFFFFFFF,
@@ -2234,7 +2257,7 @@ class TestSDFindServiceAdvanced:
                 timeout_secs=5.0,
                 resend=_send,
             )
-            matching = [e for e in entries if e.service_id == _SERVICE_ID]
+            matching = [e for e in entries if e.service_id == SERVICE_ID]
             assert matching, (
                 f"ETS_128: No OfferService received for multicast FindService "
                 f"with wildcard version (major=0xFF, minor=0xFFFFFFFF)"
@@ -2270,7 +2293,7 @@ class TestSDFindServiceAdvanced:
         try:
             # SD flags: reboot bit (0x80) set, unicast bit (0x40) clear → 0x80
             entry_bytes = _find_service_entry_bytes(
-                service_id=_SERVICE_ID,
+                service_id=SERVICE_ID,
                 instance_id=0xFFFF,
                 major_version=0xFF,
                 minor_version=0xFFFFFFFF,
@@ -2298,7 +2321,7 @@ class TestSDFindServiceAdvanced:
                     for entry in sd_hdr.entries:
                         if (
                             entry.sd_type == SOMEIPSDEntryType.OfferService
-                            and entry.service_id == _SERVICE_ID
+                            and entry.service_id == SERVICE_ID
                         ):
                             found.append(entry)
                 except Exception:  # noqa: BLE001
@@ -2311,7 +2334,7 @@ class TestSDFindServiceAdvanced:
                     filter_types=(SOMEIPSDEntryType.OfferService,),
                     timeout_secs=0.5,
                 )
-                found.extend(e for e in unicast_entries if e.service_id == _SERVICE_ID)
+                found.extend(e for e in unicast_entries if e.service_id == SERVICE_ID)
 
             assert found, (
                 "ETS_130: No OfferService received after multicast FindService "

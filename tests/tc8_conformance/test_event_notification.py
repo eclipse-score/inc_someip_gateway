@@ -36,7 +36,21 @@ from helpers.sd_sender import (
     open_sender_socket,
     send_subscribe_eventgroup,
 )
-from helpers.constants import DUT_RELIABLE_PORT, SD_PORT
+from helpers.constants import (
+    DUT_RELIABLE_PORT,
+    EVENT_FIELD_UINT8,
+    EVENT_TEST_UINT8,
+    EVENT_TEST_UINT8_RELIABLE,
+    EVENTGROUP_TCP_RELIABLE,
+    EVENTGROUP_UDP_MULTICAST,
+    EVENTGROUP_UDP_UNICAST,
+    INSTANCE_ID,
+    MAJOR_VERSION,
+    MULTICAST_ADDR,
+    MULTICAST_EVENT_PORT,
+    SD_PORT,
+    SERVICE_ID,
+)
 from helpers.tcp_helpers import tcp_receive_response
 from someip.header import SOMEIPMessageType
 
@@ -45,20 +59,6 @@ from someip.header import SOMEIPMessageType
 # ---------------------------------------------------------------------------
 
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
-
-_SERVICE_ID: int = 0x1234
-_INSTANCE_ID: int = 0x5678
-_EVENT_ID: int = 0x0777
-_EVENTGROUP_ID: int = 0x4455
-_MAJOR_VERSION: int = 0x00
-
-#: TCP-only event/eventgroup — offered with RT_RELIABLE in someipd standalone mode.
-_TCP_EVENT_ID: int = 0x0778
-_TCP_EVENTGROUP_ID: int = 0x4475
-
-#: Static field event — long update-cycle (60 000 ms) used for RPC_16 on-change test.
-_STATIC_FIELD_EVENT_ID: int = 0x0779
-_STATIC_FIELD_EVENTGROUP_ID: int = 0x4480
 
 
 # ---------------------------------------------------------------------------
@@ -102,17 +102,17 @@ class TestEventNotificationFormat:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
             )
             # DUT notifies every 500 ms (tc8_someipd_service.json update-cycle), wait for at least one
             notifs = capture_notifications(
                 notif_sock,
-                _EVENT_ID,
-                _SERVICE_ID,
+                EVENT_TEST_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=5.0,
             )
@@ -152,21 +152,21 @@ class TestEventNotificationFormat:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
             )
             notifs = capture_notifications(
                 notif_sock,
-                _EVENT_ID,
-                _SERVICE_ID,
+                EVENT_TEST_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=5.0,
             )
             assert notifs, "TC8-EVT-002: No NOTIFICATION received after subscription"
-            assert_notification_header(notifs[0], _EVENT_ID)
+            assert_notification_header(notifs[0], EVENT_TEST_UINT8)
         finally:
             if sd_sock:
                 sd_sock.close()
@@ -216,10 +216,10 @@ class TestEventNotificationFormat:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
                 ttl=30,  # 30 s > 10 s observation window; keeps subscription alive.
             )
@@ -238,7 +238,10 @@ class TestEventNotificationFormat:
                     from someip.header import SOMEIPHeader as _HDR
 
                     msg, _ = _HDR.parse(data)
-                    if msg.service_id == _SERVICE_ID and msg.method_id == _EVENT_ID:
+                    if (
+                        msg.service_id == SERVICE_ID
+                        and msg.method_id == EVENT_TEST_UINT8
+                    ):
                         timestamps.append(time.monotonic())
                 except Exception:
                     continue
@@ -305,30 +308,30 @@ class TestEventNotificationFormat:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _STATIC_FIELD_EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
             )
 
             # Expect exactly one initial-value notification from the field event.
             initial = capture_notifications(
                 notif_sock,
-                _STATIC_FIELD_EVENT_ID,
-                _SERVICE_ID,
+                EVENT_FIELD_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=5.0,
             )
             assert initial, (
                 "SOMEIPSRV_RPC_16: No initial-value notification received after "
-                f"subscribing to static field eventgroup 0x{_STATIC_FIELD_EVENTGROUP_ID:04x}"
+                f"subscribing to static field eventgroup 0x{EVENTGROUP_UDP_UNICAST:04x}"
             )
 
             # Wait 3 seconds — no further notifications should arrive because the
             # 60 000 ms update-cycle has not elapsed and the field value is frozen.
             subsequent = capture_any_notifications(
-                notif_sock, _SERVICE_ID, timeout_secs=3.0
+                notif_sock, SERVICE_ID, timeout_secs=3.0
             )
             assert not subsequent, (
                 f"SOMEIPSRV_RPC_16: {len(subsequent)} unexpected notification(s) received "
@@ -381,25 +384,25 @@ class TestEventSubscriptionGating:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=sub_port,
             )
 
             # Wait for notification on subscribed socket
             notifs = capture_notifications(
                 sub_sock,
-                _EVENT_ID,
-                _SERVICE_ID,
+                EVENT_TEST_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=5.0,
             )
             assert notifs, "TC8-EVT-003: No notification on subscribed socket"
 
             # Unsubscribed socket should have nothing
-            stray = capture_any_notifications(unsub_sock, _SERVICE_ID, timeout_secs=2.0)
+            stray = capture_any_notifications(unsub_sock, SERVICE_ID, timeout_secs=2.0)
             assert not stray, (
                 f"TC8-EVT-003: {len(stray)} notification(s) on unsubscribed socket"
             )
@@ -431,9 +434,7 @@ class TestEventSubscriptionGating:
 
         try:
             # Wait 3 seconds — if we got any, subscription gating failed
-            stray = capture_any_notifications(
-                listen_sock, _SERVICE_ID, timeout_secs=3.0
-            )
+            stray = capture_any_notifications(listen_sock, SERVICE_ID, timeout_secs=3.0)
             assert not stray, (
                 f"TC8-EVT-004: {len(stray)} notification(s) received without subscription"
             )
@@ -476,16 +477,16 @@ class TestEventStopSubscribe:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
             )
             notifs = capture_notifications(
                 notif_sock,
-                _EVENT_ID,
-                _SERVICE_ID,
+                EVENT_TEST_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=5.0,
             )
@@ -497,10 +498,10 @@ class TestEventStopSubscribe:
             send_subscribe_eventgroup(
                 sd_sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=notif_port,
                 ttl=0,
@@ -508,7 +509,7 @@ class TestEventStopSubscribe:
 
             # Wait — no more notifications should arrive
             # DUT sends every 500 ms (tc8_someipd_service.json update-cycle), so a 4 s window should catch any leaks
-            post = capture_any_notifications(notif_sock, _SERVICE_ID, timeout_secs=4.0)
+            post = capture_any_notifications(notif_sock, SERVICE_ID, timeout_secs=4.0)
             assert not post, (
                 f"TC8-EVT-006: {len(post)} notification(s) after StopSubscribeEventgroup"
             )
@@ -521,11 +522,6 @@ class TestEventStopSubscribe:
 # ---------------------------------------------------------------------------
 # TC8-EVT-005 — Multicast notification delivery
 # ---------------------------------------------------------------------------
-
-
-_MULTICAST_EVENTGROUP_ID: int = 0x4465
-_MULTICAST_NOTIF_ADDR: str = "239.0.0.1"
-_MULTICAST_NOTIF_PORT: int = 40490
 
 
 class TestMulticastEventDelivery:
@@ -558,12 +554,12 @@ class TestMulticastEventDelivery:
         try:
             mcast_sock = open_multicast_socket(
                 host_ip,
-                multicast_group=_MULTICAST_NOTIF_ADDR,
-                port=_MULTICAST_NOTIF_PORT,
+                multicast_group=MULTICAST_ADDR,
+                port=MULTICAST_EVENT_PORT,
             )
         except OSError as exc:
             pytest.skip(
-                f"Cannot join multicast group {_MULTICAST_NOTIF_ADDR}:{_MULTICAST_NOTIF_PORT} "
+                f"Cannot join multicast group {MULTICAST_ADDR}:{MULTICAST_EVENT_PORT} "
                 f"on {host_ip}: {exc}"
             )
 
@@ -573,21 +569,19 @@ class TestMulticastEventDelivery:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _MULTICAST_EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_MULTICAST,
+                MAJOR_VERSION,
                 notif_port=mcast_sock.getsockname()[1],
             )
             # DUT sends notifications every 500 ms (tc8_someipd_service.json update-cycle).
             # Allow up to 5 s for the first notification to arrive on the multicast socket.
-            notifs = capture_any_notifications(
-                mcast_sock, _SERVICE_ID, timeout_secs=5.0
-            )
+            notifs = capture_any_notifications(mcast_sock, SERVICE_ID, timeout_secs=5.0)
             assert notifs, (
                 f"TC8-EVT-005: No SOME/IP notification received on multicast "
-                f"{_MULTICAST_NOTIF_ADDR}:{_MULTICAST_NOTIF_PORT} within 5 s "
-                f"after subscribing to eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+                f"{MULTICAST_ADDR}:{MULTICAST_EVENT_PORT} within 5 s "
+                f"after subscribing to eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
             )
             assert notifs[0].message_type == SOMEIPMessageType.NOTIFICATION, (
                 f"TC8-EVT-005: message_type mismatch on multicast socket: "
@@ -661,10 +655,10 @@ class TestEventTcpNotification:
             send_subscribe_eventgroup(
                 sd_sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _TCP_EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_TCP_RELIABLE,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=local_port,
                 l4proto=L4Protocols.TCP,
@@ -678,10 +672,10 @@ class TestEventTcpNotification:
                 resend=lambda: send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
-                    _SERVICE_ID,
-                    _INSTANCE_ID,
-                    _TCP_EVENTGROUP_ID,
-                    _MAJOR_VERSION,
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_TCP_RELIABLE,
+                    MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=local_port,
                     l4proto=L4Protocols.TCP,
@@ -691,10 +685,10 @@ class TestEventTcpNotification:
             acks = [
                 e
                 for e in entries
-                if e.eventgroup_id == _TCP_EVENTGROUP_ID and e.ttl > 0
+                if e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0
             ]
             assert acks, (
-                f"No SubscribeEventgroupAck for TCP eventgroup 0x{_TCP_EVENTGROUP_ID:04x}"
+                f"No SubscribeEventgroupAck for TCP eventgroup 0x{EVENTGROUP_TCP_RELIABLE:04x}"
             )
 
             # DUT sends every 500 ms via standalone loop — wait for TCP notification.
@@ -703,9 +697,9 @@ class TestEventTcpNotification:
                 f"SOMEIPSRV_RPC_17: TCP message_type = 0x{msg.message_type:02x}, "
                 f"expected NOTIFICATION (0x{SOMEIPMessageType.NOTIFICATION:02x})"
             )
-            assert msg.method_id == _TCP_EVENT_ID, (
+            assert msg.method_id == EVENT_TEST_UINT8_RELIABLE, (
                 f"SOMEIPSRV_RPC_17: TCP event_id = 0x{msg.method_id:04x}, "
-                f"expected 0x{_TCP_EVENT_ID:04x}"
+                f"expected 0x{EVENT_TEST_UINT8_RELIABLE:04x}"
             )
         finally:
             sd_sock.close()

@@ -38,7 +38,12 @@ import pytest
 
 from attribute_plugin import add_test_properties
 
-from helpers.constants import SD_PORT
+from helpers.constants import (
+    EVENTGROUP_UDP_UNICAST,
+    INSTANCE_ID,
+    SD_PORT,
+    SERVICE_ID,
+)
 from helpers.sd_malformed import (
     send_sd_empty_entries,
     send_sd_empty_option,
@@ -77,15 +82,10 @@ from helpers.sd_sender import (
 #: SOME/IP stack config used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
-#: Service and instance IDs declared in ``tc8_someipd_sd.json``.
-_SERVICE_ID: int = 0x1234
-_INSTANCE_ID: int = 0x5678
-_EVENTGROUP_ID: int = 0x4455
-
 #: An unknown service/instance not offered by the DUT.
-_UNKNOWN_SERVICE_ID: int = 0xDEAD
-_UNKNOWN_INSTANCE_ID: int = 0xBEEF
-_UNKNOWN_EVENTGROUP_ID: int = 0xDEAD
+_UNKNOWNSERVICE_ID: int = 0xDEAD
+_UNKNOWNINSTANCE_ID: int = 0xBEEF
+_UNKNOWNEVENTGROUP_UDP_UNICAST: int = 0xDEAD
 
 #: How long to wait for a DUT OfferService reply after injecting malformed data.
 _DUT_ALIVE_TIMEOUT: float = 5.0
@@ -109,7 +109,7 @@ def _verify_dut_alive(sock: socket.socket, dut_ip: str) -> None:
     sd_dest = (dut_ip, SD_PORT)
 
     def _resend() -> None:
-        send_find_service(sock, sd_dest, _SERVICE_ID)
+        send_find_service(sock, sd_dest, SERVICE_ID)
 
     _resend()
     entries = capture_unicast_sd_entries(
@@ -179,7 +179,7 @@ class TestSDMalformedEntries:
         """ETS_112/113: SubscribeEventgroup with option length=1 (too short). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_empty_option(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -198,7 +198,7 @@ class TestSDMalformedEntries:
         """ETS_114: entries_array_length=0 but one entry is present. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entries_length_wrong(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, entries_length_override=0
+            sender, (dut_ip, SD_PORT), SERVICE_ID, entries_length_override=0
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -217,7 +217,7 @@ class TestSDMalformedEntries:
         """ETS_114: entries_array_length=8 (not a multiple of 16). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entries_length_wrong(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, entries_length_override=8
+            sender, (dut_ip, SD_PORT), SERVICE_ID, entries_length_override=8
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -239,9 +239,9 @@ class TestSDMalformedEntries:
         send_sd_entry_refs_more_options(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -262,7 +262,7 @@ class TestSDMalformedEntries:
         """ETS_116/174: SubscribeEventgroup with unknown option type 0x77. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_unknown_option_type(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -284,9 +284,9 @@ class TestSDMalformedEntries:
         send_sd_entry_same_option_twice(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -311,7 +311,7 @@ class TestSDMalformedEntries:
         """
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_find_with_options(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, tester_ip, _SUBSCRIBER_PORT
+            sender, (dut_ip, SD_PORT), SERVICE_ID, tester_ip, _SUBSCRIBER_PORT
         )
         # The DUT should still respond to this FindService (options are ignored on Find)
         _verify_dut_alive(sender, dut_ip)
@@ -330,7 +330,7 @@ class TestSDMalformedEntries:
     ) -> None:
         """ETS_123/124: entries_array_length=0xFFFF (far exceeds packet size). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
-        send_sd_oversized_entries_length(sender, (dut_ip, SD_PORT), _SERVICE_ID)
+        send_sd_oversized_entries_length(sender, (dut_ip, SD_PORT), SERVICE_ID)
         _verify_dut_alive(sender, dut_ip)
 
     @add_test_properties(
@@ -347,7 +347,7 @@ class TestSDMalformedEntries:
     ) -> None:
         """ETS_125: entries_array_length=16 but only 8 bytes of entry data present. DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
-        send_sd_truncated_entry(sender, (dut_ip, SD_PORT), _SERVICE_ID)
+        send_sd_truncated_entry(sender, (dut_ip, SD_PORT), SERVICE_ID)
         _verify_dut_alive(sender, dut_ip)
 
 
@@ -377,9 +377,9 @@ class TestSDMalformedOptions:
         send_sd_option_length_too_long(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
             option_length_override=0x00FF,
@@ -404,9 +404,9 @@ class TestSDMalformedOptions:
         send_sd_option_length_too_long(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
             option_length_override=0x000A,
@@ -431,9 +431,9 @@ class TestSDMalformedOptions:
         send_sd_option_length_too_short(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -457,9 +457,9 @@ class TestSDMalformedOptions:
         send_sd_option_length_unaligned(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -483,9 +483,9 @@ class TestSDMalformedOptions:
         send_sd_options_array_length_too_long(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -509,9 +509,9 @@ class TestSDMalformedOptions:
         send_sd_options_array_length_too_short(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -532,7 +532,7 @@ class TestSDMalformedOptions:
         """ETS_174: Option type 0x77 (unknown/reserved). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_unknown_option_type(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -563,7 +563,7 @@ class TestSDSubscribeEdgeCases:
         """
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_no_endpoint(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, _INSTANCE_ID, _EVENTGROUP_ID
+            sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -587,9 +587,9 @@ class TestSDSubscribeEdgeCases:
         send_sd_subscribe_zero_ip(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             subscriber_port=_SUBSCRIBER_PORT,
         )
         _verify_dut_alive(sender, dut_ip)
@@ -615,9 +615,9 @@ class TestSDSubscribeEdgeCases:
         send_sd_subscribe_wrong_l4proto(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
             l4proto=0x00,
@@ -645,9 +645,9 @@ class TestSDSubscribeEdgeCases:
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
-            _UNKNOWN_SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            _UNKNOWNSERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -674,9 +674,9 @@ class TestSDSubscribeEdgeCases:
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _UNKNOWN_INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            _UNKNOWNINSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -703,9 +703,9 @@ class TestSDSubscribeEdgeCases:
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _UNKNOWN_EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            _UNKNOWNEVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -732,9 +732,9 @@ class TestSDSubscribeEdgeCases:
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
-            _UNKNOWN_SERVICE_ID,
-            _UNKNOWN_INSTANCE_ID,
-            _UNKNOWN_EVENTGROUP_ID,
+            _UNKNOWNSERVICE_ID,
+            _UNKNOWNINSTANCE_ID,
+            _UNKNOWNEVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -761,9 +761,9 @@ class TestSDSubscribeEdgeCases:
         send_sd_subscribe_reserved_option(
             sender,
             (dut_ip, SD_PORT),
-            _SERVICE_ID,
-            _INSTANCE_ID,
-            _EVENTGROUP_ID,
+            SERVICE_ID,
+            INSTANCE_ID,
+            EVENTGROUP_UDP_UNICAST,
             tester_ip,
             _SUBSCRIBER_PORT,
         )
@@ -793,7 +793,7 @@ class TestSDMessageFramingErrors:
         """ETS_152a: FindService with session_id=0xFFFE. DUT must not be confused by near-wrap session ID."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, session_id=0xFFFE
+            sender, (dut_ip, SD_PORT), SERVICE_ID, session_id=0xFFFE
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -812,7 +812,7 @@ class TestSDMessageFramingErrors:
         """ETS_152b: FindService with session_id=0xFFFF (maximum). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, session_id=0xFFFF
+            sender, (dut_ip, SD_PORT), SERVICE_ID, session_id=0xFFFF
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -831,7 +831,7 @@ class TestSDMessageFramingErrors:
         """ETS_152c: FindService with session_id=0x0001 after high session_id. DUT must accept wrap."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, session_id=0x0001
+            sender, (dut_ip, SD_PORT), SERVICE_ID, session_id=0x0001
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -850,7 +850,7 @@ class TestSDMessageFramingErrors:
         """ETS_153a: SOME/IP length field smaller than actual payload (length=8). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_wrong_someip_length(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, length_override=8
+            sender, (dut_ip, SD_PORT), SERVICE_ID, length_override=8
         )
         _verify_dut_alive(sender, dut_ip)
 
@@ -869,7 +869,7 @@ class TestSDMessageFramingErrors:
         """ETS_153b: SOME/IP length field larger than actual payload (length=0x1000). DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_wrong_someip_length(
-            sender, (dut_ip, SD_PORT), _SERVICE_ID, length_override=0x1000
+            sender, (dut_ip, SD_PORT), SERVICE_ID, length_override=0x1000
         )
         _verify_dut_alive(sender, dut_ip)
 

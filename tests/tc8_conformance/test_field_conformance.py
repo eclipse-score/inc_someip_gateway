@@ -42,7 +42,18 @@ from helpers.field_helpers import (
     send_set_field,
     send_set_field_tcp,
 )
-from helpers.constants import DUT_RELIABLE_PORT, DUT_UNRELIABLE_PORT, SD_PORT
+from helpers.constants import (
+    DUT_RELIABLE_PORT,
+    DUT_UNRELIABLE_PORT,
+    EVENT_FIELD_UINT8,
+    EVENTGROUP_UDP_UNICAST,
+    INSTANCE_ID,
+    MAJOR_VERSION,
+    METHOD_FIELD_UINT8_GET,
+    METHOD_FIELD_UINT8_SET,
+    SD_PORT,
+    SERVICE_ID,
+)
 from helpers.sd_helpers import capture_sd_offers
 from someip.header import SOMEIPReturnCode
 
@@ -52,18 +63,6 @@ from someip.header import SOMEIPReturnCode
 
 #: SOME/IP stack config template — fields config with is_field=true, update-cycle=500ms.
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
-
-_SERVICE_ID: int = 0x1234
-_INSTANCE_ID: int = 0x5678
-_EVENT_ID: int = 0x0777
-_EVENTGROUP_ID: int = 0x4455
-_MAJOR_VERSION: int = 0x00
-
-#: GET field method — returns current field value (TC8-FLD-003).
-_GET_METHOD_ID: int = 0x0001
-
-#: SET field method — updates field value and notifies (TC8-FLD-004).
-_SET_METHOD_ID: int = 0x0002
 
 
 # ---------------------------------------------------------------------------
@@ -110,18 +109,18 @@ class TestFieldInitialValue:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
             )
             # Wait actively for the DUT to send the first notify() (update-cycle=500 ms).
             # Proceed as soon as the first notification arrives; no fixed sleep needed.
             notifs = capture_notifications(
                 notif_sock,
-                _EVENT_ID,
-                _SERVICE_ID,
+                EVENT_FIELD_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=1.5,
             )
@@ -166,10 +165,10 @@ class TestFieldInitialValue:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
             )
             subscribe_time = time.monotonic()
@@ -177,8 +176,8 @@ class TestFieldInitialValue:
             # A field (is_field=true) delivers the cached value immediately after ACK.
             notifs = capture_notifications(
                 notif_sock,
-                _EVENT_ID,
-                _SERVICE_ID,
+                EVENT_FIELD_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=1.5,
             )
@@ -219,8 +218,8 @@ class TestFieldGetSet:
 
         resp = send_get_field(
             dut_ip,
-            _SERVICE_ID,
-            _GET_METHOD_ID,
+            SERVICE_ID,
+            METHOD_FIELD_UINT8_GET,
             DUT_UNRELIABLE_PORT,
             client_id=0x0030,
             session_id=0x0001,
@@ -263,23 +262,23 @@ class TestFieldGetSet:
                 tester_ip,
                 dut_ip,
                 SD_PORT,
-                _SERVICE_ID,
-                _INSTANCE_ID,
-                _EVENTGROUP_ID,
-                _MAJOR_VERSION,
+                SERVICE_ID,
+                INSTANCE_ID,
+                EVENTGROUP_UDP_UNICAST,
+                MAJOR_VERSION,
                 notif_port=notif_port,
             )
 
             # Drain any initial value notification that arrived due to is_field=true.
             capture_notifications(
-                notif_sock, _EVENT_ID, _SERVICE_ID, count=1, timeout_secs=1.5
+                notif_sock, EVENT_FIELD_UINT8, SERVICE_ID, count=1, timeout_secs=1.5
             )
 
             # Send the SET request.
             set_resp = send_set_field(
                 dut_ip,
-                _SERVICE_ID,
-                _SET_METHOD_ID,
+                SERVICE_ID,
+                METHOD_FIELD_UINT8_SET,
                 new_value,
                 DUT_UNRELIABLE_PORT,
                 client_id=0x0030,
@@ -293,8 +292,8 @@ class TestFieldGetSet:
             # Verify the DUT notified us with the new value within 3 s.
             notifs = capture_notifications(
                 notif_sock,
-                _EVENT_ID,
-                _SERVICE_ID,
+                EVENT_FIELD_UINT8,
+                SERVICE_ID,
                 count=1,
                 timeout_secs=3.0,
             )
@@ -342,8 +341,8 @@ class TestFieldTcpTransport:
 
         resp = send_get_field_tcp(
             dut_ip,
-            _SERVICE_ID,
-            _GET_METHOD_ID,
+            SERVICE_ID,
+            METHOD_FIELD_UINT8_GET,
             DUT_RELIABLE_PORT,
             client_id=0x0040,
             session_id=0x0010,
@@ -374,8 +373,8 @@ class TestFieldTcpTransport:
         new_value = b"\xbe\xef"
         set_resp = send_set_field_tcp(
             dut_ip,
-            _SERVICE_ID,
-            _SET_METHOD_ID,
+            SERVICE_ID,
+            METHOD_FIELD_UINT8_SET,
             new_value,
             DUT_RELIABLE_PORT,
             client_id=0x0040,
@@ -390,8 +389,8 @@ class TestFieldTcpTransport:
         # Verify the value was updated by reading it back over TCP.
         get_resp = send_get_field_tcp(
             dut_ip,
-            _SERVICE_ID,
-            _GET_METHOD_ID,
+            SERVICE_ID,
+            METHOD_FIELD_UINT8_GET,
             DUT_RELIABLE_PORT,
             client_id=0x0040,
             session_id=0x0012,

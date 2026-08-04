@@ -45,7 +45,7 @@ from someip.header import SOMEIPHeader, SOMEIPSDHeader
 #: Uses the standard SD config (same service IDs as test_service_discovery.py).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
-#: Maximum wait time for SD messages, derived from TC8 spec §4 IUT parameters:
+#: Maximum wait time for SD messages, derived from TC8 spec Sec. 4 IUT parameters:
 #: Listen Time (10 s) + Tolerance Time (1 s) + Process Time (2 s) = 13 s,
 #: plus 2 s buffer for container/CI overhead.
 _SD_CAPTURE_TIMEOUT_SECS: float = 15.0

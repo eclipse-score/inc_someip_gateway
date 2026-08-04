@@ -38,7 +38,14 @@ from helpers.someip_assertions import (
     assert_session_echo,
     assert_valid_response,
 )
-from helpers.constants import DUT_RELIABLE_PORT, DUT_UNRELIABLE_PORT
+from helpers.constants import (
+    DUT_RELIABLE_PORT,
+    DUT_UNRELIABLE_PORT,
+    EVENT_TEST_UINT8,
+    INSTANCE_ID,
+    METHOD_ECHO_UINT8,
+    SERVICE_ID,
+)
 from helpers.sd_helpers import capture_sd_offers
 from helpers.tcp_helpers import (
     tcp_connect,
@@ -56,10 +63,7 @@ from someip.header import SOMEIPHeader, SOMEIPMessageType, SOMEIPReturnCode
 
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
 
-_SERVICE_ID: int = 0x1234
-_INSTANCE_ID: int = 0x5678
-_METHOD_ID: int = 0x0421
-_UNKNOWN_METHOD_ID: int = 0xBEEF
+_UNKNOWNMETHOD_ECHO_UINT8: int = 0xBEEF
 # SD config for waiting until DUT is ready
 
 
@@ -147,7 +151,7 @@ class TestSomeipResponseHeader:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0001
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0001
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -171,11 +175,11 @@ class TestSomeipResponseHeader:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0002
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0002
         )
         resp = _send_request_and_receive(dut_ip, req)
 
-        assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+        assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__msg_resp_header"],
@@ -193,7 +197,7 @@ class TestSomeipResponseHeader:
         _wait_for_dut_offer(host_ip)
 
         req = build_request_no_return(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0009
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0009
         )
         responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
@@ -219,7 +223,7 @@ class TestSomeipResponseHeader:
 
         session_id = 0x1234
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=session_id
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=session_id
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -242,7 +246,7 @@ class TestSomeipResponseHeader:
 
         client_id = 0x0011
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=client_id, session_id=0x0003
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=client_id, session_id=0x0003
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -279,7 +283,7 @@ class TestSomeipErrorCodes:
 
         unknown_service = 0xBEEF
         req = build_request(
-            unknown_service, _METHOD_ID, client_id=0x0010, session_id=0x0004
+            unknown_service, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0004
         )
         responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
@@ -303,7 +307,7 @@ class TestSomeipErrorCodes:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _UNKNOWN_METHOD_ID, client_id=0x0010, session_id=0x0005
+            SERVICE_ID, _UNKNOWNMETHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0005
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -331,8 +335,8 @@ class TestSomeipErrorCodes:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             client_id=0x0010,
             session_id=0x0006,
             interface_version=0xFF,
@@ -390,8 +394,8 @@ class TestMalformedMessages:
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         malformed = build_wrong_protocol_version_request(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             client_id=0x0010,
             session_id=0x0007,
         )
@@ -420,7 +424,7 @@ class TestMalformedMessages:
         try:
             sock.sendto(
                 build_oversized_message(
-                    _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0008
+                    SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0008
                 ),
                 (dut_ip, DUT_UNRELIABLE_PORT),
             )
@@ -468,12 +472,12 @@ class TestSomeipTcpTransport:
         sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             req = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0050
+                SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0050
             )
             tcp_send_request(sock, req)
             resp = tcp_receive_response(sock)
 
-            assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+            assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
         finally:
             sock.close()
 
@@ -496,7 +500,7 @@ class TestSomeipTcpTransport:
         sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             req = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=session_id
+                SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=session_id
             )
             tcp_send_request(sock, req)
             resp = tcp_receive_response(sock)
@@ -524,7 +528,7 @@ class TestSomeipTcpTransport:
         sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
             req = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=client_id, session_id=0x0051
+                SERVICE_ID, METHOD_ECHO_UINT8, client_id=client_id, session_id=0x0051
             )
             tcp_send_request(sock, req)
             resp = tcp_receive_response(sock)
@@ -556,20 +560,20 @@ class TestSomeipTcpTransport:
         try:
             # First request
             req1 = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0060
+                SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0060
             )
             tcp_send_request(sock, req1)
             resp1 = tcp_receive_response(sock)
-            assert_valid_response(resp1, _SERVICE_ID, _METHOD_ID)
+            assert_valid_response(resp1, SERVICE_ID, METHOD_ECHO_UINT8)
             assert_session_echo(resp1, 0x0060)
 
             # Second request on the SAME connection
             req2 = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0061
+                SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0061
             )
             tcp_send_request(sock, req2)
             resp2 = tcp_receive_response(sock)
-            assert_valid_response(resp2, _SERVICE_ID, _METHOD_ID)
+            assert_valid_response(resp2, SERVICE_ID, METHOD_ECHO_UINT8)
             assert_session_echo(resp2, 0x0061)
         finally:
             sock.close()
@@ -636,17 +640,25 @@ class TestTcpUnalignedMessages:
         _wait_for_dut_offer(host_ip)
 
         msg1 = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0071, payload=b""
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
+            client_id=0x0010,
+            session_id=0x0071,
+            payload=b"",
         )
         msg2 = build_request(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             client_id=0x0010,
             session_id=0x0072,
             payload=b"\xaa\xbb",
         )
         msg3 = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0073, payload=b""
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
+            client_id=0x0010,
+            session_id=0x0073,
+            payload=b"",
         )
 
         sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
@@ -660,8 +672,8 @@ class TestTcpUnalignedMessages:
             f"SOMEIP_ETS_068: expected 3 RESPONSE messages, got {len(responses)}"
         )
         for resp in responses:
-            assert resp.service_id == _SERVICE_ID
-            assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+            assert resp.service_id == SERVICE_ID
+            assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
 
         session_ids = {resp.session_id for resp in responses}
         assert session_ids == {0x0071, 0x0072, 0x0073}, (
@@ -708,17 +720,25 @@ class TestUdpUnalignedMessages:
         _wait_for_dut_offer(host_ip)
 
         msg1 = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0081, payload=b""
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
+            client_id=0x0010,
+            session_id=0x0081,
+            payload=b"",
         )
         msg2 = build_request(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             client_id=0x0010,
             session_id=0x0082,
             payload=b"\xaa\xbb",
         )
         msg3 = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0010, session_id=0x0083, payload=b""
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
+            client_id=0x0010,
+            session_id=0x0083,
+            payload=b"",
         )
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -736,8 +756,8 @@ class TestUdpUnalignedMessages:
             f"SOMEIP_ETS_069: expected 3 RESPONSE messages, got {len(responses)}"
         )
         for resp in responses:
-            assert resp.service_id == _SERVICE_ID
-            assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+            assert resp.service_id == SERVICE_ID
+            assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
 
         session_ids = {resp.session_id for resp in responses}
         assert session_ids == {0x0081, 0x0082, 0x0083}, (
@@ -751,8 +771,7 @@ class TestUdpUnalignedMessages:
 # ---------------------------------------------------------------------------
 
 
-_UNKNOWN_SERVICE_ID: int = 0xBEEF
-_EVENT_METHOD_ID: int = 0x8001  # bit 15 set → event notification indicator
+_UNKNOWNSERVICE_ID: int = 0xBEEF
 
 
 def _send_request_and_receive_with_addr(
@@ -793,11 +812,11 @@ class TestSomeipBasicIdentifiers:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0020, session_id=0x0001
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0020, session_id=0x0001
         )
         resp = _send_request_and_receive(dut_ip, req)
 
-        assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+        assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
         assert_return_code(resp, SOMEIPReturnCode.E_OK)
 
     @add_test_properties(
@@ -820,13 +839,13 @@ class TestSomeipBasicIdentifiers:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _UNKNOWN_SERVICE_ID, _METHOD_ID, client_id=0x0020, session_id=0x0002
+            _UNKNOWNSERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0020, session_id=0x0002
         )
         responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         assert responses, (
             "SOMEIPSRV_BASIC_02: No response received for unknown service_id "
-            f"0x{_UNKNOWN_SERVICE_ID:04x}; DUT must reply with E_UNKNOWN_SERVICE"
+            f"0x{_UNKNOWNSERVICE_ID:04x}; DUT must reply with E_UNKNOWN_SERVICE"
         )
         assert_return_code(responses[0], SOMEIPReturnCode.E_UNKNOWN_SERVICE)
 
@@ -841,7 +860,7 @@ class TestSomeipBasicIdentifiers:
             "vsomeip 3.6.1 limitation (SOMEIPSRV_BASIC_03): DUT sends a RESPONSE "
             "for event-ID messages (method_id bit 15 = 1). "
             "See docs/architecture/tc8_conformance_testing.rst "
-            "§Known SOME/IP Stack Limitations."
+            "see: Known SOME/IP Stack Limitations."
         ),
     )
     def test_basic_03_event_method_id_no_response(
@@ -860,7 +879,7 @@ class TestSomeipBasicIdentifiers:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _EVENT_METHOD_ID, client_id=0x0020, session_id=0x0003
+            SERVICE_ID, EVENT_TEST_UINT8, client_id=0x0020, session_id=0x0003
         )
         responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
@@ -898,11 +917,11 @@ class TestSomeipResponseFields:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0010
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0021, session_id=0x0010
         )
         resp, addr = _send_request_and_receive_with_addr(dut_ip, req)
 
-        assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+        assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
         assert addr[0] == dut_ip, (
             f"SOMEIPSRV_ONWIRE_01: RESPONSE source IP mismatch: "
             f"got {addr[0]}, expected {dut_ip}"
@@ -928,7 +947,7 @@ class TestSomeipResponseFields:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0011
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0021, session_id=0x0011
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -961,7 +980,10 @@ class TestSomeipResponseFields:
 
         for _ in range(2):
             req = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=client_id, session_id=session_id
+                SERVICE_ID,
+                METHOD_ECHO_UINT8,
+                client_id=client_id,
+                session_id=session_id,
             )
             resp = _send_request_and_receive(dut_ip, req)
 
@@ -995,8 +1017,8 @@ class TestSomeipResponseFields:
 
         iface_ver = 0x05
         req = build_request(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             client_id=0x0021,
             session_id=0x0012,
             interface_version=iface_ver,
@@ -1024,7 +1046,7 @@ class TestSomeipResponseFields:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0013
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0021, session_id=0x0013
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -1046,17 +1068,17 @@ class TestSomeipResponseFields:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0021, session_id=0x0014
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0021, session_id=0x0014
         )
         resp = _send_request_and_receive(dut_ip, req)
 
-        assert resp.service_id == _SERVICE_ID, (
+        assert resp.service_id == SERVICE_ID, (
             f"SOMEIPSRV_RPC_18: service_id mismatch in RESPONSE: "
-            f"got 0x{resp.service_id:04x}, expected 0x{_SERVICE_ID:04x}"
+            f"got 0x{resp.service_id:04x}, expected 0x{SERVICE_ID:04x}"
         )
-        assert resp.method_id == _METHOD_ID, (
+        assert resp.method_id == METHOD_ECHO_UINT8, (
             f"SOMEIPSRV_RPC_18: method_id mismatch in RESPONSE: "
-            f"got 0x{resp.method_id:04x}, expected 0x{_METHOD_ID:04x}"
+            f"got 0x{resp.method_id:04x}, expected 0x{METHOD_ECHO_UINT8:04x}"
         )
 
     @add_test_properties(
@@ -1081,7 +1103,10 @@ class TestSomeipResponseFields:
 
         session_id = 0x0016
         req = build_request(
-            _SERVICE_ID, _UNKNOWN_METHOD_ID, client_id=0x0021, session_id=session_id
+            SERVICE_ID,
+            _UNKNOWNMETHOD_ECHO_UINT8,
+            client_id=0x0021,
+            session_id=session_id,
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -1108,8 +1133,8 @@ class TestSomeipResponseFields:
 
         iface_ver = 0x03
         req = build_request(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             client_id=0x0021,
             session_id=0x0015,
             interface_version=iface_ver,
@@ -1146,7 +1171,7 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         req = build_request_no_return(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0020
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0030, session_id=0x0020
         )
         responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
@@ -1184,7 +1209,7 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0021
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0030, session_id=0x0021
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -1218,15 +1243,15 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         req = build_request_with_return_code(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             return_code=0x20,
             client_id=0x0030,
             session_id=0x0022,
         )
         resp = _send_request_and_receive(dut_ip, req)
 
-        assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+        assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__msg_resp_header"],
@@ -1239,7 +1264,7 @@ class TestSomeipFireAndForgetAndErrors:
             "vsomeip 3.6.1 limitation (SOMEIPSRV_RPC_08): DUT replies to REQUEST "
             "messages carrying a non-zero return code, violating the spec. "
             "See docs/architecture/tc8_conformance_testing.rst "
-            "§Known SOME/IP Stack Limitations."
+            "see: Known SOME/IP Stack Limitations."
         ),
     )
     def test_rpc_08_request_with_error_return_code_no_reply(
@@ -1257,8 +1282,8 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         req = build_request_with_return_code(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             return_code=0x01,
             client_id=0x0030,
             session_id=0x0023,
@@ -1291,7 +1316,7 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _UNKNOWN_METHOD_ID, client_id=0x0030, session_id=0x0024
+            SERVICE_ID, _UNKNOWNMETHOD_ECHO_UINT8, client_id=0x0030, session_id=0x0024
         )
         resp = _send_request_and_receive(dut_ip, req)
 
@@ -1323,7 +1348,7 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         raw = build_request_no_return(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0025
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0030, session_id=0x0025
         )
         # Patch byte 14 (message_type) to reserved value 0x04.
         patched = raw[:14] + b"\x04" + raw[15:]
@@ -1379,10 +1404,10 @@ class TestSomeipFireAndForgetAndErrors:
         for i in range(10):
             session_id = base_session_id + i
             req = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=session_id
+                SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0030, session_id=session_id
             )
             resp = _send_request_and_receive(dut_ip, req, timeout_secs=3.0)
-            assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+            assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
             assert_session_echo(resp, session_id)
 
     @add_test_properties(
@@ -1401,15 +1426,15 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID,
-            _METHOD_ID,
+            SERVICE_ID,
+            METHOD_ECHO_UINT8,
             client_id=0x0030,
             session_id=0x0030,
             payload=b"",
         )
         resp = _send_request_and_receive(dut_ip, req)
 
-        assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+        assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
         assert_return_code(resp, SOMEIPReturnCode.E_OK)
 
     @add_test_properties(
@@ -1428,7 +1453,7 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         req = build_request_no_return(
-            _UNKNOWN_SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0031
+            _UNKNOWNSERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0030, session_id=0x0031
         )
         responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
@@ -1454,10 +1479,10 @@ class TestSomeipFireAndForgetAndErrors:
 
         for session_id in (0x0040, 0x0041):
             req = build_request(
-                _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=session_id
+                SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0030, session_id=session_id
             )
             resp = _send_request_and_receive(dut_ip, req)
-            assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+            assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)
             assert_session_echo(resp, session_id)
 
     @add_test_properties(
@@ -1480,7 +1505,7 @@ class TestSomeipFireAndForgetAndErrors:
         _wait_for_dut_offer(host_ip)
 
         msg = build_notification_as_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0030, session_id=0x0050
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0030, session_id=0x0050
         )
         responses = _send_request_expect_no_response(dut_ip, msg, timeout_secs=2.0)
 
@@ -1521,7 +1546,7 @@ class TestSomeipByteOrder:
         _wait_for_dut_offer(host_ip)
 
         req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0022, session_id=0x0090
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0022, session_id=0x0090
         )
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1579,7 +1604,7 @@ class TestSomeipByteOrder:
 
         # Build a valid request and patch the length field to an absurd value.
         valid_req = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0022, session_id=0x0091
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0022, session_id=0x0091
         )
         oversized = bytearray(valid_req)
         oversized[4] = 0xFF
@@ -1603,7 +1628,7 @@ class TestSomeipByteOrder:
 
         # Confirm DUT is still responsive with a valid follow-up request.
         follow_up = build_request(
-            _SERVICE_ID, _METHOD_ID, client_id=0x0022, session_id=0x0092
+            SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0022, session_id=0x0092
         )
         resp = _send_request_and_receive(dut_ip, follow_up)
-        assert_valid_response(resp, _SERVICE_ID, _METHOD_ID)
+        assert_valid_response(resp, SERVICE_ID, METHOD_ECHO_UINT8)

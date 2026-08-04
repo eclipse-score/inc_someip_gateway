@@ -36,7 +36,18 @@ import pytest
 
 from attribute_plugin import add_test_properties
 
-from helpers.constants import DUT_UNRELIABLE_PORT, SD_MULTICAST_ADDR, SD_PORT
+from helpers.constants import (
+    DUT_UNRELIABLE_PORT,
+    EVENTGROUP_UDP_MULTICAST,
+    EVENTGROUP_UDP_UNICAST,
+    INSTANCE_ID,
+    MAJOR_VERSION,
+    MINOR_VERSION,
+    MULTICAST_ADDR,
+    MULTICAST_EVENT_PORT,
+    SD_PORT,
+    SERVICE_ID,
+)
 from helpers.sd_helpers import open_multicast_socket
 from helpers.sd_sender import (
     capture_unicast_sd_entries,
@@ -65,20 +76,6 @@ from someip.header import (
 #: SOME/IP stack config template used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
-#: Service and instance IDs declared in ``tc8_someipd_sd.json``.
-_SERVICE_ID: int = 0x1234
-_INSTANCE_ID: int = 0x5678
-_EVENTGROUP_ID: int = 0x4455  # UDP unicast eventgroup
-_MULTICAST_EVENTGROUP_ID: int = 0x4465  # multicast eventgroup
-
-#: Defaults — no version configured in tc8_someipd_sd.json.
-_MAJOR_VERSION: int = 0x00
-_MINOR_VERSION: int = 0x00000000
-
-#: Multicast config values from ``tc8_someipd_sd.json``.
-_MULTICAST_ADDR: str = "239.0.0.1"
-_MULTICAST_PORT: int = 40490
-
 
 # ---------------------------------------------------------------------------
 # Internal capture helpers
@@ -89,7 +86,7 @@ def _capture_raw_sd_offer(
     host_ip: str,
     timeout_secs: float = 5.0,
 ) -> Tuple[SOMEIPHeader, SOMEIPSDHeader, SOMEIPSDEntry, SOMEIPSDEntry]:
-    """Capture the first raw OfferService for ``_SERVICE_ID`` on the multicast group.
+    """Capture the first raw OfferService for ``SERVICE_ID`` on the multicast group.
 
     Returns a 4-tuple:
       - raw SOME/IP header
@@ -125,7 +122,7 @@ def _capture_raw_sd_offer(
                 ):
                     if (
                         resolved_entry.sd_type == SOMEIPSDEntryType.OfferService
-                        and resolved_entry.service_id == _SERVICE_ID
+                        and resolved_entry.service_id == SERVICE_ID
                     ):
                         return someip_msg, sd_hdr_resolved, resolved_entry, raw_entry
             except Exception:  # noqa: BLE001
@@ -134,7 +131,7 @@ def _capture_raw_sd_offer(
         sock.close()
 
     raise TimeoutError(
-        f"No OfferService for service 0x{_SERVICE_ID:04x} received within "
+        f"No OfferService for service 0x{SERVICE_ID:04x} received within "
         f"{timeout_secs:.1f}s on {host_ip}:{SD_PORT}"
     )
 
@@ -157,10 +154,10 @@ def _capture_subscribe_ack(
             send_subscribe_eventgroup(
                 sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
+                SERVICE_ID,
+                INSTANCE_ID,
                 eventgroup_id,
-                _MAJOR_VERSION,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=sender_port,
             )
@@ -202,10 +199,10 @@ def _capture_subscribe_ack_with_options(
             send_subscribe_eventgroup(
                 sock,
                 (dut_ip, SD_PORT),
-                _SERVICE_ID,
-                _INSTANCE_ID,
+                SERVICE_ID,
+                INSTANCE_ID,
                 eventgroup_id,
-                _MAJOR_VERSION,
+                MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=sender_port,
             )
@@ -528,8 +525,8 @@ class TestSdOfferEntryFields:
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
-        assert entry.instance_id == _INSTANCE_ID, (
-            f"FORMAT_15: instance_id must be 0x{_INSTANCE_ID:04x}; "
+        assert entry.instance_id == INSTANCE_ID, (
+            f"FORMAT_15: instance_id must be 0x{INSTANCE_ID:04x}; "
             f"got 0x{entry.instance_id:04x}"
         )
 
@@ -548,8 +545,8 @@ class TestSdOfferEntryFields:
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
-        assert entry.major_version == _MAJOR_VERSION, (
-            f"FORMAT_16: major_version must be 0x{_MAJOR_VERSION:02x}; "
+        assert entry.major_version == MAJOR_VERSION, (
+            f"FORMAT_16: major_version must be 0x{MAJOR_VERSION:02x}; "
             f"got 0x{entry.major_version:02x}"
         )
 
@@ -568,8 +565,8 @@ class TestSdOfferEntryFields:
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
-        assert entry.service_minor_version == _MINOR_VERSION, (
-            f"FORMAT_18: minor_version must be 0x{_MINOR_VERSION:08x}; "
+        assert entry.service_minor_version == MINOR_VERSION, (
+            f"FORMAT_18: minor_version must be 0x{MINOR_VERSION:08x}; "
             f"got 0x{entry.service_minor_version:08x}"
         )
 
@@ -597,7 +594,7 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_19: SubscribeEventgroupAck SD entry type must be 0x07."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         assert ack.sd_type == SOMEIPSDEntryType.SubscribeAck, (
             f"FORMAT_19: sd_type must be SubscribeAck (0x07); got {ack.sd_type!r}"
@@ -618,7 +615,7 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_20: SubscribeEventgroupAck SD entry must be exactly 16 bytes."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         assigned = ack.assign_option_index([])
         entry_bytes = assigned.build()
@@ -642,7 +639,7 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_21: SubscribeAck option_index_1 matches the attached options."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         # When no options are present, option_index_1 must be 0.
         # When options are present, option_index_1 must be a valid index.
@@ -678,10 +675,10 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_23: SubscribeAck service_id must match the subscribed service."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
-        assert ack.service_id == _SERVICE_ID, (
-            f"FORMAT_23: service_id must be 0x{_SERVICE_ID:04x}; "
+        assert ack.service_id == SERVICE_ID, (
+            f"FORMAT_23: service_id must be 0x{SERVICE_ID:04x}; "
             f"got 0x{ack.service_id:04x}"
         )
 
@@ -700,10 +697,10 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_24: SubscribeAck instance_id must match the subscribed instance."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
-        assert ack.instance_id == _INSTANCE_ID, (
-            f"FORMAT_24: instance_id must be 0x{_INSTANCE_ID:04x}; "
+        assert ack.instance_id == INSTANCE_ID, (
+            f"FORMAT_24: instance_id must be 0x{INSTANCE_ID:04x}; "
             f"got 0x{ack.instance_id:04x}"
         )
 
@@ -722,10 +719,10 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_25: SubscribeAck major_version must match the service definition."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
-        assert ack.major_version == _MAJOR_VERSION, (
-            f"FORMAT_25: major_version must be 0x{_MAJOR_VERSION:02x}; "
+        assert ack.major_version == MAJOR_VERSION, (
+            f"FORMAT_25: major_version must be 0x{MAJOR_VERSION:02x}; "
             f"got 0x{ack.major_version:02x}"
         )
 
@@ -744,7 +741,7 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_26: SubscribeEventgroupAck TTL must be > 0 (TTL=0 means Nack)."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         assert ack.ttl > 0, f"FORMAT_26: SubscribeAck TTL must be > 0; got {ack.ttl}"
 
@@ -771,7 +768,7 @@ class TestSdHeaderFieldsSubscribeAck:
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         reserved_high = (ack.minver_or_counter >> 16) & 0xFFFF
         assert reserved_high == 0, (
@@ -794,11 +791,11 @@ class TestSdHeaderFieldsSubscribeAck:
         """FORMAT_28: SubscribeAck eventgroup_id must match the subscribed eventgroup."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        ack = _capture_subscribe_ack(dut_ip, tester_ip, _EVENTGROUP_ID)
+        ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
-        assert (ack.minver_or_counter & 0xFFFF) == _EVENTGROUP_ID, (
+        assert (ack.minver_or_counter & 0xFFFF) == EVENTGROUP_UDP_UNICAST, (
             f"FORMAT_28: eventgroup_id in SubscribeAck must be "
-            f"0x{_EVENTGROUP_ID:04x}; "
+            f"0x{EVENTGROUP_UDP_UNICAST:04x}; "
             f"got 0x{ack.minver_or_counter & 0xFFFF:04x}"
         )
 
@@ -985,14 +982,14 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
             f"OPTIONS_08: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
@@ -1026,14 +1023,14 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
             f"OPTIONS_09: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
@@ -1067,14 +1064,14 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
             f"OPTIONS_10: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
@@ -1108,21 +1105,20 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
             f"OPTIONS_11: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
 
-        expected_addr = ipaddress.IPv4Address(_MULTICAST_ADDR)
+        expected_addr = ipaddress.IPv4Address(MULTICAST_ADDR)
         assert opt.address == expected_addr, (
-            f"OPTIONS_11: multicast address must be {_MULTICAST_ADDR}; "
-            f"got {opt.address}"
+            f"OPTIONS_11: multicast address must be {MULTICAST_ADDR}; got {opt.address}"
         )
 
     @pytest.mark.network
@@ -1148,14 +1144,14 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
             f"OPTIONS_12: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
@@ -1189,14 +1185,14 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
             f"OPTIONS_13: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
 
@@ -1228,19 +1224,19 @@ class TestSdOptionsMulticast:
             )
 
         _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _MULTICAST_EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
         )
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
             f"OPTIONS_14: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{_MULTICAST_EVENTGROUP_ID:04x}"
+            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
 
-        assert opt.port == _MULTICAST_PORT, (
-            f"OPTIONS_14: multicast port must be {_MULTICAST_PORT}; got {opt.port}"
+        assert opt.port == MULTICAST_EVENT_PORT, (
+            f"OPTIONS_14: multicast port must be {MULTICAST_EVENT_PORT}; got {opt.port}"
         )
 
 
@@ -1380,7 +1376,7 @@ class TestSdMissingFormatFields:
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         unresolved_ack, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, _EVENTGROUP_ID
+            dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST
         )
 
         # unresolved_ack.num_options_1 is the raw counter from the wire.
@@ -1523,11 +1519,11 @@ class TestSdEntryOptionFields:
             )
             subscribe_entry = SOMEIPSDEntry(
                 sd_type=SOMEIPSDEntryType.Subscribe,
-                service_id=_SERVICE_ID,
-                instance_id=_INSTANCE_ID,
-                major_version=_MAJOR_VERSION,
+                service_id=SERVICE_ID,
+                instance_id=INSTANCE_ID,
+                major_version=MAJOR_VERSION,
                 ttl=3,
-                minver_or_counter=_EVENTGROUP_ID & 0xFFFF,
+                minver_or_counter=EVENTGROUP_UDP_UNICAST & 0xFFFF,
                 options_1=(endpoint_opt,),
             )
             options: list = []
@@ -1567,7 +1563,7 @@ class TestSdStopSubscribeFormat:
     def test_sd_message_12_stop_subscribe_entry_format(self) -> None:
         """SD_MESSAGE_12: StopSubscribeEventgroup entry has Type=0x06 and TTL=0.
 
-        SOMEIPSRV_SD_MESSAGE_12 (§5.1.5.3): A StopSubscribeEventgroup message
+        SOMEIPSRV_SD_MESSAGE_12 (Sec. 5.1.5.3): A StopSubscribeEventgroup message
         is a SubscribeEventgroup entry (Type=0x06) with TTL=0x000000.
 
         This test constructs the 16-byte entry in memory and verifies:
@@ -1579,11 +1575,11 @@ class TestSdStopSubscribeFormat:
         """
         stop_subscribe_entry = SOMEIPSDEntry(
             sd_type=SOMEIPSDEntryType.Subscribe,
-            service_id=_SERVICE_ID,
-            instance_id=_INSTANCE_ID,
-            major_version=_MAJOR_VERSION,
+            service_id=SERVICE_ID,
+            instance_id=INSTANCE_ID,
+            major_version=MAJOR_VERSION,
             ttl=0,
-            minver_or_counter=_EVENTGROUP_ID & 0xFFFF,
+            minver_or_counter=EVENTGROUP_UDP_UNICAST & 0xFFFF,
             options_1=(),
         )
         options: list = []
