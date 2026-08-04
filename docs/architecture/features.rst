@@ -21,6 +21,7 @@ Features
    :security: NO
    :safety: QM
    :status: valid
+   :version: v0.0.0
 
    Dummy feature to comply to the meta-model.
    Should be defined in the process itself and only referenced.
