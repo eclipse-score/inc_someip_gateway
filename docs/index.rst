@@ -102,19 +102,3 @@ To run integration tests:
 .. code-block:: bash
 
    bazel test //tests/...
-
-Configuration
--------------
-
-The `project_config.bzl` file defines metadata used by Bazel macros.
-
-Example:
-
-.. code-block:: python
-
-   PROJECT_CONFIG = {
-       "asil_level": "QM",
-       "source_code": ["cpp", "rust"]
-   }
-
-This enables conditional behavior (e.g., choosing `clang-tidy` for C++ or `clippy` for Rust).
