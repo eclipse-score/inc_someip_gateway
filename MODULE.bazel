@@ -170,6 +170,7 @@ git_override(
 # Required because of the non-dev_dependency in overridden score_tooling.
 # Remove as soon as the dependency problem is resolved.
 bazel_dep(name = "trlc", version = "3.0.0", dev_dependency = True)
+
 # hash is version 3.0.0, but override is needed for score_tooling
 git_override(
     module_name = "trlc",
