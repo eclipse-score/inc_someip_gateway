@@ -167,6 +167,8 @@ git_override(
     remote = "https://github.com/bmw-software-engineering/lobster.git",
 )
 
+# Required because of the non-dev_dependency in overridden score_tooling.
+# Remove as soon as the dependency problem is resolved.
 bazel_dep(name = "trlc", version = "3.0.0", dev_dependency = True)
 
 bazel_dep(name = "aspect_rules_lint", version = "2.7.2", dev_dependency = True)
