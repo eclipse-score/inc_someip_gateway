@@ -25,6 +25,34 @@ from subprocess import TimeoutExpired
 
 logger = logging.getLogger(__name__)
 
+_SUPPORTED_ARCHITECTURES = {
+    "x86_64": {
+        "qemu_path": "/usr/bin/qemu-system-x86_64",
+        "cpu": "Cascadelake-Server-v5",
+        "network_device": "virtio-net-pci",
+        # The default pc (i440fx) machine is used.
+        # Other machines change the PCI topology, which can break guests whose
+        # PCI interrupt config targets i440fx like QNX.
+        "machine": "pc",
+        "block_device": "virtio-blk-pci",
+    },
+    "aarch64": {
+        "qemu_path": "/usr/bin/qemu-system-aarch64",
+        "cpu": "cortex-a53",
+        "network_device": "virtio-net-device",
+        "machine": "virt,virtualization=true,gic-version=3",
+        "block_device": "virtio-blk-device",
+    },
+}
+
+
+def get_image_type(path_to_image: str) -> str:
+    """Determine the disk image type based on the file extension."""
+    image_lower = path_to_image.lower()
+    if image_lower.endswith(".wic") or image_lower.endswith(".img"):
+        return "raw"
+    return "qcow2"
+
 
 class DiskBootQemu:
     """QEMU instance that boots from a qcow2 disk image.
@@ -35,42 +63,46 @@ class DiskBootQemu:
 
     def __init__(
         self,
-        path_to_image,
+        path_to_image: str,
         ram="1G",
         cores="2",
         seed_iso=None,
-        cpu="Cascadelake-Server-v5",
+        architecture="x86_64",
+        path_to_kernel=None,
+        kernel_cmdline=None,
         network_adapters=None,
         port_forwarding=None,
     ):
-        self._qemu_path = "/usr/bin/qemu-system-x86_64"
+        if architecture not in _SUPPORTED_ARCHITECTURES:
+            raise ValueError(
+                "architecture must be one of: "
+                + ", ".join(sorted(_SUPPORTED_ARCHITECTURES))
+            )
+
+        self._architecture_config = _SUPPORTED_ARCHITECTURES[architecture]
         self._path_to_image = path_to_image
+        self._path_to_kernel = path_to_kernel
         self._ram = ram
         self._cores = cores
         self._seed_iso = seed_iso
-        self._cpu = cpu
+        self._kernel_cmdline = kernel_cmdline
         self._network_adapters = network_adapters or []
         self._port_forwarding = port_forwarding or []
 
         self._check_qemu_is_installed()
-        self._find_available_kvm_support()
-        self._check_kvm_readable_when_necessary()
 
         self._subprocess = None
 
-    def __enter__(self):
-        return self.start()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.stop()
-
-    def start(self, subprocess_params=None):
+    def start(self):
         cmd = self._build_command()
         logger.debug(cmd)
-        subprocess_args = {"args": cmd}
-        if subprocess_params:
-            subprocess_args.update(subprocess_params)
-        self._subprocess = subprocess.Popen(**subprocess_args)
+
+        self._subprocess = subprocess.Popen(
+            args=cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
         return self._subprocess
 
     def stop(self):
@@ -94,54 +126,64 @@ class DiskBootQemu:
             raise Exception(f"QEMU process returned: {ret}")
 
     def _check_qemu_is_installed(self):
-        if not os.path.isfile(self._qemu_path):
-            logger.fatal(f"QEMU is not installed under {self._qemu_path}")
-            sys.exit(-1)
-
-    def _find_available_kvm_support(self):
-        self._accelerator = "kvm"
-        with open("/proc/cpuinfo") as cpuinfo:
-            cpu_options = str(cpuinfo.read())
-            if "vmx" not in cpu_options and "svm" not in cpu_options:
-                logger.error("No virtualization capability. Using TCG accel.")
-                self._accelerator = "tcg"
-            if not os.path.exists("/dev/kvm"):
-                logger.error("No KVM available. Using TCG accel.")
-                self._accelerator = "tcg"
-
-    def _check_kvm_readable_when_necessary(self):
-        if self._accelerator == "kvm" and not os.access("/dev/kvm", os.R_OK):
-            logger.fatal(
-                "No access to /dev/kvm. Consider adding yourself to kvm group."
-            )
+        qemu_path = self._architecture_config["qemu_path"]
+        if not os.path.isfile(qemu_path):
+            logger.fatal(f"QEMU is not installed under {qemu_path}")
             sys.exit(-1)
 
     def _build_command(self):
-        image_path = os.path.abspath(self._path_to_image)
-        cmd = [
-            self._qemu_path,
-            "-smp",
-            f"{self._cores},maxcpus={self._cores},cores={self._cores}",
-            "-cpu",
-            self._cpu,
-            "-m",
-            self._ram,
-            "-drive",
-            f"file={image_path},format=qcow2,if=virtio",
-        ]
+        cmd = (
+            [
+                self._architecture_config["qemu_path"],
+                "-smp",
+                f"{self._cores},maxcpus={self._cores},cores={self._cores}",
+                "-cpu",
+                self._architecture_config["cpu"],
+                "-m",
+                self._ram,
+                "-accel",
+                "kvm",
+                "-accel",
+                "tcg",
+                "-machine",
+                self._architecture_config["machine"],
+            ]
+            + self._network_devices_args()
+            + self._port_forwarding_args()
+        )
 
-        cmd += ["-enable-kvm"] if self._accelerator == "kvm" else ["-accel", "tcg"]
+        if self._path_to_kernel:
+            cmd.extend(["-kernel", self._path_to_kernel])
+            if self._kernel_cmdline:
+                cmd.extend(
+                    [
+                        "-append",
+                        self._kernel_cmdline,
+                    ]
+                )
 
-        if self._seed_iso:
-            seed_path = os.path.abspath(self._seed_iso)
+        if self._path_to_image:
+            disk_format = get_image_type(self._path_to_image)
             cmd.extend(
                 [
+                    "-device",
+                    f"{self._architecture_config['block_device']},drive=vd0",
+                    "-drive",
+                    f"if=none,format={disk_format},file={self._path_to_image},id=vd0",
+                ]
+            )
+
+        if self._seed_iso:
+            cmd.extend(
+                [
+                    "-device",
+                    f"{self._architecture_config['block_device']},drive=vd1",
                     # Attach NoCloud seed as a second disk. With cloud-localds this is a
                     # vfat image labeled 'cidata', which cloud-init detects reliably.
                     "-drive",
                     # Bazel runfiles are read-only; mounting the seed image as read-only
                     # prevents permission errors when QEMU opens the backing file.
-                    f"file={seed_path},format=raw,if=virtio,readonly=on",
+                    f"if=none,format=raw,file={self._seed_iso},id=vd1,readonly=on",
                 ]
             )
 
@@ -149,16 +191,13 @@ class DiskBootQemu:
             [
                 "-nographic",
                 "-serial",
-                "mon:stdio",
+                "mon:stdio",  # Redirect serial output to console
                 "-object",
-                "rng-random,filename=/dev/urandom,id=rng0",
+                "rng-random,filename=/dev/urandom,id=rng0",  # Provide hardware random number generation
                 "-device",
-                "virtio-rng-pci,rng=rng0",
+                "virtio-rng-pci,rng=rng0",  # Provide hardware random number generation
             ]
         )
-
-        cmd.extend(self._network_devices_args())
-        cmd.extend(self._port_forwarding_args())
 
         return cmd
 
@@ -171,7 +210,7 @@ class DiskBootQemu:
                         "-netdev",
                         f"tap,id=t{idx},ifname={adapter},script=no,downscript=no",
                         "-device",
-                        f"virtio-net-pci,netdev=t{idx},id=nic{idx},guest_csum=off",
+                        f"{self._architecture_config['network_device']},netdev=t{idx},id=nic{idx},guest_csum=off",
                     ]
                 )
         return result
@@ -184,7 +223,7 @@ class DiskBootQemu:
                     "-netdev",
                     f"user,id=net{idx},hostfwd=tcp::{forwarding.host_port}-:{forwarding.guest_port}",
                     "-device",
-                    f"virtio-net-pci,netdev=net{idx}",
+                    f"{self._architecture_config['network_device']},netdev=net{idx}",
                 ]
             )
         return result

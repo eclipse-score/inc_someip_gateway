@@ -19,6 +19,7 @@ For Linux QEMU, the macro provide the following arguments:
 
 - `--qemu-config` QEMU config following the format of ITF QEMU config
 - `--qemu-image` Linux base image with [cloud-init](https://docs.cloud-init.io/en/latest/index.html) support
+- `--qemu-architecture` guest architecture for QEMU binary and CPU selection (`x86_64` or `aarch64`)
 - `--qemu-seed-iso` Image containing [cloud-init](https://docs.cloud-init.io/en/latest/index.html) configuration
 - `--qemu-filesystem-tar` built from the `filesystem` target
 

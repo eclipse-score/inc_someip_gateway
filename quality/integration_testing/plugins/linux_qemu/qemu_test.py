@@ -32,18 +32,35 @@ DiskBootQemu = _load_qemu_module().DiskBootQemu
 
 
 class DiskBootQemuTest(unittest.TestCase):
-    def _new_qemu(self, seed_iso=None):
-        with (
-            patch.object(DiskBootQemu, "_check_qemu_is_installed"),
-            patch.object(DiskBootQemu, "_find_available_kvm_support"),
-            patch.object(DiskBootQemu, "_check_kvm_readable_when_necessary"),
-        ):
+    def _new_qemu(self, seed_iso=None, architecture="x86_64"):
+        with patch.object(DiskBootQemu, "_check_qemu_is_installed"):
             qemu = DiskBootQemu(
                 path_to_image="/tmp/image.qcow2",
                 seed_iso=seed_iso,
+                architecture=architecture,
             )
         qemu._accelerator = "tcg"
         return qemu
+
+    def test_build_command_uses_x86_64_qemu_binary_and_cpu(self):
+        qemu = self._new_qemu(architecture="x86_64")
+
+        cmd = qemu._build_command()
+
+        self.assertEqual(cmd[0], "/usr/bin/qemu-system-x86_64")
+        self.assertIn("-cpu", cmd)
+        cpu_pos = cmd.index("-cpu")
+        self.assertEqual(cmd[cpu_pos + 1], "Cascadelake-Server-v5")
+
+    def test_build_command_uses_aarch64_qemu_binary_and_cpu(self):
+        qemu = self._new_qemu(architecture="aarch64")
+
+        cmd = qemu._build_command()
+
+        self.assertEqual(cmd[0], "/usr/bin/qemu-system-aarch64")
+        self.assertIn("-cpu", cmd)
+        cpu_pos = cmd.index("-cpu")
+        self.assertEqual(cmd[cpu_pos + 1], "cortex-a53")
 
     def test_build_command_adds_seed_iso_as_drive(self):
         qemu = self._new_qemu(seed_iso="/tmp/seed.iso")
@@ -51,44 +68,58 @@ class DiskBootQemuTest(unittest.TestCase):
         cmd = qemu._build_command()
 
         self.assertIn("-drive", cmd)
-        self.assertIn("file=/tmp/seed.iso,format=raw,if=virtio,readonly=on", cmd)
+        self.assertIn("if=none,format=raw,file=/tmp/seed.iso,id=vd1,readonly=on", cmd)
 
     def test_build_command_without_seed_iso_omits_seed_drive(self):
         qemu = self._new_qemu(seed_iso=None)
 
         cmd = qemu._build_command()
 
-        self.assertNotIn("file=/tmp/seed.iso,format=raw,if=virtio,readonly=on", cmd)
-
-    def test_build_command_normalizes_relative_seed_iso_to_absolute(self):
-        qemu = self._new_qemu(
-            seed_iso="quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
+        self.assertNotIn(
+            "if=none,format=raw,file=/tmp/seed.iso,id=vd1,readonly=on", cmd
         )
 
-        cmd = qemu._build_command()
-
-        expected = os.path.abspath(
-            "quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
-        )
-        self.assertIn(f"file={expected},format=raw,if=virtio,readonly=on", cmd)
-
-    def test_build_command_uses_valid_tcg_acceleration_args(self):
+    def test_build_command_uses_acceleration_args(self):
         qemu = self._new_qemu(seed_iso=None)
-        qemu._accelerator = "tcg"
 
         cmd = qemu._build_command()
 
         self.assertIn("-accel", cmd)
         accel_pos = cmd.index("-accel")
-        self.assertEqual(cmd[accel_pos + 1], "tcg")
+        self.assertEqual(cmd[accel_pos + 1], "kvm")
+        self.assertEqual(cmd[accel_pos + 2], "-accel")
+        self.assertEqual(cmd[accel_pos + 3], "tcg")
 
-    def test_build_command_uses_enable_kvm_flag(self):
-        qemu = self._new_qemu(seed_iso=None)
-        qemu._accelerator = "kvm"
+    def _new_qemu_with_kernel(self, architecture="x86_64"):
+        with patch.object(DiskBootQemu, "_check_qemu_is_installed"):
+            qemu = DiskBootQemu(
+                path_to_image="/tmp/image.qcow2",
+                path_to_kernel="/tmp/kernel.img",
+                architecture=architecture,
+            )
+        return qemu
+
+    def test_x86_64_kernel_boot_adds_machine_flag(self):
+        """x86_64 kernel-image boot must not add -machine so QEMU uses its
+        default pc (i440fx) machine.  q35 shifts the LPC bridge from D17 to
+        D31, which breaks guests (e.g. QNX) whose PCI interrupt config targets
+        the i440fx topology."""
+        qemu = self._new_qemu_with_kernel(architecture="x86_64")
 
         cmd = qemu._build_command()
 
-        self.assertIn("-enable-kvm", cmd)
+        self.assertIn("-machine", cmd)
+
+    def test_aarch64_kernel_boot_includes_virt_machine(self):
+        """aarch64 -kernel boot requires -machine virt; QEMU has no default
+        machine for aarch64 and will refuse to start without one."""
+        qemu = self._new_qemu_with_kernel(architecture="aarch64")
+
+        cmd = qemu._build_command()
+
+        self.assertIn("-machine", cmd)
+        machine_pos = cmd.index("-machine")
+        self.assertIn("virt", cmd[machine_pos + 1])
 
     def test_stop_handles_unstarted_process(self):
         qemu = self._new_qemu(seed_iso=None)

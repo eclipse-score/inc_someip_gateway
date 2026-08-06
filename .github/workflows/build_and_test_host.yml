@@ -67,7 +67,7 @@ jobs:
       - name: Install tools needed for ITF tests
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
+          sudo apt-get install -y qemu-system-x86 qemu-system-arm iputils-ping tcpdump cloud-image-utils
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90
       - run: df -h
