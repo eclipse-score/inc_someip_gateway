@@ -170,6 +170,12 @@ git_override(
 # Required because of the non-dev_dependency in overridden score_tooling.
 # Remove as soon as the dependency problem is resolved.
 bazel_dep(name = "trlc", version = "3.0.0", dev_dependency = True)
+# hash is version 3.0.0, but override is needed for score_tooling
+git_override(
+    module_name = "trlc",
+    commit = "c4c531b9d667085daa09dfc1590edacc314bfda4",
+    remote = "https://github.com/bmw-software-engineering/trlc.git",
+)
 
 bazel_dep(name = "aspect_rules_lint", version = "2.7.2", dev_dependency = True)
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
