@@ -1,0 +1,68 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+"""
+TC8 DUT standalone binary.
+
+Offers the ETS SOME/IP service for TC8 conformance testing. QM only; not part
+of the ASIL-B safety path.
+"""
+
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_binary(
+    name = "tc8_dut",
+    srcs = ["main.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":dut_config",
+        ":dut_service",
+        "@score_baselibs//score/mw/log",
+        "@vsomeip",
+    ],
+)
+
+cc_library(
+    name = "dut_service",
+    srcs = ["dut_service.cpp"],
+    hdrs = ["dut_service.h"],
+    deps = [
+        ":dut_config",
+        "@score_baselibs//score/mw/log",
+        "@vsomeip",
+    ],
+)
+
+cc_library(
+    name = "dut_config",
+    srcs = ["dut_config.cpp"],
+    hdrs = ["dut_config.h"],
+    deps = [
+        "@score_baselibs//score/json",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/mw/log",
+        "@score_baselibs//score/result",
+    ],
+)
+
+cc_test(
+    name = "dut_config_test",
+    size = "small",
+    srcs = ["dut_config_test.cpp"],
+    deps = [
+        ":dut_config",
+        "@googletest//:gtest_main",
+    ],
+)
