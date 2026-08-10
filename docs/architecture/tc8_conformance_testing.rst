@@ -22,14 +22,14 @@ Overview
 defines conformance tests for automotive SOME/IP implementations.
 The TC8 test suite has two scopes:
 
-- **Protocol Conformance** — tests ``someipd`` at the wire level using the
+- **Protocol Conformance**: tests ``someipd_tc8`` at the wire level using the
   ``someip`` Python package. No application processes are needed.
 
-- **Application-Level Tests** — tests the full gateway path
-  (mw::com client → ``gatewayd`` → ``someipd`` → network) using C++ apps
+- **Application Level Tests**: tests the full gateway path from mw::com client
+  through ``gatewayd`` and ``someipd`` to the network, using C++ apps
   built on ``score::mw::com``. These tests are stack-agnostic.
 
-Both scopes live under ``tests/tc8_conformance/`` and share the ``tc8`` /
+Both scopes live under ``tests/tc8_conformance/`` and share the ``tc8`` and
 ``conformance`` Bazel tags. For setup instructions and test details, see
 ``tests/tc8_conformance/README.md``.
 
@@ -45,7 +45,7 @@ Test Scope Overview
 
    package "Protocol Conformance" {
      [pytest] as L1Test
-     [someipd (standalone)] as L1DUT
+     [tc8_dut] as L1DUT
      L1Test -down-> L1DUT : raw SOME/IP\nUDP / TCP
    }
 
@@ -81,18 +81,25 @@ Protocol Conformance
 --------------------
 
 Protocol conformance tests exercise the SOME/IP stack at the wire protocol
-level. The DUT is ``someipd`` in standalone mode. Tests send raw SOME/IP
-messages and verify responses against the TC8 specification.
+level. Tests send raw SOME/IP messages and verify responses against the TC8
+specification.
 
-Standalone Mode
-^^^^^^^^^^^^^^^
+DUT Binary
+^^^^^^^^^^
 
-``someipd`` normally waits for ``gatewayd`` to connect via LoLa IPC before
-offering services. The ``--tc8-standalone`` flag removes this dependency:
-``someipd`` skips the IPC proxy setup and calls ``offer_service()`` directly.
+The protocol conformance DUT is ``someipd_tc8``, a standalone binary that
+uses vsomeip directly. It has no IPC dependency on ``gatewayd`` and is
+separate from the ``someipd`` production binary. Source lives in
+``score/someipd_tc8/`` and the Bazel target is ``//score/someipd_tc8:tc8_dut``.
 
-This keeps protocol conformance tests simple — no process ordering, no
-FlatBuffers config, and fewer failure modes. See ``src/someipd/main.cpp``.
+At startup, ``someipd_tc8`` reads a JSON service interface config via
+``LoadDutConfig``. The config specifies the service ID, instance ID, version,
+events, fields, and methods to offer. The binary then initialises a vsomeip
+application and calls ``offer_service()`` directly.
+
+``someipd_tc8`` is QM only and is not part of the ASIL-B safety path.
+The test infrastructure in ``tc8_itf_conftest.py`` launches it as a subprocess
+on the QEMU guest, passing the config path with ``-c /tc8_dut_config.json``.
 
 Port Isolation and Parallel Execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,7 +113,7 @@ control port assignment:
     ``__TC8_SD_PORT__`` placeholder) and read by the Python SD sender socket
     at module import time via ``helpers/constants.py``.  The SOME/IP-SD
     protocol requires SD messages to originate from the configured SD port;
-    satisfying this does not require a fixed port — it requires only that
+    satisfying this does not require a fixed port, it requires only that
     both sides use the *same* port, which is guaranteed because both the
     vsomeip config and the Python constants read the same env var.
 
@@ -240,9 +247,9 @@ and TCP stream framing.
 Multi-service and Multi-instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``test_multi_service.py`` verifies that ``someipd`` correctly handles vsomeip
-configurations that declare multiple service entries, each advertising its own
-distinct UDP port in the SD endpoint option.
+``test_multi_service.py`` verifies that ``someipd_tc8`` correctly handles
+vsomeip configurations that declare multiple service entries, each advertising
+its own distinct UDP port in the SD endpoint option.
 
 .. uml::
 
@@ -267,17 +274,17 @@ distinct UDP port in the SD endpoint option.
    test_multi_service --> sd_sender
    @enduml
 
-Application-Level Tests
+Application Level Tests
 -----------------------
 
-Application-level tests verify the full gateway pipeline end-to-end.
+Application level tests verify the full gateway pipeline end to end.
 A **service** (mw::com Skeleton) and **client** (mw::com Proxy) communicate
-through ``gatewayd`` + ``someipd``. Because both apps use the mw::com API
+through ``gatewayd`` and ``someipd``. Because both apps use the mw::com API
 only, the same test code works with any SOME/IP binding.
 
 .. note::
 
-   Application-level tests are planned. See
+   Application level tests are planned. See
    ``tests/tc8_conformance/application/README.md`` for the intended scope.
 
 Planned Topology
@@ -366,7 +373,7 @@ requires changing the deployment config, not test code.
 Planned Components
 ^^^^^^^^^^^^^^^^^^
 
-The application-level test design introduces four planned components.
+The application level test design introduces four planned components.
 The **Enhanced Testability Service** (**ETS**) and **Enhanced Testability
 Client** (**ETC**) implement the TC8 service interface defined in OA TC8
 §5.1.4, while the **Test Orchestrator** and **Process Orchestrator** manage
@@ -413,7 +420,7 @@ test and process lifecycle.
    TO -down-> PO : uses
    @enduml
 
-``someipd`` runs as the DUT in the QEMU guest. The Python socket-based tester
-and pytest run on the host side. This project provides ``tc8_itf_conftest.py`` and
-``helpers/dut_lifecycle.py`` as the glue between the two sides. ``TC8_DUT_IP``
-addresses the QEMU guest; ``TC8_TESTER_IP`` addresses the host TAP interface.
+``tc8_dut`` runs as the DUT in the QEMU guest. The Python socket-based tester
+and pytest run on the host side. ``tc8_itf_conftest.py`` manages DUT lifecycle
+on the QEMU guest. ``TC8_DUT_IP`` addresses the QEMU guest and
+``TC8_TESTER_IP`` addresses the host TAP interface.
