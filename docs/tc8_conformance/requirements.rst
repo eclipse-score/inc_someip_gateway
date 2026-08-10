@@ -110,7 +110,6 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    :status: valid
    :version: 1
    :tags: tc8, conformance, someip, verification
-   :satisfies: stkh_req__someip_gw__interoperability
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -140,7 +139,6 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -161,7 +159,6 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, timing
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -181,7 +178,6 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -201,7 +197,6 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, eventgroup
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -224,8 +219,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD Subscription TTL Expiry
    :id: comp_req__tc8_conformance__sd_ttl_expiry
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, eventgroup, timing
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -240,7 +235,6 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, timing
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -259,8 +253,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD IPv4 Endpoint Option Validation
    :id: comp_req__tc8_conformance__sd_endpoint_option
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -277,8 +271,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD Reboot Detection
    :id: comp_req__tc8_conformance__sd_reboot
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, reboot
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -295,8 +289,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD Multicast Eventgroup Option
    :id: comp_req__tc8_conformance__sd_mcast_eg
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, multicast
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -318,7 +312,6 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -341,7 +334,6 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format, error_handling
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -362,8 +354,8 @@ Component Requirements — SOME/IP Message Format
 .. comp_req:: TC8 SOME/IP Malformed Message Handling
    :id: comp_req__tc8_conformance__msg_malformed
    :status: valid
+   :version: 1
    :tags: tc8, conformance, message_format, robustness
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -386,7 +378,6 @@ Component Requirements — Event Notification
    :status: valid
    :version: 1
    :tags: tc8, conformance, events, notification
-   :satisfies: feat_req__tc8_conformance__conformance
    :derived_from: feat_req__tc8_conformance__conformance
    :satisfied_by: comp__someipd
    :safety: QM
@@ -409,8 +400,8 @@ Component Requirements — Field Conformance
 .. comp_req:: TC8 Field Initial Value on Subscribe
    :id: comp_req__tc8_conformance__fld_initial_value
    :status: valid
+   :version: 1
    :tags: tc8, conformance, fields, notification
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -426,8 +417,8 @@ Component Requirements — Field Conformance
 .. comp_req:: TC8 Field Getter and Setter
    :id: comp_req__tc8_conformance__fld_get_set
    :status: valid
+   :version: 1
    :tags: tc8, conformance, fields, request_response
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -445,8 +436,8 @@ Component Requirements — Field Conformance
 .. comp_req:: TC8 Field Getter/Setter Notification Behavior
    :id: comp_req__tc8_conformance__fld_getter_setter
    :status: valid
+   :version: 1
    :tags: tc8, conformance, fields, notification
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -465,8 +456,8 @@ Component Requirements — TCP Transport Binding
 .. comp_req:: TC8 TCP Transport Binding for RPC
    :id: comp_req__tc8_conformance__tcp_transport
    :status: valid
+   :version: 1
    :tags: tc8, conformance, tcp, transport, rpc
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -498,8 +489,8 @@ Component Requirements — Multi-service and Multi-instance
 .. comp_req:: TC8 Multi-service and Multi-instance Routing
    :id: comp_req__tc8_conformance__multi_service
    :status: valid
+   :version: 1
    :tags: tc8, conformance, multi_service, routing
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -525,8 +516,8 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
 .. comp_req:: TC8 SD SOME/IP Header and Entry Field Validation
    :id: comp_req__tc8_conformance__sd_format_fields
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, format
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -552,8 +543,8 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
 .. comp_req:: TC8 SD IPv4 Endpoint and Multicast Option Field Validation
    :id: comp_req__tc8_conformance__sd_options_fields
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, options
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -577,8 +568,8 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
 .. comp_req:: TC8 SD StopSubscribeEventgroup Entry Wire Format
    :id: comp_req__tc8_conformance__sd_stop_sub_fmt
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, format
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -593,8 +584,8 @@ Component Requirements — SD Robustness
 .. comp_req:: TC8 SD Robustness — Malformed Packet Survival
    :id: comp_req__tc8_conformance__sd_robustness
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, robustness
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -625,8 +616,8 @@ Component Requirements — UDP Transport Binding
 .. comp_req:: TC8 UDP Transport Binding — Multiple Messages per Datagram
    :id: comp_req__tc8_conformance__udp_transport
    :status: valid
+   :version: 1
    :tags: tc8, conformance, udp, transport
-   :satisfies: feat_req__tc8_conformance__conformance
    :safety: QM
    :security: NO
    :reqtype: Functional
