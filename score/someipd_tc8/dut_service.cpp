@@ -39,12 +39,10 @@ void DutService::Start() {
         std::memcpy(field_states_[i].data.data(), fc.initial_value.data(), fc.initial_value_size);
     }
 
-    // Defer all vsomeip API calls to the ST_REGISTERED callback so they execute
-    // while the io_context is running (during app_->start()). This ensures is_set_
-    // is committed to the event cache in the correct runtime state, which is required
-    // for send_initial_events() to deliver the cached field value to new subscribers.
-    // Calling offer_event(), offer_service(), and notify() before app_->start() causes
-    // vsomeip's startup sequence to reset event state, preventing initial notification.
+    // Defer all setup to ST_REGISTERED: the stack's event cache is only stable once
+    // the application is running. Setting up events or seeding field values earlier
+    // causes the startup sequence to reset event state, preventing initial-value
+    // delivery to new subscribers.
     app_->register_state_handler([this](vsomeip::state_type_e state) {
         if (state != vsomeip::state_type_e::ST_REGISTERED) {
             return;
@@ -165,9 +163,8 @@ void DutService::SeedInitialValues() {
 }
 
 void DutService::RegisterSubscriptionHandlers() {
-    // Collect unique eventgroup IDs. vsomeip replaces the previous handler when
-    // register_subscription_handler() is called with the same (service, instance,
-    // eventgroup) key, so we register exactly one handler per eventgroup.
+    // Register exactly one subscription handler per eventgroup: the stack replaces
+    // any previous handler for the same (service, instance, eventgroup) key.
     std::set<vsomeip::eventgroup_t> eventgroups;
     for (std::size_t i = 0U; i < config_.fields.size() && i < kMaxFields; ++i) {
         const FieldConfig& fld = config_.fields[i];
@@ -193,8 +190,7 @@ void DutService::RegisterSubscriptionHandlers() {
                 score::mw::log::LogInfo()
                     << "[tc8_dut] subscriber 0x" << score::mw::log::LogHex16{eg}
                     << " subscribed";
-                // vsomeip calls send_initial_events() after this handler returns true,
-                // which delivers the cached field value to the new subscriber automatically.
+                // Returning true triggers initial-value delivery to the new subscriber.
                 return true;
             });
     }
@@ -211,7 +207,6 @@ void DutService::NotifyLoop() {
         std::this_thread::sleep_for(std::chrono::milliseconds(500U));
         elapsed_ms += 500U;
 
-        // Notify cyclic events.
         for (const EventConfig& ev : config_.events) {
             if (ev.cycle_ms == 0U) {
                 continue;  // Seed-only: no periodic notification.
@@ -248,7 +243,6 @@ void DutService::HandleMethod(const std::shared_ptr<vsomeip::message>& request) 
     const vsomeip::method_t method = request->get_method();
     auto response = vsomeip::runtime::get()->create_response(request);
 
-    // Field getter and setter dispatch.
     for (std::size_t i = 0U; i < config_.fields.size() && i < kMaxFields; ++i) {
         const FieldConfig& fld = config_.fields[i];
 
@@ -275,30 +269,26 @@ void DutService::HandleMethod(const std::shared_ptr<vsomeip::message>& request) 
                     field_states_[i].size = static_cast<std::size_t>(req_len);
                     std::memcpy(field_states_[i].data.data(), req_payload->get_data(), req_len);
                 }
-                // Notify subscribers of the new field value.
                 auto notify_payload = vsomeip::runtime::get()->create_payload();
                 notify_payload->set_data(req_payload->get_data(), req_len);
                 app_->notify(config_.service_id, config_.instance_id, fld.notify_id,
                              notify_payload, true);
             }
-            // Empty payload response means success (E_OK is implicit).
             response->set_return_code(vsomeip::return_code_e::E_OK);
             app_->send(response);
             return;
         }
     }
 
-    // Echo methods: non-fire-and-forget methods not matched above echo the request payload.
+    // All other non-fire-and-forget methods echo the request payload back.
     for (const MethodConfig& mc : config_.methods) {
         if (mc.id == method && !mc.fire_and_forget) {
-            // Echo: copy payload unchanged.
             response->set_payload(request->get_payload());
             app_->send(response);
             return;
         }
     }
 
-    // Unknown method: reply with E_UNKNOWN_METHOD.
     // REQ: comp_req__tc8_conformance__msg_error_codes
     score::mw::log::LogWarn()
         << "[tc8_dut] Unknown method 0x" << score::mw::log::LogHex16{method}
