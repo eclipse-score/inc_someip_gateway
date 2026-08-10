@@ -55,10 +55,9 @@ class DutService {
     void OfferEvents();
     void OfferFields();
     void RegisterMethodHandler();
-    /// Call notify() for each event and field once to populate the vsomeip payload cache.
-    /// Must be called after offer_service().
     // REQ: comp_req__tc8_conformance__fld_initial_value
     void SeedInitialValues();
+    void RegisterSubscriptionHandlers();
     void StartNotifyThread();
 
     void NotifyLoop();

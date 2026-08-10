@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 Event Notification tests — TC8-EVT-001 through TC8-EVT-006.
+"""TC8 Event Notification tests: TC8-EVT-001 through TC8-EVT-006.
 
 See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 """
@@ -54,16 +54,7 @@ from helpers.constants import (
 from helpers.tcp_helpers import tcp_receive_response
 from someip.header import SOMEIPMessageType
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
-
-
-# ---------------------------------------------------------------------------
-# TC8-EVT-001 / TC8-EVT-002 — Notification format
-# ---------------------------------------------------------------------------
 
 
 class TestEventNotificationFormat:
@@ -84,13 +75,11 @@ class TestEventNotificationFormat:
         """TC8-EVT-001: Event notification has message_type = NOTIFICATION (0x02)."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        # Wait for DUT to fully start SD before subscribing.
         try:
             capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
         except (TimeoutError, OSError):
             pytest.skip("DUT did not offer service within timeout")
 
-        # Open notification receiver socket
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         notif_sock.bind((tester_ip, 0))
@@ -108,7 +97,7 @@ class TestEventNotificationFormat:
                 MAJOR_VERSION,
                 notif_port=notif_port,
             )
-            # DUT notifies every 500 ms (tc8_someipd_service.json update-cycle), wait for at least one
+            # DUT notifies every 500 ms (tc8_someipd_service.json update cycle); wait for at least one
             notifs = capture_notifications(
                 notif_sock,
                 EVENT_TEST_UINT8,
@@ -184,15 +173,7 @@ class TestEventNotificationFormat:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """SOMEIPSRV_RPC_15: Cyclic event notifications arrive at the configured cycle period.
-
-        The DUT is configured with ``update-cycle: 500`` ms for event 0x0777.
-        This test subscribes, collects 4 notification timestamps, and verifies
-        that the inter-notification intervals are within [200 ms, 1200 ms] —
-        a 2.4× tolerance band that accounts for OS scheduling jitter and the
-        initial notification (which may arrive immediately as the initial-event
-        value send, followed by cyclic notifications thereafter).
-        """
+        """SOMEIPSRV_RPC_15: Cyclic event notifications arrive at the configured cycle period."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         _CYCLE_MS = 500
@@ -224,7 +205,6 @@ class TestEventNotificationFormat:
                 ttl=30,  # 30 s > 10 s observation window; keeps subscription alive.
             )
 
-            # Collect 4 notifications with timestamps.
             timestamps: list = []
             deadline = time.monotonic() + 10.0
             while time.monotonic() < deadline and len(timestamps) < 4:
@@ -280,14 +260,7 @@ class TestEventNotificationFormat:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """SOMEIPSRV_RPC_16: Field event 0x0779 sends one initial notification then stays silent.
-
-        Event 0x0779 is a field (is_field=true) with update-cycle=60 000 ms in
-        tc8_someipd_service.json. On subscription the DUT sends exactly one
-        initial-value notification; no further notifications are expected within
-        a 3-second observation window because the 60 000 ms cycle has not elapsed
-        and the field value does not change in the standalone DUT configuration.
-        """
+        """SOMEIPSRV_RPC_16: Field event sends one initial notification then stays silent."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
         try:
@@ -315,7 +288,6 @@ class TestEventNotificationFormat:
                 notif_port=notif_port,
             )
 
-            # Expect exactly one initial-value notification from the field event.
             initial = capture_notifications(
                 notif_sock,
                 EVENT_FIELD_UINT8,
@@ -325,28 +297,31 @@ class TestEventNotificationFormat:
             )
             assert initial, (
                 "SOMEIPSRV_RPC_16: No initial-value notification received after "
-                f"subscribing to static field eventgroup 0x{EVENTGROUP_UDP_UNICAST:04x}"
+                f"subscribing to eventgroup 0x{EVENTGROUP_UDP_UNICAST:04x}"
             )
 
-            # Wait 3 seconds — no further notifications should arrive because the
-            # 60 000 ms update-cycle has not elapsed and the field value is frozen.
-            subsequent = capture_any_notifications(
-                notif_sock, SERVICE_ID, timeout_secs=3.0
+            # Wait 3 seconds. No further 0x8006 notifications should arrive because
+            # TestFieldUINT8 is not sent periodically (cycle_ms=0) and the field value
+            # does not change during the test.  Filter to EVENT_FIELD_UINT8 only: other
+            # members of eventgroup 0x0002 (e.g. 0x8001) send cyclic events which are
+            # irrelevant to this field-change semantics check.
+            subsequent = capture_notifications(
+                notif_sock,
+                EVENT_FIELD_UINT8,
+                SERVICE_ID,
+                count=1,
+                timeout_secs=3.0,
             )
             assert not subsequent, (
-                f"SOMEIPSRV_RPC_16: {len(subsequent)} unexpected notification(s) received "
-                "within 3 s for a field with update-cycle=60 000 ms; "
-                "field events must not be sent cyclically when the value has not changed"
+                f"SOMEIPSRV_RPC_16: {len(subsequent)} unexpected notification(s) of "
+                f"TestFieldUINT8 (0x{EVENT_FIELD_UINT8:04x}) received within 3 s; "
+                "cycle_ms=0 and the field value has not changed — no further "
+                "notifications expected"
             )
         finally:
             if sd_sock:
                 sd_sock.close()
             notif_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# TC8-EVT-003 / TC8-EVT-004 — Subscription-gated delivery
-# ---------------------------------------------------------------------------
 
 
 class TestEventSubscriptionGating:
@@ -367,13 +342,11 @@ class TestEventSubscriptionGating:
         """TC8-EVT-003: Subscribed endpoint receives notifications; unsubscribed does not."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        # Subscribed socket
         sub_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sub_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sub_sock.bind((tester_ip, 0))
         sub_port = sub_sock.getsockname()[1]
 
-        # Unsubscribed socket (different port, never subscribes)
         unsub_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         unsub_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         unsub_sock.bind((tester_ip, 0))
@@ -391,7 +364,6 @@ class TestEventSubscriptionGating:
                 notif_port=sub_port,
             )
 
-            # Wait for notification on subscribed socket
             notifs = capture_notifications(
                 sub_sock,
                 EVENT_TEST_UINT8,
@@ -401,7 +373,6 @@ class TestEventSubscriptionGating:
             )
             assert notifs, "TC8-EVT-003: No notification on subscribed socket"
 
-            # Unsubscribed socket should have nothing
             stray = capture_any_notifications(unsub_sock, SERVICE_ID, timeout_secs=2.0)
             assert not stray, (
                 f"TC8-EVT-003: {len(stray)} notification(s) on unsubscribed socket"
@@ -427,24 +398,18 @@ class TestEventSubscriptionGating:
         """TC8-EVT-004: No notifications arrive before subscribing."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        # Listen without subscribing — DUT notifies every 2000 ms
+        # Listen without subscribing. DUT notifies every 2000 ms, so 3 s window is sufficient.
         listen_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         listen_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         listen_sock.bind((tester_ip, 0))
 
         try:
-            # Wait 3 seconds — if we got any, subscription gating failed
             stray = capture_any_notifications(listen_sock, SERVICE_ID, timeout_secs=3.0)
             assert not stray, (
                 f"TC8-EVT-004: {len(stray)} notification(s) received without subscription"
             )
         finally:
             listen_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# TC8-EVT-006 — StopSubscribe ceases notifications
-# ---------------------------------------------------------------------------
 
 
 class TestEventStopSubscribe:
@@ -472,7 +437,6 @@ class TestEventStopSubscribe:
 
         sd_sock = None
         try:
-            # Subscribe and verify notifications
             sd_sock = subscribe_and_wait_ack(
                 tester_ip,
                 dut_ip,
@@ -507,8 +471,7 @@ class TestEventStopSubscribe:
                 ttl=0,
             )
 
-            # Wait — no more notifications should arrive
-            # DUT sends every 500 ms (tc8_someipd_service.json update-cycle), so a 4 s window should catch any leaks
+            # DUT sends every 500 ms (tc8_someipd_service.json update cycle), so a 4 s window catches any leaks
             post = capture_any_notifications(notif_sock, SERVICE_ID, timeout_secs=4.0)
             assert not post, (
                 f"TC8-EVT-006: {len(post)} notification(s) after StopSubscribeEventgroup"
@@ -517,11 +480,6 @@ class TestEventStopSubscribe:
             if sd_sock:
                 sd_sock.close()
             notif_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# TC8-EVT-005 — Multicast notification delivery
-# ---------------------------------------------------------------------------
 
 
 class TestMulticastEventDelivery:
@@ -543,7 +501,6 @@ class TestMulticastEventDelivery:
         """TC8-EVT-005: Notifications arrive on the multicast group after subscribing to 0x4465."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        # Wait for DUT to fully start SD before subscribing.
         try:
             capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
         except (TimeoutError, OSError):
@@ -575,7 +532,7 @@ class TestMulticastEventDelivery:
                 MAJOR_VERSION,
                 notif_port=mcast_sock.getsockname()[1],
             )
-            # DUT sends notifications every 500 ms (tc8_someipd_service.json update-cycle).
+            # DUT sends notifications every 500 ms (tc8_someipd_service.json update cycle).
             # Allow up to 5 s for the first notification to arrive on the multicast socket.
             notifs = capture_any_notifications(mcast_sock, SERVICE_ID, timeout_secs=5.0)
             assert notifs, (
@@ -591,11 +548,6 @@ class TestMulticastEventDelivery:
             if sd_sock:
                 sd_sock.close()
             mcast_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# SOMEIPSRV_RPC_17 — TCP notification delivery
-# ---------------------------------------------------------------------------
 
 
 class TestEventTcpNotification:
@@ -618,25 +570,15 @@ class TestEventTcpNotification:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """SOMEIPSRV_RPC_17: Notification arrives on TCP after subscribing with TCP endpoint.
-
-        Procedure:
-        1. Establish a TCP connection to the DUT's reliable port.
-        2. Subscribe with SubscribeEventgroup using the TCP connection's
-           local port as the subscriber endpoint (SOME/IP SD PRS_SOMEIPSD_00362
-           requires an existing TCP connection before the DUT accepts a
-           reliable subscription).
-        3. Receive a NOTIFICATION over the established TCP connection.
-        """
+        """SOMEIPSRV_RPC_17: Notification arrives on TCP after subscribing with TCP endpoint."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        # Wait for DUT to fully start SD.
         try:
             capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
         except (TimeoutError, OSError):
             pytest.skip("DUT did not offer service within timeout")
 
-        # Connect TCP to DUT's reliable port — SOME/IP SD PRS_SOMEIPSD_00362 requires a
+        # Connect TCP to DUT's reliable port. PRS_SOMEIPSD_00362 requires a
         # client-initiated TCP connection before the DUT will accept a reliable
         # subscription.  Bind to tester_ip so the source address matches the
         # subscriber_ip in the SubscribeEventgroup entry (DUT validates the exact
@@ -645,8 +587,13 @@ class TestEventTcpNotification:
         tcp_sock.settimeout(5.0)
         tcp_sock.bind((tester_ip, 0))
         tcp_sock.connect((dut_ip, DUT_RELIABLE_PORT))
-        local_port = tcp_sock.getsockname()[1]
+        local_tcp_port = tcp_sock.getsockname()[1]
         time.sleep(0.5)  # give the DUT time to register the accepted TCP endpoint
+
+        # Dummy UDP socket setup to satisfy vsomeip's mixed-group requirement
+        udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_sock.bind((tester_ip, 0))
+        local_udp_port = udp_sock.getsockname()[1]
 
         sd_sock = open_sender_socket(tester_ip)
         try:
@@ -660,11 +607,10 @@ class TestEventTcpNotification:
                 EVENTGROUP_TCP_RELIABLE,
                 MAJOR_VERSION,
                 subscriber_ip=tester_ip,
-                subscriber_port=local_port,
-                l4proto=L4Protocols.TCP,
+                tcp_port=local_tcp_port,
+                udp_port=local_udp_port,
             )
 
-            # Wait for SubscribeAck.
             entries = capture_unicast_sd_entries(
                 sd_sock,
                 filter_types=(SOMEIPSDEntryType.SubscribeAck,),
@@ -677,8 +623,8 @@ class TestEventTcpNotification:
                     EVENTGROUP_TCP_RELIABLE,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
-                    subscriber_port=local_port,
-                    l4proto=L4Protocols.TCP,
+                    tcp_port=local_tcp_port,
+                    udp_port=local_udp_port,
                 ),
                 max_results=1,
             )
@@ -691,15 +637,24 @@ class TestEventTcpNotification:
                 f"No SubscribeEventgroupAck for TCP eventgroup 0x{EVENTGROUP_TCP_RELIABLE:04x}"
             )
 
-            # DUT sends every 500 ms via standalone loop — wait for TCP notification.
-            msg = tcp_receive_response(tcp_sock, timeout_secs=8.0)
-            assert msg.message_type == SOMEIPMessageType.NOTIFICATION, (
-                f"SOMEIPSRV_RPC_17: TCP message_type = 0x{msg.message_type:02x}, "
-                f"expected NOTIFICATION (0x{SOMEIPMessageType.NOTIFICATION:02x})"
-            )
-            assert msg.method_id == EVENT_TEST_UINT8_RELIABLE, (
-                f"SOMEIPSRV_RPC_17: TCP event_id = 0x{msg.method_id:04x}, "
-                f"expected 0x{EVENT_TEST_UINT8_RELIABLE:04x}"
+            # Eventgroup 0x0005 contains TestEventUINT8Reliable (0x8003, TCP-only).
+            # Drain until we see the expected event ID.
+            deadline = time.monotonic() + 8.0
+            matched = None
+            while time.monotonic() < deadline:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                msg = tcp_receive_response(tcp_sock, timeout_secs=remaining)
+                if (
+                    msg.message_type == SOMEIPMessageType.NOTIFICATION
+                    and msg.method_id == EVENT_TEST_UINT8_RELIABLE
+                ):
+                    matched = msg
+                    break
+            assert matched is not None, (
+                f"SOMEIPSRV_RPC_17: No NOTIFICATION with event_id=0x{EVENT_TEST_UINT8_RELIABLE:04x} "
+                f"received over TCP within 8 s"
             )
         finally:
             sd_sock.close()

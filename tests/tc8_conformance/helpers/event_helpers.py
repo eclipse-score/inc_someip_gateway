@@ -84,6 +84,24 @@ def subscribe_and_wait_ack(
     return sd_sock
 
 
+def _parse_datagram(data: bytes) -> List[SOMEIPHeader]:
+    """Return all SOME/IP messages packed into a single UDP datagram.
+
+    vsomeip bundles multiple SOME/IP NOTIFICATIONs in one UDP datagram.
+    SOMEIPHeader.parse() returns (message, remaining_bytes); looping over
+    the remainder ensures every message in the datagram is inspected.
+    """
+    messages: List[SOMEIPHeader] = []
+    buf = data
+    while buf:
+        try:
+            msg, buf = SOMEIPHeader.parse(buf)
+            messages.append(msg)
+        except Exception:
+            break
+    return messages
+
+
 def capture_notifications(
     sock: socket.socket,
     event_id: int,
@@ -94,6 +112,8 @@ def capture_notifications(
     """Capture NOTIFICATION messages for a specific event on *sock*.
 
     Returns up to *count* matching notifications within *timeout_secs*.
+    Each UDP datagram may carry multiple bundled SOME/IP messages;
+    all of them are inspected.
     """
     collected: List[SOMEIPHeader] = []
     deadline = time.monotonic() + timeout_secs
@@ -108,13 +128,11 @@ def capture_notifications(
         except socket.timeout:
             continue
 
-        try:
-            msg, _ = SOMEIPHeader.parse(data)
-        except Exception:
-            continue
-
-        if msg.service_id == service_id and msg.method_id == event_id:
-            collected.append(msg)
+        for msg in _parse_datagram(data):
+            if msg.service_id == service_id and msg.method_id == event_id:
+                collected.append(msg)
+                if len(collected) >= count:
+                    break
 
     return collected
 
@@ -124,7 +142,11 @@ def capture_any_notifications(
     service_id: int,
     timeout_secs: float = 5.0,
 ) -> List[SOMEIPHeader]:
-    """Capture any SOME/IP messages for *service_id* on *sock*."""
+    """Capture any SOME/IP messages for *service_id* on *sock*.
+
+    Each UDP datagram may carry multiple bundled SOME/IP messages;
+    all of them are inspected.
+    """
     collected: List[SOMEIPHeader] = []
     deadline = time.monotonic() + timeout_secs
 
@@ -138,13 +160,9 @@ def capture_any_notifications(
         except socket.timeout:
             continue
 
-        try:
-            msg, _ = SOMEIPHeader.parse(data)
-        except Exception:
-            continue
-
-        if msg.service_id == service_id:
-            collected.append(msg)
+        for msg in _parse_datagram(data):
+            if msg.service_id == service_id:
+                collected.append(msg)
 
     return collected
 

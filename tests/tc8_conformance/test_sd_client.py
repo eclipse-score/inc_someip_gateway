@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 SD Client lifecycle tests — ETS_081/082/084 and skipped ETS_096/097.
+"""TC8 SD Client lifecycle tests: ETS_081/082/084 and skipped ETS_096/097.
 
 This module manages its own someipd lifecycle (launch/terminate per test)
 and must NOT share the module-scoped ``someipd_dut`` fixture from conftest.py.
@@ -57,10 +57,6 @@ from helpers.sd_sender import (
 )
 from someip.header import SOMEIPHeader, SOMEIPSDHeader
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
 #: Uses the SD config (service 0x1234/0x5678, eventgroup 0x4455 UDP).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
@@ -68,11 +64,6 @@ SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 #: Listen Time (10 s) + Tolerance Time (1 s) + Process Time (2 s) = 13 s,
 #: plus 2 s buffer for container/CI overhead.
 _SD_CAPTURE_TIMEOUT_SECS: float = 15.0
-
-
-# ---------------------------------------------------------------------------
-# Module-level helper — collect SD messages from multicast socket
-# ---------------------------------------------------------------------------
 
 
 def _collect_sd_messages(
@@ -115,11 +106,6 @@ def _wait_port_free(port: int, retries: int = 20, delay: float = 0.1) -> None:
             time.sleep(delay)
 
 
-# ---------------------------------------------------------------------------
-# Module fixture — provides a pre-rendered config path without managing DUT
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture(scope="module")
 def sd_client_config(
     tmp_path_factory: pytest.TempPathFactory,
@@ -140,11 +126,6 @@ def sd_client_config(
     request.getfixturevalue("tc8_itf_config_setup")
     tmp_dir = tmp_path_factory.mktemp("tc8_sd_client_config")
     return render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
-
-
-# ---------------------------------------------------------------------------
-# ETS_096 / ETS_097 — TCP eventgroup (skipped: no TCP port allocated)
-# ---------------------------------------------------------------------------
 
 
 @add_test_properties(
@@ -175,11 +156,6 @@ def test_ets_097_tcp_reconnect() -> None:
         "TC8_SD_PORT=30498 and TC8_SVC_PORT=30511 (no TCP port).  Implement once "
         "a dedicated tc8_sd_client_tcp target with TC8_SVC_TCP_PORT is added."
     )
-
-
-# ---------------------------------------------------------------------------
-# ETS_084 — StopSubscribe ceases event delivery
-# ---------------------------------------------------------------------------
 
 
 class TestSDClientStopSubscribe:
@@ -244,7 +220,6 @@ class TestSDClientStopSubscribe:
                     for e in acks
                 ), "ETS_084: Prerequisite failed — no SubscribeAck received"
 
-                # Verify at least one notification arrives before StopSubscribe.
                 pre_notifs = capture_some_ip_messages(
                     notif_sock, SERVICE_ID, timeout_secs=4.0
                 )
@@ -252,7 +227,6 @@ class TestSDClientStopSubscribe:
                     "ETS_084: No notifications received after subscribe (prerequisite)"
                 )
 
-                # Send StopSubscribe.
                 send_subscribe_eventgroup(
                     sd_sock,
                     (dut_ip, SD_PORT),
@@ -265,7 +239,6 @@ class TestSDClientStopSubscribe:
                     ttl=0,
                 )
 
-                # Verify no further notifications within 4 s.
                 post_notifs = capture_some_ip_messages(
                     notif_sock, SERVICE_ID, timeout_secs=4.0
                 )
@@ -278,11 +251,6 @@ class TestSDClientStopSubscribe:
                 notif_sock.close()
         finally:
             terminate_someipd(proc)
-
-
-# ---------------------------------------------------------------------------
-# ETS_081 / ETS_082 — Server reboot detection (DUT restarts)
-# ---------------------------------------------------------------------------
 
 
 class TestSDClientReboot:
@@ -299,18 +267,9 @@ class TestSDClientReboot:
         host_ip: str,
         request: pytest.FixtureRequest,
     ) -> None:
-        """ETS_081: After restart the first SD message has the reboot flag (bit 7) set.
-
-        Lifecycle:
-          1. Start DUT, drain 3 SD messages (stable state — reboot bit may clear).
-          2. Terminate DUT.
-          3. Start DUT again; open capture socket before launch.
-          4. Assert first captured SD message has flag_reboot=True.
-          5. Assert session_id resets to ≤ 2.
-        """
+        """ETS_081: After restart the first SD message has the reboot flag (bit 7) set."""
         target_init = request.getfixturevalue("target_init")
 
-        # --- First run: drain to stable state ---
         try:
             pre_sock = open_multicast_socket(host_ip)
         except OSError:
@@ -332,7 +291,6 @@ class TestSDClientReboot:
 
         cleanup_vsomeip_sockets(target_init=target_init)
 
-        # --- Second run: capture first post-reboot message ---
         try:
             post_sock = open_multicast_socket(host_ip)
         except OSError:
@@ -356,7 +314,6 @@ class TestSDClientReboot:
 
         outer, sd_hdr = post_messages[0]
 
-        # Reboot flag (SD flags byte bit 7 = 0x80).
         reboot_flag = getattr(sd_hdr, "flag_reboot", None)
         if reboot_flag is None:
             raw_flags = getattr(sd_hdr, "flags", 0)
@@ -384,7 +341,6 @@ class TestSDClientReboot:
     ) -> None:
         """ETS_082: Reboot flag and session reset hold across a second consecutive restart.
 
-        Lifecycle: start → drain → stop → start → drain → stop → start → assert.
         This verifies that the DUT correctly resets SD state on every cold start,
         not just the first one.
         """
@@ -406,21 +362,18 @@ class TestSDClientReboot:
                 terminate_someipd(proc)
             cleanup_vsomeip_sockets(target_init=target_init)
 
-        # First run.
         try:
             sock1 = open_multicast_socket(host_ip)
         except OSError:
             pytest.skip(f"Multicast socket unavailable on {host_ip}")
         _drain_and_stop(sock1)
 
-        # Second run.
         try:
             sock2 = open_multicast_socket(host_ip)
         except OSError:
             pytest.skip("Multicast socket unavailable for second run")
         _drain_and_stop(sock2)
 
-        # Third run: capture first message.
         try:
             post_sock = open_multicast_socket(host_ip)
         except OSError:

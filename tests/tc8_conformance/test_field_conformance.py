@@ -10,17 +10,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 Field Conformance tests — TC8-FLD-001 through TC8-FLD-004.
+"""TC8 Field Conformance tests: TC8-FLD-001 through TC8-FLD-004.
 
 Fields extend events with three properties:
   1. Initial value: the DUT sends the last known value to a new subscriber immediately.
-  2. Getter: a REQUEST to method 0x0001 returns the current field value.
-  3. Setter: a REQUEST to method 0x0002 updates the field, notifies subscribers, and
+  2. Getter: a REQUEST to method 0x26 returns the current field value.
+  3. Setter: a REQUEST to method 0x27 updates the field, notifies subscribers, and
      returns a RESPONSE.
 
-The DUT (``someipd --tc8-standalone``) is configured via ``tc8_someipd_service.json``
-which declares event 0x0777 with ``is_field: true`` and ``update-cycle: 500`` ms.
-The standalone loop sends periodic ``notify()`` calls so the DUT caches the value.
+The DUT binary (``tc8_dut``) is configured via ``tc8_dut_config.json``.
+TestFieldUINT8 uses notify ID 0x8006, getter 0x26, setter 0x27, eventgroup
+0x0002 (EVENTGROUP_UDP_UNICAST).  The DUT caches the field value and delivers
+it as an initial-event notification to each new subscriber (is_field=true).
+TestFieldUINT8 is not sent periodically (cycle_ms=0).
 
 See ``docs/tc8_conformance/requirements.rst`` for requirement traceability.
 """
@@ -57,17 +59,8 @@ from helpers.constants import (
 from helpers.sd_helpers import capture_sd_offers
 from someip.header import SOMEIPReturnCode
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
-#: SOME/IP stack config template — fields config with is_field=true, update-cycle=500ms.
+#: SOME/IP stack config template (is_field=true, eventgroup 0x0002 UDP unicast).
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
-
-
-# ---------------------------------------------------------------------------
-# TC8-FLD-001 / TC8-FLD-002 — Field initial value on subscribe
-# ---------------------------------------------------------------------------
 
 
 class TestFieldInitialValue:
@@ -115,8 +108,7 @@ class TestFieldInitialValue:
                 MAJOR_VERSION,
                 notif_port=notif_port,
             )
-            # Wait actively for the DUT to send the first notify() (update-cycle=500 ms).
-            # Proceed as soon as the first notification arrives; no fixed sleep needed.
+            # Wait actively for the DUT to send the initial-event notification.
             notifs = capture_notifications(
                 notif_sock,
                 EVENT_FIELD_UINT8,
@@ -126,8 +118,8 @@ class TestFieldInitialValue:
             )
             assert notifs, (
                 "TC8-FLD-001: No initial NOTIFICATION received after subscribing to "
-                "a field eventgroup. Verify someipd is running with update-cycle=500 ms "
-                "and is_field=true."
+                "a field eventgroup. Verify tc8_dut is running with is_field=true "
+                "for TestFieldUINT8 (0x8006)."
             )
         finally:
             if sd_sock:
@@ -172,7 +164,6 @@ class TestFieldInitialValue:
                 notif_port=notif_port,
             )
             subscribe_time = time.monotonic()
-            # Active wait: proceeds as soon as the first notification arrives.
             # A field (is_field=true) delivers the cached value immediately after ACK.
             notifs = capture_notifications(
                 notif_sock,
@@ -192,11 +183,6 @@ class TestFieldInitialValue:
             if sd_sock:
                 sd_sock.close()
             notif_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# TC8-FLD-003 / TC8-FLD-004 — Field getter and setter
-# ---------------------------------------------------------------------------
 
 
 class TestFieldGetSet:
@@ -250,7 +236,6 @@ class TestFieldGetSet:
 
         new_value = b"\xca\xfe"
 
-        # Subscribe first so we receive the notification triggered by SET.
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         notif_sock.bind((tester_ip, 0))
@@ -274,7 +259,6 @@ class TestFieldGetSet:
                 notif_sock, EVENT_FIELD_UINT8, SERVICE_ID, count=1, timeout_secs=1.5
             )
 
-            # Send the SET request.
             set_resp = send_set_field(
                 dut_ip,
                 SERVICE_ID,
@@ -289,7 +273,6 @@ class TestFieldGetSet:
                 f"({set_resp.return_code.name}), expected E_OK"
             )
 
-            # Verify the DUT notified us with the new value within 3 s.
             notifs = capture_notifications(
                 notif_sock,
                 EVENT_FIELD_UINT8,
@@ -312,13 +295,8 @@ class TestFieldGetSet:
             notif_sock.close()
 
 
-# ---------------------------------------------------------------------------
-# SOMEIPSRV_RPC_17 — Field GET/SET over TCP (reliable transport)
-# ---------------------------------------------------------------------------
-
-
 class TestFieldTcpTransport:
-    """Field GET/SET over TCP — SOMEIPSRV_RPC_17.
+    """Field GET/SET over TCP (SOMEIPSRV_RPC_17).
 
     These tests verify that someipd correctly handles field GET and SET
     requests over TCP (reliable transport binding). The DUT is configured
@@ -386,7 +364,6 @@ class TestFieldTcpTransport:
             f"({set_resp.return_code.name}), expected E_OK"
         )
 
-        # Verify the value was updated by reading it back over TCP.
         get_resp = send_get_field_tcp(
             dut_ip,
             SERVICE_ID,

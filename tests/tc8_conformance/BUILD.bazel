@@ -54,6 +54,7 @@ pkg_files(
     name = "tc8-itf-pkg",
     srcs = [
         "config/tc8_dut_config.json",
+        "config/tc8_logging.json",
         "config/tc8_someipd_multi.json",
         "config/tc8_someipd_sd.json",
         "config/tc8_someipd_service.json",
@@ -69,6 +70,7 @@ pkg_files(
         "config/tc8_dut_config.json": "tc8_dut_config.json",
         "config/tc8_someipd_multi.json": "tc8_multi.json.tmpl",
         "config/tc8_someipd_sd.json": "tc8_sd.json.tmpl",
+        "config/tc8_logging.json": "tc8_logging.json",
         "config/tc8_someipd_service.json": "tc8_service.json.tmpl",
     },
 )

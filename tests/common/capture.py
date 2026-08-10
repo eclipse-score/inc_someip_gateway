@@ -16,6 +16,7 @@
 import io
 import os
 import pwd
+import shutil
 import signal
 import subprocess
 import time
@@ -138,7 +139,7 @@ class CaptureProcess:
         stop_capture(self._proc)
         if self._tmp_pcap and self._final_pcap and self._tmp_pcap != self._final_pcap:
             try:
-                os.replace(self._tmp_pcap, self._final_pcap)
+                shutil.move(self._tmp_pcap, self._final_pcap)
             except OSError:
                 pass  # best-effort; destination may be in a restricted sandbox path
 

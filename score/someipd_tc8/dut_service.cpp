@@ -39,21 +39,30 @@ void DutService::Start() {
         std::memcpy(field_states_[i].data.data(), fc.initial_value.data(), fc.initial_value_size);
     }
 
-    OfferEvents();
-    OfferFields();
-    RegisterMethodHandler();
-
-    // offer_service MUST be called after all offer_event() calls and BEFORE SeedInitialValues().
-    // REQ: comp_req__tc8_conformance__sd_offer_format
-    app_->offer_service(config_.service_id, config_.instance_id,
-                        config_.major_version, config_.minor_version);
-
-    SeedInitialValues();
-    StartNotifyThread();
-
-    score::mw::log::LogInfo()
-        << "[tc8_dut] Offering service 0x" << score::mw::log::LogHex16{config_.service_id}
-        << "/0x" << score::mw::log::LogHex16{config_.instance_id};
+    // Defer all vsomeip API calls to the ST_REGISTERED callback so they execute
+    // while the io_context is running (during app_->start()). This ensures is_set_
+    // is committed to the event cache in the correct runtime state, which is required
+    // for send_initial_events() to deliver the cached field value to new subscribers.
+    // Calling offer_event(), offer_service(), and notify() before app_->start() causes
+    // vsomeip's startup sequence to reset event state, preventing initial notification.
+    app_->register_state_handler([this](vsomeip::state_type_e state) {
+        if (state != vsomeip::state_type_e::ST_REGISTERED) {
+            return;
+        }
+        OfferEvents();
+        OfferFields();
+        RegisterMethodHandler();
+        // REQ: comp_req__tc8_conformance__sd_offer_format
+        app_->offer_service(config_.service_id, config_.instance_id,
+                            config_.major_version, config_.minor_version);
+        score::mw::log::LogInfo()
+            << "[tc8_dut] Offering service 0x"
+            << score::mw::log::LogHex16{config_.service_id}
+            << "/0x" << score::mw::log::LogHex16{config_.instance_id};
+        SeedInitialValues();
+        RegisterSubscriptionHandlers();
+        StartNotifyThread();
+    });
 }
 
 void DutService::Stop() {
@@ -101,8 +110,6 @@ void DutService::OfferFields() {
             fld.reliable ? vsomeip::reliability_type_e::RT_RELIABLE
                          : vsomeip::reliability_type_e::RT_UNRELIABLE;
 
-        // Fields are always ET_FIELD: vsomeip delivers the cached payload to each new
-        // subscriber on subscribe-ACK without waiting for the next notify() cycle.
         // REQ: comp_req__tc8_conformance__fld_initial_value
         app_->offer_event(config_.service_id, config_.instance_id, fld.notify_id, groups,
                           vsomeip::event_type_e::ET_FIELD,
@@ -119,7 +126,6 @@ void DutService::OfferFields() {
 }
 
 void DutService::RegisterMethodHandler() {
-    // One handler for all methods, dispatching by method ID at runtime.
     // REQ: comp_req__tc8_conformance__msg_resp_header
     app_->register_message_handler(
         config_.service_id, config_.instance_id, vsomeip::ANY_METHOD,
@@ -129,17 +135,7 @@ void DutService::RegisterMethodHandler() {
 }
 
 void DutService::SeedInitialValues() {
-    for (const EventConfig& ev : config_.events) {
-        if (ev.initial_value_size == 0U) {
-            continue;
-        }
-        auto payload = vsomeip::runtime::get()->create_payload();
-        payload->set_data(ev.initial_value.data(),
-                          static_cast<vsomeip::length_t>(ev.initial_value_size));
-        // Passing false for force: seeds the cache without triggering a cyclic notification.
-        app_->notify(config_.service_id, config_.instance_id, ev.id, payload, false);
-    }
-
+    score::mw::log::LogInfo() << "[tc8_dut] SeedInitialValues called";
     for (std::size_t i = 0U; i < config_.fields.size() && i < kMaxFields; ++i) {
         const FieldState& fs = field_states_[i];
         if (fs.size == 0U) {
@@ -148,7 +144,59 @@ void DutService::SeedInitialValues() {
         auto payload = vsomeip::runtime::get()->create_payload();
         payload->set_data(fs.data.data(), static_cast<vsomeip::length_t>(fs.size));
         app_->notify(config_.service_id, config_.instance_id, config_.fields[i].notify_id,
-                     payload, false);
+                     payload, true);
+        score::mw::log::LogInfo()
+            << "[tc8_dut] notify field 0x"
+            << score::mw::log::LogHex16{config_.fields[i].notify_id};
+    }
+
+    for (const EventConfig& ev : config_.events) {
+        if (!ev.is_field || ev.initial_value_size == 0U) {
+            continue;
+        }
+        auto payload = vsomeip::runtime::get()->create_payload();
+        payload->set_data(ev.initial_value.data(),
+                          static_cast<vsomeip::length_t>(ev.initial_value_size));
+        app_->notify(config_.service_id, config_.instance_id, ev.id, payload, true);
+        score::mw::log::LogInfo()
+            << "[tc8_dut] notify event (field) 0x"
+            << score::mw::log::LogHex16{ev.id};
+    }
+}
+
+void DutService::RegisterSubscriptionHandlers() {
+    // Collect unique eventgroup IDs. vsomeip replaces the previous handler when
+    // register_subscription_handler() is called with the same (service, instance,
+    // eventgroup) key, so we register exactly one handler per eventgroup.
+    std::set<vsomeip::eventgroup_t> eventgroups;
+    for (std::size_t i = 0U; i < config_.fields.size() && i < kMaxFields; ++i) {
+        const FieldConfig& fld = config_.fields[i];
+        for (uint8_t j = 0U; j < fld.eventgroup_count; ++j) {
+            eventgroups.insert(fld.eventgroups[j]);
+        }
+    }
+
+    for (const vsomeip::eventgroup_t eg : eventgroups) {
+
+        app_->register_subscription_handler(
+            config_.service_id, config_.instance_id, eg,
+            [eg](vsomeip::client_t /*client*/,
+                 const vsomeip_sec_client_t* /*sec_client*/,
+                 const std::string& /*env*/,
+                 bool subscribed) -> bool {
+                if (!subscribed) {
+                    score::mw::log::LogInfo()
+                        << "[tc8_dut] subscriber 0x" << score::mw::log::LogHex16{eg}
+                        << " unsubscribed";
+                    return true;
+                }
+                score::mw::log::LogInfo()
+                    << "[tc8_dut] subscriber 0x" << score::mw::log::LogHex16{eg}
+                    << " subscribed";
+                // vsomeip calls send_initial_events() after this handler returns true,
+                // which delivers the cached field value to the new subscriber automatically.
+                return true;
+            });
     }
 }
 
@@ -158,8 +206,6 @@ void DutService::StartNotifyThread() {
 }
 
 void DutService::NotifyLoop() {
-    // 500ms tick: the GCD of all cycle_ms values in the ETS spec.
-    // Events with a nonzero cycle_ms are notified when elapsed_ms is a multiple of cycle_ms.
     uint32_t elapsed_ms = 0U;
     while (running_.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500U));
@@ -176,16 +222,8 @@ void DutService::NotifyLoop() {
             auto payload = vsomeip::runtime::get()->create_payload();
             payload->set_data(ev.initial_value.data(),
                               static_cast<vsomeip::length_t>(ev.initial_value_size));
-            // Passing true for force: ET_FIELD events require it as vsomeip silently drops
-            // unchanged payloads. TC8-RPC-15 requires cyclic sends.
             // REQ: comp_req__tc8_conformance__fld_initial_value
             app_->notify(config_.service_id, config_.instance_id, ev.id, payload, true);
-        }
-
-        for (std::size_t i = 0U; i < config_.fields.size() && i < kMaxFields; ++i) {
-            // Fields have no cycle_ms: they are driven by SET commands.
-            // This loop is a placeholder for future extension.
-            (void)i;
         }
     }
 }

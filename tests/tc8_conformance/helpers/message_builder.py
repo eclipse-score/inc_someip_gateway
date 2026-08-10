@@ -20,6 +20,7 @@ from someip.header import (
     SOMEIPMessageType,
     SOMEIPReturnCode,
 )
+from helpers.constants import MAJOR_VERSION
 
 
 def build_request(
@@ -27,7 +28,7 @@ def build_request(
     method_id: int,
     client_id: int = 0x0001,
     session_id: int = 0x0001,
-    interface_version: int = 0x00,
+    interface_version: int = MAJOR_VERSION,
     payload: bytes = b"",
 ) -> bytes:
     """Build a SOME/IP REQUEST message."""
@@ -48,7 +49,7 @@ def build_request_no_return(
     method_id: int,
     client_id: int = 0x0001,
     session_id: int = 0x0001,
-    interface_version: int = 0x00,
+    interface_version: int = MAJOR_VERSION,
     payload: bytes = b"",
 ) -> bytes:
     """Build a SOME/IP REQUEST_NO_RETURN (fire-and-forget) message."""
@@ -83,7 +84,7 @@ def build_wrong_protocol_version_request(
     method_id: int,
     client_id: int = 0x0001,
     session_id: int = 0x0001,
-    interface_version: int = 0x00,
+    interface_version: int = MAJOR_VERSION,
 ) -> bytes:
     """Build a valid REQUEST but with protocol_version patched to 0xFF.
 
@@ -106,7 +107,7 @@ def build_oversized_message(
     method_id: int,
     client_id: int = 0x0001,
     session_id: int = 0x0001,
-    interface_version: int = 0x00,
+    interface_version: int = MAJOR_VERSION,
 ) -> bytes:
     """Build a 16-byte packet whose length field claims 0x7FF3 bytes of payload.
 
@@ -135,7 +136,7 @@ def build_notification_as_request(
     method_id: int,
     client_id: int = 0x0001,
     session_id: int = 0x0001,
-    interface_version: int = 0x00,
+    interface_version: int = MAJOR_VERSION,
     payload: bytes = b"",
 ) -> bytes:
     """Build a SOME/IP packet with message_type=NOTIFICATION (0x02).
@@ -161,7 +162,7 @@ def build_request_with_return_code(
     return_code: int,
     client_id: int = 0x0001,
     session_id: int = 0x0001,
-    interface_version: int = 0x00,
+    interface_version: int = MAJOR_VERSION,
     payload: bytes = b"",
 ) -> bytes:
     """Build a REQUEST with an explicit return_code byte value.

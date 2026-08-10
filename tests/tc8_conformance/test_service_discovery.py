@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 Service Discovery tests — TC8-SD-001 through TC8-SD-014.
+"""TC8 Service Discovery tests: TC8-SD-001 through TC8-SD-014.
 
 See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 """
@@ -51,10 +51,6 @@ from helpers.constants import (
 from helpers.timing import capture_sd_offers_with_timestamps
 from someip.header import SOMEIPHeader, SOMEIPSDHeader
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
 #: SOME/IP stack config template used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
@@ -68,11 +64,6 @@ _REQUEST_RESPONSE_DELAY_MS: float = 500.0
 
 #: Unknown IDs used in negative tests.
 _UNKNOWNINSTANCE_ID: int = 0xBEEF
-
-
-# ---------------------------------------------------------------------------
-# TC8-SD-001 / TC8-SD-002 / TC8-SD-003 — offer format and cyclic timing
-# ---------------------------------------------------------------------------
 
 
 class TestSDOfferFormat:
@@ -178,11 +169,6 @@ class TestSDOfferFormat:
             )
 
 
-# ---------------------------------------------------------------------------
-# TC8-SD-004 / TC8-SD-005 — FindService response
-# ---------------------------------------------------------------------------
-
-
 class TestSDFindResponse:
     """TC8-SD-004/005: FindService response for known/unknown services."""
 
@@ -201,7 +187,7 @@ class TestSDFindResponse:
         """TC8-SD-004: FindService for offered service triggers a unicast OfferService."""
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        # tester_ip differs from host_ip — both need SD_PORT (SD spec requirement).
+        # tester_ip differs from host_ip; both need SD_PORT (SD spec requirement).
         # Send FindService via unicast to the DUT (multicast delivery on loopback
         # between different 127.x addresses is unreliable in some environments).
         sock = open_sender_socket(tester_ip)
@@ -267,11 +253,6 @@ class TestSDFindResponse:
             )
         finally:
             sock.close()
-
-
-# ---------------------------------------------------------------------------
-# TC8-SD-006 / TC8-SD-007 / TC8-SD-008 — SubscribeEventgroup lifecycle
-# ---------------------------------------------------------------------------
 
 
 class TestSDSubscribeLifecycle:
@@ -403,7 +384,7 @@ class TestSDSubscribeLifecycle:
         notif_port: int = notif_sock.getsockname()[1]
 
         try:
-            # Subscribe — notifications will arrive on notif_sock.
+            # Notifications will arrive on notif_sock.
             def _send_sub_008() -> None:
                 send_subscribe_eventgroup(
                     sd_sock,
@@ -433,7 +414,6 @@ class TestSDSubscribeLifecycle:
                 "TC8-SD-008: No SOME/IP notifications received after subscribe"
             )
 
-            # Stop subscription (TTL=0).
             send_subscribe_eventgroup(
                 sd_sock,
                 (dut_ip, SD_PORT),
@@ -446,7 +426,6 @@ class TestSDSubscribeLifecycle:
                 ttl=0,
             )
 
-            # Verify no further notifications arrive within 4 s.
             post = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
             assert not post, (
                 f"TC8-SD-008: {len(post)} notification(s) received after StopSubscribeEventgroup"
@@ -454,11 +433,6 @@ class TestSDSubscribeLifecycle:
         finally:
             sd_sock.close()
             notif_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# TC8-SD-011 — SD option format (IPv4 endpoint option)
-# ---------------------------------------------------------------------------
 
 
 class TestSDOptionFormat:
@@ -523,17 +497,9 @@ class TestSDOptionFormat:
         )
 
 
-# ---------------------------------------------------------------------------
-# TC8-SD-012 — Reboot detection (isolated in test_sd_reboot.py)
-# ---------------------------------------------------------------------------
 # TC8-SD-012 tests are in tests/tc8_conformance/test_sd_reboot.py.
 # They require their own someipd lifecycle (start/stop/restart) and cannot
 # share the module-scoped someipd_dut fixture used by the other SD tests here.
-
-
-# ---------------------------------------------------------------------------
-# TC8-SD-013 — Multicast eventgroup option in SUBSCRIBE_ACK
-# ---------------------------------------------------------------------------
 
 
 class TestSDMulticastEventgroup:
@@ -624,11 +590,6 @@ class TestSDMulticastEventgroup:
             sock.close()
 
 
-# ---------------------------------------------------------------------------
-# TC8-SD-014 — TTL expiry cleanup
-# ---------------------------------------------------------------------------
-
-
 class TestSDTTLExpiry:
     """TC8-SD-014: Subscription with finite TTL is cleaned up after expiry."""
 
@@ -654,7 +615,6 @@ class TestSDTTLExpiry:
         notif_port: int = notif_sock.getsockname()[1]
 
         try:
-            # Subscribe with a short TTL (3 seconds).
             _TTL_SECS = 3
 
             def _send_sub_ttl() -> None:
@@ -681,7 +641,6 @@ class TestSDTTLExpiry:
                 e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks
             ), "TC8-SD-014: Prerequisite failed — no SubscribeEventgroupAck received"
 
-            # Verify at least one notification arrives before TTL expiry.
             pre_expiry = capture_some_ip_messages(
                 notif_sock, SERVICE_ID, timeout_secs=4.0
             )
@@ -690,7 +649,6 @@ class TestSDTTLExpiry:
             # Wait for TTL to expire (TTL + 2 s margin).
             time.sleep(_TTL_SECS + 2)
 
-            # Verify no further notifications arrive in a 3 s window.
             post_expiry = capture_some_ip_messages(
                 notif_sock, SERVICE_ID, timeout_secs=3.0
             )
@@ -701,11 +659,6 @@ class TestSDTTLExpiry:
         finally:
             sd_sock.close()
             notif_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# SOMEIPSRV_SD_MESSAGE_01-06 — FindService version wildcard/specific matching
-# ---------------------------------------------------------------------------
 
 
 class TestSDVersionMatching:
@@ -976,11 +929,6 @@ class TestSDVersionMatching:
             sock.close()
 
 
-# ---------------------------------------------------------------------------
-# SOMEIPSRV_SD_MESSAGE_14-19 — SubscribeEventgroup NAck scenarios
-# ---------------------------------------------------------------------------
-
-
 class TestSDSubscribeNAck:
     """SOMEIPSRV_SD_MESSAGE_14-19: SubscribeEventgroup NAck scenarios.
 
@@ -1053,7 +1001,7 @@ class TestSDSubscribeNAck:
 
         Per SOMEIPSRV_SD_MESSAGE_15 the DUT shall respond with a SubscribeEventgroupNAck
         (SubscribeAck entry with TTL=0).  The DUT sends a NAck for unknown
-        service IDs — the response carries the same eventgroup_id as the request.
+        service IDs; the response carries the same eventgroup_id as the request.
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
@@ -1305,11 +1253,6 @@ class TestSDSubscribeNAck:
             sock.close()
 
 
-# ---------------------------------------------------------------------------
-# SOMEIPSRV_SD_BEHAVIOR_03-04 — FindService response timing
-# ---------------------------------------------------------------------------
-
-
 class TestSDFindServiceTiming:
     """SOMEIPSRV_SD_BEHAVIOR_03-04: FindService response timing constraints."""
 
@@ -1352,7 +1295,6 @@ class TestSDFindServiceTiming:
                     instance_id=INSTANCE_ID,
                     major_version=MAJOR_VERSION,
                 )
-                # Wait only for the allowed window.
                 entries = capture_unicast_sd_entries(
                     sock,
                     filter_types=(SOMEIPSDEntryType.OfferService,),
@@ -1369,7 +1311,7 @@ class TestSDFindServiceTiming:
                         f"(configured request_response_delay={_REQUEST_RESPONSE_DELAY_MS:.0f} ms)"
                     )
                     return  # test passes on first successful attempt
-                # No response in the tight window — the cyclic offer may have just fired.
+                # No response in the tight window; the cyclic offer may have just fired.
                 # Drain any pending offers and retry.
                 capture_unicast_sd_entries(
                     sock,
@@ -1470,11 +1412,6 @@ class TestSDFindServiceTiming:
             mc_sock.close()
 
 
-# ---------------------------------------------------------------------------
-# ETS_088/092/098/107/120/122/155 — Multi-subscribe and lifecycle edge cases
-# ---------------------------------------------------------------------------
-
-
 class TestSDSubscribeLifecycleAdvanced:
     """ETS_088/092/098/107/120/122/155: Multi-subscribe and lifecycle edge cases."""
 
@@ -1567,7 +1504,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_092: SubscribeEventgroup with TTL=0 is treated as StopSubscribe — no NAck sent.
+        """ETS_092: SubscribeEventgroup with TTL=0 is treated as StopSubscribe; no NAck sent.
 
         Per PRS_SOMEIPSD_00386 and PRS_SOMEIPSD_00387 a subscribe entry with TTL=0 is
         a StopSubscribeEventgroup. The DUT must not send a SubscribeAck (positive or
@@ -1589,7 +1526,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 subscriber_port=sender_port,
                 ttl=0,
             )
-            # No resend — a StopSubscribe should never produce an ACK.
+            # No resend; a StopSubscribe should never produce an ACK.
             entries = capture_unicast_sd_entries(
                 sock,
                 filter_types=(SOMEIPSDEntryType.SubscribeAck,),
@@ -1714,7 +1651,6 @@ class TestSDSubscribeLifecycleAdvanced:
 
             _send_both()
 
-            # Capture SubscribeAck on the unicast sender socket.
             acks = capture_unicast_sd_entries(
                 sd_sock,
                 filter_types=(SOMEIPSDEntryType.SubscribeAck,),
@@ -1882,7 +1818,7 @@ class TestSDSubscribeLifecycleAdvanced:
     ) -> None:
         """ETS_155: Re-subscribe after StopSubscribe receives a new ACK and resumes events.
 
-        Lifecycle: Subscribe → ACK → StopSubscribe (TTL=0) → Subscribe → ACK.
+        Lifecycle: Subscribe, ACK, StopSubscribe (TTL=0), Subscribe, ACK.
         The DUT must accept the second subscription and resume event delivery.
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1907,7 +1843,6 @@ class TestSDSubscribeLifecycleAdvanced:
                     subscriber_port=notif_port,
                 )
 
-            # Step 1: Initial subscribe.
             _subscribe()
             acks1 = capture_unicast_sd_entries(
                 sd_sock,
@@ -1919,7 +1854,6 @@ class TestSDSubscribeLifecycleAdvanced:
                 e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks1
             ), "ETS_155: Prerequisite failed — no initial SubscribeAck received"
 
-            # Step 2: Stop subscribe.
             send_subscribe_eventgroup(
                 sd_sock,
                 (dut_ip, SD_PORT),
@@ -1933,7 +1867,6 @@ class TestSDSubscribeLifecycleAdvanced:
             )
             time.sleep(0.5)  # Allow DUT to process the StopSubscribe.
 
-            # Step 3: Re-subscribe — must be accepted again.
             _subscribe()
             acks2 = capture_unicast_sd_entries(
                 sd_sock,
@@ -1967,16 +1900,10 @@ class TestSDSubscribeLifecycleAdvanced:
         SOMEIP_ETS_095 (Sec. 5.1.6): After a subscription TTL elapses and is not
         renewed the server must cease sending event notifications to the expired
         subscriber.
-
-        Test sequence:
-          1. Subscribe with TTL=1 (~1 second).
-          2. Wait for TTL to expire without sending a renewal.
-          3. Assert no SOME/IP NOTIFICATION messages arrive in the post-expiry
-             observation window.
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
-        # Use TTL=3 (same as TC8-SD-014) — TTL=1 is too short to reliably
+        # Use TTL=3 (same as TC8-SD-014); TTL=1 is too short to reliably
         # process the expiry before the next notify cycle.
         _TTL_SECS = 3
 
@@ -2034,11 +1961,6 @@ class TestSDSubscribeLifecycleAdvanced:
         finally:
             sd_sock.close()
             notif_sock.close()
-
-
-# ---------------------------------------------------------------------------
-# ETS_091/099/100/128/130 — FindService and offer lifecycle advanced
-# ---------------------------------------------------------------------------
 
 
 class TestSDFindServiceAdvanced:
@@ -2291,7 +2213,7 @@ class TestSDFindServiceAdvanced:
         sock = open_sender_socket(tester_ip)
         mc_sock = open_multicast_socket(host_ip)
         try:
-            # SD flags: reboot bit (0x80) set, unicast bit (0x40) clear → 0x80
+            # SD flags: reboot bit (0x80) set, unicast bit (0x40) clear, resulting byte = 0x80.
             entry_bytes = _find_service_entry_bytes(
                 service_id=SERVICE_ID,
                 instance_id=0xFFFF,

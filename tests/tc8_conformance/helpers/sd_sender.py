@@ -140,17 +140,58 @@ def send_subscribe_eventgroup(
     eventgroup_id: int,
     major_version: int,
     subscriber_ip: str,
-    subscriber_port: int,
+    subscriber_port: int = 0,
     ttl: int = 3,
     session_id: int = 0,
     l4proto: L4Protocols = L4Protocols.UDP,
+    tcp_port: Optional[int] = None,
+    udp_port: Optional[int] = None,
 ) -> None:
-    """Send a SubscribeEventgroup (or StopSubscribe when ``ttl=0``)."""
-    endpoint_opt = IPv4EndpointOption(
-        address=ipaddress.IPv4Address(subscriber_ip),
-        l4proto=l4proto,
-        port=subscriber_port,
-    )
+    """Send a SubscribeEventgroup (or StopSubscribe when ``ttl=0``).
+
+    Endpoint Configuration:
+    - Standard (Single Protocol): Use `subscriber_port` and `l4proto` to subscribe
+      to an eventgroup that contains only UDP or only TCP events.
+    - Mixed (Multi-Protocol): Some eventgroups are configured to contain both TCP
+      and UDP events. Strict SOME/IP implementations require BOTH endpoints to be
+      provided in the subscription request. Pass `tcp_port` and/or `udp_port` to
+      explicitly attach multiple IPv4 Endpoint Options to the SD entry.
+    """
+    endpoint_opt = []
+
+    if tcp_port is None and udp_port is None:
+        # Standard behavior: Attach a single IPv4 Endpoint Option.
+        # This relies on the fallback 'l4proto' and 'subscriber_port'
+        endpoint_opt.append(
+            IPv4EndpointOption(
+                address=ipaddress.IPv4Address(subscriber_ip),
+                l4proto=l4proto,
+                port=subscriber_port,
+            )
+        )
+    else:
+        # Mixed behavior: The caller explicitly defined protocol-specific ports.
+        # We ignore 'subscriber_port' and 'l4proto', and instead attach up to two
+        # separate IPv4 Endpoint Options. This informs the provider exactly where
+        # to route UDP events and where to route TCP events for this eventgroup.
+        if udp_port is not None:
+            endpoint_opt.append(
+                IPv4EndpointOption(
+                    address=ipaddress.IPv4Address(subscriber_ip),
+                    l4proto=L4Protocols.UDP,
+                    port=udp_port,
+                )
+            )
+        if tcp_port is not None:
+            endpoint_opt.append(
+                IPv4EndpointOption(
+                    address=ipaddress.IPv4Address(subscriber_ip),
+                    l4proto=L4Protocols.TCP,
+                    port=tcp_port,
+                )
+            )
+
+    # Build the SOME/IP-SD Entry using the configured endpoint options
     entry = SOMEIPSDEntry(
         sd_type=SOMEIPSDEntryType.Subscribe,
         service_id=service_id,
@@ -158,7 +199,7 @@ def send_subscribe_eventgroup(
         major_version=major_version,
         ttl=ttl,
         minver_or_counter=eventgroup_id & 0xFFFF,
-        options_1=(endpoint_opt,),
+        options_1=tuple(endpoint_opt),
     )
     sock.sendto(_build_sd_packet(entry, session_id), sd_dest)
 

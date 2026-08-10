@@ -12,28 +12,16 @@
 # *******************************************************************************
 """TC8 Multi-service and multi-instance config tests.
 
-SOMEIPSRV_RPC_13 — Multi-service config validity:
+SOMEIPSRV_RPC_13: Multi-service config validity:
   Verify that the DUT's configuration supports multiple service entries and
   that the DUT correctly offers its configured service with a stable SD stream.
   The ``tc8_someipd_multi.json`` config declares two services; the DUT validates
   both at startup. The DUT (``--tc8-standalone``) offers service 0x1234/0x5678.
 
-SOMEIPSRV_RPC_14 — Instance port isolation:
+SOMEIPSRV_RPC_14: Instance port isolation:
   Verify that each service instance in the config is assigned a distinct UDP
   port and that the offered service's SD endpoint option matches its configured
   port, confirming port routing correctness at the SD layer.
-
-Note on DUT scope: ``someipd --tc8-standalone`` offers a single service
-(0x1234/0x5678) in the current implementation.  The multi config is loaded
-successfully (both service entries are parsed at DUT init), so RPC_13 tests
-the config-loading path and the SD offer for the primary service.  A second
-service would require an additional ``app->offer_service()`` call in
-``src/someipd/main.cpp``, which is tracked as a known limitation.
-
-Port assignment (from BUILD.bazel env):
-  TC8_SD_PORT      = 30499  (SD traffic)
-  TC8_SVC_PORT     = 30512  (Service A UDP, tc8_someipd_multi.json primary)
-  TC8_SVC_TCP_PORT = 30513  (Service B UDP, defined in config but not offered)
 
 See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 """
@@ -51,33 +39,22 @@ from helpers.constants import DUT_UNRELIABLE_PORT, SD_PORT
 from helpers.sd_helpers import open_multicast_socket, parse_sd_offers
 from someip.header import IPv4EndpointOption, L4Protocols, SOMEIPSDEntry
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
 #: Use the multi-service DUT config with two service entries.
 #: Only service A is offered by --tc8-standalone; the config itself must load
 #: successfully with both service definitions present (tests RPC_13 config path).
 SOMEIP_CONFIG: str = "tc8_someipd_multi.json"
 
-#: Service A — the service offered by --tc8-standalone mode.
+#: Service A: the service offered by --tc8-standalone mode.
 _SERVICE_A_ID: int = 0x1234
 _SERVICE_A_INSTANCE: int = 0x5678
 
-#: Service B — declared in config but not offered by current standalone mode.
+#: Service B: declared in config but not offered by current standalone mode.
 _SERVICE_B_ID: int = 0x5678
 _SERVICE_B_INSTANCE: int = 0x0001
 
-#: Timeout used when waiting for the DUT SD OfferService on the multicast group.
 _DUT_READY_TIMEOUT_SECS: float = 10.0
 
-#: Minimum number of SD OfferService entries to collect for stability checks.
 _SD_OFFER_COLLECTION_WINDOW_SECS: float = 6.0
-
-
-# ---------------------------------------------------------------------------
-# Module-level helpers
-# ---------------------------------------------------------------------------
 
 
 def _collect_offers_for_service(
@@ -128,7 +105,7 @@ def _collect_all_offers(
 ) -> Dict[int, SOMEIPSDEntry]:
     """Collect all OfferService entries within *window_secs*.
 
-    Returns a dict mapping service_id → most-recently-seen SOMEIPSDEntry.
+    Returns a dict mapping service_id to the most-recently-seen SOMEIPSDEntry.
     Skips the calling test if the multicast socket cannot be opened.
     """
     try:
@@ -170,11 +147,6 @@ def _get_udp_endpoint_port(entry: SOMEIPSDEntry) -> Optional[int]:
     return None
 
 
-# ---------------------------------------------------------------------------
-# Test class
-# ---------------------------------------------------------------------------
-
-
 class TestMultiServiceInstanceRouting:
     """SOMEIPSRV_RPC_13/14: Multi-service config and instance port routing."""
 
@@ -194,17 +166,6 @@ class TestMultiServiceInstanceRouting:
         both service entries at startup without error.  The DUT then offers the
         primary service (0x1234/0x5678) via SD; this confirms the multi-service
         config was accepted by the DUT.
-
-        Preconditions:
-          - DUT started with tc8_someipd_multi.json (two service entries)
-          - Multicast route available
-
-        Stimuli:
-          - Passive observation of SD OfferService multicast messages
-
-        Expected result:
-          - DUT process remains alive (config loaded without crash)
-          - Service A (0x1234/0x5678) OfferService is received within timeout
         """
         assert someipd_dut.poll() is None, (
             "RPC_13: someipd DUT crashed — multi-service config may have "
@@ -241,25 +202,13 @@ class TestMultiServiceInstanceRouting:
     ) -> None:
         """RPC_14: Service A's OfferService endpoint option matches configured port.
 
-        Per SOMEIPSRV_RPC_14 — each service instance must be reachable on its
+        Per SOMEIPSRV_RPC_14, each service instance must be reachable on its
         configured UDP port.  The SD OfferService IPv4EndpointOption must carry
         the DUT's configured unreliable port (DUT_UNRELIABLE_PORT /
         TC8_SVC_PORT = 30512 for the tc8_multi_service Bazel target).
 
         This verifies that the DUT correctly maps the multi-service config entry
         to a UDP server endpoint on the right port.
-
-        Preconditions:
-          - DUT started with tc8_someipd_multi.json
-          - Service A offered
-
-        Stimuli:
-          - Passive observation of SD OfferService; extraction of the
-            IPv4EndpointOption port field.
-
-        Expected result:
-          - OfferService for service A (0x1234) carries an IPv4 UDP endpoint
-            option with port == DUT_UNRELIABLE_PORT
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 
@@ -298,16 +247,6 @@ class TestMultiServiceInstanceRouting:
 
         This verifies that the multi-service config does not cause the DUT to
         offer unexpected services or corrupt the SD entry list.
-
-        Preconditions:
-          - DUT started with tc8_someipd_multi.json
-
-        Stimuli:
-          - Passive observation of SD OfferService for a 6-second window.
-
-        Expected result:
-          - All observed service_ids are in {0x1234, 0x5678}
-          - At least service 0x1234 is observed
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
 

@@ -192,6 +192,7 @@ def someip_pcap_capture() -> Generator[None, None, None]:
     finally:
         if proc is not None:
             clean = stop_capture(proc, timeout=5.0)
+            proc.__exit__(None, None, None)
             if clean:
                 _logger.info(
                     "someip_pcap_capture: tcpdump stopped cleanly, pcap complete. "
@@ -305,6 +306,7 @@ def someipd_dut(
     proc: AsyncProcess = target_init.execute_async(
         f"LD_LIBRARY_PATH=/ "
         f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
+        f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
         f"/tc8_dut "
         f"-c /tc8_dut_config.json"
     )

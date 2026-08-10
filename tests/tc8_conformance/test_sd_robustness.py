@@ -10,24 +10,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 Group 4 — SD Robustness: malformed SD message handling.
+"""TC8 Group 4: SD Robustness: malformed SD message handling.
 
 Verifies that ``someipd`` never crashes, hangs, or enters an incorrect state
 when it receives malformed SOME/IP-SD packets.
 
-All tests follow the pattern:
-  1. Inject one malformed SD packet.
-  2. Send a valid FindService and verify the DUT still replies with OfferService.
+All tests follow the pattern: inject one malformed SD packet, then send a valid
+FindService and verify the DUT still replies with OfferService.
 
 The "DUT alive" assertion is the primary safety property: no crash implies the
 DUT continues to answer SD queries.
 
-Test classes
-------------
-TestSDMalformedEntries    — ETS_111/112/113/114/115/116/117/118/123/124/125
-TestSDMalformedOptions    — ETS_134/135/136/137/138/139/174
-TestSDSubscribeEdgeCases  — ETS_109/110/119/140/141/142/143/144
-TestSDMessageFramingErrors — ETS_152/153/178
+Test classes: TestSDMalformedEntries (ETS_111-118/123-125),
+TestSDMalformedOptions (ETS_134-139/174), TestSDSubscribeEdgeCases
+(ETS_109/110/119/140-144), TestSDMessageFramingErrors (ETS_152/153/178).
 """
 
 import socket
@@ -75,11 +71,6 @@ from helpers.sd_sender import (
     send_find_service,
 )
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
-#: SOME/IP stack config used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: An unknown service/instance not offered by the DUT.
@@ -92,11 +83,6 @@ _DUT_ALIVE_TIMEOUT: float = 5.0
 
 #: Subscriber port used when building endpoint options in malformed packets.
 _SUBSCRIBER_PORT: int = 34567
-
-
-# ---------------------------------------------------------------------------
-# DUT-alive helper
-# ---------------------------------------------------------------------------
 
 
 def _verify_dut_alive(sock: socket.socket, dut_ip: str) -> None:
@@ -126,11 +112,6 @@ def _verify_dut_alive(sock: socket.socket, dut_ip: str) -> None:
     )
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture(scope="module")
 def sender(tester_ip: str) -> socket.socket:
     """Open a UDP sender socket bound to tester_ip:SD_PORT for the entire module."""
@@ -139,13 +120,8 @@ def sender(tester_ip: str) -> socket.socket:
     sock.close()
 
 
-# ---------------------------------------------------------------------------
-# Group 4A — TestSDMalformedEntries
-# ---------------------------------------------------------------------------
-
-
 class TestSDMalformedEntries:
-    """ETS_111/112/113/114/115/116/117/118/123/124/125 — malformed entries array."""
+    """ETS_111/112/113/114/115/116/117/118/123/124/125: malformed entries array."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -159,7 +135,7 @@ class TestSDMalformedEntries:
         host_ip: str,
         dut_ip: str,
     ) -> None:
-        """ETS_111: SD packet with entries_array_length=0 — DUT must not crash."""
+        """ETS_111: SD packet with entries_array_length=0; DUT must not crash."""
         assert someipd_dut.poll() is None, "DUT is not running before injection"
         send_sd_empty_entries(sender, (dut_ip, SD_PORT))
         _verify_dut_alive(sender, dut_ip)
@@ -351,13 +327,8 @@ class TestSDMalformedEntries:
         _verify_dut_alive(sender, dut_ip)
 
 
-# ---------------------------------------------------------------------------
-# Group 4B — TestSDMalformedOptions
-# ---------------------------------------------------------------------------
-
-
 class TestSDMalformedOptions:
-    """ETS_134/135/136/137/138/139/174 — malformed options array."""
+    """ETS_134/135/136/137/138/139/174: malformed options array."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -537,13 +508,8 @@ class TestSDMalformedOptions:
         _verify_dut_alive(sender, dut_ip)
 
 
-# ---------------------------------------------------------------------------
-# Group 4C — TestSDSubscribeEdgeCases
-# ---------------------------------------------------------------------------
-
-
 class TestSDSubscribeEdgeCases:
-    """ETS_109/110/119/140/141/142/143/144 — subscribe message edge cases."""
+    """ETS_109/110/119/140/141/142/143/144: subscribe message edge cases."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],
@@ -770,13 +736,8 @@ class TestSDSubscribeEdgeCases:
         _verify_dut_alive(sender, dut_ip)
 
 
-# ---------------------------------------------------------------------------
-# Group 4D — TestSDMessageFramingErrors
-# ---------------------------------------------------------------------------
-
-
 class TestSDMessageFramingErrors:
-    """ETS_152/153/178 — SOME/IP framing and header field errors."""
+    """ETS_152/153/178: SOME/IP framing and header field errors."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_robustness"],

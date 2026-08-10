@@ -10,20 +10,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 SD Format & Options Field Assertions — FORMAT_01 through OPTIONS_14.
+"""TC8 SD Format & Options Field Assertions: FORMAT_01 through OPTIONS_14.
 
 Verifies byte-level field values in SD OfferService messages and
 SubscribeEventgroup Ack responses from someipd.  No DUT behaviour is
 triggered beyond normal SD operation; tests only observe what the DUT
 already sends.
 
-Test classes
-------------
-TestSdHeaderFieldsOfferService  — FORMAT_01/02/04/05/06/09/10
-TestSdOfferEntryFields          — FORMAT_11/12/13/15/16/18
-TestSdHeaderFieldsSubscribeAck  — FORMAT_19/20/21/23/24/25/26/27/28
-TestSdOptionsEndpoint           — OPTIONS_01/02/03/05/06
-TestSdOptionsMulticast          — OPTIONS_08/09/10/11/12/13/14
+Test classes:
+  TestSdHeaderFieldsOfferService  -- FORMAT_01/02/04/05/06/09/10
+  TestSdOfferEntryFields          -- FORMAT_11/12/13/15/16/18
+  TestSdHeaderFieldsSubscribeAck  -- FORMAT_19/20/21/23/24/25/26/27/28
+  TestSdOptionsEndpoint           -- OPTIONS_01/02/03/05/06
+  TestSdOptionsMulticast          -- OPTIONS_08/09/10/11/12/13/14
 """
 
 import ipaddress
@@ -69,17 +68,7 @@ from someip.header import (
     SOMEIPSDHeader,
 )
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
-#: SOME/IP stack config template used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
-
-
-# ---------------------------------------------------------------------------
-# Internal capture helpers
-# ---------------------------------------------------------------------------
 
 
 def _capture_raw_sd_offer(
@@ -228,7 +217,6 @@ def _capture_subscribe_ack_with_options(
                 if someip_msg.service_id != SD_SERVICE:
                     continue
                 sd_hdr, _ = SOMEIPSDHeader.parse(someip_msg.payload)
-                # Resolved copy (options populated).
                 sd_hdr_resolved = sd_hdr.resolve_options()
                 for unresolved_entry, resolved_entry in zip(
                     sd_hdr.entries, sd_hdr_resolved.entries
@@ -248,11 +236,6 @@ def _capture_subscribe_ack_with_options(
         f"No SubscribeEventgroupAck with options received for eventgroup "
         f"0x{eventgroup_id:04x} within {timeout_secs:.1f}s"
     )
-
-
-# ---------------------------------------------------------------------------
-# TestSdHeaderFieldsOfferService — FORMAT_01/02/04/05/06/09/10
-# ---------------------------------------------------------------------------
 
 
 class TestSdHeaderFieldsOfferService:
@@ -424,17 +407,11 @@ class TestSdHeaderFieldsOfferService:
         assigned = entry.assign_option_index([])
         raw = assigned.build()
 
-        # Byte [2] is reserved for OfferService and must be 0.
         reserved_byte = raw[2]
         assert reserved_byte == 0, (
             f"FORMAT_10: Reserved byte [2] in OfferService SD entry must be 0; "
             f"got 0x{reserved_byte:02x}"
         )
-
-
-# ---------------------------------------------------------------------------
-# TestSdOfferEntryFields — FORMAT_11/12/13/15/16/18
-# ---------------------------------------------------------------------------
 
 
 class TestSdOfferEntryFields:
@@ -480,7 +457,6 @@ class TestSdOfferEntryFields:
         assigned = entry.assign_option_index([])
         raw = assigned.build()
 
-        # Byte [1] holds option_index_1.
         option_index_1 = raw[1]
         assert option_index_1 == 0, (
             f"FORMAT_12: option_index_1 (byte [1]) must be 0; "
@@ -571,11 +547,6 @@ class TestSdOfferEntryFields:
         )
 
 
-# ---------------------------------------------------------------------------
-# TestSdHeaderFieldsSubscribeAck — FORMAT_19/20/21/23/24/25/26/27/28
-# ---------------------------------------------------------------------------
-
-
 class TestSdHeaderFieldsSubscribeAck:
     """FORMAT_19/20/21/23/24/25/26/27/28: SubscribeEventgroupAck entry field assertions."""
 
@@ -641,8 +612,6 @@ class TestSdHeaderFieldsSubscribeAck:
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
-        # When no options are present, option_index_1 must be 0.
-        # When options are present, option_index_1 must be a valid index.
         assigned = ack.assign_option_index([])
         raw = assigned.build()
         option_index_1 = raw[1]
@@ -800,11 +769,6 @@ class TestSdHeaderFieldsSubscribeAck:
         )
 
 
-# ---------------------------------------------------------------------------
-# TestSdOptionsEndpoint — OPTIONS_01/02/03/05/06
-# ---------------------------------------------------------------------------
-
-
 class TestSdOptionsEndpoint:
     """OPTIONS_01/02/03/05/06: IPv4EndpointOption field assertions from OfferService."""
 
@@ -949,11 +913,6 @@ class TestSdOptionsEndpoint:
             f"OPTIONS_06: IPv4EndpointOption l4proto must be UDP "
             f"(0x{L4Protocols.UDP:02x}); got {opt.l4proto!r}"
         )
-
-
-# ---------------------------------------------------------------------------
-# TestSdOptionsMulticast — OPTIONS_08/09/10/11/12/13/14
-# ---------------------------------------------------------------------------
 
 
 class TestSdOptionsMulticast:
@@ -1240,13 +1199,8 @@ class TestSdOptionsMulticast:
         )
 
 
-# ---------------------------------------------------------------------------
-# TestSdMissingFormatFields — FORMAT_03/07/14/17/22
-# ---------------------------------------------------------------------------
-
-
 class TestSdMissingFormatFields:
-    """FORMAT_03/07/14/17/22 — previously unverified SD format fields."""
+    """FORMAT_03/07/14/17/22: previously unverified SD format fields."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -1282,7 +1236,7 @@ class TestSdMissingFormatFields:
         someipd_dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
-        """FORMAT_08: SD Flags byte — Unicast flag (bit 6) must be set in OfferService.
+        """FORMAT_08: SD Flags byte, Unicast flag (bit 6) must be set in OfferService.
 
         PRS_SOMEIPSD_00351: The Unicast flag indicates the sender supports unicast
         communication.
@@ -1319,7 +1273,6 @@ class TestSdMissingFormatFields:
         assigned = entry.assign_option_index([])
         raw = assigned.build()
 
-        # Byte [0] of the 16-byte entry is the Type field.
         type_byte = raw[0]
         assert type_byte == 0x01, (
             f"FORMAT_14: OfferService entry Type byte must be 0x01; "
@@ -1387,13 +1340,8 @@ class TestSdMissingFormatFields:
         )
 
 
-# ---------------------------------------------------------------------------
-# TestSdEntryOptionFields — SD_MESSAGE_07/08/09/11
-# ---------------------------------------------------------------------------
-
-
 class TestSdEntryOptionFields:
-    """SD_MESSAGE_07–09, SD_MESSAGE_11, SD_MESSAGE_12 — entry option-run fields."""
+    """SD_MESSAGE_07-09, SD_MESSAGE_11, SD_MESSAGE_12: entry option-run fields."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -1532,17 +1480,11 @@ class TestSdEntryOptionFields:
         finally:
             sock.close()
 
-        # Byte [0] of the 16-byte entry is the Type field.
         type_byte = raw[0]
         assert type_byte == 0x06, (
             f"SD_MESSAGE_11: SubscribeEventgroup entry Type byte must be 0x06; "
             f"got 0x{type_byte:02x}"
         )
-
-
-# ---------------------------------------------------------------------------
-# TestSdStopSubscribeFormat — SD_MESSAGE_12
-# ---------------------------------------------------------------------------
 
 
 class TestSdStopSubscribeFormat:
@@ -1551,8 +1493,8 @@ class TestSdStopSubscribeFormat:
     Per PRS_SOMEIPSD_00386 a StopSubscribeEventgroup entry is a
     SubscribeEventgroup entry (Type 0x06) with TTL set to 0x000000.
     This class verifies the byte-level layout of such an entry without
-    any DUT interaction — the entry is constructed in memory and inspected
-    directly.
+    any DUT interaction (the entry is constructed in memory and inspected
+    directly).
     """
 
     @add_test_properties(
@@ -1570,7 +1512,7 @@ class TestSdStopSubscribeFormat:
           - byte[0] == 0x06  (entry type field)
           - byte[9:12] == b'\\x00\\x00\\x00'  (TTL = 0)
 
-        No DUT interaction is required — this is a pure structural assertion on
+        No DUT interaction is required. This is a pure structural assertion on
         the serialised entry layout.
         """
         stop_subscribe_entry = SOMEIPSDEntry(

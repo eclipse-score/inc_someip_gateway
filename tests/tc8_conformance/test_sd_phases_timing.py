@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 SD phase timing tests — TC8-SD-009 and TC8-SD-010.
+"""TC8 SD phase timing tests: TC8-SD-009 and TC8-SD-010.
 
 Verifies that ``someipd`` goes through the Repetition Phase (short intervals)
 before entering the Main Phase (long cyclic_offer_delay intervals).
@@ -34,11 +34,6 @@ from helpers.sd_helpers import open_multicast_socket
 from helpers.timing import collect_sd_offers_from_socket
 from someip.header import SOMEIPSDEntry
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
-#: SOME/IP stack config template — same config as service discovery tests.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: SD configuration values from ``tc8_someipd_sd.json``.
@@ -46,15 +41,10 @@ _CYCLIC_OFFER_DELAY_MS: float = 2000.0
 _REPETITIONS_BASE_DELAY_MS: float = 200.0
 _REPETITIONS_MAX: int = 3
 
-#: Capture timeout — must accommodate DUT startup + repetition phase + one
-#: cyclic gap.  Theoretical minimum: ~3.5 s (100 ms initial + 1.4 s reps +
-#: 2 s cyclic).  Generous margin for slow CI/container environments.
+#: Capture timeout accounts for DUT startup, repetition phase, and one cyclic
+#: gap. Theoretical minimum ~3.5 s (100 ms initial + 1.4 s reps + 2 s cyclic),
+#: with generous margin for slow CI/container environments.
 _PHASE_CAPTURE_TIMEOUT_SECS: float = 20.0
-
-
-# ---------------------------------------------------------------------------
-# Fixture: pre-opens multicast socket, starts DUT, captures phase data
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="module")
@@ -83,7 +73,7 @@ def sd_phase_capture(
     # the pre-rendered guest config.
     config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
-    # 1. Open multicast socket before starting someipd (captures first offer).
+    # Open the socket BEFORE launching someipd so the first offer is captured.
     try:
         capture_sock = open_multicast_socket(host_ip)
     except OSError:
@@ -93,10 +83,8 @@ def sd_phase_capture(
             "sudo ip route add 224.0.0.0/4 dev lo"
         )
 
-    # 2. Launch someipd on the QEMU guest.
     proc = launch_someipd(config_path, target_init=target_init)
 
-    # 3. Capture: initial + repetition phase + 1 cyclic gap.
     try:
         offers = collect_sd_offers_from_socket(
             capture_sock,
@@ -108,15 +96,9 @@ def sd_phase_capture(
     finally:
         capture_sock.close()
 
-    # 4. Terminate DUT.
     terminate_someipd(proc)
 
     yield offers
-
-
-# ---------------------------------------------------------------------------
-# TC8-SD-009 / TC8-SD-010 — SD phase timing
-# ---------------------------------------------------------------------------
 
 
 class TestSDPhasesTiming:

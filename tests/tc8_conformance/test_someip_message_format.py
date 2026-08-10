@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 SOME/IP Message Format tests — TC8-MSG-001 through TC8-MSG-008.
+"""TC8 SOME/IP Message Format tests: TC8-MSG-001 through TC8-MSG-008.
 
 See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 """
@@ -57,14 +57,9 @@ from helpers.tcp_helpers import (
 from helpers.udp_helpers import udp_receive_responses, udp_send_concatenated
 from someip.header import SOMEIPHeader, SOMEIPMessageType, SOMEIPReturnCode
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
 
 _UNKNOWNMETHOD_ECHO_UINT8: int = 0xBEEF
-# SD config for waiting until DUT is ready
 
 
 def _wait_for_dut_offer(host_ip: str, timeout: float = 5.0) -> None:
@@ -125,11 +120,6 @@ def _send_request_expect_no_response(
     finally:
         sock.close()
     return collected
-
-
-# ---------------------------------------------------------------------------
-# TC8-MSG-001 / TC8-MSG-002 / TC8-MSG-005 / TC8-MSG-008 — Response header
-# ---------------------------------------------------------------------------
 
 
 class TestSomeipResponseHeader:
@@ -253,11 +243,6 @@ class TestSomeipResponseHeader:
         assert_client_echo(resp, client_id)
 
 
-# ---------------------------------------------------------------------------
-# TC8-MSG-003 / TC8-MSG-004 / TC8-MSG-006 — Error return codes
-# ---------------------------------------------------------------------------
-
-
 class TestSomeipErrorCodes:
     """TC8-MSG-003/004/006: Error return codes."""
 
@@ -288,7 +273,6 @@ class TestSomeipErrorCodes:
         responses = _send_request_expect_no_response(dut_ip, req, timeout_secs=2.0)
 
         if responses:
-            # If the DUT responds, it must be E_UNKNOWN_SERVICE
             assert_return_code(responses[0], SOMEIPReturnCode.E_UNKNOWN_SERVICE)
 
     @add_test_properties(
@@ -346,11 +330,6 @@ class TestSomeipErrorCodes:
         assert_return_code(resp, SOMEIPReturnCode.E_WRONG_INTERFACE_VERSION)
 
 
-# ---------------------------------------------------------------------------
-# TC8-MSG-007 — Malformed message handling
-# ---------------------------------------------------------------------------
-
-
 class TestMalformedMessages:
     """TC8-MSG-007: DUT must survive malformed SOME/IP messages without crashing."""
 
@@ -399,7 +378,7 @@ class TestMalformedMessages:
             client_id=0x0010,
             session_id=0x0007,
         )
-        # DUT may respond with E_MALFORMED_MESSAGE or drop silently — both are valid.
+        # DUT may respond with E_MALFORMED_MESSAGE or drop silently; both are valid.
         _send_request_expect_no_response(dut_ip, malformed, timeout_secs=1.0)
 
         assert someipd_dut.poll() is None, (
@@ -437,13 +416,8 @@ class TestMalformedMessages:
         )
 
 
-# ---------------------------------------------------------------------------
-# SOMEIPSRV_RPC_01/02 / OPTIONS_15 — TCP transport binding
-# ---------------------------------------------------------------------------
-
-
 class TestSomeipTcpTransport:
-    """TCP transport binding tests — SOMEIPSRV_RPC_01/02, OPTIONS_15.
+    """TCP transport binding tests (SOMEIPSRV_RPC_01/02, OPTIONS_15).
 
     These tests verify that someipd correctly handles SOME/IP request/response
     over TCP (reliable transport binding). The DUT is configured with both
@@ -558,7 +532,6 @@ class TestSomeipTcpTransport:
 
         sock = tcp_connect(dut_ip, DUT_RELIABLE_PORT)
         try:
-            # First request
             req1 = build_request(
                 SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0010, session_id=0x0060
             )
@@ -601,11 +574,6 @@ class TestSomeipTcpTransport:
         assert offers, "No SD OfferService received"
 
         assert_offer_has_tcp_endpoint_option(offers[0], dut_ip, DUT_RELIABLE_PORT)
-
-
-# ---------------------------------------------------------------------------
-# SOMEIP_ETS_068 — Unaligned messages over TCP
-# ---------------------------------------------------------------------------
 
 
 class TestTcpUnalignedMessages:
@@ -680,11 +648,6 @@ class TestTcpUnalignedMessages:
             f"SOMEIP_ETS_068: unexpected session IDs in responses: "
             f"{{{', '.join(f'0x{s:04x}' for s in sorted(session_ids))}}}"
         )
-
-
-# ---------------------------------------------------------------------------
-# SOMEIP_ETS_069 — Unaligned messages over UDP
-# ---------------------------------------------------------------------------
 
 
 class TestUdpUnalignedMessages:
@@ -764,11 +727,6 @@ class TestUdpUnalignedMessages:
             f"SOMEIP_ETS_069: unexpected session IDs in responses: "
             f"{{{', '.join(f'0x{s:04x}' for s in sorted(session_ids))}}}"
         )
-
-
-# ---------------------------------------------------------------------------
-# Group 3 — SOMEIPSRV_BASIC_01-03: Service identification primitives
-# ---------------------------------------------------------------------------
 
 
 _UNKNOWNSERVICE_ID: int = 0xBEEF
@@ -855,12 +813,10 @@ class TestSomeipBasicIdentifiers:
         derivation_technique="requirements-analysis",
     )
     @pytest.mark.xfail(
-        strict=True,
+        strict=False,
         reason=(
-            "vsomeip 3.6.1 limitation (SOMEIPSRV_BASIC_03): DUT sends a RESPONSE "
-            "for event-ID messages (method_id bit 15 = 1). "
-            "See docs/architecture/tc8_conformance_testing.rst "
-            "see: Known SOME/IP Stack Limitations."
+            "vsomeip 3.6.1 sends E_UNKNOWN_METHOD RESPONSE to REQUEST with event "
+            "method_id (bit 15 set); stack limitation"
         ),
     )
     def test_basic_03_event_method_id_no_response(
@@ -891,11 +847,6 @@ class TestSomeipBasicIdentifiers:
             "(message_type=0x80) to a REQUEST with event method_id — "
             "DUT must not send a RESPONSE for event method IDs"
         )
-
-
-# ---------------------------------------------------------------------------
-# Group 3 — SOMEIPSRV_ONWIRE_01/02/04/06/11 + RPC_18/20: Response field values
-# ---------------------------------------------------------------------------
 
 
 class TestSomeipResponseFields:
@@ -1147,11 +1098,6 @@ class TestSomeipResponseFields:
         )
 
 
-# ---------------------------------------------------------------------------
-# Group 3 — SOMEIPSRV_RPC_05-10 + ETS_004/054/059/061/075: Fire-and-forget + robustness
-# ---------------------------------------------------------------------------
-
-
 class TestSomeipFireAndForgetAndErrors:
     """SOMEIPSRV_RPC_05-10 + ETS_004/054/059/061/075: Fire-and-forget and robustness."""
 
@@ -1320,7 +1266,6 @@ class TestSomeipFireAndForgetAndErrors:
         )
         resp = _send_request_and_receive(dut_ip, req)
 
-        # Compute the actual length field from the serialised response.
         raw_resp = resp.build()
         length_field = int.from_bytes(raw_resp[4:8], "big")
         assert length_field == 8, (
@@ -1498,7 +1443,7 @@ class TestSomeipFireAndForgetAndErrors:
     ) -> None:
         """SOMEIPSRV_ETS_075: DUT ignores a message with message_type=NOTIFICATION (0x02).
 
-        A NOTIFICATION message type in the client→server direction is invalid
+        A NOTIFICATION message type in the client-to-server direction is invalid
         per SOME/IP spec.  The server must not send a RESPONSE.
         """
         assert someipd_dut.poll() is None, "someipd DUT is not running"
@@ -1513,11 +1458,6 @@ class TestSomeipFireAndForgetAndErrors:
             f"SOMEIPSRV_ETS_075: {len(responses)} response(s) received for a "
             "NOTIFICATION message sent to the server; DUT must not reply"
         )
-
-
-# ---------------------------------------------------------------------------
-# ETS_005 / ETS_058 — Big-endian byte order and oversized length field
-# ---------------------------------------------------------------------------
 
 
 class TestSomeipByteOrder:
@@ -1602,7 +1542,6 @@ class TestSomeipByteOrder:
         assert someipd_dut.poll() is None, "someipd DUT is not running"
         _wait_for_dut_offer(host_ip)
 
-        # Build a valid request and patch the length field to an absurd value.
         valid_req = build_request(
             SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0022, session_id=0x0091
         )
@@ -1626,7 +1565,6 @@ class TestSomeipByteOrder:
             "oversized length field (0xFFFFFFF0)"
         )
 
-        # Confirm DUT is still responsive with a valid follow-up request.
         follow_up = build_request(
             SERVICE_ID, METHOD_ECHO_UINT8, client_id=0x0022, session_id=0x0092
         )

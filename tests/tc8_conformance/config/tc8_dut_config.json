@@ -3,127 +3,310 @@
   "instance_id": "0x5678",
   "major_version": 1,
   "minor_version": 0,
-
   "events": [
     {
       "name": "TestEventUINT8",
       "id": "0x8001",
-      "eventgroups": ["0x0002", "0x0005", "0x0006"],
+      "eventgroups": [
+        "0x0002",
+        "0x0005"
+      ],
       "reliable": false,
       "is_field": true,
       "cycle_ms": 500,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     },
     {
       "name": "TestEventUINT8Array",
       "id": "0x8002",
-      "eventgroups": ["0x0002", "0x0005", "0x0006"],
+      "eventgroups": [
+        "0x0002",
+        "0x0005"
+      ],
       "reliable": false,
       "is_field": false,
       "cycle_ms": 500,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     },
     {
       "name": "TestEventUINT8Reliable",
       "id": "0x8003",
-      "eventgroups": ["0x0005"],
+      "eventgroups": [
+        "0x0005"
+      ],
       "reliable": true,
       "is_field": false,
       "cycle_ms": 500,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     },
     {
       "name": "TestEventUINT8E2E",
       "id": "0x8004",
-      "eventgroups": ["0x0002", "0x0005", "0x0006"],
+      "eventgroups": [
+        "0x0002",
+        "0x0005"
+      ],
       "reliable": false,
       "is_field": false,
       "cycle_ms": 500,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     },
     {
       "name": "TestEventUINT8Multicast",
       "id": "0x800B",
-      "eventgroups": ["0x0002", "0x0005", "0x0006"],
+      "eventgroups": [
+        "0x0002",
+        "0x0005",
+        "0x0006"
+      ],
       "reliable": false,
       "is_field": false,
       "cycle_ms": 500,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     }
   ],
-
   "fields": [
     {
       "name": "InterfaceVersion",
       "notify_id": "0x8005",
       "getter_method_id": "0x25",
-      "eventgroups": ["0x0002", "0x0005"],
+      "eventgroups": [
+        "0x0002"
+      ],
       "reliable": false,
-      "initial_value": [1, 0]
+      "initial_value": [
+        1,
+        0
+      ]
     },
     {
       "name": "TestFieldUINT8",
       "notify_id": "0x8006",
       "getter_method_id": "0x26",
       "setter_method_id": "0x27",
-      "eventgroups": ["0x0002", "0x0005"],
+      "eventgroups": [
+        "0x0002"
+      ],
       "reliable": false,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     },
     {
       "name": "TestFieldUINT8Array",
       "notify_id": "0x8007",
       "getter_method_id": "0x28",
       "setter_method_id": "0x29",
-      "eventgroups": ["0x0002", "0x0005"],
+      "eventgroups": [
+        "0x0002"
+      ],
       "reliable": false,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     },
     {
       "name": "TestFieldUINT8Reliable",
       "notify_id": "0x8008",
       "getter_method_id": "0x2A",
       "setter_method_id": "0x2B",
-      "eventgroups": ["0x0005"],
+      "eventgroups": [
+        "0x0005"
+      ],
       "reliable": true,
-      "initial_value": [222, 173]
+      "initial_value": [
+        222,
+        173
+      ]
     }
   ],
-
   "methods": [
-    { "name": "resetInterface",           "id": "0x01", "fire_and_forget": true  },
-    { "name": "suspendInterface",         "id": "0x02", "fire_and_forget": true  },
-    { "name": "triggerEventUINT8",        "id": "0x03", "fire_and_forget": true  },
-    { "name": "triggerEventUINT8Array",   "id": "0x04", "fire_and_forget": true  },
-    { "name": "triggerEventUINT8Reliable","id": "0x05", "fire_and_forget": true  },
-    { "name": "triggerEventUINT8E2E",     "id": "0x06", "fire_and_forget": true  },
-    { "name": "echoUINT8",               "id": "0x08", "fire_and_forget": false },
-    { "name": "echoUINT8Array",          "id": "0x09", "fire_and_forget": false },
-    { "name": "echoUINT8RELIABLE",       "id": "0x0A", "fire_and_forget": false },
-    { "name": "echoUINT8E2E",            "id": "0x0B", "fire_and_forget": false },
-    { "name": "echoINT8",                "id": "0x0E", "fire_and_forget": false },
-    { "name": "echoFLOAT64",             "id": "0x12", "fire_and_forget": false },
-    { "name": "echoUTF8FIXED",           "id": "0x13", "fire_and_forget": false },
-    { "name": "echoUTF16FIXED",          "id": "0x14", "fire_and_forget": false },
-    { "name": "echoUTF8DYNAMIC",         "id": "0x15", "fire_and_forget": false },
-    { "name": "echoUTF16DYNAMIC",        "id": "0x16", "fire_and_forget": false },
-    { "name": "echoENUM",                "id": "0x17", "fire_and_forget": false },
-    { "name": "echoUNION",               "id": "0x19", "fire_and_forget": false },
-    { "name": "checkByteOrder",          "id": "0x1F", "fire_and_forget": false },
-    { "name": "echoCommonDatatypes",     "id": "0x23", "fire_and_forget": false },
-    { "name": "clientServiceActivate",   "id": "0x2F", "fire_and_forget": true  },
-    { "name": "clientServiceDeactivate", "id": "0x30", "fire_and_forget": true  },
-    { "name": "clientServiceSubscribeEventgroup", "id": "0x32", "fire_and_forget": true },
-    { "name": "echoInt64",               "id": "0x34", "fire_and_forget": false },
-    { "name": "echoUINT8Array2Dim",      "id": "0x35", "fire_and_forget": false },
-    { "name": "echoStaticUINT8Array",    "id": "0x36", "fire_and_forget": false },
-    { "name": "echoUINT8ArrayMinSize",   "id": "0x37", "fire_and_forget": false },
-    { "name": "triggerEventUINT8Multicast", "id": "0x3A", "fire_and_forget": true },
-    { "name": "clientServiceGetLastValueOfEventTCP",          "id": "0x3B", "fire_and_forget": false },
-    { "name": "clientServiceGetLastValueOfEventUDPUnicast",   "id": "0x3C", "fire_and_forget": false },
-    { "name": "clientServiceGetLastValueOfEventUDPMulticast", "id": "0x3D", "fire_and_forget": false },
-    { "name": "echoUINT8Array8BitLength", "id": "0x3E", "fire_and_forget": false },
-    { "name": "echoUINT8Array16BitLength","id": "0x3F", "fire_and_forget": false },
-    { "name": "echoBitfields",            "id": "0x41", "fire_and_forget": false }
+    {
+      "name": "resetInterface",
+      "id": "0x01",
+      "fire_and_forget": true
+    },
+    {
+      "name": "suspendInterface",
+      "id": "0x02",
+      "fire_and_forget": true
+    },
+    {
+      "name": "triggerEventUINT8",
+      "id": "0x03",
+      "fire_and_forget": true
+    },
+    {
+      "name": "triggerEventUINT8Array",
+      "id": "0x04",
+      "fire_and_forget": true
+    },
+    {
+      "name": "triggerEventUINT8Reliable",
+      "id": "0x05",
+      "fire_and_forget": true
+    },
+    {
+      "name": "triggerEventUINT8E2E",
+      "id": "0x06",
+      "fire_and_forget": true
+    },
+    {
+      "name": "echoUINT8",
+      "id": "0x08",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUINT8Array",
+      "id": "0x09",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUINT8RELIABLE",
+      "id": "0x0A",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUINT8E2E",
+      "id": "0x0B",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoINT8",
+      "id": "0x0E",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoFLOAT64",
+      "id": "0x12",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUTF8FIXED",
+      "id": "0x13",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUTF16FIXED",
+      "id": "0x14",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUTF8DYNAMIC",
+      "id": "0x15",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUTF16DYNAMIC",
+      "id": "0x16",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoENUM",
+      "id": "0x17",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUNION",
+      "id": "0x19",
+      "fire_and_forget": false
+    },
+    {
+      "name": "checkByteOrder",
+      "id": "0x1F",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoCommonDatatypes",
+      "id": "0x23",
+      "fire_and_forget": false
+    },
+    {
+      "name": "clientServiceActivate",
+      "id": "0x2F",
+      "fire_and_forget": true
+    },
+    {
+      "name": "clientServiceDeactivate",
+      "id": "0x30",
+      "fire_and_forget": true
+    },
+    {
+      "name": "clientServiceSubscribeEventgroup",
+      "id": "0x32",
+      "fire_and_forget": true
+    },
+    {
+      "name": "echoInt64",
+      "id": "0x34",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUINT8Array2Dim",
+      "id": "0x35",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoStaticUINT8Array",
+      "id": "0x36",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUINT8ArrayMinSize",
+      "id": "0x37",
+      "fire_and_forget": false
+    },
+    {
+      "name": "triggerEventUINT8Multicast",
+      "id": "0x3A",
+      "fire_and_forget": true
+    },
+    {
+      "name": "clientServiceGetLastValueOfEventTCP",
+      "id": "0x3B",
+      "fire_and_forget": false
+    },
+    {
+      "name": "clientServiceGetLastValueOfEventUDPUnicast",
+      "id": "0x3C",
+      "fire_and_forget": false
+    },
+    {
+      "name": "clientServiceGetLastValueOfEventUDPMulticast",
+      "id": "0x3D",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUINT8Array8BitLength",
+      "id": "0x3E",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoUINT8Array16BitLength",
+      "id": "0x3F",
+      "fire_and_forget": false
+    },
+    {
+      "name": "echoBitfields",
+      "id": "0x41",
+      "fire_and_forget": false
+    }
   ]
 }

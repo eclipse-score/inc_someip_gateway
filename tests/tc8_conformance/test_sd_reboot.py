@@ -10,10 +10,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 Service Discovery — Reboot Detection tests (TC8-SD-012).
+"""TC8 Service Discovery: Reboot Detection tests (TC8-SD-012).
 
 Isolated in a separate module because these tests manage their own ``someipd``
-lifecycle (start → drain → stop → restart) and must not share the
+lifecycle (start, drain, stop, restart) and must not share the
 module-scoped ``someipd_dut`` fixture used by ``test_service_discovery.py``.
 Running both in the same module would cause a routing-manager conflict.
 
@@ -38,22 +38,12 @@ from helpers.constants import SD_PORT
 from helpers.sd_helpers import open_multicast_socket
 from someip.header import SOMEIPHeader, SOMEIPSDHeader
 
-# ---------------------------------------------------------------------------
-# Module-level configuration
-# ---------------------------------------------------------------------------
-
-#: Uses the standard SD config (same service IDs as test_service_discovery.py).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: Maximum wait time for SD messages, derived from TC8 spec Sec. 4 IUT parameters:
 #: Listen Time (10 s) + Tolerance Time (1 s) + Process Time (2 s) = 13 s,
 #: plus 2 s buffer for container/CI overhead.
 _SD_CAPTURE_TIMEOUT_SECS: float = 15.0
-
-
-# ---------------------------------------------------------------------------
-# sd_reboot_capture — module-scoped fixture
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="module")
@@ -109,9 +99,6 @@ def sd_reboot_capture(
                 continue
         return collected
 
-    # ---------------------------------------------------------------------------
-    # First run — drain enough SD messages that the DUT is in "stable" state.
-    # ---------------------------------------------------------------------------
     try:
         pre_sock = open_multicast_socket(host_ip)
     except OSError:
@@ -137,9 +124,6 @@ def sd_reboot_capture(
     # can become routing manager immediately.
     cleanup_vsomeip_sockets(target_init=target_init)
 
-    # ---------------------------------------------------------------------------
-    # Second run — open capture socket BEFORE launch to catch the first packet.
-    # ---------------------------------------------------------------------------
     try:
         post_sock = open_multicast_socket(host_ip)
     except OSError:
@@ -160,11 +144,6 @@ def sd_reboot_capture(
         terminate_someipd(proc2)
 
     return post_messages
-
-
-# ---------------------------------------------------------------------------
-# TC8-SD-012 — Reboot detection
-# ---------------------------------------------------------------------------
 
 
 class TestSDReboot:
@@ -215,11 +194,6 @@ class TestSDReboot:
         )
 
 
-# ---------------------------------------------------------------------------
-# TC8-SDLC-017/018 — ETS reboot detection (inline restart, no shared fixture)
-# ---------------------------------------------------------------------------
-
-
 class TestSDRebootDetectionETS:
     """TC8-SDLC-017/018: ETS reboot flag and session ID behaviour after restart.
 
@@ -239,21 +213,13 @@ class TestSDRebootDetectionETS:
         host_ip: str,
         request: pytest.FixtureRequest,
     ) -> None:
-        """TC8-SDLC-017: First unicast SD OFFER after DUT restart has reboot flag set and session_id = 1.
-
-        Procedure:
-        1. Start DUT, drain stable SD traffic, terminate.
-        2. Restart DUT, open a multicast capture socket before launch.
-        3. Assert that the very first post-restart OFFER has reboot_flag = True
-           AND session_id = 1 (per PRS_SOMEIPSD_00157, counter resets to 1 on boot).
-        """
+        """TC8-SDLC-017: First unicast SD OFFER after DUT restart has reboot flag set and session_id = 1."""
         target_init = request.getfixturevalue("target_init")
         request.getfixturevalue("tc8_itf_config_setup")
 
         tmp_dir = tmp_path_factory.mktemp("tc8_ets093_config")
         config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
-        # --- First run: drain stable messages ---
         try:
             pre_sock = open_multicast_socket(host_ip)
         except OSError:
@@ -284,7 +250,6 @@ class TestSDRebootDetectionETS:
 
         cleanup_vsomeip_sockets(target_init=target_init)
 
-        # --- Second run: capture post-reboot offer ---
         try:
             post_sock = open_multicast_socket(host_ip)
         except OSError:
@@ -350,7 +315,6 @@ class TestSDRebootDetectionETS:
         tmp_dir = tmp_path_factory.mktemp("tc8_ets094_config")
         config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
-        # --- First run: advance session counter past 1 ---
         try:
             pre_sock = open_multicast_socket(host_ip)
         except OSError:
@@ -381,7 +345,6 @@ class TestSDRebootDetectionETS:
 
         cleanup_vsomeip_sockets(target_init=target_init)
 
-        # --- Second run: verify session_id and reboot flag reset ---
         try:
             post_sock = open_multicast_socket(host_ip)
         except OSError:
