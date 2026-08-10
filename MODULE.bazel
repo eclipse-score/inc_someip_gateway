@@ -149,7 +149,7 @@ register_toolchains(
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "score_devcontainer", version = "1.9.0", dev_dependency = True)
+bazel_dep(name = "score_devcontainer", version = "1.9.1", dev_dependency = True)
 
 # override to same version as communication
 git_override(
