@@ -22,6 +22,6 @@ permissions:
 
 jobs:
   license-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@c644440e1f98e65db039cd66bcaa557314e6201b
+    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@0621768ffa46b58b0fd9606b80f0c67602721816
     secrets:
       dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}
