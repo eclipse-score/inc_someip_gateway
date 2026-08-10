@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <string>
 
-#include <nlohmann/json.hpp>
+#include <score/json/json_parser.h>
 #include "score/mw/log/logging.h"
 #include "score/result/error_domain.h"
 
@@ -79,23 +79,49 @@ score::Result<uint16_t> ParseHexId(const std::string& s) {
     return static_cast<uint16_t>(value);
 }
 
-/// Parse an array of hex eventgroup ID strings into a fixed-size array.
+template <typename T>
+score::Result<T> GetField(const score::json::Object& obj, std::string_view key,
+                          DutConfigErrc missing_err, DutConfigErrc type_err) {
+    auto it = obj.find(key);
+    if (it == obj.end()) {
+        return score::MakeUnexpected(missing_err);
+    }
+    auto result = it->second.As<T>();
+    if (!result.has_value()) {
+        return score::MakeUnexpected(type_err);
+    }
+    return result.value();
+}
+
+score::Result<std::string> GetStringField(const score::json::Object& obj, std::string_view key,
+                                           DutConfigErrc missing_err, DutConfigErrc type_err) {
+    auto it = obj.find(key);
+    if (it == obj.end()) {
+        return score::MakeUnexpected(missing_err);
+    }
+    auto result = it->second.As<std::string>();
+    if (!result.has_value()) {
+        return score::MakeUnexpected(type_err);
+    }
+    return std::string{result.value().get()};
+}
+
 score::Result<std::pair<std::array<uint16_t, kMaxEventgroups>, uint8_t>>
-ParseEventgroups(const nlohmann::json& j) {
+ParseEventgroups(const score::json::List& list) {
     std::array<uint16_t, kMaxEventgroups> groups{};
     uint8_t count = 0U;
-    for (const auto& eg : j) {
+    for (const auto& eg : list) {
         if (count >= static_cast<uint8_t>(kMaxEventgroups)) {
             score::mw::log::LogError()
                 << "[dut_config] Too many eventgroups (max " << kMaxEventgroups << ")";
             return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "eventgroups");
         }
-        if (!eg.is_string()) {
-            score::mw::log::LogError()
-                << "[dut_config] eventgroups entry is not a string";
+        auto str_result = eg.As<std::string>();
+        if (!str_result.has_value()) {
+            score::mw::log::LogError() << "[dut_config] eventgroups entry is not a string";
             return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "eventgroups entry");
         }
-        const std::string eg_str = eg.get<std::string>();
+        std::string eg_str{str_result.value().get()};
         auto id_result = ParseHexId(eg_str);
         if (!id_result.has_value()) {
             return score::Unexpected{id_result.error()};
@@ -106,23 +132,22 @@ ParseEventgroups(const nlohmann::json& j) {
     return std::make_pair(groups, count);
 }
 
-/// Parse the optional "initial_value" array (array of integers 0 to 255).
 score::Result<std::pair<std::array<uint8_t, kMaxInitialValueBytes>, uint8_t>>
-ParseInitialValue(const nlohmann::json& j) {
+ParseInitialValue(const score::json::List& list) {
     std::array<uint8_t, kMaxInitialValueBytes> buf{};
     uint8_t size = 0U;
-    for (const auto& byte_val : j) {
+    for (const auto& byte_val : list) {
         if (size >= static_cast<uint8_t>(kMaxInitialValueBytes)) {
             score::mw::log::LogError()
                 << "[dut_config] initial_value exceeds max " << kMaxInitialValueBytes << " bytes";
             return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "initial_value");
         }
-        if (!byte_val.is_number_integer()) {
-            score::mw::log::LogError()
-                << "[dut_config] initial_value entry is not an integer";
+        auto int_result = byte_val.As<int64_t>();
+        if (!int_result.has_value()) {
+            score::mw::log::LogError() << "[dut_config] initial_value entry is not an integer";
             return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "initial_value entry");
         }
-        const int raw = byte_val.get<int>();
+        const int64_t raw = int_result.value();
         if (raw < 0 || raw > 255) {
             score::mw::log::LogError()
                 << "[dut_config] initial_value byte out of range [0,255]: " << raw;
@@ -134,184 +159,252 @@ ParseInitialValue(const nlohmann::json& j) {
     return std::make_pair(buf, size);
 }
 
-/// Parse a single EventConfig object.
-score::Result<EventConfig> ParseEvent(const nlohmann::json& j) {
+score::Result<EventConfig> ParseEvent(const score::json::Object& obj) {
     EventConfig cfg;
 
-    if (!j.contains("name") || !j["name"].is_string()) {
+    auto name_result = GetStringField(obj, "name",
+                                      DutConfigErrc::kMissingRequiredField,
+                                      DutConfigErrc::kMissingRequiredField);
+    if (!name_result.has_value()) {
         score::mw::log::LogError() << "[dut_config] event missing required 'name' field";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events[].name");
+        return score::Unexpected{name_result.error()};
     }
-    cfg.name = j["name"].get<std::string>();
+    cfg.name = std::move(name_result).value();
     if (cfg.name.empty()) {
         score::mw::log::LogError() << "[dut_config] event 'name' must not be empty";
         return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "events[].name");
     }
 
-    if (!j.contains("id") || !j["id"].is_string()) {
+    auto id_str = GetStringField(obj, "id",
+                                  DutConfigErrc::kMissingRequiredField,
+                                  DutConfigErrc::kMissingRequiredField);
+    if (!id_str.has_value()) {
         score::mw::log::LogError() << "[dut_config] event '" << cfg.name << "' missing 'id'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events[].id");
+        return score::Unexpected{id_str.error()};
     }
-    auto id_result = ParseHexId(j["id"].get<std::string>());
+    auto id_result = ParseHexId(id_str.value());
     if (!id_result.has_value()) {
         return score::Unexpected{id_result.error()};
     }
     cfg.id = id_result.value();
 
-    if (!j.contains("eventgroups") || !j["eventgroups"].is_array()) {
-        score::mw::log::LogError()
-            << "[dut_config] event '" << cfg.name << "' missing 'eventgroups'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
-                                     "events[].eventgroups");
+    {
+        auto it = obj.find("eventgroups");
+        if (it == obj.end()) {
+            score::mw::log::LogError()
+                << "[dut_config] event '" << cfg.name << "' missing 'eventgroups'";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
+                                         "events[].eventgroups");
+        }
+        auto list_result = it->second.As<score::json::List>();
+        if (!list_result.has_value()) {
+            score::mw::log::LogError()
+                << "[dut_config] event '" << cfg.name << "' 'eventgroups' is not an array";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
+                                         "events[].eventgroups");
+        }
+        auto eg_result = ParseEventgroups(list_result.value().get());
+        if (!eg_result.has_value()) {
+            return score::Unexpected{eg_result.error()};
+        }
+        cfg.eventgroups      = eg_result.value().first;
+        cfg.eventgroup_count = eg_result.value().second;
     }
-    auto eg_result = ParseEventgroups(j["eventgroups"]);
-    if (!eg_result.has_value()) {
-        return score::Unexpected{eg_result.error()};
-    }
-    cfg.eventgroups      = eg_result.value().first;
-    cfg.eventgroup_count = eg_result.value().second;
 
-    if (!j.contains("reliable") || !j["reliable"].is_boolean()) {
+    auto reliable_result = GetField<bool>(obj, "reliable",
+                                          DutConfigErrc::kMissingRequiredField,
+                                          DutConfigErrc::kMissingRequiredField);
+    if (!reliable_result.has_value()) {
         score::mw::log::LogError()
             << "[dut_config] event '" << cfg.name << "' missing 'reliable'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events[].reliable");
+        return score::Unexpected{reliable_result.error()};
     }
-    cfg.reliable = j["reliable"].get<bool>();
+    cfg.reliable = reliable_result.value();
 
-    if (!j.contains("is_field") || !j["is_field"].is_boolean()) {
+    auto is_field_result = GetField<bool>(obj, "is_field",
+                                          DutConfigErrc::kMissingRequiredField,
+                                          DutConfigErrc::kMissingRequiredField);
+    if (!is_field_result.has_value()) {
         score::mw::log::LogError()
             << "[dut_config] event '" << cfg.name << "' missing 'is_field'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events[].is_field");
+        return score::Unexpected{is_field_result.error()};
     }
-    cfg.is_field = j["is_field"].get<bool>();
+    cfg.is_field = is_field_result.value();
 
-    if (!j.contains("cycle_ms") || !j["cycle_ms"].is_number_unsigned()) {
+    auto cycle_ms_result = GetField<uint32_t>(obj, "cycle_ms",
+                                               DutConfigErrc::kMissingRequiredField,
+                                               DutConfigErrc::kMissingRequiredField);
+    if (!cycle_ms_result.has_value()) {
         score::mw::log::LogError()
             << "[dut_config] event '" << cfg.name << "' missing 'cycle_ms'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events[].cycle_ms");
+        return score::Unexpected{cycle_ms_result.error()};
     }
-    cfg.cycle_ms = j["cycle_ms"].get<uint32_t>();
+    cfg.cycle_ms = cycle_ms_result.value();
 
-    if (j.contains("initial_value") && j["initial_value"].is_array()) {
-        auto iv_result = ParseInitialValue(j["initial_value"]);
-        if (!iv_result.has_value()) {
-            return score::Unexpected{iv_result.error()};
+    {
+        auto it = obj.find("initial_value");
+        if (it != obj.end()) {
+            auto list_result = it->second.As<score::json::List>();
+            if (list_result.has_value()) {
+                auto iv_result = ParseInitialValue(list_result.value().get());
+                if (!iv_result.has_value()) {
+                    return score::Unexpected{iv_result.error()};
+                }
+                cfg.initial_value      = iv_result.value().first;
+                cfg.initial_value_size = iv_result.value().second;
+            }
         }
-        cfg.initial_value      = iv_result.value().first;
-        cfg.initial_value_size = iv_result.value().second;
     }
 
     return cfg;
 }
 
-/// Parse a single FieldConfig object.
-score::Result<FieldConfig> ParseField(const nlohmann::json& j) {
+score::Result<FieldConfig> ParseField(const score::json::Object& obj) {
     FieldConfig cfg;
 
-    if (!j.contains("name") || !j["name"].is_string()) {
+    auto name_result = GetStringField(obj, "name",
+                                      DutConfigErrc::kMissingRequiredField,
+                                      DutConfigErrc::kMissingRequiredField);
+    if (!name_result.has_value()) {
         score::mw::log::LogError() << "[dut_config] field missing required 'name' field";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "fields[].name");
+        return score::Unexpected{name_result.error()};
     }
-    cfg.name = j["name"].get<std::string>();
+    cfg.name = std::move(name_result).value();
     if (cfg.name.empty()) {
         score::mw::log::LogError() << "[dut_config] field 'name' must not be empty";
         return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "fields[].name");
     }
 
-    if (!j.contains("notify_id") || !j["notify_id"].is_string()) {
+    auto nid_str = GetStringField(obj, "notify_id",
+                                   DutConfigErrc::kMissingRequiredField,
+                                   DutConfigErrc::kMissingRequiredField);
+    if (!nid_str.has_value()) {
         score::mw::log::LogError()
             << "[dut_config] field '" << cfg.name << "' missing 'notify_id'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "fields[].notify_id");
+        return score::Unexpected{nid_str.error()};
     }
-    auto nid_result = ParseHexId(j["notify_id"].get<std::string>());
+    auto nid_result = ParseHexId(nid_str.value());
     if (!nid_result.has_value()) {
         return score::Unexpected{nid_result.error()};
     }
     cfg.notify_id = nid_result.value();
 
-    if (!j.contains("getter_method_id") || !j["getter_method_id"].is_string()) {
+    auto gid_str = GetStringField(obj, "getter_method_id",
+                                   DutConfigErrc::kMissingRequiredField,
+                                   DutConfigErrc::kMissingRequiredField);
+    if (!gid_str.has_value()) {
         score::mw::log::LogError()
             << "[dut_config] field '" << cfg.name << "' missing 'getter_method_id'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
-                                     "fields[].getter_method_id");
+        return score::Unexpected{gid_str.error()};
     }
-    auto gid_result = ParseHexId(j["getter_method_id"].get<std::string>());
+    auto gid_result = ParseHexId(gid_str.value());
     if (!gid_result.has_value()) {
         return score::Unexpected{gid_result.error()};
     }
     cfg.getter_method_id = gid_result.value();
 
-    if (j.contains("setter_method_id") && j["setter_method_id"].is_string()) {
-        auto sid_result = ParseHexId(j["setter_method_id"].get<std::string>());
-        if (!sid_result.has_value()) {
-            return score::Unexpected{sid_result.error()};
+    {
+        auto sid_str = GetStringField(obj, "setter_method_id",
+                                       DutConfigErrc::kMissingRequiredField,
+                                       DutConfigErrc::kInvalidValue);
+        if (sid_str.has_value()) {
+            auto sid_result = ParseHexId(sid_str.value());
+            if (!sid_result.has_value()) {
+                return score::Unexpected{sid_result.error()};
+            }
+            cfg.setter_method_id = sid_result.value();
         }
-        cfg.setter_method_id = sid_result.value();
     }
 
-    if (!j.contains("eventgroups") || !j["eventgroups"].is_array()) {
-        score::mw::log::LogError()
-            << "[dut_config] field '" << cfg.name << "' missing 'eventgroups'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
-                                     "fields[].eventgroups");
+    {
+        auto it = obj.find("eventgroups");
+        if (it == obj.end()) {
+            score::mw::log::LogError()
+                << "[dut_config] field '" << cfg.name << "' missing 'eventgroups'";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
+                                         "fields[].eventgroups");
+        }
+        auto list_result = it->second.As<score::json::List>();
+        if (!list_result.has_value()) {
+            score::mw::log::LogError()
+                << "[dut_config] field '" << cfg.name << "' 'eventgroups' is not an array";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
+                                         "fields[].eventgroups");
+        }
+        auto eg_result = ParseEventgroups(list_result.value().get());
+        if (!eg_result.has_value()) {
+            return score::Unexpected{eg_result.error()};
+        }
+        cfg.eventgroups      = eg_result.value().first;
+        cfg.eventgroup_count = eg_result.value().second;
     }
-    auto eg_result = ParseEventgroups(j["eventgroups"]);
-    if (!eg_result.has_value()) {
-        return score::Unexpected{eg_result.error()};
-    }
-    cfg.eventgroups      = eg_result.value().first;
-    cfg.eventgroup_count = eg_result.value().second;
 
-    if (!j.contains("reliable") || !j["reliable"].is_boolean()) {
+    auto reliable_result = GetField<bool>(obj, "reliable",
+                                          DutConfigErrc::kMissingRequiredField,
+                                          DutConfigErrc::kMissingRequiredField);
+    if (!reliable_result.has_value()) {
         score::mw::log::LogError()
             << "[dut_config] field '" << cfg.name << "' missing 'reliable'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "fields[].reliable");
+        return score::Unexpected{reliable_result.error()};
     }
-    cfg.reliable = j["reliable"].get<bool>();
+    cfg.reliable = reliable_result.value();
 
-    if (j.contains("initial_value") && j["initial_value"].is_array()) {
-        auto iv_result = ParseInitialValue(j["initial_value"]);
-        if (!iv_result.has_value()) {
-            return score::Unexpected{iv_result.error()};
+    {
+        auto it = obj.find("initial_value");
+        if (it != obj.end()) {
+            auto list_result = it->second.As<score::json::List>();
+            if (list_result.has_value()) {
+                auto iv_result = ParseInitialValue(list_result.value().get());
+                if (!iv_result.has_value()) {
+                    return score::Unexpected{iv_result.error()};
+                }
+                cfg.initial_value      = iv_result.value().first;
+                cfg.initial_value_size = iv_result.value().second;
+            }
         }
-        cfg.initial_value      = iv_result.value().first;
-        cfg.initial_value_size = iv_result.value().second;
     }
 
     return cfg;
 }
 
-/// Parse a single MethodConfig object.
-score::Result<MethodConfig> ParseMethod(const nlohmann::json& j) {
+score::Result<MethodConfig> ParseMethod(const score::json::Object& obj) {
     MethodConfig cfg;
 
-    if (!j.contains("name") || !j["name"].is_string()) {
+    auto name_result = GetStringField(obj, "name",
+                                      DutConfigErrc::kMissingRequiredField,
+                                      DutConfigErrc::kMissingRequiredField);
+    if (!name_result.has_value()) {
         score::mw::log::LogError() << "[dut_config] method missing required 'name' field";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "methods[].name");
+        return score::Unexpected{name_result.error()};
     }
-    cfg.name = j["name"].get<std::string>();
+    cfg.name = std::move(name_result).value();
     if (cfg.name.empty()) {
         score::mw::log::LogError() << "[dut_config] method 'name' must not be empty";
         return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "methods[].name");
     }
 
-    if (!j.contains("id") || !j["id"].is_string()) {
+    auto id_str = GetStringField(obj, "id",
+                                  DutConfigErrc::kMissingRequiredField,
+                                  DutConfigErrc::kMissingRequiredField);
+    if (!id_str.has_value()) {
         score::mw::log::LogError() << "[dut_config] method '" << cfg.name << "' missing 'id'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "methods[].id");
+        return score::Unexpected{id_str.error()};
     }
-    auto id_result = ParseHexId(j["id"].get<std::string>());
+    auto id_result = ParseHexId(id_str.value());
     if (!id_result.has_value()) {
         return score::Unexpected{id_result.error()};
     }
     cfg.id = id_result.value();
 
-    if (!j.contains("fire_and_forget") || !j["fire_and_forget"].is_boolean()) {
+    auto fnf_result = GetField<bool>(obj, "fire_and_forget",
+                                     DutConfigErrc::kMissingRequiredField,
+                                     DutConfigErrc::kMissingRequiredField);
+    if (!fnf_result.has_value()) {
         score::mw::log::LogError()
             << "[dut_config] method '" << cfg.name << "' missing 'fire_and_forget'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField,
-                                     "methods[].fire_and_forget");
+        return score::Unexpected{fnf_result.error()};
     }
-    cfg.fire_and_forget = j["fire_and_forget"].get<bool>();
+    cfg.fire_and_forget = fnf_result.value();
 
     return cfg;
 }
@@ -319,49 +412,65 @@ score::Result<MethodConfig> ParseMethod(const nlohmann::json& j) {
 }  // namespace
 
 score::Result<DutConfig> LoadDutConfig(const std::string& path) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        score::mw::log::LogError() << "[dut_config] Cannot open config file: " << path;
-        return score::MakeUnexpected(DutConfigErrc::kFileOpenError, path);
+    {
+        std::ifstream probe(path);
+        if (!probe.is_open()) {
+            score::mw::log::LogError() << "[dut_config] Cannot open config file: " << path;
+            return score::MakeUnexpected(DutConfigErrc::kFileOpenError, path);
+        }
     }
 
-    nlohmann::json j;
-    try {
-        j = nlohmann::json::parse(file);
-    } catch (const nlohmann::json::parse_error& e) {
-        score::mw::log::LogError() << "[dut_config] JSON parse error in " << path << ": "
-                                   << std::string_view{e.what()};
+    score::Result<score::json::Any> parse_result =
+        score::json::JsonParser{}.FromFile(path);
+    if (!parse_result.has_value()) {
+        score::mw::log::LogError() << "[dut_config] JSON parse error in " << path;
         return score::MakeUnexpected(DutConfigErrc::kJsonParseError, path);
     }
 
+    auto obj_result = parse_result.value().As<score::json::Object>();
+    if (!obj_result.has_value()) {
+        score::mw::log::LogError() << "[dut_config] JSON root is not an object in " << path;
+        return score::MakeUnexpected(DutConfigErrc::kJsonParseError, path);
+    }
+    const score::json::Object& j = obj_result.value().get();
+
     DutConfig config;
 
-    if (!j.contains("service_id") || !j["service_id"].is_string()) {
+    auto sid_str = GetStringField(j, "service_id",
+                                   DutConfigErrc::kMissingRequiredField,
+                                   DutConfigErrc::kMissingRequiredField);
+    if (!sid_str.has_value()) {
         score::mw::log::LogError() << "[dut_config] Missing required field 'service_id'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "service_id");
+        return score::Unexpected{sid_str.error()};
     }
-    auto sid_result = ParseHexId(j["service_id"].get<std::string>());
+    auto sid_result = ParseHexId(sid_str.value());
     if (!sid_result.has_value()) {
         return score::Unexpected{sid_result.error()};
     }
     config.service_id = sid_result.value();
 
-    if (!j.contains("instance_id") || !j["instance_id"].is_string()) {
+    auto iid_str = GetStringField(j, "instance_id",
+                                   DutConfigErrc::kMissingRequiredField,
+                                   DutConfigErrc::kMissingRequiredField);
+    if (!iid_str.has_value()) {
         score::mw::log::LogError() << "[dut_config] Missing required field 'instance_id'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "instance_id");
+        return score::Unexpected{iid_str.error()};
     }
-    auto iid_result = ParseHexId(j["instance_id"].get<std::string>());
+    auto iid_result = ParseHexId(iid_str.value());
     if (!iid_result.has_value()) {
         return score::Unexpected{iid_result.error()};
     }
     config.instance_id = iid_result.value();
 
-    if (!j.contains("major_version") || !j["major_version"].is_number_unsigned()) {
+    auto mv_result = GetField<uint64_t>(j, "major_version",
+                                        DutConfigErrc::kMissingRequiredField,
+                                        DutConfigErrc::kMissingRequiredField);
+    if (!mv_result.has_value()) {
         score::mw::log::LogError() << "[dut_config] Missing required field 'major_version'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "major_version");
+        return score::Unexpected{mv_result.error()};
     }
     {
-        const unsigned int mv = j["major_version"].get<unsigned int>();
+        const uint64_t mv = mv_result.value();
         if (mv > 255U) {
             score::mw::log::LogError()
                 << "[dut_config] 'major_version' " << mv << " exceeds uint8_t range";
@@ -370,64 +479,112 @@ score::Result<DutConfig> LoadDutConfig(const std::string& path) {
         config.major_version = static_cast<uint8_t>(mv);
     }
 
-    if (!j.contains("minor_version") || !j["minor_version"].is_number_unsigned()) {
+    auto minor_result = GetField<uint32_t>(j, "minor_version",
+                                            DutConfigErrc::kMissingRequiredField,
+                                            DutConfigErrc::kMissingRequiredField);
+    if (!minor_result.has_value()) {
         score::mw::log::LogError() << "[dut_config] Missing required field 'minor_version'";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "minor_version");
+        return score::Unexpected{minor_result.error()};
     }
-    config.minor_version = j["minor_version"].get<uint32_t>();
+    config.minor_version = minor_result.value();
 
-    if (!j.contains("events") || !j["events"].is_array()) {
-        score::mw::log::LogError() << "[dut_config] Missing required field 'events' (array)";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events");
-    }
-    if (j["events"].size() > kMaxEvents) {
-        score::mw::log::LogError()
-            << "[dut_config] 'events' array has " << j["events"].size()
-            << " entries, max is " << kMaxEvents;
-        return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "events");
-    }
-    for (const auto& ev_json : j["events"]) {
-        auto ev_result = ParseEvent(ev_json);
-        if (!ev_result.has_value()) {
-            return score::Unexpected{ev_result.error()};
+    {
+        auto it = j.find("events");
+        if (it == j.end()) {
+            score::mw::log::LogError()
+                << "[dut_config] Missing required field 'events' (array)";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events");
         }
-        config.events.push_back(std::move(ev_result).value());
-    }
-
-    if (!j.contains("fields") || !j["fields"].is_array()) {
-        score::mw::log::LogError() << "[dut_config] Missing required field 'fields' (array)";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "fields");
-    }
-    if (j["fields"].size() > kMaxFields) {
-        score::mw::log::LogError()
-            << "[dut_config] 'fields' array has " << j["fields"].size()
-            << " entries, max is " << kMaxFields;
-        return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "fields");
-    }
-    for (const auto& fld_json : j["fields"]) {
-        auto fld_result = ParseField(fld_json);
-        if (!fld_result.has_value()) {
-            return score::Unexpected{fld_result.error()};
+        auto events_list = it->second.As<score::json::List>();
+        if (!events_list.has_value()) {
+            score::mw::log::LogError()
+                << "[dut_config] Missing required field 'events' (array)";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "events");
         }
-        config.fields.push_back(std::move(fld_result).value());
+        const score::json::List& events = events_list.value().get();
+        if (events.size() > kMaxEvents) {
+            score::mw::log::LogError()
+                << "[dut_config] 'events' array has " << events.size()
+                << " entries, max is " << kMaxEvents;
+            return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "events");
+        }
+        for (const auto& ev_any : events) {
+            auto ev_obj = ev_any.As<score::json::Object>();
+            if (!ev_obj.has_value()) {
+                return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "events[] entry");
+            }
+            auto ev_result = ParseEvent(ev_obj.value().get());
+            if (!ev_result.has_value()) {
+                return score::Unexpected{ev_result.error()};
+            }
+            config.events.push_back(std::move(ev_result).value());
+        }
     }
 
-    if (!j.contains("methods") || !j["methods"].is_array()) {
-        score::mw::log::LogError() << "[dut_config] Missing required field 'methods' (array)";
-        return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "methods");
-    }
-    if (j["methods"].size() > kMaxMethods) {
-        score::mw::log::LogError()
-            << "[dut_config] 'methods' array has " << j["methods"].size()
-            << " entries, max is " << kMaxMethods;
-        return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "methods");
-    }
-    for (const auto& mth_json : j["methods"]) {
-        auto mth_result = ParseMethod(mth_json);
-        if (!mth_result.has_value()) {
-            return score::Unexpected{mth_result.error()};
+    {
+        auto it = j.find("fields");
+        if (it == j.end()) {
+            score::mw::log::LogError()
+                << "[dut_config] Missing required field 'fields' (array)";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "fields");
         }
-        config.methods.push_back(std::move(mth_result).value());
+        auto fields_list = it->second.As<score::json::List>();
+        if (!fields_list.has_value()) {
+            score::mw::log::LogError()
+                << "[dut_config] Missing required field 'fields' (array)";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "fields");
+        }
+        const score::json::List& fields = fields_list.value().get();
+        if (fields.size() > kMaxFields) {
+            score::mw::log::LogError()
+                << "[dut_config] 'fields' array has " << fields.size()
+                << " entries, max is " << kMaxFields;
+            return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "fields");
+        }
+        for (const auto& fld_any : fields) {
+            auto fld_obj = fld_any.As<score::json::Object>();
+            if (!fld_obj.has_value()) {
+                return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "fields[] entry");
+            }
+            auto fld_result = ParseField(fld_obj.value().get());
+            if (!fld_result.has_value()) {
+                return score::Unexpected{fld_result.error()};
+            }
+            config.fields.push_back(std::move(fld_result).value());
+        }
+    }
+
+    {
+        auto it = j.find("methods");
+        if (it == j.end()) {
+            score::mw::log::LogError()
+                << "[dut_config] Missing required field 'methods' (array)";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "methods");
+        }
+        auto methods_list = it->second.As<score::json::List>();
+        if (!methods_list.has_value()) {
+            score::mw::log::LogError()
+                << "[dut_config] Missing required field 'methods' (array)";
+            return score::MakeUnexpected(DutConfigErrc::kMissingRequiredField, "methods");
+        }
+        const score::json::List& methods = methods_list.value().get();
+        if (methods.size() > kMaxMethods) {
+            score::mw::log::LogError()
+                << "[dut_config] 'methods' array has " << methods.size()
+                << " entries, max is " << kMaxMethods;
+            return score::MakeUnexpected(DutConfigErrc::kTooManyElements, "methods");
+        }
+        for (const auto& mth_any : methods) {
+            auto mth_obj = mth_any.As<score::json::Object>();
+            if (!mth_obj.has_value()) {
+                return score::MakeUnexpected(DutConfigErrc::kInvalidValue, "methods[] entry");
+            }
+            auto mth_result = ParseMethod(mth_obj.value().get());
+            if (!mth_result.has_value()) {
+                return score::Unexpected{mth_result.error()};
+            }
+            config.methods.push_back(std::move(mth_result).value());
+        }
     }
 
     return config;

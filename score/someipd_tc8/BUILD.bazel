@@ -50,7 +50,7 @@ cc_library(
     srcs = ["dut_config.cpp"],
     hdrs = ["dut_config.h"],
     deps = [
-        "@nlohmann_json//:json",
+        "@score_baselibs//score/json",
         "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
