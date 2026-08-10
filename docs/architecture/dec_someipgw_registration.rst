@@ -18,6 +18,7 @@ Architectural Design Decision: Dynamic Registration for SOME/IP Gateway
 .. dec_rec:: Dynamic Registration for SOME/IP Gateway
    :id: dec_rec__component__someip_gw_registration
    :status: proposed
+   :version: 1
    :decision:
       Gateway processes will dynamically register their communication requirements (e.g., required services and events) with the central SOME/IP Communication Stack process. This will be achieved via a dedicated, message-based IPC interface.
    :context:

@@ -18,10 +18,10 @@
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
 #include <score/memory.hpp>
-#include <score/socom/runtime.hpp>
 #include <string_view>
 
 #include "score/message_passing/i_client_connection.h"
+#include "score/socom/runtime.hpp"
 
 namespace score::gateway_ipc_binding {
 

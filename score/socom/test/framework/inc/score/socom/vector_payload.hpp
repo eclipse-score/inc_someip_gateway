@@ -15,8 +15,9 @@
 #define SCORE_SOCOM_VECTOR_PAYLOAD_HPP
 
 #include <cstddef>
-#include <score/socom/payload.hpp>
 #include <vector>
+
+#include "score/socom/payload.hpp"
 
 namespace score::socom {
 

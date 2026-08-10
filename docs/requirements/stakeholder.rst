@@ -23,6 +23,7 @@ feature and component requirements derive from these.
 .. stkh_req:: SOME/IP Wire-Level Protocol Interoperability
    :id: stkh_req__someip_gw__interoperability
    :status: valid
+   :version: 1
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -31,6 +32,7 @@ feature and component requirements derive from these.
    The SOME/IP Gateway shall ensure that its SOME/IP network interface
    component conforms to the SOME/IP wire-level protocol specification,
    enabling correct interoperation with SOME/IP-compliant devices.
+   :valid_from: v0.0.0
 
 .. note::
 

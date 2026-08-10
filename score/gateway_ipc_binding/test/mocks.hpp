@@ -18,7 +18,8 @@
 
 #include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
-#include <score/socom/move_only_function_mock.hpp>
+
+#include "score/socom/move_only_function_mock.hpp"
 
 namespace score::gateway_ipc_binding {
 

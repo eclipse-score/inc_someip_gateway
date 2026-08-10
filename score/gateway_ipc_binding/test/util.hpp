@@ -21,10 +21,11 @@
 #include <memory>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
 #include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
-#include <score/socom/callback_mocks.hpp>
-#include <score/socom/client_connector.hpp>
-#include <score/socom/runtime.hpp>
 #include <string>
+
+#include "score/socom/callback_mocks.hpp"
+#include "score/socom/client_connector.hpp"
+#include "score/socom/runtime.hpp"
 
 namespace score::gateway_ipc_binding {
 

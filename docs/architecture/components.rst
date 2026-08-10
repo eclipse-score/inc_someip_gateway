@@ -18,6 +18,7 @@ Components
 .. comp:: SOME/IP Gateway Daemon
    :id: comp__gatewayd
    :status: valid
+   :version: 1
    :safety: ASIL_B
    :security: NO
    :belongs_to: feat__someip_gateway
@@ -40,6 +41,7 @@ Components
 .. comp:: SOME/IP Serializer
    :id: comp__serializer
    :status: valid
+   :version: 1
    :safety: ASIL_B
    :security: NO
    :belongs_to: feat__someip_gateway
@@ -51,6 +53,7 @@ Components
 .. comp:: Null Serializer
    :id: comp__null_serializer
    :status: valid
+   :version: 1
    :safety: ASIL_B
    :security: NO
    :belongs_to: feat__someip_gateway
@@ -60,6 +63,7 @@ Components
 .. comp:: SOME/IP Network Daemon
    :id: comp__someipd
    :status: valid
+   :version: 1
    :safety: QM
    :security: NO
    :belongs_to: feat__someip_gateway

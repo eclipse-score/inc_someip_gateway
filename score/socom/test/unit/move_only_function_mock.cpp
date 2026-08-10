@@ -11,12 +11,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/socom/move_only_function_mock.hpp"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <score/move_only_function.hpp>
-#include <score/socom/move_only_function_mock.hpp>
 #include <type_traits>
 
 namespace score::socom {

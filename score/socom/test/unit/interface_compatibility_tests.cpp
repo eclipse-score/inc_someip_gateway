@@ -12,7 +12,6 @@
  ********************************************************************************/
 
 #include <limits>
-#include <score/socom/service_interface_identifier.hpp>
 #include <sstream>
 #include <string_view>
 
@@ -21,6 +20,7 @@
 #include "score/socom/clients_t.hpp"
 #include "score/socom/connector_factory.hpp"
 #include "score/socom/server_t.hpp"
+#include "score/socom/service_interface_identifier.hpp"
 #include "score/socom/utilities.hpp"
 
 using ::testing::TestParamInfo;

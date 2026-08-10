@@ -23,8 +23,6 @@ def test_start_someipd(clean_state):
         args=[
             "--configuration",
             "/mw_someip_config.bin",
-            "--service_instance_manifest",
-            "/someipd_mw_com_config.json",
         ],
         env="VSOMEIP_CONFIGURATION=/vsomeip.json",
     ) as someipd_process:

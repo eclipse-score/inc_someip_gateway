@@ -13,11 +13,12 @@
 
 #include <gtest/gtest.h>
 
-#include <score/socom/registry_string_view.hpp>
-#include <score/socom/string_registry.hpp>
 #include <sstream>
 #include <string>
 #include <string_view>
+
+#include "score/socom/registry_string_view.hpp"
+#include "score/socom/string_registry.hpp"
 
 namespace score::socom {
 

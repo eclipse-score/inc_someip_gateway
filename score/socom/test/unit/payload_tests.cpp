@@ -16,11 +16,12 @@
 
 #include <cstddef>
 #include <iterator>
-#include <score/socom/payload.hpp>
-#include <score/socom/utilities.hpp>
-#include <score/socom/vector_payload.hpp>
 #include <type_traits>
 #include <vector>
+
+#include "score/socom/payload.hpp"
+#include "score/socom/utilities.hpp"
+#include "score/socom/vector_payload.hpp"
 
 using ::testing::Combine;
 using ::testing::TestWithParam;

@@ -19,14 +19,6 @@
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
-#include <score/socom/callback_mocks.hpp>
-#include <score/socom/client_connector.hpp>
-#include <score/socom/client_connector_mock.hpp>
-#include <score/socom/error.hpp>
-#include <score/socom/runtime.hpp>
-#include <score/socom/runtime_mock.hpp>
-#include <score/socom/server_connector.hpp>
-#include <score/socom/server_connector_mock.hpp>
 #include <string>
 #include <thread>
 
@@ -34,10 +26,19 @@
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/server_factory.h"
 #include "score/result/result.h"
+#include "score/socom/callback_mocks.hpp"
+#include "score/socom/client_connector.hpp"
+#include "score/socom/client_connector_mock.hpp"
+#include "score/socom/error.hpp"
+#include "score/socom/runtime.hpp"
+#include "score/socom/runtime_mock.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/server_connector_mock.hpp"
 #include "test_constants.hpp"
 #include "util.hpp"
 
 using testing::_;
+using testing::AnyNumber;
 using testing::AtMost;
 using testing::Return;
 using testing::Values;
@@ -219,8 +220,8 @@ class Gateway_ipc_binding_test : public Gateway_ipc_binding_unconnected_test {
                 event_subscription_change_promise.set_value();
             });
 
-        // EXPECT_CALL(mock_event_subscription_change_cb,
-        //             Call(_, event_id, socom::Event_state::unsubscribed));
+        EXPECT_CALL(mock_event_subscription_change_cb,
+                    Call(_, event_id, socom::Event_state::unsubscribed)).Times(AnyNumber());
 
         auto const subscribe_result =
             client_connector.subscribe_event(event_id, score::socom::Event_mode::update);

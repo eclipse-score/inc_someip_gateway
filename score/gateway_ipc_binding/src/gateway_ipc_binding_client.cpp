@@ -18,13 +18,13 @@
 #include <score/gateway_ipc_binding/error.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
-#include <score/socom/runtime.hpp>
 #include <string_view>
 #include <thread>
 #include <utility>
 
 #include "binding_base.hpp"
 #include "reply_channel.hpp"
+#include "score/socom/runtime.hpp"
 
 namespace score::gateway_ipc_binding {
 

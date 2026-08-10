@@ -15,7 +15,7 @@ SPDX-License-Identifier: Apache-2.0
 
 # SOME/IP Gateway — Agent Instructions
 
-The S-CORE SOME/IP Gateway bridges the SCORE middleware with SOME/IP communication stacks (C++, Rust examples, Python integration tests).
+The S-CORE SOME/IP Gateway bridges the SCORE middleware with SOME/IP communication stacks (C++, Python integration tests).
 
 ## Essentials
 

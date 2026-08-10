@@ -13,7 +13,7 @@
    # *******************************************************************************
 
 TC8 Conformance Test Requirements
-==================================
+=================================
 
 Overview
 --------
@@ -108,11 +108,13 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
 .. feat_req:: TC8 SOME/IP Protocol Conformance
    :id: feat_req__tc8_conformance__conformance
    :status: valid
+   :version: 1
    :tags: tc8, conformance, someip, verification
    :satisfies: stkh_req__someip_gw__interoperability
    :safety: QM
    :security: NO
    :reqtype: Functional
+   :valid_from: v0.0.0
 
    The SOME/IP Gateway project shall verify protocol conformance of its
    SOME/IP stack (``someipd``) against OPEN Alliance TC8 SOME/IP test
@@ -127,7 +129,7 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    integration test suite under ``tests/integration``.
 
 Component Requirements — Service Discovery
--------------------------------------------
+------------------------------------------
 
 The following component requirements define the high-priority TC8 conformance
 tests for SOME/IP Service Discovery (SD), aligned with SOME/IP-SD Protocol
@@ -136,8 +138,11 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD Offer Entry Format Validation
    :id: comp_req__tc8_conformance__sd_offer_format
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -154,8 +159,11 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD Cyclic Offer Timing
    :id: comp_req__tc8_conformance__sd_cyclic_timing
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, timing
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -171,8 +179,11 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD FindService Response
    :id: comp_req__tc8_conformance__sd_find_response
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -188,8 +199,11 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD Subscribe Eventgroup Lifecycle
    :id: comp_req__tc8_conformance__sd_sub_lifecycle
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, eventgroup
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -224,8 +238,11 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 .. comp_req:: TC8 SD Initial Delay and Repetitions Phase
    :id: comp_req__tc8_conformance__sd_phases_timing
    :status: valid
+   :version: 1
    :tags: tc8, conformance, service_discovery, timing
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -294,13 +311,16 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    Covers TC8-SD-013 from the test strategy.
 
 Component Requirements — SOME/IP Message Format
-------------------------------------------------
+-----------------------------------------------
 
 .. comp_req:: TC8 SOME/IP Response Header Validation
    :id: comp_req__tc8_conformance__msg_resp_header
    :status: valid
+   :version: 1
    :tags: tc8, conformance, message_format
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -319,8 +339,11 @@ Component Requirements — SOME/IP Message Format
 .. comp_req:: TC8 SOME/IP Error Return Codes
    :id: comp_req__tc8_conformance__msg_error_codes
    :status: valid
+   :version: 1
    :tags: tc8, conformance, message_format, error_handling
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -356,13 +379,16 @@ Component Requirements — SOME/IP Message Format
    test strategy.
 
 Component Requirements — Event Notification
---------------------------------------------
+-------------------------------------------
 
 .. comp_req:: TC8 Event Notification Subscription Lifecycle
    :id: comp_req__tc8_conformance__evt_subscription
    :status: valid
+   :version: 1
    :tags: tc8, conformance, events, notification
    :satisfies: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional

@@ -18,21 +18,21 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <score/socom/final_action.hpp>
 #include <thread>
 
 #include "local_service_instance.h"
 #include "remote_service_instance.h"
+#include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/service_protocol_config.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
+#include "score/serializer/serializer.h"
+#include "score/socom/final_action.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
-#include "score/config/mw_someip_config_generated.h"
-#include "score/serializer/serializer.h"
 
 // In the main file we are not in any namespace
 using namespace score;
