@@ -54,6 +54,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     pkg_tar(
         name = filesystem_tar,
         srcs = [filesystem],
+        tags = ["manual"],
     )
 
     linux_qemu_config = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:qemu_config")
@@ -64,6 +65,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
         name = filesystem_rootfs_overlay,
         image = linux_qemu_image,
         srcs = [filesystem_tar],
+        tags = ["manual"],
     )
 
     # --- QNX QEMU artifacts ---
