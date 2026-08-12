@@ -76,14 +76,6 @@ copy_files_onto_image(
     image = "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:image",
 )
 
-genrule(
-    name = "_qemu_rootfs_test_hello_world_ebclfsa_aarch64_integration_test",
-    srcs = [":_qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test"],
-    outs = ["_qemu_rootfs_test_hello_world_ebclfsa_aarch64_integration_test.qcow2"],
-    cmd = "qemu-img convert -O qcow2 $(location :_qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test) $@",
-    local = True,
-)
-
 qnx_ifs(
     name = "_qemu_image_test_hello_world_ebclfsa_x86_64_qnx_integration_test",
     srcs = [
@@ -108,13 +100,14 @@ py_itf_test(
             "--log-cli-level=DEBUG",
             "--qemu-config=$(location //quality/integration_testing/environments/ebclfsa_aarch64_qemu:qemu_config)",
             "--qemu-kernel=$(location //quality/integration_testing/environments/ebclfsa_aarch64_qemu:kernel)",
-            "--qemu-rootfs=$(location _qemu_rootfs_test_hello_world_ebclfsa_aarch64_integration_test)",
+            "--qemu-rootfs=$(location _qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test)",
         ],
         "//conditions:default": [],
     }),
     data = select({
         "//quality/integration_testing/flags:linux_qemu": [
-            "_qemu_rootfs_test_hello_world_ebclfsa_aarch64_integration_test",
+            "_qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test",
+            "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:image",  # backing file must be accessible at runtime
             "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:kernel",
             "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:qemu_config",
         ],

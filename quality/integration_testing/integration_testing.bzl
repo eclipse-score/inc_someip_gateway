@@ -66,15 +66,6 @@ def integration_test(name, srcs, filesystem, **kwargs):
         srcs = [filesystem_tar],
     )
 
-    filesystem_rootfs = "_qemu_rootfs_{}".format(name)
-    native.genrule(
-        name = filesystem_rootfs,
-        srcs = [filesystem_rootfs_overlay],
-        outs = ["{}.qcow2".format(filesystem_rootfs)],
-        cmd = "qemu-img convert -O qcow2 $(location {}) $@".format(filesystem_rootfs_overlay),
-        local = True,
-    )
-
     # --- QNX QEMU artifacts ---
     QNX_TARGET_COMPATIBLE_WITH = [
         "@platforms//cpu:x86_64",
@@ -96,8 +87,9 @@ def integration_test(name, srcs, filesystem, **kwargs):
     _extend_list_in_kwargs(kwargs, "data", select({
         "@platforms//os:qnx": [qemu_image, qnx_qemu_config],
         "//quality/integration_testing/flags:linux_qemu": [
-            filesystem_rootfs,
+            filesystem_rootfs_overlay,
             linux_qemu_config,
+            linux_qemu_image,  # backing file must be accessible at runtime
         ],
         "//conditions:default": [],
     }))
@@ -113,7 +105,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
             "//quality/integration_testing/flags:linux_qemu": [
                 "--log-cli-level=DEBUG",
                 "--qemu-config=$(location {})".format(linux_qemu_config),
-                "--qemu-rootfs=$(location {})".format(filesystem_rootfs),
+                "--qemu-rootfs=$(location {})".format(filesystem_rootfs_overlay),
             ],
             "//conditions:default": [],
         }),
