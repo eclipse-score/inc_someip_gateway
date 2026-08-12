@@ -14,14 +14,11 @@
 # *******************************************************************************
 
 # Unified entry point for running a CLI tool by name.
-
 # Inside a container the tool is expected on PATH; outside, it is resolved via Bazel.
 # See https://github.com/eclipse-score/devcontainer/tree/main/tools for further information.
-
-# Why? Because bazel gives us the ability to run tools without installing them or requiring users
-# to run inside a devcontainer. However bazel is crazy slow and not really suited to be run from
-# pre-commit, so we need a shortcut to keep it fast for users who are already inside a
-# devcontainer.
+#
+# Do not modify this file. Its source of truth is managed by the
+# SCORE devcontainer version-alignment policy.
 
 set -euo pipefail
 
