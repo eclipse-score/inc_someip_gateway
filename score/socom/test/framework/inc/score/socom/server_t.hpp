@@ -15,13 +15,13 @@
 #define SOCOM_SERVER_T_HPP
 
 #include <cstddef>
-#include <score/socom/event.hpp>
-#include <score/socom/server_connector.hpp>
 
 #include "score/socom/connector_factory.hpp"
+#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/posix_credentials.hpp"
+#include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
 
 namespace score::socom {
@@ -54,8 +54,7 @@ struct Server_data {
     /// \param[in] factory factory to create server connector with
     /// \param[in] method_id method which is expected
     /// \param[in] payload input of the method
-    Server_data(Connector_factory& factory, Method_id method_id,
-                Payload const& expected_payload);
+    Server_data(Connector_factory& factory, Method_id method_id, Payload const& expected_payload);
 
     /// \brief Create a new instance with the configuration stored in factory
     ///
@@ -167,16 +166,15 @@ struct Server_data {
     ///
     /// \param[in] event_id event for which a update is requested
     /// \param[in] payload the data to send
-    void expect_and_respond_update_event_request(Event_id const& event_id,
-                                                 Payload const& payload);
+    void expect_and_respond_update_event_request(Event_id const& event_id, Payload const& payload);
 
     /// \brief Expect and respond to method calls
     ///
     /// \param[in] method_id method which is expected
     /// \param[in] result allocated payload
     /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_method_allocate_payload(
-        Method_id const& method_id, score::Result<Writable_payload> result);
+    std::atomic<bool> const& expect_method_allocate_payload(Method_id const& method_id,
+                                                            score::Result<Writable_payload> result);
 
     /// \brief Expect and respond to method calls
     ///

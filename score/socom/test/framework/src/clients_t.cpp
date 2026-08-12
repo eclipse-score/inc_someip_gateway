@@ -17,10 +17,10 @@
 #include <cstddef>
 #include <future>
 #include <memory>
-#include <score/socom/event.hpp>
 
 #include "gmock/gmock.h"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/utilities.hpp"
 #include "score/socom/vector_payload.hpp"

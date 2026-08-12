@@ -11,8 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/socom/service_interface_definition.hpp"
+
 #include <cassert>
-#include <score/socom/service_interface_definition.hpp>
 
 namespace score::socom {
 

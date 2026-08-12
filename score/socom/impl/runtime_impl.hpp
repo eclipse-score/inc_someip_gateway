@@ -18,7 +18,6 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <score/socom/service_interface_definition.hpp>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -26,6 +25,7 @@
 #include "client_connector_impl.hpp"
 #include "runtime_registration.hpp"
 #include "score/socom/runtime.hpp"
+#include "score/socom/service_interface_definition.hpp"
 #include "server_connector_impl.hpp"
 #include "service_identifier.hpp"
 

@@ -28,15 +28,15 @@
 #include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
-#include <score/socom/client_connector.hpp>
-#include <score/socom/error.hpp>
-#include <score/socom/runtime.hpp>
-#include <score/socom/server_connector.hpp>
 #include <string>
 #include <thread>
 
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/server_factory.h"
+#include "score/socom/client_connector.hpp"
+#include "score/socom/error.hpp"
+#include "score/socom/runtime.hpp"
+#include "score/socom/server_connector.hpp"
 
 namespace score::gateway_ipc_binding {
 

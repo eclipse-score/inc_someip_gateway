@@ -17,11 +17,12 @@
 #include <cstdint>
 #include <optional>
 #include <score/move_only_function.hpp>
-#include <score/socom/error.hpp>
-#include <score/socom/payload.hpp>
-#include <score/socom/reference_token.hpp>
 #include <utility>
 #include <variant>
+
+#include "score/socom/error.hpp"
+#include "score/socom/payload.hpp"
+#include "score/socom/reference_token.hpp"
 
 namespace score::socom {
 /// \brief Alias for a method ID.

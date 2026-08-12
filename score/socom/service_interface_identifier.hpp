@@ -16,10 +16,11 @@
 
 #include <cstdint>
 #include <functional>
-#include <score/socom/registry_string_view.hpp>
-#include <score/socom/string_registry.hpp>
 #include <string>
 #include <tuple>
+
+#include "score/socom/registry_string_view.hpp"
+#include "score/socom/string_registry.hpp"
 
 namespace score::socom {
 

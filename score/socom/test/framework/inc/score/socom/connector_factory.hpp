@@ -14,12 +14,11 @@
 #ifndef SOCOM_CONNECTOR_FACTORY_HPP
 #define SOCOM_CONNECTOR_FACTORY_HPP
 
-#include <score/socom/server_connector.hpp>
-#include <score/socom/service_interface_definition.hpp>
-
 #include "score/socom/client_connector.hpp"
 #include "score/socom/posix_credentials.hpp"
 #include "score/socom/runtime.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/service_interface_definition.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
 

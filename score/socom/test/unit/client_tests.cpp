@@ -18,17 +18,17 @@
 #include <future>
 #include <memory>
 #include <optional>
-#include <score/socom/event.hpp>
-#include <score/socom/service_interface_definition.hpp>
 #include <string>
 #include <string_view>
 
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/clients_t.hpp"
+#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_t.hpp"
+#include "score/socom/service_interface_definition.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/temporary_event_subscription.hpp"

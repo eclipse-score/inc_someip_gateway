@@ -14,12 +14,11 @@
 #ifndef SOCOM_SOCOM_MOCKS_HPP
 #define SOCOM_SOCOM_MOCKS_HPP
 
-#include <score/socom/event.hpp>
-#include <score/socom/server_connector.hpp>
-
 #include "gmock/gmock.h"
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/event.hpp"
+#include "score/socom/server_connector.hpp"
 
 namespace score::socom {
 

@@ -17,15 +17,15 @@
 #include <future>
 #include <mutex>
 #include <optional>
-#include <score/socom/final_action.hpp>
-#include <score/socom/server_connector.hpp>
-#include <score/socom/service_interface_definition.hpp>
-#include <score/socom/service_interface_identifier.hpp>
 #include <vector>
 
 #include "endpoint.hpp"
 #include "messages.hpp"
 #include "runtime_registration.hpp"
+#include "score/socom/final_action.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/service_interface_definition.hpp"
+#include "score/socom/service_interface_identifier.hpp"
 #include "temporary_thread_id_add.hpp"
 
 namespace score {

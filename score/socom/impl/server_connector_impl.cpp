@@ -17,13 +17,13 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <score/socom/event.hpp>
-#include <score/socom/server_connector.hpp>
-#include <score/socom/service_interface_definition.hpp>
-#include <score/socom/service_interface_identifier.hpp>
 
 #include "messages.hpp"
 #include "runtime_impl.hpp"
+#include "score/socom/event.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/service_interface_definition.hpp"
+#include "score/socom/service_interface_identifier.hpp"
 #include "temporary_thread_id_add.hpp"
 
 namespace score {

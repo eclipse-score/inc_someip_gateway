@@ -11,8 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/socom/string_registry.hpp"
+
 #include <algorithm>
-#include <score/socom/string_registry.hpp>
 
 namespace score::socom {
 

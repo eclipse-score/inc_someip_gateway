@@ -15,9 +15,10 @@
 #define SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_DEFINITION
 
 #include <cstdint>
-#include <score/socom/event.hpp>
-#include <score/socom/method.hpp>
-#include <score/socom/service_interface_identifier.hpp>
+
+#include "score/socom/event.hpp"
+#include "score/socom/method.hpp"
+#include "score/socom/service_interface_identifier.hpp"
 
 namespace score::socom {
 

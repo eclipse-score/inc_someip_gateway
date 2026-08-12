@@ -46,15 +46,6 @@ and in a separate terminal
 bazel run //score/someipd:someipd_example
 ```
 
-### Run Example app
-
-```sh
-bazel run //examples/car_window_sim:car_window_controller
-```
-
-If you type `open` or `close` the command will be sent via network.
-
-
 ### Dockerized integration test POC
 
 For integration tests, a docker based approach was taken.

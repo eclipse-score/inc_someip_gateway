@@ -19,12 +19,12 @@
 #include <memory>
 #include <optional>
 #include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/socom/payload.hpp>
-#include <score/socom/service_interface_identifier.hpp>
 #include <score/span.hpp>
 #include <string>
 
 #include "score/result/result.h"
+#include "score/socom/payload.hpp"
+#include "score/socom/service_interface_identifier.hpp"
 
 namespace score {
 namespace memory {

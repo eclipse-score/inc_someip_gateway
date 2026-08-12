@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/socom/error.hpp>
+#include "score/socom/error.hpp"
 
 namespace score::socom {
 namespace {

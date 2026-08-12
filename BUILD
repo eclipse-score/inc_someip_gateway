@@ -13,20 +13,7 @@
 
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "dash_license_checker", "use_format_targets")
-load("//:project_config.bzl", "PROJECT_CONFIG")
-
-# ==============================================================================
-# Compliance & Licensing
-# ==============================================================================
-
-dash_license_checker(
-    src = "//examples:cargo_lock",
-    file_type = "",
-    # Auto-detected from project_config.
-    project_config = PROJECT_CONFIG,
-    visibility = ["//visibility:public"],
-)
+load("@score_tooling//:defs.bzl", "use_format_targets")
 
 # ==============================================================================
 # Code Formatting

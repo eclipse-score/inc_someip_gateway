@@ -11,8 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/socom/method.hpp"
+
 #include <cassert>
-#include <score/socom/method.hpp>
 
 #include "temporary_thread_id_add.hpp"
 

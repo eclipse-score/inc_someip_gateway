@@ -11,8 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/socom/payload.hpp"
+
 #include <cassert>
-#include <score/socom/payload.hpp>
 
 namespace score::cpp {
 

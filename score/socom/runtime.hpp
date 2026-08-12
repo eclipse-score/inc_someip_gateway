@@ -16,11 +16,12 @@
 
 #include <functional>
 #include <memory>
-#include <score/socom/client_connector.hpp>
-#include <score/socom/error.hpp>
-#include <score/socom/posix_credentials.hpp>
-#include <score/socom/server_connector.hpp>
-#include <score/socom/service_interface_identifier.hpp>
+
+#include "score/socom/client_connector.hpp"
+#include "score/socom/error.hpp"
+#include "score/socom/posix_credentials.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/service_interface_identifier.hpp"
 
 namespace score::socom {
 

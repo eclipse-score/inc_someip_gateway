@@ -17,11 +17,12 @@
 #include <forward_list>
 #include <memory>
 #include <mutex>
-#include <score/socom/registry_string_view.hpp>
 #include <string>
 #include <string_view>
 #include <unordered_set>
 #include <utility>
+
+#include "score/socom/registry_string_view.hpp"
 
 namespace score::socom {
 

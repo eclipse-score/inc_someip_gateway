@@ -23,6 +23,7 @@ feature and component requirements derive from these.
 .. stkh_req:: Example Functional Requirement
    :id: stkh_req__docgen_enabled__example
    :status: valid
+   :version: 1
    :safety: QM
    :security: YES
    :reqtype: Functional

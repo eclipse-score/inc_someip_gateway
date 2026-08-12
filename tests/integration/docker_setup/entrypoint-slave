@@ -20,7 +20,7 @@ echo "Container for sample_client started"
 # Add multicast route
 route add -net 224.0.0.0/4 dev eth0
 
-# Manually start up the sample_client application when the car_window_controller and gatewayd are already running
+# Manually start up the sample_client application
 # export VSOMEIP_CONFIGURATION=$(pwd)/tests/integration/sample_client/vsomeip.json
 # /home/source/bazel-bin/tests/integration/sample_client/sample_client
 

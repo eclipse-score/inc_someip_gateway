@@ -13,9 +13,10 @@
 
 #include <gtest/gtest.h>
 
-#include <score/socom/string_registry.hpp>
 #include <string>
 #include <string_view>
+
+#include "score/socom/string_registry.hpp"
 
 namespace score::socom {
 

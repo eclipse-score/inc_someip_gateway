@@ -42,8 +42,8 @@ jobs:
           sudo mkdir -p /mnt/.bazel
           sudo chown -R $USER:$USER /mnt/.bazel
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@8fe1bc8925f83e856b204932c9278a1fa874e604
         with:
           unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
-        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@8fe1bc8925f83e856b204932c9278a1fa874e604

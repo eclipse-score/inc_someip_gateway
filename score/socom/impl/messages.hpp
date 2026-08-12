@@ -14,11 +14,10 @@
 #ifndef SCORE_SOCOM_MESSAGES_HPP
 #define SCORE_SOCOM_MESSAGES_HPP
 
-#include <score/socom/event.hpp>
-#include <score/socom/posix_credentials.hpp>
-
 #include "endpoint.hpp"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/event.hpp"
+#include "score/socom/posix_credentials.hpp"
 
 namespace score {
 namespace socom {

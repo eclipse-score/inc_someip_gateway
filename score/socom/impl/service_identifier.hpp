@@ -14,7 +14,7 @@
 #ifndef SRC_SOCOM_SRC_SERVICE_IDENTIFIER
 #define SRC_SOCOM_SRC_SERVICE_IDENTIFIER
 
-#include <score/socom/service_interface_identifier.hpp>
+#include "score/socom/service_interface_identifier.hpp"
 
 namespace score {
 namespace socom {

@@ -15,10 +15,10 @@
 
 #include <cassert>
 #include <iostream>
-#include <score/socom/event.hpp>
 
 #include "messages.hpp"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/event.hpp"
 #include "score/socom/final_action.hpp"
 #include "server_connector_impl.hpp"
 

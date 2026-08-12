@@ -18,13 +18,13 @@
 #include <cerrno>
 #include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
-#include <score/socom/client_connector.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include "gateway_ipc_binding_util.hpp"
 #include "key.hpp"
+#include "score/socom/client_connector.hpp"
 #include "shared_memory_managers.hpp"
 
 namespace score::gateway_ipc_binding {

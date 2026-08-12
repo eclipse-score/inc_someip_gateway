@@ -14,7 +14,7 @@
 #ifndef SCORE_SOCOM_ENDPOINT_HPP
 #define SCORE_SOCOM_ENDPOINT_HPP
 
-#include <score/socom/reference_token.hpp>
+#include "score/socom/reference_token.hpp"
 
 namespace score {
 namespace socom {

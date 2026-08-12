@@ -16,12 +16,13 @@
 
 #include <memory>
 #include <score/move_only_function.hpp>
-#include <score/socom/error.hpp>
-#include <score/socom/event.hpp>
-#include <score/socom/method.hpp>
-#include <score/socom/payload.hpp>
-#include <score/socom/posix_credentials.hpp>
-#include <score/socom/service_interface_definition.hpp>
+
+#include "score/socom/error.hpp"
+#include "score/socom/event.hpp"
+#include "score/socom/method.hpp"
+#include "score/socom/payload.hpp"
+#include "score/socom/posix_credentials.hpp"
+#include "score/socom/service_interface_definition.hpp"
 
 namespace score::socom {
 

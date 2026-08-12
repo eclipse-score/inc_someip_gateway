@@ -11,11 +11,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/socom/service_interface_definition.hpp>
-
 #include "gtest/gtest.h"
 #include "score/socom/clients_t.hpp"
 #include "score/socom/server_t.hpp"
+#include "score/socom/service_interface_definition.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/utilities.hpp"
 #include "score/socom/vector_payload.hpp"
