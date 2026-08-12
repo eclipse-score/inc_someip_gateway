@@ -68,12 +68,14 @@ integration_test(
 pkg_tar(
     name = "_qemu_filesystem_test_hello_world_ebclfsa_aarch64_integration_test",
     srcs = [":example-app-ebclfsa-pkg"],
+    tags = ["manual"],
 )
 
 copy_files_onto_image(
     name = "_qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test",
     srcs = [":_qemu_filesystem_test_hello_world_ebclfsa_aarch64_integration_test"],
     image = "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:image",
+    tags = ["manual"],
 )
 
 qnx_ifs(
