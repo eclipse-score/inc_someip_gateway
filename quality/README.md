@@ -52,13 +52,13 @@ Integration tests are enabled only for QEMU-backed runs:
 
 ### filesystem tar
 
-The tests and their data are packaged into a filesystem tar and either build into (Docker) the image or uploaded after image startup.
+The tests and their data are packaged into a filesystem tar and overlaid onto the QEMU rootfs image before test execution.
 
 ### What Runs in QEMU
 
 #### Linux QEMU
 
-If QEMU is selected, the custom plugin [`linux_qemu`](integration_testing/plugins/linux_qemu/README.md) is used.
+If QEMU is selected, the upstream ITF QEMU plugin is used.
 
 #### QNX QEMU
 

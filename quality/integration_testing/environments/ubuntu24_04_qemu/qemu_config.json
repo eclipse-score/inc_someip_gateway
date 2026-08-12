@@ -9,5 +9,5 @@
     "ssh_port": 22,
     "qemu_num_cores": 2,
     "qemu_ram_size": "2G",
-    "boot_mode": "disk"
+    "qemu_machine": "pc-x86_64"
 }

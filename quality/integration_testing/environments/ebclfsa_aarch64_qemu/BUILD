@@ -13,7 +13,6 @@
 
 exports_files(
     [
-        "kernel_cmdline.txt",
         "qemu_config.json",
     ],
     visibility = ["//:__subpackages__"],
@@ -23,12 +22,6 @@ filegroup(
     name = "qemu_config",
     srcs = ["qemu_config.json"],
     visibility = ["//:__subpackages__"],
-)
-
-filegroup(
-    name = "kernel_cmdline",
-    srcs = ["kernel_cmdline.txt"],
-    visibility = ["//visibility:public"],
 )
 
 # Convenience alias for accessing the image

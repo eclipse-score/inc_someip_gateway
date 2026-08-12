@@ -14,7 +14,7 @@
 """Integration test macro with QEMU-only backends."""
 
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-load("@score_itf//:defs.bzl", "py_itf_test")
+load("@score_itf//:defs.bzl", "copy_files_onto_image", "py_itf_test")
 load("@score_rules_imagefs//rules/qnx:ifs.bzl", "qnx_ifs")
 
 def _extend_list_in_kwargs(kwargs, key, values):
@@ -58,7 +58,22 @@ def integration_test(name, srcs, filesystem, **kwargs):
 
     linux_qemu_config = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:qemu_config")
     linux_qemu_image = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:prepared_image")
-    linux_qemu_seed_iso = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:seed_iso")
+
+    filesystem_rootfs_overlay = "_qemu_rootfs_overlay_{}".format(name)
+    copy_files_onto_image(
+        name = filesystem_rootfs_overlay,
+        image = linux_qemu_image,
+        srcs = [filesystem_tar],
+    )
+
+    filesystem_rootfs = "_qemu_rootfs_{}".format(name)
+    native.genrule(
+        name = filesystem_rootfs,
+        srcs = [filesystem_rootfs_overlay],
+        outs = ["{}.qcow2".format(filesystem_rootfs)],
+        cmd = "qemu-img convert -O qcow2 $(location {}) $@".format(filesystem_rootfs_overlay),
+        local = True,
+    )
 
     # --- QNX QEMU artifacts ---
     QNX_TARGET_COMPATIBLE_WITH = [
@@ -81,10 +96,8 @@ def integration_test(name, srcs, filesystem, **kwargs):
     _extend_list_in_kwargs(kwargs, "data", select({
         "@platforms//os:qnx": [qemu_image, qnx_qemu_config],
         "//quality/integration_testing/flags:linux_qemu": [
-            filesystem_tar,
+            filesystem_rootfs,
             linux_qemu_config,
-            linux_qemu_image,
-            linux_qemu_seed_iso,
         ],
         "//conditions:default": [],
     }))
@@ -96,14 +109,11 @@ def integration_test(name, srcs, filesystem, **kwargs):
                 "--log-cli-level=DEBUG",
                 "--qemu-config=$(location {})".format(qnx_qemu_config),
                 "--qemu-kernel=$(location {})".format(qemu_image),
-                "--qemu-architecture=x86_64",
             ],
             "//quality/integration_testing/flags:linux_qemu": [
                 "--log-cli-level=DEBUG",
                 "--qemu-config=$(location {})".format(linux_qemu_config),
-                "--qemu-image=$(location {})".format(linux_qemu_image),
-                "--qemu-seed-iso=$(location {})".format(linux_qemu_seed_iso),
-                "--qemu-filesystem-tar=$(location {})".format(filesystem_tar),
+                "--qemu-rootfs=$(location {})".format(filesystem_rootfs),
             ],
             "//conditions:default": [],
         }),
@@ -145,10 +155,10 @@ def integration_test(name, srcs, filesystem, **kwargs):
         srcs = srcs,
         plugins = select({
             "@platforms//os:qnx": [
-                "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
+                "@score_itf//score/itf/plugins:qemu_plugin",
             ],
             "//quality/integration_testing/flags:linux_qemu": [
-                "//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
+                "@score_itf//score/itf/plugins:qemu_plugin",
             ],
             "//conditions:default": [],
         }),

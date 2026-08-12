@@ -16,7 +16,7 @@ exports_files(
         "qemu_config.json",
         "user-data",
         "meta-data",
-        "prepare_image.sh",
+        "build_image.sh",
     ],
     visibility = ["//:__subpackages__"],
 )
@@ -27,78 +27,36 @@ filegroup(
     visibility = ["//:__subpackages__"],
 )
 
-# Network config for cloud-init
-# Tagged "manual" so it is only built when explicitly needed (linux_qemu tests).
-genrule(
-    name = "network_config",
-    srcs = ["qemu_config.json"],
-    outs = ["network-config.yaml"],
-    cmd = """
-set -euo pipefail
-
-python3 - <<'PY' "$(location qemu_config.json)" "$@"
-import json
-import sys
-
-config_path, output_path = sys.argv[1:3]
-
-with open(config_path, "r", encoding="utf-8") as config_file:
-    config = json.load(config_file)
-
-networks = config.get("networks", [])
-if not networks:
-    raise ValueError("qemu_config.json must define at least one network")
-
-network = networks[0]
-
-with open(output_path, "w", encoding="utf-8") as network_config:
-    network_config.write("version: 2\\n")
-    network_config.write("ethernets:\\n")
-    network_config.write("  testnic0:\\n")
-    network_config.write("    match:\\n")
-    network_config.write('      name: "en*"\\n')
-    network_config.write("    dhcp4: false\\n")
-    network_config.write("    dhcp6: false\\n")
-    network_config.write("    optional: true\\n")
-    network_config.write("    link-local: []\\n")
-    network_config.write("    addresses:\\n")
-    network_config.write(f"      - {network['ip_address']}/16\\n")
-    network_config.write("    routes:\\n")
-    network_config.write("      - to: default\\n")
-    network_config.write("        on-link: true\\n")
-    network_config.write(f"        via: {network['gateway']}\\n")
-PY
-""",
-    tags = ["manual"],
-    visibility = ["//:__subpackages__"],
-)
-
-# Cloud-init seed image generation to configure the Ubuntu 24.04 QEMU image on boot.
-# Tagged "manual" so it is only built when explicitly needed (linux_qemu tests).
-genrule(
-    name = "seed_iso",
-    srcs = [
-        ":network_config",
-        "user-data",
-        "meta-data",
-    ],
-    outs = ["seed.img"],
-    cmd = "cloud-localds -N $(location :network_config) $@ $(location user-data) $(location meta-data)",
-    tags = ["manual"],
-    visibility = ["//:__subpackages__"],
-)
-
 # Build a persistent Ubuntu base image with tools needed by integration tests.
-# It boots once with internet access and installs iputils-ping into the base image.
+# It boots once with internet access and applies the cloud-init customization.
 genrule(
     name = "prepared_image",
-    srcs = ["@ubuntu_24_04_cloudimg//file"],
+    srcs = [
+        "@ubuntu_24_04_cloudimg//file",
+        "build_image.sh",
+        "@score_itf//scripts:render_user_data.py",
+        "user-data",
+        "meta-data",
+        "qemu_config.json",
+    ],
     outs = ["ubuntu24_04_prepared.qcow2"],
-    cmd = "bash $(location prepare_image.sh) $(location @ubuntu_24_04_cloudimg//file) $@",
+    cmd = """
+        bash $(location build_image.sh) \
+            $(RULEDIR) \
+            $(location @ubuntu_24_04_cloudimg//file) \
+            $@ \
+            $(location user-data) \
+            $(location meta-data) \
+            $(location qemu_config.json) \
+            $(location @score_itf//scripts:render_user_data.py)
+    """,
     tags = [
         "manual",
         "requires-network",
     ],
-    tools = ["prepare_image.sh"],
+    tools = [
+        "build_image.sh",
+        "@score_itf//scripts:render_user_data.py",
+    ],
     visibility = ["//:__subpackages__"],
 )

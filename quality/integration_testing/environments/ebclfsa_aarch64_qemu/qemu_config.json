@@ -9,5 +9,6 @@
     "ssh_port": 22,
     "qemu_num_cores": 2,
     "qemu_ram_size": "1G",
-    "boot_mode": "disk"
+    "qemu_machine": "virt-aarch64",
+    "qemu_kernel_cmdline": "root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit"
 }
