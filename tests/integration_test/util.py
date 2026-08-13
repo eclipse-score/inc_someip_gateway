@@ -12,52 +12,24 @@
 # *******************************************************************************
 
 from collections.abc import Sequence
-import io
-import os
-import pwd
 import logging
-import time
+import os
 import subprocess
 from score.itf.plugins.core import Target
 from types import TracebackType
-from typing import Any
 from score.itf.core.process.async_process import AsyncProcess
 
-
-def _as_text(output: Any) -> str:
-    if isinstance(output, bytes):
-        return output.decode(errors="replace")
-    return str(output)
+# Re-export capture helpers so existing callers can do:
+#   from util import tcpdump_capture, get_output, wait_until_process_exits
+from capture import as_text, get_output, tcpdump_capture, wait_until_process_exits
 
 
 def _completed_process_as_text(process: subprocess.CompletedProcess) -> str:
     return (
         f"Command: {' '.join(process.args)}\n"
         f"Exit code: {process.returncode}\n"
-        f"Stdout:\n{_as_text(process.stdout)}\n"
-        f"Stderr:\n{_as_text(process.stderr)}"
-    )
-
-
-def _get_content_of_file_object(file_object: io.BufferedReader | None) -> str:
-    if file_object is None:
-        return ""
-
-    # enable non blocking io
-    os.set_blocking(file_object.fileno(), False)
-
-    # Read and discard any buffered content to get the latest output
-    data = file_object.read()
-    if data is None:
-        return ""
-    return data.decode(errors="replace")
-
-
-def get_output(process: subprocess.Popen[bytes]) -> str:
-    return (
-        _get_content_of_file_object(process.stdout)
-        + "\n, stderr: "
-        + _get_content_of_file_object(process.stderr)
+        f"Stdout:\n{as_text(process.stdout)}\n"
+        f"Stderr:\n{as_text(process.stderr)}"
     )
 
 
@@ -96,53 +68,6 @@ class ShellProcess:
     ) -> None:
         if self._process is not None:
             self._process.stop()
-
-
-def tcpdump_capture(
-    filter_expression: str,
-    packet_count: int | None = None,
-    output_file: str | None = None,
-) -> subprocess.Popen[bytes]:
-    tcpdump_user = pwd.getpwuid(os.getuid()).pw_name
-    args = [
-        "/usr/bin/tcpdump",
-        "-n",
-        "-i",
-        "any",
-        "-Z",
-        tcpdump_user,
-    ]
-    if output_file is not None:
-        args.extend(["-w", output_file])
-    else:
-        # -l: line-buffered output, only meaningful for text (non-pcap) mode
-        args.append("-l")
-    # TODO tcpdump cannot be killed, thus at the moment only packet_count can be used to stop it
-    #      When testing it using `linux-sandbox -R -N -- /bin/bash -lc 'tcpdump -n -l -Z root -i any'`
-    #      and `sudo nsenter -t $(pidof tcpdump) -a killall tcpdump` it is killable in the second shell
-    if packet_count is not None:
-        args.extend(["-c", str(packet_count)])
-    if filter_expression:
-        args.append(filter_expression)
-
-    return subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE if output_file is None else subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-    )
-
-
-def wait_until_process_exits(
-    process: subprocess.Popen[bytes], timeout: float = 10.0
-) -> str:
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        if process.poll() is not None:
-            return get_output(process)
-        time.sleep(0.5)
-    raise TimeoutError(
-        f"Process did not exit within {timeout} seconds. Last output: {get_output(process)}"
-    )
 
 
 def get_running_processes_on_host() -> str:

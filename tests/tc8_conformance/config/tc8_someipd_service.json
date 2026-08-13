@@ -1,0 +1,129 @@
+{
+    "unicast": "__TC8_HOST_IP__",
+    "netmask": "255.255.0.0",
+    "logging": {
+        "level": "info",
+        "console": "true",
+        "file": {
+            "enable": "false",
+            "path": "__TC8_LOG_DIR__/vsomeip-tc8.log"
+        },
+        "dlt": "false"
+    },
+    "applications": [
+        {
+            "name": "someipd",
+            "id": "0x1277"
+        }
+    ],
+    "services": [
+        {
+            "service": "__TC8_SERVICE_ID__",
+            "instance": "__TC8_INSTANCE_ID__",
+            "unreliable": "__TC8_SVC_PORT__",
+            "reliable": "__TC8_SVC_TCP_PORT__",
+            "events": [
+                {
+                    "event": "0x8001",
+                    "is_field": "true",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
+                },
+                {
+                    "event": "0x8002",
+                    "is_field": "false",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
+                },
+                {
+                    "event": "0x8003",
+                    "is_field": "false",
+                    "is_reliable": "true",
+                    "update-cycle": "500"
+                },
+                {
+                    "event": "0x8004",
+                    "is_field": "false",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
+                },
+                {
+                    "event": "0x8005",
+                    "is_field": "true",
+                    "is_reliable": "false",
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x8006",
+                    "is_field": "true",
+                    "is_reliable": "false",
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x8007",
+                    "is_field": "true",
+                    "is_reliable": "false",
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x8008",
+                    "is_field": "true",
+                    "is_reliable": "true",
+                    "update-cycle": "0"
+                },
+                {
+                    "event": "0x800B",
+                    "is_field": "false",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
+                }
+            ],
+            "eventgroups": [
+                {
+                    "eventgroup": "0x0002",
+                    "events": [
+                        "0x8001",
+                        "0x8002",
+                        "0x8003",
+                        "0x8004",
+                        "0x8005",
+                        "0x8006",
+                        "0x8007",
+                        "0x8008",
+                        "0x800B"
+                    ]
+                },
+                {
+                    "eventgroup": "0x0005",
+                    "events": [
+                        "0x8003"
+                    ]
+                },
+                {
+                    "eventgroup": "0x0006",
+                    "events": [
+                        "0x800B"
+                    ],
+                    "multicast": {
+                        "address": "239.0.0.1",
+                        "port": "40490"
+                    }
+                }
+            ]
+        }
+    ],
+    "routing": "someipd",
+    "service-discovery": {
+        "enable": "true",
+        "multicast": "224.244.224.245",
+        "port": "__TC8_SD_PORT__",
+        "protocol": "udp",
+        "initial_delay_min": "10",
+        "initial_delay_max": "100",
+        "repetitions_base_delay": "200",
+        "repetitions_max": "3",
+        "ttl": "30",
+        "cyclic_offer_delay": "500",
+        "request_response_delay": "500"
+    }
+}

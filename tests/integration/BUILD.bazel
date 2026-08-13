@@ -15,11 +15,23 @@
 Integration Tests
 """
 
-load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
+load("@score_tooling//:defs.bzl", "score_py_pytest")
 
-py_pytest(
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+score_py_pytest(
     name = "integration",
-    size = "medium",
+    size = "small",
     srcs = glob(["test_*.py"]) + ["conftest.py"],
     data = ["vsomeip-local.json"],
     # Restrict the test execution to Linux for the moment due to dependency on Python
