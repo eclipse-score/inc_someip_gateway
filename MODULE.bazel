@@ -71,7 +71,7 @@ bazel_dep(name = "rules_pkg", version = "1.2.0")
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
+bazel_dep(name = "score_bazel_platforms", version = "1.0.0")
 
 # ============================================================================
 # QNX8 Toolchain Configuration
@@ -149,7 +149,7 @@ register_toolchains(
 # Tooling & Development
 # ============================================================================
 bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "score_devcontainer", version = "1.9.1", dev_dependency = True)
+bazel_dep(name = "score_devcontainer", version = "1.10.0", dev_dependency = True)
 
 # override to same version as communication
 git_override(
@@ -280,7 +280,7 @@ http_archive(
 # Integration Testing
 # ============================================================================
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
-bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 

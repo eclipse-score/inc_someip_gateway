@@ -52,11 +52,11 @@ repos:
         name: shellcheck
         # Hint: running this avoids users having to run inside the devcontainer,
         # while pinning the version of shellcheck to the one in the devcontainer.
-        entry: .devcontainer/run_tool.sh shellcheck
+        entry: .devcontainer/run-tool shellcheck
         language: system
         types: [shell]
       - id: yamlfmt
         name: yamlfmt
-        entry: .devcontainer/run_tool.sh yamlfmt
+        entry: .devcontainer/run-tool yamlfmt
         language: system
         types: [yaml]
