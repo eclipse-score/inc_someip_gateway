@@ -31,6 +31,8 @@ namespace {
 using Payload = score::someip_gateway::serializer::PreSerializedData<tc8_ets_service::kMaxPayloadBytes>;
 }  // namespace
 
+constexpr std::string_view kInstanceSpecifier{"tc8/tc8_service"};
+
 static std::atomic<bool> g_shutdown_requested{false};
 
 static void SignalHandler(int /*signal*/) {
@@ -55,10 +57,7 @@ int main(int argc, char* argv[]) {
     score::mw::com::runtime::InitializeRuntime(score::mw::com::runtime::RuntimeConfiguration{
         score::filesystem::Path{manifest_path}});
 
-    // The instance specifier must match the serviceInstances entry in the loaded manifest.
-    // It is kept as a string literal because RuntimeConfiguration does not expose the parsed
-    // manifest to enumerate declared specifiers without a JSON parsing dependency.
-    const auto specifier_result = score::mw::com::InstanceSpecifier::Create("tc8/tc8_service");
+    const auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{kInstanceSpecifier});
     if (!specifier_result.has_value()) {
         score::mw::log::LogError() << "[tc8_ets_stub] Failed to create InstanceSpecifier for tc8/tc8_service";
         return 1;
