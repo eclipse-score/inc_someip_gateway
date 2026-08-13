@@ -81,7 +81,7 @@ jobs:
           sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0
       - name: Allow supermin to read kernel
         run: |
-          sudo chmod a+r /boot/vmlinuz-$(uname -r) || true
+          sudo chmod a+r /boot/vmlinuz-$(uname -r)
       - name: Run Linux QEMU integration tests
         run: |
           bazel test \
