@@ -90,6 +90,7 @@ jobs:
           export SUPERMIN_MODULES="/lib/modules/${KERNEL_RELEASE}"
           export LIBGUESTFS_DEBUG=1
           export LIBGUESTFS_TRACE=1
+          sudo chmod a+r "${SUPERMIN_KERNEL}" || true
           mkdir -p "${LIBGUESTFS_CACHEDIR}" "${LIBGUESTFS_TMPDIR}" "${LIBGUESTFS_PATH}"
           env -u LIBGUESTFS_PATH libguestfs-make-fixed-appliance "${LIBGUESTFS_PATH}"
           bazel test \
