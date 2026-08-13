@@ -28,4 +28,4 @@ application/
 ## See Also
 
 - [Architecture](../../../docs/architecture/tc8_conformance_testing.rst)
-- Protocol conformance tests in the parent directory (`tests/tc8_conformance/`)
+- Protocol conformance tests in the parent directory [`tests/tc8_conformance/`](../)
