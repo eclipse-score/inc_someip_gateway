@@ -81,6 +81,6 @@ jobs:
           sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration //quality/... //tests/integration_test/...
+          bazel test --config=qemu-integration --strategy=CopyFilesOntoImage=local //quality/... //tests/integration_test/...
       - run: df -h
         if: always()
