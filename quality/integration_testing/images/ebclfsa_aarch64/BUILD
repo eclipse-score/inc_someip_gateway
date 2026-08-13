@@ -41,17 +41,17 @@ genrule(
     srcs = [
         ":extract-fastdev-image",
         ":network_config_tar",
-        "build_image.sh",
+        "@score_itf//scripts:build_ebclfsa_aarch64_image.sh",
     ],
     outs = [
         "ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
         "ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
     ],
     cmd = """
-        bash $(location build_image.sh) \
-            $(RULEDIR) \
-            $(RULEDIR)/ebcl-qemuarm64 \
-            $(RULEDIR)/ebcl-qemuarm64-itf \
+        bash $(location @score_itf//scripts:build_ebclfsa_aarch64_image.sh) \\
+            $(RULEDIR) \\
+            $(RULEDIR)/ebcl-qemuarm64 \\
+            $(RULEDIR)/ebcl-qemuarm64-itf \\
             $(location :network_config_tar)
     """,
     tags = ["manual"],

@@ -284,7 +284,7 @@ bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True
 
 git_override(
     module_name = "score_itf",
-    commit = "41f791aa6315171ccb8b3f80244aee980d4b6700",
+    commit = "a90575b5c2c491652d2d715d624774509c6a13c2",
     patch_strip = 1,
     patches = ["//:third_party/score_itf-qemu-ping-timeout.patch"],
     remote = "https://github.com/elektrobit-contrib/eclipse-score_itf.git",

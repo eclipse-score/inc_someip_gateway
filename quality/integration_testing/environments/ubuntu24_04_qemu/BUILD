@@ -16,7 +16,6 @@ exports_files(
         "qemu_config.json",
         "user-data",
         "meta-data",
-        "build_image.sh",
     ],
     visibility = ["//:__subpackages__"],
 )
@@ -33,7 +32,7 @@ genrule(
     name = "prepared_image",
     srcs = [
         "@ubuntu_24_04_cloudimg//file",
-        "build_image.sh",
+        "@score_itf//scripts:build_ubuntu_x86_64_image.sh",
         "@score_itf//scripts:render_user_data.py",
         "user-data",
         "meta-data",
@@ -41,7 +40,7 @@ genrule(
     ],
     outs = ["ubuntu24_04_prepared.qcow2"],
     cmd = """
-        bash $(location build_image.sh) \
+        bash $(location @score_itf//scripts:build_ubuntu_x86_64_image.sh) \
             $(RULEDIR) \
             $(location @ubuntu_24_04_cloudimg//file) \
             $@ \
@@ -55,7 +54,7 @@ genrule(
         "requires-network",
     ],
     tools = [
-        "build_image.sh",
+        "@score_itf//scripts:build_ubuntu_x86_64_image.sh",
         "@score_itf//scripts:render_user_data.py",
     ],
     visibility = ["//:__subpackages__"],
