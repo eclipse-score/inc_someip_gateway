@@ -67,7 +67,7 @@ jobs:
       - name: Install tools needed for ITF tests
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 qemu-system-arm iputils-ping tcpdump cloud-image-utils libguestfs-tools linux-image-$(uname -r)
+          sudo apt-get install -y qemu-system-x86 qemu-system-arm iputils-ping tcpdump cloud-image-utils libguestfs-tools
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@8fe1bc8925f83e856b204932c9278a1fa874e604
       - run: df -h
@@ -79,6 +79,9 @@ jobs:
       - name: Allow unprivileged user namespaces
         run: |
           sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Allow supermin to read kernel
+        run: |
+          sudo chmod a+r /boot/vmlinuz-$(uname -r) || true
       - name: Run Linux QEMU integration tests
         run: |
           KERNEL_RELEASE="$(uname -r)"
@@ -90,7 +93,6 @@ jobs:
           export SUPERMIN_MODULES="/lib/modules/${KERNEL_RELEASE}"
           export LIBGUESTFS_DEBUG=1
           export LIBGUESTFS_TRACE=1
-          sudo chmod a+r "${SUPERMIN_KERNEL}" || true
           mkdir -p "${LIBGUESTFS_CACHEDIR}" "${LIBGUESTFS_TMPDIR}" "${LIBGUESTFS_PATH}"
           env -u LIBGUESTFS_PATH libguestfs-make-fixed-appliance "${LIBGUESTFS_PATH}"
           bazel test \
