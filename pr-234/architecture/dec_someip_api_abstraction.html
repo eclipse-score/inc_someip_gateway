@@ -476,7 +476,7 @@
   <section id="dr-001-arch-use-socom-as-some-ip-stack-abstraction">
 <h1>DR-001-Arch: Use socom as SOME/IP stack abstraction<a class="headerlink" href="#dr-001-arch-use-socom-as-some-ip-stack-abstraction" title="Link to this heading">#</a></h1>
 <p><strong>Date:</strong> 2026-08-11</p>
-<div class="need_container docutils container" id="SNCB-7f6398b4">
+<div class="need_container docutils container" id="SNCB-dad0d19c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__arch__use_socom_someip_abstraction">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -523,7 +523,7 @@
 <section id="context-problem">
 <h2>Context / Problem<a class="headerlink" href="#context-problem" title="Link to this heading">#</a></h2>
 <p>The SOME/IP Gateway needs an abstraction layer to decouple from the specific SOME/IP stack implementation.
-In addition the SOME/IP Gateway is split into two processes (<code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gateway</span></code>) for safety reasons.
+In addition the SOME/IP Gateway is split into two processes (<code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) for safety reasons.
 The semantics of the abstraction layer needs to be transported via IPC to each process.</p>
 <p>During the architecture discussion, two main reuse-oriented options were considered:</p>
 <ul class="simple">
@@ -551,7 +551,7 @@ reuse <code class="docutils literal notranslate"><span class="pre">mw::com</span
 * To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point</p></li>
 <li><p>Would need an additional control channel next to lola for getting event subscription state and FindService
 * Or add SOME/IP specific extensions to lola</p></li>
-<li><p>lola is optimized for 1:n communication, but the gateway needs 1:1 communication</p></li>
+<li><p>LoLa is optimized for 1:n communication, but the gateway needs 1:1 communication</p></li>
 <li><p>Configuring <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> could become complex
 * Assuming that a SOME/IP service is mapped to a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service
 * <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service configuration format might need SOME/IP specific extensions
@@ -561,7 +561,7 @@ reuse <code class="docutils literal notranslate"><span class="pre">mw::com</span
 <section id="option-2-some-ip-stack-with-its-own-some-ip-abstraction">
 <h3>Option 2: SOME/IP stack with its own SOME/IP abstraction<a class="headerlink" href="#option-2-some-ip-stack-with-its-own-some-ip-abstraction" title="Link to this heading">#</a></h3>
 <p>This option uses <code class="docutils literal notranslate"><span class="pre">socom</span></code> as the abstraction used by the SOME/IP stack.
-For implementation of the IPC binding building blocks of <cite>mw::com</cite> are reused.
+For implementation of the IPC binding building blocks of <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> are reused.
 These are namely:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">message_passing</span></code>: for message transport between processes</p></li>
@@ -585,7 +585,7 @@ selected architecture.</p></li>
 <h2>Evaluation<a class="headerlink" href="#evaluation" title="Link to this heading">#</a></h2>
 <p>Option 1 would require missing capabilities and expected API extensions in
 <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> before it can support the intended SOME/IP gateway behavior cleanly.
-To be oblivious of the concrete SOME/IP stack, <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> would need to provide a suitable abstraction layer.</p>
+To be agnostic to the concrete SOME/IP stack, <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> would need to provide a suitable abstraction layer.</p>
 <p>Option 2 provides the necessary extensibility (binding registration) with a
 simpler integration model and method support out of the box, reducing the amount
 of framework adaptation needed for the gateway implementation.</p>
@@ -598,7 +598,7 @@ of framework adaptation needed for the gateway implementation.</p>
 <section id="consequences">
 <h2>Consequences<a class="headerlink" href="#consequences" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p>Gateway and daemon integration points are built around <code class="docutils literal notranslate"><span class="pre">socom</span></code> contracts.</p></li>
+<li><p>The integration between the <code class="docutils literal notranslate"><span class="pre">gateway</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> daemon is based on <code class="docutils literal notranslate"><span class="pre">socom</span></code> interfaces.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> is not used as the primary abstraction layer for SOME/IP stack
 integration in this module.</p></li>
 <li><p>Future work should preserve a clear boundary between <code class="docutils literal notranslate"><span class="pre">socom</span></code>-based
