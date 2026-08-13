@@ -3,6 +3,7 @@
 # This is rendered by render_user_data.py from qemu_config.json values.
 
 ssh_pwauth: true
+disable_root: false
 
 package_update: true
 packages:
