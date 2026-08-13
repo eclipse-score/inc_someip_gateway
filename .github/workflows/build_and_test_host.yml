@@ -84,11 +84,6 @@ jobs:
           sudo chmod a+r /boot/vmlinuz-$(uname -r) || true
       - name: Run Linux QEMU integration tests
         run: |
-          export LIBGUESTFS_CACHEDIR="${RUNNER_TEMP}/libguestfs-cache"
-          export LIBGUESTFS_TMPDIR="${RUNNER_TEMP}/libguestfs-tmp"
-          export LIBGUESTFS_PATH="${RUNNER_TEMP}/libguestfs-appliance"
-          mkdir -p "${LIBGUESTFS_CACHEDIR}" "${LIBGUESTFS_TMPDIR}" "${LIBGUESTFS_PATH}"
-          env -u LIBGUESTFS_PATH libguestfs-make-fixed-appliance "${LIBGUESTFS_PATH}"
           bazel test \
             --config=qemu-integration \
             --strategy=CopyFilesOntoImage=local \
