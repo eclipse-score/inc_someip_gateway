@@ -81,12 +81,25 @@ jobs:
           sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0
       - name: Run Linux QEMU integration tests
         run: |
+          KERNEL_RELEASE="$(uname -r)"
           export LIBGUESTFS_BACKEND=direct
           export LIBGUESTFS_CACHEDIR="${RUNNER_TEMP}/libguestfs-cache"
           export LIBGUESTFS_TMPDIR="${RUNNER_TEMP}/libguestfs-tmp"
-          export SUPERMIN_KERNEL="/boot/vmlinuz-$(uname -r)"
-          export SUPERMIN_MODULES="/lib/modules/$(uname -r)"
+          export SUPERMIN_KERNEL="/boot/vmlinuz-${KERNEL_RELEASE}"
+          export SUPERMIN_MODULES="/lib/modules/${KERNEL_RELEASE}"
+          export LIBGUESTFS_DEBUG=1
+          export LIBGUESTFS_TRACE=1
           mkdir -p "${LIBGUESTFS_CACHEDIR}" "${LIBGUESTFS_TMPDIR}"
-          bazel test --config=qemu-integration --strategy=CopyFilesOntoImage=local //quality/... //tests/integration_test/...
+          bazel test \
+            --config=qemu-integration \
+            --strategy=CopyFilesOntoImage=local \
+            --action_env=LIBGUESTFS_BACKEND="${LIBGUESTFS_BACKEND}" \
+            --action_env=LIBGUESTFS_CACHEDIR="${LIBGUESTFS_CACHEDIR}" \
+            --action_env=LIBGUESTFS_TMPDIR="${LIBGUESTFS_TMPDIR}" \
+            --action_env=SUPERMIN_KERNEL="${SUPERMIN_KERNEL}" \
+            --action_env=SUPERMIN_MODULES="${SUPERMIN_MODULES}" \
+            --action_env=LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG}" \
+            --action_env=LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE}" \
+            //quality/... //tests/integration_test/...
       - run: df -h
         if: always()
