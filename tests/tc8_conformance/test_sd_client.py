@@ -13,7 +13,7 @@
 """TC8 SD Client lifecycle tests: ETS_081/082/084 and skipped ETS_096/097.
 
 This module manages its own someipd lifecycle (launch/terminate per test)
-and must NOT share the module-scoped ``someipd_dut`` fixture from conftest.py.
+and must NOT share the module-scoped ``dut`` fixture from conftest.py.
 Running a private DUT avoids routing-manager conflicts with other
 TC8 targets that bind the same SD port.
 
@@ -35,9 +35,9 @@ from attribute_plugin import add_test_properties
 
 from helpers.dut_lifecycle import (
     cleanup_vsomeip_sockets,
-    launch_someipd,
+    launch_dut,
     render_someip_config,
-    terminate_someipd,
+    terminate_dut,
     wait_for_sd_readiness,
 )
 from helpers.constants import (
@@ -115,12 +115,12 @@ def sd_client_config(
     """Render the DUT config template and return the path.
 
     Triggers ``tc8_itf_config_setup`` (session-scoped) to render vsomeip JSON
-    templates on the QEMU guest before any ``launch_someipd`` call.  Without
+    templates on the QEMU guest before any ``launch_dut`` call.  Without
     this the guest ``/tc8_sd.json`` is absent or has literal ``__TC8_*__``
     placeholders, causing vsomeip to bind loopback and SD multicast to never
     egress the TAP interface.
 
-    ``launch_someipd`` uses the path's filename to select the correct
+    ``launch_dut`` uses the path's filename to select the correct
     pre-rendered guest config; the host-side file is harmless.
     """
     request.getfixturevalue("tc8_itf_config_setup")
@@ -181,11 +181,11 @@ class TestSDClientStopSubscribe:
         """
         target_init = request.getfixturevalue("target_init")
 
-        proc = launch_someipd(sd_client_config, target_init=target_init)
+        proc = launch_dut(sd_client_config, target_init=target_init)
         try:
             # Wait for DUT to reach SD main phase (first OfferService multicast).
             if not wait_for_sd_readiness(host_ip, timeout_secs=15.0):
-                terminate_someipd(proc)
+                terminate_dut(proc)
                 pytest.skip("someipd DUT did not reach SD main phase within timeout")
 
             sd_sock = open_sender_socket(tester_ip)
@@ -250,7 +250,7 @@ class TestSDClientStopSubscribe:
                 sd_sock.close()
                 notif_sock.close()
         finally:
-            terminate_someipd(proc)
+            terminate_dut(proc)
 
 
 class TestSDClientReboot:
@@ -276,7 +276,7 @@ class TestSDClientReboot:
             pytest.skip(f"Multicast socket unavailable on {host_ip}")
 
         try:
-            proc1 = launch_someipd(sd_client_config, target_init=target_init)
+            proc1 = launch_dut(sd_client_config, target_init=target_init)
         except Exception:
             pre_sock.close()
             raise
@@ -287,7 +287,7 @@ class TestSDClientReboot:
             )
         finally:
             pre_sock.close()
-            terminate_someipd(proc1)
+            terminate_dut(proc1)
 
         cleanup_vsomeip_sockets(target_init=target_init)
 
@@ -297,7 +297,7 @@ class TestSDClientReboot:
             pytest.skip("Multicast socket unavailable for post-reboot capture")
 
         try:
-            proc2 = launch_someipd(sd_client_config, target_init=target_init)
+            proc2 = launch_dut(sd_client_config, target_init=target_init)
         except Exception:
             post_sock.close()
             raise
@@ -308,7 +308,7 @@ class TestSDClientReboot:
             )
         finally:
             post_sock.close()
-            terminate_someipd(proc2)
+            terminate_dut(proc2)
 
         assert post_messages, "ETS_081: No SD messages captured after restart"
 
@@ -349,7 +349,7 @@ class TestSDClientReboot:
         def _drain_and_stop(pre_sock: socket.socket) -> None:
             """Launch DUT, drain 3 messages, terminate, clean up sockets."""
             try:
-                proc = launch_someipd(sd_client_config, target_init=target_init)
+                proc = launch_dut(sd_client_config, target_init=target_init)
             except Exception:
                 pre_sock.close()
                 raise
@@ -359,7 +359,7 @@ class TestSDClientReboot:
                 )
             finally:
                 pre_sock.close()
-                terminate_someipd(proc)
+                terminate_dut(proc)
             cleanup_vsomeip_sockets(target_init=target_init)
 
         try:
@@ -380,7 +380,7 @@ class TestSDClientReboot:
             pytest.skip("Multicast socket unavailable for post-reboot capture")
 
         try:
-            proc3 = launch_someipd(sd_client_config, target_init=target_init)
+            proc3 = launch_dut(sd_client_config, target_init=target_init)
         except Exception:
             post_sock.close()
             raise
@@ -391,7 +391,7 @@ class TestSDClientReboot:
             )
         finally:
             post_sock.close()
-            terminate_someipd(proc3)
+            terminate_dut(proc3)
 
         assert post_messages, "ETS_082: No SD messages captured after second restart"
 

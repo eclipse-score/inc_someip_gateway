@@ -71,13 +71,13 @@ class TestEventNotificationFormat:
     )
     def test_tc8_evt_001_notification_message_type(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-001: Event notification has message_type = NOTIFICATION (0x02)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         try:
             capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
@@ -126,13 +126,13 @@ class TestEventNotificationFormat:
     )
     def test_tc8_evt_002_correct_event_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-002: Notification carries the correct event_id in the method_id field."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -172,13 +172,13 @@ class TestEventNotificationFormat:
     )
     def test_rpc_15_cyclic_notification_rate(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_15: Cyclic event notifications arrive at the configured cycle period."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _CYCLE_MS = 500
         _TOLERANCE_FACTOR = 3.0
@@ -259,13 +259,13 @@ class TestEventNotificationFormat:
     )
     def test_rpc_16_field_notifies_only_on_change(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_16: Field event sends one initial notification then stays silent."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         try:
             from helpers.sd_helpers import capture_sd_offers as _capture_sd_offers
@@ -338,13 +338,13 @@ class TestEventSubscriptionGating:
     )
     def test_tc8_evt_003_notification_only_to_subscriber(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-003: Subscribed endpoint receives notifications; unsubscribed does not."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sub_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sub_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -394,13 +394,13 @@ class TestEventSubscriptionGating:
     )
     def test_tc8_evt_004_no_notification_before_subscribe(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-004: No notifications arrive before subscribing."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # Listen without subscribing. DUT notifies every 2000 ms, so 3 s window is sufficient.
         listen_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -426,13 +426,13 @@ class TestEventStopSubscribe:
     )
     def test_tc8_evt_006_stop_subscribe_ceases_notifications(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-006: Notifications stop after StopSubscribeEventgroup (TTL=0)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -497,13 +497,13 @@ class TestMulticastEventDelivery:
     )
     def test_tc8_evt_005_multicast_notification_delivery(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-EVT-005: Notifications arrive on the multicast group after subscribing to 0x4465."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         try:
             capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
@@ -569,13 +569,13 @@ class TestEventTcpNotification:
     )
     def test_tc8_rpc_17_tcp_event_notification_delivery(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_17: Notification arrives on TCP after subscribing with TCP endpoint."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         try:
             capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)

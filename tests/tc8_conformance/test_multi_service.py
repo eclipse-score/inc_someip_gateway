@@ -157,7 +157,7 @@ class TestMultiServiceInstanceRouting:
     )
     def test_rpc_13_multi_service_config_loads_and_primary_service_offered(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """RPC_13: DUT loads a multi-service config and offers service A.
@@ -167,8 +167,8 @@ class TestMultiServiceInstanceRouting:
         primary service (0x1234/0x5678) via SD; this confirms the multi-service
         config was accepted by the DUT.
         """
-        assert someipd_dut.poll() is None, (
-            "RPC_13: someipd DUT crashed — multi-service config may have "
+        assert dut.poll() is None, (
+            "RPC_13: DUT crashed — multi-service config may have "
             "caused an initialisation error"
         )
 
@@ -197,7 +197,7 @@ class TestMultiServiceInstanceRouting:
     )
     def test_rpc_14_service_a_advertises_configured_udp_port(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """RPC_14: Service A's OfferService endpoint option matches configured port.
@@ -210,7 +210,7 @@ class TestMultiServiceInstanceRouting:
         This verifies that the DUT correctly maps the multi-service config entry
         to a UDP server endpoint on the right port.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         entries = _collect_offers_for_service(host_ip, _SERVICE_A_ID)
         assert entries, (
@@ -236,7 +236,7 @@ class TestMultiServiceInstanceRouting:
     )
     def test_rpc_14_no_unexpected_service_ids_in_offers(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """RPC_14: Only configured services appear in SD OfferService messages.
@@ -248,7 +248,7 @@ class TestMultiServiceInstanceRouting:
         This verifies that the multi-service config does not cause the DUT to
         offer unexpected services or corrupt the SD entry list.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         seen = _collect_all_offers(host_ip)
 

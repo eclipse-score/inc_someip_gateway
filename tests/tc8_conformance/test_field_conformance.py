@@ -79,7 +79,7 @@ class TestFieldInitialValue:
     )
     def test_tc8_fld_001_initial_notification_on_subscribe(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -89,7 +89,7 @@ class TestFieldInitialValue:
         The DUT caches the last notified value for ``is_field: true`` events and
         re-sends it to each new subscriber without waiting for the next notify cycle.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # Wait until the DUT has sent at least one SD offer.
         try:
@@ -139,7 +139,7 @@ class TestFieldInitialValue:
     )
     def test_tc8_fld_002_is_field_sends_initial_value_within_one_second(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -150,7 +150,7 @@ class TestFieldInitialValue:
         on the next regular notify cycle.  A field delivers the cached value
         immediately, so the first notification should arrive well within 1 second.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -201,12 +201,12 @@ class TestFieldGetSet:
     )
     def test_tc8_fld_003_getter_returns_current_value(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """TC8-FLD-003: GET request (method 0x0001) returns a RESPONSE with the current value."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         resp = send_get_field(
             dut_ip,
@@ -232,13 +232,13 @@ class TestFieldGetSet:
     )
     def test_tc8_fld_004_setter_updates_value_and_notifies(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-FLD-004: SET request (method 0x0002) updates the field and notifies subscribers."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         new_value = b"\xca\xfe"
 
@@ -316,12 +316,12 @@ class TestFieldTcpTransport:
     )
     def test_tc8_rpc_17_tcp_field_getter(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_17: GET field request over TCP returns the current value."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         resp = send_get_field_tcp(
             dut_ip,
@@ -347,12 +347,12 @@ class TestFieldTcpTransport:
     )
     def test_tc8_rpc_17_tcp_field_setter(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """SOMEIPSRV_RPC_17: SET field request over TCP updates the value."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         new_value = b"\xbe\xef"
         set_resp = send_set_field_tcp(

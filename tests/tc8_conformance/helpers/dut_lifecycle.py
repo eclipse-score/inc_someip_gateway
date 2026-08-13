@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""DUT lifecycle helpers shared by TC8 tests that manage someipd directly.
+"""DUT lifecycle helpers shared by TC8 tests that manage the DUT stack directly.
 
 Used by ``test_sd_client.py``, ``test_sd_reboot.py``, and
 ``test_sd_phases_timing.py``.  All functions operate in ITF (QEMU) mode:
@@ -30,7 +30,7 @@ from typing import Optional, Union
 _logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Config name → rendered guest path mapping (mirrors tc8_itf_conftest._CONFIG_MAP)
+# Config name → rendered guest path mapping
 # ---------------------------------------------------------------------------
 
 #: Maps the template filename used in BUILD.bazel ``env`` to the rendered path
@@ -186,11 +186,11 @@ def render_someip_config(
 # ---------------------------------------------------------------------------
 
 
-def launch_someipd(
+def launch_dut(
     config_path: Union[Path, str],
     target_init: object = None,
 ) -> object:
-    """Start the production DUT stack (someipd then gatewayd) on the QEMU guest.
+    """Start the full DUT stack (someipd, tc8_ets_stub, gatewayd) on the QEMU guest.
 
     *target_init* is a ``QemuTarget`` provided by the ITF framework.  The
     *config_path* filename selects the pre-rendered guest vsomeip config
@@ -201,8 +201,8 @@ def launch_someipd(
     internally until someipd is ready.
 
     Returns a ``_TargetProcess`` adapter whose ``.terminate()`` / ``.wait()``
-    interface is compatible with :func:`terminate_someipd`.  Calling
-    ``.terminate()`` kills both binaries and stops both async process handles.
+    interface is compatible with :func:`terminate_dut`.  Calling
+    ``.terminate()`` kills all three binaries and stops their async process handles.
     """
     if target_init is not None:
         # ITF path: production stack runs on the QEMU guest.  Configs are pre-rendered.
@@ -242,11 +242,11 @@ def launch_someipd(
             stub_proc=stub_proc,
         )
 
-    raise RuntimeError("launch_someipd: target_init must be provided (ITF mode only)")
+    raise RuntimeError("launch_dut: target_init must be provided (ITF mode only)")
 
 
-def terminate_someipd(proc: object) -> None:
-    """Terminate ``someipd`` and close its pipes."""
+def terminate_dut(proc: object) -> None:
+    """Terminate the DUT stack and close its pipes."""
     proc.terminate()  # type: ignore[attr-defined]
     proc.wait(timeout=5)  # type: ignore[attr-defined]
     if proc.stdout:  # type: ignore[attr-defined]

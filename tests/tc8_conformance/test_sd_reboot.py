@@ -14,7 +14,7 @@
 
 Isolated in a separate module because these tests manage their own ``someipd``
 lifecycle (start, drain, stop, restart) and must not share the
-module-scoped ``someipd_dut`` fixture used by ``test_service_discovery.py``.
+module-scoped ``dut`` fixture used by ``test_service_discovery.py``.
 Running both in the same module would cause a routing-manager conflict.
 
 See ``docs/tc8_conformance/requirements.rst`` for requirement traceability.
@@ -30,9 +30,9 @@ from attribute_plugin import add_test_properties
 
 from helpers.dut_lifecycle import (
     cleanup_vsomeip_sockets,
-    launch_someipd,
+    launch_dut,
     render_someip_config,
-    terminate_someipd,
+    terminate_dut,
 )
 from helpers.constants import SD_PORT
 from helpers.sd_helpers import open_multicast_socket
@@ -68,7 +68,7 @@ def sd_reboot_capture(
     request.getfixturevalue("tc8_itf_config_setup")
 
     tmp_dir = tmp_path_factory.mktemp("tc8_reboot_config")
-    # Host-side render is harmless; launch_someipd uses the filename to select
+    # Host-side render is harmless; launch_dut uses the filename to select
     # the pre-rendered guest config.
     config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
@@ -108,7 +108,7 @@ def sd_reboot_capture(
         )
 
     try:
-        proc1 = launch_someipd(config_path, target_init=target_init)
+        proc1 = launch_dut(config_path, target_init=target_init)
     except Exception:
         pre_sock.close()
         raise
@@ -118,7 +118,7 @@ def sd_reboot_capture(
         _collect_sd_messages(pre_sock, count=3, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS)
     finally:
         pre_sock.close()
-        terminate_someipd(proc1)
+        terminate_dut(proc1)
 
     # Remove stale vsomeip routing-manager sockets so the second instance
     # can become routing manager immediately.
@@ -130,7 +130,7 @@ def sd_reboot_capture(
         pytest.skip("Multicast socket unavailable for post-reboot capture.")
 
     try:
-        proc2 = launch_someipd(config_path, target_init=target_init)
+        proc2 = launch_dut(config_path, target_init=target_init)
     except Exception:
         post_sock.close()
         raise
@@ -141,7 +141,7 @@ def sd_reboot_capture(
         )
     finally:
         post_sock.close()
-        terminate_someipd(proc2)
+        terminate_dut(proc2)
 
     return post_messages
 
@@ -228,7 +228,7 @@ class TestSDRebootDetectionETS:
                 "Set TC8_HOST_IP to a non-loopback IP."
             )
 
-        proc1 = launch_someipd(config_path, target_init=target_init)
+        proc1 = launch_dut(config_path, target_init=target_init)
         drained: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline and len(drained) < 3:
@@ -246,7 +246,7 @@ class TestSDRebootDetectionETS:
             except Exception:  # noqa: BLE001
                 continue
         pre_sock.close()
-        terminate_someipd(proc1)
+        terminate_dut(proc1)
 
         cleanup_vsomeip_sockets(target_init=target_init)
 
@@ -255,7 +255,7 @@ class TestSDRebootDetectionETS:
         except OSError:
             pytest.skip("Multicast socket unavailable for post-reboot capture.")
 
-        proc2 = launch_someipd(config_path, target_init=target_init)
+        proc2 = launch_dut(config_path, target_init=target_init)
         post_messages: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline2 = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline2 and len(post_messages) < 1:
@@ -273,7 +273,7 @@ class TestSDRebootDetectionETS:
             except Exception:  # noqa: BLE001
                 continue
         post_sock.close()
-        terminate_someipd(proc2)
+        terminate_dut(proc2)
 
         assert post_messages, "TC8-SDLC-017: No SD messages captured after DUT restart"
         outer_hdr, sd_hdr = post_messages[0]
@@ -323,7 +323,7 @@ class TestSDRebootDetectionETS:
                 "Set TC8_HOST_IP to a non-loopback IP."
             )
 
-        proc1 = launch_someipd(config_path, target_init=target_init)
+        proc1 = launch_dut(config_path, target_init=target_init)
         pre_messages: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline and len(pre_messages) < 3:
@@ -341,7 +341,7 @@ class TestSDRebootDetectionETS:
             except Exception:  # noqa: BLE001
                 continue
         pre_sock.close()
-        terminate_someipd(proc1)
+        terminate_dut(proc1)
 
         cleanup_vsomeip_sockets(target_init=target_init)
 
@@ -350,7 +350,7 @@ class TestSDRebootDetectionETS:
         except OSError:
             pytest.skip("Multicast socket unavailable for post-reboot capture.")
 
-        proc2 = launch_someipd(config_path, target_init=target_init)
+        proc2 = launch_dut(config_path, target_init=target_init)
         post_messages: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
         deadline2 = time.monotonic() + _SD_CAPTURE_TIMEOUT_SECS
         while time.monotonic() < deadline2 and len(post_messages) < 1:
@@ -368,7 +368,7 @@ class TestSDRebootDetectionETS:
             except Exception:  # noqa: BLE001
                 continue
         post_sock.close()
-        terminate_someipd(proc2)
+        terminate_dut(proc2)
 
         assert post_messages, "TC8-SDLC-018: No SD messages captured after DUT restart"
         outer_hdr, sd_hdr = post_messages[0]

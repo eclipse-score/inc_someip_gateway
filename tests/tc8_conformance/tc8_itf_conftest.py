@@ -13,7 +13,7 @@
 """ITF conftest for TC8 conformance tests running inside QEMU via score_itf.
 
 Loaded as a pytest plugin by the integration_test() Bazel target; provides
-session-scoped fixtures for DUT IP addressing, someipd lifecycle, and vsomeip
+session-scoped fixtures for DUT IP addressing, DUT stack lifecycle, and vsomeip
 config rendering on the QEMU guest.
 """
 
@@ -28,7 +28,7 @@ from typing import Generator
 import pytest
 
 from capture import stop_capture, tcpdump_capture
-from score.itf.core.process.async_process import AsyncProcess
+from helpers.dut_lifecycle import _TargetProcess, launch_dut
 
 _logger = logging.getLogger(__name__)
 
@@ -51,22 +51,6 @@ def pytest_collection_modifyitems(
     for item in items:
         item.add_marker(pytest.mark.tc8)
         item.add_marker(pytest.mark.conformance)
-
-
-class _AsyncProcessAdapter:
-    """Adapts AsyncProcess to a Popen-compatible interface so TC8 tests can use
-    .poll() to check liveness.
-    """
-
-    def __init__(self, proc: AsyncProcess) -> None:
-        self._proc = proc
-
-    def poll(self) -> int | None:
-        """Return None if the process is running, 0 if it has exited."""
-        return None if self._proc.is_running() else 0
-
-    def stop(self) -> None:
-        self._proc.stop()
 
 
 def _wait_for_sd_readiness(
@@ -231,13 +215,6 @@ def tester_ip(host_ip: str) -> str:
     return host_ip
 
 
-_CONFIG_MAP: dict[str, str] = {
-    "tc8_someipd_sd.json": "tc8_sd.json",
-    "tc8_someipd_service.json": "tc8_service.json",
-    "tc8_someipd_multi.json": "tc8_multi.json",
-}
-
-
 @pytest.fixture(scope="session")
 def tc8_itf_config_setup(target_init: object, dut_ip: str) -> None:
     """Render vsomeip config templates on the QEMU guest using the DUT IP and
@@ -286,62 +263,25 @@ def tc8_itf_config_setup(target_init: object, dut_ip: str) -> None:
 
 
 @pytest.fixture(scope="class")
-def someipd_dut(
+def dut(
     target_init: object,
     tc8_itf_config_setup: None,  # noqa: ARG001 (ensures configs are rendered first)
     request: pytest.FixtureRequest,
     host_ip: str,
-) -> Generator[_AsyncProcessAdapter, None, None]:
-    """Launch someipd then gatewayd on the QEMU guest and yield a .poll() adapter.
+) -> Generator[_TargetProcess, None, None]:
+    """Launch the full DUT stack on the QEMU guest and yield a .poll() adapter.
 
-    someipd is started first so it becomes the vsomeip routing manager.  gatewayd
-    starts second and blocks internally until the IPC handshake with someipd
-    completes.  The fixture skips the test class if someipd does not send an
-    OfferService within 10 s.
+    Delegates process launch to :func:`helpers.dut_lifecycle.launch_dut`.  The
+    fixture skips the test class if the DUT does not send an OfferService within 10 s.
     """
     config_name: str = getattr(request.module, "SOMEIP_CONFIG", "tc8_someipd_sd.json")
-    guest_config = _CONFIG_MAP.get(config_name, "tc8_sd.json")
 
     _cleanup_vsomeip_sockets_on_target(target_init)
 
-    # 1. Start someipd first — it becomes the vsomeip routing manager.
-    _logger.info(
-        "Launching someipd on QEMU guest: VSOMEIP_CONFIGURATION=/tmp/%s", guest_config
-    )
-    someipd_proc: AsyncProcess = target_init.execute_async(
-        f"LD_LIBRARY_PATH=/ "
-        f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
-        f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
-        f"/someipd -c /tc8_someipd_config.bin"
-    )
+    proc: _TargetProcess = launch_dut(config_name, target_init=target_init)  # type: ignore[assignment]
 
-    # 2. Start the ETS stub — provides the mw::com skeleton so gatewayd's
-    #    StartFindService callback fires and gatewayd calls offer_event() in vsomeip.
-    _logger.info("Launching tc8_ets_stub on QEMU guest")
-    stub_proc: AsyncProcess = target_init.execute_async(
-        f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
-        f"/tc8_ets_stub -s /tc8_ets_stub_mw_com_config.json"
-    )
-
-    # 3. Start gatewayd — connects to someipd IPC, discovers the stub via
-    #    StartFindService, and calls offer_event() to make vsomeip advertise the service.
-    _logger.info("Launching gatewayd on QEMU guest")
-    gatewayd_proc: AsyncProcess = target_init.execute_async(
-        f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
-        f"/gatewayd -c /tc8_someipd_config.bin -s /tc8_gatewayd_mw_com_config.json"
-    )
-
-    # 4. Wait for the OfferService multicast that vsomeip sends after gatewayd's
-    #    offer_event() call completes.  Only then are TC8 test classes safe to run.
     if not _wait_for_sd_readiness(host_ip):
-        for proc_name in ("gatewayd", "tc8_ets_stub", "someipd"):
-            try:
-                target_init.execute(f"pkill -9 {proc_name} 2>/dev/null || true")
-            except Exception:  # noqa: BLE001
-                pass
-        gatewayd_proc.stop()
-        stub_proc.stop()
-        someipd_proc.stop()
+        proc.terminate()
         pytest.skip(
             "DUT did not reach SD main phase within 10 s (QEMU/ITF). "
             "Check TAP bridge, multicast route on guest, and vsomeip config."
@@ -349,24 +289,8 @@ def someipd_dut(
 
     _logger.info("DUT reached SD main phase on QEMU guest")
 
-    adapter = _AsyncProcessAdapter(someipd_proc)
     try:
-        yield adapter
+        yield proc
     finally:
-        # Force-kill all three binaries before .stop() to avoid the 15 s teardown
-        # timeout that occurs when vsomeip does not handle SIGTERM cleanly or
-        # when the SSH channel does not forward the signal to the remote process
-        # group.  SIGKILL is unconditional.  The "|| true" ensures these lines
-        # never raise even if the processes already exited.
-        for proc_name in ("gatewayd", "tc8_ets_stub", "someipd"):
-            try:
-                target_init.execute(f"pkill -9 {proc_name} 2>/dev/null || true")
-            except Exception:  # noqa: BLE001
-                _logger.warning(
-                    "force-kill of %s on QEMU guest failed; continuing teardown",
-                    proc_name,
-                )
-        someipd_proc.stop()
-        stub_proc.stop()
-        gatewayd_proc.stop()
+        proc.terminate()
         _cleanup_vsomeip_sockets_on_target(target_init)

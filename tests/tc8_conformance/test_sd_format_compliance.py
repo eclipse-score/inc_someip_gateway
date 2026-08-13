@@ -248,11 +248,11 @@ class TestSdHeaderFieldsOfferService:
     )
     def test_format_01_client_id_is_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_01: SOME/IP SD header client_id must be 0x0000."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
@@ -267,7 +267,7 @@ class TestSdHeaderFieldsOfferService:
     )
     def test_format_02_session_id_is_nonzero_and_in_range(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_02: SD session_id must be non-zero and fit in 16 bits.
@@ -278,7 +278,7 @@ class TestSdHeaderFieldsOfferService:
         preceding test classes), the captured value may be greater than 1, but
         it must never be 0 and must not exceed 0xFFFF.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip, timeout_secs=5.0)
 
@@ -297,11 +297,11 @@ class TestSdHeaderFieldsOfferService:
     )
     def test_format_04_interface_version_is_one(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_04: SOME/IP SD interface_version must be 0x01."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
@@ -317,11 +317,11 @@ class TestSdHeaderFieldsOfferService:
     )
     def test_format_05_message_type_is_notification(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_05: SOME/IP SD message_type must be NOTIFICATION (0x02)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
@@ -338,11 +338,11 @@ class TestSdHeaderFieldsOfferService:
     )
     def test_format_06_return_code_is_e_ok(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_06: SOME/IP SD return_code must be E_OK (0x00)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
@@ -359,11 +359,11 @@ class TestSdHeaderFieldsOfferService:
     )
     def test_format_09_sd_flags_reserved_bits_are_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_09: Reserved bits (5-0) of the SD Flags byte must be 0."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, sd_hdr, _, _ = _capture_raw_sd_offer(host_ip)
 
@@ -380,7 +380,7 @@ class TestSdHeaderFieldsOfferService:
     )
     def test_format_10_sd_entry_reserved_bytes_are_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_10: Reserved bytes in the 16-byte OfferService SD entry must be 0.
@@ -399,7 +399,7 @@ class TestSdHeaderFieldsOfferService:
         Byte [2] (index_second_option_run) is reserved for Type-1 OfferService
         entries and must be transmitted as 0.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -424,11 +424,11 @@ class TestSdOfferEntryFields:
     )
     def test_format_11_entry_is_16_bytes(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_11: Each SD entry must be exactly 16 bytes."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -446,11 +446,11 @@ class TestSdOfferEntryFields:
     )
     def test_format_12_first_option_run_index_is_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_12: OfferService first option run index must be 0."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -470,11 +470,11 @@ class TestSdOfferEntryFields:
     )
     def test_format_13_num_options_matches_options_list(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_13: num_options_1 field must equal the number of resolved options."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, raw_entry = _capture_raw_sd_offer(host_ip)
 
@@ -493,11 +493,11 @@ class TestSdOfferEntryFields:
     )
     def test_format_15_instance_id_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_15: OfferService instance_id must match the configured value."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -513,11 +513,11 @@ class TestSdOfferEntryFields:
     )
     def test_format_16_major_version_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_16: OfferService major_version must match the configured value."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -533,11 +533,11 @@ class TestSdOfferEntryFields:
     )
     def test_format_18_minor_version_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_18: OfferService minor_version must match the configured value."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -557,13 +557,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_19_ack_entry_type_is_subscribe_ack(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_19: SubscribeEventgroupAck SD entry type must be 0x07."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -578,13 +578,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_20_ack_entry_is_16_bytes(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_20: SubscribeEventgroupAck SD entry must be exactly 16 bytes."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -602,13 +602,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_21_ack_option_run_index_is_zero_when_no_options(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_21: SubscribeAck option_index_1 matches the attached options."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -636,13 +636,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_23_ack_service_id_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_23: SubscribeAck service_id must match the subscribed service."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -658,13 +658,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_24_ack_instance_id_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_24: SubscribeAck instance_id must match the subscribed instance."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -680,13 +680,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_25_ack_major_version_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_25: SubscribeAck major_version must match the service definition."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -702,13 +702,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_26_ack_ttl_is_nonzero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_26: SubscribeEventgroupAck TTL must be > 0 (TTL=0 means Nack)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -721,7 +721,7 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_27_ack_reserved_field_is_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -735,7 +735,7 @@ class TestSdHeaderFieldsSubscribeAck:
         The ``minver_or_counter`` field encodes ``(reserved << 16) | eventgroup_id``.
         The high 16 bits must be 0.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -752,13 +752,13 @@ class TestSdHeaderFieldsSubscribeAck:
     )
     def test_format_28_ack_eventgroup_id_matches_subscribe(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """FORMAT_28: SubscribeAck eventgroup_id must match the subscribed eventgroup."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
@@ -779,11 +779,11 @@ class TestSdOptionsEndpoint:
     )
     def test_options_01_endpoint_option_length_is_nine(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """OPTIONS_01: IPv4EndpointOption length field must be 0x0009."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -808,11 +808,11 @@ class TestSdOptionsEndpoint:
     )
     def test_options_02_endpoint_option_type_is_0x04(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """OPTIONS_02: IPv4EndpointOption type byte must be 0x04."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -837,11 +837,11 @@ class TestSdOptionsEndpoint:
     )
     def test_options_03_endpoint_option_reserved_after_type_is_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """OPTIONS_03: Reserved byte at offset [3] of IPv4EndpointOption must be 0x00."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -866,11 +866,11 @@ class TestSdOptionsEndpoint:
     )
     def test_options_05_endpoint_option_reserved_before_protocol_is_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """OPTIONS_05: Reserved byte at offset [8] of IPv4EndpointOption must be 0x00."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -895,11 +895,11 @@ class TestSdOptionsEndpoint:
     )
     def test_options_06_endpoint_option_protocol_is_udp(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """OPTIONS_06: IPv4EndpointOption L4 protocol must be UDP (0x11)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -926,13 +926,13 @@ class TestSdOptionsMulticast:
     )
     def test_options_08_multicast_option_length_is_nine(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_08: IPv4MulticastOption length field must be 0x0009."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         if ipaddress.ip_address(host_ip).is_loopback:
             pytest.skip(
@@ -967,13 +967,13 @@ class TestSdOptionsMulticast:
     )
     def test_options_09_multicast_option_type_is_0x14(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_09: IPv4MulticastOption type byte must be 0x14 (decimal 20)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         if ipaddress.ip_address(host_ip).is_loopback:
             pytest.skip(
@@ -1008,13 +1008,13 @@ class TestSdOptionsMulticast:
     )
     def test_options_10_multicast_option_reserved_is_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_10: Reserved byte at offset [3] of IPv4MulticastOption must be 0x00."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         if ipaddress.ip_address(host_ip).is_loopback:
             pytest.skip(
@@ -1049,13 +1049,13 @@ class TestSdOptionsMulticast:
     )
     def test_options_11_multicast_address_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_11: IPv4MulticastOption address must match the configured multicast address."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         if ipaddress.ip_address(host_ip).is_loopback:
             pytest.skip(
@@ -1088,13 +1088,13 @@ class TestSdOptionsMulticast:
     )
     def test_options_12_multicast_option_reserved_before_port_is_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_12: Reserved byte at offset [8] of IPv4MulticastOption must be 0x00."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         if ipaddress.ip_address(host_ip).is_loopback:
             pytest.skip(
@@ -1129,13 +1129,13 @@ class TestSdOptionsMulticast:
     )
     def test_options_13_multicast_option_protocol_is_udp(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_13: IPv4MulticastOption L4 protocol must be UDP (0x11)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         if ipaddress.ip_address(host_ip).is_loopback:
             pytest.skip(
@@ -1168,13 +1168,13 @@ class TestSdOptionsMulticast:
     )
     def test_options_14_multicast_port_matches_config(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """OPTIONS_14: IPv4MulticastOption port must match the configured multicast port."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         if ipaddress.ip_address(host_ip).is_loopback:
             pytest.skip(
@@ -1209,7 +1209,7 @@ class TestSdMissingFormatFields:
     )
     def test_format_03_protocol_version_is_one(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_03: SOME/IP protocol_version in the SD message header must be 1.
@@ -1217,7 +1217,7 @@ class TestSdMissingFormatFields:
         The SOME/IP header byte 12 (protocol_version) must be 0x01 per
         PRS_SOMEIP_00052.  This applies to all SD messages including OfferService.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
@@ -1233,7 +1233,7 @@ class TestSdMissingFormatFields:
     )
     def test_format_08_unicast_flag_set(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_08: SD Flags byte, Unicast flag (bit 6) must be set in OfferService.
@@ -1241,7 +1241,7 @@ class TestSdMissingFormatFields:
         PRS_SOMEIPSD_00351: The Unicast flag indicates the sender supports unicast
         communication.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, sd_hdr, _, _ = _capture_raw_sd_offer(host_ip)
 
@@ -1257,7 +1257,7 @@ class TestSdMissingFormatFields:
     )
     def test_format_14_entry_type_is_offer(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_14: OfferService entry Type byte (byte[0]) must be 0x01.
@@ -1266,7 +1266,7 @@ class TestSdMissingFormatFields:
         PRS_SOMEIPSD_00306.  This test reads the raw serialised entry byte
         directly rather than relying on the parsed enum value.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -1286,7 +1286,7 @@ class TestSdMissingFormatFields:
     )
     def test_format_17_ttl_is_nonzero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """FORMAT_17: OfferService entry TTL (3-byte big-endian, bytes[9–11]) must be > 0.
@@ -1294,7 +1294,7 @@ class TestSdMissingFormatFields:
         TTL = 0 in an OfferService entry is reserved for StopOfferService
         (PRS_SOMEIPSD_00137).  A live service must advertise TTL > 0.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -1315,7 +1315,7 @@ class TestSdMissingFormatFields:
     )
     def test_format_22_ack_num_options_1_matches(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1326,7 +1326,7 @@ class TestSdMissingFormatFields:
         raw entry must match the number of option objects in the resolved list.
         This verifies the DUT serialises the options-count nibble correctly.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         unresolved_ack, resolved_ack = _capture_subscribe_ack_with_options(
             dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST
@@ -1350,7 +1350,7 @@ class TestSdEntryOptionFields:
     )
     def test_sd_message_07_offer_entry_type_byte(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """SD_MESSAGE_07: OfferService entry raw Type byte must be 0x01.
@@ -1359,7 +1359,7 @@ class TestSdEntryOptionFields:
         Duplicate of FORMAT_14 at the SD_MESSAGE layer to satisfy the
         SD_MESSAGE_07 traceability requirement.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -1379,7 +1379,7 @@ class TestSdEntryOptionFields:
     )
     def test_sd_message_08_offer_entry_option_run2_index_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """SD_MESSAGE_08: OfferService entry option_index_2 must be 0 (single option run).
@@ -1389,7 +1389,7 @@ class TestSdEntryOptionFields:
         the Options Array for the second option run) and must be 0 when only
         one option run is used.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
@@ -1410,7 +1410,7 @@ class TestSdEntryOptionFields:
     )
     def test_sd_message_09_offer_entry_num_options_2_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """SD_MESSAGE_09: OfferService entry num_options_2 must be 0 (single option run).
@@ -1419,7 +1419,7 @@ class TestSdEntryOptionFields:
         and num_options_2 in the low nibble.  A standard OfferService with a single
         option run must have num_options_2 == 0 (low nibble = 0).
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         _, _, entry, raw_entry = _capture_raw_sd_offer(host_ip)
 
@@ -1441,7 +1441,7 @@ class TestSdEntryOptionFields:
     )
     def test_sd_message_11_subscribe_entry_type_byte(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1454,7 +1454,7 @@ class TestSdEntryOptionFields:
         serialised entry byte[0] == 0x06.  This confirms our sender constructs
         conformant SD messages.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:

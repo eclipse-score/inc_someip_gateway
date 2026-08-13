@@ -130,13 +130,13 @@ class TestSDMalformedEntries:
     )
     def test_ets_111_empty_entries_array(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_111: SD packet with entries_array_length=0; DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_empty_entries(sender, (dut_ip, SD_PORT))
         _verify_dut_alive(sender, dut_ip)
 
@@ -147,13 +147,13 @@ class TestSDMalformedEntries:
     )
     def test_ets_112_empty_option_zero_length(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_112/113: SubscribeEventgroup with option length=1 (too short). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_empty_option(
             sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
@@ -166,13 +166,13 @@ class TestSDMalformedEntries:
     )
     def test_ets_114_entries_length_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_114: entries_array_length=0 but one entry is present. DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_entries_length_wrong(
             sender, (dut_ip, SD_PORT), SERVICE_ID, entries_length_override=0
         )
@@ -185,13 +185,13 @@ class TestSDMalformedEntries:
     )
     def test_ets_114_entries_length_mismatched(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_114: entries_array_length=8 (not a multiple of 16). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_entries_length_wrong(
             sender, (dut_ip, SD_PORT), SERVICE_ID, entries_length_override=8
         )
@@ -204,14 +204,14 @@ class TestSDMalformedEntries:
     )
     def test_ets_115_entry_refs_more_options_than_exist(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_115: Entry num_options_1=3 but options array has only 1. DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_refs_more_options(
             sender,
             (dut_ip, SD_PORT),
@@ -230,13 +230,13 @@ class TestSDMalformedEntries:
     )
     def test_ets_116_entry_unknown_option_type(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_116/174: SubscribeEventgroup with unknown option type 0x77. DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_unknown_option_type(
             sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
@@ -249,14 +249,14 @@ class TestSDMalformedEntries:
     )
     def test_ets_117_two_entries_same_option(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_117: Two entries sharing option index 0 (index overlap). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_same_option_twice(
             sender,
             (dut_ip, SD_PORT),
@@ -275,7 +275,7 @@ class TestSDMalformedEntries:
     )
     def test_ets_118_find_service_with_endpoint_option(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -285,7 +285,7 @@ class TestSDMalformedEntries:
 
         Per spec the DUT must ignore the option and still respond to FindService.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_find_with_options(
             sender, (dut_ip, SD_PORT), SERVICE_ID, tester_ip, _SUBSCRIBER_PORT
         )
@@ -299,13 +299,13 @@ class TestSDMalformedEntries:
     )
     def test_ets_123_entries_length_wildly_too_large(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_123/124: entries_array_length=0xFFFF (far exceeds packet size). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_oversized_entries_length(sender, (dut_ip, SD_PORT), SERVICE_ID)
         _verify_dut_alive(sender, dut_ip)
 
@@ -316,13 +316,13 @@ class TestSDMalformedEntries:
     )
     def test_ets_125_truncated_entry(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_125: entries_array_length=16 but only 8 bytes of entry data present. DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_truncated_entry(sender, (dut_ip, SD_PORT), SERVICE_ID)
         _verify_dut_alive(sender, dut_ip)
 
@@ -337,14 +337,14 @@ class TestSDMalformedOptions:
     )
     def test_ets_134_option_length_much_too_large(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_134: IPv4EndpointOption length field = 0x00FF (way larger than 0x0009). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_too_long(
             sender,
             (dut_ip, SD_PORT),
@@ -364,14 +364,14 @@ class TestSDMalformedOptions:
     )
     def test_ets_135_option_length_one_too_large(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_135: IPv4EndpointOption length field = 0x000A (one larger than 0x0009). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_too_long(
             sender,
             (dut_ip, SD_PORT),
@@ -391,14 +391,14 @@ class TestSDMalformedOptions:
     )
     def test_ets_136_option_length_too_short(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_136: IPv4EndpointOption length field = 0x0001 (shorter than minimum). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_too_short(
             sender,
             (dut_ip, SD_PORT),
@@ -417,14 +417,14 @@ class TestSDMalformedOptions:
     )
     def test_ets_137_option_length_unaligned(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_137: IPv4EndpointOption length field = 0x000A (unaligned/odd). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_option_length_unaligned(
             sender,
             (dut_ip, SD_PORT),
@@ -443,14 +443,14 @@ class TestSDMalformedOptions:
     )
     def test_ets_138_options_array_length_too_large(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_138: options_array_length claims 100 bytes but only 12 present. DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_options_array_length_too_long(
             sender,
             (dut_ip, SD_PORT),
@@ -469,14 +469,14 @@ class TestSDMalformedOptions:
     )
     def test_ets_139_options_array_length_too_short(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """ETS_139: options_array_length claims 2 bytes but 12 are present. DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_options_array_length_too_short(
             sender,
             (dut_ip, SD_PORT),
@@ -495,13 +495,13 @@ class TestSDMalformedOptions:
     )
     def test_ets_174_unknown_option_type_0x77(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_174: Option type 0x77 (unknown/reserved). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_entry_unknown_option_type(
             sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
@@ -518,7 +518,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_109_subscribe_no_endpoint_option(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -527,7 +527,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must send NAck or silently discard. Must not crash.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_no_endpoint(
             sender, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_UDP_UNICAST
         )
@@ -540,7 +540,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_110_subscribe_endpoint_ip_zero(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -549,7 +549,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must send NAck or silently discard. Must not crash.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_zero_ip(
             sender,
             (dut_ip, SD_PORT),
@@ -567,7 +567,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_119_subscribe_unknown_l4proto(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -577,7 +577,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must send NAck or silently discard. Must not crash.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_wrong_l4proto(
             sender,
             (dut_ip, SD_PORT),
@@ -597,7 +597,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_140_subscribe_unknown_service_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -607,7 +607,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must not send SubscribeAck for a service it does not offer.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
@@ -626,7 +626,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_141_subscribe_unknown_instance_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -636,7 +636,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must not send SubscribeAck for a non-existent instance.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
@@ -655,7 +655,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_142_subscribe_unknown_eventgroup_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -665,7 +665,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must send NAck (SubscribeAck TTL=0) or silently discard.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
@@ -684,7 +684,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_143_subscribe_all_ids_unknown(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -694,7 +694,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must not send any SubscribeAck. Must not crash.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_nonexistent_service(
             sender,
             (dut_ip, SD_PORT),
@@ -713,7 +713,7 @@ class TestSDSubscribeEdgeCases:
     )
     def test_ets_144_subscribe_reserved_option_type(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -723,7 +723,7 @@ class TestSDSubscribeEdgeCases:
 
         DUT must send NAck or silently discard. Must not crash.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_subscribe_reserved_option(
             sender,
             (dut_ip, SD_PORT),
@@ -746,13 +746,13 @@ class TestSDMessageFramingErrors:
     )
     def test_ets_152_high_session_id_0xfffe(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_152a: FindService with session_id=0xFFFE. DUT must not be confused by near-wrap session ID."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
             sender, (dut_ip, SD_PORT), SERVICE_ID, session_id=0xFFFE
         )
@@ -765,13 +765,13 @@ class TestSDMessageFramingErrors:
     )
     def test_ets_152_session_id_0xffff(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_152b: FindService with session_id=0xFFFF (maximum). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
             sender, (dut_ip, SD_PORT), SERVICE_ID, session_id=0xFFFF
         )
@@ -784,13 +784,13 @@ class TestSDMessageFramingErrors:
     )
     def test_ets_152_session_id_one(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_152c: FindService with session_id=0x0001 after high session_id. DUT must accept wrap."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_high_session_id(
             sender, (dut_ip, SD_PORT), SERVICE_ID, session_id=0x0001
         )
@@ -803,13 +803,13 @@ class TestSDMessageFramingErrors:
     )
     def test_ets_153_someip_length_too_small(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_153a: SOME/IP length field smaller than actual payload (length=8). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_wrong_someip_length(
             sender, (dut_ip, SD_PORT), SERVICE_ID, length_override=8
         )
@@ -822,13 +822,13 @@ class TestSDMessageFramingErrors:
     )
     def test_ets_153_someip_length_too_large(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """ETS_153b: SOME/IP length field larger than actual payload (length=0x1000). DUT must not crash."""
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_wrong_someip_length(
             sender, (dut_ip, SD_PORT), SERVICE_ID, length_override=0x1000
         )
@@ -841,7 +841,7 @@ class TestSDMessageFramingErrors:
     )
     def test_ets_178_wrong_someip_service_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         sender: socket.socket,
         host_ip: str,
         dut_ip: str,
@@ -850,6 +850,6 @@ class TestSDMessageFramingErrors:
 
         DUT must silently discard (not recognized as SD) and remain alive.
         """
-        assert someipd_dut.poll() is None, "DUT is not running before injection"
+        assert dut.poll() is None, "DUT is not running before injection"
         send_sd_wrong_someip_message_id(sender, (dut_ip, SD_PORT))
         _verify_dut_alive(sender, dut_ip)

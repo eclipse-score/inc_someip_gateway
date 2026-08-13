@@ -25,9 +25,9 @@ import pytest
 from attribute_plugin import add_test_properties
 
 from helpers.dut_lifecycle import (
-    launch_someipd,
+    launch_dut,
     render_someip_config,
-    terminate_someipd,
+    terminate_dut,
 )
 from helpers.constants import SERVICE_ID
 from helpers.sd_helpers import open_multicast_socket
@@ -69,7 +69,7 @@ def sd_phase_capture(
     request.getfixturevalue("tc8_itf_config_setup")
 
     tmp_dir = tmp_path_factory.mktemp("tc8_phase_config")
-    # Host-side render is harmless; launch_someipd uses the filename to select
+    # Host-side render is harmless; launch_dut uses the filename to select
     # the pre-rendered guest config.
     config_path = render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
@@ -83,7 +83,7 @@ def sd_phase_capture(
             "sudo ip route add 224.0.0.0/4 dev lo"
         )
 
-    proc = launch_someipd(config_path, target_init=target_init)
+    proc = launch_dut(config_path, target_init=target_init)
 
     try:
         offers = collect_sd_offers_from_socket(
@@ -96,7 +96,7 @@ def sd_phase_capture(
     finally:
         capture_sock.close()
 
-    terminate_someipd(proc)
+    terminate_dut(proc)
 
     yield offers
 

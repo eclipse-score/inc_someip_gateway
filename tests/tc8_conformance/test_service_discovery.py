@@ -76,11 +76,11 @@ class TestSDOfferFormat:
     )
     def test_tc8_sd_001_multicast_offer_on_startup(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """TC8-SD-001: someipd sends at least one SD OfferService on multicast at startup."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         offers = capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
 
@@ -96,11 +96,11 @@ class TestSDOfferFormat:
     )
     def test_tc8_sd_002_offer_entry_format(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """TC8-SD-002: OfferService entry has correct service ID, instance ID, version, and TTL."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         offers = capture_sd_offers(host_ip, min_count=1, timeout_secs=5.0)
 
@@ -125,11 +125,11 @@ class TestSDOfferFormat:
     )
     def test_tc8_sd_003_cyclic_offer_timing(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """TC8-SD-003: Offers repeat at cyclic_offer_delay ±20% in the main phase."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # Wait for main phase. Repetition phase ends ~1.5 s after first offer
         # (200+400+800 ms doubling, repetitions_max=3).  Add one cyclic gap
@@ -179,13 +179,13 @@ class TestSDFindResponse:
     )
     def test_tc8_sd_004_find_known_service_unicast_offer(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-004: FindService for offered service triggers a unicast OfferService."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # tester_ip differs from host_ip; both need SD_PORT (SD spec requirement).
         # Send FindService via unicast to the DUT (multicast delivery on loopback
@@ -226,13 +226,13 @@ class TestSDFindResponse:
     )
     def test_tc8_sd_005_find_unknown_service_no_response(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-005: FindService for unknown service does not trigger OfferService."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -265,13 +265,13 @@ class TestSDSubscribeLifecycle:
     )
     def test_tc8_sd_006_subscribe_valid_eventgroup_ack(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-006: Valid SubscribeEventgroup receives SubscribeEventgroupAck (TTL>0)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # DUT sends Ack back to the Subscribe source address.
         # DUT may defer the Ack until the next SD cycle (~2 s).
@@ -317,13 +317,13 @@ class TestSDSubscribeLifecycle:
     )
     def test_tc8_sd_007_subscribe_unknown_eventgroup_nack(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-007: SubscribeEventgroup for unknown eventgroup receives Nack (TTL=0)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -370,13 +370,13 @@ class TestSDSubscribeLifecycle:
     )
     def test_tc8_sd_008_stop_subscribe_ceases_notifications(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-008: StopSubscribeEventgroup (TTL=0) ceases event notifications."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # sd_sock: SD sender at tester_ip:SD_PORT.
         # notif_sock: receives event notifications at tester_ip:<ephemeral>.
@@ -448,12 +448,12 @@ class TestSDOptionFormat:
     )
     def test_tc8_sd_011_offer_ipv4_endpoint_option(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
     ) -> None:
         """TC8-SD-011: SD OFFER entry includes IPv4EndpointOption with correct address/port/proto."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # Capture raw SD packets so we can inspect options attached to entries.
         sock = open_multicast_socket(host_ip)
@@ -502,7 +502,7 @@ class TestSDOptionFormat:
 
 # TC8-SD-012 tests are in tests/tc8_conformance/test_sd_reboot.py.
 # They require their own someipd lifecycle (start/stop/restart) and cannot
-# share the module-scoped someipd_dut fixture used by the other SD tests here.
+# share the module-scoped dut fixture used by the other SD tests here.
 
 
 class TestSDMulticastEventgroup:
@@ -516,7 +516,7 @@ class TestSDMulticastEventgroup:
     )
     def test_tc8_sd_013_subscribe_ack_has_multicast_option(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -532,7 +532,7 @@ class TestSDMulticastEventgroup:
                 "Set TC8_HOST_IP to a non-loopback address (e.g. TC8_HOST_IP=192.168.x.y)."
             )
 
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -606,13 +606,13 @@ class TestSDTTLExpiry:
     )
     def test_tc8_sd_014_ttl_expiry_ceases_notifications(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """TC8-SD-014: No notifications after subscription TTL expires."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -677,13 +677,13 @@ class TestSDVersionMatching:
     )
     def test_sd_message_01_instance_wildcard(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_01: FindService with instance_id=0xFFFF returns specific instance."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -722,13 +722,13 @@ class TestSDVersionMatching:
     )
     def test_sd_message_02_instance_specific(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_02: FindService with exact instance_id returns that instance."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -767,13 +767,13 @@ class TestSDVersionMatching:
     )
     def test_sd_message_03_major_version_wildcard(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_03: FindService with major_version=0xFF (any) returns service."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -809,13 +809,13 @@ class TestSDVersionMatching:
     )
     def test_sd_message_04_major_version_specific(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_04: FindService with exact major_version returns service."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -855,13 +855,13 @@ class TestSDVersionMatching:
     )
     def test_sd_message_05_minor_version_wildcard(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_05: FindService with minor_version=0xFFFFFFFF (any) returns service."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -898,13 +898,13 @@ class TestSDVersionMatching:
     )
     def test_sd_message_06_minor_version_specific(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_06: FindService with exact minor_version=0x00000000 returns service."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -948,13 +948,13 @@ class TestSDSubscribeNAck:
     )
     def test_sd_message_14_wrong_major_version(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_14: Subscribe with wrong major_version receives NAck (TTL=0)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -998,7 +998,7 @@ class TestSDSubscribeNAck:
     )
     def test_sd_message_15_wrong_service_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1009,7 +1009,7 @@ class TestSDSubscribeNAck:
         (SubscribeAck entry with TTL=0).  The DUT sends a NAck for unknown
         service IDs; the response carries the same eventgroup_id as the request.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1053,13 +1053,13 @@ class TestSDSubscribeNAck:
     )
     def test_sd_message_16_wrong_instance_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_16: Subscribe to wrong instance_id receives NAck (TTL=0)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1103,13 +1103,13 @@ class TestSDSubscribeNAck:
     )
     def test_sd_message_17_unknown_eventgroup_id(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_17: Subscribe to unknown eventgroup_id receives NAck (TTL=0)."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # This reuses the same scenario as TC8-SD-007 with an explicit SD_MESSAGE_17 trace.
         sock = open_sender_socket(tester_ip)
@@ -1154,13 +1154,13 @@ class TestSDSubscribeNAck:
     )
     def test_sd_message_18_ttl_zero_stop_subscribe(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_18: StopSubscribeEventgroup (TTL=0) produces no SubscribeAck."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1212,13 +1212,13 @@ class TestSDSubscribeNAck:
     )
     def test_sd_message_19_reserved_field_set(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_MESSAGE_19: Subscribe with reserved field set receives NAck or is ignored."""
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1269,20 +1269,20 @@ class TestSDFindServiceTiming:
     )
     def test_sd_behavior_03_unicast_findservice_timing(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
         """SOMEIPSRV_SD_BEHAVIOR_03: Unicast FindService response arrives within request_response_delay * 1.5.
 
-        The DUT is in its main phase (the module-scoped someipd_dut fixture has been
+        The DUT is in its main phase (the module-scoped dut fixture has been
         running for the full test session).  Per spec the DUT must respond within
         ``request_response_delay`` (500 ms); we allow 1.5x = 750 ms per implementation
         tolerance.  If the cyclic offer fires within that window it also satisfies the
         test.  We resend every 600 ms so the measurement window starts fresh each send.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1341,7 +1341,7 @@ class TestSDFindServiceTiming:
     )
     def test_sd_behavior_04_multicast_findservice_timing(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1358,7 +1358,7 @@ class TestSDFindServiceTiming:
         and listener sockets are opened so the FindService can be injected while the
         multicast socket is actively listening.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         send_sock = open_sender_socket(tester_ip)
         mc_sock = open_multicast_socket(host_ip)
@@ -1428,7 +1428,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_088_two_subscribes_same_session(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1439,7 +1439,7 @@ class TestSDSubscribeLifecycleAdvanced:
         sent in rapid succession.  We send two separate SD messages (one per
         eventgroup) and assert that both receive a SubscribeAck with TTL > 0.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1505,7 +1505,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_092_ttl_zero_stop_subscribe_no_nack(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1516,7 +1516,7 @@ class TestSDSubscribeLifecycleAdvanced:
         a StopSubscribeEventgroup. The DUT must not send a SubscribeAck (positive or
         negative) in response.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1559,7 +1559,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_098_subscribe_accepted_without_prior_rpc(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1569,7 +1569,7 @@ class TestSDSubscribeLifecycleAdvanced:
         A server must not require the client to invoke a method before accepting
         an eventgroup subscription.  Verify a positive ACK (TTL > 0) is received.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1613,7 +1613,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_107_find_service_and_subscribe_processed_independently(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1630,7 +1630,7 @@ class TestSDSubscribeLifecycleAdvanced:
         - SubscribeAck arrives on the unicast sender socket.
         Both arriving confirms the DUT processed both entries.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
         mc_sock = open_multicast_socket(host_ip)
@@ -1715,7 +1715,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_120_subscribe_endpoint_ip_matches_tester(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1726,7 +1726,7 @@ class TestSDSubscribeLifecycleAdvanced:
         The DUT must send the ACK to that IP.  Verifying the ACK arrives on the
         tester socket confirms the DUT correctly used the subscriber_ip field.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -1770,7 +1770,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_122_sd_interface_version_is_one(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """ETS_122: SOME/IP-SD messages carry interface_version = 0x01.
@@ -1778,7 +1778,7 @@ class TestSDSubscribeLifecycleAdvanced:
         Per PRS_SOMEIPSD_00357 and PRS_SOMEIPSD_00360 the interface_version field
         in the SOME/IP outer header of SD messages must be fixed at 0x01.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         mc_sock = open_multicast_socket(host_ip)
         try:
@@ -1820,7 +1820,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_155_resubscribe_after_stop(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1830,7 +1830,7 @@ class TestSDSubscribeLifecycleAdvanced:
         Lifecycle: Subscribe, ACK, StopSubscribe (TTL=0), Subscribe, ACK.
         The DUT must accept the second subscription and resume event delivery.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1902,7 +1902,7 @@ class TestSDSubscribeLifecycleAdvanced:
     )
     def test_ets_095_subscribe_ttl_expires_no_events(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -1913,7 +1913,7 @@ class TestSDSubscribeLifecycleAdvanced:
         renewed the server must cease sending event notifications to the expired
         subscriber.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         # Use TTL=3 (same as TC8-SD-014); TTL=1 is too short to reliably
         # process the expiry before the next notify cycle.
@@ -1985,7 +1985,7 @@ class TestSDFindServiceAdvanced:
     )
     def test_ets_091_session_id_increments(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
         """ETS_091: Successive SD messages have monotonically incrementing session_id.
@@ -1994,7 +1994,7 @@ class TestSDFindServiceAdvanced:
         each subsequent packet's session_id is greater than the previous one.
         The DUT emits cyclic offers every 2000 ms; allow up to 8 s to capture 3.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         mc_sock = open_multicast_socket(host_ip)
         try:
@@ -2047,7 +2047,7 @@ class TestSDFindServiceAdvanced:
     )
     def test_ets_099_initial_event_sent_after_subscribe(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -2057,7 +2057,7 @@ class TestSDFindServiceAdvanced:
         The eventgroup 0x4455 carries a field event (update-cycle=2000ms in config).
         After subscribing, the first notification must arrive within the cycle window.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
         notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -2107,7 +2107,7 @@ class TestSDFindServiceAdvanced:
     )
     def test_ets_100_no_findservice_emitted_by_server(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -2119,7 +2119,7 @@ class TestSDFindServiceAdvanced:
         socket (which is bound at SD_PORT) for 5 s and assert none are
         FindService type from the DUT.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -2142,7 +2142,7 @@ class TestSDFindServiceAdvanced:
     )
     def test_ets_101_stop_offer_ceases_client_events(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -2159,7 +2159,7 @@ class TestSDFindServiceAdvanced:
     )
     def test_ets_128_multicast_findservice_version_wildcard(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -2169,7 +2169,7 @@ class TestSDFindServiceAdvanced:
         Sending a FindService with wildcard version to the SD multicast address
         must cause the DUT to respond with an OfferService.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
@@ -2206,7 +2206,7 @@ class TestSDFindServiceAdvanced:
     )
     def test_ets_130_multicast_findservice_unicast_flag_clear(
         self,
-        someipd_dut: subprocess.Popen[bytes],
+        dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
@@ -2218,7 +2218,7 @@ class TestSDFindServiceAdvanced:
         DUT may respond on multicast.  At minimum it must process the FindService
         and we capture any resulting offer on either socket.
         """
-        assert someipd_dut.poll() is None, "someipd DUT is not running"
+        assert dut.poll() is None, "DUT is not running"
 
         from helpers.sd_malformed import build_raw_sd_packet, _find_service_entry_bytes  # noqa: PLC0415
 
