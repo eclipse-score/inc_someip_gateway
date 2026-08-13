@@ -86,7 +86,6 @@ jobs:
         run: |
           bazel test \
             --config=qemu-integration \
-            --strategy=CopyFilesOntoImage=local \
             //quality/... //tests/integration_test/...
       - run: df -h
         if: always()
