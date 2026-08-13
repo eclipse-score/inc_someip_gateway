@@ -481,7 +481,7 @@
 defines conformance tests for automotive SOME/IP implementations.
 The TC8 test suite has two scopes:</p>
 <ul class="simple">
-<li><p><strong>Protocol Conformance</strong>: tests <code class="docutils literal notranslate"><span class="pre">someipd_tc8</span></code> at the wire level using the
+<li><p><strong>Protocol Conformance</strong>: tests the production <code class="docutils literal notranslate"><span class="pre">someipd</span></code> binary at the wire level using the
 <code class="docutils literal notranslate"><span class="pre">someip</span></code> Python package. No application processes are needed.</p></li>
 <li><p><strong>Application Level Tests</strong>: tests the full gateway path from mw::com client
 through <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> to the network, using C++ apps
@@ -494,7 +494,7 @@ built on <code class="docutils literal notranslate"><span class="pre">score::mw:
 <section id="test-scope-overview">
 <h2>Test Scope Overview<a class="headerlink" href="#test-scope-overview" title="Link to this heading">#</a></h2>
 <p class="plantuml">
-<object data="../_images/plantuml-d33c010ba47caa7763420847cdc32e72fea192c5.svg" type="image/svg+xml" style="width:800px;height:328px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-5311e37ad084d41f943c75d4f14304e076128b79.svg" type="image/svg+xml" style="width:800px;height:328px;background:#FFFFFF;"></object></p>
 </section>
 <section id="protocol-conformance">
 <h2>Protocol Conformance<a class="headerlink" href="#protocol-conformance" title="Link to this heading">#</a></h2>
@@ -503,17 +503,22 @@ level. Tests send raw SOME/IP messages and verify responses against the TC8
 specification.</p>
 <section id="dut-binary">
 <h3>DUT Binary<a class="headerlink" href="#dut-binary" title="Link to this heading">#</a></h3>
-<p>The protocol conformance DUT is <code class="docutils literal notranslate"><span class="pre">someipd_tc8</span></code>, a standalone binary that
-uses vsomeip directly. It has no IPC dependency on <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and is
-separate from the <code class="docutils literal notranslate"><span class="pre">someipd</span></code> production binary. Source lives in
-<code class="docutils literal notranslate"><span class="pre">score/someipd_tc8/</span></code> and the Bazel target is <code class="docutils literal notranslate"><span class="pre">//score/someipd_tc8:tc8_dut</span></code>.</p>
-<p>At startup, <code class="docutils literal notranslate"><span class="pre">someipd_tc8</span></code> reads a JSON service interface config via
-<code class="docutils literal notranslate"><span class="pre">LoadDutConfig</span></code>. The config specifies the service ID, instance ID, version,
-events, fields, and methods to offer. The binary then initialises a vsomeip
-application and calls <code class="docutils literal notranslate"><span class="pre">offer_service()</span></code> directly.</p>
-<p><code class="docutils literal notranslate"><span class="pre">someipd_tc8</span></code> is QM only and is not part of the ASIL-B safety path.
-The test infrastructure in <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code> launches it as a subprocess
-on the QEMU guest, passing the config path with <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">/tc8_dut_config.json</span></code>.</p>
+<p>The protocol conformance DUT is the production <code class="docutils literal notranslate"><span class="pre">someipd</span></code> binary.  It uses
+vsomeip directly for all SOME/IP network I/O and service discovery.
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> is QM only and is not part of the ASIL-B safety path.</p>
+<p>At startup, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> reads a FlatBuffer binary config (<code class="docutils literal notranslate"><span class="pre">-c</span></code> flag) that
+declares the service ID, instance ID, version, and events to offer. The binary
+initialises a vsomeip application and calls <code class="docutils literal notranslate"><span class="pre">offer_service()</span></code> for each entry.
+For TC8, the config is <code class="docutils literal notranslate"><span class="pre">tc8_someipd_config.bin</span></code>, generated at build time from
+<code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_config.json</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is started alongside <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a companion process.  In the
+SD-only conformance tests <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> idles (its FlatBuffer config declares no
+service types), but the IPC handshake between <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> must
+complete before the test proceeds.  <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> becomes active only in ETS
+end-to-end tests where a mw::com application offers or consumes the TC8 service.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code> launches <code class="docutils literal notranslate"><span class="pre">someipd</span></code> first (it becomes the vsomeip
+routing manager), waits for an OfferService multicast, then starts <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.
+Both processes are force-killed (<code class="docutils literal notranslate"><span class="pre">pkill</span> <span class="pre">-9</span></code>) during fixture teardown.</p>
 </section>
 <section id="port-isolation-and-parallel-execution">
 <h3>Port Isolation and Parallel Execution<a class="headerlink" href="#port-isolation-and-parallel-execution" title="Link to this heading">#</a></h3>
@@ -543,6 +548,52 @@ transport (<code class="docutils literal notranslate"><span class="pre">tc8_mess
 compatibility for local development runs without Bazel.</p>
 <p>For the per-target port matrix, see <code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/README.md</span></code>.</p>
 </section>
+<section id="skipped-test-categories">
+<h3>Skipped Test Categories<a class="headerlink" href="#skipped-test-categories" title="Link to this heading">#</a></h3>
+<p>The production stack has no mw::com ETS application to generate events, handle
+methods, or provide field values.  The following test modules and individual
+tests are permanently skipped until a mw::com ETS app is added to the repo.</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id1">
+<caption><span class="caption-number">Table 4 </span><span class="caption-text">Skipped TC8 Tests (2026-08-11)</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Module / Test</p></th>
+<th class="head"><p>Skip level</p></th>
+<th class="head"><p>Reason</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification.py</span></code></p></td>
+<td><p>All tests</p></td>
+<td><p>No event delivery without mw::com ETS app</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance.py</span></code></p></td>
+<td><p>All tests</p></td>
+<td><p>No initial field values or getter/setter handling without mw::com ETS app</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code></p></td>
+<td><p>All tests</p></td>
+<td><p>No SOME/IP method handling (gatewayd to_num_of_methods=0) without mw::com ETS app</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p></td>
+<td><p>4 individual tests</p></td>
+<td><p>Require event notifications before SD lifecycle actions</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The 4 individually skipped tests in <code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code> are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycle.test_tc8_sd_008_stop_subscribe_ceases_notifications</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TestSDTTLExpiry.test_tc8_sd_014_ttl_expiry_ceases_notifications</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced.test_ets_155_resubscribe_after_stop</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced.test_ets_095_subscribe_ttl_expires_no_events</span></code></p></li>
+</ul>
+</section>
 <section id="test-module-structure">
 <h3>Test Module Structure<a class="headerlink" href="#test-module-structure" title="Link to this heading">#</a></h3>
 <p>Each TC8 area has a test module (pytest) and one or more helper modules.
@@ -568,7 +619,7 @@ and TCP stream framing.</p>
 </section>
 <section id="multi-service-and-multi-instance">
 <h4>Multi-service and Multi-instance<a class="headerlink" href="#multi-service-and-multi-instance" title="Link to this heading">#</a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">test_multi_service.py</span></code> verifies that <code class="docutils literal notranslate"><span class="pre">someipd_tc8</span></code> correctly handles
+<p><code class="docutils literal notranslate"><span class="pre">test_multi_service.py</span></code> verifies that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> correctly handles
 vsomeip configurations that declare multiple service entries, each advertising
 its own distinct UDP port in the SD endpoint option.</p>
 <p class="plantuml">
@@ -608,10 +659,10 @@ Client</strong> (<strong>ETC</strong>) implement the TC8 service interface defin
 test and process lifecycle.</p>
 <p class="plantuml">
 <object data="../_images/plantuml-0f413ae2d1d4d9e94424fb4931db302fefa70737.svg" type="image/svg+xml" style="width:800px;height:270px;background:#FFFFFF;"></object></p>
-<p><code class="docutils literal notranslate"><span class="pre">tc8_dut</span></code> runs as the DUT in the QEMU guest. The Python socket-based tester
-and pytest run on the host side. <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code> manages DUT lifecycle
-on the QEMU guest. <code class="docutils literal notranslate"><span class="pre">TC8_DUT_IP</span></code> addresses the QEMU guest and
-<code class="docutils literal notranslate"><span class="pre">TC8_TESTER_IP</span></code> addresses the host TAP interface.</p>
+<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> run as the DUT in the QEMU guest. The Python
+socket-based tester and pytest run on the host side. <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code>
+manages DUT lifecycle on the QEMU guest. <code class="docutils literal notranslate"><span class="pre">TC8_DUT_IP</span></code> addresses the QEMU
+guest and <code class="docutils literal notranslate"><span class="pre">TC8_TESTER_IP</span></code> addresses the host TAP interface.</p>
 </section>
 </section>
 </section>
@@ -668,6 +719,7 @@ on the QEMU guest. <code class="docutils literal notranslate"><span class="pre">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#protocol-conformance">Protocol Conformance</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dut-binary">DUT Binary</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#port-isolation-and-parallel-execution">Port Isolation and Parallel Execution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skipped-test-categories">Skipped Test Categories</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-module-structure">Test Module Structure</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#service-discovery-sd">Service Discovery (SD)</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#message-format-events-fields-and-tcp-transport-msg-evt-fld-tcp">Message Format, Events, Fields, and TCP Transport (MSG / EVT / FLD / TCP)</a></li>
