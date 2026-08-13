@@ -22,7 +22,7 @@ Overview
 defines conformance tests for automotive SOME/IP implementations.
 The TC8 test suite has two scopes:
 
-- **Protocol Conformance**: tests ``someipd_tc8`` at the wire level using the
+- **Protocol Conformance**: tests the production ``someipd`` binary at the wire level using the
   ``someip`` Python package. No application processes are needed.
 
 - **Application Level Tests**: tests the full gateway path from mw::com client
@@ -45,8 +45,10 @@ Test Scope Overview
 
    package "Protocol Conformance" {
      [pytest] as L1Test
-     [tc8_dut] as L1DUT
+     [someipd] as L1DUT
+     [gatewayd] as L1GW
      L1Test -down-> L1DUT : raw SOME/IP\nUDP / TCP
+     L1DUT -right-> L1GW : IPC (idles)
    }
 
    package "Application-Level Tests" {
@@ -87,19 +89,25 @@ specification.
 DUT Binary
 ^^^^^^^^^^
 
-The protocol conformance DUT is ``someipd_tc8``, a standalone binary that
-uses vsomeip directly. It has no IPC dependency on ``gatewayd`` and is
-separate from the ``someipd`` production binary. Source lives in
-``score/someipd_tc8/`` and the Bazel target is ``//score/someipd_tc8:tc8_dut``.
+The protocol conformance DUT is the production ``someipd`` binary.  It uses
+vsomeip directly for all SOME/IP network I/O and service discovery.
+``someipd`` is QM only and is not part of the ASIL-B safety path.
 
-At startup, ``someipd_tc8`` reads a JSON service interface config via
-``LoadDutConfig``. The config specifies the service ID, instance ID, version,
-events, fields, and methods to offer. The binary then initialises a vsomeip
-application and calls ``offer_service()`` directly.
+At startup, ``someipd`` reads a FlatBuffer binary config (``-c`` flag) that
+declares the service ID, instance ID, version, and events to offer. The binary
+initialises a vsomeip application and calls ``offer_service()`` for each entry.
+For TC8, the config is ``tc8_someipd_config.bin``, generated at build time from
+``tests/tc8_conformance/config/tc8_someipd_config.json``.
 
-``someipd_tc8`` is QM only and is not part of the ASIL-B safety path.
-The test infrastructure in ``tc8_itf_conftest.py`` launches it as a subprocess
-on the QEMU guest, passing the config path with ``-c /tc8_dut_config.json``.
+``gatewayd`` is started alongside ``someipd`` as a companion process.  In the
+SD-only conformance tests ``gatewayd`` idles (its FlatBuffer config declares no
+service types), but the IPC handshake between ``someipd`` and ``gatewayd`` must
+complete before the test proceeds.  ``gatewayd`` becomes active only in ETS
+end-to-end tests where a mw::com application offers or consumes the TC8 service.
+
+``tc8_itf_conftest.py`` launches ``someipd`` first (it becomes the vsomeip
+routing manager), waits for an OfferService multicast, then starts ``gatewayd``.
+Both processes are force-killed (``pkill -9``) during fixture teardown.
 
 Port Isolation and Parallel Execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -132,6 +140,40 @@ All three constants default to the historical static values (30490 / 30509 /
 compatibility for local development runs without Bazel.
 
 For the per-target port matrix, see ``tests/tc8_conformance/README.md``.
+
+Skipped Test Categories
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The production stack has no mw::com ETS application to generate events, handle
+methods, or provide field values.  The following test modules and individual
+tests are permanently skipped until a mw::com ETS app is added to the repo.
+
+.. list-table:: Skipped TC8 Tests (2026-08-11)
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Module / Test
+     - Skip level
+     - Reason
+   * - ``test_event_notification.py``
+     - All tests
+     - No event delivery without mw::com ETS app
+   * - ``test_field_conformance.py``
+     - All tests
+     - No initial field values or getter/setter handling without mw::com ETS app
+   * - ``test_someip_message_format.py``
+     - All tests
+     - No SOME/IP method handling (gatewayd to_num_of_methods=0) without mw::com ETS app
+   * - ``test_service_discovery.py``
+     - 4 individual tests
+     - Require event notifications before SD lifecycle actions
+
+The 4 individually skipped tests in ``test_service_discovery.py`` are:
+
+- ``TestSDSubscribeLifecycle.test_tc8_sd_008_stop_subscribe_ceases_notifications``
+- ``TestSDTTLExpiry.test_tc8_sd_014_ttl_expiry_ceases_notifications``
+- ``TestSDSubscribeLifecycleAdvanced.test_ets_155_resubscribe_after_stop``
+- ``TestSDSubscribeLifecycleAdvanced.test_ets_095_subscribe_ttl_expires_no_events``
 
 Test Module Structure
 ^^^^^^^^^^^^^^^^^^^^^
@@ -247,7 +289,7 @@ and TCP stream framing.
 Multi-service and Multi-instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``test_multi_service.py`` verifies that ``someipd_tc8`` correctly handles
+``test_multi_service.py`` verifies that ``someipd`` correctly handles
 vsomeip configurations that declare multiple service entries, each advertising
 its own distinct UDP port in the SD endpoint option.
 
@@ -420,7 +462,7 @@ test and process lifecycle.
    TO -down-> PO : uses
    @enduml
 
-``tc8_dut`` runs as the DUT in the QEMU guest. The Python socket-based tester
-and pytest run on the host side. ``tc8_itf_conftest.py`` manages DUT lifecycle
-on the QEMU guest. ``TC8_DUT_IP`` addresses the QEMU guest and
-``TC8_TESTER_IP`` addresses the host TAP interface.
+``someipd`` and ``gatewayd`` run as the DUT in the QEMU guest. The Python
+socket-based tester and pytest run on the host side. ``tc8_itf_conftest.py``
+manages DUT lifecycle on the QEMU guest. ``TC8_DUT_IP`` addresses the QEMU
+guest and ``TC8_TESTER_IP`` addresses the host TAP interface.
