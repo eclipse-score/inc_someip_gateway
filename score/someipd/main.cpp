@@ -43,10 +43,6 @@ void termination_handler(int /*signal*/) {
     shutdown_requested.store(true);
 }
 
-// ===========================================================================
-// Normal IPC mode (requires gatewayd + flatbuffer config)
-// ===========================================================================
-
 // Help text, showing usage syntax and available options
 void print_help() {
     std::cout << "Syntax: someipd -h/--help\n"
@@ -93,10 +89,6 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-
-    // ---------------------------------------------------------------------------
-    // Normal IPC-bridging mode — requires config file
-    // ---------------------------------------------------------------------------
 
     // Configuration is required, otherwise print help and exit
     if (configuration_path.Empty()) {
