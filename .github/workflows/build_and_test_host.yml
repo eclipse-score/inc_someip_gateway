@@ -91,7 +91,7 @@ jobs:
           export LIBGUESTFS_DEBUG=1
           export LIBGUESTFS_TRACE=1
           mkdir -p "${LIBGUESTFS_CACHEDIR}" "${LIBGUESTFS_TMPDIR}" "${LIBGUESTFS_PATH}"
-          libguestfs-make-fixed-appliance "${LIBGUESTFS_PATH}"
+          env -u LIBGUESTFS_PATH libguestfs-make-fixed-appliance "${LIBGUESTFS_PATH}"
           bazel test \
             --config=qemu-integration \
             --strategy=CopyFilesOntoImage=local \
