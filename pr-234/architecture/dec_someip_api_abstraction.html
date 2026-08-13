@@ -38,11 +38,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -476,7 +476,7 @@
   <section id="dr-001-arch-use-socom-as-some-ip-stack-abstraction">
 <h1>DR-001-Arch: Use socom as SOME/IP stack abstraction<a class="headerlink" href="#dr-001-arch-use-socom-as-some-ip-stack-abstraction" title="Link to this heading">#</a></h1>
 <p><strong>Date:</strong> 2026-08-11</p>
-<div class="need_container docutils container" id="SNCB-dad0d19c">
+<div class="need_container docutils container" id="SNCB-2f67f3fc">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__arch__use_socom_someip_abstraction">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -547,15 +547,24 @@ reuse <code class="docutils literal notranslate"><span class="pre">mw::com</span
 </ul>
 <p>Cons:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> is designed to know all bindings up front at compile time
-* To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point</p></li>
-<li><p>Would need an additional control channel next to lola for getting event subscription state and FindService
-* Or add SOME/IP specific extensions to lola</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> is designed to know all bindings up front at compile time</p>
+<ul>
+<li><p>To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point</p></li>
+</ul>
+</li>
+<li><p>Would need an additional control channel next to LoLa for getting event subscription state and FindService</p>
+<ul>
+<li><p>Or add SOME/IP specific extensions to LoLa</p></li>
+</ul>
+</li>
 <li><p>LoLa is optimized for 1:n communication, but the gateway needs 1:1 communication</p></li>
-<li><p>Configuring <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> could become complex
-* Assuming that a SOME/IP service is mapped to a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service
-* <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service configuration format might need SOME/IP specific extensions
-* The <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> configuration needs to be present up front at both <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gateway</span></code> processes</p></li>
+<li><p>Configuring <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> could become complex</p>
+<ul>
+<li><p>Assuming that a SOME/IP service is mapped to a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service configuration format might need SOME/IP specific extensions</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> configuration needs to be present up front at both <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gateway</span></code> processes</p></li>
+</ul>
+</li>
 </ul>
 </section>
 <section id="option-2-some-ip-stack-with-its-own-some-ip-abstraction">
