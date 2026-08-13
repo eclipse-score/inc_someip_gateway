@@ -57,11 +57,16 @@ Pros:
 Cons:
 
 * ``mw::com`` is designed to know all bindings up front at compile time
+
   * To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point
-* Would need an additional control channel next to lola for getting event subscription state and FindService
-  * Or add SOME/IP specific extensions to lola
+
+* Would need an additional control channel next to LoLa for getting event subscription state and FindService
+
+  * Or add SOME/IP specific extensions to LoLa
+
 * LoLa is optimized for 1:n communication, but the gateway needs 1:1 communication
 * Configuring ``mw::com`` could become complex
+
   * Assuming that a SOME/IP service is mapped to a ``mw::com`` service
   * ``mw::com`` service configuration format might need SOME/IP specific extensions
   * The ``mw::com`` configuration needs to be present up front at both ``someipd`` and ``gateway`` processes
