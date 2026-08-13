@@ -292,47 +292,81 @@ def someipd_dut(
     request: pytest.FixtureRequest,
     host_ip: str,
 ) -> Generator[_AsyncProcessAdapter, None, None]:
-    """Launch tc8_dut on the QEMU guest and yield an adapter with .poll().
-    Skips the test class if the DUT does not send an OfferService within 10 s.
+    """Launch someipd then gatewayd on the QEMU guest and yield a .poll() adapter.
+
+    someipd is started first so it becomes the vsomeip routing manager.  gatewayd
+    starts second and blocks internally until the IPC handshake with someipd
+    completes.  The fixture skips the test class if someipd does not send an
+    OfferService within 10 s.
     """
     config_name: str = getattr(request.module, "SOMEIP_CONFIG", "tc8_someipd_sd.json")
     guest_config = _CONFIG_MAP.get(config_name, "tc8_sd.json")
 
     _cleanup_vsomeip_sockets_on_target(target_init)
 
+    # 1. Start someipd first — it becomes the vsomeip routing manager.
     _logger.info(
-        "Launching tc8_dut on QEMU guest: VSOMEIP_CONFIGURATION=/tmp/%s", guest_config
+        "Launching someipd on QEMU guest: VSOMEIP_CONFIGURATION=/tmp/%s", guest_config
     )
-    proc: AsyncProcess = target_init.execute_async(
+    someipd_proc: AsyncProcess = target_init.execute_async(
         f"LD_LIBRARY_PATH=/ "
         f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
         f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
-        f"/tc8_dut "
-        f"-c /tc8_dut_config.json"
+        f"/someipd -c /tc8_someipd_config.bin"
     )
 
+    # 2. Start the ETS stub — provides the mw::com skeleton so gatewayd's
+    #    StartFindService callback fires and gatewayd calls offer_event() in vsomeip.
+    _logger.info("Launching tc8_ets_stub on QEMU guest")
+    stub_proc: AsyncProcess = target_init.execute_async(
+        f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
+        f"/tc8_ets_stub -s /tc8_ets_stub_mw_com_config.json"
+    )
+
+    # 3. Start gatewayd — connects to someipd IPC, discovers the stub via
+    #    StartFindService, and calls offer_event() to make vsomeip advertise the service.
+    _logger.info("Launching gatewayd on QEMU guest")
+    gatewayd_proc: AsyncProcess = target_init.execute_async(
+        f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
+        f"/gatewayd -c /tc8_someipd_config.bin -s /tc8_gatewayd_mw_com_config.json"
+    )
+
+    # 4. Wait for the OfferService multicast that vsomeip sends after gatewayd's
+    #    offer_event() call completes.  Only then are TC8 test classes safe to run.
     if not _wait_for_sd_readiness(host_ip):
-        proc.stop()
+        for proc_name in ("gatewayd", "tc8_ets_stub", "someipd"):
+            try:
+                target_init.execute(f"pkill -9 {proc_name} 2>/dev/null || true")
+            except Exception:  # noqa: BLE001
+                pass
+        gatewayd_proc.stop()
+        stub_proc.stop()
+        someipd_proc.stop()
         pytest.skip(
-            "someipd DUT did not reach SD main phase within 10 s (QEMU/ITF). "
+            "DUT did not reach SD main phase within 10 s (QEMU/ITF). "
             "Check TAP bridge, multicast route on guest, and vsomeip config."
         )
 
-    _logger.info("tc8_dut DUT reached SD main phase on QEMU guest")
-    adapter = _AsyncProcessAdapter(proc)
+    _logger.info("DUT reached SD main phase on QEMU guest")
+
+    adapter = _AsyncProcessAdapter(someipd_proc)
     try:
         yield adapter
     finally:
-        # Force-kill tc8_dut before proc.stop() to avoid the 15 s teardown
+        # Force-kill all three binaries before .stop() to avoid the 15 s teardown
         # timeout that occurs when vsomeip does not handle SIGTERM cleanly or
         # when the SSH channel does not forward the signal to the remote process
-        # group.  SIGKILL is unconditional.  The "|| true" ensures this line
-        # never raises even if tc8_dut already exited.
-        try:
-            target_init.execute("pkill -9 tc8_dut 2>/dev/null || true")
-        except Exception:  # noqa: BLE001
-            _logger.warning(
-                "force-kill of tc8_dut on QEMU guest failed; continuing teardown"
-            )
-        proc.stop()
+        # group.  SIGKILL is unconditional.  The "|| true" ensures these lines
+        # never raise even if the processes already exited.
+        for proc_name in ("gatewayd", "tc8_ets_stub", "someipd"):
+            try:
+                target_init.execute(f"pkill -9 {proc_name} 2>/dev/null || true")
+            except Exception:  # noqa: BLE001
+                _logger.warning(
+                    "force-kill of %s on QEMU guest failed; continuing teardown",
+                    proc_name,
+                )
+        someipd_proc.stop()
+        stub_proc.stop()
+        gatewayd_proc.stop()
         _cleanup_vsomeip_sockets_on_target(target_init)

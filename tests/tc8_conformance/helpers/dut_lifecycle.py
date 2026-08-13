@@ -54,18 +54,26 @@ class _TargetProcess:
     returned process object.
     """
 
-    def __init__(self, proc: object, target_init: object = None) -> None:
+    def __init__(
+        self,
+        proc: object,
+        target_init: object = None,
+        secondary_proc: object = None,
+        stub_proc: object = None,
+    ) -> None:
         self._proc = proc
         self._target_init = target_init
+        self._secondary_proc = secondary_proc
+        self._stub_proc = stub_proc
 
     def poll(self) -> Optional[int]:
         """Return ``None`` while running, ``0`` after the process has stopped."""
         return None if self._proc.is_running() else 0  # type: ignore[attr-defined]
 
     def terminate(self) -> None:
-        """Stop the remote process.
+        """Stop the remote processes (someipd and gatewayd).
 
-        Force-kills tc8_dut on the QEMU guest (``pkill -9 tc8_dut``) before
+        Force-kills both binaries on the QEMU guest via ``pkill -9`` before
         calling ``proc.stop()``.  ``pkill`` is portable: procps on Linux,
         ``slay`` symlink on QNX8 (pgrep absent from the QNX IFS).
 
@@ -75,11 +83,13 @@ class _TargetProcess:
         if self._target_init is not None:
             try:
                 self._target_init.execute(  # type: ignore[attr-defined]
-                    "pkill -9 tc8_dut 2>/dev/null || true"
+                    "pkill -9 someipd 2>/dev/null || true; "
+                    "pkill -9 gatewayd 2>/dev/null || true; "
+                    "pkill -9 tc8_ets_stub 2>/dev/null || true"
                 )
             except Exception:  # noqa: BLE001
                 _logger.warning(
-                    "force-kill of someipd on QEMU guest failed; continuing teardown"
+                    "force-kill of someipd/gatewayd on QEMU guest failed; continuing teardown"
                 )
         try:
             self._proc.stop()  # type: ignore[attr-defined]
@@ -87,6 +97,22 @@ class _TargetProcess:
             _logger.warning(
                 "AsyncProcess.stop() raised during teardown (ignored): %s", exc
             )
+        if self._secondary_proc is not None:
+            try:
+                self._secondary_proc.stop()  # type: ignore[attr-defined]
+            except RuntimeError as exc:
+                _logger.warning(
+                    "AsyncProcess.stop() for secondary proc raised during teardown (ignored): %s",
+                    exc,
+                )
+        if self._stub_proc is not None:
+            try:
+                self._stub_proc.stop()  # type: ignore[attr-defined]
+            except RuntimeError as exc:
+                _logger.warning(
+                    "AsyncProcess.stop() for stub proc raised during teardown (ignored): %s",
+                    exc,
+                )
 
     def kill(self) -> None:
         """Alias for terminate — no separate SIGKILL equivalent in ITF."""
@@ -164,32 +190,57 @@ def launch_someipd(
     config_path: Union[Path, str],
     target_init: object = None,
 ) -> object:
-    """Start ``tc8_dut`` on the QEMU guest and return a handle.
+    """Start the production DUT stack (someipd then gatewayd) on the QEMU guest.
 
     *target_init* is a ``QemuTarget`` provided by the ITF framework.  The
     *config_path* filename selects the pre-rendered guest vsomeip config
     (written to ``/tmp`` by ``tc8_itf_config_setup`` via sed, session-scoped).
-    The DUT service interface config is always ``/tc8_dut_config.json``
-    (deployed by the ``tc8-itf-pkg`` bundle).
+
+    someipd is started first so it becomes the vsomeip routing manager.
+    gatewayd is started immediately after; it retries the IPC handshake
+    internally until someipd is ready.
 
     Returns a ``_TargetProcess`` adapter whose ``.terminate()`` / ``.wait()``
-    interface is compatible with :func:`terminate_someipd`.
+    interface is compatible with :func:`terminate_someipd`.  Calling
+    ``.terminate()`` kills both binaries and stops both async process handles.
     """
     if target_init is not None:
-        # ITF path: tc8_dut runs on the QEMU guest.  Configs are pre-rendered.
+        # ITF path: production stack runs on the QEMU guest.  Configs are pre-rendered.
         name = (
             Path(config_path).name
             if isinstance(config_path, Path)
             else str(config_path)
         )
         guest_config = _GUEST_CONFIG_MAP.get(name, "tc8_sd.json")
-        proc = target_init.execute_async(  # type: ignore[attr-defined]
+
+        # 1. Start someipd — it becomes the vsomeip routing manager.
+        someipd_proc = target_init.execute_async(  # type: ignore[attr-defined]
             f"LD_LIBRARY_PATH=/ "
             f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
-            f"/tc8_dut "
-            f"-c /tc8_dut_config.json"
+            f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
+            f"/someipd -c /tc8_someipd_config.bin"
         )
-        return _TargetProcess(proc, target_init=target_init)
+
+        # 2. Start the ETS stub — provides the mw::com skeleton so gatewayd's
+        #    StartFindService callback fires and gatewayd calls offer_event() in vsomeip.
+        stub_proc = target_init.execute_async(  # type: ignore[attr-defined]
+            f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
+            f"/tc8_ets_stub -s /tc8_ets_stub_mw_com_config.json"
+        )
+
+        # 3. Start gatewayd — connects to someipd IPC server, discovers the stub,
+        #    and calls offer_event() so vsomeip advertises the service.
+        gatewayd_proc = target_init.execute_async(  # type: ignore[attr-defined]
+            f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
+            f"/gatewayd -c /tc8_someipd_config.bin -s /tc8_gatewayd_mw_com_config.json"
+        )
+
+        return _TargetProcess(
+            someipd_proc,
+            target_init=target_init,
+            secondary_proc=gatewayd_proc,
+            stub_proc=stub_proc,
+        )
 
     raise RuntimeError("launch_someipd: target_init must be provided (ITF mode only)")
 

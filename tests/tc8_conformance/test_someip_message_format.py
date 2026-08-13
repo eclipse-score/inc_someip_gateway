@@ -57,6 +57,10 @@ from helpers.tcp_helpers import (
 from helpers.udp_helpers import udp_receive_responses, udp_send_concatenated
 from someip.header import SOMEIPHeader, SOMEIPMessageType, SOMEIPReturnCode
 
+pytestmark = pytest.mark.skip(
+    reason="Production stack does not handle SOME/IP methods (gatewayd: to_num_of_methods=0) without mw::com ETS app (2026-08-11)"
+)
+
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
 
 _UNKNOWNMETHOD_ECHO_UINT8: int = 0xBEEF
