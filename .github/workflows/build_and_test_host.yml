@@ -85,17 +85,20 @@ jobs:
           export LIBGUESTFS_BACKEND=direct
           export LIBGUESTFS_CACHEDIR="${RUNNER_TEMP}/libguestfs-cache"
           export LIBGUESTFS_TMPDIR="${RUNNER_TEMP}/libguestfs-tmp"
+          export LIBGUESTFS_PATH="${RUNNER_TEMP}/libguestfs-appliance"
           export SUPERMIN_KERNEL="/boot/vmlinuz-${KERNEL_RELEASE}"
           export SUPERMIN_MODULES="/lib/modules/${KERNEL_RELEASE}"
           export LIBGUESTFS_DEBUG=1
           export LIBGUESTFS_TRACE=1
-          mkdir -p "${LIBGUESTFS_CACHEDIR}" "${LIBGUESTFS_TMPDIR}"
+          mkdir -p "${LIBGUESTFS_CACHEDIR}" "${LIBGUESTFS_TMPDIR}" "${LIBGUESTFS_PATH}"
+          libguestfs-make-fixed-appliance "${LIBGUESTFS_PATH}"
           bazel test \
             --config=qemu-integration \
             --strategy=CopyFilesOntoImage=local \
             --action_env=LIBGUESTFS_BACKEND="${LIBGUESTFS_BACKEND}" \
             --action_env=LIBGUESTFS_CACHEDIR="${LIBGUESTFS_CACHEDIR}" \
             --action_env=LIBGUESTFS_TMPDIR="${LIBGUESTFS_TMPDIR}" \
+            --action_env=LIBGUESTFS_PATH="${LIBGUESTFS_PATH}" \
             --action_env=SUPERMIN_KERNEL="${SUPERMIN_KERNEL}" \
             --action_env=SUPERMIN_MODULES="${SUPERMIN_MODULES}" \
             --action_env=LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG}" \
