@@ -63,6 +63,7 @@ void Routing::SetupOfferings() {
                 for (const auto event : *service_type->events()) {
                     std::set<vsomeip::eventgroup_t> groups;
                     auto const* eventgroup_ids = event->eventgroup_ids();
+                    // Treat empty vector the same as absent: fall back to event_id as eventgroup.
                     if (eventgroup_ids != nullptr && eventgroup_ids->size() > 0) {
                         for (auto group_id : *eventgroup_ids) {
                             groups.insert(group_id);
