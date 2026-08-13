@@ -28,7 +28,7 @@ Context / Problem
 -----------------
 
 The SOME/IP Gateway needs an abstraction layer to decouple from the specific SOME/IP stack implementation.
-In addition the SOME/IP Gateway is split into two processes (``someipd`` and ``gateway``) for safety reasons.
+In addition the SOME/IP Gateway is split into two processes (``someipd`` and ``gatewayd``) for safety reasons.
 The semantics of the abstraction layer needs to be transported via IPC to each process.
 
 During the architecture discussion, two main reuse-oriented options were considered:
@@ -60,7 +60,7 @@ Cons:
   * To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point
 * Would need an additional control channel next to lola for getting event subscription state and FindService
   * Or add SOME/IP specific extensions to lola
-* lola is optimized for 1:n communication, but the gateway needs 1:1 communication
+* LoLa is optimized for 1:n communication, but the gateway needs 1:1 communication
 * Configuring ``mw::com`` could become complex
   * Assuming that a SOME/IP service is mapped to a ``mw::com`` service
   * ``mw::com`` service configuration format might need SOME/IP specific extensions
@@ -70,7 +70,7 @@ Option 2: SOME/IP stack with its own SOME/IP abstraction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This option uses ``socom`` as the abstraction used by the SOME/IP stack.
-For implementation of the IPC binding building blocks of `mw::com` are reused.
+For implementation of the IPC binding building blocks of ``mw::com`` are reused.
 These are namely:
 
 * ``message_passing``: for message transport between processes
@@ -93,7 +93,7 @@ Evaluation
 
 Option 1 would require missing capabilities and expected API extensions in
 ``mw::com`` before it can support the intended SOME/IP gateway behavior cleanly.
-To be oblivious of the concrete SOME/IP stack, ``mw::com`` would need to provide a suitable abstraction layer.
+To be agnostic to the concrete SOME/IP stack, ``mw::com`` would need to provide a suitable abstraction layer.
 
 Option 2 provides the necessary extensibility (binding registration) with a
 simpler integration model and method support out of the box, reducing the amount
@@ -108,7 +108,7 @@ Option 2 was selected: the SOME/IP stack abstraction in this module is based on
 Consequences
 ------------
 
-* Gateway and daemon integration points are built around ``socom`` contracts.
+* The integration between the ``gateway`` and ``someipd`` daemon is based on ``socom`` interfaces.
 * ``mw::com`` is not used as the primary abstraction layer for SOME/IP stack
   integration in this module.
 * Future work should preserve a clear boundary between ``socom``-based
