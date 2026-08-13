@@ -11,8 +11,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_python//python:defs.bzl", "py_library")
+load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//quality/integration_testing:integration_testing.bzl", "integration_test")
 
@@ -50,28 +52,53 @@ pkg_files(
     prefix = "/usr",
 )
 
+generate_someip_config_bin(
+    name = "tc8_someipd_config",
+    json = "config/tc8_someipd_config.json",
+    output = "tc8_someipd_config.bin",
+)
+
+native_binary(
+    name = "someipd_tc8",
+    src = "//score/someipd",
+    out = "someipd",
+)
+
+native_binary(
+    name = "gatewayd_tc8",
+    src = "//score/gatewayd",
+    out = "gatewayd",
+)
+
 pkg_files(
     name = "tc8-itf-pkg",
     srcs = [
-        "config/tc8_dut_config.json",
+        "config/tc8_gatewayd_mw_com_config.json",
         "config/tc8_logging.json",
         "config/tc8_someipd_multi.json",
         "config/tc8_someipd_sd.json",
         "config/tc8_someipd_service.json",
+        ":gatewayd_tc8",
+        ":someipd_tc8",
         ":tc8-vsomeip-runtime-pkg",
+        ":tc8_someipd_config",
         "//score/serializer:null_serializer",
-        "//score/someipd_tc8:tc8_dut",
+        "//tests/tc8_conformance/application/ets_stub:config/tc8_ets_stub_mw_com_config.json",
+        "//tests/tc8_conformance/application/ets_stub:tc8_ets_stub",
     ],
     attributes = pkg_attributes(
         mode = "0777",
     ),
     prefix = "/",
     renames = {
-        "config/tc8_dut_config.json": "tc8_dut_config.json",
+        "//tests/tc8_conformance/application/ets_stub:config/tc8_ets_stub_mw_com_config.json": "tc8_ets_stub_mw_com_config.json",
+        "config/tc8_gatewayd_mw_com_config.json": "tc8_gatewayd_mw_com_config.json",
         "config/tc8_someipd_multi.json": "tc8_multi.json.tmpl",
         "config/tc8_someipd_sd.json": "tc8_sd.json.tmpl",
         "config/tc8_logging.json": "tc8_logging.json",
         "config/tc8_someipd_service.json": "tc8_service.json.tmpl",
+        "tc8_someipd_config.bin": "tc8_someipd_config.bin",
+        "//score/serializer:null_serializer": "usr/lib/score_com_serializer.so",
     },
 )
 
@@ -262,7 +289,7 @@ integration_test(
     name = cfg.replace(".json", "_schema_valid"),
     size = "small",
     json = "config/" + cfg,
-    schema = "config/tc8_someipd_config.schema.json",
+    schema = "config/tc8_vsomeip_config.schema.json",
     tags = [
         "lint",
         "tc8",
@@ -272,3 +299,14 @@ integration_test(
     "tc8_someipd_service.json",
     "tc8_someipd_multi.json",
 ]]
+
+validate_json_schema_test(
+    name = "tc8_someipd_config_schema_valid",
+    size = "small",
+    json = "config/tc8_someipd_config.json",
+    schema = "//score/config:config_schema",
+    tags = [
+        "lint",
+        "tc8",
+    ],
+)

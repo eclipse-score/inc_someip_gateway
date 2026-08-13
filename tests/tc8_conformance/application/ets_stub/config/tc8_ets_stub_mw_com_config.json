@@ -1,0 +1,122 @@
+{
+  "serviceTypes": [
+    {
+      "serviceTypeName": "tc8_service",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 4660,
+          "events": [
+            {
+              "eventName": "TestEventUINT8",
+              "eventId": 1
+            },
+            {
+              "eventName": "TestEventUINT8Array",
+              "eventId": 2
+            },
+            {
+              "eventName": "TestEventUINT8Reliable",
+              "eventId": 3
+            },
+            {
+              "eventName": "TestEventUINT8E2E",
+              "eventId": 4
+            },
+            {
+              "eventName": "InterfaceVersion",
+              "eventId": 5
+            },
+            {
+              "eventName": "TestFieldUINT8",
+              "eventId": 6
+            },
+            {
+              "eventName": "TestFieldUINT8Array",
+              "eventId": 7
+            },
+            {
+              "eventName": "TestFieldUINT8Reliable",
+              "eventId": 8
+            },
+            {
+              "eventName": "TestEventUINT8Multicast",
+              "eventId": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "serviceInstances": [
+    {
+      "instanceSpecifier": "tc8/tc8_service",
+      "serviceTypeName": "tc8_service",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 22136,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "TestEventUINT8",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "TestEventUINT8Array",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "TestEventUINT8Reliable",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "TestEventUINT8E2E",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "InterfaceVersion",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "TestFieldUINT8",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "TestFieldUINT8Array",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "TestFieldUINT8Reliable",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "TestEventUINT8Multicast",
+              "numberOfSampleSlots": 10,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "global": {
+    "asil-level": "QM"
+  }
+}

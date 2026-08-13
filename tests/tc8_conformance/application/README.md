@@ -11,54 +11,21 @@
   SPDX-License-Identifier: Apache-2.0
 ----------------------------------------------------------------------------- -->
 
-# TC8 Enhanced Testability — Application-Level Tests
+# TC8 Conformance — Application Components
 
-> **Status:** Planned — placeholder directory.
+C++ applications used by the TC8 conformance test suite.
 
-## Purpose
-
-Enhanced testability tests verify the full gateway end-to-end:
-
-- A **TC8 Service** (C++ mw::com Skeleton) that sends events and fields
-- A **TC8 Client** (C++ mw::com Proxy) that subscribes and checks data
-- Both go through **gatewayd + someipd**
-
-All test apps use `score::mw::com` only — no direct SOME/IP dependency.
-Swapping the SOME/IP stack only requires a config change.
-
-## Planned Structure
+## Structure
 
 ```
 application/
-├── BUILD.bazel                    # Bazel targets (py_pytest + cc_binary)
-├── conftest.py                    # Orchestrator: start gatewayd, someipd, service, client
-├── apps/
-│   ├── tc8_service/               # C++ mw::com skeleton (events + fields)
-│   │   ├── BUILD.bazel
-│   │   └── main.cpp
-│   ├── tc8_client/                # C++ mw::com proxy (subscribe + validate)
-│   │   ├── BUILD.bazel
-│   │   └── main.cpp
-│   └── config/                    # mw_com_config.json, SOME/IP stack JSON, gatewayd config
-├── test_enhanced_testability.py   # End-to-end: client ↔ gatewayd ↔ someipd ↔ service
-└── helpers/
-    └── process_orchestrator.py    # Multi-process lifecycle management
+├── shared/          # Shared header: tc8_ets_service constants and event descriptors
+└── ets_stub/        # ETS stub binary: offers tc8_service via mw::com skeleton,
+                     #   sends periodic event notifications for TC8 test capture
+    └── config/      # mw::com manifest (tc8_ets_stub_mw_com_config.json)
 ```
-
-## Related Work
-
-- TC8 enhanced testability service and client
-- End-to-end validation with SOME/IP gateway
-- Integration tests for gatewayd + someipd
-
-## Prerequisites
-
-- TC8 enhanced testability service interface (mw::com IDL)
-- S-CORE ITF assessment complete
-- TC8 spec analysis for events/fields
 
 ## See Also
 
-- [Architecture](../../../docs/architecture/tc8_conformance_testing.rst) — test scope overview
-- [Requirements](../../../docs/tc8_conformance/requirements.rst)
-- Protocol conformance tests in the parent directory
+- [Architecture](../../../docs/architecture/tc8_conformance_testing.rst)
+- Protocol conformance tests in the parent directory (`tests/tc8_conformance/`)
