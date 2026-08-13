@@ -101,6 +101,11 @@
         "serialization_config" : {
                 "anyOf": [{ "$ref" : "#/definitions/score_mw_someip_config_NullSerializerConfig" }],
                 "description" : "Serialization configuration for this event."
+              },
+        "eventgroup_ids" : {
+                "type" : "array",
+                "items" : { "type" : "integer", "minimum" : 0, "maximum" : 65535 },
+                "description" : "SOME/IP eventgroup IDs this event belongs to. Must match the vsomeip JSON config eventgroups."
               }
       },
       "required" : ["event_name"],
