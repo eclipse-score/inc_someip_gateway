@@ -1,0 +1,99 @@
+{
+    "service_types": [
+        {
+            "service_type_name": "tc8_service",
+            "service_id": 4660,
+            "service_version_major": 1,
+            "service_version_minor": 0,
+            "events": [
+                {
+                    "event_name": "TestEventUINT8",
+                    "event_id": 32769,
+                    "eventgroup_ids": [2],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "TestEventUINT8Array",
+                    "event_id": 32770,
+                    "eventgroup_ids": [2],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "TestEventUINT8Reliable",
+                    "event_id": 32771,
+                    "eventgroup_ids": [2, 5],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "TestEventUINT8E2E",
+                    "event_id": 32772,
+                    "eventgroup_ids": [2],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "InterfaceVersion",
+                    "event_id": 32773,
+                    "eventgroup_ids": [2],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "TestFieldUINT8",
+                    "event_id": 32774,
+                    "eventgroup_ids": [2],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "TestFieldUINT8Array",
+                    "event_id": 32775,
+                    "eventgroup_ids": [2],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "TestFieldUINT8Reliable",
+                    "event_id": 32776,
+                    "eventgroup_ids": [2],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                },
+                {
+                    "event_name": "TestEventUINT8Multicast",
+                    "event_id": 32779,
+                    "eventgroup_ids": [2, 6],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1
+                    }
+                }
+            ],
+            "local_service_instances": [
+                {
+                    "instance_specifier": "tc8/tc8_service",
+                    "instance_id": 22136
+                }
+            ]
+        }
+    ]
+}

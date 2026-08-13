@@ -25,7 +25,10 @@
             "description": "List of vsomeip application registrations.",
             "items": {
                 "type": "object",
-                "required": ["name", "id"],
+                "required": [
+                    "name",
+                    "id"
+                ],
                 "properties": {
                     "name": {
                         "type": "string",
@@ -48,7 +51,10 @@
             "description": "List of SOME/IP service definitions offered by this application.",
             "items": {
                 "type": "object",
-                "required": ["service", "instance"],
+                "required": [
+                    "service",
+                    "instance"
+                ],
                 "additionalProperties": false,
                 "properties": {
                     "service": {
@@ -58,6 +64,10 @@
                     "instance": {
                         "type": "string",
                         "description": "Hex-encoded SOME/IP instance ID (e.g. 0x5678)."
+                    },
+                    "major_version": {
+                        "type": "string",
+                        "description": "Major interface version as a hex string (e.g. 0x01). Used by vsomeip SD for version matching in SubscribeEventgroup."
                     },
                     "unreliable": {
                         "type": "string",
@@ -72,7 +82,11 @@
                         "description": "Event definitions for this service.",
                         "items": {
                             "type": "object",
-                            "required": ["event", "is_field", "update-cycle"],
+                            "required": [
+                                "event",
+                                "is_field",
+                                "update-cycle"
+                            ],
                             "additionalProperties": true,
                             "properties": {
                                 "event": {
@@ -89,7 +103,10 @@
                                 },
                                 "update-cycle": {
                                     "description": "Notification cycle in milliseconds. May be a string or integer depending on vsomeip version.",
-                                    "type": ["string", "integer"]
+                                    "type": [
+                                        "string",
+                                        "integer"
+                                    ]
                                 }
                             }
                         }
@@ -99,7 +116,10 @@
                         "description": "Eventgroup definitions grouping one or more events.",
                         "items": {
                             "type": "object",
-                            "required": ["eventgroup", "events"],
+                            "required": [
+                                "eventgroup",
+                                "events"
+                            ],
                             "additionalProperties": true,
                             "properties": {
                                 "eventgroup": {
@@ -116,7 +136,10 @@
                                 "multicast": {
                                     "type": "object",
                                     "description": "Optional multicast configuration for this eventgroup.",
-                                    "required": ["address", "port"],
+                                    "required": [
+                                        "address",
+                                        "port"
+                                    ],
                                     "properties": {
                                         "address": {
                                             "type": "string",

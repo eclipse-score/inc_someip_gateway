@@ -12,7 +12,7 @@
     },
     "applications": [
         {
-            "name": "tc8_dut",
+            "name": "someipd",
             "id": "0x1277"
         }
     ],
@@ -20,6 +20,7 @@
         {
             "service": "__TC8_SERVICE_ID__",
             "instance": "__TC8_INSTANCE_ID__",
+            "major_version": "0x01",
             "unreliable": "__TC8_SVC_PORT__",
             "events": [
                 {
@@ -49,7 +50,7 @@
             ]
         }
     ],
-    "routing": "tc8_dut",
+    "routing": "someipd",
     "service-discovery": {
         "enable": "true",
         "multicast": "224.244.224.245",

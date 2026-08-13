@@ -12,7 +12,7 @@
     },
     "applications": [
         {
-            "name": "tc8_dut",
+            "name": "someipd",
             "id": "0x1277"
         }
     ],
@@ -112,7 +112,7 @@
             ]
         }
     ],
-    "routing": "tc8_dut",
+    "routing": "someipd",
     "service-discovery": {
         "enable": "true",
         "multicast": "224.244.224.245",
