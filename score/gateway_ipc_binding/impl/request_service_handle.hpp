@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <score/expected.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 
 #include "score/socom/runtime.hpp"
 

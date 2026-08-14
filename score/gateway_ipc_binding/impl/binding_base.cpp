@@ -18,7 +18,7 @@
 #include <memory>
 #include <optional>
 #include <ostream>
-#include <score/gateway_ipc_binding/error.hpp>
+#include "score/gateway_ipc_binding/error.hpp"
 #include <utility>
 
 #include "gateway_ipc_binding_util.hpp"

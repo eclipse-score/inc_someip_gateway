@@ -15,9 +15,9 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
-#include <score/gateway_ipc_binding/error.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
+#include "score/gateway_ipc_binding/error.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 #include <string_view>
 #include <thread>
 #include <utility>

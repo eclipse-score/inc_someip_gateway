@@ -16,8 +16,8 @@
 
 #include <cassert>
 #include <cerrno>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>

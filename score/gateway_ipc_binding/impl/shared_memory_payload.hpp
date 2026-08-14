@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <memory>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 #include <utility>
 
 #include "score/socom/payload.hpp"

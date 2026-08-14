@@ -18,7 +18,7 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include <score/span.hpp>
 #include <string>
 

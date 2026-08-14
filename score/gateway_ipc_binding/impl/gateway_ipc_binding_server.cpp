@@ -15,8 +15,8 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <score/gateway_ipc_binding/error.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
+#include "score/gateway_ipc_binding/error.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include <utility>
 
 #include "binding_base.hpp"

@@ -15,7 +15,7 @@
 #define SRC_GATEWAY_IPC_BINDING_SRC_BINDING_BASE
 
 #include <mutex>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include <set>
 #include <unordered_map>
 

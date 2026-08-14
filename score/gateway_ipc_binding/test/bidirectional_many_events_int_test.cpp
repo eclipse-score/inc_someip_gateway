@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 
 #include "test_constants.hpp"
 #include "test_fixtures.hpp"

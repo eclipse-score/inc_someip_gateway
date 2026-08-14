@@ -15,8 +15,8 @@
 #define SRC_GATEWAY_IPC_BINDING_SRC_CONNECTIONS
 
 #include <cassert>
-#include <score/gateway_ipc_binding/error.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
+#include "score/gateway_ipc_binding/error.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include <unordered_map>
 #include <utility>
 

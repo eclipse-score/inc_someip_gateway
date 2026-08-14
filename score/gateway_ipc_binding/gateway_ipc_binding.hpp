@@ -17,7 +17,7 @@
 #include <climits>
 #include <cstddef>
 #include <cstdint>
-#include <score/gateway_ipc_binding/fixed_size_container.hpp>
+#include "score/gateway_ipc_binding/fixed_size_container.hpp"
 #include <score/span.hpp>
 #include <type_traits>
 

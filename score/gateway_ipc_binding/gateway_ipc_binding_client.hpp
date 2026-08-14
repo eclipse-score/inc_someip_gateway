@@ -15,8 +15,8 @@
 #define SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING_CLIENT
 
 #include <memory>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 #include <score/memory.hpp>
 #include <string_view>
 

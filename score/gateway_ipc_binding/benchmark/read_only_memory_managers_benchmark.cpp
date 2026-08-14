@@ -18,7 +18,7 @@
 #include <memory>
 #include <string>
 
-#include "../src/shared_memory_managers.hpp"
+#include "../impl/shared_memory_managers.hpp"
 
 namespace score::gateway_ipc_binding {
 namespace {
