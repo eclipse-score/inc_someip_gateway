@@ -69,7 +69,7 @@ Cons:
 
   * Assuming that a SOME/IP service is mapped to a ``mw::com`` service
   * ``mw::com`` service configuration format might need SOME/IP specific extensions
-  * The ``mw::com`` configuration needs to be present up front at both ``someipd`` and ``gateway`` processes
+  * The ``mw::com`` configuration needs to be present up front at both ``someipd`` and ``gatewayd`` processes
 
 Option 2: SOME/IP stack with its own SOME/IP abstraction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -113,7 +113,7 @@ Option 2 was selected: the SOME/IP stack abstraction in this module is based on
 Consequences
 ------------
 
-* The integration between the ``gateway`` and ``someipd`` daemon is based on ``socom`` interfaces.
+* The integration between the ``gatewayd`` and ``someipd`` daemon is based on ``socom`` interfaces.
 * ``mw::com`` is not used as the primary abstraction layer for SOME/IP stack
   integration in this module.
 * Future work should preserve a clear boundary between ``socom``-based
