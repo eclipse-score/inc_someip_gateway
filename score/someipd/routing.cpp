@@ -14,8 +14,8 @@
 #include "routing.h"
 
 #include <cassert>
+#include <chrono>
 #include <functional>
-#include <iostream>
 #include <thread>
 
 #include "score/mw/log/logging.h"
@@ -50,7 +50,7 @@ Result<Routing> Routing::Create(std::shared_ptr<const score::mw_someip_config::R
         return MakeUnexpected(score::someip::Errc::kInitializationFailed);
     }
     routing.payload_ = runtime->create_payload();
-    std::cout << "[someipd] vsomeip application initialized successfully" << std::endl;
+    score::mw::log::LogInfo() << "[someipd] vsomeip application initialized successfully";
 
     return Result<Routing>{std::move(routing)};
 }
@@ -61,18 +61,28 @@ void Routing::SetupOfferings() {
         if (service_instances && service_instances->size() > 0) {
             for (const auto local_service_instance : *service_type->local_service_instances()) {
                 for (const auto event : *service_type->events()) {
-                    // TODO: Do Eventgroup handling. Currently just create one group for each event
-                    // with the same ID as the event
-                    std::set<vsomeip::eventgroup_t> groups{event->event_id()};
+                    std::set<vsomeip::eventgroup_t> groups;
+                    auto const* eventgroup_ids = event->eventgroup_ids();
+                    // Treat empty vector the same as absent: fall back to event_id as eventgroup.
+                    if (eventgroup_ids != nullptr && eventgroup_ids->size() > 0) {
+                        for (auto group_id : *eventgroup_ids) {
+                            groups.insert(group_id);
+                        }
+                    } else {
+                        // Fallback: use event_id as group when no eventgroup_ids configured.
+                        groups.insert(event->event_id());
+                    }
                     application_->offer_event(service_type->service_id(),
                                               local_service_instance->instance_id(),
                                               event->event_id(), groups);
                 }
-                std::cout << "[someipd] Offering service 0x" << std::hex
-                          << service_type->service_id() << " instance 0x"
-                          << local_service_instance->instance_id() << std::dec << std::endl;
+                score::mw::log::LogInfo()
+                    << "[someipd] Offering service 0x"
+                    << score::mw::log::LogHex16{service_type->service_id()} << " instance 0x"
+                    << score::mw::log::LogHex16{local_service_instance->instance_id()};
                 application_->offer_service(service_type->service_id(),
-                                            local_service_instance->instance_id());
+                                            local_service_instance->instance_id(),
+                                            service_type->service_version_major());
             }
         }
     }
@@ -93,33 +103,34 @@ void Routing::ProcessMessages(std::atomic<bool>& shutdown_requested) {
     while (!shutdown_requested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    std::cout << "[someipd] Message loop exited, shutting down..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Message loop exited, shutting down...";
 }
 
 void Routing::Run(std::atomic<bool>& shutdown_requested, std::function<void()> on_registered) {
-    application_->register_state_handler(
-        [this, on_registered = std::move(on_registered)](vsomeip::state_type_e state) {
-            if (state == vsomeip::state_type_e::ST_REGISTERED) {
-                std::cout << "[someipd] Application registered with routing daemon." << std::endl;
-                std::cout << "[someipd] Setting up offerings..." << std::endl;
-                SetupOfferings();
-                if (on_registered) {
-                    on_registered();
-                }
+    application_->register_state_handler([this, on_registered = std::move(on_registered)](
+                                             vsomeip::state_type_e state) {
+        if (state == vsomeip::state_type_e::ST_REGISTERED) {
+            score::mw::log::LogInfo() << "[someipd] Application registered with routing daemon.";
+            score::mw::log::LogInfo() << "[someipd] Setting up offerings...";
+            SetupOfferings();
+            if (on_registered) {
+                on_registered();
             }
-        });
-    std::cout << "[someipd] Starting network stack processing..." << std::endl;
+        }
+    });
+    score::mw::log::LogInfo() << "[someipd] Starting network stack processing...";
     processing_thread_ = std::thread([this]() { application_->start(); });
-    std::cout << "[someipd] Network stack started, entering message loop." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Network stack started, entering message loop.";
     ProcessMessages(shutdown_requested);
-    std::cout << "[someipd] Stopping network stack processing..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Stopping network stack processing...";
     if (application_) {
         application_->stop();
     }
     if (processing_thread_.joinable()) {
         processing_thread_.join();
     }
-    std::cout << "[someipd] Network stack stopped." << std::endl;
+
+    score::mw::log::LogInfo() << "[someipd] Network stack stopped.";
 }
 
 }  // namespace score::someipd
