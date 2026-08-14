@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_GATEWAYD_REMOTE_SERVICE_INSTANCE
-#define SRC_GATEWAYD_REMOTE_SERVICE_INSTANCE
+#ifndef IMPL_GATEWAYD_REMOTE_SERVICE_INSTANCE
+#define IMPL_GATEWAYD_REMOTE_SERVICE_INSTANCE
 
 #include <cstdint>
 #include <memory>

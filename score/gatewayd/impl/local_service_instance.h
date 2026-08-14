@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE
-#define SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE
+#ifndef IMPL_GATEWAYD_LOCAL_SERVICE_INSTANCE
+#define IMPL_GATEWAYD_LOCAL_SERVICE_INSTANCE
 
 #include <map>
 #include <memory>
@@ -102,4 +102,4 @@ class LocalServiceInstance {
 };
 }  // namespace score::someip_gateway::gatewayd
 
-#endif  // SRC_GATEWAYD_LOCAL_SERVICE_INSTANCE
+#endif  // IMPL_GATEWAYD_LOCAL_SERVICE_INSTANCE
