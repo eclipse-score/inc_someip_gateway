@@ -49,10 +49,10 @@ cc_library(
     srcs = ["local_service_instance.cpp"],
     hdrs = ["local_service_instance.h"],
     deps = [
-        "//score/common",
         "//score/config:config_flatbuffers",
         "//score/serializer",
         "//score/socom",
+        "//score/someip",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
     ],
@@ -63,10 +63,10 @@ cc_library(
     srcs = ["remote_service_instance.cpp"],
     hdrs = ["remote_service_instance.h"],
     deps = [
-        "//score/common",
         "//score/config:config_flatbuffers",
         "//score/serializer",
         "//score/socom",
+        "//score/someip",
         "@score_baselibs//score/containers:non_relocatable_vector",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",

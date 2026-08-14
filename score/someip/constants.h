@@ -14,7 +14,7 @@
 #ifndef SCORE_SOMEIP_CONSTANTS_H
 #define SCORE_SOMEIP_CONSTANTS_H
 
-#include "types.h"
+#include "score/someip/types.h"
 
 namespace score::someip {
 

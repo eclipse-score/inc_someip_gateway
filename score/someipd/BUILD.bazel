@@ -48,9 +48,9 @@ cc_library(
     srcs = ["local_network_service.cpp"],
     hdrs = ["local_network_service.h"],
     deps = [
-        "//score/common",
         "//score/config:config_flatbuffers",
         "//score/socom",
+        "//score/someip",
         "@score_baselibs//score/mw/log",
         "@vsomeip",
     ],
@@ -61,9 +61,9 @@ cc_library(
     srcs = ["remote_network_service.cpp"],
     hdrs = ["remote_network_service.h"],
     deps = [
-        "//score/common",
         "//score/config:config_flatbuffers",
         "//score/socom",
+        "//score/someip",
         "@score_baselibs//score/mw/log",
         "@vsomeip",
     ],
@@ -74,8 +74,8 @@ cc_library(
     srcs = ["routing.cpp"],
     hdrs = ["routing.h"],
     deps = [
-        "//score/common",
         "//score/config:config_flatbuffers",
+        "//score/someip",
         "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
