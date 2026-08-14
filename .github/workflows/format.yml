@@ -21,6 +21,6 @@ permissions:
 
 jobs:
   formatting-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@c2c7e6dbab32b902f08ca5efc8e4ad623e6d280c
+    uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@14072822c35476e1999f62e342dd5a26a12e8ee7
     with:
       bazel-target: "test //:format.check" # optional, this is the default
