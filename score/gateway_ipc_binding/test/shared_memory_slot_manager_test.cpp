@@ -11,19 +11,20 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
+
 #include <gtest/gtest.h>
 #include <unistd.h>
 
 #include <cstring>
-#include <score/gateway_ipc_binding/error.hpp>
-#include <score/gateway_ipc_binding/fixed_size_container.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "score/gateway_ipc_binding/error.hpp"
+#include "score/gateway_ipc_binding/fixed_size_container.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 
 namespace score::gateway_ipc_binding {
 

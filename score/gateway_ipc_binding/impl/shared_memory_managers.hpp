@@ -16,12 +16,12 @@
 
 #include <cassert>
 #include <optional>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
 #include <unordered_map>
 #include <vector>
 
 #include "key.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 
 namespace score::gateway_ipc_binding {
 class Shared_memory_managers {

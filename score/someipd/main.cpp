@@ -20,9 +20,9 @@
 #include <iostream>
 #include <memory>
 
-#include "local_network_service.h"
-#include "remote_network_service.h"
-#include "routing.h"
+#include "impl/local_network_service.h"
+#include "impl/remote_network_service.h"
+#include "impl/routing.h"
 #include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"

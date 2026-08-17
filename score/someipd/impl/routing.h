@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SRC_SOMEIPD_ROUTING
-#define SRC_SOMEIPD_ROUTING
+#ifndef IMPL_SOMEIPD_ROUTING
+#define IMPL_SOMEIPD_ROUTING
 
 #include <atomic>
 #include <functional>
@@ -79,4 +79,4 @@ class Routing {
 
 }  // namespace score::someipd
 
-#endif  // SRC_SOMEIPD_ROUTING
+#endif  // IMPL_SOMEIPD_ROUTING

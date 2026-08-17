@@ -45,8 +45,8 @@ cc_binary(
 # ============================================================================
 cc_library(
     name = "local_network_service",
-    srcs = ["local_network_service.cpp"],
-    hdrs = ["local_network_service.h"],
+    srcs = ["impl/local_network_service.cpp"],
+    hdrs = ["impl/local_network_service.h"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/socom",
@@ -58,8 +58,8 @@ cc_library(
 
 cc_library(
     name = "remote_network_service",
-    srcs = ["remote_network_service.cpp"],
-    hdrs = ["remote_network_service.h"],
+    srcs = ["impl/remote_network_service.cpp"],
+    hdrs = ["impl/remote_network_service.h"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/socom",
@@ -71,8 +71,8 @@ cc_library(
 
 cc_library(
     name = "routing",
-    srcs = ["routing.cpp"],
-    hdrs = ["routing.h"],
+    srcs = ["impl/routing.cpp"],
+    hdrs = ["impl/routing.h"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/someip",

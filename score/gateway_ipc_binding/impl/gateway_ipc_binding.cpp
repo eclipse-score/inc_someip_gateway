@@ -11,9 +11,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+
 #include <algorithm>
 #include <cassert>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 
 namespace score::gateway_ipc_binding {
 

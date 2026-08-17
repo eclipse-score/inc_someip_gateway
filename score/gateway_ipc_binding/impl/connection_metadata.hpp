@@ -16,10 +16,10 @@
 
 #include <algorithm>
 #include <cassert>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <unordered_map>
 
 #include "key.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 
 namespace score::gateway_ipc_binding {
 

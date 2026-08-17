@@ -14,10 +14,10 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_KEY
 #define SRC_GATEWAY_IPC_BINDING_SRC_KEY
 
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <unordered_map>
 
 #include "gateway_ipc_binding_util.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "score/socom/service_interface_definition.hpp"
 
 namespace score::gateway_ipc_binding {

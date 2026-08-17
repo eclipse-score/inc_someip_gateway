@@ -46,8 +46,8 @@ cc_binary(
 
 cc_library(
     name = "local_service_instance",
-    srcs = ["local_service_instance.cpp"],
-    hdrs = ["local_service_instance.h"],
+    srcs = ["impl/local_service_instance.cpp"],
+    hdrs = ["impl/local_service_instance.h"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/serializer",
@@ -60,8 +60,8 @@ cc_library(
 
 cc_library(
     name = "remote_service_instance",
-    srcs = ["remote_service_instance.cpp"],
-    hdrs = ["remote_service_instance.h"],
+    srcs = ["impl/remote_service_instance.cpp"],
+    hdrs = ["impl/remote_service_instance.h"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/serializer",

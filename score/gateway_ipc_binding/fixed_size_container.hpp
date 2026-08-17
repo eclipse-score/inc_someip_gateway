@@ -21,10 +21,10 @@
 #include <cstring>
 #include <initializer_list>
 #include <iterator>
-#include <score/gateway_ipc_binding/error.hpp>
 #include <string>
 #include <string_view>
 
+#include "score/gateway_ipc_binding/error.hpp"
 #include "score/result/result.h"
 
 namespace score::gateway_ipc_binding {

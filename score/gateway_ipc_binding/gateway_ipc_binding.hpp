@@ -17,10 +17,10 @@
 #include <climits>
 #include <cstddef>
 #include <cstdint>
-#include <score/gateway_ipc_binding/fixed_size_container.hpp>
 #include <score/span.hpp>
 #include <type_traits>
 
+#include "score/gateway_ipc_binding/fixed_size_container.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/service_interface_identifier.hpp"

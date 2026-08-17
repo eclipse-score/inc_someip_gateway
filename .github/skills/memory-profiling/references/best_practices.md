@@ -259,5 +259,5 @@ memory_profile:
 ## References
 
 - [Valgrind Massif Advanced Usage](https://valgrind.org/docs/manual/ms-manual.html#ms-command-line-options)
-- [Creating Custom Allocators](../../../score/gateway_ipc_binding/doc/)
+- [Creating Custom Allocators](../../../score/gateway_ipc_binding/docs/)
 - [Project Profiling Results](../../../memory_profile/PROFILING_REPORT.md)

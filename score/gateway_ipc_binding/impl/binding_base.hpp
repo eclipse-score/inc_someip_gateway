@@ -15,7 +15,6 @@
 #define SRC_GATEWAY_IPC_BINDING_SRC_BINDING_BASE
 
 #include <mutex>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <set>
 #include <unordered_map>
 
@@ -25,6 +24,7 @@
 #include "pending_connects.hpp"
 #include "reply_channel.hpp"
 #include "request_service_handle.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/runtime.hpp"
 #include "service_state.hpp"

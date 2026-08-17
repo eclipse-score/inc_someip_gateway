@@ -17,10 +17,10 @@
 #include <cstddef>
 #include <memory>
 #include <score/callback.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
 #include <unordered_map>
 
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 #include "score/message_passing/i_server.h"
 #include "score/result/result.h"
 #include "score/socom/runtime.hpp"

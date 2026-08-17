@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/gateway_ipc_binding/error.hpp>
+#include "score/gateway_ipc_binding/error.hpp"
 
 namespace score::gateway_ipc_binding {
 namespace {

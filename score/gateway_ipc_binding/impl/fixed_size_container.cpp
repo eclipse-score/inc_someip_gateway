@@ -13,4 +13,4 @@
 
 // This file exists only to help clangd heuristics for determining compiler flags for headers
 
-#include <score/gateway_ipc_binding/fixed_size_container.hpp>
+#include "score/gateway_ipc_binding/fixed_size_container.hpp"

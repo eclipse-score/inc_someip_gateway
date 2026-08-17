@@ -16,7 +16,8 @@
 
 #include <cstdint>
 #include <optional>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
+
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 
 namespace score::gateway_ipc_binding {
 

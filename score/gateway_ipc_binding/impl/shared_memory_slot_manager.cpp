@@ -11,11 +11,12 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
+
 #include <atomic>
 #include <cassert>
 #include <mutex>
 #include <optional>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
 #include <utility>
 
 #include "score/gateway_ipc_binding/error.hpp"

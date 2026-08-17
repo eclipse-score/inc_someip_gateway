@@ -23,14 +23,14 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
-#include <score/gateway_ipc_binding/error.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
-#include <score/gateway_ipc_binding/shared_memory_slot_manager.hpp>
 #include <string>
 #include <thread>
 
+#include "score/gateway_ipc_binding/error.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
+#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/server_factory.h"
 #include "score/socom/client_connector.hpp"

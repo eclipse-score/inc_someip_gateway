@@ -11,16 +11,17 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
+
 #include <cassert>
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <score/gateway_ipc_binding/error.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <utility>
 
 #include "binding_base.hpp"
 #include "reply_channel.hpp"
+#include "score/gateway_ipc_binding/error.hpp"
 #include "score/message_passing/i_server_connection.h"
 #include "score/socom/runtime.hpp"
 
