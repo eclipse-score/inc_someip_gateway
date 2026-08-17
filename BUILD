@@ -19,7 +19,14 @@ load("@score_tooling//:defs.bzl", "use_format_targets")
 # Code Formatting
 # ==============================================================================
 
-use_format_targets()
+use_format_targets(
+    languages = [
+        "python",
+        "starlark",
+        "yaml",
+        "cpp",
+    ],
+)
 
 # ==============================================================================
 # Documentation

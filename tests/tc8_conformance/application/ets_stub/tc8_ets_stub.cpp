@@ -28,16 +28,15 @@
 #include "tests/tc8_conformance/application/shared/tc8_ets_service.h"
 
 namespace {
-using Payload = score::someip_gateway::serializer::PreSerializedData<tc8_ets_service::kMaxPayloadBytes>;
+using Payload =
+    score::someip_gateway::serializer::PreSerializedData<tc8_ets_service::kMaxPayloadBytes>;
 }  // namespace
 
 constexpr std::string_view kInstanceSpecifier{"tc8/tc8_service"};
 
 static std::atomic<bool> g_shutdown_requested{false};
 
-static void SignalHandler(int /*signal*/) {
-    g_shutdown_requested.store(true);
-}
+static void SignalHandler(int /*signal*/) { g_shutdown_requested.store(true); }
 
 int main(int argc, char* argv[]) {
     std::signal(SIGTERM, SignalHandler);
@@ -54,12 +53,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    score::mw::com::runtime::InitializeRuntime(score::mw::com::runtime::RuntimeConfiguration{
-        score::filesystem::Path{manifest_path}});
+    score::mw::com::runtime::InitializeRuntime(
+        score::mw::com::runtime::RuntimeConfiguration{score::filesystem::Path{manifest_path}});
 
-    const auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{kInstanceSpecifier});
+    const auto specifier_result =
+        score::mw::com::InstanceSpecifier::Create(std::string{kInstanceSpecifier});
     if (!specifier_result.has_value()) {
-        score::mw::log::LogError() << "[tc8_ets_stub] Failed to create InstanceSpecifier for tc8/tc8_service";
+        score::mw::log::LogError()
+            << "[tc8_ets_stub] Failed to create InstanceSpecifier for tc8/tc8_service";
         return 1;
     }
 
@@ -69,7 +70,8 @@ int main(int argc, char* argv[]) {
     auto skeleton_result =
         score::mw::com::GenericSkeleton::Create(specifier_result.value(), create_params);
     if (!skeleton_result.has_value()) {
-        score::mw::log::LogError() << "[tc8_ets_stub] GenericSkeleton::Create failed for tc8/tc8_service";
+        score::mw::log::LogError()
+            << "[tc8_ets_stub] GenericSkeleton::Create failed for tc8/tc8_service";
         return 1;
     }
     auto& skeleton = skeleton_result.value();
@@ -79,7 +81,8 @@ int main(int argc, char* argv[]) {
         score::mw::log::LogError() << "[tc8_ets_stub] OfferService() failed";
         return 1;
     }
-    score::mw::log::LogInfo() << "[tc8_ets_stub] tc8_service offered, sending periodic notifications";
+    score::mw::log::LogInfo()
+        << "[tc8_ets_stub] tc8_service offered, sending periodic notifications";
 
     auto events_view = skeleton.GetEvents();
     auto last_notify_time = std::chrono::steady_clock::now();

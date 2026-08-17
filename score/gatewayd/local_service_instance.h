@@ -19,9 +19,9 @@
 #include <string_view>
 #include <vector>
 
+#include "score/config/mw_someip_config_generated.h"
 #include "score/mw/com/types.h"
 #include "score/socom/server_connector.hpp"
-#include "score/config/mw_someip_config_generated.h"
 
 namespace score::socom {
 class Runtime;
