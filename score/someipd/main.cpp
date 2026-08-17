@@ -23,6 +23,7 @@
 #include "impl/local_network_service.h"
 #include "impl/remote_network_service.h"
 #include "impl/routing.h"
+#include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/message_passing/server_factory.h"
@@ -30,7 +31,6 @@
 #include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
-#include "score/config/mw_someip_config_generated.h"
 
 using namespace score;
 using namespace score::someipd;
@@ -164,9 +164,8 @@ int main(int argc, char* argv[]) {
         for (auto const& service_instance_config : *service_instances) {
             score::mw::log::LogInfo()
                 << "[someipd] Creating LocalNetworkService: "
-                << service_type_config->service_type_name()->string_view()
-                << " service_id=0x" << score::mw::log::LogHex16{service_type_config->service_id()}
-                << " instance_id=0x"
+                << service_type_config->service_type_name()->string_view() << " service_id=0x"
+                << score::mw::log::LogHex16{service_type_config->service_id()} << " instance_id=0x"
                 << score::mw::log::LogHex16{service_instance_config->instance_id()};
             auto create_result = LocalNetworkService::Create(
                 std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
@@ -196,9 +195,8 @@ int main(int argc, char* argv[]) {
         for (auto const& service_instance_config : *service_instances) {
             score::mw::log::LogInfo()
                 << "[someipd] Creating RemoteNetworkService: "
-                << service_type_config->service_type_name()->string_view()
-                << " service_id=0x" << score::mw::log::LogHex16{service_type_config->service_id()}
-                << " instance_id=0x"
+                << service_type_config->service_type_name()->string_view() << " service_id=0x"
+                << score::mw::log::LogHex16{service_type_config->service_id()} << " instance_id=0x"
                 << score::mw::log::LogHex16{service_instance_config->instance_id()};
             auto create_result = RemoteNetworkService::Create(
                 std::shared_ptr<const score::mw_someip_config::ServiceInstance>(

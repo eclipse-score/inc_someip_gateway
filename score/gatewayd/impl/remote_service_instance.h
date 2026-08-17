@@ -19,9 +19,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "score/config/mw_someip_config_generated.h"
 #include "score/mw/com/types.h"
 #include "score/socom/client_connector.hpp"
-#include "score/config/mw_someip_config_generated.h"
 
 struct score_com_serializer;
 
