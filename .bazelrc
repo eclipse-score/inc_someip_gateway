@@ -91,7 +91,6 @@ common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration
 common --@score_baselibs//score/json:base_library=nlohmann
-common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 
 # unshare /dev/shm and /tmp, gateway_ipc_binding tests create files in there and concurrent test runs would influence each other

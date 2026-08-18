@@ -16,13 +16,13 @@
 
 #include <cstddef>
 #include <future>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <string>
 #include <thread>
 
 #include "mocks.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/server_factory.h"
 #include "score/result/result.h"
@@ -221,7 +221,8 @@ class Gateway_ipc_binding_test : public Gateway_ipc_binding_unconnected_test {
             });
 
         EXPECT_CALL(mock_event_subscription_change_cb,
-                    Call(_, event_id, socom::Event_state::unsubscribed)).Times(AnyNumber());
+                    Call(_, event_id, socom::Event_state::unsubscribed))
+            .Times(AnyNumber());
 
         auto const subscribe_result =
             client_connector.subscribe_event(event_id, score::socom::Event_mode::update);

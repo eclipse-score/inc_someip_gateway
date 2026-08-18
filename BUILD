@@ -13,13 +13,20 @@
 
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "use_format_targets")
+load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
 # ==============================================================================
 # Code Formatting
 # ==============================================================================
 
-use_format_targets()
+use_format_targets(
+    languages = [
+        "python",
+        "starlark",
+        "yaml",
+        "cpp",
+    ],
+)
 
 # ==============================================================================
 # Documentation

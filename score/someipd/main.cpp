@@ -14,17 +14,16 @@
 #include <getopt.h>
 
 #include <atomic>
-#include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <thread>
 
-#include "local_network_service.h"
-#include "remote_network_service.h"
-#include "routing.h"
+#include "impl/local_network_service.h"
+#include "impl/remote_network_service.h"
+#include "impl/routing.h"
+#include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/message_passing/server_factory.h"
@@ -32,7 +31,6 @@
 #include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
-#include "score/config/mw_someip_config_generated.h"
 
 using namespace score;
 using namespace score::someipd;
@@ -40,9 +38,8 @@ using namespace score::someipd;
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
 
-// Signal handler for graceful shutdown
 void termination_handler(int /*signal*/) {
-    std::cout << "Received termination signal. Initiating graceful shutdown..." << std::endl;
+    score::mw::log::LogWarn() << "Received termination signal. Initiating graceful shutdown...";
     shutdown_requested.store(true);
 }
 
@@ -148,7 +145,7 @@ int main(int argc, char* argv[]) {
         score::mw::log::LogFatal() << "[someipd] Failed to start IPC server";
         return 1;
     }
-    std::cout << "[someipd] IPC server started, waiting for gatewayd connection..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] IPC server started, waiting for gatewayd connection...";
 
     auto routing = Routing::Create(config);
     if (!routing.has_value()) {
@@ -165,11 +162,11 @@ int main(int argc, char* argv[]) {
             continue;
         }
         for (auto const& service_instance_config : *service_instances) {
-            std::cout << "[someipd] Creating LocalNetworkService: "
-                      << service_type_config->service_type_name()->string_view()
-                      << " (service_id=0x" << std::hex << service_type_config->service_id()
-                      << std::dec << ", instance_id=0x" << std::hex
-                      << service_instance_config->instance_id() << std::dec << ")" << std::endl;
+            score::mw::log::LogInfo()
+                << "[someipd] Creating LocalNetworkService: "
+                << service_type_config->service_type_name()->string_view() << " service_id=0x"
+                << score::mw::log::LogHex16{service_type_config->service_id()} << " instance_id=0x"
+                << score::mw::log::LogHex16{service_instance_config->instance_id()};
             auto create_result = LocalNetworkService::Create(
                 std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
                     config, service_instance_config),
@@ -196,11 +193,11 @@ int main(int argc, char* argv[]) {
             continue;
         }
         for (auto const& service_instance_config : *service_instances) {
-            std::cout << "[someipd] Creating RemoteNetworkService: "
-                      << service_type_config->service_type_name()->string_view()
-                      << " (service_id=0x" << std::hex << service_type_config->service_id()
-                      << std::dec << ", instance_id=0x" << std::hex
-                      << service_instance_config->instance_id() << std::dec << ")" << std::endl;
+            score::mw::log::LogInfo()
+                << "[someipd] Creating RemoteNetworkService: "
+                << service_type_config->service_type_name()->string_view() << " service_id=0x"
+                << score::mw::log::LogHex16{service_type_config->service_id()} << " instance_id=0x"
+                << score::mw::log::LogHex16{service_instance_config->instance_id()};
             auto create_result = RemoteNetworkService::Create(
                 std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
                     config, service_instance_config),
@@ -217,13 +214,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << "[someipd] Starting routing loop..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Starting routing loop...";
     routing.value().Run(shutdown_requested, [&remote_network_services]() {
         for (auto& svc : remote_network_services) {
             svc->setup_vsomeip();
         }
     });
 
-    std::cout << "[someipd] Shutting down SOME/IP daemon..." << std::endl;
+    score::mw::log::LogInfo() << "[someipd] Shutting down SOME/IP daemon...";
     return EXIT_SUCCESS;
 }
