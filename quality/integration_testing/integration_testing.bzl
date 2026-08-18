@@ -57,8 +57,8 @@ def integration_test(name, srcs, filesystem, **kwargs):
         tags = ["manual"],
     )
 
-    linux_qemu_config = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:qemu_config")
-    linux_qemu_image = Label("//quality/integration_testing/environments/ubuntu24_04_qemu:prepared_image")
+    linux_qemu_config = Label("@os_images//ubuntu_x86_64:qemu_config")
+    linux_qemu_image = Label("@os_images//ubuntu_x86_64:image")
 
     filesystem_rootfs_overlay = "_qemu_rootfs_overlay_{}".format(name)
     copy_files_onto_image(

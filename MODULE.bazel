@@ -279,6 +279,7 @@ http_archive(
 # ============================================================================
 # Integration Testing
 # ============================================================================
+bazel_dep(name = "os_images", version = "1.0", dev_dependency = True)
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
@@ -288,6 +289,12 @@ git_override(
     patch_strip = 1,
     patches = ["//:third_party/score_itf-qemu-ping-timeout.patch"],
     remote = "https://github.com/elektrobit-contrib/eclipse-score_itf.git",
+)
+
+git_override(
+    module_name = "os_images",
+    branch = "add-ubuntu-and-ebclfsa",
+    remote = "https://github.com/eclipse-score/os_images.git",
 )
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")

@@ -74,7 +74,7 @@ pkg_tar(
 copy_files_onto_image(
     name = "_qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test",
     srcs = [":_qemu_filesystem_test_hello_world_ebclfsa_aarch64_integration_test"],
-    image = "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:image",
+    image = "@os_images//ebclfsa_aarch64:image",
     tags = ["manual"],
 )
 
@@ -100,8 +100,8 @@ py_itf_test(
     args = select({
         "//quality/integration_testing/flags:linux_qemu": [
             "--log-cli-level=DEBUG",
-            "--qemu-config=$(location //quality/integration_testing/environments/ebclfsa_aarch64_qemu:qemu_config)",
-            "--qemu-kernel=$(location //quality/integration_testing/environments/ebclfsa_aarch64_qemu:kernel)",
+            "--qemu-config=$(location @os_images//ebclfsa_aarch64:qemu_config)",
+            "--qemu-kernel=$(location @os_images//ebclfsa_aarch64:kernel)",
             "--qemu-rootfs=$(location _qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test)",
         ],
         "//conditions:default": [],
@@ -109,9 +109,9 @@ py_itf_test(
     data = select({
         "//quality/integration_testing/flags:linux_qemu": [
             "_qemu_rootfs_overlay_test_hello_world_ebclfsa_aarch64_integration_test",
-            "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:image",  # backing file must be accessible at runtime
-            "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:kernel",
-            "//quality/integration_testing/environments/ebclfsa_aarch64_qemu:qemu_config",
+            "@os_images//ebclfsa_aarch64:image",  # backing file must be accessible at runtime
+            "@os_images//ebclfsa_aarch64:kernel",
+            "@os_images//ebclfsa_aarch64:qemu_config",
         ],
         "//conditions:default": [],
     }),
