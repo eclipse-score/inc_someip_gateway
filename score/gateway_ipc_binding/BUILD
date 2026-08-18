@@ -30,8 +30,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//score/socom",
-        "@score_baselibs//score/memory/shared",
         "@score_baselibs//score/mw/log",
+        "@score_communication//score/memory/shared",
         "@score_communication//score/message_passing",
     ],
 )
