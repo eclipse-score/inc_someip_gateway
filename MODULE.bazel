@@ -201,7 +201,6 @@ single_version_override(
     # Patch baselibs with a QNX8 workaround for poll
     # until a fix is provided by the QNX SDP
     patches = ["//third_party/score_baselibs:restore_qnx8_poll_workaround.patch"],
-    version = "0.2.11",
 )
 
 # Upgrade grpc-java to 1.70.0 for compatibility with newer grpc (1.70.1).
