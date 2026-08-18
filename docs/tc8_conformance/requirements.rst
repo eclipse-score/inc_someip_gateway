@@ -27,6 +27,7 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    :version: 1
    :tags: tc8, conformance, someip, verification
    :derived_from: stkh_req__docgen_enabled__example
+   :satisfied_by: feat__someip_gateway
    :safety: QM
    :security: NO
    :reqtype: Functional
