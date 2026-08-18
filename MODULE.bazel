@@ -293,7 +293,7 @@ git_override(
 
 git_override(
     module_name = "os_images",
-    branch = "add-ubuntu-and-ebclfsa",
+    commit = "a024787e2ddb4ceed6ac6fe63b3847ab937c0b5d",
     remote = "https://github.com/eclipse-score/os_images.git",
 )
 
