@@ -1,0 +1,124 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+"""
+End-to-end performance tests: mw::com sender -> gatewayd/someipd -> SOME/IP -> someipd/gatewayd
+-> mw::com receiver, with both nodes running on the same host.
+"""
+
+load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
+
+cc_library(
+    name = "perf_service",
+    hdrs = ["perf_service.h"],
+    deps = [
+        "//score/serializer:pre_serialized_data",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+cc_library(
+    name = "stats",
+    hdrs = ["stats.h"],
+)
+
+cc_test(
+    name = "stats_test",
+    size = "small",
+    srcs = ["stats_test.cpp"],
+    deps = [
+        ":stats",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "perf_sender",
+    srcs = ["perf_sender.cpp"],
+    deps = [
+        ":perf_service",
+        ":stats",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+cc_binary(
+    name = "perf_receiver",
+    srcs = ["perf_receiver.cpp"],
+    deps = [
+        ":perf_service",
+        ":stats",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+generate_someip_config_bin(
+    name = "node_a_config_file",
+    json = "config/node_a_someip_config.json",
+    output = "node_a_someip_config.bin",
+)
+
+generate_someip_config_bin(
+    name = "node_b_config_file",
+    json = "config/node_b_someip_config.json",
+    output = "node_b_someip_config.bin",
+)
+
+validate_json_schema_test(
+    name = "node_a_mw_com_config_schema_valid",
+    size = "small",
+    json = "config/node_a_mw_com_config.json",
+    schema = "@score_communication//score/mw/com:config_schema",
+    tags = ["lint"],
+)
+
+validate_json_schema_test(
+    name = "node_b_mw_com_config_schema_valid",
+    size = "small",
+    json = "config/node_b_mw_com_config.json",
+    schema = "@score_communication//score/mw/com:config_schema",
+    tags = ["lint"],
+)
+
+# Tagged manual because it binds fixed UDP ports, needs two host IP addresses and a multicast
+# route (see README.md), and exclusive because the daemons use global /dev/shm and /tmp names.
+py_pytest(
+    name = "e2e_perf",
+    size = "large",
+    srcs = [
+        "conftest.py",
+        "nodes.py",
+        "test_e2e_perf.py",
+    ],
+    data = [
+        ":node_a_config_file",
+        ":node_b_config_file",
+        ":perf_receiver",
+        ":perf_sender",
+        "//score/gatewayd",
+        "//score/someipd",
+    ] + glob(["config/*.json"]),
+    tags = [
+        "exclusive",
+        "manual",
+        "no-sandbox",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+    ],
+)

@@ -1,0 +1,80 @@
+{
+    "service_types": [
+        {
+            "service_type_name": "perf_req_rx",
+            "service_id": 28928,
+            "service_version_major": 0,
+            "service_version_minor": 0,
+            "events": [
+                {
+                    "event_name": "perf_request_tiny",
+                    "event_id": 33025,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 32
+                    }
+                },
+                {
+                    "event_name": "perf_request_small",
+                    "event_id": 33026,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 88
+                    }
+                },
+                {
+                    "event_name": "perf_request_medium",
+                    "event_id": 33027,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1048
+                    }
+                }
+            ],
+            "remote_service_instances": [
+                {
+                    "instance_specifier": "perf/request_rx",
+                    "instance_id": 1
+                }
+            ]
+        },
+        {
+            "service_type_name": "perf_resp_tx",
+            "service_id": 28929,
+            "service_version_major": 0,
+            "service_version_minor": 0,
+            "events": [
+                {
+                    "event_name": "perf_response_tiny",
+                    "event_id": 33041,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 32
+                    }
+                },
+                {
+                    "event_name": "perf_response_small",
+                    "event_id": 33042,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 88
+                    }
+                },
+                {
+                    "event_name": "perf_response_medium",
+                    "event_id": 33043,
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 1048
+                    }
+                }
+            ],
+            "local_service_instances": [
+                {
+                    "instance_specifier": "perf/response",
+                    "instance_id": 1
+                }
+            ]
+        }
+    ]
+}

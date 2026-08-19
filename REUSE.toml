@@ -51,6 +51,7 @@ path = [
     "tests/integration_test/vsomeip.json",
     "tests/benchmarks/config/benchmark_mw_com_config.json",
     "tests/tc8_conformance/**/*.json",
+    "tests/e2e_perf/config/*.json",
     "quality/integration_testing/environments/qnx8_qemu/qemu_config.json",
     "quality/integration_testing/environments/ubuntu24_04_qemu/*"
 ]
