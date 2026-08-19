@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DR-001-Arch: Use socom as SOME/IP stack abstraction &#8212; SOME/IP Gateway  documentation</title>
+    <title>DR-001-Arch: SOME/IP stack abstraction &#8212; SOME/IP Gateway  documentation</title>
   
   
   
@@ -73,7 +73,7 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="TC8 SOME/IP Conformance Testing" href="../tc8_conformance/index.html" />
+    <link rel="next" title="DR-002-Arch: IPC implementation" href="dec_ipc_implementation.html" />
     <link rel="prev" title="Architectural Design Decision: Dynamic Registration for SOME/IP Gateway" href="dec_someipgw_registration.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -412,7 +412,8 @@
 </ul>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">DR-001-Arch: Use socom as SOME/IP stack abstraction</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">DR-001-Arch: SOME/IP stack abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dec_ipc_implementation.html">DR-002-Arch: IPC implementation</a></li>
 </ul>
 </div>
 </nav></div>
@@ -456,7 +457,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOMEIP Gateway Architecture</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">DR-001-Arch: Use socom as SOME/IP stack abstraction</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">DR-001-Arch: SOME/IP stack abstraction</span></li>
   </ul>
 </nav>
 </div>
@@ -473,14 +474,14 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="dr-001-arch-use-socom-as-some-ip-stack-abstraction">
-<h1>DR-001-Arch: Use socom as SOME/IP stack abstraction<a class="headerlink" href="#dr-001-arch-use-socom-as-some-ip-stack-abstraction" title="Link to this heading">#</a></h1>
+  <section id="dr-001-arch-some-ip-stack-abstraction">
+<h1>DR-001-Arch: SOME/IP stack abstraction<a class="headerlink" href="#dr-001-arch-some-ip-stack-abstraction" title="Link to this heading">#</a></h1>
 <p><strong>Date:</strong> 2026-08-11</p>
-<div class="need_container docutils container" id="SNCB-be25cd6c">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__arch__use_socom_someip_abstraction">
+<div class="need_container docutils container" id="SNCB-4994dfef">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__arch__someip_abstraction">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Use socom as SOME/IP stack abstraction</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP stack abstraction</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
@@ -507,7 +508,7 @@
 <tr class="content row-odd"><td class="content" colspan="6"></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#dec_rec__arch__use_socom_someip_abstraction" title="dec_rec__arch__use_socom_someip_abstraction">dec_rec__arch__use_socom_someip_abstraction</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#dec_rec__arch__someip_abstraction" title="dec_rec__arch__someip_abstraction">dec_rec__arch__someip_abstraction</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
@@ -522,22 +523,16 @@
 </div>
 <section id="context-problem">
 <h2>Context / Problem<a class="headerlink" href="#context-problem" title="Link to this heading">#</a></h2>
-<p>The SOME/IP Gateway needs an abstraction layer to decouple from the specific SOME/IP stack implementation.
-In addition the SOME/IP Gateway is split into two processes (<code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) for safety reasons.
-The semantics of the abstraction layer needs to be transported via IPC to each process.</p>
-<p>During the architecture discussion, two main reuse-oriented options were considered:</p>
-<ul class="simple">
-<li><p>Option 1: Implement the SOME/IP stack as a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> binding.</p></li>
-<li><p>Option 2: Implement the SOME/IP stack with its own SOME/IP abstraction.</p></li>
-</ul>
-<p>The decision needed to balance implementation complexity, extensibility, and
-ability to support gateway-specific runtime behavior.</p>
+<p><code class="docutils literal notranslate"><span class="pre">vsomeipd</span></code> will not be the only SOME/IP stack implementation used in the future, and the architecture needs to support multiple implementations.
+The SOME/IP Gateway needs an abstraction layer to decouple from the specific SOME/IP stack implementation.
+The semantics of the abstraction layer need to be reflected via the IPC layer.</p>
+<p>The abstraction layer is the scope of this decision record. The IPC implementation is covered in a separate decision record.</p>
 </section>
 <section id="options-considered">
 <h2>Options Considered<a class="headerlink" href="#options-considered" title="Link to this heading">#</a></h2>
-<section id="option-1-some-ip-stack-as-mw-com-binding">
-<h3>Option 1: SOME/IP stack as <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> binding<a class="headerlink" href="#option-1-some-ip-stack-as-mw-com-binding" title="Link to this heading">#</a></h3>
-<p>This option would integrate SOME/IP through the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> binding API and
+<section id="option-1-mw-com-as-abstraction-api-binding">
+<h3>Option 1: <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> as abstraction API (binding)<a class="headerlink" href="#option-1-mw-com-as-abstraction-api-binding" title="Link to this heading">#</a></h3>
+<p>This option would integrate SOME/IP network stack through the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> binding API and
 reuse <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> as the central integration layer.</p>
 <p>Pros:</p>
 <ul class="simple">
@@ -552,30 +547,21 @@ reuse <code class="docutils literal notranslate"><span class="pre">mw::com</span
 <li><p>To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point</p></li>
 </ul>
 </li>
-<li><p>Would need an additional control channel next to LoLa for getting event subscription state and FindService</p>
-<ul>
-<li><p>Or add SOME/IP specific extensions to LoLa</p></li>
-</ul>
-</li>
-<li><p>LoLa is optimized for 1:n communication, but the gateway needs 1:1 communication</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> might need API extension for event subscription state and FindService</p></li>
 <li><p>Configuring <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> could become complex</p>
 <ul>
 <li><p>Assuming that a SOME/IP service is mapped to a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service configuration format might need SOME/IP specific extensions</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> configuration needs to be present up front at both <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> processes</p></li>
 </ul>
 </li>
 </ul>
 </section>
-<section id="option-2-some-ip-stack-with-its-own-some-ip-abstraction">
-<h3>Option 2: SOME/IP stack with its own SOME/IP abstraction<a class="headerlink" href="#option-2-some-ip-stack-with-its-own-some-ip-abstraction" title="Link to this heading">#</a></h3>
-<p>This option uses <code class="docutils literal notranslate"><span class="pre">socom</span></code> as the abstraction used by the SOME/IP stack.
-For implementation of the IPC binding building blocks of <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> are reused.
-These are namely:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">message_passing</span></code>: for message transport between processes</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">shared_memory</span></code>: for shared memory management at each process</p></li>
-</ul>
+<section id="option-2-abstract-api-as-some-ip-abstraction">
+<h3>Option 2: Abstract API as SOME/IP abstraction<a class="headerlink" href="#option-2-abstract-api-as-some-ip-abstraction" title="Link to this heading">#</a></h3>
+<p>This option uses <code class="docutils literal notranslate"><span class="pre">socom</span></code> as the abstraction to interact with the SOME/IP network stack.
+The API of <code class="docutils literal notranslate"><span class="pre">socom</span></code> is designed to be a generic abstraction of the SOME/IP network stack without serialization support.
+<code class="docutils literal notranslate"><span class="pre">socom</span></code> is designed to be as simple as possible, while still providing the necessary functionality to implement a SOME/IP stack abstraction.
+A SOME/IP network stack implementation can be registered at startup.</p>
 <p>Pros:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">socom</span></code> provides a simpler API surface for this integration scenario.</p></li>
@@ -583,10 +569,34 @@ These are namely:</p>
 selected architecture.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">socom</span></code> supports enables a focused SDK-style integration for SOME/IP plugins.</p></li>
 <li><p>Keeps API for IPC (<code class="docutils literal notranslate"><span class="pre">mw::com</span></code>) and SOME/IP stack (<code class="docutils literal notranslate"><span class="pre">socom</span></code>) separate, which keeps the scope of each API clear.</p></li>
+<li><p>Supports zero-copy.</p></li>
+<li><p>API loosely coupled with the exact stack.</p></li>
+<li><p>Abstraction of the service handling. It shields <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> from all stack interaction logic (“Glue code”).</p></li>
+<li><p>Separation of “bridge” and “API”.</p></li>
 </ul>
 <p>Cons:</p>
 <ul class="simple">
 <li><p>Introduces another abstraction alongside <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> and requires clear interface boundaries in documentation and code ownership.</p></li>
+<li><p>More complex compare to option 3.</p>
+<ul>
+<li><p>This was dealt with by removing all features currently not needed by the gateway.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="option-3-abstraction-close-to-vsomeip-api-as-some-ip-abstraction">
+<h3>Option 3: Abstraction close to <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> API as SOME/IP abstraction<a class="headerlink" href="#option-3-abstraction-close-to-vsomeip-api-as-some-ip-abstraction" title="Link to this heading">#</a></h3>
+<p>Since we start with <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> as the initial SOME/IP stack implementation, we could also consider an abstraction layer that is close to the <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> API.</p>
+<p>Pros:</p>
+<ul class="simple">
+<li><p>API design already mostly determined by vsomeip API.</p></li>
+</ul>
+<p>Cons:</p>
+<ul class="simple">
+<li><p>API not designed for zero-copy.</p></li>
+<li><p>API closely coupled with the exact stack.</p></li>
+<li><p>No abstraction of the service handling, all stack interaction logic (“Glue code”) propagates into the gatewayd.</p></li>
+<li><p>Separation of “bridge” and “API” would still have to be designed.</p></li>
 </ul>
 </section>
 </section>
@@ -595,9 +605,9 @@ selected architecture.</p></li>
 <p>Option 1 would require missing capabilities and expected API extensions in
 <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> before it can support the intended SOME/IP gateway behavior cleanly.
 To be agnostic to the concrete SOME/IP stack, <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> would need to provide a suitable abstraction layer.</p>
+<p>Thus if option 1 is selected, we still have to select between option 2 and 3 for the abstraction layer.</p>
 <p>Option 2 provides the necessary extensibility (binding registration) with a
-simpler integration model and method support out of the box, reducing the amount
-of framework adaptation needed for the gateway implementation.</p>
+simpler integration model and method support out of the box.</p>
 </section>
 <section id="decision">
 <h2>Decision<a class="headerlink" href="#decision" title="Link to this heading">#</a></h2>
@@ -643,11 +653,11 @@ abstraction and any optional <code class="docutils literal notranslate"><span cl
       </div>
     </a>
     <a class="right-next"
-       href="../tc8_conformance/index.html"
+       href="dec_ipc_implementation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">TC8 SOME/IP Conformance Testing</p>
+        <p class="prev-next-title">DR-002-Arch: IPC implementation</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -672,8 +682,9 @@ abstraction and any optional <code class="docutils literal notranslate"><span cl
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context-problem">Context / Problem</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#options-considered">Options Considered</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-some-ip-stack-as-mw-com-binding">Option 1: SOME/IP stack as <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> binding</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-some-ip-stack-with-its-own-some-ip-abstraction">Option 2: SOME/IP stack with its own SOME/IP abstraction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-mw-com-as-abstraction-api-binding">Option 1: <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> as abstraction API (binding)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-abstract-api-as-some-ip-abstraction">Option 2: Abstract API as SOME/IP abstraction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-3-abstraction-close-to-vsomeip-api-as-some-ip-abstraction">Option 3: Abstraction close to <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> API as SOME/IP abstraction</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation">Evaluation</a></li>
