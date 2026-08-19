@@ -1,0 +1,32 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+exports_files(
+    ["config/tc8_ets_stub_mw_com_config.json"],
+    visibility = ["//tests/tc8_conformance:__pkg__"],
+)
+
+cc_binary(
+    name = "tc8_ets_stub",
+    srcs = ["tc8_ets_stub.cpp"],
+    visibility = ["//tests/tc8_conformance:__pkg__"],
+    deps = [
+        "//score/serializer:pre_serialized_data",
+        "//tests/tc8_conformance/application/shared:tc8_ets_service",
+        "@score_baselibs//score/filesystem",
+        "@score_baselibs//score/mw/log",
+        "@score_communication//score/mw/com",
+    ],
+)

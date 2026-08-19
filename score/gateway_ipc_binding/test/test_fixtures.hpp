@@ -18,15 +18,15 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <string>
 #include <string_view>
 #include <thread>
 #include <utility>
 
 #include "mocks.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/server_factory.h"
 #include "score/socom/callback_mocks.hpp"

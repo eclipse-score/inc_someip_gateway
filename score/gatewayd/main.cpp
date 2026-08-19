@@ -20,8 +20,8 @@
 #include <memory>
 #include <thread>
 
-#include "local_service_instance.h"
-#include "remote_service_instance.h"
+#include "impl/local_service_instance.h"
+#include "impl/remote_service_instance.h"
 #include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"

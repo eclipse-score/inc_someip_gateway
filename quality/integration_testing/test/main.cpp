@@ -13,8 +13,7 @@
 #include <fstream>
 #include <iostream>
 
-int main()
-{
+int main() {
     std::cout << "Hello!\n";
     // We create a file to signal to `main2.cpp` that it can continue.
     std::ofstream{"/tmp/Hello.txt"};

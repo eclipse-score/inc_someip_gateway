@@ -69,6 +69,11 @@ table Event {
 
     /// Serialization configuration for this event.
     serialization_config: SerializationConfig;
+
+    /// SOME/IP eventgroup IDs this event belongs to.
+    /// Must match the eventgroups declared in the vsomeip JSON config for correct
+    /// SubscribeEventgroup handling. If empty, the event_id is used as a fallback group.
+    eventgroup_ids: [uint16];
 }
 
 /// Describes a single method within a service.

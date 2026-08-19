@@ -54,24 +54,24 @@ use_repo(pip, "score_someip_gateway_pip")
 # ============================================================================
 # Testing & Performance Measurement
 # ============================================================================
-bazel_dep(name = "googletest", version = "1.17.0.bcr.2", dev_dependency = True)
+bazel_dep(name = "googletest", version = "1.18.0", dev_dependency = True)
 bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 
 # ============================================================================
 # Build System Rules & Utilities
 # ============================================================================
-bazel_dep(name = "bazel_lib", version = "3.5.0", dev_dependency = True)
+bazel_dep(name = "bazel_lib", version = "3.7.1", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
-bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.2.18")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_cc", version = "0.2.22")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
 
 # ============================================================================
 # Toolchains & Platform Configuration
 # ============================================================================
 # S-CORE Platform Definitions: Provides constraint values and platform definitions
-bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
+bazel_dep(name = "score_bazel_platforms", version = "1.0.0")
 
 # ============================================================================
 # QNX8 Toolchain Configuration
@@ -148,34 +148,13 @@ register_toolchains(
 # ============================================================================
 # Tooling & Development
 # ============================================================================
-bazel_dep(name = "score_tooling", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "score_devcontainer", version = "1.9.1", dev_dependency = True)
+bazel_dep(name = "score_tooling", version = "2.0.1", dev_dependency = True)
+bazel_dep(name = "score_devcontainer", version = "1.11.0", dev_dependency = True)
 
-# override to same version as communication
-git_override(
+single_version_override(
     module_name = "score_tooling",
-    commit = "bd09ae241b94f9d77d4c837a38c93b04e2df8cc8",
-    remote = "https://github.com/eclipse-score/tooling.git",
-)
-
-# Required because of the non-dev_dependency in overridden score_tooling.
-# Remove as soon as the dependency problem is resolved.
-bazel_dep(name = "lobster", version = "1.0.3", dev_dependency = True)
-git_override(
-    module_name = "lobster",
-    commit = "2792e2daee2cf524fdc7b1545fd3537791ebc36c",
-    remote = "https://github.com/bmw-software-engineering/lobster.git",
-)
-
-# Required because of the non-dev_dependency in overridden score_tooling.
-# Remove as soon as the dependency problem is resolved.
-bazel_dep(name = "trlc", version = "3.0.0", dev_dependency = True)
-
-# hash is version 3.0.0, but override is needed for score_tooling
-git_override(
-    module_name = "trlc",
-    commit = "c4c531b9d667085daa09dfc1590edacc314bfda4",
-    remote = "https://github.com/bmw-software-engineering/trlc.git",
+    patches = ["//:third_party/score_tooling-aspect-rules-lint.patch"],
+    version = "2.0.1",
 )
 
 bazel_dep(name = "aspect_rules_lint", version = "2.7.2", dev_dependency = True)
@@ -200,17 +179,22 @@ download_archive(
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "6.0.0", dev_dependency = True)
+bazel_dep(name = "score_docs_as_code", version = "7.1.0", dev_dependency = True)
 
 # ============================================================================
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.3.0")
+git_override(
+    module_name = "score_communication",
+    commit = "d609be928f146f96ef9d4f81abb4c06bc51f1135",
+    remote = "https://github.com/eclipse-score/communication.git",
+)
 
 # ============================================================================
 # Base Libraries
 # ============================================================================
-bazel_dep(name = "score_baselibs", version = "0.2.10")
+bazel_dep(name = "score_baselibs", version = "0.2.11")
 single_version_override(
     module_name = "score_baselibs",
     patch_strip = 1,
@@ -280,7 +264,7 @@ http_archive(
 # Integration Testing
 # ============================================================================
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
-bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 

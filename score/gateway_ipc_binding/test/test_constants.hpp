@@ -16,9 +16,9 @@
 
 #include <chrono>
 #include <cstddef>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
 #include <string>
 
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "score/message_passing/i_client_factory.h"
 #include "score/message_passing/i_server_factory.h"
 #include "score/socom/service_interface_definition.hpp"
