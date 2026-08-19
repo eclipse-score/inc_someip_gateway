@@ -12,13 +12,13 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-DR-001-Arch: Use socom as SOME/IP stack abstraction
+DR-001-Arch: SOME/IP stack abstraction
 ===================================================
 
 **Date:** 2026-08-11
 
-.. dec_rec:: Use socom as SOME/IP stack abstraction
-   :id: dec_rec__arch__use_socom_someip_abstraction
+.. dec_rec:: SOME/IP stack abstraction
+   :id: dec_rec__arch__someip_abstraction
    :status: accepted
    :version: 1
    :context: SOME/IP Gateway
@@ -27,25 +27,19 @@ DR-001-Arch: Use socom as SOME/IP stack abstraction
 Context / Problem
 -----------------
 
+``vsomeipd`` will not be the only SOME/IP stack implementation used in the future, and the architecture needs to support multiple implementations.
 The SOME/IP Gateway needs an abstraction layer to decouple from the specific SOME/IP stack implementation.
-In addition the SOME/IP Gateway is split into two processes (``someipd`` and ``gatewayd``) for safety reasons.
 The semantics of the abstraction layer needs to be transported via IPC to each process.
 
-During the architecture discussion, two main reuse-oriented options were considered:
-
-* Option 1: Implement the SOME/IP stack as a ``mw::com`` binding.
-* Option 2: Implement the SOME/IP stack with its own SOME/IP abstraction.
-
-The decision needed to balance implementation complexity, extensibility, and
-ability to support gateway-specific runtime behavior.
+The abstraction layer is the scope of this decision record. The IPC implementation is covered in a separate decision record.
 
 Options Considered
 ------------------
 
-Option 1: SOME/IP stack as ``mw::com`` binding
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Option 1: ``mw::com`` as abstraction API (binding)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This option would integrate SOME/IP through the ``mw::com`` binding API and
+This option would integrate SOME/IP network stack through the ``mw::com`` binding API and
 reuse ``mw::com`` as the central integration layer.
 
 Pros:
@@ -60,26 +54,20 @@ Cons:
 
   * To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point
 
-* Would need an additional control channel next to LoLa for getting event subscription state and FindService
+* ``mw::com`` might need API extension for event subscription state and FindService
 
-  * Or add SOME/IP specific extensions to LoLa
-
-* LoLa is optimized for 1:n communication, but the gateway needs 1:1 communication
 * Configuring ``mw::com`` could become complex
 
   * Assuming that a SOME/IP service is mapped to a ``mw::com`` service
   * ``mw::com`` service configuration format might need SOME/IP specific extensions
-  * The ``mw::com`` configuration needs to be present up front at both ``someipd`` and ``gatewayd`` processes
 
-Option 2: SOME/IP stack with its own SOME/IP abstraction
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Option 2: Abstract API as SOME/IP abstraction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This option uses ``socom`` as the abstraction used by the SOME/IP stack.
-For implementation of the IPC binding building blocks of ``mw::com`` are reused.
-These are namely:
-
-* ``message_passing``: for message transport between processes
-* ``shared_memory``: for shared memory management at each process
+This option uses ``socom`` as the abstraction to interact with the SOME/IP network stack.
+The API of ``socom`` is designed to be a generic abstraction of the SOME/IP network stack without serialization support.
+``socom`` is designed to be as simple as possible, while still providing the necessary functionality to implement a SOME/IP stack abstraction.
+A SOME/IP network stack implementation can be registered at startup.
 
 Pros:
 
@@ -88,10 +76,33 @@ Pros:
   selected architecture.
 * ``socom`` supports enables a focused SDK-style integration for SOME/IP plugins.
 * Keeps API for IPC (``mw::com``) and SOME/IP stack (``socom``) separate, which keeps the scope of each API clear.
+* Supports zero-copy.
+* API loosely coupled with the exact stack.
+* Abstraction of the service handling. It shields ``gatewayd`` from all stack interaction logic ("Glue code").
+* Separation of "bridge" and "API".
 
 Cons:
 
 * Introduces another abstraction alongside ``mw::com`` and requires clear interface boundaries in documentation and code ownership.
+* More complex compare to option 3.
+
+  * This was dealt with by removing all features currently not needed by the gateway.
+
+Option 3: Abstraction close to ``vsomeip`` API as SOME/IP abstraction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since we start with ``vsomeip`` as the initial SOME/IP stack implementation, we could also consider an abstraction layer that is close to the ``vsomeip`` API.
+
+Pros:
+
+* API design already mostly determined by vsomeip API.
+
+Cons:
+
+* API not designed for zero-copy.
+* API closely coupled with the exact stack.
+* No abstraction of the service handling, all stack interaction logic ("Glue code") propagates into the gatewayd.
+* Separation of "bridge" and "API" would still have to be designed.
 
 Evaluation
 ----------
@@ -100,9 +111,10 @@ Option 1 would require missing capabilities and expected API extensions in
 ``mw::com`` before it can support the intended SOME/IP gateway behavior cleanly.
 To be agnostic to the concrete SOME/IP stack, ``mw::com`` would need to provide a suitable abstraction layer.
 
+Thus if option 1 is selected, we still have to select between option 2 and 3 for the abstraction layer.
+
 Option 2 provides the necessary extensibility (binding registration) with a
-simpler integration model and method support out of the box, reducing the amount
-of framework adaptation needed for the gateway implementation.
+simpler integration model and method support out of the box.
 
 Decision
 --------
