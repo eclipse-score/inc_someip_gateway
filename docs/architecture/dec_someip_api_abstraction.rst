@@ -29,7 +29,7 @@ Context / Problem
 
 ``vsomeipd`` will not be the only SOME/IP stack implementation used in the future, and the architecture needs to support multiple implementations.
 The SOME/IP Gateway needs an abstraction layer to decouple from the specific SOME/IP stack implementation.
-The semantics of the abstraction layer needs to be transported via IPC to each process.
+The semantics of the abstraction layer need to be reflected via the IPC layer.
 
 The abstraction layer is the scope of this decision record. The IPC implementation is covered in a separate decision record.
 
