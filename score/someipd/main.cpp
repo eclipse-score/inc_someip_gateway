@@ -19,6 +19,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <string>
 
 #include "impl/local_network_service.h"
 #include "impl/remote_network_service.h"
@@ -46,12 +47,14 @@ void termination_handler(int /*signal*/) {
 // Help text, showing usage syntax and available options
 void print_help() {
     std::cout << "Syntax: someipd -h/--help\n"
-              << "        someipd -c/--configuration <config.bin>\n"
+              << "        someipd -c/--configuration <config.bin> [-i/--ipc_channel <name>]\n"
               << "\n";
 
     std::cout << "Options:\n"
               << " -h/--help Displays this help\n"
               << " -c/--configuration Specifies the configuration file\n"
+              << " -i/--ipc_channel Name of the IPC channel to gatewayd (default: "
+              << score::someip::kDefaultIpcChannelName << ")\n"
               << "\n";
 }
 
@@ -60,12 +63,14 @@ int main(int argc, char* argv[]) {
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
 
-    const char* const short_opts = "hc:";
+    const char* const short_opts = "hc:i:";
     const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
                                 {"configuration", required_argument, nullptr, 'c'},
+                                {"ipc_channel", required_argument, nullptr, 'i'},
                                 {nullptr, no_argument, nullptr, 0}};
 
     score::filesystem::Path configuration_path{};
+    std::string ipc_channel_name{score::someip::kDefaultIpcChannelName};
 
     while (true) {
         const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
@@ -80,6 +85,10 @@ int main(int argc, char* argv[]) {
             }
             case 'c': {
                 configuration_path = score::filesystem::Path{optarg};
+                break;
+            }
+            case 'i': {
+                ipc_channel_name = optarg;
                 break;
             }
             // Unknown option
@@ -127,9 +136,9 @@ int main(int argc, char* argv[]) {
     auto socom_runtime = socom::create_runtime();
 
     // Create the IPC server — socket name and message sizes must match gatewayd's client config
-    message_passing::ServiceProtocolConfig const proto{
-        "someipd_gatewayd_ipc", someip::kMaxIpcMessageSize, someip::kMaxIpcMessageSize,
-        someip::kMaxIpcMessageSize};
+    message_passing::ServiceProtocolConfig const proto{ipc_channel_name, someip::kMaxIpcMessageSize,
+                                                       someip::kMaxIpcMessageSize,
+                                                       someip::kMaxIpcMessageSize};
 
     auto ipc_server = message_passing::ServerFactory{}.Create(proto, {10, 1, 10});
 
