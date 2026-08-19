@@ -80,11 +80,9 @@ test:aarch64-qnx --run_under=@score_itf//scripts:run_under_qemu
 # ============================================================================
 # End-to-End Performance Test Configuration
 # ============================================================================
-# The performance tests run both nodes on one host and need an isolated network
-# (fixed UDP ports, SOME/IP-SD multicast), which the linux-sandbox network namespace provides.
-# The run_under script prepares that namespace before the test starts.
+# The performance test wrapper creates its own isolated network namespace and configures it
+# before the test starts.
 # Usage: bazel test --config=perf-tests //tests/e2e_perf:e2e_perf
-test:perf-tests --strategy_regexp='^Testing .*e2e_perf.*=linux-sandbox'
 test:perf-tests --run_under=//tests/e2e_perf:setup_network
 
 test --test_output=errors

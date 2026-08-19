@@ -103,8 +103,8 @@ sh_binary(
     visibility = ["//visibility:public"],
 )
 
-# Tagged manual because it needs the network namespace of the linux-sandbox, which
-# --config=perf-tests sets up (see README.md).
+# Tagged manual because it needs the user and network namespaces created by --config=perf-tests
+# (see README.md).
 py_pytest(
     name = "e2e_perf",
     size = "medium",
@@ -122,11 +122,7 @@ py_pytest(
         "//score/someipd",
     ] + glob(["config/*.json"]),
     tags = [
-        # The two nodes bind fixed UDP ports, so they need their own network namespace,
-        # and root inside that namespace to configure it (see setup_network.sh).
-        "block-network",
         "manual",
-        "requires-fakeroot",
     ],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [

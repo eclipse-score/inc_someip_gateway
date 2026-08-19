@@ -40,12 +40,11 @@ CONFIG_DIR = Path("tests/e2e_perf/config")
 GATEWAYD_READY_MARKER = "[gatewayd] IPC connection to someipd established"
 SD_MULTICAST_ADDRESS = "224.244.224.245"
 
-# Overridable so the test can run on hosts with a different addressing scheme. The defaults are
-# loopback addresses because they are local without any configuration, also inside the network
-# namespace of the linux-sandbox.
-NODE_A_IP = os.environ.get("E2E_PERF_NODE_A_IP", "127.0.0.2")
-NODE_B_IP = os.environ.get("E2E_PERF_NODE_B_IP", "127.0.0.3")
-NETMASK = os.environ.get("E2E_PERF_NETMASK", "255.0.0.0")
+# Loopback addresses within the network namespace set up by setup_network.sh, so they cannot
+# clash with the host.
+NODE_A_IP = "127.0.0.2"
+NODE_B_IP = "127.0.0.3"
+NETMASK = "255.0.0.0"
 VSOMEIP_LOG_LEVEL = os.environ.get("E2E_PERF_VSOMEIP_LOG_LEVEL", "warning")
 
 STALE_PATH_PATTERNS = (

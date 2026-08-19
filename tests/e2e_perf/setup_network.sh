@@ -14,61 +14,34 @@
 #
 # Prepares the network for the end-to-end performance test and then execs the test.
 #
-# Used as --run_under for //tests/e2e_perf:e2e_perf (see --config=perf-tests), so it runs
-# inside the linux-sandbox network namespace, which only provides a loopback interface.
-# The two nodes therefore talk over loopback addresses, which need no configuration; only
-# non-loopback addresses (E2E_PERF_NODE_A_IP / E2E_PERF_NODE_B_IP) have to be added to an
-# interface, which requires CAP_NET_ADMIN in the namespace.
+# Used as --run_under for //tests/e2e_perf:e2e_perf (see --config=perf-tests). It creates an
+# isolated user and network namespace, which gives the test CAP_NET_ADMIN without requiring
+# privileged Bazel sandbox execution.
 
-set -u
+set -ueo pipefail
 
-NODE_A_IP="${E2E_PERF_NODE_A_IP:-127.0.0.2}"
-NODE_B_IP="${E2E_PERF_NODE_B_IP:-127.0.0.3}"
-NETMASK="${E2E_PERF_NETMASK:-255.0.0.0}"
-DEVICE="${E2E_PERF_DEVICE:-lo}"
+NODE_A_IP="127.0.0.2"
+NODE_B_IP="127.0.0.3"
 SD_MULTICAST_ADDRESS="224.244.224.245"
-
-log() {
-    echo "[setup_network] $*" >&2
-}
 
 # vsomeip only offers services once it has seen the interface owning its unicast address and a
 # route for the SD multicast address, so both have to exist even on loopback.
-prefix_length() {
-    local netmask="$1" length=0 octet
-    for octet in ${netmask//./ }; do
-        while ((octet & 128)); do
-            length=$((length + 1))
-            octet=$((octet << 1 & 255))
-        done
-    done
-    echo "${length}"
-}
-
-if ! command -v ip >/dev/null 2>&1; then
-    log "'ip' not found, leaving the network as it is"
-else
-    ip link set "${DEVICE}" up 2>/dev/null || log "could not bring ${DEVICE} up"
+setup_network() {
+    ip link set lo up
 
     for address in "${NODE_A_IP}" "${NODE_B_IP}"; do
-        address_info="$(ip -brief address show to "${address}/32")"
-        if [[ -n "${address_info}" ]]; then
-            continue
-        fi
-        address_prefix="$(prefix_length "${NETMASK}")"
-        ip address add "${address}/${address_prefix}" dev "${DEVICE}" ||
-            log "could not add ${address} to ${DEVICE}, the test will skip"
+        ip address add "${address}/8" dev lo
     done
 
-    routes="$(ip route show)"
-    if ! grep -q "^${SD_MULTICAST_ADDRESS}" <<<"${routes}"; then
-        ip route add "${SD_MULTICAST_ADDRESS}/32" dev "${DEVICE}" ||
-            log "could not add a route for ${SD_MULTICAST_ADDRESS}, the test will skip"
-    fi
+    ip route add "${SD_MULTICAST_ADDRESS}/32" dev lo
+
+    exec "$@"
+}
+
+# First: enter new network and user namespaces, then reexec this script
+if [[ "${E2E_PERF_NETWORK_SETUP:-}" != "1" ]]; then
+    exec env E2E_PERF_NETWORK_SETUP=1 unshare --user --net --map-root-user --fork -- /bin/bash "$0" "$@"
 fi
 
-export E2E_PERF_NODE_A_IP="${NODE_A_IP}"
-export E2E_PERF_NODE_B_IP="${NODE_B_IP}"
-export E2E_PERF_NETMASK="${NETMASK}"
-
-exec "$@"
+# Second: configure the network and exec the test
+setup_network "$@"

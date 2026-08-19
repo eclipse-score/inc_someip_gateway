@@ -65,12 +65,12 @@ Two more constraints are baked into the configs:
 
 ## Host prerequisites
 
-None. `setup_network.sh` runs as `--run_under` inside the test's own network namespace and
-configures everything the nodes need: it brings the loopback interface up, assigns the two node
-addresses (`127.0.0.2` / `127.0.0.3` by default, overridable with `E2E_PERF_NODE_A_IP` /
-`E2E_PERF_NODE_B_IP`) and adds a route for the SOME/IP-SD multicast address. vsomeip only offers
-services on the network once it has seen both the interface owning its unicast address and that
-route, so neither is optional.
+Unprivileged user namespaces must be enabled on the host. `setup_network.sh` runs as
+`--run_under`, creates the test's own user and network namespaces, and configures everything the
+nodes need: it brings the loopback interface up, assigns the two node addresses (`127.0.0.2` and
+`127.0.0.3`) and adds a route for the SOME/IP-SD multicast address. vsomeip only offers services
+on the network once it has seen both the interface owning its unicast address and that route, so
+neither is optional.
 
 If the setup fails the test skips with an explanation instead of failing.
 
@@ -80,11 +80,11 @@ If the setup fails the test skips with an explanation instead of failing.
 bazel test --config=perf-tests //tests/e2e_perf:e2e_perf --test_output=streamed
 ```
 
-`--config=perf-tests` runs the test under `linux-sandbox` and points `--run_under` at
-`setup_network.sh`. The `block-network` tag gives the test its own network namespace, so the fixed
-UDP ports cannot clash with anything else on the host, and `requires-fakeroot` gives the setup
-script the privileges to configure that namespace. `/dev/shm` and `/tmp` are already sandboxed per
-test via `.bazelrc`. The target is tagged `manual` because it only works with that config.
+`--config=perf-tests` points `--run_under` at `setup_network.sh`. The wrapper uses
+`unshare --user --net --map-root-user` so the fixed UDP ports cannot clash with the host and the
+script can configure the namespace without Bazel's `linux-sandbox`, `block-network`, or
+`requires-fakeroot` requirements. The target is tagged `manual` because it only works with that
+config.
 
 Daemon logs, rendered vsomeip configs, per-case result JSONs and a combined
 `e2e_perf_report.json` are written to `TEST_UNDECLARED_OUTPUTS_DIR/e2e_perf`.
