@@ -1,6 +1,6 @@
 {
-    "unicast": "172.17.0.2",
-    "netmask": "255.255.0.0",
+    "unicast": "127.0.0.2",
+    "netmask": "255.0.0.0",
     "network": "perf-node-a",
     "logging": {
         "level": "warning",

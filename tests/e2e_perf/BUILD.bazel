@@ -19,6 +19,7 @@ End-to-end performance tests: mw::com sender -> gatewayd/someipd -> SOME/IP -> s
 load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
@@ -94,11 +95,19 @@ validate_json_schema_test(
     tags = ["lint"],
 )
 
-# Tagged manual because it binds fixed UDP ports, needs two host IP addresses and a multicast
-# route (see README.md), and exclusive because the daemons use global /dev/shm and /tmp names.
+# Used as --run_under by --config=perf-tests, see .bazelrc.
+sh_binary(
+    name = "setup_network",
+    srcs = ["setup_network.sh"],
+    target_compatible_with = ["@platforms//os:linux"],
+    visibility = ["//visibility:public"],
+)
+
+# Tagged manual because it needs the network namespace of the linux-sandbox, which
+# --config=perf-tests sets up (see README.md).
 py_pytest(
     name = "e2e_perf",
-    size = "large",
+    size = "medium",
     srcs = [
         "conftest.py",
         "nodes.py",
@@ -113,9 +122,11 @@ py_pytest(
         "//score/someipd",
     ] + glob(["config/*.json"]),
     tags = [
-        "exclusive",
+        # The two nodes bind fixed UDP ports, so they need their own network namespace,
+        # and root inside that namespace to configure it (see setup_network.sh).
+        "block-network",
         "manual",
-        "no-sandbox",
+        "requires-fakeroot",
     ],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [

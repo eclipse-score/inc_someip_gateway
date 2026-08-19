@@ -40,9 +40,12 @@ CONFIG_DIR = Path("tests/e2e_perf/config")
 GATEWAYD_READY_MARKER = "[gatewayd] IPC connection to someipd established"
 SD_MULTICAST_ADDRESS = "224.244.224.245"
 
-# Overridable so the test can run on hosts with a different addressing scheme.
-NODE_A_IP = os.environ.get("E2E_PERF_NODE_A_IP", "172.17.0.2")
-NODE_B_IP = os.environ.get("E2E_PERF_NODE_B_IP", "172.17.0.3")
+# Overridable so the test can run on hosts with a different addressing scheme. The defaults are
+# loopback addresses because they are local without any configuration, also inside the network
+# namespace of the linux-sandbox.
+NODE_A_IP = os.environ.get("E2E_PERF_NODE_A_IP", "127.0.0.2")
+NODE_B_IP = os.environ.get("E2E_PERF_NODE_B_IP", "127.0.0.3")
+NETMASK = os.environ.get("E2E_PERF_NETMASK", "255.0.0.0")
 VSOMEIP_LOG_LEVEL = os.environ.get("E2E_PERF_VSOMEIP_LOG_LEVEL", "warning")
 
 STALE_PATH_PATTERNS = (
@@ -126,16 +129,16 @@ def preflight() -> None:
     for spec in (NODE_A, NODE_B):
         if not _is_local_address(spec.unicast_ip):
             raise PreflightError(
-                f"{spec.name} needs the local address {spec.unicast_ip}. Add it with\n"
-                f"  sudo ip addr add {spec.unicast_ip}/16 dev eth0\n"
-                "or point E2E_PERF_NODE_A_IP / E2E_PERF_NODE_B_IP at two local addresses "
-                "on a multicast capable interface."
+                f"{spec.name} needs the local address {spec.unicast_ip}, which "
+                "tests/e2e_perf/setup_network.sh could not configure. Run the test with "
+                "--config=perf-tests."
             )
 
     if not _has_sd_multicast_route():
         raise PreflightError(
-            "no route for the SOME/IP-SD multicast address. Add it with\n"
-            f"  sudo ip route add {SD_MULTICAST_ADDRESS}/32 dev eth0"
+            f"no route for the SOME/IP-SD multicast address {SD_MULTICAST_ADDRESS}, which "
+            "tests/e2e_perf/setup_network.sh could not configure. Run the test with "
+            "--config=perf-tests."
         )
 
     for name in ("someipd", "gatewayd", "perf_sender", "perf_receiver"):
@@ -147,6 +150,7 @@ def preflight() -> None:
 def _render_vsomeip_config(spec: NodeSpec, workdir: Path) -> Path:
     config = json.loads(spec.vsomeip_template.read_text())
     config["unicast"] = spec.unicast_ip
+    config["netmask"] = NETMASK
     config["network"] = spec.vsomeip_network
     config["logging"]["level"] = VSOMEIP_LOG_LEVEL
     rendered = workdir / f"vsomeip_{spec.name}.json"

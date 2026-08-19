@@ -42,7 +42,7 @@ Each of them therefore gets a per-node name:
 | gatewayd/someipd IPC socket (`--ipc_channel`) | `perf_ipc_a` | `perf_ipc_b` |
 | gateway_ipc_binding shared memory (`/dev/shm/<service_type_name>_<service_id>`) | `perf_req_tx`, `perf_resp_rx` | `perf_req_rx`, `perf_resp_tx` |
 | vsomeip unix sockets (`network` in the vsomeip config) | `perf-node-a` | `perf-node-b` |
-| vsomeip unicast address | `172.17.0.2` | `172.17.0.3` |
+| vsomeip unicast address | `127.0.0.2` | `127.0.0.3` |
 | offered UDP port | 31100 (request) | 31101 (response) |
 | mw::com/LoLa service ids | 7100 request, 7103 response | 7102 request, 7101 response |
 
@@ -65,31 +65,33 @@ Two more constraints are baked into the configs:
 
 ## Host prerequisites
 
-The test needs two local IPv4 addresses on a multicast capable interface and a route for the
-SOME/IP-SD multicast address:
+None. `setup_network.sh` runs as `--run_under` inside the test's own network namespace and
+configures everything the nodes need: it brings the loopback interface up, assigns the two node
+addresses (`127.0.0.2` / `127.0.0.3` by default, overridable with `E2E_PERF_NODE_A_IP` /
+`E2E_PERF_NODE_B_IP`) and adds a route for the SOME/IP-SD multicast address. vsomeip only offers
+services on the network once it has seen both the interface owning its unicast address and that
+route, so neither is optional.
 
-```bash
-sudo ip addr add 172.17.0.3/16 dev eth0
-sudo ip route add 224.244.224.245/32 dev eth0
-```
-
-Use `E2E_PERF_NODE_A_IP` / `E2E_PERF_NODE_B_IP` to point the test at different addresses. If the
-prerequisites are missing the test skips with an explanation instead of failing.
+If the setup fails the test skips with an explanation instead of failing.
 
 ## Running
 
 ```bash
-bazel test //tests/e2e_perf:e2e_perf --test_output=streamed
+bazel test --config=perf-tests //tests/e2e_perf:e2e_perf --test_output=streamed
 ```
 
-The target is tagged `manual` (it depends on the host setup above) and `exclusive` (it binds fixed
-UDP ports and uses global `/dev/shm` names).
+`--config=perf-tests` runs the test under `linux-sandbox` and points `--run_under` at
+`setup_network.sh`. The `block-network` tag gives the test its own network namespace, so the fixed
+UDP ports cannot clash with anything else on the host, and `requires-fakeroot` gives the setup
+script the privileges to configure that namespace. `/dev/shm` and `/tmp` are already sandboxed per
+test via `.bazelrc`. The target is tagged `manual` because it only works with that config.
 
 Daemon logs, rendered vsomeip configs, per-case result JSONs and a combined
 `e2e_perf_report.json` are written to `TEST_UNDECLARED_OUTPUTS_DIR/e2e_perf`.
 
 To confirm that traffic really crosses the network stack, capture while the test runs. Traffic
-between two local addresses is delivered via `lo`, so capture on `any`:
+between the two node addresses is delivered via `lo`, so capture on `any` inside the test's
+network namespace:
 
 ```bash
 sudo tcpdump -i any -n "udp port 31100 or udp port 31101 or udp port 30490"
