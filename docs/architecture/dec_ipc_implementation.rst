@@ -22,7 +22,7 @@ DR-002-Arch: IPC implementation
    :status: accepted
    :version: 1
    :context: SOME/IP Gateway
-   :decision: Option 2 (TBD)
+   :decision: Option 2 (specific implementation using ``message_passing`` and ``shared_memory``)
 
 Context / Problem
 -----------------
