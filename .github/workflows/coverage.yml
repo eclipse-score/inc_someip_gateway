@@ -52,14 +52,13 @@ jobs:
       - name: Generate coverage report
         run: |
           bazel run @score_tooling//coverage:generate_coverage_html -- \
-            --yaml tools/coverage/coverage_justifications.yaml \
-            --archive coverage_artifacts
+            --archive-dir coverage_artifacts
       - name: Upload coverage artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage_artifacts.zip
+          path: coverage_artifacts
           if-no-files-found: error
           retention-days: 14
       - run: df -h

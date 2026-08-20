@@ -38,7 +38,7 @@ A code coverage report can be generated for the `score` package using the follow
 
 ```sh
 bazel coverage //... --build_tests_only
-bazel run @score_tooling//coverage:generate_coverage_html -- --yaml tools/coverage/coverage_justifications.yaml
+bazel run @score_tooling//coverage:generate_coverage_html
 ```
 
 The HTML report is stored at `coverage_linux/index.html`. You can open it in a web browser to view the coverage results.
