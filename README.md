@@ -37,7 +37,7 @@ cd inc_someip_gateway
 A code coverage report can be generated for the `score` package using the following command:
 
 ```sh
-bazel coverage --config=llvm_cov //... --build_tests_only
+bazel coverage //... --build_tests_only
 bazel run @score_tooling//coverage:generate_coverage_html -- --yaml tools/coverage/coverage_justifications.yaml
 ```
 

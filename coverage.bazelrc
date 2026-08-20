@@ -17,8 +17,10 @@
 # LLVM source-based coverage (Linux, Clang + Ferrocene) — unified Rust + C++
 # This is the CANONICAL consumer snippet: copy this block (adjusting the
 # --coverage_report_generator label) into your repository's bazelrc.
-# Use with: bazel coverage --config=llvm_cov //... --build_tests_only
+# Use with: bazel coverage //... --build_tests_only
 # ============================================================================
+coverage --config=llvm_cov
+
 coverage:llvm_cov --nocache_test_results
 coverage:llvm_cov --cxxopt=-O0
 coverage:llvm_cov --combined_report=lcov
