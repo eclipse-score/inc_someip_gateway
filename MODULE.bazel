@@ -125,7 +125,7 @@ use_repo(
 
 # LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
 # Integrates with LLVM and Debian Bullseye sysroots
-bazel_dep(name = "toolchains_llvm", version = "1.7.0", dev_dependency = True)
+bazel_dep(name = "toolchains_llvm", version = "1.8.0", dev_dependency = True)
 
 # Configures LLVM for C/C++ compilation with cross-architecture support.
 llvm = use_extension(
@@ -139,7 +139,8 @@ llvm.toolchain(
     extra_known_features = [
         "@score_tooling//coverage:enable_llvm_coverage_for_death_tests",
     ],
-    llvm_version = "19.1.7",
+    llvm_version = "22.1.7",
+    stdlib = {"": "stdc++"},
 )
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 
