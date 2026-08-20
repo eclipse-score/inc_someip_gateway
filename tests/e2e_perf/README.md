@@ -89,6 +89,9 @@ only works with that config.
 Daemon logs, rendered vsomeip configs, per-case result JSONs and a combined
 `e2e_perf_report.json` are written to `TEST_UNDECLARED_OUTPUTS_DIR/e2e_perf`.
 
+> NOTE:
+> When run with bazel the logs are usually written to `bazel-testlogs/tests/e2e_perf/e2e_perf/test.outputs/e2e_perf/e2e_perf_report.json`.
+
 To confirm that traffic really crosses the network stack, capture while the test runs. Traffic
 between the two node addresses is delivered via `lo`, so capture on `any` inside the test's
 network namespace:
