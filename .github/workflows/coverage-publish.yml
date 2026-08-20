@@ -18,7 +18,7 @@ name: Publish Coverage Report
 
 on:
   workflow_run:
-    workflows: ["Coverage"]
+    workflows: ["CI"]
     types:
       - completed
 
