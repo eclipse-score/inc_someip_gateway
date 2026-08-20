@@ -83,8 +83,8 @@ bazel test --config=perf-tests //tests/e2e_perf:e2e_perf --test_output=streamed
 `--config=perf-tests` points `--run_under` at `setup_network.sh`. The wrapper uses
 `unshare --user --net --map-root-user` so the fixed UDP ports cannot clash with the host and the
 script can configure the namespace without Bazel's `linux-sandbox`, `block-network`, or
-`requires-fakeroot` requirements. The target is tagged `manual` because it only works with that
-config.
+`requires-fakeroot` requirements. The target is incompatible with other configurations because it
+only works with that config.
 
 Daemon logs, rendered vsomeip configs, per-case result JSONs and a combined
 `e2e_perf_report.json` are written to `TEST_UNDECLARED_OUTPUTS_DIR/e2e_perf`.

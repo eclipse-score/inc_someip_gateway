@@ -84,6 +84,7 @@ test:aarch64-qnx --run_under=@score_itf//scripts:run_under_qemu
 # before the test starts.
 # Usage: bazel test --config=perf-tests //tests/e2e_perf:e2e_perf
 test:perf-tests --run_under=//tests/e2e_perf:setup_network
+test:perf-tests --define=perf_tests=true
 
 test --test_output=errors
 build --incompatible_strict_action_env

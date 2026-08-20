@@ -23,6 +23,11 @@ load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
+config_setting(
+    name = "perf_tests",
+    define_values = {"perf_tests": "true"},
+)
+
 cc_library(
     name = "perf_service",
     hdrs = ["perf_service.h"],
@@ -103,8 +108,6 @@ sh_binary(
     visibility = ["//visibility:public"],
 )
 
-# Tagged manual because it needs the user and network namespaces created by --config=perf-tests
-# (see README.md).
 py_pytest(
     name = "e2e_perf",
     size = "medium",
@@ -121,10 +124,10 @@ py_pytest(
         "//score/gatewayd",
         "//score/someipd",
     ] + glob(["config/*.json"]),
-    tags = [
-        "manual",
-    ],
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        ":perf_tests": ["@platforms//os:linux"],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [
         "@score_someip_gateway_pip//pytest",
     ],
