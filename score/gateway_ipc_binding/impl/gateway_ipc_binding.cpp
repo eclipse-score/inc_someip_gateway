@@ -15,6 +15,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <string>
+#include <string_view>
 
 namespace score::gateway_ipc_binding {
 
@@ -50,6 +52,43 @@ Instance_id make_instance_id(score::socom::Service_instance const& instance) noe
     auto const result = fixed_string_from_string<Instance_id>(instance.id.string_view());
     assert(result && "Instance id exceeds fixed size");
     return *result;
+}
+
+namespace {
+
+/// \brief Makes a service_type_name usable inside a POSIX shared memory object name
+///
+/// Leading slashes are dropped rather than substituted: the caller prepends its own, and
+/// a leading slash carries no meaning of its own in a shm name. Substituting them would
+/// yield "/_name" and, for the counterpart prefix, a stray "counterpart__name".
+std::string flatten_service_type_name(std::string_view service_type_name) {
+    auto const first_kept = service_type_name.find_first_not_of('/');
+    service_type_name.remove_prefix(std::min(first_kept, service_type_name.size()));
+
+    std::string flattened{service_type_name};
+    std::replace(flattened.begin(), flattened.end(), '/', '_');
+    return flattened;
+}
+
+Result<Shared_memory_path> make_path(std::string_view prefix, std::string_view service_type_name,
+                                     std::uint16_t service_id) noexcept {
+    std::string path{prefix};
+    path.append(flatten_service_type_name(service_type_name))
+        .append("_")
+        .append(std::to_string(service_id));
+    return fixed_string_from_string<Shared_memory_path>(path);
+}
+
+}  // namespace
+
+Result<Shared_memory_path> make_shared_memory_path(std::string_view service_type_name,
+                                                   std::uint16_t service_id) noexcept {
+    return make_path("/", service_type_name, service_id);
+}
+
+Result<Shared_memory_path> make_counterpart_shared_memory_path(std::string_view service_type_name,
+                                                               std::uint16_t service_id) noexcept {
+    return make_path("/counterpart_", service_type_name, service_id);
 }
 
 bool operator==(Shared_memory_handle const& lhs, Shared_memory_handle const& rhs) noexcept {

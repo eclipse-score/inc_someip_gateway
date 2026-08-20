@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <score/span.hpp>
+#include <string_view>
 #include <type_traits>
 
 #include "score/gateway_ipc_binding/fixed_size_container.hpp"
@@ -114,6 +115,23 @@ bool operator==(Shared_memory_handle const& lhs, Shared_memory_handle const& rhs
 
 /// \brief Path to shared memory, in fixed-size form
 using Shared_memory_path = Fixed_string<kMax_shared_memory_path_size>;
+
+/// \brief Builds the shared memory object name for a service instance
+///
+/// A POSIX shared memory name carries at most a leading slash, so a service_type_name
+/// spelled as a namespaced path (for example "/a/b/C") cannot be embedded verbatim: the
+/// name would be read as a path, and both shm_open and the lock file mw::com derives from
+/// it would fail. Every slash is therefore replaced by an underscore. Names without
+/// slashes are unaffected.
+///
+/// \return The name, or fixed_size_container_too_small if it exceeds NAME_MAX
+Result<Shared_memory_path> make_shared_memory_path(std::string_view service_type_name,
+                                                   std::uint16_t service_id) noexcept;
+
+/// \brief Builds the counterpart shared memory object name for a service instance
+/// \see make_shared_memory_path
+Result<Shared_memory_path> make_counterpart_shared_memory_path(std::string_view service_type_name,
+                                                               std::uint16_t service_id) noexcept;
 
 /// \brief Metadata needed to map and interpret peer shared memory
 struct Shared_memory_metadata {
