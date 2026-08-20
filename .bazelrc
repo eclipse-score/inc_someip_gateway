@@ -115,6 +115,9 @@ common:tc8-itf-qnx --@rules_python//python/config_settings:precompile=force_disa
 test:tc8-itf-qnx --test_tag_filters=tc8
 test:tc8-itf-qnx --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
 
+# Coverage settings
+import %workspace%/coverage.bazelrc
+
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
 # For definition of sanitizer features see https://github.com/eclipse-score/bazel_cpp_toolchains/blob/main/templates/linux/cc_toolchain_config.bzl.template

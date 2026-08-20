@@ -15,6 +15,9 @@ load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
+# Needed for coverage report by score/tooling
+exports_files(["MODULE.bazel"])
+
 # ==============================================================================
 # Code Formatting
 # ==============================================================================
