@@ -36,6 +36,18 @@ use_format_targets(
 # ==============================================================================
 
 docs(
+    bundles = [
+        {
+            "bundle": "//score/socom:docs_bundle",
+            "mount_at": "socom",
+            # "attach_to": "index",
+        },
+        {
+            "bundle": "//score/gateway_ipc_binding:docs_bundle",
+            "mount_at": "gateway_ipc_binding",
+            # "attach_to": "index",
+        },
+    ],
     source_dir = "docs",
 )
 
