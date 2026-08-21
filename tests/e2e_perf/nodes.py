@@ -121,9 +121,10 @@ def _remove_stale_paths() -> None:
                 pass
 
 
-def preflight() -> None:
+def preflight(required_binaries: Sequence[Path] | None = None) -> None:
     """Validates the host setup and removes leftovers from a previous run."""
-    for binary in (SOMEIPD, GATEWAYD, PERF_SENDER, PERF_RECEIVER):
+    binaries = required_binaries or (SOMEIPD, GATEWAYD, PERF_SENDER, PERF_RECEIVER)
+    for binary in binaries:
         if not binary.exists():
             raise PreflightError(f"missing binary {binary} (cwd: {Path.cwd()})")
 

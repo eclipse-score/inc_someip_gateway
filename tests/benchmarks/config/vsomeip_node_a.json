@@ -1,0 +1,104 @@
+{
+    "unicast": "127.0.0.2",
+    "netmask": "255.0.0.0",
+    "network": "benchmark-node-a",
+    "max-payload-size-local": "1048616",
+    "max-payload-size-reliable": "1048616",
+    "max-payload-size-unreliable": "1048616",
+    "logging": {
+        "level": "warning",
+        "console": "true",
+        "dlt": "false"
+    },
+    "applications": [
+        {
+            "name": "someipd",
+            "id": "0x0300"
+        }
+    ],
+    "services": [
+        {
+            "service": "0x7200",
+            "instance": "0x0001",
+            "reliable": "31200",
+            "events": [
+                {
+                    "event": "0x8201",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8202",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8203",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8204",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8205",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8206",
+                    "is_field": "false"
+                }
+            ],
+            "eventgroups": [
+                {
+                    "eventgroup": "0x8201",
+                    "events": [
+                        "0x8201"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8202",
+                    "events": [
+                        "0x8202"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8203",
+                    "events": [
+                        "0x8203"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8204",
+                    "events": [
+                        "0x8204"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8205",
+                    "events": [
+                        "0x8205"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8206",
+                    "events": [
+                        "0x8206"
+                    ]
+                }
+            ]
+        }
+    ],
+    "routing": "someipd",
+    "service-discovery": {
+        "enable": "true",
+        "multicast": "224.244.224.245",
+        "port": "30490",
+        "protocol": "udp",
+        "initial_delay_min": "10",
+        "initial_delay_max": "100",
+        "repetitions_base_delay": "200",
+        "repetitions_max": "3",
+        "ttl": "3",
+        "cyclic_offer_delay": "2000",
+        "request_response_delay": "500"
+    }
+}

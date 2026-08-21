@@ -23,6 +23,11 @@ load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
+exports_files(
+    ["nodes.py"],
+    visibility = ["//tests/benchmarks:__pkg__"],
+)
+
 config_setting(
     name = "perf_tests",
     define_values = {"perf_tests": "true"},

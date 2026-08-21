@@ -76,10 +76,14 @@ class BenchmarkFixture {
                 throw std::runtime_error("Stop requested during service discovery");
             }
 
-            auto response_handles_result = EchoResponsePreSerializedProxy::FindService(
-                score::mw::com::InstanceSpecifier::Create(
-                    std::string{EchoResponseInstanceSpecifier})
-                    .value());
+            auto response_specifier = score::mw::com::InstanceSpecifier::Create(
+                std::string{EchoResponseInstanceSpecifier});
+            if (!response_specifier.has_value()) {
+                throw std::runtime_error(
+                    "Failed to create the echo response instance specifier from the manifest");
+            }
+            auto response_handles_result =
+                EchoResponsePreSerializedProxy::FindService(response_specifier.value());
 
             if (response_handles_result.has_value() && !response_handles_result.value().empty()) {
                 auto response_proxy_result =
@@ -149,9 +153,14 @@ class BenchmarkFixture {
         response_proxy_->echo_response_xxlarge_.Subscribe(MaxSamplesCount);
 
         std::cout << "Creating and offering echo_request service..." << std::endl;
-        auto request_skeleton_result = EchoRequestPreSerializedSkeleton::Create(
-            score::mw::com::InstanceSpecifier::Create(std::string{EchoRequestkInstanceSpecifier})
-                .value());
+        auto request_specifier =
+            score::mw::com::InstanceSpecifier::Create(std::string{EchoRequestkInstanceSpecifier});
+        if (!request_specifier.has_value()) {
+            throw std::runtime_error(
+                "Failed to create the echo request instance specifier from the manifest");
+        }
+        auto request_skeleton_result =
+            EchoRequestPreSerializedSkeleton::Create(request_specifier.value());
 
         if (!request_skeleton_result.has_value()) {
             throw std::runtime_error("Failed to create request skeleton");
@@ -541,21 +550,39 @@ int main(int argc, char** argv) {
     g_stop_source = score::cpp::stop_source{};
     g_stop_token = g_stop_source.get_token();
 
-    // Initialize runtime with default config
-    const char* score_args[] = {"ipc_benchmarks", "-service_instance_manifest",
-                                "tests/benchmarks/config/benchmark_mw_com_config.json"};
-    int score_argc = sizeof(score_args) / sizeof(score_args[0]);
-    score::mw::com::runtime::InitializeRuntime(score_argc, score_args);
+    std::string manifest_path;
+    for (int index = 1; index + 1 < argc; ++index) {
+        if (std::string_view{argv[index]} == "--service_instance_manifest") {
+            manifest_path = argv[index + 1];
+            break;
+        }
+    }
+    if (manifest_path.empty()) {
+        std::cerr << "Missing --service_instance_manifest" << std::endl;
+        return 1;
+    }
+    score::mw::com::runtime::InitializeRuntime(
+        score::mw::com::runtime::RuntimeConfiguration{score::filesystem::Path{manifest_path}});
 
-    benchmark::Initialize(&argc, argv);
+    std::vector<char*> benchmark_args;
+    benchmark_args.reserve(static_cast<std::size_t>(argc));
+    benchmark_args.push_back(argv[0]);
+    for (int index = 1; index < argc; ++index) {
+        if (std::string_view{argv[index]} == "--service_instance_manifest" && index + 1 < argc) {
+            ++index;
+            continue;
+        }
+        benchmark_args.push_back(argv[index]);
+    }
+    auto benchmark_argc = static_cast<int>(benchmark_args.size());
+    benchmark::Initialize(&benchmark_argc, benchmark_args.data());
 
-    if (benchmark::ReportUnrecognizedArguments(argc, argv)) {
+    if (benchmark::ReportUnrecognizedArguments(benchmark_argc, benchmark_args.data())) {
         return 1;
     }
 
     std::cout << "Starting IPC Performance Benchmarks..." << std::endl;
-    std::cout << "Echo server should be running. If not, run:" << std::endl;
-    std::cout << "bazel run //tests/benchmarks:echo_server" << std::endl;
+    std::cout << "Waiting for the echo server to become available..." << std::endl;
 
 #if defined(__aarch64__) || defined(__arm64__)
     benchmark::AddCustomContext("architecture", "aarch64");

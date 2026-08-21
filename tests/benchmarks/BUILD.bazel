@@ -11,9 +11,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
+
+config_setting(
+    name = "perf_tests",
+    define_values = {"perf_tests": "true"},
+)
 
 filegroup(
     name = "all_files",
@@ -40,11 +47,6 @@ cc_library(
 cc_binary(
     name = "echo_server",
     srcs = ["echo_server.cpp"],
-    args = [
-        "-service_instance_manifest",
-        "$(rootpath config/benchmark_mw_com_config.json)",
-    ],
-    data = ["config/benchmark_mw_com_config.json"],
     visibility = ["//visibility:public"],
     deps = [
         ":echo_service",
@@ -56,13 +58,46 @@ cc_binary(
 cc_binary(
     name = "ipc_benchmarks",
     srcs = ["ipc_benchmarks.cpp"],
-    data = ["config/benchmark_mw_com_config.json"],
     visibility = ["//visibility:public"],
     deps = [
         ":echo_service",
         "@google_benchmark//:benchmark",
         "@score_baselibs//score/language/futurecpp",
         "@score_communication//score/mw/com",
+    ],
+)
+
+generate_someip_config_bin(
+    name = "node_a_config_file",
+    json = "config/node_a_someip_config.json",
+    output = "node_a_someip_config.bin",
+)
+
+generate_someip_config_bin(
+    name = "node_b_config_file",
+    json = "config/node_b_someip_config.json",
+    output = "node_b_someip_config.bin",
+)
+
+py_pytest(
+    name = "e2e_benchmarks",
+    size = "large",
+    srcs = ["test_e2e_benchmarks.py"],
+    data = [
+        ":echo_server",
+        ":ipc_benchmarks",
+        ":node_a_config_file",
+        ":node_b_config_file",
+        "//score/gatewayd",
+        "//score/someipd",
+        "//tests/e2e_perf:nodes.py",
+    ] + glob(["config/*.json"]),
+    target_compatible_with = select({
+        ":perf_tests": ["@platforms//os:linux"],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        "@score_someip_gateway_pip//pytest",
     ],
 )
 
