@@ -23,11 +23,6 @@ config_setting(
     define_values = {"perf_tests": "true"},
 )
 
-exports_files(
-    ["nodes.py"],
-    visibility = ["//visibility:public"],
-)
-
 sh_binary(
     name = "setup_network",
     srcs = ["setup_network.sh"],
@@ -95,13 +90,15 @@ generate_someip_config_bin(
 py_pytest(
     name = "e2e_benchmarks",
     size = "large",
-    srcs = ["test_e2e_benchmarks.py"],
+    srcs = [
+        "nodes.py",
+        "test_e2e_benchmarks.py",
+    ],
     data = [
         ":echo_server",
         ":ipc_benchmarks",
         ":node_a_config_file",
         ":node_b_config_file",
-        ":nodes.py",
         "//score/gatewayd",
         "//score/someipd",
     ] + glob(["config/*.json"]),
