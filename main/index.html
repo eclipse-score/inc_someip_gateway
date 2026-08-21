@@ -180,15 +180,8 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="socom/design/index.html">
-    Software design SOCom library
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="gateway_ipc_binding/index.html">
-    Gateway IPC Binding
+  <a class="nav-link nav-internal" href="components.html">
+    <no title>
   </a>
 </li>
 
@@ -331,15 +324,8 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="socom/design/index.html">
-    Software design SOCom library
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="gateway_ipc_binding/index.html">
-    Gateway IPC Binding
+  <a class="nav-link nav-internal" href="components.html">
+    <no title>
   </a>
 </li>
 
@@ -450,7 +436,14 @@
 </nav>
 <section id="overview">
 <h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>TBD</p>
+<p>The SOME/IP Gateway bridges the <a class="reference external" href="https://eclipse-score.github.io">S-CORE</a> middleware with
+SOME/IP-based vehicle communication networks. It connects applications using the S-CORE IPC
+layer (<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> / LoLa) to external ECUs and services over SOME/IP, without exposing the
+application to network-level concerns.</p>
+<p>The gateway is split into two processes separated by an ASIL boundary: the <strong>Gateway Daemon</strong>
+(<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) handles service-oriented communication logic, while the <strong>SOME/IP Daemon</strong>
+(<code class="docutils literal notranslate"><span class="pre">someipd</span></code>) owns the network socket and manages the SOME/IP protocol stack.</p>
+<img alt="SOME/IP Gateway system overview" class="align-center" src="_images/someip_gateway_overview.drawio.svg" />
 </section>
 <section id="module-layout">
 <h2><a class="toc-backref" href="#id2" role="doc-backlink">Module Layout</a><a class="headerlink" href="#module-layout" title="Link to this heading">#</a></h2>
@@ -500,7 +493,7 @@
 <h2><a class="toc-backref" href="#id4" role="doc-backlink">Component documentation</a><a class="headerlink" href="#component-documentation" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="socom/design/index.html">Software design SOCom library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="socom/index.html">SOCom</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gateway_ipc_binding/index.html">Gateway IPC Binding</a></li>
 </ul>
 </div>
