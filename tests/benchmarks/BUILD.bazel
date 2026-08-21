@@ -14,12 +14,25 @@
 load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
 config_setting(
     name = "perf_tests",
     define_values = {"perf_tests": "true"},
+)
+
+exports_files(
+    ["nodes.py"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "setup_network",
+    srcs = ["setup_network.sh"],
+    target_compatible_with = ["@platforms//os:linux"],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -88,9 +101,9 @@ py_pytest(
         ":ipc_benchmarks",
         ":node_a_config_file",
         ":node_b_config_file",
+        ":nodes.py",
         "//score/gatewayd",
         "//score/someipd",
-        "//tests/e2e_perf:nodes.py",
     ] + glob(["config/*.json"]),
     target_compatible_with = select({
         ":perf_tests": ["@platforms//os:linux"],

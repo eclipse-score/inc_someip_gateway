@@ -17,7 +17,8 @@ SPDX-License-Identifier: Apache-2.0
 
 `e2e_benchmarks` runs the existing Google Benchmark client and echo server over the complete
 mw::com -> gatewayd -> someipd -> SOME/IP -> someipd -> gatewayd -> mw::com path. Both nodes run
-in the isolated network namespace used by `tests/e2e_perf`, at `127.0.0.2` and `127.0.0.3`.
+in the isolated network namespace configured by `tests/benchmarks/setup_network.sh`, at
+`127.0.0.2` and `127.0.0.3`.
 
 Run the optimized benchmark configuration with:
 
@@ -30,6 +31,5 @@ different mw::com service ids on the shared host, which prevents a LoLa shared-m
 The benchmark result is written as `benchmarks.json` under
 `bazel-testlogs/tests/benchmarks/e2e_benchmarks/test.outputs/e2e_benchmarks/`.
 
-The host prerequisites are the same as `tests/e2e_perf`: unprivileged user namespaces must be
-enabled so the Bazel `--run_under` wrapper can configure the isolated loopback addresses and the
-SOME/IP-SD multicast route.
+Unprivileged user namespaces must be enabled so the Bazel `--run_under` wrapper can configure the
+isolated loopback addresses and the SOME/IP-SD multicast route.

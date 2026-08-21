@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path("tests/e2e_perf").absolute()))
+sys.path.insert(0, str(Path("tests/benchmarks").absolute()))
 
 from nodes import GATEWAYD, SOMEIPD, Node, NodeSpec, PreflightError, preflight  # noqa: E402
 

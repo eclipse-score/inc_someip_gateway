@@ -82,13 +82,12 @@ test:aarch64-qnx --run_under=@score_itf//scripts:run_under_qemu
 # ============================================================================
 # The performance test wrapper creates its own isolated network namespace and configures it
 # before the test starts.
-# Usage: bazel test --config=perf-tests //tests/e2e_perf:e2e_perf
-test:perf-tests --run_under=//tests/e2e_perf:setup_network
+# Usage: bazel test --config=perf-tests //tests/benchmarks:e2e_benchmarks
+test:perf-tests --run_under=//tests/benchmarks:setup_network
 test:perf-tests --define=perf_tests=true
 
-# Adds debug info and keeps frame pointers on top of an optimized build, so `perf record` (used
-# by //tests/e2e_perf:e2e_perf_profile) can resolve readable call stacks.
-# Usage: bazel test --config=perf-tests-profile //tests/e2e_perf:e2e_perf_profile
+# Adds debug info and keeps frame pointers on top of an optimized build for profiling.
+# Usage: bazel test --config=perf-tests-profile //tests/benchmarks/...
 test:perf-tests-profile --config=perf-tests
 test:perf-tests-profile --compilation_mode=opt
 test:perf-tests-profile --copt=-fno-omit-frame-pointer

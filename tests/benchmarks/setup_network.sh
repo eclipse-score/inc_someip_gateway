@@ -14,7 +14,8 @@
 #
 # Prepares the network for the end-to-end performance test and then execs the test.
 #
-# Used as --run_under for //tests/e2e_perf:e2e_perf (see --config=perf-tests). It creates an
+# Used as --run_under for //tests/benchmarks:e2e_benchmarks (see --config=perf-tests). It
+# creates an
 # isolated user and network namespace, which gives the test CAP_NET_ADMIN without requiring
 # privileged Bazel sandbox execution.
 

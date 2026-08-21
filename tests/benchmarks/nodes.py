@@ -34,9 +34,9 @@ from typing import Sequence
 
 SOMEIPD = Path("score/someipd/someipd")
 GATEWAYD = Path("score/gatewayd/gatewayd")
-PERF_SENDER = Path("tests/e2e_perf/perf_sender")
-PERF_RECEIVER = Path("tests/e2e_perf/perf_receiver")
-CONFIG_DIR = Path("tests/e2e_perf/config")
+PERF_SENDER = Path("tests/benchmarks/perf_sender")
+PERF_RECEIVER = Path("tests/benchmarks/perf_receiver")
+CONFIG_DIR = Path("tests/benchmarks/config")
 
 GATEWAYD_READY_MARKER = "[gatewayd] IPC connection to someipd established"
 SD_MULTICAST_ADDRESS = "224.244.224.245"
@@ -74,7 +74,7 @@ NODE_A = NodeSpec(
     ipc_channel="perf_ipc_a",
     vsomeip_network="perf-node-a",
     unicast_ip=NODE_A_IP,
-    someip_config=Path("tests/e2e_perf/node_a_someip_config.bin"),
+    someip_config=Path("tests/benchmarks/node_a_someip_config.bin"),
     mw_com_config=CONFIG_DIR / "node_a_mw_com_config.json",
     vsomeip_template=CONFIG_DIR / "vsomeip_node_a.json",
 )
@@ -84,7 +84,7 @@ NODE_B = NodeSpec(
     ipc_channel="perf_ipc_b",
     vsomeip_network="perf-node-b",
     unicast_ip=NODE_B_IP,
-    someip_config=Path("tests/e2e_perf/node_b_someip_config.bin"),
+    someip_config=Path("tests/benchmarks/node_b_someip_config.bin"),
     mw_com_config=CONFIG_DIR / "node_b_mw_com_config.json",
     vsomeip_template=CONFIG_DIR / "vsomeip_node_b.json",
 )
@@ -132,14 +132,14 @@ def preflight(required_binaries: Sequence[Path] | None = None) -> None:
         if not _is_local_address(spec.unicast_ip):
             raise PreflightError(
                 f"{spec.name} needs the local address {spec.unicast_ip}, which "
-                "tests/e2e_perf/setup_network.sh could not configure. Run the test with "
+                "tests/benchmarks/setup_network.sh could not configure. Run the test with "
                 "--config=perf-tests."
             )
 
     if not _has_sd_multicast_route():
         raise PreflightError(
             f"no route for the SOME/IP-SD multicast address {SD_MULTICAST_ADDRESS}, which "
-            "tests/e2e_perf/setup_network.sh could not configure. Run the test with "
+            "tests/benchmarks/setup_network.sh could not configure. Run the test with "
             "--config=perf-tests."
         )
 
