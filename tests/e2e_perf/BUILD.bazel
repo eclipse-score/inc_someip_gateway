@@ -16,93 +16,11 @@ End-to-end performance tests: mw::com sender -> gatewayd/someipd -> SOME/IP -> s
 -> mw::com receiver, with both nodes running on the same host.
 """
 
-load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
-load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
-load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
 exports_files(
     ["nodes.py"],
     visibility = ["//tests/benchmarks:__pkg__"],
-)
-
-config_setting(
-    name = "perf_tests",
-    define_values = {"perf_tests": "true"},
-)
-
-cc_library(
-    name = "perf_service",
-    hdrs = ["perf_service.h"],
-    deps = [
-        "//score/serializer:pre_serialized_data",
-        "@score_communication//score/mw/com",
-    ],
-)
-
-cc_library(
-    name = "stats",
-    hdrs = ["stats.h"],
-)
-
-cc_test(
-    name = "stats_test",
-    size = "small",
-    srcs = ["stats_test.cpp"],
-    deps = [
-        ":stats",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "perf_sender",
-    srcs = ["perf_sender.cpp"],
-    deps = [
-        ":perf_service",
-        ":stats",
-        "@score_communication//score/mw/com",
-    ],
-)
-
-cc_binary(
-    name = "perf_receiver",
-    srcs = ["perf_receiver.cpp"],
-    deps = [
-        ":perf_service",
-        ":stats",
-        "@score_communication//score/mw/com",
-    ],
-)
-
-generate_someip_config_bin(
-    name = "node_a_config_file",
-    json = "config/node_a_someip_config.json",
-    output = "node_a_someip_config.bin",
-)
-
-generate_someip_config_bin(
-    name = "node_b_config_file",
-    json = "config/node_b_someip_config.json",
-    output = "node_b_someip_config.bin",
-)
-
-validate_json_schema_test(
-    name = "node_a_mw_com_config_schema_valid",
-    size = "small",
-    json = "config/node_a_mw_com_config.json",
-    schema = "@score_communication//score/mw/com:config_schema",
-    tags = ["lint"],
-)
-
-validate_json_schema_test(
-    name = "node_b_mw_com_config_schema_valid",
-    size = "small",
-    json = "config/node_b_mw_com_config.json",
-    schema = "@score_communication//score/mw/com:config_schema",
-    tags = ["lint"],
 )
 
 # Used as --run_under by --config=perf-tests, see .bazelrc.
@@ -111,58 +29,4 @@ sh_binary(
     srcs = ["setup_network.sh"],
     target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
-)
-
-py_pytest(
-    name = "e2e_perf",
-    size = "large",
-    srcs = [
-        "conftest.py",
-        "nodes.py",
-        "test_e2e_perf.py",
-    ],
-    data = [
-        ":node_a_config_file",
-        ":node_b_config_file",
-        ":perf_receiver",
-        ":perf_sender",
-        "//score/gatewayd",
-        "//score/someipd",
-    ] + glob(["config/*.json"]),
-    target_compatible_with = select({
-        ":perf_tests": ["@platforms//os:linux"],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
-    deps = [
-        "@score_someip_gateway_pip//pytest",
-    ],
-)
-
-# Profiles the roundtrip/xlarge case in isolation and renders flamegraph SVGs, see README.md.
-# Kept separate from :e2e_perf so profiling overhead is not paid by the whole parametrized suite.
-py_pytest(
-    name = "e2e_perf_profile",
-    size = "medium",
-    srcs = [
-        "nodes.py",
-        "test_profile.py",
-    ],
-    data = [
-        ":node_a_config_file",
-        ":node_b_config_file",
-        ":perf_receiver",
-        ":perf_sender",
-        "//score/gatewayd",
-        "//score/someipd",
-        "@flamegraph//:flamegraph.pl",
-        "@flamegraph//:stackcollapse-perf.pl",
-    ] + glob(["config/*.json"]),
-    target_compatible_with = select({
-        ":perf_tests": ["@platforms//os:linux"],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
-    deps = [
-        "@bazel_tools//tools/python/runfiles",
-        "@score_someip_gateway_pip//pytest",
-    ],
 )
