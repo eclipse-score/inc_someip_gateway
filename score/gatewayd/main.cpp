@@ -13,8 +13,10 @@
 
 #include <getopt.h>
 
+#include <algorithm>
 #include <atomic>
 #include <csignal>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -40,6 +42,32 @@ using namespace score::someip_gateway::gatewayd;
 
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
+
+/// Calculates the shared memory slot size required for a service, which is the
+/// size of its largest event payload plus the SOME/IP header.
+///
+/// If even a single event doesn't specify its `max_message_size` (which is common
+/// for older configs), we safely fall back to the maximum transport limit.
+/// We cannot shrink the slot size unless we know the maximum size of *every* event.
+static std::size_t event_slot_size(const mw_someip_config::ServiceType& service_type) {
+    const auto* const events = service_type.events();
+    if (events == nullptr) {
+        return someip::kMaxMessageSize;
+    }
+
+    std::uint32_t largest = 0;
+    for (const auto* const event : *events) {
+        if (event->max_message_size() == 0) {
+            return someip::kMaxMessageSize;
+        }
+        largest = std::max(largest, event->max_message_size());
+    }
+    if (largest == 0) {
+        return someip::kMaxMessageSize;
+    }
+
+    return static_cast<std::size_t>(largest) + someip::kSomeipFullHeaderSize;
+}
 
 // Signal handler for graceful shutdown
 void termination_handler(int /*signal*/) {
@@ -201,15 +229,14 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // TODO: get actual slot size from serializer + 16B SOME/IP header
+        const std::size_t slot_size = event_slot_size(*service_type_config);
         if (service_type_config->local_service_instances()) {
-            shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                       someip::kMaxSampleCount};
+            shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
             server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
         } else if (service_type_config->remote_service_instances()) {
-            server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
+            server_shm_config[iface][inst] = {*shm_path_result, slot_size,
                                               someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.

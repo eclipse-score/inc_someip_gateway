@@ -74,6 +74,16 @@ table Event {
     /// Must match the eventgroups declared in the vsomeip JSON config for correct
     /// SubscribeEventgroup handling. If empty, the event_id is used as a fallback group.
     eventgroup_ids: [uint16];
+
+    /// The maximum payload size in bytes, excluding the SOME/IP header.
+    ///
+    /// We define this here so you don't have to link to a specific serializer plugin
+    /// (like the NullSerializer) just to find out the size limit. Always read the
+    /// limit from this field rather than guessing or checking the serializer config.
+    ///
+    /// If this value is 0 or missing, it just means no specific limit is set.
+    /// This is completely normal—just fall back to the default transport limit instead.
+    max_message_size: uint32;
 }
 
 /// Describes a single method within a service.
