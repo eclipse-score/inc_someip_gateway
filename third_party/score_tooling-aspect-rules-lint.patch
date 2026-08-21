@@ -1,5 +1,0 @@
---- MODULE.bazel
-+++ MODULE.bazel
-@@ -24,1 +24,1 @@
--bazel_dep(name = "aspect_rules_lint", version = "2.5.0", dev_dependency = True)
-+bazel_dep(name = "aspect_rules_lint", version = "2.5.0")

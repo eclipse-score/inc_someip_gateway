@@ -183,28 +183,18 @@ int main(int argc, char* argv[]) {
 
         auto const service_id = service_type_config->service_id();
 
-        std::string shm_path = "/";
-        shm_path.append(service_type_config->service_type_name()->string_view())
-            .append("_")
-            .append(std::to_string(service_id));
+        auto const service_type_name = service_type_config->service_type_name()->string_view();
 
-        std::string counterpart_shm_path = "/counterpart_";
-        counterpart_shm_path.append(service_type_config->service_type_name()->string_view())
-            .append("_")
-            .append(std::to_string(service_id));
-
-        auto shm_path_result =
-            gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
-                shm_path);
+        auto const shm_path_result =
+            gateway_ipc_binding::make_shared_memory_path(service_type_name, service_id);
         if (!shm_path_result.has_value()) {
             score::mw::log::LogError()
                 << "[gatewayd] shm path too long for service_id " << service_id;
             continue;
         }
 
-        auto counterpart_shm_path_result =
-            gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
-                counterpart_shm_path);
+        auto const counterpart_shm_path_result =
+            gateway_ipc_binding::make_counterpart_shared_memory_path(service_type_name, service_id);
         if (!counterpart_shm_path_result.has_value()) {
             score::mw::log::LogError()
                 << "[gatewayd] counterpart shm path too long for service_id " << service_id;

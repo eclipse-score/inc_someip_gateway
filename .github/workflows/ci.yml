@@ -32,6 +32,9 @@ jobs:
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test-cross')
     secrets: inherit
     uses: ./.github/workflows/build_and_test_cross_compilation.yml
+  coverage:
+    secrets: inherit
+    uses: ./.github/workflows/coverage.yml
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
@@ -47,6 +50,7 @@ jobs:
       - on-pr
       - build_and_test_host
       - build_and_test_cross_compilation
+      - coverage
       - docs
     permissions: {}
     runs-on: ubuntu-latest
