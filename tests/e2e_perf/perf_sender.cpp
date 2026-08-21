@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -41,7 +42,6 @@ using namespace std::chrono_literals;
 
 constexpr const char* kRequestInstanceSpecifier = "perf/request";
 constexpr const char* kResponseInstanceSpecifier = "perf/response_rx";
-constexpr std::size_t kMaxSampleCount{10};
 constexpr auto kDiscoveryRetryInterval{200ms};
 constexpr auto kWarmupInterval{20ms};
 
@@ -62,7 +62,8 @@ void PrintHelp() {
         << "Syntax: perf_sender -s/--service_instance_manifest <manifest.json> [options]\n\n"
         << "Options:\n"
         << " -s/--service_instance_manifest mw::com manifest of this node (required)\n"
-        << " -p/--payload_size              tiny|small|medium (default: tiny)\n"
+        << " -p/--payload_size              tiny|small|medium|large|xlarge|xxlarge (default: "
+           "tiny)\n"
         << " -n/--count                     Number of measured messages (default: 10000)\n"
         << " -r/--rate_hz                   Send rate, 0 means as fast as possible (default: 0)\n"
         << " -w/--warmup                    Number of warmup messages (default: 100)\n"
@@ -155,14 +156,14 @@ void DrainResponses(PerfResponseProxy& proxy, std::uint32_t run_id,
     auto& event = EventSelector<PayloadBytes>::Response(proxy);
     event.GetNewSamples(
         [run_id, &rtt_samples](auto sample) {
-            PerfMessage<PayloadBytes> message{};
-            if (!ReadMessage<PayloadBytes>(*sample, message) || message.run_id != run_id) {
+            auto message = std::make_unique<PerfMessage<PayloadBytes>>();
+            if (!ReadMessage<PayloadBytes>(*sample, *message) || message->run_id != run_id) {
                 return;
             }
             // The receiver echoes the original timestamp, so no per-sequence bookkeeping is needed.
-            rtt_samples.push_back(GetCurrentTimeNanos() - message.send_timestamp_ns);
+            rtt_samples.push_back(GetCurrentTimeNanos() - message->send_timestamp_ns);
         },
-        kMaxSampleCount);
+        SampleSlotCount<PayloadBytes>());
 }
 
 template <PerfPayloadSize PayloadBytes>
@@ -174,14 +175,14 @@ bool SendOne(PerfRequestSkeleton& skeleton, std::uint32_t run_id, std::uint64_t 
     }
     auto sample = std::move(allocated).value();
 
-    PerfMessage<PayloadBytes> message{};
-    message.sequence_id = sequence_id;
-    message.run_id = run_id;
-    message.payload_bytes = static_cast<std::uint32_t>(PayloadBytes);
-    FillTestPayload(message.payload, message.payload_bytes);
-    message.send_timestamp_ns = GetCurrentTimeNanos();
+    auto message = std::make_unique<PerfMessage<PayloadBytes>>();
+    message->sequence_id = sequence_id;
+    message->run_id = run_id;
+    message->payload_bytes = static_cast<std::uint32_t>(PayloadBytes);
+    FillTestPayload(message->payload, message->payload_bytes);
+    message->send_timestamp_ns = GetCurrentTimeNanos();
 
-    WriteMessage<PayloadBytes>(*sample, message);
+    WriteMessage<PayloadBytes>(*sample, *message);
     return event.Send(std::move(sample)).has_value();
 }
 
@@ -210,7 +211,8 @@ int RunSender(const Options& options) {
             std::cerr << "Response service not found within timeout" << std::endl;
             return EXIT_FAILURE;
         }
-        EventSelector<PayloadBytes>::Response(*response_proxy).Subscribe(kMaxSampleCount);
+        EventSelector<PayloadBytes>::Response(*response_proxy)
+            .Subscribe(SampleSlotCount<PayloadBytes>());
     }
 
     std::vector<std::uint64_t> rtt_samples{};
@@ -316,6 +318,12 @@ int main(int argc, char* argv[]) {
             return RunSender<PerfPayloadSize::Small>(options);
         case PerfPayloadSize::Medium:
             return RunSender<PerfPayloadSize::Medium>(options);
+        case PerfPayloadSize::Large:
+            return RunSender<PerfPayloadSize::Large>(options);
+        case PerfPayloadSize::XLarge:
+            return RunSender<PerfPayloadSize::XLarge>(options);
+        case PerfPayloadSize::XXLarge:
+            return RunSender<PerfPayloadSize::XXLarge>(options);
     }
     return EXIT_FAILURE;
 }

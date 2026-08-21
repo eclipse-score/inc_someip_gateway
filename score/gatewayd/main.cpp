@@ -211,19 +211,27 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // TODO: get actual slot size from serializer + 16B SOME/IP header
+        std::size_t max_message_size = someip::kMaxMessageSize;
+        if (service_type_config->events()) {
+            for (auto const* event : *service_type_config->events()) {
+                if (auto const* null_config =
+                        event->serialization_config_as_NullSerializerConfig()) {
+                    max_message_size =
+                        std::max(max_message_size,
+                                 static_cast<std::size_t>(null_config->max_message_size()) +
+                                     someip::kSomeipFullHeaderSize);
+                }
+            }
+        }
         if (service_type_config->local_service_instances()) {
-            shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                       someip::kMaxSampleCount};
-            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
-            // possible size for now.
-            server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
-        } else if (service_type_config->remote_service_instances()) {
-            server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
+            shm_config[iface][inst] = {*shm_path_result, max_message_size, someip::kMaxSampleCount};
+            server_shm_config[iface][inst] = {*counterpart_shm_path_result, max_message_size,
                                               someip::kMaxSampleCount};
-            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
-            // possible size for now.
-            shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
+        } else if (service_type_config->remote_service_instances()) {
+            server_shm_config[iface][inst] = {*shm_path_result, max_message_size,
+                                              someip::kMaxSampleCount};
+            shm_config[iface][inst] = {*counterpart_shm_path_result, max_message_size,
+                                       someip::kMaxSampleCount};
         } else {
             score::mw::log::LogError()
                 << "[gatewayd] Service " << service_type_config->service_type_name()->string_view()

@@ -2,6 +2,9 @@
     "unicast": "127.0.0.3",
     "netmask": "255.0.0.0",
     "network": "perf-node-b",
+    "max-payload-size-local": "262184",
+    "max-payload-size-reliable": "262184",
+    "max-payload-size-unreliable": "262184",
     "logging": {
         "level": "warning",
         "console": "true",
@@ -17,7 +20,7 @@
         {
             "service": "0x7101",
             "instance": "0x0001",
-            "unreliable": "31101",
+            "reliable": "31101",
             "events": [
                 {
                     "event": "0x8111",
@@ -29,6 +32,18 @@
                 },
                 {
                     "event": "0x8113",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8114",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8115",
+                    "is_field": "false"
+                },
+                {
+                    "event": "0x8116",
                     "is_field": "false"
                 }
             ],
@@ -49,6 +64,24 @@
                     "eventgroup": "0x8113",
                     "events": [
                         "0x8113"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8114",
+                    "events": [
+                        "0x8114"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8115",
+                    "events": [
+                        "0x8115"
+                    ]
+                },
+                {
+                    "eventgroup": "0x8116",
+                    "events": [
+                        "0x8116"
                     ]
                 }
             ]

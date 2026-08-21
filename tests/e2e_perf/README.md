@@ -60,8 +60,8 @@ Two more constraints are baked into the configs:
   offering side means the subscription is never sent.
 - No `eventgroup_ids` are configured, so both sides fall back to using the event id as the
   eventgroup id — again because the consuming side does not yet honour `eventgroup_ids`.
-- Payloads are capped at 1 KiB. SOME/IP-TP is not used, so a message must fit into one UDP
-  datagram.
+- The performance test covers payloads of 8 bytes, 64 bytes, 1 KiB, 16 KiB, 64 KiB and 256 KiB.
+  The SOME/IP connection uses TCP so the larger messages do not depend on UDP datagram limits.
 
 ## Host prerequisites
 

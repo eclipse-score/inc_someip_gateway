@@ -110,7 +110,7 @@ sh_binary(
 
 py_pytest(
     name = "e2e_perf",
-    size = "medium",
+    size = "large",
     srcs = [
         "conftest.py",
         "nodes.py",

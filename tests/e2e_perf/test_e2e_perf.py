@@ -36,8 +36,25 @@ from nodes import (
     wait_for_file,
 )
 
-PAYLOAD_SIZES = ("tiny", "small", "medium")
-WARMUP = 100
+PAYLOAD_SIZES = ("tiny", "small", "medium", "large", "xlarge", "xxlarge")
+ONEWAY_PAYLOAD_SIZES = PAYLOAD_SIZES[:-1]
+SUSTAINED_PAYLOAD_SIZES = PAYLOAD_SIZES[:-1]
+WARMUP = {
+    "tiny": 100,
+    "small": 100,
+    "medium": 100,
+    "large": 10,
+    "xlarge": 5,
+    "xxlarge": 1,
+}
+MEASURED_MESSAGES = {
+    "tiny": 2000,
+    "small": 2000,
+    "medium": 2000,
+    "large": 100,
+    "xlarge": 50,
+    "xxlarge": 10,
+}
 MESSAGE_COUNT = 2000
 APP_TIMEOUT_S = 120.0
 
@@ -76,7 +93,7 @@ def _run_case(
             "-n",
             str(count),
             "-w",
-            str(WARMUP),
+            str(WARMUP[payload_size]),
             "-m",
             mode,
             "-t",
@@ -103,7 +120,7 @@ def _run_case(
             "-r",
             str(rate_hz),
             "-w",
-            str(WARMUP),
+            str(WARMUP[payload_size]),
             "-m",
             mode,
             "-t",
@@ -119,14 +136,22 @@ def _run_case(
     return sender_result, receiver_result
 
 
-@pytest.mark.parametrize("payload_size", PAYLOAD_SIZES)
+@pytest.mark.parametrize("payload_size", ONEWAY_PAYLOAD_SIZES)
 def test_oneway_latency_and_throughput(
     nodes: Path, report: dict, payload_size: str
 ) -> None:
     """Sender publishes as fast as possible; measures one-way latency and throughput."""
-    sender, receiver = _run_case(nodes, report, payload_size, "oneway", rate_hz=0)
+    count = MEASURED_MESSAGES[payload_size]
+    sender, receiver = _run_case(
+        nodes,
+        report,
+        payload_size,
+        "oneway",
+        rate_hz=0,
+        count=count,
+    )
 
-    assert sender["sent"] == MESSAGE_COUNT
+    assert sender["sent"] == count
     assert sender["send_failures"] == 0
     assert receiver["corrupt"] == 0
     assert receiver["received"] > 0, "no message crossed the SOME/IP link"
@@ -138,7 +163,12 @@ def test_oneway_latency_and_throughput(
 def test_roundtrip_latency(nodes: Path, report: dict, payload_size: str) -> None:
     """Receiver echoes every message back through the second gateway chain."""
     sender, receiver = _run_case(
-        nodes, report, payload_size, "roundtrip", rate_hz=500, count=500
+        nodes,
+        report,
+        payload_size,
+        "roundtrip",
+        rate_hz=500,
+        count=min(500, MEASURED_MESSAGES[payload_size]),
     )
 
     assert receiver["corrupt"] == 0
@@ -149,16 +179,17 @@ def test_roundtrip_latency(nodes: Path, report: dict, payload_size: str) -> None
     assert sender["roundtrip_latency"]["p50_ns"] >= receiver["oneway_latency"]["p50_ns"]
 
 
-@pytest.mark.parametrize("payload_size", PAYLOAD_SIZES)
+@pytest.mark.parametrize("payload_size", SUSTAINED_PAYLOAD_SIZES)
 def test_sustained_rate_without_loss(
     nodes: Path, report: dict, payload_size: str
 ) -> None:
     """At a paced rate the chain must not drop messages."""
+    count = min(1000, MEASURED_MESSAGES[payload_size])
     sender, receiver = _run_case(
-        nodes, report, payload_size, "oneway", rate_hz=500, count=1000
+        nodes, report, payload_size, "oneway", rate_hz=500, count=count
     )
 
-    assert sender["sent"] == 1000
+    assert sender["sent"] == count
     assert receiver["corrupt"] == 0
     loss_ratio = receiver["lost"] / max(1, receiver["received"] + receiver["lost"])
     assert loss_ratio <= MAX_LOSS_RATIO, (

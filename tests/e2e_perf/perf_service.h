@@ -28,9 +28,14 @@
 /// bytes itself and gatewayd forwards them verbatim.
 namespace perf_service {
 
-/// Payload sizes are capped at 1 KiB because SOME/IP-TP is not used and a message has to fit
-/// into a single UDP datagram.
-enum class PerfPayloadSize : std::uint32_t { Tiny = 8, Small = 64, Medium = 1024 };
+enum class PerfPayloadSize : std::uint32_t {
+    Tiny = 8,
+    Small = 64,
+    Medium = 1024,
+    Large = 16 * 1024,
+    XLarge = 64 * 1024,
+    XXLarge = 256 * 1024
+};
 
 template <PerfPayloadSize PayloadBytes>
 struct PerfMessage {
@@ -45,6 +50,9 @@ struct PerfMessage {
 using PerfMessageTiny = PerfMessage<PerfPayloadSize::Tiny>;
 using PerfMessageSmall = PerfMessage<PerfPayloadSize::Small>;
 using PerfMessageMedium = PerfMessage<PerfPayloadSize::Medium>;
+using PerfMessageLarge = PerfMessage<PerfPayloadSize::Large>;
+using PerfMessageXLarge = PerfMessage<PerfPayloadSize::XLarge>;
+using PerfMessageXXLarge = PerfMessage<PerfPayloadSize::XXLarge>;
 
 template <PerfPayloadSize PayloadBytes>
 using PerfSample =
@@ -53,6 +61,9 @@ using PerfSample =
 using PerfSampleTiny = PerfSample<PerfPayloadSize::Tiny>;
 using PerfSampleSmall = PerfSample<PerfPayloadSize::Small>;
 using PerfSampleMedium = PerfSample<PerfPayloadSize::Medium>;
+using PerfSampleLarge = PerfSample<PerfPayloadSize::Large>;
+using PerfSampleXLarge = PerfSample<PerfPayloadSize::XLarge>;
+using PerfSampleXXLarge = PerfSample<PerfPayloadSize::XXLarge>;
 
 template <typename Trait>
 class PerfRequestInterface : public Trait::Base {
@@ -64,6 +75,12 @@ class PerfRequestInterface : public Trait::Base {
                                                                         "perf_request_small"};
     typename Trait::template Event<PerfSampleMedium> perf_request_medium_{*this,
                                                                           "perf_request_medium"};
+    typename Trait::template Event<PerfSampleLarge> perf_request_large_{*this,
+                                                                        "perf_request_large"};
+    typename Trait::template Event<PerfSampleXLarge> perf_request_xlarge_{*this,
+                                                                          "perf_request_xlarge"};
+    typename Trait::template Event<PerfSampleXXLarge> perf_request_xxlarge_{*this,
+                                                                            "perf_request_xxlarge"};
 };
 
 template <typename Trait>
@@ -76,6 +93,12 @@ class PerfResponseInterface : public Trait::Base {
                                                                          "perf_response_small"};
     typename Trait::template Event<PerfSampleMedium> perf_response_medium_{*this,
                                                                            "perf_response_medium"};
+    typename Trait::template Event<PerfSampleLarge> perf_response_large_{*this,
+                                                                         "perf_response_large"};
+    typename Trait::template Event<PerfSampleXLarge> perf_response_xlarge_{*this,
+                                                                           "perf_response_xlarge"};
+    typename Trait::template Event<PerfSampleXXLarge> perf_response_xxlarge_{
+        *this, "perf_response_xxlarge"};
 };
 
 using PerfRequestProxy = score::mw::com::AsProxy<PerfRequestInterface>;
@@ -87,6 +110,11 @@ using PerfResponseSkeleton = score::mw::com::AsSkeleton<PerfResponseInterface>;
 /// as a template instead of once per size.
 template <PerfPayloadSize PayloadBytes>
 struct EventSelector;
+
+template <PerfPayloadSize PayloadBytes>
+constexpr std::size_t SampleSlotCount() {
+    return 10U;
+}
 
 template <>
 struct EventSelector<PerfPayloadSize::Tiny> {
@@ -121,6 +149,42 @@ struct EventSelector<PerfPayloadSize::Medium> {
     template <typename Interface>
     static auto& Response(Interface& interface) {
         return interface.perf_response_medium_;
+    }
+};
+
+template <>
+struct EventSelector<PerfPayloadSize::Large> {
+    template <typename Interface>
+    static auto& Request(Interface& interface) {
+        return interface.perf_request_large_;
+    }
+    template <typename Interface>
+    static auto& Response(Interface& interface) {
+        return interface.perf_response_large_;
+    }
+};
+
+template <>
+struct EventSelector<PerfPayloadSize::XLarge> {
+    template <typename Interface>
+    static auto& Request(Interface& interface) {
+        return interface.perf_request_xlarge_;
+    }
+    template <typename Interface>
+    static auto& Response(Interface& interface) {
+        return interface.perf_response_xlarge_;
+    }
+};
+
+template <>
+struct EventSelector<PerfPayloadSize::XXLarge> {
+    template <typename Interface>
+    static auto& Request(Interface& interface) {
+        return interface.perf_request_xxlarge_;
+    }
+    template <typename Interface>
+    static auto& Response(Interface& interface) {
+        return interface.perf_response_xxlarge_;
     }
 };
 
@@ -170,6 +234,12 @@ inline bool ParsePayloadSize(std::string_view name, PerfPayloadSize& out) {
         out = PerfPayloadSize::Small;
     } else if (name == "medium") {
         out = PerfPayloadSize::Medium;
+    } else if (name == "large") {
+        out = PerfPayloadSize::Large;
+    } else if (name == "xlarge") {
+        out = PerfPayloadSize::XLarge;
+    } else if (name == "xxlarge") {
+        out = PerfPayloadSize::XXLarge;
     } else {
         return false;
     }
@@ -184,6 +254,12 @@ inline const char* PayloadSizeName(PerfPayloadSize size) {
             return "small";
         case PerfPayloadSize::Medium:
             return "medium";
+        case PerfPayloadSize::Large:
+            return "large";
+        case PerfPayloadSize::XLarge:
+            return "xlarge";
+        case PerfPayloadSize::XXLarge:
+            return "xxlarge";
     }
     return "unknown";
 }

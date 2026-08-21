@@ -22,6 +22,18 @@
                         {
                             "eventName": "perf_request_medium",
                             "eventId": 2
+                        },
+                        {
+                            "eventName": "perf_request_large",
+                            "eventId": 3
+                        },
+                        {
+                            "eventName": "perf_request_xlarge",
+                            "eventId": 4
+                        },
+                        {
+                            "eventName": "perf_request_xxlarge",
+                            "eventId": 5
                         }
                     ]
                 }
@@ -49,6 +61,18 @@
                         {
                             "eventName": "perf_response_medium",
                             "eventId": 2
+                        },
+                        {
+                            "eventName": "perf_response_large",
+                            "eventId": 3
+                        },
+                        {
+                            "eventName": "perf_response_xlarge",
+                            "eventId": 4
+                        },
+                        {
+                            "eventName": "perf_response_xxlarge",
+                            "eventId": 5
                         }
                     ]
                 }
@@ -83,6 +107,21 @@
                             "eventName": "perf_request_medium",
                             "numberOfSampleSlots": 64,
                             "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "perf_request_large",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "perf_request_xlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "perf_request_xxlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
                         }
                     ]
                 }
@@ -114,6 +153,21 @@
                         {
                             "eventName": "perf_response_medium",
                             "numberOfSampleSlots": 64,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "perf_response_large",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "perf_response_xlarge",
+                            "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "perf_response_xxlarge",
+                            "numberOfSampleSlots": 10,
                             "maxSubscribers": 1
                         }
                     ]

@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -40,7 +41,6 @@ using namespace std::chrono_literals;
 
 constexpr const char* kRequestInstanceSpecifier = "perf/request_rx";
 constexpr const char* kResponseInstanceSpecifier = "perf/response";
-constexpr std::size_t kMaxSampleCount{10};
 constexpr auto kDiscoveryRetryInterval{200ms};
 constexpr auto kPollInterval{50us};
 
@@ -62,7 +62,8 @@ void PrintHelp() {
         << "Syntax: perf_receiver -s/--service_instance_manifest <manifest.json> [options]\n\n"
         << "Options:\n"
         << " -s/--service_instance_manifest mw::com manifest of this node (required)\n"
-        << " -p/--payload_size              tiny|small|medium (default: tiny)\n"
+        << " -p/--payload_size              tiny|small|medium|large|xlarge|xxlarge (default: "
+           "tiny)\n"
         << " -n/--count                     Number of measured messages to expect (default: "
            "10000)\n"
         << " -w/--warmup                    Sequence ids below this are discarded (default: 100)\n"
@@ -190,7 +191,7 @@ int RunReceiver(const Options& options) {
         return EXIT_FAILURE;
     }
     auto& request_event = EventSelector<PayloadBytes>::Request(*proxy);
-    if (!request_event.Subscribe(kMaxSampleCount).has_value()) {
+    if (!request_event.Subscribe(SampleSlotCount<PayloadBytes>()).has_value()) {
         std::cerr << "Failed to subscribe to request event" << std::endl;
         return EXIT_FAILURE;
     }
@@ -225,42 +226,42 @@ int RunReceiver(const Options& options) {
         bool progressed = false;
         request_event.GetNewSamples(
             [&](auto sample) {
-                PerfMessage<PayloadBytes> message{};
-                if (!ReadMessage<PayloadBytes>(*sample, message)) {
+                auto message = std::make_unique<PerfMessage<PayloadBytes>>();
+                if (!ReadMessage<PayloadBytes>(*sample, *message)) {
                     ++measurement.corrupt;
                     return;
                 }
-                if (message.run_id != options.run_id) {
+                if (message->run_id != options.run_id) {
                     // Left over in the buffers from an earlier run.
                     ++measurement.stale;
                     return;
                 }
-                if (!VerifyTestPayload(message.payload, message.payload_bytes)) {
+                if (!VerifyTestPayload(message->payload, message->payload_bytes)) {
                     ++measurement.corrupt;
                     return;
                 }
                 progressed = true;
                 if (response_skeleton.has_value()) {
-                    EchoMessage<PayloadBytes>(*response_skeleton, message);
+                    EchoMessage<PayloadBytes>(*response_skeleton, *message);
                 }
-                if (message.sequence_id < options.warmup) {
+                if (message->sequence_id < options.warmup) {
                     ++measurement.discarded_warmup;
                     return;
                 }
 
                 const auto now = GetCurrentTimeNanos();
-                measurement.latencies_ns.push_back(now - message.send_timestamp_ns);
+                measurement.latencies_ns.push_back(now - message->send_timestamp_ns);
                 if (measurement.received == 0) {
                     measurement.first_receive_ns = now;
                 }
                 measurement.last_receive_ns = now;
                 measurement.lowest_sequence_id =
-                    std::min(measurement.lowest_sequence_id, message.sequence_id);
+                    std::min(measurement.lowest_sequence_id, message->sequence_id);
                 measurement.highest_sequence_id =
-                    std::max(measurement.highest_sequence_id, message.sequence_id);
+                    std::max(measurement.highest_sequence_id, message->sequence_id);
                 ++measurement.received;
             },
-            kMaxSampleCount);
+            SampleSlotCount<PayloadBytes>());
 
         const auto now = std::chrono::steady_clock::now();
         if (progressed) {
@@ -346,6 +347,12 @@ int main(int argc, char* argv[]) {
             return RunReceiver<PerfPayloadSize::Small>(options);
         case PerfPayloadSize::Medium:
             return RunReceiver<PerfPayloadSize::Medium>(options);
+        case PerfPayloadSize::Large:
+            return RunReceiver<PerfPayloadSize::Large>(options);
+        case PerfPayloadSize::XLarge:
+            return RunReceiver<PerfPayloadSize::XLarge>(options);
+        case PerfPayloadSize::XXLarge:
+            return RunReceiver<PerfPayloadSize::XXLarge>(options);
     }
     return EXIT_FAILURE;
 }
