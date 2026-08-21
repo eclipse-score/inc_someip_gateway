@@ -13,8 +13,10 @@
 
 #include <getopt.h>
 
+#include <algorithm>
 #include <atomic>
 #include <csignal>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -40,6 +42,47 @@ using namespace score::someip_gateway::gatewayd;
 
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
+
+/// Calculates the required shared memory slot size for a service
+/// (Largest serialized event payload + SOME/IP header).
+///
+/// Since encoding affects the payload size, we query the serializer plugin
+/// directly. If any event size is unknown or the serializer is missing, we safely
+/// fall back to the max transport limit. We must know the exact max size of *all*
+/// events to safely shrink the slot.
+static std::size_t event_slot_size(const mw_someip_config::ServiceType& service_type) {
+    const auto* const events = service_type.events();
+    if (events == nullptr || events->size() == 0) {
+        return someip::kMaxMessageSize;
+    }
+
+    auto const service_type_name = service_type.service_type_name()->string_view();
+
+    std::size_t largest = 0;
+    for (const auto* const event : *events) {
+        auto const event_name = event->event_name()->string_view();
+        const score_com_serializer* serializer = nullptr;
+        if (score_com_serializer_get(service_type_name.data(), service_type_name.size(),
+                                     score_com_serializer_element_type_event, event_name.data(),
+                                     event_name.size(),
+                                     &serializer) != score_com_serializer_result_ok) {
+            score::mw::log::LogWarn() << "[gatewayd] No serializer for " << service_type_name
+                                      << "::" << event_name << ", using maximum slot size";
+            return someip::kMaxMessageSize;
+        }
+
+        auto const max_serialized_size = score_com_serializer_get_max_serialized_size(serializer);
+        if (max_serialized_size == 0) {
+            score::mw::log::LogWarn()
+                << "[gatewayd] Serializer reports no maximum size for " << service_type_name
+                << "::" << event_name << ", using maximum slot size";
+            return someip::kMaxMessageSize;
+        }
+        largest = std::max(largest, max_serialized_size);
+    }
+
+    return largest + someip::kSomeipFullHeaderSize;
+}
 
 // Signal handler for graceful shutdown
 void termination_handler(int /*signal*/) {
@@ -201,16 +244,14 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // TODO: get actual slot size from serializer + 16B SOME/IP header
+        const std::size_t slot_size = event_slot_size(*service_type_config);
         if (service_type_config->local_service_instances()) {
-            shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                       someip::kMaxSampleCount};
+            shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
             server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
         } else if (service_type_config->remote_service_instances()) {
-            server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                              someip::kMaxSampleCount};
+            server_shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
             shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
