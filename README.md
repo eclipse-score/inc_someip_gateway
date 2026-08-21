@@ -32,6 +32,17 @@ git clone https://github.com/eclipse-score/inc_someip_gateway.git
 cd inc_someip_gateway
 ```
 
+## Coverage report
+
+A code coverage report can be generated for the `score` package using the following command:
+
+```sh
+bazel coverage //... --build_tests_only
+bazel run @score_tooling//coverage:generate_coverage_html
+```
+
+The HTML report is stored at `coverage_linux/index.html`. You can open it in a web browser to view the coverage results.
+
 ### Start the daemons
 
 Start the daemons in this order:
