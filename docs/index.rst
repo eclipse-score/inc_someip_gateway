@@ -23,7 +23,18 @@ SOMEIP Gateway Documentation
 Overview
 --------
 
-TBD
+The SOME/IP Gateway bridges the `S-CORE <https://eclipse-score.github.io>`_ middleware with
+SOME/IP-based vehicle communication networks. It connects applications using the S-CORE IPC
+layer (``mw::com`` / LoLa) to external ECUs and services over SOME/IP, without exposing the
+application to network-level concerns.
+
+The gateway is split into two processes separated by an ASIL boundary: the **Gateway Daemon**
+(``gatewayd``) handles service-oriented communication logic, while the **SOME/IP Daemon**
+(``someipd``) owns the network socket and manages the SOME/IP protocol stack.
+
+.. image:: images/vsps_someip_overview.png
+   :alt: SOME/IP Gateway system overview
+   :align: center
 
 Module Layout
 --------------

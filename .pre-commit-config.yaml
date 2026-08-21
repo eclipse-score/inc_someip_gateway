@@ -17,6 +17,7 @@ repos:
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
     hooks:
       - id: end-of-file-fixer
+        exclude: '\.drawio$'
       - id: trailing-whitespace
         # bug in current yamlfmt version, will be fixed via devcontainer update.
         exclude: ^tests/integration/docker_setup/docker-compose.yaml$
