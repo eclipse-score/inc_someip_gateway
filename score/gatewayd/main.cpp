@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <thread>
 
 #include "impl/local_service_instance.h"
@@ -51,13 +52,16 @@ void termination_handler(int /*signal*/) {
 void print_help() {
     std::cout << "Syntax: gatewayd -h/--help\n"
               << "        gatewayd -c/--configuration <config.bin> "
-              << "-s/--service_instance_manifest <manifest.json>\n"
+              << "-s/--service_instance_manifest <manifest.json> "
+              << "[-i/--ipc_channel <name>]\n"
               << "\n";
 
     std::cout << "Options:\n"
               << " -h/--help Displays this help\n"
               << " -c/--configuration Specifies the configuration file\n"
               << " -s/--service_instance_manifest Specifies the service instance manifest file\n"
+              << " -i/--ipc_channel Name of the IPC channel to someipd (default: "
+              << score::someip::kDefaultIpcChannelName << ")\n"
               << "\n";
 }
 
@@ -66,14 +70,16 @@ int main(int argc, char* argv[]) {
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
 
-    const char* const short_opts = "hc:s:";
+    const char* const short_opts = "hc:s:i:";
     const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
                                 {"configuration", required_argument, nullptr, 'c'},
                                 {"service_instance_manifest", required_argument, nullptr, 's'},
+                                {"ipc_channel", required_argument, nullptr, 'i'},
                                 {nullptr, no_argument, nullptr, 0}};
 
     score::filesystem::Path service_instance_manifest_path{};
     score::filesystem::Path configuration_path{};
+    std::string ipc_channel_name{score::someip::kDefaultIpcChannelName};
 
     while (true) {
         const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
@@ -92,6 +98,10 @@ int main(int argc, char* argv[]) {
             }
             case 's': {
                 service_instance_manifest_path = score::filesystem::Path{optarg};
+                break;
+            }
+            case 'i': {
+                ipc_channel_name = optarg;
                 break;
             }
             // Unknown option
@@ -161,8 +171,8 @@ int main(int argc, char* argv[]) {
                   "Connect message exceeds max_send_size");
 
     message_passing::ServiceProtocolConfig proto_config{
-        "someipd_gatewayd_ipc", score::someip::kMaxIpcMessageSize,
-        score::someip::kMaxIpcMessageSize, score::someip::kMaxIpcMessageSize};
+        ipc_channel_name, score::someip::kMaxIpcMessageSize, score::someip::kMaxIpcMessageSize,
+        score::someip::kMaxIpcMessageSize};
 
     auto ipc_connection =
         message_passing::ClientFactory{}.Create(proto_config, {10, 10, false, false, false});
@@ -201,19 +211,27 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // TODO: get actual slot size from serializer + 16B SOME/IP header
+        std::size_t max_message_size = someip::kMaxMessageSize;
+        if (service_type_config->events()) {
+            for (auto const* event : *service_type_config->events()) {
+                if (auto const* null_config =
+                        event->serialization_config_as_NullSerializerConfig()) {
+                    max_message_size =
+                        std::max(max_message_size,
+                                 static_cast<std::size_t>(null_config->max_message_size()) +
+                                     someip::kSomeipFullHeaderSize);
+                }
+            }
+        }
         if (service_type_config->local_service_instances()) {
-            shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                       someip::kMaxSampleCount};
-            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
-            // possible size for now.
-            server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
-        } else if (service_type_config->remote_service_instances()) {
-            server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
+            shm_config[iface][inst] = {*shm_path_result, max_message_size, someip::kMaxSampleCount};
+            server_shm_config[iface][inst] = {*counterpart_shm_path_result, max_message_size,
                                               someip::kMaxSampleCount};
-            // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
-            // possible size for now.
-            shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
+        } else if (service_type_config->remote_service_instances()) {
+            server_shm_config[iface][inst] = {*shm_path_result, max_message_size,
+                                              someip::kMaxSampleCount};
+            shm_config[iface][inst] = {*counterpart_shm_path_result, max_message_size,
+                                       someip::kMaxSampleCount};
         } else {
             score::mw::log::LogError()
                 << "[gatewayd] Service " << service_type_config->service_type_name()->string_view()
