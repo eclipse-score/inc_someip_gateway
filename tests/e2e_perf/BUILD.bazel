@@ -132,3 +132,30 @@ py_pytest(
         "@score_someip_gateway_pip//pytest",
     ],
 )
+
+# Profiles the roundtrip/xlarge case in isolation and renders flamegraph SVGs, see README.md.
+# Kept separate from :e2e_perf so profiling overhead is not paid by the whole parametrized suite.
+py_pytest(
+    name = "e2e_perf_profile",
+    size = "medium",
+    srcs = [
+        "flamegraph.py",
+        "nodes.py",
+        "test_profile.py",
+    ],
+    data = [
+        ":node_a_config_file",
+        ":node_b_config_file",
+        ":perf_receiver",
+        ":perf_sender",
+        "//score/gatewayd",
+        "//score/someipd",
+    ] + glob(["config/*.json"]),
+    target_compatible_with = select({
+        ":perf_tests": ["@platforms//os:linux"],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+    ],
+)

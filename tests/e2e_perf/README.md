@@ -92,6 +92,28 @@ Daemon logs, rendered vsomeip configs, per-case result JSONs and a combined
 > NOTE:
 > When run with bazel the logs are usually written to `bazel-testlogs/tests/e2e_perf/e2e_perf/test.outputs/e2e_perf/e2e_perf_report.json`.
 
+## Profiling (flamegraphs)
+
+`:e2e_perf` runs every payload size/mode combination, which is too much overhead to profile as a
+whole. `:e2e_perf_profile` runs only the `roundtrip`/`xlarge` case, wraps every daemon and app
+(someipd/gatewayd on both nodes, `perf_sender`, `perf_receiver`) in `perf record`, and renders
+each capture into a flamegraph SVG:
+
+```bash
+bazel test --config=perf-tests-profile //tests/e2e_perf:e2e_perf_profile --test_output=streamed
+```
+
+`--config=perf-tests-profile` extends `--config=perf-tests` with `-c opt`,
+`-fno-omit-frame-pointer` and `-g`, so `perf` can produce readable call stacks. The host needs a
+working `perf` on `PATH` (override with `E2E_PERF_PERF_BIN` if the versioned binary under
+`/usr/lib/linux-tools-<version>/perf` must be used instead of the `perf` wrapper, e.g. when the
+installed `linux-tools` package does not match the running kernel exactly).
+
+Flamegraph SVGs (`*.perf.data.svg`) and a `roundtrip_xlarge_result.json` are written next to the
+other artifacts, under
+`bazel-testlogs/tests/e2e_perf/e2e_perf_profile/test.outputs/e2e_perf_profile/`. Open the SVGs in
+a browser; wider frames took more samples (i.e. more CPU time).
+
 To confirm that traffic really crosses the network stack, capture while the test runs. Traffic
 between the two node addresses is delivered via `lo`, so capture on `any` inside the test's
 network namespace:
