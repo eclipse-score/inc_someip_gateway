@@ -20,23 +20,15 @@
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-234/"
   },
   {
-    "version": "pr-60",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-60/"
-  },
-  {
-    "version": "pr-254",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-254/"
-  },
-  {
-    "version": "pr-255",
-    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-255/"
-  },
-  {
     "version": "pr-256",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-256/"
   },
   {
     "version": "pr-257",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-257/"
+  },
+  {
+    "version": "pr-60",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-60/"
   }
 ]
