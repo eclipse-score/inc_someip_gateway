@@ -32,7 +32,7 @@ The gateway is split into two processes separated by an ASIL boundary: the **Gat
 (``gatewayd``) handles service-oriented communication logic, while the **SOME/IP Daemon**
 (``someipd``) owns the network socket and manages the SOME/IP protocol stack.
 
-.. image:: images/vsps_someip_overview.png
+.. image:: images/someip_gateway_overview.png
    :alt: SOME/IP Gateway system overview
    :align: center
 
