@@ -33,11 +33,11 @@ import sys
 from pathlib import Path
 
 import pytest
+from python.runfiles import runfiles
 
 # The helper modules live next to this file, which is not on sys.path under the bazel runfiles.
 sys.path.insert(0, str(Path(__file__).parent))
 
-from flamegraph import collapse_perf_script, write_flamegraph_svg  # noqa: E402
 from nodes import (  # noqa: E402
     NODE_A,
     NODE_B,
@@ -55,18 +55,38 @@ PAYLOAD_SIZE = "xlarge"
 WARMUP = 5
 MESSAGE_COUNT = 50
 APP_TIMEOUT_S = 120.0
+RUNFILES = runfiles.Create()
+STACK_COLLAPSE_PERF = Path(RUNFILES.Rlocation("flamegraph/stackcollapse-perf.pl"))
+FLAMEGRAPH = Path(RUNFILES.Rlocation("flamegraph/flamegraph.pl"))
 
 
-def _perf_script(perf_data: Path) -> str:
-    result = subprocess.run(
+def _write_flamegraph(perf_data: Path, svg_path: Path) -> None:
+    perf_script = subprocess.run(
         [PERF_BIN, "script", "-i", str(perf_data)],
         capture_output=True,
         text=True,
         check=False,
     )
-    if result.returncode != 0:
-        raise RuntimeError(f"'perf script' failed for {perf_data}:\n{result.stderr}")
-    return result.stdout
+    if perf_script.returncode != 0:
+        raise RuntimeError(
+            f"'perf script' failed for {perf_data}:\n{perf_script.stderr}"
+        )
+
+    folded = subprocess.run(
+        [str(STACK_COLLAPSE_PERF)],
+        input=perf_script.stdout,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    flamegraph = subprocess.run(
+        [str(FLAMEGRAPH), f"--title={perf_data.stem}"],
+        input=folded.stdout,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    svg_path.write_text(flamegraph.stdout)
 
 
 def test_profile_roundtrip_xlarge() -> None:
@@ -159,8 +179,7 @@ def test_profile_roundtrip_xlarge() -> None:
         if not perf_data.exists():
             print(f"  {perf_data.name}: no perf data captured (perf record failed?)")
             continue
-        folded = collapse_perf_script(_perf_script(perf_data))
-        write_flamegraph_svg(folded, svg_path, title=perf_data.stem)
+        _write_flamegraph(perf_data, svg_path)
         print(f"  {svg_path}")
 
     assert receiver_result["corrupt"] == 0

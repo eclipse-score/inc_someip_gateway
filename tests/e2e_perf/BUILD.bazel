@@ -139,7 +139,6 @@ py_pytest(
     name = "e2e_perf_profile",
     size = "medium",
     srcs = [
-        "flamegraph.py",
         "nodes.py",
         "test_profile.py",
     ],
@@ -150,12 +149,15 @@ py_pytest(
         ":perf_sender",
         "//score/gatewayd",
         "//score/someipd",
+        "@flamegraph//:flamegraph.pl",
+        "@flamegraph//:stackcollapse-perf.pl",
     ] + glob(["config/*.json"]),
     target_compatible_with = select({
         ":perf_tests": ["@platforms//os:linux"],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
     deps = [
+        "@bazel_tools//tools/python/runfiles",
         "@score_someip_gateway_pip//pytest",
     ],
 )
