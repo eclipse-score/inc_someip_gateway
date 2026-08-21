@@ -89,8 +89,7 @@ Component documentation
 .. toctree::
    :maxdepth: 1
 
-   socom/design/index
-   gateway_ipc_binding/index
+   components
 
 
 Examples
