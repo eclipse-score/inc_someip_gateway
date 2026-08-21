@@ -25,7 +25,7 @@ The S-CORE SOME/IP Gateway bridges the SCORE middleware with SOME/IP communicati
 | Build | `bazel build //score/...` |
 | Unit tests | `bazel test //score/...` |
 | Test all | `bazel test //...` |
-| Integration tests | `bazel test //tests/integration:integration` |
+| Integration tests | `bazel test --config=qemu-integration //tests/integration_test/...` |
 | Compile commands | `bazel run //:bazel-compile-commands` |
 
 ## Universal Rules

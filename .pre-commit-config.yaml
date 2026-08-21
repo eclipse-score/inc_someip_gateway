@@ -18,8 +18,6 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
-        # bug in current yamlfmt version, will be fixed via devcontainer update.
-        exclude: ^tests/integration/docker_setup/docker-compose.yaml$
       - id: check-shebang-scripts-are-executable
       - id: check-executables-have-shebangs
       - id: check-added-large-files

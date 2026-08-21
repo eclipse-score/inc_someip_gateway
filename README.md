@@ -57,42 +57,9 @@ and in a separate terminal
 bazel run //score/someipd:someipd_example
 ```
 
-### Dockerized integration test POC
+### Integration tests
 
-For integration tests, a docker based approach was taken.
-As a proof of concept `docker compose` can be used to build, setup and run the containers.
-In the future a pytest based setup can be implemented to orchestrate the containers.
-
-Build the docker containers:
-
-```sh
-docker compose --project-directory tests/integration/docker_setup/ build
-```
-
-Start up the containers:
-
-```sh
-docker compose --project-directory tests/integration/docker_setup/ up
-```
-
-Those containers are pre-configured (IP addresses, multicast route, ...).
-The someipd-1 container already starts up the `gatewayd` and the `someipd`.
-
-In Wireshark the network traffic can be seen by capturing on `any` with `ip.addr== 192.168.87.2 || ip.addr ==192.168.87.3`.
-
-On the client side, start up the `sample_client` in another shell:
-
-```sh
-docker exec -it --env VSOMEIP_CONFIGURATION=/home/source/tests/integration/sample_client/vsomeip.json docker_setup-client-1 /home/source/bazel-bin/tests/integration/sample_client/sample_client
-```
-
-Finally start the benchmark on the someipd-1 container in a third shell:
-
-```sh
-docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
-```
-
-For current Bazel-based integration testing backends (Docker, Linux QEMU, and QNX QEMU) and defaults, see [quality/README.md](quality/README.md).
+For current Bazel-based integration testing backends (Linux QEMU, and QNX QEMU) and defaults, see [quality/README.md](quality/README.md).
 
 
 ## 📝 Configuration
