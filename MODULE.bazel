@@ -176,7 +176,7 @@ download_archive(
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "8.0.0", dev_dependency = True)
+bazel_dep(name = "score_docs_as_code", version = "8.0.1", dev_dependency = True)
 
 # ============================================================================
 # Communication Framework
