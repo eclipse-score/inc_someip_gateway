@@ -142,6 +142,45 @@ def _perf_record_argv(perf_data: Path, argv: Sequence[str]) -> list[str]:
     return [PERF_BIN, "record", "--call-graph", "fp", "-o", str(perf_data), "--", *argv]
 
 
+def flamegraph_tools(stackcollapse: Path, flamegraph: Path) -> tuple[str, Path, Path]:
+    """Locates perf and validates the FlameGraph scripts supplied by Bazel."""
+    perf = shutil.which(PERF_BIN)
+    if not perf or not stackcollapse.is_file() or not flamegraph.is_file():
+        raise PreflightError(
+            "flamegraph generation requires perf and the FlameGraph scripts supplied by "
+            "--config=perf-tests-flamegraphs; see tests/benchmarks/README.md"
+        )
+    return perf, stackcollapse, flamegraph
+
+
+def create_flamegraphs(
+    perf_data_files: Sequence[Path], stackcollapse: Path, flamegraph: Path
+) -> None:
+    """Converts perf recordings to SVG flamegraphs using the FlameGraph scripts."""
+    perf, stackcollapse, flamegraph = flamegraph_tools(stackcollapse, flamegraph)
+
+    for perf_data in perf_data_files:
+        perf_script = subprocess.run(
+            [perf, "script", "-i", str(perf_data)],
+            capture_output=True,
+            check=True,
+        )
+        folded = subprocess.run(
+            [str(stackcollapse)],
+            input=perf_script.stdout,
+            capture_output=True,
+            check=True,
+        )
+        output = perf_data.with_suffix(".svg")
+        with output.open("wb") as svg:
+            subprocess.run(
+                [str(flamegraph), "--title", perf_data.stem],
+                input=folded.stdout,
+                stdout=svg,
+                check=True,
+            )
+
+
 def _terminate_process_group(process: subprocess.Popen, sig: int) -> None:
     # Each spawned process is its own session leader (see Node._spawn), so signalling its group
     # also reaches a `perf record` wrapper's traced child, which does not get signals otherwise.

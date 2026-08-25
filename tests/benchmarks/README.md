@@ -26,6 +26,14 @@ Run the optimized benchmark configuration with:
 bazel test --config=perf-tests-profile //tests/benchmarks:e2e_benchmarks --test_output=streamed
 ```
 
+To additionally record the gateway daemons and create CPU flamegraphs, install `perf`, then run:
+
+```bash
+bazel test --config=perf-tests-flamegraphs //tests/benchmarks:e2e_benchmarks --test_output=streamed
+```
+
+The `.perf.data` recordings and `.perf.svg` flamegraphs are written beside `benchmarks.json`.
+
 The test starts and stops both daemon pairs and the echo server itself. The client and server use
 different mw::com service ids on the shared host, which prevents a LoLa shared-memory shortcut.
 The benchmark result is written as `benchmarks.json` under

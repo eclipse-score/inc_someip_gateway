@@ -25,7 +25,16 @@ import pytest
 
 sys.path.insert(0, str(Path("tests/benchmarks").absolute()))
 
-from nodes import GATEWAYD, SOMEIPD, Node, NodeSpec, PreflightError, preflight  # noqa: E402
+from nodes import (  # noqa: E402
+    GATEWAYD,
+    SOMEIPD,
+    Node,
+    NodeSpec,
+    PreflightError,
+    create_flamegraphs,
+    flamegraph_tools,
+    preflight,
+)
 
 BENCHMARKS = Path("tests/benchmarks/ipc_benchmarks")
 ECHO_SERVER = Path("tests/benchmarks/echo_server")
@@ -62,6 +71,15 @@ def _terminate(process: subprocess.Popen[bytes]) -> None:
         process.wait(timeout=5)
 
 
+def _flamegraph_scripts(runfiles_dir: Path) -> tuple[Path, Path] | None:
+    """Returns Bazel-provided FlameGraph scripts when profiling is configured."""
+    flamegraphs = list(runfiles_dir.glob("*/flamegraph.pl"))
+    if not flamegraphs:
+        return None
+    flamegraph = flamegraphs[0]
+    return flamegraph.with_name("stackcollapse-perf.pl"), flamegraph
+
+
 def test_e2e_benchmarks() -> None:
     """Benchmark a request/response pair that must traverse the SOME/IP link."""
     try:
@@ -69,15 +87,23 @@ def test_e2e_benchmarks() -> None:
     except PreflightError as error:
         pytest.skip(str(error))
 
+    runfiles_dir = Path(os.environ["TEST_SRCDIR"])
+    scripts = _flamegraph_scripts(runfiles_dir)
+    if scripts is not None:
+        _ = flamegraph_tools(*scripts)
+
     artifact_dir = (
         Path(os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")) / "e2e_benchmarks"
     )
     artifact_dir.mkdir(parents=True, exist_ok=True)
     server_log = (artifact_dir / "echo_server.log").open("wb")
     server: subprocess.Popen[bytes] | None = None
+    profile_dir = artifact_dir if scripts is not None else None
+    node_a = Node(NODE_A, artifact_dir, profile_dir)
+    node_b = Node(NODE_B, artifact_dir, profile_dir)
 
     try:
-        with Node(NODE_A, artifact_dir), Node(NODE_B, artifact_dir):
+        with node_a, node_b:
             server = subprocess.Popen(
                 [
                     str(ECHO_SERVER.absolute()),
@@ -102,3 +128,6 @@ def test_e2e_benchmarks() -> None:
         if server is not None:
             _terminate(server)
         server_log.close()
+
+    if scripts is not None:
+        create_flamegraphs([*node_a.perf_data_files, *node_b.perf_data_files], *scripts)

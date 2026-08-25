@@ -94,6 +94,12 @@ test:perf-tests-profile --copt=-fno-omit-frame-pointer
 test:perf-tests-profile --copt=-g
 test:perf-tests-profile --strip=never
 
+# Records gateway daemon CPU samples and writes flamegraphs to the benchmark test outputs.
+# Requires perf; FlameGraph scripts are downloaded by Bazel.
+# Usage: bazel test --config=perf-tests-flamegraphs //tests/benchmarks:e2e_benchmarks
+test:perf-tests-flamegraphs --config=perf-tests-profile
+test:perf-tests-flamegraphs --define=flamegraphs=true
+
 test --test_output=errors
 build --incompatible_strict_action_env
 

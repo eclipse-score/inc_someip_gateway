@@ -23,6 +23,11 @@ config_setting(
     define_values = {"perf_tests": "true"},
 )
 
+config_setting(
+    name = "flamegraphs",
+    define_values = {"flamegraphs": "true"},
+)
+
 sh_binary(
     name = "setup_network",
     srcs = ["setup_network.sh"],
@@ -40,6 +45,17 @@ filegroup(
         ],
     ),
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "flamegraph_scripts",
+    srcs = select({
+        ":flamegraphs": [
+            "@flamegraph//:flamegraph.pl",
+            "@flamegraph//:stackcollapse-perf.pl",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 cc_library(
@@ -96,6 +112,7 @@ py_pytest(
     ],
     data = [
         ":echo_server",
+        ":flamegraph_scripts",
         ":ipc_benchmarks",
         ":node_a_config_file",
         ":node_b_config_file",
