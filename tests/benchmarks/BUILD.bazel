@@ -107,8 +107,35 @@ py_pytest(
     name = "e2e_benchmarks",
     size = "large",
     srcs = [
+        "e2e_benchmark_runner.py",
         "nodes.py",
         "test_e2e_benchmarks.py",
+    ],
+    data = [
+        ":echo_server",
+        ":flamegraph_scripts",
+        ":ipc_benchmarks",
+        ":node_a_config_file",
+        ":node_b_config_file",
+        "//score/gatewayd",
+        "//score/someipd",
+    ] + glob(["config/*.json"]),
+    target_compatible_with = select({
+        ":perf_tests": ["@platforms//os:linux"],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+    ],
+)
+
+py_pytest(
+    name = "e2e_benchmarks_stress_throughput",
+    size = "large",
+    srcs = [
+        "e2e_benchmark_runner.py",
+        "nodes.py",
+        "test_e2e_benchmarks_stress_throughput.py",
     ],
     data = [
         ":echo_server",

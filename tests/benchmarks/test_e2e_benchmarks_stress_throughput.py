@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-"""Runs the Google Benchmark IPC suite through both SOME/IP gateway nodes."""
+"""Runs only StressThroughput benchmark over the full SOME/IP gateway path."""
 
 from __future__ import annotations
 
@@ -23,6 +23,9 @@ sys.path.insert(0, str(Path(".").absolute()))
 from tests.benchmarks.e2e_benchmark_runner import run_e2e_benchmarks  # noqa: E402
 
 
-def test_e2e_benchmarks() -> None:
-    """Benchmark a request/response pair that must traverse the SOME/IP link."""
-    run_e2e_benchmarks(artifact_subdir="e2e_benchmarks")
+def test_e2e_benchmarks_stress_throughput() -> None:
+    """Benchmark only StressThroughput for focused profiling."""
+    run_e2e_benchmarks(
+        artifact_subdir="e2e_benchmarks_stress_throughput",
+        benchmark_filter="^IpcBenchmark/StressThroughput.*",
+    )
