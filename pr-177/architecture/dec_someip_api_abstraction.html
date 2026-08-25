@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Stakeholder Requirements &#8212; SOME/IP Gateway  documentation</title>
+    <title>DR-001-Arch: SOME/IP stack abstraction &#8212; SOME/IP Gateway  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/stakeholder';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/dec_someip_api_abstraction';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Feature Requirements" href="feature/index.html" />
-    <link rel="prev" title="Requirements" href="index.html" />
+    <link rel="next" title="DR-002-Arch: IPC implementation" href="dec_ipc_implementation.html" />
+    <link rel="prev" title="Architectural Design Decision: Dynamic Registration for SOME/IP Gateway" href="dec_someipgw_registration.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -159,15 +159,15 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
     Requirements
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../architecture/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -301,15 +301,15 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
     Requirements
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../architecture/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -405,10 +405,16 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Stakeholder Requirements</a></li>
-<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature Requirements</a></li>
-<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a></li>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">DR-001-Arch: SOME/IP stack abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dec_ipc_implementation.html">DR-002-Arch: IPC implementation</a></li>
 </ul>
 </div>
 </nav></div>
@@ -450,9 +456,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Requirements</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOMEIP Gateway Architecture</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Stakeholder Requirements</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">DR-001-Arch: SOME/IP stack abstraction</span></li>
   </ul>
 </nav>
 </div>
@@ -469,23 +475,20 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="stakeholder-requirements">
-<h1>Stakeholder Requirements<a class="headerlink" href="#stakeholder-requirements" title="Link to this heading">#</a></h1>
-<p>This file contains stakeholder-level requirements for the SOME/IP Gateway.
-Stakeholder requirements capture high-level needs from users, integrators,
-and safety standards. They are the top of the requirements hierarchy —
-feature and component requirements derive from these.</p>
-<div class="need_container docutils container" id="SNCB-4d7158bb">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_stkh_req table" id="stkh_req__docgen_enabled__example">
+  <section id="dr-001-arch-some-ip-stack-abstraction">
+<h1>DR-001-Arch: SOME/IP stack abstraction<a class="headerlink" href="#dr-001-arch-some-ip-stack-abstraction" title="Link to this heading">#</a></h1>
+<p><strong>Date:</strong> 2026-08-11</p>
+<div class="need_container docutils container" id="SNCB-ac0f4b5b">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__arch__someip_abstraction">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Example Functional Requirement</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP stack abstraction</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">YES</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">accepted</span></span></span></div>
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -494,13 +497,11 @@ feature and component requirements derive from these.</p>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_rationale"><span class="needs_label">rationale: </span><span class="needs_data">Ensure documentation builds are possible for all modules</span></span></div>
-<div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
-<div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_context"><span class="needs_label">context: </span><span class="needs_data">SOME/IP Gateway</span></span></div>
+<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Option 2 (socom binding)</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derives: <span class="derived_from"><span><a class="reference internal" href="../tc8_conformance/requirements.html#feat_req__tc8_conformance__conformance" title="stkh_req__docgen_enabled__example">feat_req__tc8_conformance__conformance</a></span></span></div>
-</span></div>
+<div class="line"><span></span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
@@ -508,11 +509,11 @@ feature and component requirements derive from these.</p>
 <tr class="content row-odd"><td class="content" colspan="6"></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#stkh_req__docgen_enabled__example" title="stkh_req__docgen_enabled__example">stkh_req__docgen_enabled__example</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#dec_rec__arch__someip_abstraction" title="dec_rec__arch__someip_abstraction">dec_rec__arch__someip_abstraction</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Stakeholder Requirement</span></span></span></div>
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Decision Record</span></span></span></div>
 </div>
 </td>
 <td class="footer_right" colspan="2"></td>
@@ -521,12 +522,116 @@ feature and component requirements derive from these.</p>
 </table>
 </div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The requirement above is a placeholder inherited from the module template.
-It should be replaced with proper SOME/IP Gateway stakeholder requirements
-as they are defined.</p>
-</div>
+<section id="context-problem">
+<h2>Context / Problem<a class="headerlink" href="#context-problem" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">vsomeipd</span></code> will not be the only SOME/IP stack implementation used in the future, and the architecture needs to support multiple implementations.
+The SOME/IP Gateway needs an abstraction layer to decouple from the specific SOME/IP stack implementation.
+The semantics of the abstraction layer need to be reflected via the IPC layer.</p>
+<p>The abstraction layer is the scope of this decision record. The IPC implementation is covered in a separate decision record.</p>
+</section>
+<section id="options-considered">
+<h2>Options Considered<a class="headerlink" href="#options-considered" title="Link to this heading">#</a></h2>
+<section id="option-1-mw-com-as-abstraction-api-binding">
+<h3>Option 1: <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> as abstraction API (binding)<a class="headerlink" href="#option-1-mw-com-as-abstraction-api-binding" title="Link to this heading">#</a></h3>
+<p>This option would integrate SOME/IP network stack through the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> binding API and
+reuse <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> as the central integration layer.</p>
+<p>Pros:</p>
+<ul class="simple">
+<li><p>Already safety qualified</p></li>
+<li><p>Reuses existing <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> integration concepts.</p></li>
+<li><p>Keeps one primary communication abstraction in the architecture.</p></li>
+</ul>
+<p>Cons:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> is designed to know all bindings up front at compile time</p>
+<ul>
+<li><p>To avoid a direct dependency on the SOME/IP stack an interface / abstraction would still be needed at this point</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> might need API extension for event subscription state and FindService</p></li>
+<li><p>Configuring <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> could become complex</p>
+<ul>
+<li><p>Assuming that a SOME/IP service is mapped to a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service configuration format might need SOME/IP specific extensions</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="option-2-abstract-api-as-some-ip-abstraction">
+<h3>Option 2: Abstract API as SOME/IP abstraction<a class="headerlink" href="#option-2-abstract-api-as-some-ip-abstraction" title="Link to this heading">#</a></h3>
+<p>This option uses <code class="docutils literal notranslate"><span class="pre">socom</span></code> as the abstraction to interact with the SOME/IP network stack.
+The API of <code class="docutils literal notranslate"><span class="pre">socom</span></code> is designed to be a generic abstraction of the SOME/IP network stack without serialization support.
+<code class="docutils literal notranslate"><span class="pre">socom</span></code> is designed to be as simple as possible, while still providing the necessary functionality to implement a SOME/IP stack abstraction.
+A SOME/IP network stack implementation can be registered at startup.</p>
+<p>Pros:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">socom</span></code> provides a simpler API surface for this integration scenario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">socom</span></code> already supports registering bindings, which is needed by the
+selected architecture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">socom</span></code> supports enables a focused SDK-style integration for SOME/IP plugins.</p></li>
+<li><p>Keeps API for IPC (<code class="docutils literal notranslate"><span class="pre">mw::com</span></code>) and SOME/IP stack (<code class="docutils literal notranslate"><span class="pre">socom</span></code>) separate, which keeps the scope of each API clear.</p></li>
+<li><p>Supports zero-copy.</p></li>
+<li><p>API loosely coupled with the exact stack.</p></li>
+<li><p>Abstraction of the service handling. It shields <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> from all stack interaction logic (“Glue code”).</p></li>
+<li><p>Separation of “bridge” and “API”.</p></li>
+</ul>
+<p>Cons:</p>
+<ul class="simple">
+<li><p>Introduces another abstraction alongside <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> and requires clear interface boundaries in documentation and code ownership.</p></li>
+<li><p>More complex compare to option 3.</p>
+<ul>
+<li><p>This was dealt with by removing all features currently not needed by the gateway.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="option-3-abstraction-close-to-vsomeip-api-as-some-ip-abstraction">
+<h3>Option 3: Abstraction close to <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> API as SOME/IP abstraction<a class="headerlink" href="#option-3-abstraction-close-to-vsomeip-api-as-some-ip-abstraction" title="Link to this heading">#</a></h3>
+<p>Since we start with <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> as the initial SOME/IP stack implementation, we could also consider an abstraction layer that is close to the <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> API.</p>
+<p>Pros:</p>
+<ul class="simple">
+<li><p>API design already mostly determined by vsomeip API.</p></li>
+</ul>
+<p>Cons:</p>
+<ul class="simple">
+<li><p>API not designed for zero-copy.</p></li>
+<li><p>API closely coupled with the exact stack.</p></li>
+<li><p>No abstraction of the service handling, all stack interaction logic (“Glue code”) propagates into the gatewayd.</p></li>
+<li><p>Separation of “bridge” and “API” would still have to be designed.</p></li>
+</ul>
+</section>
+</section>
+<section id="evaluation">
+<h2>Evaluation<a class="headerlink" href="#evaluation" title="Link to this heading">#</a></h2>
+<p>Option 1 would require missing capabilities and expected API extensions in
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> before it can support the intended SOME/IP gateway behavior cleanly.
+To be agnostic to the concrete SOME/IP stack, <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> would need to provide a suitable abstraction layer.</p>
+<p>Thus if option 1 is selected, we still have to select between option 2 and 3 for the abstraction layer.</p>
+<p>Option 2 provides the necessary extensibility (binding registration) with a
+simpler integration model and method support out of the box.</p>
+</section>
+<section id="decision">
+<h2>Decision<a class="headerlink" href="#decision" title="Link to this heading">#</a></h2>
+<p>Option 2 was selected: the SOME/IP stack abstraction in this module is based on
+<code class="docutils literal notranslate"><span class="pre">socom</span></code>.</p>
+</section>
+<section id="consequences">
+<h2>Consequences<a class="headerlink" href="#consequences" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The integration between the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> daemon is based on <code class="docutils literal notranslate"><span class="pre">socom</span></code> interfaces.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> is not used as the primary abstraction layer for SOME/IP stack
+integration in this module.</p></li>
+<li><p>Future work should preserve a clear boundary between <code class="docutils literal notranslate"><span class="pre">socom</span></code>-based
+abstraction and any optional <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> interoperability logic.</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>SOME/IP Gateway design discussion:
+<a class="github reference external" href="https://github.com/orgs/eclipse-score/discussions/1984">orgs/eclipse-score#1984</a></p></li>
+</ul>
+</section>
 </section>
 
 
@@ -540,20 +645,20 @@ as they are defined.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="dec_someipgw_registration.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Requirements</p>
+        <p class="prev-next-title">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</p>
       </div>
     </a>
     <a class="right-next"
-       href="feature/index.html"
+       href="dec_ipc_implementation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Feature Requirements</p>
+        <p class="prev-next-title">DR-002-Arch: IPC implementation</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -569,10 +674,32 @@ as they are defined.</p>
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context-problem">Context / Problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#options-considered">Options Considered</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-mw-com-as-abstraction-api-binding">Option 1: <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> as abstraction API (binding)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-abstract-api-as-some-ip-abstraction">Option 2: Abstract API as SOME/IP abstraction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-3-abstraction-close-to-vsomeip-api-as-some-ip-abstraction">Option 3: Abstraction close to <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> API as SOME/IP abstraction</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#evaluation">Evaluation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision">Decision</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#consequences">Consequences</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/stakeholder.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/dec_someip_api_abstraction.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
