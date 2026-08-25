@@ -267,18 +267,27 @@ bazel_dep(name = "os_images", version = "1.0", dev_dependency = True)
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
+# TODO: Switch back to a released version once `--qemu-disk` is part of a tagged release.
 git_override(
     module_name = "score_itf",
-    commit = "15891e79da565fa6b038fbf22074b86fd9bc55a1",
+    commit = "8aa4723dffaff85f4405315f9500a651310afb74",
     patch_strip = 1,
     patches = ["//:third_party/score_itf-qemu-ping-timeout.patch"],
-    remote = "https://github.com/elektrobit-contrib/eclipse-score_itf.git",
+    remote = "https://github.com/eclipse-score/itf.git",
 )
 
+# TODO: Switch back to a released version once the automatic /opt mount is released.
 git_override(
     module_name = "os_images",
-    commit = "a024787e2ddb4ceed6ac6fe63b3847ab937c0b5d",
+    commit = "90eeb7e041fef1773489dc41e75ab063ddb0cfa1",
     remote = "https://github.com/eclipse-score/os_images.git",
+)
+
+# TODO: Switch back to a released version once the `ext4` rule is available in a tagged release.
+git_override(
+    module_name = "score_rules_imagefs",
+    commit = "b1278766c01d9f4102c24e87b0ce9d035eaed832",
+    remote = "https://github.com/eclipse-score/rules_imagefs.git",
 )
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)

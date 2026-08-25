@@ -13,8 +13,9 @@
 
 """Integration test macro with QEMU-only backends."""
 
-load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-load("@score_itf//:defs.bzl", "copy_files_onto_image", "py_itf_test")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup")
+load("@score_itf//:defs.bzl", "py_itf_test")
+load("@score_rules_imagefs//rules/linux:ext4.bzl", "ext4")
 load("@score_rules_imagefs//rules/qnx:ifs.bzl", "qnx_ifs")
 
 def _extend_list_in_kwargs(kwargs, key, values):
@@ -42,7 +43,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     Args:
         name: The target name.
         srcs: Test source files.
-        filesystem: Tests and dependencies to be run. Will be added / uploaded into the OS image. The entrypoint is a py_test compatible python file. Must be created using `pkg_files()`.
+        filesystem: Tests and dependencies to be run. Will be added / uploaded into the OS image. On Linux they are shipped as an additional ext4 disk, which the image mounts on `/opt`. The entrypoint is a py_test compatible python file. Must be created using `pkg_files()`.
         **kwargs: Additional arguments passed to py_itf_test.
     """
     LINUX_TARGET_COMPATIBLE_WITH = [
@@ -50,23 +51,17 @@ def integration_test(name, srcs, filesystem, **kwargs):
     ]
 
     # --- Linux QEMU artifacts ---
-    filesystem_tar = "_qemu_filesystem_{}".format(name)
-    pkg_tar(
-        name = filesystem_tar,
+    filesystem_disk = "_qemu_disk_{}".format(name)
+    ext4(
+        name = filesystem_disk,
         srcs = [filesystem],
+        out = "qemu_disk_{}.ext4".format(name),
         tags = ["manual"],
+        target_compatible_with = LINUX_TARGET_COMPATIBLE_WITH,
     )
 
     linux_qemu_config = Label("@os_images//ubuntu_x86_64:qemu_config")
     linux_qemu_image = Label("@os_images//ubuntu_x86_64:image")
-
-    filesystem_rootfs_overlay = "_qemu_rootfs_overlay_{}".format(name)
-    copy_files_onto_image(
-        name = filesystem_rootfs_overlay,
-        image = linux_qemu_image,
-        srcs = [filesystem_tar],
-        tags = ["manual"],
-    )
 
     # --- QNX QEMU artifacts ---
     QNX_TARGET_COMPATIBLE_WITH = [
@@ -74,12 +69,19 @@ def integration_test(name, srcs, filesystem, **kwargs):
         "@platforms//os:qnx",
     ]
 
+    qnx_filesystem = "_qnx_filesystem_{}".format(name)
+    pkg_filegroup(
+        name = qnx_filesystem,
+        srcs = [filesystem],
+        prefix = "/opt",
+    )
+
     qemu_image = "_init_ifs_{}".format(name)
     qnx_ifs(
         name = qemu_image,
         out = "init_ifs_{}".format(name),
         build_file = "//quality/integration_testing/environments/qnx8_qemu:init_build",
-        srcs = [filesystem, "//quality/integration_testing/environments/qnx8_qemu:qnx_config"],
+        srcs = [qnx_filesystem, "//quality/integration_testing/environments/qnx8_qemu:qnx_config"],
         target_compatible_with = QNX_TARGET_COMPATIBLE_WITH,
     )
 
@@ -89,9 +91,9 @@ def integration_test(name, srcs, filesystem, **kwargs):
     _extend_list_in_kwargs(kwargs, "data", select({
         "@platforms//os:qnx": [qemu_image, qnx_qemu_config],
         "//quality/integration_testing/flags:linux_qemu": [
-            filesystem_rootfs_overlay,
+            filesystem_disk,
             linux_qemu_config,
-            linux_qemu_image,  # backing file must be accessible at runtime
+            linux_qemu_image,
         ],
         "//conditions:default": [],
     }))
@@ -107,7 +109,8 @@ def integration_test(name, srcs, filesystem, **kwargs):
             "//quality/integration_testing/flags:linux_qemu": [
                 "--log-cli-level=DEBUG",
                 "--qemu-config=$(location {})".format(linux_qemu_config),
-                "--qemu-rootfs=$(location {})".format(filesystem_rootfs_overlay),
+                "--qemu-rootfs=$(location {})".format(linux_qemu_image),
+                "--qemu-disk=$(location {})".format(filesystem_disk),
             ],
             "//conditions:default": [],
         }),
