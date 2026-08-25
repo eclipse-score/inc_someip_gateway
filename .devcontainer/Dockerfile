@@ -29,7 +29,7 @@ RUN if [ "$USERNAME" != "vscode" ]; then \
     fi
 
 RUN apt-get update && apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
-RUN apt-get install -y linux-tools-common linux-tools-generic linux-tools-`uname -r`
+RUN apt-get install -y linux-tools-common linux-tools-generic linux-tools-`uname -r` || true
 
 # Set the default user for the container
 USER ${USERNAME}
