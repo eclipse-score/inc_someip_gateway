@@ -83,7 +83,11 @@ def _has_sd_multicast_route() -> bool:
     routes = subprocess.run(
         ["ip", "route", "show"], capture_output=True, text=True, check=False
     ).stdout
-    return any(line.startswith("224.") for line in routes.splitlines())
+    return any(
+        line.startswith(f"{SD_MULTICAST_ADDRESS} ")
+        or line.startswith(f"{SD_MULTICAST_ADDRESS}/")
+        for line in routes.splitlines()
+    )
 
 
 def _remove_stale_paths() -> None:
@@ -120,8 +124,8 @@ def preflight(
             "--config=perf-tests."
         )
 
-    for name in ("someipd", "gatewayd", "perf_sender", "perf_receiver"):
-        subprocess.run(["pkill", "-9", "-f", name], check=False)
+    for spec in nodes or ():
+        subprocess.run(["pkill", "-9", "-f", spec.ipc_channel], check=False)
     time.sleep(0.5)
     _remove_stale_paths()
 
