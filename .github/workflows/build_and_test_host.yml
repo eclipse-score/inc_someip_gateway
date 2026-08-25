@@ -100,6 +100,8 @@ jobs:
           unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+      - name: Allow perf
+        run: sudo sh -c 'echo -1 > /proc/sys/kernel/perf_event_paranoid'
       - name: Run Linux perf tests
         run: |
           bazel test --config=perf-tests //tests/benchmarks/... --build_tests_only
