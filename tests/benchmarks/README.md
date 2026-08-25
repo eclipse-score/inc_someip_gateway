@@ -23,7 +23,7 @@ in the isolated network namespace configured by `tests/benchmarks/setup_network.
 Run the optimized benchmark configuration with:
 
 ```bash
-bazel test --config=perf-tests-profile //tests/benchmarks:e2e_benchmarks --test_output=streamed
+bazel test --config=perf-tests //tests/benchmarks:e2e_benchmarks --test_output=streamed
 ```
 
 To additionally record the gateway daemons and create CPU flamegraphs, install `perf`, then run:
