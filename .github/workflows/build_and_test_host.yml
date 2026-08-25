@@ -67,7 +67,7 @@ jobs:
       - name: Install tools needed for ITF tests
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 qemu-system-arm iputils-ping tcpdump cloud-image-utils libguestfs-tools
+          sudo apt-get install -y qemu-system-x86 qemu-system-arm iputils-ping tcpdump cloud-image-utils
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
       - run: df -h
@@ -79,9 +79,6 @@ jobs:
       - name: Allow unprivileged user namespaces
         run: |
           sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0
-      - name: Allow supermin to read kernel
-        run: |
-          sudo chmod a+r /boot/vmlinuz-$(uname -r)
       - name: Run Linux QEMU integration tests
         run: |
           bazel test \
