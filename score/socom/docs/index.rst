@@ -1,6 +1,6 @@
 ..
    # *******************************************************************************
-   # Copyright (c) 2025 Contributors to the Eclipse Foundation
+   # Copyright (c) 2026 Contributors to the Eclipse Foundation
    #
    # See the NOTICE file(s) distributed with this work for additional
    # information regarding copyright ownership.
@@ -12,31 +12,13 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOMEIP Gateway Architecture
-===========================
+SOCom
+=====
 
-Feature Definition
-------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   features.rst
-
-Component Definition
---------------------
+The SOCom (Service-Oriented Communication) library provides the middleware
+abstraction layer for SOME/IP communication in the S-CORE framework.
 
 .. toctree::
    :maxdepth: 1
 
-   components.rst
-
-Design decisions
-----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   dec_someipgw_registration.rst
-   dec_someip_api_abstraction.rst
-   dec_ipc_implementation.rst
+   design/index

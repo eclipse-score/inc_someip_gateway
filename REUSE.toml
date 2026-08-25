@@ -39,6 +39,11 @@ SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundat
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = ["docs/images/someip_gateway_overview.*"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = [
     "docs/architecture/score-someip-car-window-overview.drawio*",
     "score/config/mw_someip_config.*",
