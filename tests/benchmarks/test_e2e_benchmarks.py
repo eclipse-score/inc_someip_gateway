@@ -65,7 +65,7 @@ def _terminate(process: subprocess.Popen[bytes]) -> None:
 def test_e2e_benchmarks() -> None:
     """Benchmark a request/response pair that must traverse the SOME/IP link."""
     try:
-        preflight((SOMEIPD, GATEWAYD, BENCHMARKS, ECHO_SERVER))
+        preflight((SOMEIPD, GATEWAYD, BENCHMARKS, ECHO_SERVER), (NODE_A, NODE_B))
     except PreflightError as error:
         pytest.skip(str(error))
 

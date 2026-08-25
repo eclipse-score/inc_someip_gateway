@@ -34,17 +34,12 @@ from typing import Sequence
 
 SOMEIPD = Path("score/someipd/someipd")
 GATEWAYD = Path("score/gatewayd/gatewayd")
-PERF_SENDER = Path("tests/benchmarks/perf_sender")
-PERF_RECEIVER = Path("tests/benchmarks/perf_receiver")
-CONFIG_DIR = Path("tests/benchmarks/config")
 
 GATEWAYD_READY_MARKER = "[gatewayd] IPC connection to someipd established"
 SD_MULTICAST_ADDRESS = "224.244.224.245"
 
 # Loopback addresses within the network namespace set up by setup_network.sh, so they cannot
 # clash with the host.
-NODE_A_IP = "127.0.0.2"
-NODE_B_IP = "127.0.0.3"
 NETMASK = "255.0.0.0"
 VSOMEIP_LOG_LEVEL = os.environ.get("E2E_PERF_VSOMEIP_LOG_LEVEL", "warning")
 PERF_BIN = os.environ.get("E2E_PERF_PERF_BIN", "perf")
@@ -67,27 +62,6 @@ class NodeSpec:
     someip_config: Path
     mw_com_config: Path
     vsomeip_template: Path
-
-
-NODE_A = NodeSpec(
-    name="node_a",
-    ipc_channel="perf_ipc_a",
-    vsomeip_network="perf-node-a",
-    unicast_ip=NODE_A_IP,
-    someip_config=Path("tests/benchmarks/node_a_someip_config.bin"),
-    mw_com_config=CONFIG_DIR / "node_a_mw_com_config.json",
-    vsomeip_template=CONFIG_DIR / "vsomeip_node_a.json",
-)
-
-NODE_B = NodeSpec(
-    name="node_b",
-    ipc_channel="perf_ipc_b",
-    vsomeip_network="perf-node-b",
-    unicast_ip=NODE_B_IP,
-    someip_config=Path("tests/benchmarks/node_b_someip_config.bin"),
-    mw_com_config=CONFIG_DIR / "node_b_mw_com_config.json",
-    vsomeip_template=CONFIG_DIR / "vsomeip_node_b.json",
-)
 
 
 class PreflightError(RuntimeError):
@@ -121,14 +95,17 @@ def _remove_stale_paths() -> None:
                 pass
 
 
-def preflight(required_binaries: Sequence[Path] | None = None) -> None:
+def preflight(
+    required_binaries: Sequence[Path] | None = None,
+    nodes: Sequence[NodeSpec] | None = None,
+) -> None:
     """Validates the host setup and removes leftovers from a previous run."""
-    binaries = required_binaries or (SOMEIPD, GATEWAYD, PERF_SENDER, PERF_RECEIVER)
+    binaries = required_binaries or ()
     for binary in binaries:
         if not binary.exists():
             raise PreflightError(f"missing binary {binary} (cwd: {Path.cwd()})")
 
-    for spec in (NODE_A, NODE_B):
+    for spec in nodes or ():
         if not _is_local_address(spec.unicast_ip):
             raise PreflightError(
                 f"{spec.name} needs the local address {spec.unicast_ip}, which "
@@ -305,51 +282,3 @@ class Node:
             f"{self._spec.name} gatewayd did not report '{marker}' within {timeout}s:\n"
             f"{log_path.read_text(errors='replace')}"
         )
-
-
-class PerfApp:
-    """Runs perf_sender or perf_receiver in the background and collects its result JSON."""
-
-    def __init__(
-        self,
-        binary: Path,
-        workdir: Path,
-        name: str,
-        argv: Sequence[str],
-        perf_data: Path | None = None,
-    ) -> None:
-        self._binary = binary
-        self._name = name
-        self.log_path = workdir / f"{name}.log"
-        self.result_path = workdir / f"{name}_result.json"
-        app_argv = [str(binary.absolute()), "-o", str(self.result_path), *argv]
-        self._argv = _perf_record_argv(perf_data, app_argv) if perf_data else app_argv
-        self._handle = self.log_path.open("wb")
-        self._process = subprocess.Popen(
-            self._argv, stdout=self._handle, stderr=subprocess.STDOUT
-        )
-
-    def wait(self, timeout: float) -> dict:
-        try:
-            self._process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            self._process.kill()
-            self._process.wait(timeout=5.0)
-            raise
-        finally:
-            self._handle.close()
-        if not self.result_path.exists():
-            raise RuntimeError(
-                f"{self._name} exited with {self._process.returncode} and wrote no result:\n"
-                f"{self.log_path.read_text(errors='replace')}"
-            )
-        return json.loads(self.result_path.read_text())
-
-
-def wait_for_file(path: Path, timeout: float) -> None:
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if path.exists():
-            return
-        time.sleep(0.05)
-    raise TimeoutError(f"{path} was not created within {timeout}s")
