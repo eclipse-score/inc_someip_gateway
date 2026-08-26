@@ -15,10 +15,14 @@
 
 #include <algorithm>
 #include <cassert>
+#include <climits>
 #include <string>
 #include <string_view>
 
 namespace score::gateway_ipc_binding {
+
+static_assert(kMax_shared_memory_path_size <= NAME_MAX,
+              "kMax_shared_memory_path_size must not exceed platform NAME_MAX");
 
 socom::Service_interface_identifier Service::to_socom_identifier() const noexcept {
     return socom::Service_interface_identifier{fixed_string_to_string(service_id),
