@@ -54,7 +54,10 @@ use_repo(pip, "score_someip_gateway_pip")
 # ============================================================================
 # Testing & Performance Measurement
 # ============================================================================
-bazel_dep(name = "googletest", version = "1.18.0", dev_dependency = True)
+# Not a dev_dependency: //score/socom:mock is a publicly visible cc_library that
+# depends on @googletest//:gtest_for_library.
+bazel_dep(name = "googletest", version = "1.18.0")
+
 bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 
 # ============================================================================
