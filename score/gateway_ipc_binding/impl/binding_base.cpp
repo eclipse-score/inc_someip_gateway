@@ -104,7 +104,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_connect_message(client_id, conn, **msg_opt);
+            handle_connect_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Connect_reply: {
@@ -114,7 +114,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_connect_reply_message(**msg_opt);
+            handle_connect_reply_message(*msg_opt);
             break;
         }
         case Message_type::Connect_service: {
@@ -123,7 +123,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_connect_service_message(client_id, conn, **msg_opt);
+            handle_connect_service_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Connect_service_reply: {
@@ -132,7 +132,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_connect_service_reply_message(client_id, **msg_opt);
+            handle_connect_service_reply_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Request_service: {
@@ -141,7 +141,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_request_service_message(client_id, conn, **msg_opt);
+            handle_request_service_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Offer_service: {
@@ -150,7 +150,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_offer_service_message(client_id, **msg_opt);
+            handle_offer_service_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Subscribe_event: {
@@ -159,7 +159,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_subscribe_event_message(client_id, **msg_opt);
+            handle_subscribe_event_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Event_update: {
@@ -168,7 +168,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_event_update_message(client_id, **msg_opt);
+            handle_event_update_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Payload_consumed: {
@@ -177,7 +177,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
                 return;
             }
 
-            handle_payload_consumed_message(client_id, **msg_opt);
+            handle_payload_consumed_message(client_id, *msg_opt);
             break;
         }
         default:

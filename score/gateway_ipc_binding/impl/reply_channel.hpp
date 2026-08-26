@@ -31,6 +31,11 @@ class Reply_channel {
     /// \return Success or error
     virtual Result<void> send(score::cpp::span<std::uint8_t const> data) noexcept = 0;
 
+    /// \brief Tear down this connection after an unrecoverable protocol error (for example a
+    /// handshake message that could not be sent), instead of leaving the peer waiting forever.
+    /// \details Default is a no-op; overridden where the concrete channel can actually act on it.
+    virtual void request_disconnect() noexcept {}
+
     /// \brief Send a message through this connection
     /// \param msg Message to send
     /// \return Success or error
