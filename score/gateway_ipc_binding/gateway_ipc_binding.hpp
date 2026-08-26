@@ -28,10 +28,7 @@
 namespace score::gateway_ipc_binding {
 
 /// \brief Maximum find service elements
-inline constexpr std::size_t kMax_find_service_elements = 2U;
-
-/// \brief Maximum shared memory configuration entries sent in the Connect message
-inline constexpr std::size_t kMax_shared_memory_configs = 3U;
+inline constexpr std::size_t kMax_find_service_elements = 4U;
 
 /// \brief Maximum bytes for serialized service id
 inline constexpr std::size_t kMax_service_id_size = 64U;
@@ -190,7 +187,7 @@ bool operator==(Service_shared_memory_config const& lhs,
 /// \brief Container of shared memory configurations, one entry per service instance
 /// that the server should be able to allocate shared memory for.
 using Shared_memory_configs =
-    Fixed_size_container<Service_shared_memory_config, kMax_shared_memory_configs>;
+    Fixed_size_container<Service_shared_memory_config, kMax_find_service_elements>;
 
 /// \brief Initial IPC connection request
 struct Connect {
