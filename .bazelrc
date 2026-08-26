@@ -11,6 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+# In order to overcome stability issues in GitHub
+common --experimental_repository_downloader_retries=10
+common --experimental_scale_timeouts=2.0
+common --http_connector_attempts=10
+common --http_connector_retry_max_timeout=1s
+common --http_timeout_scaling=2.0
+
 # Java Language Configuration
 build --java_language_version=17
 build --tool_java_language_version=17
