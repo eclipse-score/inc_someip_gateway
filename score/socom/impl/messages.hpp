@@ -23,10 +23,6 @@ namespace score {
 namespace socom {
 namespace message {
 
-struct Request_disconnect {
-    using Return_type = void;
-};
-
 struct Service_state_change {
     using Return_type = void;
     Service_state const state;
