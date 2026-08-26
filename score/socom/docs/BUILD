@@ -11,27 +11,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
-filegroup(
-    name = "headers",
-    srcs = glob([
-        "*.hpp",
-    ]),
-)
-
-cc_library(
-    name = "gateway_ipc_binding",
-    srcs = glob(include = ["impl/**"]),
-    hdrs = [":headers"],
-    features = COMPILER_WARNING_FEATURES,
-    linkopts = ["-latomic"],
+# The bundle sits in its own package so that score/socom/BUILD has no
+# load() of @score_docs_as_code.
+docs_bundle(
+    name = "docs_bundle",
+    source_dir = "",
     visibility = ["//visibility:public"],
-    deps = [
-        "//score/socom",
-        "@score_baselibs//score/mw/log",
-        "@score_communication//score/memory/shared",
-        "@score_communication//score/message_passing",
-    ],
 )
