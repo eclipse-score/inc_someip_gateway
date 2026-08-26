@@ -128,14 +128,6 @@ class RuntimeMultiThreadingTest : public SingleConnectionTest {
         };
     }
 
-    Loop_function_t create_bridges_thread_main() {
-        auto const register_bridges = [this, rsf_mock_function = rsf_mock.AsStdFunction()]() {
-            auto const registration = connector_factory.register_service_bridge(
-                Bridge_identity::make(*this), rsf_mock_function);
-            ASSERT_TRUE(registration);
-        };
-        return register_bridges;
-    }
 };
 
 TEST_F(RuntimeMultiThreadingTest, CreationOfServerAndClientConnectorsHasNoRaceCondition) {
@@ -178,25 +170,29 @@ TEST_F(RuntimeMultiThreadingTest,
     EXPECT_CALL(state_change_mock, Call(_, _, _))
         .Times(AnyNumber())
         .WillRepeatedly(Assign(&client_connected, true));
+    auto const bridge_registration = connector_factory.register_service_bridge(
+        Bridge_identity::make(*this), rsf_mock.AsStdFunction());
+    ASSERT_TRUE(bridge_registration);
     auto const start_clients = [this, &state_change_mock]() {
         Client_data client{connector_factory, Client_data::might_connect,
                            state_change_mock.as_function()};
     };
 
-    multi_threaded_test_template(
-        {create_bridges_thread_main(), start_clients},
-        [&client_connected]() { return static_cast<bool>(client_connected); });
+    multi_threaded_test_template({start_clients},
+                                 [&client_connected]() { return static_cast<bool>(client_connected); });
 }
 
 TEST_F(RuntimeMultiThreadingTest, BridgesAndClientConnectorsHaveNoRaceCondition) {
     EXPECT_CALL(rsf_mock, Call(_, _)).Times(AnyNumber());
+    auto const bridge_registration = connector_factory.register_service_bridge(
+        Bridge_identity::make(*this), rsf_mock.AsStdFunction());
+    ASSERT_TRUE(bridge_registration);
 
     auto const start_clients = [this]() {
         Client_data client{connector_factory, Client_data::no_connect};
     };
 
-    multi_threaded_test_template({create_bridges_thread_main(), start_clients},
-                                 []() { return true; });
+    multi_threaded_test_template({start_clients}, []() { return true; });
 }
 
 }  // namespace score::socom

@@ -60,6 +60,8 @@ class Construction_error_domain final : public score::result::ErrorDomain {
                 return "Duplicate client";
             case Construction_error::callback_missing:
                 return "Callback missing";
+            case Construction_error::service_bridge_registration_not_allowed:
+                return "Service bridge registration not allowed";
             default:
                 return "Unknown Error";
         }

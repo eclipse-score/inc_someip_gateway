@@ -219,6 +219,7 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
 
     mutable std::mutex m_runtime_mutex{};
     Service_database m_database{m_runtime_mutex};
+    bool m_connector_created{false};
 
     mutable std::mutex m_bridge_mutex;
     Bridge_registration_to_callbacks m_bridge_to_callbacks{};

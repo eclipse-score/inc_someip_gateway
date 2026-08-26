@@ -54,7 +54,8 @@ score::result::Error MakeError(Server_connector_error code,
 enum class Construction_error : score::result::ErrorCode {
     duplicate_service,  ///< Service identifier already exists.
     duplicate_client,   ///< Client already exists.
-    callback_missing    ///< At least one of the provided callbacks is missing.
+    callback_missing,   ///< At least one of the provided callbacks is missing.
+    service_bridge_registration_not_allowed  ///< A connector was already created.
 };
 
 score::result::Error MakeError(Construction_error code,

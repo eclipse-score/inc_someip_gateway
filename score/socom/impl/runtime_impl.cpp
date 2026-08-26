@@ -158,74 +158,6 @@ bool is_valid(Disabled_server_connector::Callbacks const& callbacks) {
            !callbacks.on_method_call_payload_allocate.empty();
 }
 
-// actually understandable and easily reviewed, a code change is not justified.
-template <typename Instance, typename Callback, typename CreateValue>
-void register_bridge(Bridge_registration_id const& bridge_id,
-                     std::unique_lock<std::mutex>& bridge_lock,
-                     Active_bridge_requests<Instance, Callback> const& bridge_requests,
-                     CreateValue const& create_value) {
-    using Abr = Active_bridge_requests<Instance, Callback>;
-    using Key_t = typename Abr::key_type;
-    using Value_t =
-        typename std::tuple_element<0, typename Abr::mapped_type>::type::element_type::mapped_type;
-    assert(bridge_lock.owns_lock());
-
-    /// THE algorithm:
-    // copy bridge_requests
-    std::set<Key_t> requests_done;
-    auto requests_to_do = get_keys(bridge_requests);
-    bool first_run = true;
-    // would have been do {} while(); but static code analysis forbids it
-    while (!requests_to_do.empty() || first_run) {
-        first_run = false;
-        // unlock
-        bridge_lock.unlock();
-
-        // call callbacks and store result in copy
-        std::map<Key_t, Value_t> request_with_callback_result;
-        for (auto const& request : requests_to_do) {
-            request_with_callback_result[request] = create_value(request);
-            requests_done.insert(request);
-        }
-        requests_to_do.clear();
-
-        // lock
-        bridge_lock.lock();
-
-        // merge and compute difference
-        for (auto const& request : bridge_requests) {
-            auto const cb_result_iter = request_with_callback_result.find(request.first);
-            if (std::end(request_with_callback_result) == cb_result_iter) {
-                // ensure each request is only processed once
-                if (std::end(requests_done) == requests_done.find(request.first)) {
-                    // new request at Runtime-API was done. Need to add it to new bridge as well
-                    requests_to_do.emplace_back(request.first);
-                }
-            } else {
-                auto const bridge_to_request = std::get<0>(request.second).lock();
-                // if destruction of Client_connector is concurrently happening there might be a
-                // nullptr in the map until the map is cleaned. Thus because the map is going to be
-                // cleaned do not bother to call the callback of the bridge
-
-                if (nullptr != bridge_to_request) {
-                    bridge_to_request->emplace(bridge_id, std::move(cb_result_iter->second));
-                }
-                // Cannot be covered, there is no reliable way to delete request.second during the
-                // unlocked create_value-loop.
-                // Sporadically covered by
-                // TEST_F(RuntimeMultiThreadingTest,
-                //     BridgesAndSubscribeFindServiceHaveNoRaceConditions)
-                else {
-                }
-            }
-        }
-        // repeat with new requests
-    }
-
-    // leave function locked
-    assert(bridge_lock.owns_lock());
-}
-
 bool is_forward_subscription(
     std::optional<Bridge_identity> const& identity, Bridge_identity const& bridge_callback_identity,
     std::vector<std::optional<Bridge_identity>> const& subscriber_identity_record) {
@@ -411,6 +343,11 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
         return MakeUnexpected(Construction_error::callback_missing);
     }
 
+    {
+        std::lock_guard<std::mutex> const lock{m_runtime_mutex};
+        m_connector_created = true;
+    }
+
     // check if one is already registered for this service interface and instance and return error
     // if yes
     auto client_connector = std::make_unique<CC_impl>(std::move(configuration), std::move(instance),
@@ -446,6 +383,11 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
     }
 
     {
+        std::lock_guard<std::mutex> const lock{m_runtime_mutex};
+        m_connector_created = true;
+    }
+
+    {
         std::lock_guard<std::mutex> const lock(this->m_service_identifiers->mutex);
         if (!m_service_identifiers->data.insert(identifier).second) {
             return MakeUnexpected(Construction_error::duplicate_service);
@@ -470,20 +412,19 @@ Result<Service_bridge_registration> Runtime_impl::register_service_bridge(
     if (!request_service) {
         return MakeUnexpected(Construction_error::callback_missing);
     }
+
+    std::lock_guard<std::mutex> const runtime_lock{m_runtime_mutex};
+    if (m_connector_created) {
+        return MakeUnexpected(Construction_error::service_bridge_registration_not_allowed);
+    }
+
     // false positive, registration is moved at return
     // stack allocation not possible as the object needs a stable memory address
     auto registration = std::make_unique<Bridge_registration_handle_impl>(*this, identity);
 
-    auto const create_service_request = [request_service](auto const& interface_configuration) {
-        return request_service(std::get<0>(interface_configuration),
-                               std::get<1>(interface_configuration));
-    };
-
     std::unique_lock<std::mutex> lock{m_bridge_mutex};
     m_bridge_to_callbacks[registration.get()] =
         std::make_tuple(std::move(request_service), Interfaces_instances{});
-
-    register_bridge(registration.get(), lock, m_service_requests, create_service_request);
 
     return Result<Service_bridge_registration>{std::move(registration)};
 }

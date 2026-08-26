@@ -207,6 +207,7 @@ class Runtime {
         Posix_credentials const& credentials) noexcept = 0;
 
     /// \brief Registers a bridge which transports events or method calls over an IPC channel.
+    /// \details This method must be called before creating any client or server connector.
     /// \param identity Bridge identity.
     /// \param request_service Function to call if the requested service is not present locally.
     /// \return A registration RAII object in case of successful operation, otherwise an error.

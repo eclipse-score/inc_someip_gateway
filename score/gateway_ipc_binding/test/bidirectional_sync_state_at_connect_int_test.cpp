@@ -158,43 +158,4 @@ TEST_P(Gateway_ipc_binding_bidirectional_sync_state_connected_integration_test,
         wait_on_connection_state(*this->client, Connection_state::Connected, very_long_timeout));
 }
 
-TEST_P(Gateway_ipc_binding_bidirectional_sync_state_connected_integration_test,
-       ipc_server_destruction_with_connected_service_and_reconnect) {
-    Server_connector_with_callbacks server(get_server_runtime(), socom_server_config, instance);
-    Client_connector_with_callbacks client(get_client_runtime(), socom_server_config, instance);
-
-    // kill the IPC server
-    this->server.reset();
-    EXPECT_TRUE(
-        wait_on_connection_state(*this->client, Connection_state::Disconnected, very_long_timeout));
-    EXPECT_EQ(client.client_disconnected_promise.get_future().wait_for(very_long_timeout),
-              std::future_status::ready);
-
-    // restart the IPC server
-    client.expect_client_connected(socom_server_config);
-    this->server = create_ipc_server(*runtime_server);
-    start_and_wait_for_client_connection();
-
-    EXPECT_EQ(client.client_connected_promise.get_future().wait_for(very_long_timeout),
-              std::future_status::ready);
-}
-
-TEST_P(Gateway_ipc_binding_bidirectional_sync_state_connected_integration_test,
-       ipc_client_destruction_with_connected_service_and_reconnect) {
-    Server_connector_with_callbacks server(get_server_runtime(), socom_server_config, instance);
-    Client_connector_with_callbacks client(get_client_runtime(), socom_server_config, instance);
-
-    // kill the IPC client
-    this->client.reset();
-    EXPECT_EQ(client.client_disconnected_promise.get_future().wait_for(very_long_timeout),
-              std::future_status::ready);
-
-    // restart the IPC client
-    client.expect_client_connected(socom_server_config);
-    this->client =
-        create_ipc_client(*runtime_client, client_shm_config, {}, server_shared_memory_configs);
-    EXPECT_EQ(client.client_connected_promise.get_future().wait_for(very_long_timeout),
-              std::future_status::ready);
-}
-
 }  // namespace score::gateway_ipc_binding

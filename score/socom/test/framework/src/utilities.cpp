@@ -135,7 +135,9 @@ std::ostream& operator<<(std::ostream& out, Service_state const& state) {
 std::ostream& operator<<(std::ostream& out, Construction_error const& error) {
     std::map<Construction_error, std::string> error_to_string{
         {Construction_error::callback_missing, "Construction_error::callback_missing"},
-        {Construction_error::duplicate_service, "Construction_error::duplicate_service"}};
+        {Construction_error::duplicate_service, "Construction_error::duplicate_service"},
+        {Construction_error::service_bridge_registration_not_allowed,
+         "Construction_error::service_bridge_registration_not_allowed"}};
     out << error_to_string.at(error);
     return out;
 }

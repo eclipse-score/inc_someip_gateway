@@ -275,6 +275,16 @@ TEST_F(RuntimeTest, RegisterServiceBridgeWitCallbacksReturnsRegistration) {
     EXPECT_TRUE(registration.value());
 }
 
+TEST_F(RuntimeTest, RegisterServiceBridgeAfterConnectorCreationReturnsError) {
+    Server_connector_callbacks_mock callbacks;
+    auto const server = connector_factory.create_server_connector_with_result(callbacks);
+    ASSERT_TRUE(server);
+
+    auto const registration = connector_factory.register_service_bridge(
+        Bridge_identity::make(*this), rsf_mock.AsStdFunction());
+    EXPECT_EQ(registration.error(), Construction_error::service_bridge_registration_not_allowed);
+}
+
 TEST_F(RuntimeTest, BridgeReceivesRequestServiceFunctionCallForUnknownService) {
     Bridge_data bridge{Bridge_data::bridge_then_expect, Bridge_data::request_service_function,
                        connector_factory};
@@ -390,10 +400,10 @@ TEST_P(RuntimeBridgeTest, CreationOfClientsWillCallRequestServiceFunction) {
 }
 
 INSTANTIATE_TEST_SUITE_P(RequestsAfterBridgeCreation, RuntimeBridgeTest,
-                         Combine(Values(0), Values(0, 1), Values(1, 10),
+             Combine(Values(0), Values(0, 1), Values(1, 10),
                                  Values(Destruction_order::requests_first,
                                         Destruction_order::bridges_first),
-                                 Bool(), Bool()),
+                 Values(false), Bool()),
                          readable_test_names_bridge);
 
 }  // namespace score::socom
