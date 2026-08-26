@@ -145,7 +145,7 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
         auto message_type = get_message_type(data[0]);
 
         if (Message_type::Connect_reply == message_type) {
-            auto msg_opt = check_and_cast<Connect_reply>(data);
+            auto msg_opt = check_and_convert<Connect_reply>(data);
             if (!msg_opt) {
                 // Invalid message - log and ignore
                 return;

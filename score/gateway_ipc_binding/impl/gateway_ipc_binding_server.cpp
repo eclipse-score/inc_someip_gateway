@@ -124,7 +124,7 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
             auto message_type = get_message_type(payload[0]);
 
             if (Message_type::Connect == message_type) {
-                auto msg_opt = check_and_cast<Connect>(payload);
+                auto msg_opt = check_and_convert<Connect>(payload);
                 if (!msg_opt) {
                     // Invalid message - log and ignore
                     return {};

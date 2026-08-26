@@ -45,7 +45,7 @@ inline Message_type get_message_type(std::uint8_t data) noexcept {
     return static_cast<Message_type>(data);
 }
 
-/// \brief Check if the incoming message matches the expected type and can be safely cast to
+/// \brief Check if the incoming message matches the expected type and can be safely converted to
 /// Msg_type
 /// \tparam Msg_type Expected message type to check and cast to
 /// \param data Incoming message data (including framing)
@@ -55,7 +55,7 @@ inline Message_type get_message_type(std::uint8_t data) noexcept {
 /// the framing byte shifts the payload off of Message_frame<Msg_type>'s alignment), and punning
 /// through a misaligned pointer is undefined behavior.
 template <typename Msg_type>
-std::optional<Msg_type> check_and_cast(score::cpp::span<std::uint8_t const> data) noexcept {
+std::optional<Msg_type> check_and_convert(score::cpp::span<std::uint8_t const> data) noexcept {
     static_assert(std::is_trivially_copyable_v<Message_frame<Msg_type>>,
                   "Message_frame<Msg_type> must be trivially copyable");
 
