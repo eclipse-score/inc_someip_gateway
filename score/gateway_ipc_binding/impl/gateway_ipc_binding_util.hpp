@@ -33,9 +33,6 @@ struct Message_frame_header {
 template <typename T>
 struct Message_frame {
     static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
-    static_assert(sizeof(Message_frame_header) + sizeof(T) <= kMax_safe_message_size,
-                  "Message_frame<T> exceeds kMax_safe_message_size and may not be sendable on all "
-                  "message_passing backends (e.g. QNX)");
     Message_frame_header header{T::type, sizeof(T)};
     T payload;
 };
@@ -58,6 +55,10 @@ template <typename Msg_type>
 std::optional<Msg_type> check_and_convert(score::cpp::span<std::uint8_t const> data) noexcept {
     static_assert(std::is_trivially_copyable_v<Message_frame<Msg_type>>,
                   "Message_frame<Msg_type> must be trivially copyable");
+    static_assert(
+        sizeof(Message_frame<Msg_type>) <= kMax_safe_message_size,
+        "Message_frame<Msg_type> exceeds kMax_safe_message_size and may not be sendable on all "
+        "message_passing backends (e.g. QNX)");
 
     if (data.empty()) {
         return std::nullopt;  // Invalid frame - too small
