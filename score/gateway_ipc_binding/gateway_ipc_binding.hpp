@@ -54,6 +54,7 @@ inline constexpr std::size_t kMax_shared_memory_path_size = 128U;
 /// fails to send with EMSGSIZE at the OS level on QNX. Message_frame<T> is statically checked
 /// against this bound so that growing one of the kMax_* constants above can't silently
 /// reintroduce a message that can never be delivered.
+// See also https://github.com/eclipse-score/communication/issues/848
 inline constexpr std::size_t kMax_safe_message_size = 2000U;
 
 /// \brief Message type identifiers for IPC framing
