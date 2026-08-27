@@ -266,16 +266,31 @@ http_archive(
 # ============================================================================
 # Integration Testing
 # ============================================================================
+bazel_dep(name = "os_images", version = "1.0", dev_dependency = True)
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
-http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+# TODO: Switch back to a released version once `--qemu-disk` is part of a tagged release.
+git_override(
+    module_name = "score_itf",
+    commit = "8aa4723dffaff85f4405315f9500a651310afb74",
+    patch_strip = 1,
+    patches = ["//:third_party/score_itf-qemu-ping-timeout.patch"],
+    remote = "https://github.com/eclipse-score/itf.git",
+)
 
-http_file(
-    name = "ubuntu_24_04_cloudimg",
-    downloaded_file_path = "noble-minimal-cloudimg-amd64.img",
-    integrity = "sha256-vZAj5xt7tb3tFOT7DJmODZPXFJ6QVsPmi0b/kJfdF9U=",
-    url = "https://cloud-images.ubuntu.com/minimal/releases/noble/release-20260626/ubuntu-24.04-minimal-cloudimg-amd64.img",
+# TODO: Switch back to a released version once the automatic /opt mount is released.
+git_override(
+    module_name = "os_images",
+    commit = "90eeb7e041fef1773489dc41e75ab063ddb0cfa1",
+    remote = "https://github.com/eclipse-score/os_images.git",
+)
+
+# TODO: Switch back to a released version once the `ext4` rule is available in a tagged release.
+git_override(
+    module_name = "score_rules_imagefs",
+    commit = "b1278766c01d9f4102c24e87b0ce9d035eaed832",
+    remote = "https://github.com/eclipse-score/rules_imagefs.git",
 )
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)

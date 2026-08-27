@@ -67,17 +67,17 @@ jobs:
       - name: Install tools needed for ITF tests
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
+          sudo apt-get install -y qemu-system-x86 qemu-system-arm iputils-ping tcpdump cloud-image-utils
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
       - run: df -h
       - name: Enable KVM group permissons
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration //quality/... //tests/integration_test/...
+          bazel test \
+            --config=qemu-integration \
+            //quality/... //tests/integration_test/...
       - run: df -h
         if: always()

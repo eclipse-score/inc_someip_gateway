@@ -79,7 +79,9 @@ class ShellProcess:
 
     def __enter__(self) -> AsyncProcess:
         args = " ".join(self._args)
-        command = f"LD_LIBRARY_PATH=/ {self._env} exec {self._application_path} {args}"
+        command = (
+            f"LD_LIBRARY_PATH=/opt {self._env} exec {self._application_path} {args}"
+        )
         self._process = self._target.execute_async(command)
 
         logging.getLogger().info(

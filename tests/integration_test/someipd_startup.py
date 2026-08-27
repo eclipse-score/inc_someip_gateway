@@ -19,12 +19,12 @@ from util import ShellProcess, get_running_processes_on_target
 def test_start_someipd(clean_state):
     with ShellProcess(
         clean_state,
-        "/someipd",
+        "/opt/someipd",
         args=[
             "--configuration",
-            "/mw_someip_config.bin",
+            "/opt/mw_someip_config.bin",
         ],
-        env="VSOMEIP_CONFIGURATION=/vsomeip.json",
+        env="VSOMEIP_CONFIGURATION=/opt/vsomeip.json",
     ) as someipd_process:
         assert someipd_process.is_running(), someipd_process.get_output()
         time.sleep(1)  # check that daemon does not crash immediately and prints output
