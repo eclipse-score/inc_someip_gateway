@@ -181,3 +181,8 @@ If you use a license server then add the following in in your `~/.bazelrc`:
     common --action_env=QNXLM_LICENSE_FILE=<port>@<license_server_host>
 
 > :warning: Getting license from server not yet supported within devcontainer. Need to figure out how to adjust user & hostname properly.
+
+## Use of genAI in this repository
+
+The repository partially contains AI-generated code by using AI coding assistants.
+This notice needs to remain attached to any reproduction of this repository.
