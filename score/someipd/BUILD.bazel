@@ -19,6 +19,17 @@ load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
+# Files carrying `// # req-Id:` markers, consumed by
+# //score/someipd/docs:docs_bundle via its code_targets attribute.
+filegroup(
+    name = "requirement_marked_sources",
+    srcs = [
+        "impl/local_network_service.cpp",
+        "impl/routing.cpp",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # ============================================================================
 # Main Binary
 # ============================================================================

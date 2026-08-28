@@ -34,3 +34,33 @@ Functional Requirements
    two sides so that an application client is unaware of the transport
    layer.
 
+.. comp_req:: Publish locally hosted service instances on the SOME/IP network
+   :id: comp_req__gatewayd__publish_local_instance
+   :reqtype: Functional
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__gatewayd
+
+   For every ``local_service_instance`` in the configuration
+   ``gatewayd`` shall instantiate a ``LocalServiceInstance`` that
+   translates local IPC service offers and event updates into SOME/IP
+   Service Discovery *Offer Service* entries and SOME/IP messages on
+   the network side.
+
+.. comp_req:: Subscribe to remote SOME/IP service instances on behalf of local clients
+   :id: comp_req__gatewayd__consume_remote_instance
+   :reqtype: Functional
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__gatewayd
+
+   For every ``remote_service_instance`` in the configuration
+   ``gatewayd`` shall instantiate a ``RemoteServiceInstance`` that
+   consumes SOME/IP Service Discovery *Find/Offer* exchanges and
+   forwards received SOME/IP messages to any local IPC clients that
+   subscribed to that instance via SOCom.
+

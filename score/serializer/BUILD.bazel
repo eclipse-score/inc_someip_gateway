@@ -16,6 +16,17 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
+# Files carrying `// # req-Id:` markers, consumed by
+# //score/serializer/docs:docs_bundle via its code_targets attribute.
+filegroup(
+    name = "requirement_marked_sources",
+    srcs = [
+        "null_serializer.cpp",
+        "serializer.h",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Interface between gatewayd and the serializer library. The interface is defined as a C header file and the actual implementation is provided by a shared library which is loaded at runtime by gatewayd.
 cc_library(
     name = "interface",
@@ -46,6 +57,7 @@ cc_test(
     name = "null_serializer_test",
     size = "small",
     srcs = ["null_serializer_test.cpp"],
+    tags = ["unit"],
     deps = [
         ":null_serializer_impl",
         ":pre_serialized_data",

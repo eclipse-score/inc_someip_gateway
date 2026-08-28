@@ -17,6 +17,7 @@ load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 # load() of @score_docs_as_code.
 docs_bundle(
     name = "docs_bundle",
+    code_targets = ["//score/gateway_ipc_binding:requirement_marked_sources"],
     source_dir = "",
     visibility = ["//visibility:public"],
 )

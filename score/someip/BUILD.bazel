@@ -17,6 +17,17 @@ Common types and constants shared across the SOME/IP gateway components.
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
+# Files carrying `// # req-Id:` markers, consumed by
+# //score/someip/docs:docs_bundle via its code_targets attribute.
+filegroup(
+    name = "requirement_marked_sources",
+    srcs = [
+        "constants.h",
+        "types.h",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "someip",
     hdrs = [

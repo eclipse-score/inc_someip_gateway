@@ -21,6 +21,9 @@
 namespace score::socom {
 
 TEST(StringRegistryTest, InsertMultipleStrings) {
+    RecordProperty("FullyVerifies", "comp_req__socom__string_registry");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     String_registry registry;
 
     /// Verify the existence of the type cara::core::util::String_registry interface.

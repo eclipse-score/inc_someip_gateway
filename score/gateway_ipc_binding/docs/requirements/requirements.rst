@@ -35,3 +35,33 @@ Functional Requirements
    the control channel, referenced by a ``Shared_memory_handle`` and
    released via ``Payload_consumed``.
 
+.. comp_req:: Fixed-size shared memory slot allocation
+   :id: comp_req__gateway_ipc_binding__slot_alloc
+   :reqtype: Functional
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__gateway_ipc_binding
+
+   The binding shall allocate event payloads out of a
+   ``SharedMemorySlotManager`` backed by a ``FixedSizeContainer`` so
+   that payload allocation, transmission and reclaim happen without
+   dynamic allocation on the hot path and without heap fragmentation
+   in long-running gateway processes.
+
+.. comp_req:: Deferred connection setup for late peers
+   :id: comp_req__gateway_ipc_binding__pending_conn
+   :reqtype: Functional
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__gateway_ipc_binding
+
+   When a peer requests a service that has not yet been offered, the
+   binding shall queue the connect attempt in ``PendingConnects`` and
+   complete the connection automatically once the corresponding
+   ``OfferService`` is received, so client and server startup order do
+   not need to be coordinated externally.
+

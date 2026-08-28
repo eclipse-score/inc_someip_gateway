@@ -11,6 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+// # req-Id: comp_req__gatewayd__publish_local_instance
+// # req-Id: comp_req__gatewayd__local_remote_bridging
 #include "local_service_instance.h"
 
 #include <algorithm>

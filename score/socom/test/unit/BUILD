@@ -17,6 +17,7 @@ cc_test(
     name = "socom_test",
     size = "small",
     srcs = glob(include = ["*.cpp"]),
+    tags = ["unit"],
     deps = [
         "//score/socom:mock",
         "//score/socom/test/framework:socom_test_framework",

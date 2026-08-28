@@ -26,6 +26,17 @@ exports_files(
     ],
 )
 
+# Files carrying `// # req-Id:` markers, consumed by
+# //score/gatewayd/docs:docs_bundle via its code_targets attribute.
+filegroup(
+    name = "requirement_marked_sources",
+    srcs = [
+        "impl/local_service_instance.cpp",
+        "impl/remote_service_instance.cpp",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 cc_binary(
     name = "gatewayd",
     srcs = ["main.cpp"],

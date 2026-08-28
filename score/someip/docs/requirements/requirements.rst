@@ -34,3 +34,32 @@ Functional Requirements
    ``gatewayd``) share a single canonical definition of the on-wire
    protocol elements.
 
+.. comp_req:: 16-bit SOME/IP identifier types
+   :id: comp_req__someip__id_widths
+   :reqtype: Interface
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__someip
+
+   ``types.h`` shall define ``ServiceId``, ``InstanceId``, ``EventId``
+   and ``EventGroupId`` as ``std::uint16_t`` so all in-process
+   handling of SOME/IP identifiers matches the 16-bit widths mandated
+   by the SOME/IP header layout in the Open SOME/IP specification.
+
+.. comp_req:: Wildcard instance id and maximum message size
+   :id: comp_req__someip__protocol_limits
+   :reqtype: Interface
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__someip
+
+   ``constants.h`` shall expose the wildcard instance id
+   (``kAnyInstance = 0xFFFF``), the SOME/IP header size
+   (``kSomeipFullHeaderSize = 16``) and the per-message size cap
+   (``kMaxMessageSize = 1500``) chosen to keep single SOME/IP messages
+   within a standard Ethernet MTU and avoid IP fragmentation.
+

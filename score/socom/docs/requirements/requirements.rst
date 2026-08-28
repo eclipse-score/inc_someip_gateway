@@ -34,3 +34,33 @@ Functional Requirements
    future backend) without exposing the transport details to the
    application.
 
+.. comp_req:: Stable service and method identity across processes
+   :id: comp_req__socom__service_identity
+   :reqtype: Interface
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__socom
+
+   SOCom shall provide value types (``ServiceIdentifier``,
+   ``Method``, ``ServiceInterfaceDefinition``) that identify a
+   service and its methods/events in a way that is stable across
+   process boundaries and independent of local pointer values, so
+   that the same identity round-trips faithfully through the IPC
+   binding and the SOME/IP wire.
+
+.. comp_req:: String interning for repeated protocol identifiers
+   :id: comp_req__socom__string_registry
+   :reqtype: Non-Functional
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :satisfied_by: comp__socom
+
+   SOCom shall provide a ``StringRegistry`` that interns repeated
+   protocol strings (service type names, event/method names) so that
+   the runtime and transport layer can refer to them by a small
+   integer id instead of resending the full string on every message.
+

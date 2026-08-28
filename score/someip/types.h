@@ -17,6 +17,8 @@
 #include <cstddef>
 #include <cstdint>
 
+// # req-Id: comp_req__someip__id_widths
+
 namespace score::someip {
 
 using ServiceId = std::uint16_t;

@@ -11,6 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+// # req-Id: comp_req__gatewayd__consume_remote_instance
 #include "remote_service_instance.h"
 
 #include <cstddef>

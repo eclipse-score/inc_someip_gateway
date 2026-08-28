@@ -11,6 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+// # req-Id: comp_req__gateway_ipc_binding__slot_alloc
 #include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 
 #include <atomic>
