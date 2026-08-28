@@ -12,24 +12,23 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+Component Config Requirements
+#############################
 
-SOCom
-#####
+Functional Requirements
+-----------------------
 
-.. comp:: SOCom
-   :id: comp__socom
+.. comp_req:: FlatBuffers gateway configuration schema
+   :id: comp_req__config__flatbuffer_schema
+   :reqtype: Interface
    :security: NO
    :safety: QM
    :status: valid
    :version: 1
-   :belongs_to: feat__someip_gateway
+   :satisfied_by: comp__config
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
+   The gateway configuration shall be defined as a FlatBuffers schema
+   (``mw_someip_config.fbs``) together with a JSON schema
+   (``mw_someip_config.schema.json``) so both binary and JSON forms of
+   the configuration can be validated against a single source of truth.
 
-.. toctree::
-   :maxdepth: 1
-
-   design/index
-   requirements/index

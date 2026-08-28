@@ -12,24 +12,25 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+Component gatewayd Requirements
+###############################
 
-SOCom
-#####
+Functional Requirements
+-----------------------
 
-.. comp:: SOCom
-   :id: comp__socom
+.. comp_req:: Bridge local IPC and remote SOME/IP service instances
+   :id: comp_req__gatewayd__local_remote_bridging
+   :reqtype: Functional
    :security: NO
    :safety: QM
    :status: valid
    :version: 1
-   :belongs_to: feat__someip_gateway
+   :satisfied_by: comp__gatewayd
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
+   ``gatewayd`` shall present local IPC service instances
+   (``LocalServiceInstance``) and remote SOME/IP service instances
+   (``RemoteServiceInstance``) to SOCom and shall forward service
+   offers, requests, event subscriptions and event updates between the
+   two sides so that an application client is unaware of the transport
+   layer.
 
-.. toctree::
-   :maxdepth: 1
-
-   design/index
-   requirements/index

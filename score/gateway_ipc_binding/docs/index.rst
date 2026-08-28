@@ -12,8 +12,18 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
+.. _gateway_ipc_binding:
+
 Gateway IPC Binding
-===================
+###################
+
+.. comp:: Gateway IPC Binding
+   :id: comp__gateway_ipc_binding
+   :security: NO
+   :safety: QM
+   :status: valid
+   :version: 1
+   :belongs_to: feat__someip_gateway
 
 Gateway IPC Binding bridges SOCom service discovery and event transport across a local IPC link.
 It combines:
@@ -122,3 +132,4 @@ Further details
 
    shared_memory
    ipc_protocol
+   requirements/index

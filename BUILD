@@ -38,13 +38,38 @@ use_format_targets(
 docs(
     bundles = [
         {
-            "bundle": "//score/socom/docs:docs_bundle",
-            "mount_at": "socom",
+            "bundle": "//score/config/docs:docs_bundle",
+            "mount_at": "config",
             "attach_to": "components",
         },
         {
             "bundle": "//score/gateway_ipc_binding/docs:docs_bundle",
             "mount_at": "gateway_ipc_binding",
+            "attach_to": "components",
+        },
+        {
+            "bundle": "//score/gatewayd/docs:docs_bundle",
+            "mount_at": "gatewayd",
+            "attach_to": "components",
+        },
+        {
+            "bundle": "//score/serializer/docs:docs_bundle",
+            "mount_at": "serializer",
+            "attach_to": "components",
+        },
+        {
+            "bundle": "//score/socom/docs:docs_bundle",
+            "mount_at": "socom",
+            "attach_to": "components",
+        },
+        {
+            "bundle": "//score/someip/docs:docs_bundle",
+            "mount_at": "someip",
+            "attach_to": "components",
+        },
+        {
+            "bundle": "//score/someipd/docs:docs_bundle",
+            "mount_at": "someipd",
             "attach_to": "components",
         },
     ],

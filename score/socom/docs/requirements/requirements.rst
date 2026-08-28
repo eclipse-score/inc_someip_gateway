@@ -12,24 +12,25 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+Component SOCom Requirements
+############################
 
-SOCom
-#####
+Functional Requirements
+-----------------------
 
-.. comp:: SOCom
-   :id: comp__socom
+.. comp_req:: Service-oriented communication runtime
+   :id: comp_req__socom__service_runtime
+   :reqtype: Interface
    :security: NO
    :safety: QM
    :status: valid
    :version: 1
-   :belongs_to: feat__someip_gateway
+   :satisfied_by: comp__socom
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
+   SOCom shall expose ``Runtime``, ``ClientConnector`` and
+   ``ServerConnector`` APIs so that services can be offered, requested,
+   subscribed to, and their event/method payloads exchanged through a
+   pluggable transport backend (gateway IPC binding, mock, or any
+   future backend) without exposing the transport details to the
+   application.
 
-.. toctree::
-   :maxdepth: 1
-
-   design/index
-   requirements/index

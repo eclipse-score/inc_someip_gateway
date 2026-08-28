@@ -12,24 +12,17 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+.. _serializer:
 
-SOCom
-#####
+Serializer
+##########
 
-.. comp:: SOCom
-   :id: comp__socom
-   :security: NO
-   :safety: QM
-   :status: valid
-   :version: 1
-   :belongs_to: feat__someip_gateway
+Abstract
+========
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
+Serialization utilities. Currently provides a null-passthrough serializer for pre-serialized payloads so the fast path avoids double serialization.
 
 .. toctree::
    :maxdepth: 1
 
-   design/index
    requirements/index

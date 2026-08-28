@@ -12,24 +12,25 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+Component someipd Requirements
+##############################
 
-SOCom
-#####
+Functional Requirements
+-----------------------
 
-.. comp:: SOCom
-   :id: comp__socom
+.. comp_req:: Route SOME/IP traffic between remote peers and local clients
+   :id: comp_req__someipd__remote_local_routing
+   :reqtype: Functional
    :security: NO
    :safety: QM
    :status: valid
    :version: 1
-   :belongs_to: feat__someip_gateway
+   :satisfied_by: comp__someipd
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
+   ``someipd`` shall run the SOME/IP protocol stack and route messages
+   between remote peers on the network (``RemoteNetworkService``) and
+   local IPC clients (``LocalNetworkService``) via its ``Routing``
+   subsystem, translating between on-wire SOME/IP frames and the
+   internal IPC representation without exposing the network to local
+   clients.
 
-.. toctree::
-   :maxdepth: 1
-
-   design/index
-   requirements/index

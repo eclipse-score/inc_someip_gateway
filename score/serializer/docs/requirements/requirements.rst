@@ -12,24 +12,24 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+Component Serializer Requirements
+#################################
 
-SOCom
-#####
+Functional Requirements
+-----------------------
 
-.. comp:: SOCom
-   :id: comp__socom
+.. comp_req:: Null-passthrough serializer for pre-serialized payloads
+   :id: comp_req__serializer__null_passthrough
+   :reqtype: Functional
    :security: NO
    :safety: QM
    :status: valid
    :version: 1
-   :belongs_to: feat__someip_gateway
+   :satisfied_by: comp__serializer
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
+   The serializer shall provide a null-passthrough implementation
+   (``NullSerializer``) for payloads that arrive already serialized
+   (``PreSerializedData``), so the fast path can avoid a second
+   serialization pass while still satisfying the generic
+   ``Serializer`` interface.
 
-.. toctree::
-   :maxdepth: 1
-
-   design/index
-   requirements/index
