@@ -61,3 +61,4 @@ repos:
         entry: .devcontainer/run-tool yamlfmt
         language: system
         types: [yaml]
+        exclude: '.clang-tidy'
