@@ -14,7 +14,7 @@
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
-load("//tools/lint:linters.bzl", "clang_tidy_test")
+load("//tools/lint:linters.bzl", "use_clang_tidy_targets", "use_ruff_targets")
 
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
@@ -65,24 +65,28 @@ docs(
 # and add targets like:
 #   clang_tidy_test(name = "clang_tidy", srcs = [":my_lib"])
 
-clang_tidy_test(
-    name = "clang_tidy",
-    srcs = [
-        # "//score/config",
-        "//score/gateway_ipc_binding",
-        # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark",
-        # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory",
-        # "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
-        # "//score/gatewayd",
-        # "//score/serializer",
-        "//score/socom",
-        # "//score/socom/test/framework:socom_test_framework",
-        # "//score/socom/test/stress:socom_stress_test",
-        # "//score/socom/test/unit:socom_test",
-        "//score/someip",
-        "//score/someipd",
-    ],  # or a more targeted glob
-)
+use_clang_tidy_targets()
+
+use_ruff_targets()
+
+# clang_tidy_test(
+#     name = "clang_tidy",
+#     srcs = [
+#         # "//score/config",
+#         "//score/gateway_ipc_binding",
+#         # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark",
+#         # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory",
+#         # "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
+#         # "//score/gatewayd",
+#         # "//score/serializer",
+#         "//score/socom",
+#         # "//score/socom/test/framework:socom_test_framework",
+#         # "//score/socom/test/stress:socom_stress_test",
+#         # "//score/socom/test/unit:socom_test",
+#         "//score/someip",
+#         "//score/someipd",
+#     ],  # or a more targeted glob
+# )
 
 # ==============================================================================
 # Python Dependencies
