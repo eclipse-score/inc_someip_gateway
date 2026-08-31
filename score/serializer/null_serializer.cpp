@@ -133,7 +133,7 @@ score_com_serializer_result score_com_serializer_init(const char* serializer_ide
     }
 
     config_file.seekg(0, std::ios::beg);
-    auto config_buffer = std::shared_ptr<char>(new char[length]);
+    auto config_buffer = std::shared_ptr<char[]>(new char[length]);
     config_file.read(config_buffer.get(), length);
     config_file.close();
 
