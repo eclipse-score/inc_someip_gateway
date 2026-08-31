@@ -448,7 +448,7 @@ double Percentile(const std::vector<double>& v, double percentile) {
 BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
 
-    for (auto _ : state) {
+    for (auto const& _ : state) {
         auto latency = BenchmarkFixture::Instance().SendEchoRequestSync(payload_size);
         if (latency.count() == 0) {
             state.SkipWithError("Failed to receive response or timeout occurred");
@@ -483,7 +483,7 @@ BENCHMARK_DEFINE_F(IpcBenchmark, ThroughputEcho)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
 
-    for (auto _ : state) {
+    for (auto const& _ : state) {
         BenchmarkFixture::Instance().SendEchoRequestAsync(payload_size);
     }
 
@@ -509,7 +509,7 @@ BENCHMARK_DEFINE_F(IpcBenchmark, StressThroughput)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
 
-    for (auto _ : state) {
+    for (auto const& _ : state) {
         for (std::uint16_t i{0}; i < STRESS_THROUGHPUT_BATCH_SIZE; ++i) {
             BenchmarkFixture::Instance().SendEchoRequestAsync(payload_size);
         }
