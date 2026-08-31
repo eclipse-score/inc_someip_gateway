@@ -25,10 +25,11 @@ load("@aspect_rules_lint//lint:lint_test.bzl", "lint_test")
 
 clang_tidy_aspect = lint_clang_tidy_aspect(
     binary = Label("@llvm_toolchain//:clang-tidy"),
-    # global_config is passed as --config-file to clang-tidy, bypassing the
-    # filesystem-based .clang-tidy search. This ensures the S-CORE baseline
-    # checks are always applied regardless of sandbox directory layout.
-    global_config = [Label("@score_cpp_policies//clang_tidy:.clang-tidy")],
+    # global_config is passed as --config-file to clang-tidy (only the first
+    # element of the list is used by the aspect), bypassing filesystem-based
+    # .clang-tidy search.  Use the local repo config so that WarningsAsErrors
+    # and HeaderFilterRegex take effect during Bazel runs.
+    global_config = [Label("//:.clang-tidy")],
     lint_target_headers = True,
     angle_includes_are_system = True,
 )

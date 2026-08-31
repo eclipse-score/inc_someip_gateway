@@ -19,7 +19,8 @@ load("//tools/lint:linters.bzl", "clang_tidy_test")
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
 
-
+# Expose local .clang-tidy override for the clang-tidy lint aspect
+exports_files([".clang-tidy"])
 
 # ==============================================================================
 # Code Formatting
@@ -66,7 +67,21 @@ docs(
 
 clang_tidy_test(
     name = "clang_tidy",
-    srcs = ["//score/socom"],  # or a more targeted glob
+    srcs = [
+        # "//score/config",
+        "//score/gateway_ipc_binding",
+        # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark",
+        # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory",
+        # "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
+        # "//score/gatewayd",
+        # "//score/serializer",
+        "//score/socom",
+        # "//score/socom/test/framework:socom_test_framework",
+        # "//score/socom/test/stress:socom_stress_test",
+        # "//score/socom/test/unit:socom_test",
+        "//score/someip",
+        "//score/someipd",
+    ],  # or a more targeted glob
 )
 
 # ==============================================================================
