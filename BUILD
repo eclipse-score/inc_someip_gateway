@@ -14,9 +14,13 @@
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
+load("//tools/lint:linters.bzl", "clang_tidy_test")
 
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
+
+# Expose local .clang-tidy override for the clang-tidy lint aspect
+exports_files([".clang-tidy"])
 
 # ==============================================================================
 # Code Formatting
@@ -49,6 +53,21 @@ docs(
         },
     ],
     source_dir = "docs",
+)
+
+# ==============================================================================
+# Clang-Tidy
+# ==============================================================================
+# Run: bazel test --config=clang-tidy //score/...
+# The clang_tidy_aspect is applied to all cc_library/cc_binary targets via the
+# --aspects flag in clang_tidy.bazelrc when --config=clang-tidy is used.
+# To add per-package lint tests, load clang_tidy_test from //tools/lint:linters.bzl
+# and add targets like:
+#   clang_tidy_test(name = "clang_tidy", srcs = [":my_lib"])
+
+clang_tidy_test(
+    name = "clang_tidy",
+    srcs = ["//score/socom"],  # or a more targeted glob
 )
 
 # ==============================================================================
