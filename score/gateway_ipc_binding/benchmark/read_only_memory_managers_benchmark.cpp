@@ -69,7 +69,7 @@ void benchmark_cached_read_only_lookup(benchmark::State& state) {
     auto& warmup = managers.get_read_only_shared_memory_slot_manager(metadata);
     benchmark::DoNotOptimize(&warmup);
 
-    for (auto _ : state) {
+    for (auto const& _ : state) {
         auto& manager = managers.get_read_only_shared_memory_slot_manager(metadata);
         benchmark::DoNotOptimize(&manager);
     }
