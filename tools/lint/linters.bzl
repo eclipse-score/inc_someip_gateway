@@ -83,11 +83,16 @@ APPLY_PATCHES = [
 ]
 
 def make_script(name, content):
+    script_name = name.replace("-", "_") + ".sh"
     write_file(
         name = name + "_script",
-        out = name.replace("-", "_") + ".sh",
+        out = script_name,
         is_executable = True,
         content = ["#!/usr/bin/env bash", "set -euo pipefail", 'TARGETS="${*:-//...}"', 'cd "${BUILD_WORKSPACE_DIRECTORY}"'] + content,
+    )
+    native.sh_binary(
+        name = name,
+        srcs = [script_name],
     )
 
 def use_clang_tidy_targets(fix_name = "clang-tidy.fix", check_name = "clang-tidy.check"):

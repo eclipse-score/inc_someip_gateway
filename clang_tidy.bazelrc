@@ -18,6 +18,12 @@
 # Use with: bazel test --config=clang-tidy //score/...
 # ============================================================================
 test:clang-tidy --aspects=//tools/lint:linters.bzl%clang_tidy
-test:clang-tidy --output_groups=+rules_lint_report
+test:clang-tidy --output_groups=+rules_lint_report,+rules_lint_human,+rules_lint_machine
 test:clang-tidy --extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux
 test:clang-tidy --@aspect_rules_lint//lint:fail_on_violation=true
+test:clang-tidy --keep_going
+
+# clang-tidy-fix: same as clang-tidy but also emits patch files for auto-fixable violations
+test:clang-tidy-fix --config=clang-tidy
+test:clang-tidy-fix --output_groups=+rules_lint_patch
+test:clang-tidy-fix --@aspect_rules_lint//lint:fix
