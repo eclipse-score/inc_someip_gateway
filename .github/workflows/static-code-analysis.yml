@@ -11,11 +11,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: clang-tidy
+name: Linters
 on:
   workflow_call:
 jobs:
-  clang_tidy:
+  lint:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -37,5 +37,5 @@ jobs:
           unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
-      - name: Run clang-tidy
+      - name: Lint
         run: bazel run ${{ matrix.target }}
