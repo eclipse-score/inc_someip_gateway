@@ -38,6 +38,9 @@ jobs:
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
+  static-code-analysis:
+    secrets: inherit
+    uses: ./.github/workflows/static-code-analysis.yml
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
@@ -52,6 +55,7 @@ jobs:
       - build_and_test_cross_compilation
       - coverage
       - docs
+      - static-code-analysis
     permissions: {}
     runs-on: ubuntu-latest
     steps:
