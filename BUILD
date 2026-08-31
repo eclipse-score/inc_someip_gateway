@@ -20,7 +20,10 @@ load("//tools/lint:linters.bzl", "use_clang_tidy_targets", "use_ruff_targets")
 exports_files(["MODULE.bazel"])
 
 # Expose local .clang-tidy override for the clang-tidy lint aspect
-exports_files([".clang-tidy"])
+exports_files([
+    ".clang-tidy",
+    ".ruff.toml",
+])
 
 # ==============================================================================
 # Code Formatting

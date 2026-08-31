@@ -27,3 +27,17 @@ test:clang-tidy --keep_going
 test:clang-tidy-fix --config=clang-tidy
 test:clang-tidy-fix --output_groups=+rules_lint_patch
 test:clang-tidy-fix --@aspect_rules_lint//lint:fix
+
+
+# Ruff configuration
+# Run ruff on all Python targets with: bazel test --config=ruff //...
+# build:ruff --config=_lint
+build:ruff --aspects=//tools/lint:linters.bzl%ruff
+# Ruff autofix configuration
+# Inherits all ruff flags above and additionally enables fix mode so that
+# aspect_rules_lint runs `ruff check --fix` in a sandbox and collects the
+# edits as a unified-diff patch. Use `bazel run //:ruff.fix` to apply those
+# patches back to the workspace.
+build:ruff-fix --config=ruff
+build:ruff-fix --@aspect_rules_lint//lint:fix
+build:ruff-fix --output_groups=+rules_lint_patch

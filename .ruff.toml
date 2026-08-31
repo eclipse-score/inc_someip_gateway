@@ -11,4 +11,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# Package marker for //tools/lint
+# Ruff configuration for this repo.
+#
+# This file is shared by both `ruff format` (//:format / //:format.check)
+# and `ruff check` (the `ruff` aspect in tools/lint/linters.bzl,
+# `bazel test --config=ruff`).
+#
+# `line-ending` is pinned here because its default "auto" is not reproducible
+# across OS/editor/git settings.  Everything else is left at ruff's own
+# defaults (the hermetically pinned binary guarantees reproducibility).
+
+line-length = 120
+
+[format]
+line-ending = "lf"
