@@ -26,7 +26,6 @@
 #include "score/socom/service_interface_identifier.hpp"
 #include "temporary_thread_id_add.hpp"
 
-
 namespace score::socom {
 
 namespace server_connector {
@@ -389,4 +388,4 @@ std::unique_ptr<Disabled_server_connector> Enabled_server_connector::disable(
     return result;
 }
 
-} // namespace score::socom
+}  // namespace score::socom

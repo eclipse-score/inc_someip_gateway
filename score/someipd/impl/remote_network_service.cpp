@@ -130,12 +130,10 @@ void RemoteNetworkService::setup_vsomeip() {
                 payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
                 payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
 
-                auto protocol_version =
-                    msg->get_protocol_version();
+                auto protocol_version = msg->get_protocol_version();
                 payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
 
-                auto interface_version =
-                    msg->get_interface_version();
+                auto interface_version = msg->get_interface_version();
                 payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
 
                 auto message_type = static_cast<std::uint8_t>(msg->get_message_type());

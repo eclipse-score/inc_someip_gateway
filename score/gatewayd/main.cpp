@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration shm_config;
     gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration
         server_shm_config;
-    for (const auto *service_type_config : *config->service_types()) {
+    for (const auto* service_type_config : *config->service_types()) {
         socom::Service_interface_identifier const iface{
             service_type_config->service_type_name()->string_view(),
             {service_type_config->service_version_major(),
@@ -282,8 +282,8 @@ int main(int argc, char* argv[]) {
 
     // Create local service instances from configuration
     std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
-    for (const auto *service_type_config : *config->service_types()) {
-        const auto *service_instances = service_type_config->local_service_instances();
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->local_service_instances();
         if (service_instances != nullptr) {
             for (auto const& service_instance_config : *service_instances) {
                 std::cout << "Creating local service instance: "
@@ -306,8 +306,8 @@ int main(int argc, char* argv[]) {
 
     // Create remote service instances from configuration
     std::vector<std::unique_ptr<RemoteServiceInstance>> remote_service_instances;
-    for (const auto *service_type_config : *config->service_types()) {
-        const auto *service_instances = service_type_config->remote_service_instances();
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->remote_service_instances();
         if (service_instances != nullptr) {
             for (auto const& service_instance_config : *service_instances) {
                 std::cout << "Creating remote service instance: "

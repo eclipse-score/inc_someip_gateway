@@ -47,8 +47,7 @@ class EventGroupReceiver(SOMEIPDatagramProtocol):
             self.log.warning("unexpected message type: %s", someip_message)
             return
         self.log.info(
-            "service=0x%04x method=0x%04x interface_version=0x%02x"
-            " returncode=%s payload=%s",
+            "service=0x%04x method=0x%04x interface_version=0x%02x returncode=%s payload=%s",
             someip_message.service_id,
             someip_message.method_id,
             someip_message.interface_version,
@@ -73,9 +72,7 @@ async def run(
         port=30490,
     )
 
-    evgrp_receiver, _ = await EventGroupReceiver.create_unicast_endpoint(
-        local_addr=(str(local_addr), local_port)
-    )
+    evgrp_receiver, _ = await EventGroupReceiver.create_unicast_endpoint(local_addr=(str(local_addr), local_port))
     sockname = evgrp_receiver.get_extra_info("sockname")
 
     try:

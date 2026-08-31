@@ -136,8 +136,7 @@ Client_connector::Uptr Connector_factory::create_client_connector(
 Client_connector::Uptr Connector_factory::create_client_connector(
     Service_interface_definition const& configuration, Service_instance const& instance,
     Optional_reference<Client_connector_callbacks_mock> cc_callbacks) {
-    auto cc =
-        create_client_connector_with_result(configuration, instance, cc_callbacks, {});
+    auto cc = create_client_connector_with_result(configuration, instance, cc_callbacks, {});
     EXPECT_TRUE(cc);
     return std::move(cc).value();
 }
@@ -146,8 +145,8 @@ Client_connector::Uptr Connector_factory::create_client_connector(
     Service_interface_definition const& configuration, Service_instance const& instance,
     Optional_reference<Client_connector_callbacks_mock> cc_callbacks,
     Posix_credentials const& credentials) {
-    auto cc = create_client_connector_with_result(configuration, instance, cc_callbacks,
-                                                  credentials);
+    auto cc =
+        create_client_connector_with_result(configuration, instance, cc_callbacks, credentials);
     EXPECT_TRUE(cc);
     return std::move(cc).value();
 }

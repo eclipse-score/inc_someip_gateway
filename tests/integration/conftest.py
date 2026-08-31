@@ -48,9 +48,7 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "network: mark test as requiring network access")
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Modify test items during collection."""
     for item in items:
         # Auto-mark all tests in this directory as integration tests

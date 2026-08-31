@@ -22,8 +22,6 @@
 #include "score/socom/final_action.hpp"
 #include "server_connector_impl.hpp"
 
-
-
 namespace score::socom::client_connector {
 
 Impl::Impl(Service_interface_definition configuration, Service_instance instance,
@@ -199,4 +197,4 @@ Weak_reference_token Impl::create_weak_block_token() const {
     return Weak_reference_token{m_stop_block_token};
 }
 
-} // namespace score::socom::client_connector
+}  // namespace score::socom::client_connector

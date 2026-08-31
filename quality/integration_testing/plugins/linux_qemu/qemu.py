@@ -111,9 +111,7 @@ class DiskBootQemu:
 
     def _check_kvm_readable_when_necessary(self):
         if self._accelerator == "kvm" and not os.access("/dev/kvm", os.R_OK):
-            logger.fatal(
-                "No access to /dev/kvm. Consider adding yourself to kvm group."
-            )
+            logger.fatal("No access to /dev/kvm. Consider adding yourself to kvm group.")
             sys.exit(-1)
 
     def _build_command(self):

@@ -17,7 +17,6 @@
 
 #include "temporary_thread_id_add.hpp"
 
-
 namespace score::socom {
 
 Method_call_reply_data::Method_call_reply_data(Method_reply_callback reply_callback,
@@ -49,4 +48,4 @@ void Method_call_reply_data::set_block_token(Weak_reference_token weak_stop_bloc
 #endif
 }
 
-} // namespace score::socom
+}  // namespace score::socom
