@@ -44,13 +44,15 @@ constexpr std::uint16_t STRESS_THROUGHPUT_BATCH_SIZE{100};
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
 
+namespace {
 score::cpp::stop_source g_stop_source{score::cpp::nostopstate_t{}};
 score::cpp::stop_token g_stop_token{g_stop_source.get_token()};
 
-void SigTermHandlerFunction(int signal) {
+void SigTermHandlerFunction(int /*signal*/) {
     g_stop_source.request_stop();
     benchmark::Shutdown();
 }
+}  // namespace
 
 class BenchmarkFixture {
    public:
@@ -263,7 +265,7 @@ class BenchmarkFixture {
                             decltype(pre_serialized_response_sample)::element_type::kMaxMessageSize,
                         "EchoResponseTiny size exceeds max sample count");
                     assert(pre_serialized_response_sample->size == sizeof(EchoResponseTiny));
-                    auto* response_sample = reinterpret_cast<const EchoResponseTiny*>(
+                    const auto* response_sample = reinterpret_cast<const EchoResponseTiny*>(
                         pre_serialized_response_sample->data);
 
                     if (response_sample->sequence_id == sequence_id) {
@@ -379,7 +381,7 @@ class BenchmarkFixture {
 
 class IpcBenchmark : public benchmark::Fixture {
    public:
-    void SetUp(const ::benchmark::State& state) override {
+    void SetUp(const ::benchmark::State& /*state*/) override {
         if (!setup_done_) {
             BenchmarkFixture::Instance().Initialize();
             setup_done_ = true;
@@ -408,6 +410,7 @@ constexpr PayloadConfig PAYLOAD_CONFIGS[] = {
 
 constexpr size_t NUM_PAYLOAD_CONFIGS = sizeof(PAYLOAD_CONFIGS) / sizeof(PAYLOAD_CONFIGS[0]);
 
+namespace {
 PayloadSize GetPayloadSizeFromArg(int64_t arg) {
     if (arg >= 0 && arg < static_cast<int64_t>(NUM_PAYLOAD_CONFIGS)) {
         return PAYLOAD_CONFIGS[arg].size;
@@ -429,20 +432,23 @@ double Percentile(const std::vector<double>& v, double percentile) {
     std::vector<double> sorted = v;
     std::sort(sorted.begin(), sorted.end());
 
-    if (sorted.empty()) return 0.0;
+    if (sorted.empty()) {
+        return 0.0;
+    }
 
     // Linear interpolation method
     double index = (percentile / 100.0) * (sorted.size() - 1);
-    size_t lower = static_cast<size_t>(std::floor(index));
-    size_t upper = static_cast<size_t>(std::ceil(index));
+    auto lower = static_cast<size_t>(std::floor(index));
+    auto upper = static_cast<size_t>(std::ceil(index));
 
     if (lower == upper) {
         return sorted[lower];
     }
 
     double weight = index - lower;
-    return sorted[lower] * (1.0 - weight) + sorted[upper] * weight;
+    return (sorted[lower] * (1.0 - weight)) + (sorted[upper] * weight);
 }
+}  // namespace
 
 // Latency benchmarks - measure round-trip time
 BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {

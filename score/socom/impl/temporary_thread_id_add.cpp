@@ -17,8 +17,8 @@
 #include <cassert>
 #include <cstdlib>
 
-namespace score {
-namespace socom {
+
+namespace score::socom {
 
 Temporary_thread_id_add::Temporary_thread_id_add(std::mutex& mutex,
                                                  std::vector<std::thread::id>& thread_ids)
@@ -58,5 +58,4 @@ void Deadlock_detector::check_deadlock(
     }
 }
 
-}  // namespace socom
-}  // namespace score
+} // namespace score::socom

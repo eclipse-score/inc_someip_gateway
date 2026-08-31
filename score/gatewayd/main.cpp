@@ -52,7 +52,7 @@ static std::atomic<bool> shutdown_requested{false};
 /// events to safely shrink the slot.
 static std::size_t event_slot_size(const mw_someip_config::ServiceType& service_type) {
     const auto* const events = service_type.events();
-    if (events == nullptr || events->size() == 0) {
+    if (events == nullptr || events->empty()) {
         return someip::kMaxMessageSize;
     }
 
@@ -85,13 +85,13 @@ static std::size_t event_slot_size(const mw_someip_config::ServiceType& service_
 }
 
 // Signal handler for graceful shutdown
-void termination_handler(int /*signal*/) {
+static void termination_handler(int /*signal*/) {
     std::cout << "Received termination signal. Initiating graceful shutdown..." << std::endl;
     shutdown_requested.store(true);
 }
 
 // Help text, showing usage syntax and available options
-void print_help() {
+static void print_help() {
     std::cout << "Syntax: gatewayd -h/--help\n"
               << "        gatewayd -c/--configuration <config.bin> "
               << "-s/--service_instance_manifest <manifest.json>\n"
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration shm_config;
     gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration
         server_shm_config;
-    for (auto service_type_config : *config->service_types()) {
+    for (const auto *service_type_config : *config->service_types()) {
         socom::Service_interface_identifier const iface{
             service_type_config->service_type_name()->string_view(),
             {service_type_config->service_version_major(),
@@ -245,12 +245,12 @@ int main(int argc, char* argv[]) {
         }
 
         const std::size_t slot_size = event_slot_size(*service_type_config);
-        if (service_type_config->local_service_instances()) {
+        if (service_type_config->local_service_instances() != nullptr) {
             shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
             server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
-        } else if (service_type_config->remote_service_instances()) {
+        } else if (service_type_config->remote_service_instances() != nullptr) {
             server_shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
@@ -282,9 +282,9 @@ int main(int argc, char* argv[]) {
 
     // Create local service instances from configuration
     std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->local_service_instances();
-        if (service_instances) {
+    for (const auto *service_type_config : *config->service_types()) {
+        const auto *service_instances = service_type_config->local_service_instances();
+        if (service_instances != nullptr) {
             for (auto const& service_instance_config : *service_instances) {
                 std::cout << "Creating local service instance: "
                           << service_type_config->service_type_name()->string_view()
@@ -306,9 +306,9 @@ int main(int argc, char* argv[]) {
 
     // Create remote service instances from configuration
     std::vector<std::unique_ptr<RemoteServiceInstance>> remote_service_instances;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->remote_service_instances();
-        if (service_instances) {
+    for (const auto *service_type_config : *config->service_types()) {
+        const auto *service_instances = service_type_config->remote_service_instances();
+        if (service_instances != nullptr) {
             for (auto const& service_instance_config : *service_instances) {
                 std::cout << "Creating remote service instance: "
                           << service_type_config->service_type_name()->string_view()
