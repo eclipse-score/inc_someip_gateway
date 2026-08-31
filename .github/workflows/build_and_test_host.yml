@@ -60,6 +60,20 @@ jobs:
 
   build_and_int_qemu_test_host:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - bazel_args: ""
+            targets: "//..."
+            name: "default"
+          - bazel_args: "--features=asan --features=lsan --features=ubsan_clang"
+            targets: "//score/... //tests/..."
+            name: "with ASAN, LSAN, UBSAN"
+          - bazel_args: "--features=tsan"
+            targets: "//score/... //tests/..."
+            name: "with TSAN"
+    name: Integration tests ${{ matrix.name }}
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
@@ -88,6 +102,6 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration //quality/... //tests/integration_test/...
+          bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
       - run: df -h
         if: always()
