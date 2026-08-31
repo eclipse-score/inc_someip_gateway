@@ -28,10 +28,10 @@ jobs:
             targets: "//..."
             name: "default"
           - bazel_args: "--features=asan --features=lsan --features=ubsan_clang"
-            targets: "//score/... //tests//..."
+            targets: "//score/... //tests/..."
             name: "with ASAN, LSAN, UBSAN"
           - bazel_args: "--features=tsan"
-            targets: "//score/... //tests//..."
+            targets: "//score/... //tests/..."
             name: "with TSAN"
     name: Bazel test ${{ matrix.name }}
     steps:
