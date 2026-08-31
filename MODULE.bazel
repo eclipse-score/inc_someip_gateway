@@ -79,7 +79,7 @@ bazel_dep(name = "score_bazel_platforms", version = "1.0.0")
 # ============================================================================
 # QNX8 Toolchain Configuration
 # ============================================================================
-bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.2", dev_dependency = True)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.3", dev_dependency = True)
 bazel_dep(name = "score_cpp_policies", version = "0.1.1", dev_dependency = True)
 
 gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
