@@ -19,8 +19,7 @@ load("//tools/lint:linters.bzl", "clang_tidy_test")
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
 
-# Expose local .clang-tidy override for the clang-tidy lint aspect
-exports_files([".clang-tidy"])
+
 
 # ==============================================================================
 # Code Formatting

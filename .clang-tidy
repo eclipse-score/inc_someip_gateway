@@ -11,11 +11,18 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
----
-# Local clang-tidy overrides for score_someip_gateway.
-# The S-CORE baseline from @score_cpp_policies//clang_tidy:.clang-tidy is
-# always applied first; this file may only tighten checks or add
-# module-specific suppressions.
+# Local .clang-tidy for IDE tooling (clangd) only.
+# The Bazel clang-tidy aspect uses @score_cpp_policies//clang_tidy:.clang-tidy
+# as the global config (via --config-file), so this file does not affect
+# `bazel test --config=clang-tidy` runs.
+#
+# Based on the S-CORE baseline. See:
+# https://github.com/eclipse-score/score_cpp_policies/blob/main/clang_tidy/.clang-tidy
 
-# Restrict header analysis to this module's own headers.
+Checks: >-
+  -*, clang-analyzer-*, cert-*, cppcoreguidelines-*, bugprone-*, misc-*, performance-*, readability-*, modernize-*
+WarningsAsErrors: >-
+  clang-analyzer-*
 HeaderFilterRegex: 'score/'
+
+FormatStyle: none
