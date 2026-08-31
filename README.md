@@ -181,3 +181,9 @@ If you use a license server then add the following in in your `~/.bazelrc`:
     common --action_env=QNXLM_LICENSE_FILE=<port>@<license_server_host>
 
 > :warning: Getting license from server not yet supported within devcontainer. Need to figure out how to adjust user & hostname properly.
+
+
+## Static code analysis
+
+clang-tidy and ruff are used for static code analysis. clang-tidy is used for C/C++ code and ruff is used for Python code.
+We use the same code and interface like [Eclipse SCORE Communication](https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy).

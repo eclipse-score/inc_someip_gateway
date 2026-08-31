@@ -59,37 +59,13 @@ docs(
 )
 
 # ==============================================================================
-# Clang-Tidy
+# Clang-Tidy and Ruff Linting
 # ==============================================================================
-# Run: bazel test --config=clang-tidy //score/...
-# The clang_tidy_aspect is applied to all cc_library/cc_binary targets via the
-# --aspects flag in clang_tidy.bazelrc when --config=clang-tidy is used.
-# To add per-package lint tests, load clang_tidy_test from //tools/lint:linters.bzl
-# and add targets like:
-#   clang_tidy_test(name = "clang_tidy", srcs = [":my_lib"])
+# Same code and interface like https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy
 
 use_clang_tidy_targets()
 
 use_ruff_targets()
-
-# clang_tidy_test(
-#     name = "clang_tidy",
-#     srcs = [
-#         # "//score/config",
-#         "//score/gateway_ipc_binding",
-#         # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_benchmark",
-#         # "//score/gateway_ipc_binding/benchmark:gateway_ipc_binding_memory",
-#         # "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
-#         # "//score/gatewayd",
-#         # "//score/serializer",
-#         "//score/socom",
-#         # "//score/socom/test/framework:socom_test_framework",
-#         # "//score/socom/test/stress:socom_stress_test",
-#         # "//score/socom/test/unit:socom_test",
-#         "//score/someip",
-#         "//score/someipd",
-#     ],  # or a more targeted glob
-# )
 
 # ==============================================================================
 # Python Dependencies
