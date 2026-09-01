@@ -187,7 +187,11 @@ void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Paylo
         return;
     }
 
-    ipc_event.Send(std::move(sample));
+    if (const auto result = ipc_event.Send(std::move(sample)); !result) {
+        score::mw::log::LogError()
+            << "[gatewayd] RemoteServiceInstance - Failed to send IPC event: "
+            << result.error().Message();
+    }
 };
 
 Result<void> RemoteServiceInstance::CreateAsyncRemoteService(

@@ -294,12 +294,19 @@ int main(int argc, char* argv[]) {
                           << service_instance_config->instance_specifier()->string_view() << ")"
                           << std::endl;
 
-                LocalServiceInstance::CreateAsyncLocalServices(
-                    std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
-                        config, service_instance_config),
-                    std::shared_ptr<const score::mw_someip_config::ServiceType>(
-                        config, service_type_config),
-                    *socom_runtime, local_service_instances);
+                if (const auto create_local_result = LocalServiceInstance::CreateAsyncLocalServices(
+                        std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                            config, service_instance_config),
+                        std::shared_ptr<const score::mw_someip_config::ServiceType>(
+                            config, service_type_config),
+                        *socom_runtime, local_service_instances);
+                    !create_local_result) {
+                    score::mw::log::LogError()
+                        << "[gatewayd] Failed to start local service discovery for "
+                        << service_type_config->service_type_name()->string_view() << " (specifier="
+                        << service_instance_config->instance_specifier()->string_view()
+                        << "): " << create_local_result.error().Message();
+                }
             }
         }
     }
@@ -317,12 +324,20 @@ int main(int argc, char* argv[]) {
                           << service_instance_config->instance_id() << std::dec << ", specifier="
                           << service_instance_config->instance_specifier()->string_view() << ")"
                           << std::endl;
-                RemoteServiceInstance::CreateAsyncRemoteService(
-                    std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
-                        config, service_instance_config),
-                    std::shared_ptr<const score::mw_someip_config::ServiceType>(
-                        config, service_type_config),
-                    *socom_runtime, remote_service_instances);
+                if (const auto create_remote_result =
+                        RemoteServiceInstance::CreateAsyncRemoteService(
+                            std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
+                                config, service_instance_config),
+                            std::shared_ptr<const score::mw_someip_config::ServiceType>(
+                                config, service_type_config),
+                            *socom_runtime, remote_service_instances);
+                    !create_remote_result) {
+                    score::mw::log::LogError()
+                        << "[gatewayd] Failed to start remote service discovery for "
+                        << service_type_config->service_type_name()->string_view() << " (specifier="
+                        << service_instance_config->instance_specifier()->string_view()
+                        << "): " << create_remote_result.error().Message();
+                }
             }
         }
     }
