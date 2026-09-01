@@ -42,11 +42,7 @@ def _list_gtest_suites(target: Target, application: str) -> list[str]:
     assert exit_code == 0, text
 
     # gtest prints suites unindented and terminated by '.', their test cases indented below.
-    suites = [
-        line.strip()
-        for line in text.splitlines()
-        if line == line.lstrip() and line.rstrip().endswith(".")
-    ]
+    suites = [line.strip() for line in text.splitlines() if line == line.lstrip() and line.rstrip().endswith(".")]
     assert suites, text
     return suites
 
@@ -76,15 +72,11 @@ def test_gateway_ipc_binding_succeeds_on_target(target: Target) -> None:
     """
 
     if not _is_qnx(target):
-        pytest.skip(
-            "gateway_ipc_binding_test is only split into multiple processes on QNX"
-        )
+        pytest.skip("gateway_ipc_binding_test is only split into multiple processes on QNX")
 
     failures = []
     for suite in _list_gtest_suites(target, GATEWAY_IPC_BINDING_TEST):
-        process = target.execute_async(
-            f"/{GATEWAY_IPC_BINDING_TEST} --gtest_filter={suite}*"
-        )
+        process = target.execute_async(f"/{GATEWAY_IPC_BINDING_TEST} --gtest_filter={suite}*")
         exit_code = process.wait(timeout_s=TEST_APPLICATION_TIMEOUT_S)
         if exit_code != 0:
             failures.append(f"{suite} failed with {exit_code}:\n{process.get_output()}")
