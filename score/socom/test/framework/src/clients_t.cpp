@@ -98,11 +98,11 @@ Client_data::~Client_data() {
 }
 
 void Client_data::subscribe_event(Event_id const& event_id, Event_mode const mode) {
-    m_connector->subscribe_event(event_id, mode);
+    EXPECT_TRUE(m_connector->subscribe_event(event_id, mode));
 }
 
 void Client_data::unsubscribe_event(Event_id const& event_id) {
-    m_connector->unsubscribe_event(event_id);
+    EXPECT_TRUE(m_connector->unsubscribe_event(event_id));
 }
 
 std::unique_ptr<Temporary_event_subscription> Client_data::create_event_subscription(
@@ -118,7 +118,7 @@ std::unique_ptr<Temporary_event_subscription> Client_data::create_event_subscrip
 }
 
 void Client_data::request_event_update(Event_id const& event_id) const {
-    m_connector->request_event_update(event_id);
+    EXPECT_TRUE(m_connector->request_event_update(event_id));
 }
 
 score::Result<Writable_payload> Client_data::allocate_method_call_payload(Method_id method_id) {

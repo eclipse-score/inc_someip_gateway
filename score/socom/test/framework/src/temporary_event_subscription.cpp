@@ -31,18 +31,19 @@ Temporary_event_subscription::Temporary_event_subscription(
             .WillOnce(Assign(&callback_called, true));
     }
 
-    this->m_cc.subscribe_event(event_id, Event_mode::update_and_initial_value);
+    EXPECT_TRUE(this->m_cc.subscribe_event(event_id, Event_mode::update_and_initial_value));
     wait_for_atomics(callback_called);
 }
 
 Temporary_event_subscription::Temporary_event_subscription(Client_connector& cc,
                                                            Event_id const& event_id)
     : m_event_id{event_id}, m_cc{cc} {
-    this->m_cc.subscribe_event(event_id, Event_mode::update);
+    EXPECT_TRUE(this->m_cc.subscribe_event(event_id, Event_mode::update));
 }
 
 Temporary_event_subscription::~Temporary_event_subscription() {
-    m_cc.unsubscribe_event(m_event_id);
+    // Unsubscription may legitimately fail if the server has already been destroyed.
+    (void)m_cc.unsubscribe_event(m_event_id);
 }
 
 }  // namespace score::socom

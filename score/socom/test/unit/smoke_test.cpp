@@ -123,7 +123,7 @@ TEST_F(Connection_test, server_sends_event_which_is_received_by_the_client) {
     EXPECT_CALL(m_event_update_mock, Call(_, _, _)).Times(1);
     EXPECT_CALL(m_event_subscription_change_mock, Call(_, 0, Event_state::subscribed)).Times(1);
     ASSERT_TRUE(client_connector->subscribe_event(0, Event_mode::update));
-    server_connector->update_event(0, empty_payload());
+    EXPECT_TRUE(server_connector->update_event(0, empty_payload()));
 }
 
 TEST_F(Connection_test, client_calls_method_and_gets_response) {

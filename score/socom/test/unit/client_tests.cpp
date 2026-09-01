@@ -728,7 +728,7 @@ TEST_F(ClientConnectorTest, OnStateChangeRequestEventUpdate) {
 
             available = true;
 
-            client_connector.request_event_update(event_id);
+            EXPECT_TRUE(client_connector.request_event_update(event_id));
         }};
 
     Server_connector_callbacks_mock server_callbacks;
@@ -826,7 +826,7 @@ TEST_F(ClientConnectorDeathTest,
        ClientDeletionByOnRequestedEventUpdateResultsInLoggingAndTermination) {
     auto const el_failure = [this]() {
         auto const& update_requested = server.expect_update_event_request(event_id);
-        client0->request_event_update(event_id);
+        EXPECT_TRUE(client0->request_event_update(event_id));
         wait_for_atomics(update_requested);
 
         EXPECT_CALL(cc_callbacks, on_requested_event_update(_, _, _))
