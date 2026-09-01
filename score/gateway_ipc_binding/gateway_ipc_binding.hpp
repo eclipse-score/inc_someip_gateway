@@ -14,7 +14,6 @@
 #ifndef SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING
 #define SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING
 
-#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <score/span.hpp>
@@ -29,7 +28,7 @@
 namespace score::gateway_ipc_binding {
 
 /// \brief Maximum find service elements
-inline constexpr std::size_t kMax_find_service_elements = 16U;
+inline constexpr std::size_t kMax_find_service_elements = 4U;
 
 /// \brief Maximum bytes for serialized service id
 inline constexpr std::size_t kMax_service_id_size = 64U;
@@ -39,7 +38,21 @@ inline constexpr std::size_t kMax_instance_id_size = 64U;
 /// \brief Maximum bytes for client identifier string (including null terminator)
 inline constexpr std::size_t kMax_client_identifier_size = 64U;
 /// \brief Maximum shared memory path length (including null terminator)
-inline constexpr std::size_t kMax_shared_memory_path_size = NAME_MAX;
+/// \details Deliberately decoupled from the platform's NAME_MAX (511 on QNX, 255 on Linux):
+/// real shared memory names built by make_shared_memory_path() are well under 100 bytes, and
+/// tying this to NAME_MAX would make Message_frame<Connect> both platform-dependent in size and
+/// unnecessarily large (risking exceeding kMax_safe_message_size on platforms with a large
+/// NAME_MAX, notably QNX).
+inline constexpr std::size_t kMax_shared_memory_path_size = 128U;
+
+/// \brief Conservative upper bound for a single (framed) IPC message.
+/// \details score::message_passing's QNX qnx_dispatch backend hardcodes its resmgr message
+/// buffer to 2088 bytes, independent of any configured protocol size, so a larger message
+/// fails to send with EMSGSIZE at the OS level on QNX. Message_frame<T> is statically checked
+/// against this bound so that growing one of the kMax_* constants above can't silently
+/// reintroduce a message that can never be delivered.
+// See also https://github.com/eclipse-score/communication/issues/848
+inline constexpr std::size_t kMax_safe_message_size = 2000U;
 
 /// \brief Message type identifiers for IPC framing
 enum class Message_type : std::uint8_t {
@@ -124,7 +137,7 @@ using Shared_memory_path = Fixed_string<kMax_shared_memory_path_size>;
 /// it would fail. Every slash is therefore replaced by an underscore. Names without
 /// slashes are unaffected.
 ///
-/// \return The name, or fixed_size_container_too_small if it exceeds NAME_MAX
+/// \return The name, or fixed_size_container_too_small if it exceeds kMax_shared_memory_path_size
 Result<Shared_memory_path> make_shared_memory_path(std::string_view service_type_name,
                                                    std::uint16_t service_id) noexcept;
 

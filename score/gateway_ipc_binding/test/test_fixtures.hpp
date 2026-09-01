@@ -20,7 +20,6 @@
 #include <cstddef>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <utility>
 
 #include "mocks.hpp"
@@ -38,6 +37,7 @@
 #include "score/socom/server_connector.hpp"
 #include "score/socom/server_connector_mock.hpp"
 #include "test_constants.hpp"
+#include "util.hpp"
 
 namespace score::gateway_ipc_binding {
 
@@ -103,10 +103,11 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
         auto start_result = server->start();
         assert(start_result);
 
-        // Wait for the client to connect and receive the reply
-        while (!client->is_connected()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // Wait for the client to connect and receive the reply. Bounded (rather than an
+        // unconditional busy-loop) so that a broken IPC connection fails the test instead of
+        // hanging it forever.
+        EXPECT_TRUE(
+            wait_on_connection_state(*client, Connection_state::Connected, very_long_timeout));
     }
 };
 

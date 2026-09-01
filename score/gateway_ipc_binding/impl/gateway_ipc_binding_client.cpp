@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <cerrno>
 #include <iostream>
 #include <memory>
 #include <string_view>
@@ -77,12 +78,20 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
         if (!send_result) {
             std::cerr << __PRETTY_FUNCTION__
                       << ": Failed to send message to server: " << send_result.error() << std::endl;
+            if (send_result.error().GetOsDependentErrorCode() == EMSGSIZE) {
+                // Unrecoverable: this message will never fit, retrying/reconnecting can't help.
+                // Stop instead of leaving the peer waiting forever for a reply that can never
+                // arrive.
+                request_disconnect();
+            }
             return MakeUnexpected(Bidirectional_channel_error::runtime_error_send_failed);
         }
         return {};
     }
 
     using Reply_channel::send;  // Bring template send() into scope
+
+    void request_disconnect() noexcept override { m_channel->Stop(); }
 
     bool is_connected() const noexcept override { return m_connected; }
 
@@ -136,13 +145,13 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
         auto message_type = get_message_type(data[0]);
 
         if (Message_type::Connect_reply == message_type) {
-            auto msg_opt = check_and_cast<Connect_reply>(data);
+            auto msg_opt = check_and_convert<Connect_reply>(data);
             if (!msg_opt) {
                 // Invalid message - log and ignore
                 return;
             }
 
-            handle_connect_reply_message(**msg_opt);
+            handle_connect_reply_message(*msg_opt);
         }
         m_binding_base.on_receive_message(client_id, *this, data);
     }
