@@ -39,12 +39,13 @@ constexpr auto STATS_INTERVAL{5s};
 constexpr const char* EchoRequestInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
 
+namespace {
 score::cpp::stop_source g_stop_source{score::cpp::nostopstate_t{}};
 score::cpp::stop_token g_stop_token{g_stop_source.get_token()};
 
-void SigTermHandlerFunction(int signal) { g_stop_source.request_stop(); }
+void SigTermHandlerFunction(int /*signal*/) { g_stop_source.request_stop(); }
 
-static std::optional<EchoRequestPreSerializedProxy> TryConnectToClient() {
+std::optional<EchoRequestPreSerializedProxy> TryConnectToClient() {
     auto handles = EchoRequestPreSerializedProxy::FindService(
         score::mw::com::InstanceSpecifier::Create(std::string{EchoRequestInstanceSpecifier})
             .value());
@@ -61,9 +62,9 @@ static std::optional<EchoRequestPreSerializedProxy> TryConnectToClient() {
     return std::move(proxy_result).value();
 }
 
-static void ProcessSingleEchoRequestTiny(SamplePtr<EchoMessagePreSerializedTiny> request_sample,
-                                         EchoResponsePreSerializedSkeleton& response_skeleton,
-                                         std::size_t& requests_processed) {
+void ProcessSingleEchoRequestTiny(SamplePtr<EchoMessagePreSerializedTiny> request_sample,
+                                  EchoResponsePreSerializedSkeleton& response_skeleton,
+                                  std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -93,9 +94,9 @@ static void ProcessSingleEchoRequestTiny(SamplePtr<EchoMessagePreSerializedTiny>
     }
 }
 
-static void ProcessSingleEchoRequestSmall(SamplePtr<EchoMessagePreSerializedSmall> request_sample,
-                                          EchoResponsePreSerializedSkeleton& response_skeleton,
-                                          std::size_t& requests_processed) {
+void ProcessSingleEchoRequestSmall(SamplePtr<EchoMessagePreSerializedSmall> request_sample,
+                                   EchoResponsePreSerializedSkeleton& response_skeleton,
+                                   std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -125,9 +126,9 @@ static void ProcessSingleEchoRequestSmall(SamplePtr<EchoMessagePreSerializedSmal
     }
 }
 
-static void ProcessSingleEchoRequestMedium(SamplePtr<EchoMessagePreSerializedMedium> request_sample,
-                                           EchoResponsePreSerializedSkeleton& response_skeleton,
-                                           std::size_t& requests_processed) {
+void ProcessSingleEchoRequestMedium(SamplePtr<EchoMessagePreSerializedMedium> request_sample,
+                                    EchoResponsePreSerializedSkeleton& response_skeleton,
+                                    std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -157,9 +158,9 @@ static void ProcessSingleEchoRequestMedium(SamplePtr<EchoMessagePreSerializedMed
     }
 }
 
-static void ProcessSingleEchoRequestLarge(SamplePtr<EchoMessagePreSerializedLarge> request_sample,
-                                          EchoResponsePreSerializedSkeleton& response_skeleton,
-                                          std::size_t& requests_processed) {
+void ProcessSingleEchoRequestLarge(SamplePtr<EchoMessagePreSerializedLarge> request_sample,
+                                   EchoResponsePreSerializedSkeleton& response_skeleton,
+                                   std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -189,9 +190,9 @@ static void ProcessSingleEchoRequestLarge(SamplePtr<EchoMessagePreSerializedLarg
     }
 }
 
-static void ProcessSingleEchoRequestXLarge(SamplePtr<EchoMessagePreSerializedXLarge> request_sample,
-                                           EchoResponsePreSerializedSkeleton& response_skeleton,
-                                           std::size_t& requests_processed) {
+void ProcessSingleEchoRequestXLarge(SamplePtr<EchoMessagePreSerializedXLarge> request_sample,
+                                    EchoResponsePreSerializedSkeleton& response_skeleton,
+                                    std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -221,9 +222,9 @@ static void ProcessSingleEchoRequestXLarge(SamplePtr<EchoMessagePreSerializedXLa
     }
 }
 
-static void ProcessSingleEchoRequestXXLarge(
-    SamplePtr<EchoMessagePreSerializedXXLarge> request_sample,
-    EchoResponsePreSerializedSkeleton& response_skeleton, std::size_t& requests_processed) {
+void ProcessSingleEchoRequestXXLarge(SamplePtr<EchoMessagePreSerializedXXLarge> request_sample,
+                                     EchoResponsePreSerializedSkeleton& response_skeleton,
+                                     std::size_t& requests_processed) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -253,14 +254,14 @@ static void ProcessSingleEchoRequestXXLarge(
     }
 }
 
-static void ProcessEchoRequests(EchoRequestPreSerializedProxy& request_proxy,
-                                EchoResponsePreSerializedSkeleton& response_skeleton,
-                                std::size_t& requests_processed_tiny,
-                                std::size_t& requests_processed_small,
-                                std::size_t& requests_processed_medium,
-                                std::size_t& requests_processed_large,
-                                std::size_t& requests_processed_xlarge,
-                                std::size_t& requests_processed_xxlarge) {
+void ProcessEchoRequests(EchoRequestPreSerializedProxy& request_proxy,
+                         EchoResponsePreSerializedSkeleton& response_skeleton,
+                         std::size_t& requests_processed_tiny,
+                         std::size_t& requests_processed_small,
+                         std::size_t& requests_processed_medium,
+                         std::size_t& requests_processed_large,
+                         std::size_t& requests_processed_xlarge,
+                         std::size_t& requests_processed_xxlarge) {
     if (g_stop_token.stop_requested()) {
         return;
     }
@@ -307,6 +308,7 @@ static void ProcessEchoRequests(EchoRequestPreSerializedProxy& request_proxy,
         },
         MaxSamplesCount);
 }
+}  // namespace
 
 enum class ServerState { WaitingForClient, SettingUpHandler, ProcessingRequests };
 

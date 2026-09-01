@@ -76,7 +76,7 @@ void increase_and_fill(Vector_buffer& data, std::size_t const new_size) {
     std::generate(start, std::end(data), [&gen, &distrib]() { return std::byte(distrib(gen)); });
 }
 
-Service_interface_identifier create_service_interface(size_t const interface_id) {
+static Service_interface_identifier create_service_interface(size_t const interface_id) {
     return Service_interface_identifier{std::string{"interface_" + std::to_string(interface_id)},
                                         {4, 2}};
 }
@@ -110,8 +110,7 @@ std::vector<Service_instance> create_instances(size_t const num) {
 
 }  // namespace score::socom
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 std::ostream& operator<<(std::ostream& out, Method_result const& /*method_result*/) { return out; }
 
@@ -146,15 +145,8 @@ bool operator==(Disabled_server_connector const& /*lhs*/,
     return false;
 }
 
-}  // namespace socom
-}  // namespace score
-
-namespace score {
-namespace socom {
-
 bool operator==(Posix_credentials const& lhs, Posix_credentials const& rhs) {
     return (lhs.uid == rhs.uid) && (lhs.gid == rhs.gid);
 }
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom

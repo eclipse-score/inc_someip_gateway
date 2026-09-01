@@ -14,9 +14,16 @@
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
+load("//tools/lint:linters.bzl", "use_clang_tidy_targets", "use_ruff_targets")
 
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
+
+# Expose local .clang-tidy override for the clang-tidy lint aspect
+exports_files([
+    ".clang-tidy",
+    ".ruff.toml",
+])
 
 # ==============================================================================
 # Code Formatting
@@ -50,6 +57,15 @@ docs(
     ],
     source_dir = "docs",
 )
+
+# ==============================================================================
+# Clang-Tidy and Ruff Linting
+# ==============================================================================
+# Same code and interface like https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy
+
+use_clang_tidy_targets()
+
+use_ruff_targets()
 
 # ==============================================================================
 # Python Dependencies

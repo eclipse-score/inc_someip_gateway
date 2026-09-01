@@ -21,9 +21,9 @@
 #include <utility>
 
 #include "gateway_ipc_binding_util.hpp"
-#include "score/gateway_ipc_binding/error.hpp"
 #include "shared_memory_payload.hpp"
 
+namespace {
 template <typename... Args>
 void log_it_impl(Args... args) {
     static std::mutex log_mutex;
@@ -35,6 +35,7 @@ void log_it_impl(Args... args) {
 
     std::cout << std::endl;
 }
+}  // namespace
 
 // #define log_it(...) log_it_impl(__PRETTY_FUNCTION__, ", this == ", this, ", ", __VA_ARGS__)
 #define log_it(...) void(nullptr)

@@ -157,15 +157,16 @@ class Shared_memory_slot_manager_impl final : public Shared_memory_slot_manager 
     mutable std::mutex m_mutex;
 };
 
+namespace {
 /// \brief Creates a Payload backed by a read-only view of a shared memory slot.
 ///
 /// Calls the supplied destruction callback when the Payload is destroyed,
 /// allowing the caller to send a Payload_consumed notification.
-static socom::Payload make_read_only_shared_memory_payload(
+socom::Payload make_read_only_shared_memory_payload(
     void const* base, Slot_handle slot_index, std::size_t slot_size, std::size_t used_bytes,
     Read_only_shared_memory_slot_manager::On_payload_destruction_callback callback) noexcept {
     using Byte = socom::Payload::Byte;
-    auto const* data = static_cast<Byte const*>(base) + slot_index * slot_size;
+    auto const* data = static_cast<Byte const*>(base) + (slot_index * slot_size);
     auto const actual_size = std::min(used_bytes, slot_size);
     // TODO get rid of const_cast
     // const_cast is safe: Payload::data() returns Span (const), so the data is never modified
@@ -174,6 +175,7 @@ static socom::Payload make_read_only_shared_memory_payload(
         static_cast<socom::Payload::Writable_span::size_type>(actual_size)};
     return socom::Payload{span, slot_index, std::move(callback)};
 }
+}  // namespace
 
 class Read_only_shared_memory_slot_manager_impl final
     : public Read_only_shared_memory_slot_manager {
@@ -243,9 +245,9 @@ Result<std::unique_ptr<Shared_memory_slot_manager>> create_shared_memory_slot_ma
     }
 
     // Allocate the entire memory block
-    auto base_address = shared_memory->allocate(total_size);
+    auto* base_address = shared_memory->allocate(total_size);
 
-    if (!base_address) {
+    if (base_address == nullptr) {
         return MakeUnexpected(
             Shared_memory_manager_error::runtime_error_shared_memory_allocation_failed);
     }

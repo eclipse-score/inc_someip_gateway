@@ -38,13 +38,13 @@ using namespace score::someipd;
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
 
-void termination_handler(int /*signal*/) {
+static void termination_handler(int /*signal*/) {
     score::mw::log::LogWarn() << "Received termination signal. Initiating graceful shutdown...";
     shutdown_requested.store(true);
 }
 
 // Help text, showing usage syntax and available options
-void print_help() {
+static void print_help() {
     std::cout << "Syntax: someipd -h/--help\n"
               << "        someipd -c/--configuration <config.bin>\n"
               << "\n";
@@ -156,9 +156,9 @@ int main(int argc, char* argv[]) {
     // Create local network services — one client_connector per local service instance,
     // receiving events from gatewayd's server_connectors and forwarding to vsomeip notify().
     std::vector<std::unique_ptr<LocalNetworkService>> local_network_services;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->local_service_instances();
-        if (!service_instances) {
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->local_service_instances();
+        if (service_instances == nullptr) {
             continue;
         }
         for (auto const& service_instance_config : *service_instances) {
@@ -187,9 +187,9 @@ int main(int argc, char* argv[]) {
     // receiving SOME/IP events via vsomeip and pushing to gatewayd's client_connectors.
     // setup_vsomeip() is deferred until vsomeip reaches ST_REGISTERED (via on_registered below).
     std::vector<std::unique_ptr<RemoteNetworkService>> remote_network_services;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->remote_service_instances();
-        if (!service_instances) {
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->remote_service_instances();
+        if (service_instances == nullptr) {
             continue;
         }
         for (auto const& service_instance_config : *service_instances) {

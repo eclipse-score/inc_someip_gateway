@@ -125,6 +125,9 @@ test:tc8-itf-qnx --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
 # Coverage settings
 import %workspace%/coverage.bazelrc
 
+# Clang-tidy and Ruff settings
+import %workspace%/static_analysis.bazelrc
+
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
 # For sanitizer/clang-tidy policy assets and sanitizer feature definitions see

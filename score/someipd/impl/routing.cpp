@@ -17,6 +17,7 @@
 #include <chrono>
 #include <functional>
 #include <thread>
+#include <utility>
 
 #include "score/mw/log/logging.h"
 #include "score/someip/constants.h"
@@ -26,7 +27,8 @@ namespace score::someipd {
 
 using score::someip::kAnyInstance;
 
-Routing::Routing(std::shared_ptr<const score::mw_someip_config::Root> config) : config_(config) {}
+Routing::Routing(std::shared_ptr<const score::mw_someip_config::Root> config)
+    : config_(std::move(config)) {}
 
 Routing::Routing(Routing&&) noexcept = default;
 
@@ -56,15 +58,16 @@ Result<Routing> Routing::Create(std::shared_ptr<const score::mw_someip_config::R
 }
 
 void Routing::SetupOfferings() {
-    for (const auto service_type : *config_->service_types()) {
-        auto service_instances = service_type->local_service_instances();
-        if (service_instances && service_instances->size() > 0) {
-            for (const auto local_service_instance : *service_type->local_service_instances()) {
-                for (const auto event : *service_type->events()) {
+    for (const auto* const service_type : *config_->service_types()) {
+        const auto* service_instances = service_type->local_service_instances();
+        if ((service_instances != nullptr) && !service_instances->empty()) {
+            for (const auto* const local_service_instance :
+                 *service_type->local_service_instances()) {
+                for (const auto* const event : *service_type->events()) {
                     std::set<vsomeip::eventgroup_t> groups;
                     auto const* eventgroup_ids = event->eventgroup_ids();
                     // Treat empty vector the same as absent: fall back to event_id as eventgroup.
-                    if (eventgroup_ids != nullptr && eventgroup_ids->size() > 0) {
+                    if (eventgroup_ids != nullptr && !eventgroup_ids->empty()) {
                         for (auto group_id : *eventgroup_ids) {
                             groups.insert(group_id);
                         }
@@ -89,7 +92,7 @@ void Routing::SetupOfferings() {
 }
 
 InstanceId Routing::LookupInstanceId(ServiceId service_id) const {
-    for (const auto service_type : *config_->service_types()) {
+    for (const auto* const service_type : *config_->service_types()) {
         if (service_type->service_id() != service_id) {
             continue;
         }

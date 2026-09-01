@@ -116,7 +116,7 @@ void RemoteNetworkService::setup_vsomeip() {
                 payload.wdata()[pos++] = static_cast<std::byte>(method_id & 0xFF);
 
                 // Length (4 bytes) - set to actual payload size + 8 (remaining header bytes)
-                std::uint32_t length = static_cast<std::uint32_t>(size + 8);
+                auto length = static_cast<std::uint32_t>(size + 8);
                 payload.wdata()[pos++] = static_cast<std::byte>((length >> 24) & 0xFF);
                 payload.wdata()[pos++] = static_cast<std::byte>((length >> 16) & 0xFF);
                 payload.wdata()[pos++] = static_cast<std::byte>((length >> 8) & 0xFF);
@@ -130,18 +130,16 @@ void RemoteNetworkService::setup_vsomeip() {
                 payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
                 payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
 
-                std::uint8_t protocol_version =
-                    static_cast<std::uint8_t>(msg->get_protocol_version());
+                auto protocol_version = msg->get_protocol_version();
                 payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
 
-                std::uint8_t interface_version =
-                    static_cast<std::uint8_t>(msg->get_interface_version());
+                auto interface_version = msg->get_interface_version();
                 payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
 
-                std::uint8_t message_type = static_cast<std::uint8_t>(msg->get_message_type());
+                auto message_type = static_cast<std::uint8_t>(msg->get_message_type());
                 payload.wdata()[pos++] = static_cast<std::byte>(message_type);
 
-                std::uint8_t return_code = static_cast<std::uint8_t>(msg->get_return_code());
+                auto return_code = static_cast<std::uint8_t>(msg->get_return_code());
                 payload.wdata()[pos++] = static_cast<std::byte>(return_code);
 
                 // Copy payload data after header
