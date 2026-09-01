@@ -76,73 +76,46 @@ the protocol these features track). Once ``@score_platform`` /
 they will be pulled in via the ``external_needs`` attribute of the
 root ``docs()`` macro.
 
-Source-code and test-code links are consumed by ``score_docs_as_code``:
+Source-code and test-code links are consumed by ``score_docs_as_code``.
+See the upstream how-to for the marker syntax, the required GoogleTest
+``RecordProperty`` fields, and the validation rules that decide whether a
+link is counted:
+https://eclipse-score.github.io/docs-as-code/main/how-to/dashboards_and_quality_gates.html.
 
-- **Source-code markers** — in the C++ implementation:
+Repo-local wiring:
 
-  .. code-block:: cpp
-
-     // # req-Id: comp_req__gatewayd__publish_local_instance
-     void LocalServiceInstance::offer() { ... }
-
-  The leading ``// #`` is intentional; the linker regex looks for the
-  literal token ``# req-Id:`` and this is the neutral C++ form. The
-  files that carry markers are collected per component in a
+- **Source-code markers** live in the C++ implementation files. Per
+  component, the marked files are collected into a
   ``requirement_marked_sources`` ``filegroup`` (for example
-  ``//score/gatewayd:requirement_marked_sources``) and passed to each
-  component's ``docs_bundle`` via its ``code_targets`` attribute.
-
-- **Test-code links** — use GoogleTest ``RecordProperty`` inside each
-  linked test body:
-
-  .. code-block:: cpp
-
-     TEST(StringRegistryTest, InsertMultipleStrings)
-     {
-         RecordProperty("FullyVerifies", "comp_req__socom__string_registry");
-         RecordProperty("TestType", "requirements-based");
-         RecordProperty("DerivationTechnique", "requirements-analysis");
-         ...
-     }
-
-  The properties land in ``bazel-testlogs/.../test.xml`` and are read by
-  ``score_source_code_linker`` when docs are built. All three properties
-  are required for the test to be counted as a link (a bare
-  ``FullyVerifies`` without ``TestType`` and ``DerivationTechnique`` is
-  captured but discarded by ``DataOfTestCase.is_valid``).
-
-- **Bazel targets:**
-
-  - ``//:docs`` — HTML output plus ``_build/needs.json`` and
-    ``_build/metrics.json`` (traceability metrics extracted from needs).
-
-- **Local flow** (order matters — the docs build reads ``bazel-testlogs``
-  for test links):
+  ``//score/gatewayd:requirement_marked_sources``) and passed to that
+  component's ``docs_bundle`` via ``code_targets``. Grep the tree for
+  ``# req-Id:`` to see current examples.
+- **Test-code links** use ``RecordProperty`` inside the test body. Grep
+  for ``FullyVerifies`` to see current examples (for instance
+  ``//score/socom/test/unit:socom_test``).
+- **Bazel target:** ``//:docs`` — HTML output plus ``_build/needs.json``
+  and ``_build/metrics.json`` (traceability metrics extracted from needs).
+- **Local flow** — order matters, the docs build reads
+  ``bazel-testlogs`` for test links:
 
   .. code-block:: bash
 
      bazel test //:unit_tests //:component_tests
      bazel run  //:docs
 
-  Current baseline (component requirements only):
+Live coverage numbers are posted as a sticky comment on every pull
+request by ``.github/workflows/quality_pack_comment.yml`` (rendered by
+``tools/quality_pack/render_pr_comment.py`` from ``_build/metrics.json``);
+see the workflow's uploaded ``quality-pack-metrics`` artifact for the
+raw JSON. The initial gate thresholds — matching the baseline at
+introduction so the gate never regresses without a follow-up ticket —
+are:
 
-  =========================  ===============
-  Metric                     Value
-  =========================  ===============
-  Requirements total         31
-  Requirements with source   21/31 (67.7%)
-  Requirements with test     3/31 (9.7%)
-  Requirements fully linked  3/31 (9.7%)
-  =========================  ===============
-
-  Suggested initial gate thresholds (matching the current baseline so
-  the gate never regresses without a follow-up ticket):
-
-  ====================  =====
-  Threshold             Value
-  ====================  =====
-  min-req-code             67
-  min-req-test              9
-  min-req-fully-linked      9
-  min-tests-linked          1
-  ====================  =====
+  ====================  =====  ===============================
+  Threshold             Value  Meaning
+  ====================  =====  ===============================
+  min-req-code             67  ``with_code_link_pct`` ≥ 67
+  min-req-test              9  ``with_test_link_pct`` ≥ 9
+  min-req-fully-linked      9  ``fully_linked_pct`` ≥ 9
+  min-tests-linked          1  ≥ 1 test carrying ``FullyVerifies``
+  ====================  =====  ===============================
