@@ -310,7 +310,7 @@ static void ProcessEchoRequests(EchoRequestPreSerializedProxy& request_proxy,
 
 enum class ServerState { WaitingForClient, SettingUpHandler, ProcessingRequests };
 
-int main(int argc, const char* argv[]) {
+int main(int const argc, const char* const argv[]) {
     std::signal(SIGINT, SigTermHandlerFunction);
     std::signal(SIGTERM, SigTermHandlerFunction);
 
@@ -319,7 +319,8 @@ int main(int argc, const char* argv[]) {
 
     std::cout << "Starting Echo Server..." << std::endl;
 
-    score::mw::com::runtime::InitializeRuntime(argc, argv);
+    score::mw::com::runtime::InitializeRuntime(
+        echo_service::utils::create_command_line_arguments(argc, argv));
 
     auto response_skeleton_result = EchoResponsePreSerializedSkeleton::Create(
         score::mw::com::InstanceSpecifier::Create(std::string{EchoResponseInstanceSpecifier})

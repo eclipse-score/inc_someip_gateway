@@ -545,7 +545,8 @@ int main(int argc, char** argv) {
     const char* score_args[] = {"ipc_benchmarks", "-service_instance_manifest",
                                 "tests/benchmarks/config/benchmark_mw_com_config.json"};
     int score_argc = sizeof(score_args) / sizeof(score_args[0]);
-    score::mw::com::runtime::InitializeRuntime(score_argc, score_args);
+    score::mw::com::runtime::InitializeRuntime(
+        echo_service::utils::create_command_line_arguments(score_argc, score_args));
 
     benchmark::Initialize(&argc, argv);
 

@@ -40,7 +40,7 @@ Server_connector_callbacks_mock& expect_method_call(Server_connector_callbacks_m
 }
 
 auto ignore_call() {
-    return InvokeWithoutArgs([]() {});
+    return []() {};
 }
 
 }  // namespace
@@ -52,9 +52,8 @@ Server_data::Server_data(Connector_factory& factory)
 
 Server_data::Server_data(Connector_factory& factory, Method_id method_id,
                          Payload const& expected_payload)
-    : m_connector{
-          factory.create_and_enable(expect_method_call(m_callbacks, method_id, expected_payload))} {
-}
+    : m_connector{factory.create_and_enable(
+          expect_method_call(m_callbacks, method_id, expected_payload))} {}
 
 Server_data::Server_data(Connector_factory& factory,
                          Server_service_interface_definition const& configuration,
@@ -217,7 +216,7 @@ std::future<void> Server_data::expect_method_calls(std::size_t const& min_num,
         create_check_update_count(m_num_method_calls, min_num, std::move(methods_called));
 
     EXPECT_CALL(m_callbacks, on_method_call(_, method_id, payload_eq(payload), _))
-        .WillRepeatedly(DoAll(check_update_count, InvokeWithoutArgs([]() { return nullptr; })));
+        .WillRepeatedly(DoAll(check_update_count, []() { return nullptr; }));
     return methods_called_future;
 }
 
