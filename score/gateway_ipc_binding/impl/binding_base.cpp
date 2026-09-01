@@ -99,86 +99,86 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
     log_it("message_type == ", static_cast<int>(message_type));
     switch (message_type) {
         case Message_type::Connect: {
-            auto msg_opt = check_and_cast<Connect>(data);
+            auto msg_opt = check_and_convert<Connect>(data);
             if (!msg_opt) {
                 // Invalid message - log and ignore
                 return;
             }
 
-            handle_connect_message(client_id, conn, **msg_opt);
+            handle_connect_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Connect_reply: {
-            auto msg_opt = check_and_cast<Connect_reply>(data);
+            auto msg_opt = check_and_convert<Connect_reply>(data);
             if (!msg_opt) {
                 // Invalid message - log and ignore
                 return;
             }
 
-            handle_connect_reply_message(**msg_opt);
+            handle_connect_reply_message(*msg_opt);
             break;
         }
         case Message_type::Connect_service: {
-            auto msg_opt = check_and_cast<Connect_service>(data);
+            auto msg_opt = check_and_convert<Connect_service>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_connect_service_message(client_id, conn, **msg_opt);
+            handle_connect_service_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Connect_service_reply: {
-            auto msg_opt = check_and_cast<Connect_service_reply>(data);
+            auto msg_opt = check_and_convert<Connect_service_reply>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_connect_service_reply_message(client_id, **msg_opt);
+            handle_connect_service_reply_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Request_service: {
-            auto msg_opt = check_and_cast<Request_service>(data);
+            auto msg_opt = check_and_convert<Request_service>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_request_service_message(client_id, conn, **msg_opt);
+            handle_request_service_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Offer_service: {
-            auto msg_opt = check_and_cast<Offer_service>(data);
+            auto msg_opt = check_and_convert<Offer_service>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_offer_service_message(client_id, **msg_opt);
+            handle_offer_service_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Subscribe_event: {
-            auto msg_opt = check_and_cast<Subscribe_event>(data);
+            auto msg_opt = check_and_convert<Subscribe_event>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_subscribe_event_message(client_id, **msg_opt);
+            handle_subscribe_event_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Event_update: {
-            auto msg_opt = check_and_cast<Event_update>(data);
+            auto msg_opt = check_and_convert<Event_update>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_event_update_message(client_id, **msg_opt);
+            handle_event_update_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Payload_consumed: {
-            auto msg_opt = check_and_cast<Payload_consumed>(data);
+            auto msg_opt = check_and_convert<Payload_consumed>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_payload_consumed_message(client_id, **msg_opt);
+            handle_payload_consumed_message(client_id, *msg_opt);
             break;
         }
         default:

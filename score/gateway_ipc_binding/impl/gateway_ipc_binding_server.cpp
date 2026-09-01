@@ -14,6 +14,7 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 
 #include <cassert>
+#include <cerrno>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -41,10 +42,18 @@ class Server_reply_channel : public Reply_channel {
         if (!send_result) {
             std::cerr << __PRETTY_FUNCTION__
                       << ": Failed to send message to client: " << send_result.error() << std::endl;
+            if (send_result.error().GetOsDependentErrorCode() == EMSGSIZE) {
+                // Unrecoverable: this message will never fit, retrying/reconnecting can't help.
+                // Disconnect instead of leaving the peer waiting forever for a reply that can
+                // never arrive.
+                request_disconnect();
+            }
             return MakeUnexpected(Bidirectional_channel_error::runtime_error_send_failed);
         }
         return {};
     }
+
+    void request_disconnect() noexcept override { m_conn->RequestDisconnect(); }
 };
 
 /// \brief Implementation of Gateway_ipc_binding_server
@@ -115,13 +124,13 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
             auto message_type = get_message_type(payload[0]);
 
             if (Message_type::Connect == message_type) {
-                auto msg_opt = check_and_cast<Connect>(payload);
+                auto msg_opt = check_and_convert<Connect>(payload);
                 if (!msg_opt) {
                     // Invalid message - log and ignore
                     return {};
                 }
 
-                auto const& msg = **msg_opt;
+                auto const& msg = *msg_opt;
                 std::lock_guard<std::mutex> const lock(m_mutex);
 
                 m_client_identifiers[client_id] =
