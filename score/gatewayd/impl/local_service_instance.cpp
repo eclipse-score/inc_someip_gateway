@@ -91,7 +91,7 @@ Result<std::unique_ptr<LocalServiceInstance>> LocalServiceInstance::Create(
     // Set up IPC event handlers (must be done after instance creation since handlers capture this)
     auto events = instance->ipc_proxy_.GetEvents();
     socom::Event_id socom_event_id{0U};
-    for (auto event_config : *instance->service_type_config_->events()) {
+    for (const auto* event_config : *instance->service_type_config_->events()) {
         auto result = events.find(event_config->event_name()->string_view());
         if (result == events.cend()) {
             score::mw::log::LogWarn()

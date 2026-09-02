@@ -11,6 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+# In order to overcome stability issues in GitHub
+common --experimental_repository_downloader_retries=10
+common --experimental_scale_timeouts=2.0
+common --http_connector_attempts=10
+common --http_connector_retry_max_timeout=1s
+common --http_timeout_scaling=2.0
+
 # Java Language Configuration
 build --java_language_version=17
 build --tool_java_language_version=17
@@ -138,7 +145,11 @@ test:tc8-itf-qnx --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
 # Coverage settings
 import %workspace%/coverage.bazelrc
 
+# Clang-tidy and Ruff settings
+import %workspace%/static_analysis.bazelrc
+
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
-# For definition of sanitizer features see https://github.com/eclipse-score/bazel_cpp_toolchains/blob/main/templates/linux/cc_toolchain_config.bzl.template
+# For sanitizer/clang-tidy policy assets and sanitizer feature definitions see
+# https://github.com/eclipse-score/score_cpp_policies/
 try-import %workspace%/user.bazelrc

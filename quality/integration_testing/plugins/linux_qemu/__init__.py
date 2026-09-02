@@ -128,9 +128,7 @@ def config(request):
         qemu_seed_iso = os.path.abspath(qemu_seed_iso)
 
     return Bunch(
-        qemu_config=load_configuration(
-            os.path.abspath(request.config.getoption("qemu_config"))
-        ),
+        qemu_config=load_configuration(os.path.abspath(request.config.getoption("qemu_config"))),
         qemu_image=qemu_image,
         qemu_seed_iso=qemu_seed_iso,
     )

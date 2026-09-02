@@ -11,16 +11,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-import logging
-from util import (
-    tcpdump_capture,
-    wait_until_process_exits,
-)
-from score.itf.plugins.core import Target
+# Ruff configuration for this repo.
+#
+# This file is shared by both `ruff format` (//:format / //:format.check)
+# and `ruff check` (the `ruff` aspect in tools/lint/linters.bzl,
+# `bazel test --config=ruff`).
+#
+# `line-ending` is pinned here because its default "auto" is not reproducible
+# across OS/editor/git settings.  Everything else is left at ruff's own
+# defaults (the hermetically pinned binary guarantees reproducibility).
 
+line-length = 120
 
-def test_start_someipd_and_gatewayd(gatewayd_with_someipd: Target) -> None:
-    """Same as above but with more complex test fixture"""
-    with tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
-        console_output = wait_until_process_exits(tcpdump_process, timeout=10.0)
-        logging.info("Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output)
+[format]
+line-ending = "lf"

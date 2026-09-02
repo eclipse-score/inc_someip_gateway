@@ -58,7 +58,7 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
     std::unordered_map<std::uint16_t, EventContext> event_contexts;
     socom::Event_id socom_event_id{0U};
     auto service_type_name = service_type_config->service_type_name()->string_view();
-    for (auto event_config : *service_type_config->events()) {
+    for (const auto* event_config : *service_type_config->events()) {
         auto event_name = event_config->event_name()->string_view();
 
         auto events_it = ipc_skeleton.GetEvents().find(*event_config->event_name());
@@ -68,7 +68,7 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
             ++socom_event_id;
             continue;
         }
-        auto& ipc_event = const_cast<score::mw::com::GenericSkeletonEvent&>(events_it->second);
+        auto& ipc_event = events_it->second;
 
         const score_com_serializer* serializer = nullptr;
         auto get_result =
@@ -164,7 +164,7 @@ void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Paylo
             << "' not found in IPC skeleton, dropping";
         return;
     }
-    auto& ipc_event = const_cast<score::mw::com::GenericSkeletonEvent&>(events_it->second);
+    auto& ipc_event = events_it->second;
 
     // Extract payload
     auto const message = payload.data().subspan(someip::kSomeipFullHeaderSize);

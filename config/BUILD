@@ -11,16 +11,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-import logging
-from util import (
-    tcpdump_capture,
-    wait_until_process_exits,
+# Schema aliases: convenient access to schema files
+alias(
+    name = "mw_someip_config.schema.json",
+    actual = "//score/config:config_schema",
+    visibility = ["//visibility:public"],
 )
-from score.itf.plugins.core import Target
-
-
-def test_start_someipd_and_gatewayd(gatewayd_with_someipd: Target) -> None:
-    """Same as above but with more complex test fixture"""
-    with tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
-        console_output = wait_until_process_exits(tcpdump_process, timeout=10.0)
-        logging.info("Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output)

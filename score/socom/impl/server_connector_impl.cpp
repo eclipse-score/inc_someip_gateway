@@ -26,8 +26,7 @@
 #include "score/socom/service_interface_identifier.hpp"
 #include "temporary_thread_id_add.hpp"
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 namespace server_connector {
 
@@ -39,7 +38,7 @@ Impl::Impl(Runtime_impl& runtime, Server_service_interface_definition configurat
            Final_action final_action, Posix_credentials const& credentials)
     : m_runtime{runtime},
       m_configuration{std::move(configuration)},
-      m_instance{std::move(instance)},
+      m_instance{instance},
       m_callbacks{std::move(callbacks)},
       m_subscriber(m_configuration.get_num_events()),
       m_update_requester(m_configuration.get_num_events()),
@@ -389,5 +388,4 @@ std::unique_ptr<Disabled_server_connector> Enabled_server_connector::disable(
     return result;
 }
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom

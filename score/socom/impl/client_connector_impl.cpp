@@ -22,14 +22,12 @@
 #include "score/socom/final_action.hpp"
 #include "server_connector_impl.hpp"
 
-namespace score {
-namespace socom {
-namespace client_connector {
+namespace score::socom::client_connector {
 
 Impl::Impl(Service_interface_definition configuration, Service_instance instance,
            Client_connector::Callbacks callbacks, Posix_credentials const& credentials)
     : m_configuration{std::move(configuration)},
-      m_instance{std::move(instance)},
+      m_instance{instance},
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
           std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
@@ -199,7 +197,4 @@ Weak_reference_token Impl::create_weak_block_token() const {
     return Weak_reference_token{m_stop_block_token};
 }
 
-}  // namespace client_connector
-
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom::client_connector
