@@ -39,9 +39,13 @@ SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundat
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = ["docs/images/someip_gateway_overview.*"]
+SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = [
     "docs/architecture/score-someip-car-window-overview.drawio*",
-    "examples/car_window_sim/config/mw_com_config.json",
     "score/config/mw_someip_config.*",
     "score/gatewayd/etc/mw_com_config.json",
     "tests/integration/sample_client/vsomeip.json",
@@ -51,13 +55,9 @@ path = [
     "tests/integration_test/vsomeip-local.json",
     "tests/integration_test/vsomeip.json",
     "tests/benchmarks/config/benchmark_mw_com_config.json",
+    "tests/tc8_conformance/**/*.json",
     "quality/integration_testing/environments/qnx8_qemu/qemu_config.json",
     "quality/integration_testing/environments/ubuntu24_04_qemu/*"
 ]
-SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
-SPDX-License-Identifier = "Apache-2.0"
-
-[[annotations]]
-path = ["tests/tc8_conformance/config/*.json"]
 SPDX-FileCopyrightText = "Copyright (c) 2026 Contributors to the Eclipse Foundation"
 SPDX-License-Identifier = "Apache-2.0"

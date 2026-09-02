@@ -13,49 +13,59 @@
 
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "use_format_targets")
-load("//:project_config.bzl", "PROJECT_CONFIG")
+load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
+load("//tools/lint:linters.bzl", "use_clang_tidy_targets", "use_ruff_targets")
 
-# ==============================================================================
-# Compliance & Licensing
-# ==============================================================================
+# Needed for coverage report by score/tooling
+exports_files(["MODULE.bazel"])
 
-copyright_checker(
-    name = "copyright",
-    srcs = [
-        "score",
-        "tests",
-        "//:BUILD",
-        "//:MODULE.bazel",
-        # NOTE: new tests/ subdirectories must be added here for copyright checking.
-        "//tests/benchmarks:all_files",
-    ],
-    config = "@score_tooling//cr_checker/resources:config",
-    template = "@score_tooling//cr_checker/resources:templates",
-    visibility = ["//visibility:public"],
-)
-
-dash_license_checker(
-    src = "//examples:cargo_lock",
-    file_type = "",
-    # Auto-detected from project_config.
-    project_config = PROJECT_CONFIG,
-    visibility = ["//visibility:public"],
-)
+# Expose local .clang-tidy override for the clang-tidy lint aspect
+exports_files([
+    ".clang-tidy",
+    ".ruff.toml",
+])
 
 # ==============================================================================
 # Code Formatting
 # ==============================================================================
 
-use_format_targets()
+use_format_targets(
+    languages = [
+        "python",
+        "starlark",
+        "yaml",
+        "cpp",
+    ],
+)
 
 # ==============================================================================
 # Documentation
 # ==============================================================================
 
 docs(
+    bundles = [
+        {
+            "bundle": "//score/socom/docs:docs_bundle",
+            "mount_at": "socom",
+            "attach_to": "components",
+        },
+        {
+            "bundle": "//score/gateway_ipc_binding/docs:docs_bundle",
+            "mount_at": "gateway_ipc_binding",
+            "attach_to": "components",
+        },
+    ],
     source_dir = "docs",
 )
+
+# ==============================================================================
+# Clang-Tidy and Ruff Linting
+# ==============================================================================
+# Same code and interface like https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy
+
+use_clang_tidy_targets()
+
+use_ruff_targets()
 
 # ==============================================================================
 # Python Dependencies

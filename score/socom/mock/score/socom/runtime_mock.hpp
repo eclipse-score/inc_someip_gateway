@@ -16,7 +16,7 @@
 
 #include <gmock/gmock.h>
 
-#include <score/socom/runtime.hpp>
+#include "score/socom/runtime.hpp"
 
 namespace score::socom {
 

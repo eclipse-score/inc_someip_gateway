@@ -38,3 +38,5 @@ Design decisions
    :maxdepth: 1
 
    dec_someipgw_registration.rst
+   dec_someip_api_abstraction.rst
+   dec_ipc_implementation.rst

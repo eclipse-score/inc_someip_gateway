@@ -26,7 +26,7 @@ namespace {
 void benchmark_event_transmission_client_to_server(benchmark::State& state) {
     Event_transmission_benchmark_context context(static_cast<std::size_t>(state.range(0)));
 
-    for (auto _ : state) {
+    for (auto const& _ : state) {
         auto const duration = context.send_and_measure_once();
         if (!duration) {
             state.SkipWithError("Failed to send or receive benchmark event: " +

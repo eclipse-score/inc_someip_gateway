@@ -21,7 +21,7 @@ echo "Container using someipd started"
 route add -net 224.0.0.0/4 dev eth0
 
 # Automatically startup gatewayd and someipd:
-# gatewayd --> connects to car_window_controller, sets up IPC communication to someipd
+# gatewayd --> sets up IPC communication to someipd
 # someipd --> connects to gatewayd, sends out SOME/IP messages on the network
 
 /home/source/bazel-bin/score/gatewayd/gatewayd --service_instance_manifest /home/source/score/gatewayd/etc/mw_com_config.json --configuration /home/source/bazel-bin/score/config/mw_someip_config.bin &

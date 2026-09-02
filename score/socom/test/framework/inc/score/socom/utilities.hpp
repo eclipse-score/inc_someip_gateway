@@ -19,11 +19,11 @@
 #include <cstddef>
 #include <future>
 #include <optional>
-#include <score/socom/server_connector.hpp>
 #include <thread>
 #include <vector>
 
 #include "score/socom/payload.hpp"
+#include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/vector_payload.hpp"
 

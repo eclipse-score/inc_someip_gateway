@@ -25,7 +25,7 @@ namespace score::socom {
 using Thread_function_t =
     std::function<void(Stop_condition, std::atomic<bool>&, std::atomic<bool> const&)>;
 
-Thread_function_t create_thread_function(Loop_function_t const& fun) {
+static Thread_function_t create_thread_function(Loop_function_t const& fun) {
     auto const thread_fun = [&fun](Stop_condition const& stop_condition,
                                    std::atomic<bool>& thread_started,
                                    std::atomic<bool> const& start_loop) {

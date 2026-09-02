@@ -32,6 +32,17 @@ git clone https://github.com/eclipse-score/inc_someip_gateway.git
 cd inc_someip_gateway
 ```
 
+## Coverage report
+
+A code coverage report can be generated for the `score` package using the following command:
+
+```sh
+bazel coverage //... --build_tests_only
+bazel run @score_tooling//coverage:generate_coverage_html
+```
+
+The HTML report is stored at `coverage_linux/index.html`. You can open it in a web browser to view the coverage results.
+
 ### Start the daemons
 
 Start the daemons in this order:
@@ -45,15 +56,6 @@ and in a separate terminal
 ```sh
 bazel run //score/someipd:someipd_example
 ```
-
-### Run Example app
-
-```sh
-bazel run //examples/car_window_sim:car_window_controller
-```
-
-If you type `open` or `close` the command will be sent via network.
-
 
 ### Dockerized integration test POC
 
@@ -179,3 +181,9 @@ If you use a license server then add the following in in your `~/.bazelrc`:
     common --action_env=QNXLM_LICENSE_FILE=<port>@<license_server_host>
 
 > :warning: Getting license from server not yet supported within devcontainer. Need to figure out how to adjust user & hostname properly.
+
+
+## Static code analysis
+
+clang-tidy and ruff are used for static code analysis. clang-tidy is used for C/C++ code and ruff is used for Python code.
+We use the same code and interface like [Eclipse SCORE Communication](https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy).

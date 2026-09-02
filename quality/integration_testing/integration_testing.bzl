@@ -53,6 +53,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     filesystem_tar = "_qemu_filesystem_{}".format(name)
     pkg_tar(
         name = filesystem_tar,
+        testonly = True,
         srcs = [filesystem],
     )
 
@@ -69,6 +70,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     qemu_image = "_init_ifs_{}".format(name)
     qnx_ifs(
         name = qemu_image,
+        testonly = True,
         out = "init_ifs_{}".format(name),
         build_file = "//quality/integration_testing/environments/qnx8_qemu:init_build",
         srcs = [filesystem, "//quality/integration_testing/environments/qnx8_qemu:qnx_config"],

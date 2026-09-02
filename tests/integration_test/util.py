@@ -54,11 +54,7 @@ def _get_content_of_file_object(file_object: io.BufferedReader | None) -> str:
 
 
 def get_output(process: subprocess.Popen[bytes]) -> str:
-    return (
-        _get_content_of_file_object(process.stdout)
-        + "\n, stderr: "
-        + _get_content_of_file_object(process.stderr)
-    )
+    return _get_content_of_file_object(process.stdout) + "\n, stderr: " + _get_content_of_file_object(process.stderr)
 
 
 class ShellProcess:
@@ -82,9 +78,7 @@ class ShellProcess:
         command = f"LD_LIBRARY_PATH=/ {self._env} exec {self._application_path} {args}"
         self._process = self._target.execute_async(command)
 
-        logging.getLogger().info(
-            f"Started process {self._application_path} with PID: {self._process.pid()}"
-        )
+        logging.getLogger().info(f"Started process {self._application_path} with PID: {self._process.pid()}")
 
         return self._process
 
@@ -132,23 +126,17 @@ def tcpdump_capture(
     )
 
 
-def wait_until_process_exits(
-    process: subprocess.Popen[bytes], timeout: float = 10.0
-) -> str:
+def wait_until_process_exits(process: subprocess.Popen[bytes], timeout: float = 10.0) -> str:
     start_time = time.time()
     while time.time() - start_time < timeout:
         if process.poll() is not None:
             return get_output(process)
         time.sleep(0.5)
-    raise TimeoutError(
-        f"Process did not exit within {timeout} seconds. Last output: {get_output(process)}"
-    )
+    raise TimeoutError(f"Process did not exit within {timeout} seconds. Last output: {get_output(process)}")
 
 
 def get_running_processes_on_host() -> str:
-    ps_aux_result = subprocess.run(
-        ["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+    ps_aux_result = subprocess.run(["ps", "aux"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     assert ps_aux_result.returncode == 0
     return _completed_process_as_text(ps_aux_result)
 
@@ -177,17 +165,11 @@ def check_environment_and_mark(target: Target) -> bool:
     message = "Please ensure that there is only one test per file and one file per bazel label."
 
     # Check for marker files
-    host_result = subprocess.run(
-        ["ls", marker_name], check=False, stdout=subprocess.PIPE
-    )
-    assert host_result.returncode != 0, (
-        f"Marker file {marker_name} exists on host, environment is not clean. {message}"
-    )
+    host_result = subprocess.run(["ls", marker_name], check=False, stdout=subprocess.PIPE)
+    assert host_result.returncode != 0, f"Marker file {marker_name} exists on host, environment is not clean. {message}"
 
     return_code, output = target.execute(f"ls {marker_name}")
-    assert return_code != 0, (
-        f"Marker file {marker_name} exists on target, environment is not clean. {message}"
-    )
+    assert return_code != 0, f"Marker file {marker_name} exists on target, environment is not clean. {message}"
 
     # Check for running processes
     ps_aux_text = get_running_processes_on_target(target)
@@ -201,9 +183,7 @@ def check_environment_and_mark(target: Target) -> bool:
         "/tmp_discovery/lola-*",
     ]:
         return_code, output = target.execute(f"ls {pattern}")
-        assert return_code != 0, (
-            f"Found stale lola files in {pattern} on target: " + output.decode()
-        )
+        assert return_code != 0, f"Found stale lola files in {pattern} on target: " + output.decode()
 
     # Check for tcpdump running on host
     is_running, ps_aux_text = is_tcpdump_running()
@@ -212,6 +192,4 @@ def check_environment_and_mark(target: Target) -> bool:
     # create marker file to mark that the environment is now dirty
     subprocess.run(["touch", marker_name], check=True)
     return_code, output = target.execute(f"touch {marker_name}")
-    assert return_code == 0, (
-        f"Failed to create marker file {marker_name} on target. Output: {output.decode()}"
-    )
+    assert return_code == 0, f"Failed to create marker file {marker_name} on target. Output: {output.decode()}"

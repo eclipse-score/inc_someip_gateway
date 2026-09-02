@@ -16,20 +16,20 @@
 
 #include <cstddef>
 #include <future>
-#include <score/gateway_ipc_binding/error.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
-#include <score/socom/callback_mocks.hpp>
-#include <score/socom/client_connector.hpp>
-#include <score/socom/client_connector_mock.hpp>
-#include <score/socom/error.hpp>
-#include <score/socom/runtime.hpp>
-#include <score/socom/runtime_mock.hpp>
-#include <score/socom/server_connector.hpp>
-#include <score/socom/server_connector_mock.hpp>
 #include <thread>
 
+#include "score/gateway_ipc_binding/error.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
+#include "score/socom/callback_mocks.hpp"
+#include "score/socom/client_connector.hpp"
+#include "score/socom/client_connector_mock.hpp"
+#include "score/socom/error.hpp"
+#include "score/socom/runtime.hpp"
+#include "score/socom/runtime_mock.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/server_connector_mock.hpp"
 #include "test_constants.hpp"
 #include "test_fixtures.hpp"
 #include "util.hpp"

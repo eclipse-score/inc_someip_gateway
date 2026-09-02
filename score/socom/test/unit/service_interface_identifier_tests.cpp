@@ -11,10 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <score/socom/service_interface_definition.hpp>
-#include <score/socom/service_interface_identifier.hpp>
-
 #include "gtest/gtest.h"
+#include "score/socom/service_interface_definition.hpp"
+#include "score/socom/service_interface_identifier.hpp"
 
 using namespace ::testing;
 

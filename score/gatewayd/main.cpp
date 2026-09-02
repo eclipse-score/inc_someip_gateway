@@ -13,26 +13,28 @@
 
 #include <getopt.h>
 
+#include <algorithm>
 #include <atomic>
 #include <csignal>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <score/socom/final_action.hpp>
 #include <thread>
 
-#include "local_service_instance.h"
-#include "remote_service_instance.h"
+#include "impl/local_service_instance.h"
+#include "impl/remote_service_instance.h"
+#include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/service_protocol_config.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
+#include "score/serializer/serializer.h"
+#include "score/socom/final_action.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
-#include "score/config/mw_someip_config_generated.h"
-#include "score/serializer/serializer.h"
 
 // In the main file we are not in any namespace
 using namespace score;
@@ -41,14 +43,55 @@ using namespace score::someip_gateway::gatewayd;
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
 
+/// Calculates the required shared memory slot size for a service
+/// (Largest serialized event payload + SOME/IP header).
+///
+/// Since encoding affects the payload size, we query the serializer plugin
+/// directly. If any event size is unknown or the serializer is missing, we safely
+/// fall back to the max transport limit. We must know the exact max size of *all*
+/// events to safely shrink the slot.
+static std::size_t event_slot_size(const mw_someip_config::ServiceType& service_type) {
+    const auto* const events = service_type.events();
+    if (events == nullptr || events->empty()) {
+        return someip::kMaxMessageSize;
+    }
+
+    auto const service_type_name = service_type.service_type_name()->string_view();
+
+    std::size_t largest = 0;
+    for (const auto* const event : *events) {
+        auto const event_name = event->event_name()->string_view();
+        const score_com_serializer* serializer = nullptr;
+        if (score_com_serializer_get(service_type_name.data(), service_type_name.size(),
+                                     score_com_serializer_element_type_event, event_name.data(),
+                                     event_name.size(),
+                                     &serializer) != score_com_serializer_result_ok) {
+            score::mw::log::LogWarn() << "[gatewayd] No serializer for " << service_type_name
+                                      << "::" << event_name << ", using maximum slot size";
+            return someip::kMaxMessageSize;
+        }
+
+        auto const max_serialized_size = score_com_serializer_get_max_serialized_size(serializer);
+        if (max_serialized_size == 0) {
+            score::mw::log::LogWarn()
+                << "[gatewayd] Serializer reports no maximum size for " << service_type_name
+                << "::" << event_name << ", using maximum slot size";
+            return someip::kMaxMessageSize;
+        }
+        largest = std::max(largest, max_serialized_size);
+    }
+
+    return largest + someip::kSomeipFullHeaderSize;
+}
+
 // Signal handler for graceful shutdown
-void termination_handler(int /*signal*/) {
+static void termination_handler(int /*signal*/) {
     std::cout << "Received termination signal. Initiating graceful shutdown..." << std::endl;
     shutdown_requested.store(true);
 }
 
 // Help text, showing usage syntax and available options
-void print_help() {
+static void print_help() {
     std::cout << "Syntax: gatewayd -h/--help\n"
               << "        gatewayd -c/--configuration <config.bin> "
               << "-s/--service_instance_manifest <manifest.json>\n"
@@ -172,7 +215,7 @@ int main(int argc, char* argv[]) {
     gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration shm_config;
     gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration
         server_shm_config;
-    for (auto service_type_config : *config->service_types()) {
+    for (const auto* service_type_config : *config->service_types()) {
         socom::Service_interface_identifier const iface{
             service_type_config->service_type_name()->string_view(),
             {service_type_config->service_version_major(),
@@ -183,44 +226,32 @@ int main(int argc, char* argv[]) {
 
         auto const service_id = service_type_config->service_id();
 
-        std::string shm_path = "/";
-        shm_path.append(service_type_config->service_type_name()->string_view())
-            .append("_")
-            .append(std::to_string(service_id));
+        auto const service_type_name = service_type_config->service_type_name()->string_view();
 
-        std::string counterpart_shm_path = "/counterpart_";
-        counterpart_shm_path.append(service_type_config->service_type_name()->string_view())
-            .append("_")
-            .append(std::to_string(service_id));
-
-        auto shm_path_result =
-            gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
-                shm_path);
+        auto const shm_path_result =
+            gateway_ipc_binding::make_shared_memory_path(service_type_name, service_id);
         if (!shm_path_result.has_value()) {
             score::mw::log::LogError()
                 << "[gatewayd] shm path too long for service_id " << service_id;
             continue;
         }
 
-        auto counterpart_shm_path_result =
-            gateway_ipc_binding::fixed_string_from_string<gateway_ipc_binding::Shared_memory_path>(
-                counterpart_shm_path);
+        auto const counterpart_shm_path_result =
+            gateway_ipc_binding::make_counterpart_shared_memory_path(service_type_name, service_id);
         if (!counterpart_shm_path_result.has_value()) {
             score::mw::log::LogError()
                 << "[gatewayd] counterpart shm path too long for service_id " << service_id;
             continue;
         }
 
-        // TODO: get actual slot size from serializer + 16B SOME/IP header
-        if (service_type_config->local_service_instances()) {
-            shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                       someip::kMaxSampleCount};
+        const std::size_t slot_size = event_slot_size(*service_type_config);
+        if (service_type_config->local_service_instances() != nullptr) {
+            shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
             server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
-        } else if (service_type_config->remote_service_instances()) {
-            server_shm_config[iface][inst] = {*shm_path_result, someip::kMaxMessageSize,
-                                              someip::kMaxSampleCount};
+        } else if (service_type_config->remote_service_instances() != nullptr) {
+            server_shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
             shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
@@ -251,9 +282,9 @@ int main(int argc, char* argv[]) {
 
     // Create local service instances from configuration
     std::vector<std::unique_ptr<LocalServiceInstance>> local_service_instances;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->local_service_instances();
-        if (service_instances) {
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->local_service_instances();
+        if (service_instances != nullptr) {
             for (auto const& service_instance_config : *service_instances) {
                 std::cout << "Creating local service instance: "
                           << service_type_config->service_type_name()->string_view()
@@ -275,9 +306,9 @@ int main(int argc, char* argv[]) {
 
     // Create remote service instances from configuration
     std::vector<std::unique_ptr<RemoteServiceInstance>> remote_service_instances;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->remote_service_instances();
-        if (service_instances) {
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->remote_service_instances();
+        if (service_instances != nullptr) {
             for (auto const& service_instance_config : *service_instances) {
                 std::cout << "Creating remote service instance: "
                           << service_type_config->service_type_name()->string_view()

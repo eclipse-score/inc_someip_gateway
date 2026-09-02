@@ -14,8 +14,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <score/socom/callback_mocks.hpp>
-#include <score/socom/runtime.hpp>
+#include "score/socom/callback_mocks.hpp"
+#include "score/socom/runtime.hpp"
 
 using ::testing::_;
 

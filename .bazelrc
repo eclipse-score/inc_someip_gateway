@@ -11,6 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+# In order to overcome stability issues in GitHub
+common --experimental_repository_downloader_retries=10
+common --experimental_scale_timeouts=2.0
+common --http_connector_attempts=10
+common --http_connector_retry_max_timeout=1s
+common --http_timeout_scaling=2.0
+
 # Java Language Configuration
 build --java_language_version=17
 build --tool_java_language_version=17
@@ -36,33 +43,27 @@ build --tool_java_runtime_version=remotejdk_17
 
 common:_toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux
 common:_toolchain_common --extra_toolchains=@score_gcc_x86_64_toolchain//:all
-common:_toolchain_common --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 
 
 common:x86_64-linux --config=_toolchain_common
 common:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
 common:x86_64-linux --extra_toolchains=@score_gcc_x86_64_toolchain//:all
-common:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 common:x86_64-linux --repo_env=TARGET_ARCH=x86_64
 
 common:aarch64-linux --config=_toolchain_common
 common:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
 common:aarch64-linux --extra_toolchains=@score_gcc_aarch64_toolchain//:all
-common:aarch64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu
-common:aarch64-linux --@rules_rust//:extra_rustc_flags=-Clink-arg=-no-pie,-Clink-arg=-lgcc
 common:aarch64-linux --repo_env=TARGET_ARCH=aarch64
 
 common:x86_64-qnx --config=_toolchain_common
 common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 common:x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:all
-common:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
 common:x86_64-qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:all
 common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
 
 common:aarch64-qnx --config=_toolchain_common
 common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 common:aarch64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:all
-common:aarch64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
 common:aarch64-qnx --extra_toolchains=@score_qnx_aarch64_ifs_toolchain//:all
 common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
 
@@ -97,7 +98,6 @@ common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration
 common --@score_baselibs//score/json:base_library=nlohmann
-common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 
 # unshare /dev/shm and /tmp, gateway_ipc_binding tests create files in there and concurrent test runs would influence each other
@@ -122,7 +122,14 @@ common:tc8-itf-qnx --@rules_python//python/config_settings:precompile=force_disa
 test:tc8-itf-qnx --test_tag_filters=tc8
 test:tc8-itf-qnx --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
 
+# Coverage settings
+import %workspace%/coverage.bazelrc
+
+# Clang-tidy and Ruff settings
+import %workspace%/static_analysis.bazelrc
+
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
-# For definition of sanitizer features see https://github.com/eclipse-score/bazel_cpp_toolchains/blob/main/templates/linux/cc_toolchain_config.bzl.template
+# For sanitizer/clang-tidy policy assets and sanitizer feature definitions see
+# https://github.com/eclipse-score/score_cpp_policies/
 try-import %workspace%/user.bazelrc

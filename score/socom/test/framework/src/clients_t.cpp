@@ -17,10 +17,10 @@
 #include <cstddef>
 #include <future>
 #include <memory>
-#include <score/socom/event.hpp>
 
 #include "gmock/gmock.h"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/utilities.hpp"
 #include "score/socom/vector_payload.hpp"
@@ -370,7 +370,7 @@ Callbacks_called_t Client_data::expect_and_call_method(Vector& clients, Method_i
 Subscriptions Client_data::subscribe(Client_data::Vector const& clients, Event_id const& event_id) {
     auto result = Subscriptions{};
     result.reserve(clients.size());
-    for (auto& item : clients) {
+    for (const auto& item : clients) {
         result.emplace_back(item->create_event_subscription(event_id));
     }
     return result;

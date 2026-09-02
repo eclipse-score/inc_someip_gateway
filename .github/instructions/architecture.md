@@ -24,8 +24,6 @@ The S-CORE SOME/IP Gateway bridges the SCORE middleware with SOME/IP communicati
 - **gatewayd**: Network-independent gateway logic (C++)
 - **someipd**: SOME/IP stack binding (C++)
 
-The gateway also includes Rust examples and comprehensive Python integration tests.
-
 ## Core Components
 
 - [score/gatewayd/](../../score/gatewayd/) - Main daemon

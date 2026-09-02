@@ -16,10 +16,10 @@
 #include <atomic>
 #include <future>
 #include <memory>
-#include <score/socom/server_connector.hpp>
 
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
+#include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
 #include "score/socom/vector_payload.hpp"
@@ -52,8 +52,9 @@ Server_data::Server_data(Connector_factory& factory)
 
 Server_data::Server_data(Connector_factory& factory, Method_id method_id,
                          Payload const& expected_payload)
-    : m_connector{factory.create_and_enable(
-          expect_method_call(m_callbacks, method_id, expected_payload))} {}
+    : m_connector{
+          factory.create_and_enable(expect_method_call(m_callbacks, method_id, expected_payload))} {
+}
 
 Server_data::Server_data(Connector_factory& factory,
                          Server_service_interface_definition const& configuration,
@@ -141,8 +142,7 @@ void Server_data::expect_and_respond_update_event_request(Event_id const& event_
                                                           Payload const& payload) {
     auto cloned = std::make_shared<Payload>(clone_payload(payload));
     EXPECT_CALL(m_callbacks, on_event_update_request(_, event_id))
-        .WillOnce([cloned](
-                      Enabled_server_connector& connector, Event_id const& eid) {
+        .WillOnce([cloned](Enabled_server_connector& connector, Event_id const& eid) {
             connector.update_requested_event(eid, clone_payload(*cloned));
         });
 }

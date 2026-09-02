@@ -16,21 +16,22 @@ load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER
 
 filegroup(
     name = "headers",
-    srcs = glob(include = ["include/**"]),
+    srcs = glob([
+        "*.hpp",
+    ]),
 )
 
 cc_library(
     name = "socom",
-    srcs = glob(include = ["src/**"]),
+    srcs = glob([
+        "impl/**/*.cpp",
+        "impl/**/*.hpp",
+    ]),
     hdrs = [":headers"],
     defines = [
         "WITH_SOCOM_DEADLOCK_DETECTION=1",
     ],
     features = COMPILER_WARNING_FEATURES,
-    includes = [
-        "include",
-        "score/socom/include",
-    ],
     visibility = ["//visibility:public"],
     deps = [
         "@score_baselibs//score/language/futurecpp",
@@ -41,7 +42,7 @@ cc_library(
 
 filegroup(
     name = "mock_headers",
-    srcs = glob(include = ["mock/**"]),
+    srcs = glob(["mock/**"]),
 )
 
 cc_library(

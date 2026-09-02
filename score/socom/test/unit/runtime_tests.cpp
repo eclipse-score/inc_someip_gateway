@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
-#include <score/socom/service_interface_definition.hpp>
 #include <set>
 #include <string>
 
@@ -24,6 +23,7 @@
 #include "score/socom/connector_factory.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/socom/server_t.hpp"
+#include "score/socom/service_interface_definition.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"

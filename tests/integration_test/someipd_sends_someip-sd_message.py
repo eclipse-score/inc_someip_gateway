@@ -23,6 +23,4 @@ def test_start_someipd_and_gatewayd(gatewayd_with_someipd: Target) -> None:
     """Same as above but with more complex test fixture"""
     with tcpdump_capture("udp port 30490", packet_count=1) as tcpdump_process:
         console_output = wait_until_process_exits(tcpdump_process, timeout=10.0)
-        logging.info(
-            "Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output
-        )
+        logging.info("Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output)

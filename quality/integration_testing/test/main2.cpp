@@ -13,11 +13,9 @@
 #include <fstream>
 #include <thread>
 
-int main()
-{
+int main() {
     std::ifstream file("/tmp/Hello.txt");
-    while (not file.is_open())
-    {
+    while (not file.is_open()) {
         file = std::ifstream("/tmp/Hello.txt");
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }

@@ -23,7 +23,18 @@ SOMEIP Gateway Documentation
 Overview
 --------
 
-TBD
+The SOME/IP Gateway bridges the `S-CORE <https://eclipse-score.github.io>`_ middleware with
+SOME/IP-based vehicle communication networks. It connects applications using the S-CORE IPC
+layer (``mw::com`` / LoLa) to external ECUs and services over SOME/IP, without exposing the
+application to network-level concerns.
+
+The gateway is split into two processes separated by an ASIL boundary: the **Gateway Daemon**
+(``gatewayd``) handles service-oriented communication logic, while the **SOME/IP Daemon**
+(``someipd``) owns the network socket and manages the SOME/IP protocol stack.
+
+.. image:: images/someip_gateway_overview.drawio.svg
+   :alt: SOME/IP Gateway system overview
+   :align: center
 
 Module Layout
 --------------
@@ -52,7 +63,7 @@ Module Layout
     │       │   ├── security_analysis/  # Security analysis [wp__sw_component_security_analysis]
     │       │   │                       #   (only if component architecture exists)
     │       │   └── manuals/            # User documentation (of a single component, e.g., user manual of a library component, optional)
-    │       └── src/                    # Source files, include files, unit tests [wp__verification_sw_unit_test],
+    │       └── impl/                   # Source files, include files, unit tests [wp__verification_sw_unit_test],
     │           ├── <lower_level_comp>/ # Lower level component (follows <component_name> structure)
     │           └── tests/              # Component-level tests (e.g., unit tests) [wp__verification_sw_unit_test]
     ├── MODULE.bazel                    # Bazel module definition
@@ -78,8 +89,7 @@ Component documentation
 .. toctree::
    :maxdepth: 1
 
-   socom/design/index
-   gateway_ipc_binding/index
+   components
 
 
 Examples
@@ -102,19 +112,3 @@ To run integration tests:
 .. code-block:: bash
 
    bazel test //tests/...
-
-Configuration
--------------
-
-The `project_config.bzl` file defines metadata used by Bazel macros.
-
-Example:
-
-.. code-block:: python
-
-   PROJECT_CONFIG = {
-       "asil_level": "QM",
-       "source_code": ["cpp", "rust"]
-   }
-
-This enables conditional behavior (e.g., choosing `clang-tidy` for C++ or `clippy` for Rust).

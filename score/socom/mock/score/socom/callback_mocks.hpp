@@ -16,10 +16,10 @@
 
 #include <gmock/gmock.h>
 
-#include <score/socom/client_connector.hpp>
-#include <score/socom/move_only_function_mock.hpp>
-#include <score/socom/runtime.hpp>
-#include <score/socom/server_connector.hpp>
+#include "score/socom/client_connector.hpp"
+#include "score/socom/move_only_function_mock.hpp"
+#include "score/socom/runtime.hpp"
+#include "score/socom/server_connector.hpp"
 
 namespace score::socom {
 

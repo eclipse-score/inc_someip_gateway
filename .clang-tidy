@@ -1,0 +1,286 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+---
+# Clang-tidy configuration for SCORE Communication project
+Checks: >
+  -*,
+  # --- autosar-severity-one ---
+  bugprone-use-after-move,
+  bugprone-dynamic-static-initializers,
+  bugprone-suspicious-enum-usage,
+  cert-oop54-cpp,
+  clang-analyzer-core.uninitialized.ArraySubscript,
+  clang-analyzer-core.uninitialized.Assign,
+  clang-analyzer-core.uninitialized.Branch,
+  clang-analyzer-core.uninitialized.CapturedBlockVariable,
+  clang-analyzer-core.uninitialized.UndefReturn,
+  clang-analyzer-optin.cplusplus.UninitializedObject,
+  clang-analyzer-security.FloatLoopCounter,
+  clang-analyzer-valist.Uninitialized,
+  cppcoreguidelines-avoid-goto,
+  cppcoreguidelines-init-variables,
+  cppcoreguidelines-no-malloc,
+  cppcoreguidelines-pro-bounds-constant-array-index,
+  cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  cppcoreguidelines-pro-type-member-init,
+  cppcoreguidelines-pro-type-reinterpret-cast,
+  cppcoreguidelines-pro-type-static-cast-downcast,
+  cppcoreguidelines-pro-type-union-access,
+  cppcoreguidelines-virtual-class-destructor,
+  google-default-arguments,
+  google-explicit-constructor,
+  hicpp-no-array-decay,
+  hicpp-no-assembler,
+  misc-definitions-in-headers,
+  misc-unconventional-assign-operator,
+  misc-unused-parameters,
+  modernize-avoid-c-arrays,
+  modernize-deprecated-headers,
+  modernize-make-shared,
+  modernize-use-auto,
+  modernize-use-equals-default,
+  performance-noexcept-move-constructor,
+  readability-inconsistent-declaration-parameter-name,
+  readability-misplaced-array-index,
+  readability-redundant-declaration,
+  readability-function-cognitive-complexity,
+  # --- autosar-severity-two ---
+  bugprone-forwarding-reference-overload,
+  bugprone-move-forwarding-reference,
+  bugprone-multiple-statement-macro,
+  cert-dcl58-cpp,
+  clang-analyzer-deadcode.DeadStores,
+  clang-analyzer-nullability.NullablePassedToNonnull,
+  clang-analyzer-security.insecureAPI.rand,
+  cppcoreguidelines-narrowing-conversions,
+  cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  cppcoreguidelines-pro-type-vararg,
+  cppcoreguidelines-special-member-functions,
+  fuchsia-multiple-inheritance,
+  google-build-using-namespace,
+  hicpp-move-const-arg,
+  hicpp-signed-bitwise,
+  hicpp-use-nullptr,
+  misc-no-recursion,
+  modernize-use-noexcept,
+  modernize-use-using,
+  readability-braces-around-statements,
+  readability-implicit-bool-conversion,
+  readability-isolate-declaration,
+  readability-redundant-control-flow,
+  # --- cert ---
+  cert-err52-cpp,
+  clang-analyzer-alpha.security.ArrayBoundV2,
+  clang-analyzer-core.UndefinedBinaryOperatorResult,
+  clang-analyzer-cplusplus.NewDelete,
+  # --- qnx-checks ---
+  bugprone-reserved-identifier,
+  # --- extra ---
+  bugprone-assert-side-effect,
+  bugprone-copy-constructor-init,
+  bugprone-dangling-handle,
+  bugprone-suspicious-stringview-data-usage,
+  misc-use-anonymous-namespace,
+  misc-use-internal-linkage,
+  modernize-avoid-bind,
+  modernize-concat-nested-namespaces,
+  modernize-loop-convert,
+  modernize-make-unique,
+  modernize-min-max-use-initializer-list,
+  modernize-pass-by-value,
+  modernize-raw-string-literal,
+  modernize-redundant-void-arg,
+  modernize-return-braced-init-list,
+  modernize-shrink-to-fit,
+  #modernize-type-traits, Disabled because of too much noise, will later be re-enabled with a campaign to fix findings
+  modernize-unary-static-assert,
+  modernize-use-bool-literals,
+  modernize-use-emplace,
+  modernize-use-equals-delete,
+  modernize-use-integer-sign-comparison,
+  #modernize-use-nodiscard, Disabled because of too much noise, will later be re-enabled with a campaign to fix findings
+  modernize-use-nullptr,
+  modernize-use-transparent-functors,
+  performance-faster-string-find,
+  performance-for-range-copy,
+  performance-implicit-conversion-in-loop,
+  performance-inefficient-algorithm,
+  performance-inefficient-string-concatenation,
+  performance-inefficient-vector-operation,
+  performance-move-const-arg,
+  performance-move-constructor-init,
+  performance-no-automatic-move,
+  performance-no-int-to-ptr,
+  performance-noexcept-swap,
+  performance-trivially-destructible,
+  performance-unnecessary-copy-initialization,
+  performance-unnecessary-value-param,
+  readability-container-data-pointer,
+  readability-math-missing-parentheses,
+  readability-redundant-casting,
+  readability-redundant-inline-specifier,
+  readability-simplify-boolean-expr,
+  readability-use-anyofallof,
+  readability-use-std-min-max,
+  # --- style-readability ---
+  misc-confusable-identifiers,
+  misc-misleading-bidirectional,
+  misc-misleading-identifier,
+  misc-uniqueptr-reset-release,
+  misc-unused-alias-decls,
+  misc-unused-using-decls,
+  readability-avoid-nested-conditional-operator,
+  readability-avoid-return-with-void-value,
+  readability-const-return-type,
+  readability-container-size-empty,
+  readability-delete-null-pointer,
+  readability-enum-initial-value,
+  readability-make-member-function-const,
+  readability-misleading-indentation,
+  readability-non-const-parameter,
+  readability-qualified-auto,
+  readability-redundant-smartptr-get,
+  readability-redundant-string-cstr,
+  readability-redundant-string-init,
+  readability-reference-to-constructed-temporary,
+  readability-simplify-subscript-expr,
+  readability-static-definition-in-anonymous-namespace,
+  readability-string-compare,
+  readability-uniqueptr-delete-release,
+  readability-uppercase-literal-suffix,
+
+WarningsAsErrors: >
+  clang-analyzer-*,
+
+HeaderFilterRegex: '^(?!(third_party|external)/).*'
+
+FormatStyle: file
+
+CheckOptions:
+  - key: readability-inconsistent-declaration-parameter-name.Strict
+    value: true
+  - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value: true
+  - key: hicpp-move-const-arg.CheckTriviallyCopyableMove
+    value: false
+  - key: modernize-avoid-c-arrays.AllowStringArrays
+    value: false
+  - key: modernize-make-shared.IncludeStyle
+    value: "llvm"
+  - key: modernize-use-auto.RemoveStars
+    value: false
+  - key: readability-braces-around-statements.ShortStatementLines
+    value: 0
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: "assert,SCORE_LANGUAGE_FUTURECPP_ASSERT,SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG,SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD,SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE,SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE,SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE,SCORE_LANGUAGE_FUTURECPP_PRECONDITION,SCORE_LANGUAGE_FUTURECPP_PRECONDITION_DBG,SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD,SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE,SCORE_LANGUAGE_FUTURECPP_PRECONDITION_DBG_MESSAGE,SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE"
+  - key: bugprone-assert-side-effect.CheckFunctionCalls
+    value: true
+  - key: bugprone-dangling-handle.HandleClasses
+    value: >
+      ::score::cpp::basic_string_view;
+      ::score::cpp::span;
+      ::score::safecpp::basic_zstring_view;
+      ::std::basic_string_view;
+      ::std::span
+  - key: bugprone-suspicious-stringview-data-usage.AllowedCallees
+    value: ""
+  - key: bugprone-suspicious-stringview-data-usage.StringViewTypes
+    value: >
+      ::score::cpp::basic_string_view;
+      ::std::basic_string_view
+  - key: modernize-loop-convert.UseCxx20ReverseRanges
+    value: false
+  - key: modernize-loop-convert.IncludeStyle
+    value: "llvm"
+  - key: modernize-make-unique.IncludeStyle
+    value: "llvm"
+  - key: modernize-min-max-use-initializer-list.IncludeStyle
+    value: "llvm"
+  - key: modernize-pass-by-value.IncludeStyle
+    value: "llvm"
+  - key: modernize-use-emplace.ContainersWithPushBack
+    value: "::score::cpp::inplace_vector;::score::cpp::pmr::deque;::score::cpp::pmr::list;::score::cpp::pmr::vector;::std::vector;::std::list;::std::deque"
+  - key: modernize-use-emplace.IgnoreImplicitConstructors
+    value: false
+  - key: modernize-use-emplace.SmartPointers
+    value: "::score::cpp::pmr::unique_ptr;::std::shared_ptr;::std::unique_ptr;::std::weak_ptr"
+  - key: modernize-use-emplace.TupleTypes
+    value: "::std::pair;::std::tuple"
+  - key: modernize-use-emplace.TupleMakeFunctions
+    value: "::std::make_pair;::std::make_tuple"
+  - key: modernize-use-integer-sign-comparison.IncludeStyle
+    value: "llvm"
+  - key: modernize-use-nodiscard.ReplacementString
+    value: "[[nodiscard]]"
+  - key: modernize-use-transparent-functors.SafeMode
+    value: true
+  - key: performance-faster-string-find.StringLikeClasses
+    value: >
+      ::score::cpp::basic_string_view;
+      ::score::safecpp::basic_zstring_view;
+      ::score::cpp::pmr::basic_string;
+      ::std::basic_string_view;
+      ::std::basic_string
+  - key: performance-move-const-arg.CheckTriviallyCopyableMove
+    value: true
+  - key: performance-move-const-arg.CheckMoveToConstRef
+    value: true
+  - key: performance-unnecessary-value-param.IncludeStyle
+    value: "llvm"
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: "::score::cpp::stop_token;std::shared_ptr;std::weak_ptr"
+  - key: readability-container-data-pointer.IgnoredContainers
+    value: ""
+  - key: readability-redundant-casting.IgnoreTypeAliases
+    value: true
+  - key: readability-redundant-inline-specifier.StrictMode
+    value: true
+  - key: misc-uniqueptr-reset-release.IncludeStyle
+    value: "llvm"
+  - key: readability-avoid-return-with-void-value.StrictMode
+    value: true
+  - key: readability-enum-initial-value.AllowExplicitZeroFirstInitialValue
+    value: true
+  - key: readability-enum-initial-value.AllowExplicitSequentialInitialValues
+    value: true
+  - key: readability-qualified-auto.AddConstToQualified
+    value: true
+  - key: readability-redundant-string-init.StringNames
+    value: >
+      ::score::cpp::basic_string_view;
+      ::score::cpp::pmr::basic_string;
+      ::score::safecpp::basic_zstring_view;
+      ::std::basic_string_view;
+      ::std::basic_string
+  - key: readability-simplify-subscript-expr.Types
+    value: >
+      ::score::cpp::basic_string_view;
+      ::score::cpp::pmr::basic_string;
+      ::score::cpp::pmr::vector;
+      ::score::cpp::span;
+      ::score::safecpp::basic_zstring_view;
+      ::std::array;
+      ::std::basic_string_view;
+      ::std::basic_string;
+      ::std::vector;
+      ::std::span
+  - key: readability-string-compare.StringLikeClasses
+    value: >
+      ::score::cpp::basic_string_view;
+      ::score::safecpp::basic_zstring_view;
+      ::std::basic_string_view;
+      ::std::basic_string
+  - key: readability-uniqueptr-delete-release.PreferResetCall
+    value: true
