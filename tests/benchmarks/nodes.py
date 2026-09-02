@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import glob
 import json
+import abc
 import os
 import shutil
 import signal
@@ -146,46 +147,118 @@ def _render_vsomeip_config(spec: NodeSpec, workdir: Path) -> Path:
     return rendered
 
 
-def _perf_record_argv(perf_data: Path, argv: Sequence[str]) -> list[str]:
-    """Wraps argv so the process is profiled with `perf record` into `perf_data`."""
-    return [PERF_BIN, "record", "--call-graph", "fp", "-o", str(perf_data), "--", *argv]
+class FlamegraphManager(abc.ABC):
+    """Encapsulates optional perf profiling and flamegraph generation."""
+
+    @abc.abstractmethod
+    def preflight(self) -> None:
+        """Validates prerequisites for profiling and flamegraph generation."""
+
+    @abc.abstractmethod
+    def wrap_command(self, name: str, argv: Sequence[str]) -> list[str]:
+        """Wraps a command for profiling under the given name, recording it for later use."""
+
+    @abc.abstractmethod
+    def terminate(self, process: subprocess.Popen[bytes]) -> None:
+        """Terminates a process launched with wrap_command."""
+
+    @abc.abstractmethod
+    def create_flamegraphs(self) -> None:
+        """Creates flamegraphs for all perf.data files recorded by wrap_command."""
 
 
-def flamegraph_tools(stackcollapse: Path, flamegraph: Path) -> tuple[str, Path, Path]:
-    """Locates perf and validates the FlameGraph scripts supplied by Bazel."""
-    perf = shutil.which(PERF_BIN)
-    if not perf or not stackcollapse.is_file() or not flamegraph.is_file():
-        raise PreflightError(
-            "flamegraph generation requires perf and the FlameGraph scripts supplied by "
-            "--config=perf-tests-flamegraphs; see tests/benchmarks/README.md"
-        )
-    return perf, stackcollapse, flamegraph
+class NoOpFlamegraphManager(FlamegraphManager):
+    """No-op manager for runs without FlameGraph scripts."""
+
+    def preflight(self) -> None:
+        return
+
+    def wrap_command(self, name: str, argv: Sequence[str]) -> list[str]:
+        _ = name
+        return list(argv)
+
+    def terminate(self, process: subprocess.Popen[bytes]) -> None:
+        if process.poll() is not None:
+            return
+        process.send_signal(signal.SIGTERM)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=5)
+
+    def create_flamegraphs(self) -> None:
+        return
 
 
-def create_flamegraphs(perf_data_files: Sequence[Path], stackcollapse: Path, flamegraph: Path) -> None:
-    """Converts perf recordings to SVG flamegraphs using the FlameGraph scripts."""
-    perf, stackcollapse, flamegraph = flamegraph_tools(stackcollapse, flamegraph)
+class PerfFlamegraphManager(FlamegraphManager):
+    """Flamegraph manager for perf profiling with FlameGraph scripts."""
 
-    for perf_data in perf_data_files:
-        perf_script = subprocess.run(
-            [perf, "script", "-i", str(perf_data)],
-            capture_output=True,
-            check=True,
-        )
-        folded = subprocess.run(
-            [str(stackcollapse)],
-            input=perf_script.stdout,
-            capture_output=True,
-            check=True,
-        )
-        output = perf_data.with_suffix(".svg")
-        with output.open("wb") as svg:
-            subprocess.run(
-                [str(flamegraph), "--title", perf_data.stem],
-                input=folded.stdout,
-                stdout=svg,
+    def __init__(self, stackcollapse: Path, flamegraph: Path, artifact_dir: Path) -> None:
+        self._stackcollapse = stackcollapse
+        self._flamegraph = flamegraph
+        self._artifact_dir = artifact_dir
+        self._perf_bin = ""
+        self._perf_data_files: list[Path] = []
+
+    def preflight(self) -> None:
+        perf = shutil.which(PERF_BIN)
+        if not perf or not self._stackcollapse.is_file() or not self._flamegraph.is_file():
+            raise PreflightError(
+                "flamegraph generation requires perf and the FlameGraph scripts supplied by "
+                "--config=perf-tests-flamegraphs; see tests/benchmarks/README.md"
+            )
+        self._perf_bin = perf
+
+    def wrap_command(self, name: str, argv: Sequence[str]) -> list[str]:
+        perf_data = self._artifact_dir / f"{name}.perf.data"
+        self._perf_data_files.append(perf_data)
+        return [self._perf_bin, "record", "--call-graph", "fp", "-o", str(perf_data), "--", *argv]
+
+    def terminate(self, process: subprocess.Popen[bytes]) -> None:
+        """Terminates a perf-wrapped process while preserving perf.data flush."""
+        if process.poll() is not None:
+            return
+        _ = _kill_traced_child(process.pid)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=5)
+
+    def create_flamegraphs(self) -> None:
+        if not self._perf_data_files:
+            return
+        self.preflight()
+        for perf_data in self._perf_data_files:
+            perf_script = subprocess.run(
+                [self._perf_bin, "script", "-i", str(perf_data)],
+                capture_output=True,
                 check=True,
             )
+            folded = subprocess.run(
+                [str(self._stackcollapse)],
+                input=perf_script.stdout,
+                capture_output=True,
+                check=True,
+            )
+            output = perf_data.with_suffix(".svg")
+            with output.open("wb") as svg:
+                subprocess.run(
+                    [str(self._flamegraph), "--title", perf_data.stem],
+                    input=folded.stdout,
+                    stdout=svg,
+                    check=True,
+                )
+
+
+def create_flamegraph_manager(runfiles_dir: Path, artifact_dir: Path) -> FlamegraphManager:
+    """Creates a flamegraph manager based on Bazel-provided runfiles."""
+    flamegraphs = list(runfiles_dir.glob("*/flamegraph.pl"))
+    if not flamegraphs:
+        return NoOpFlamegraphManager()
+    flamegraph = flamegraphs[0]
+    return PerfFlamegraphManager(flamegraph.with_name("stackcollapse-perf.pl"), flamegraph, artifact_dir)
 
 
 def _terminate_process_group(process: subprocess.Popen, sig: int) -> None:
@@ -225,14 +298,13 @@ class Node:
         self,
         spec: NodeSpec,
         workdir: Path,
-        profile_dir: Path | None = None,
+        flamegraph_manager: FlamegraphManager,
         shutdown_timeout: float = 5.0,
     ) -> None:
         self._spec = spec
         self._workdir = workdir
-        self._profile_dir = profile_dir
+        self._flamegraph_manager = flamegraph_manager
         self._shutdown_timeout = shutdown_timeout
-        self.perf_data_files: list[Path] = []
         self._processes: list[tuple[str, subprocess.Popen]] = []
         self._log_handles: list = []
 
@@ -293,11 +365,7 @@ class Node:
         # Line buffering is not available for the child, so the readiness check tails the file.
         handle = log_path.open("wb")
         self._log_handles.append(handle)
-        spawn_argv = list(argv)
-        if self._profile_dir is not None:
-            perf_data = self._profile_dir / f"{self._spec.name}_{name}.perf.data"
-            self.perf_data_files.append(perf_data)
-            spawn_argv = _perf_record_argv(perf_data, spawn_argv)
+        spawn_argv = self._flamegraph_manager.wrap_command(f"{self._spec.name}_{name}", list(argv))
         process = subprocess.Popen(
             spawn_argv,
             stdout=handle,

@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import os
-import signal
 import subprocess
 from pathlib import Path
 
@@ -26,13 +25,11 @@ try:
     from tests.benchmarks.nodes import (
         GATEWAYD,
         SOMEIPD,
+        FlamegraphManager,
         Node,
         NodeSpec,
         PreflightError,
-        _kill_traced_child,
-        _perf_record_argv,
-        create_flamegraphs,
-        flamegraph_tools,
+        create_flamegraph_manager,
         preflight,
     )
 except ModuleNotFoundError:
@@ -40,13 +37,11 @@ except ModuleNotFoundError:
     from nodes import (  # type: ignore
         GATEWAYD,
         SOMEIPD,
+        FlamegraphManager,
         Node,
         NodeSpec,
         PreflightError,
-        _kill_traced_child,
-        _perf_record_argv,
-        create_flamegraphs,
-        flamegraph_tools,
+        create_flamegraph_manager,
         preflight,
     )
 
@@ -74,39 +69,6 @@ ECHO_NODE = NodeSpec(
 )
 
 
-def _terminate(process: subprocess.Popen[bytes]) -> None:
-    if process.poll() is not None:
-        return
-    process.send_signal(signal.SIGTERM)
-    try:
-        process.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait(timeout=5)
-
-
-def _terminate_profiled(process: subprocess.Popen[bytes]) -> None:
-    """Terminates a perf-wrapped process while preserving perf.data flush."""
-    if process.poll() is not None:
-        return
-    # Kill traced child first so perf can observe normal task exit and flush output.
-    _ = _kill_traced_child(process.pid)
-    try:
-        process.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait(timeout=5)
-
-
-def _flamegraph_scripts(runfiles_dir: Path) -> tuple[Path, Path] | None:
-    """Returns Bazel-provided FlameGraph scripts when profiling is configured."""
-    flamegraphs = list(runfiles_dir.glob("*/flamegraph.pl"))
-    if not flamegraphs:
-        return None
-    flamegraph = flamegraphs[0]
-    return flamegraph.with_name("stackcollapse-perf.pl"), flamegraph
-
-
 def run_e2e_benchmarks(
     artifact_subdir: str,
     benchmark_filter: str | None = None,
@@ -118,23 +80,19 @@ def run_e2e_benchmarks(
         benchmark_filter: Optional Google Benchmark filter expression.
     """
     runfiles_dir = Path(os.environ["TEST_SRCDIR"])
-    scripts = _flamegraph_scripts(runfiles_dir)
+    artifact_dir = Path(os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")) / artifact_subdir
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    flamegraph_manager: FlamegraphManager = create_flamegraph_manager(runfiles_dir, artifact_dir)
     try:
         preflight((SOMEIPD, GATEWAYD, BENCHMARKS, ECHO_SERVER), (BENCH_NODE, ECHO_NODE))
-        if scripts is not None:
-            _ = flamegraph_tools(*scripts)
+        flamegraph_manager.preflight()
     except PreflightError as error:
         pytest.skip(str(error))
 
-    artifact_dir = Path(os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")) / artifact_subdir
-    artifact_dir.mkdir(parents=True, exist_ok=True)
     server_log = (artifact_dir / "echo_server.log").open("wb")
     server: subprocess.Popen[bytes] | None = None
-    profile_dir = artifact_dir if scripts is not None else None
-    benchmark_perf_data: Path | None = None
-    echo_server_perf_data: Path | None = None
-    bench_node = Node(BENCH_NODE, artifact_dir, profile_dir)
-    echo_node = Node(ECHO_NODE, artifact_dir, profile_dir)
+    bench_node = Node(BENCH_NODE, artifact_dir, flamegraph_manager)
+    echo_node = Node(ECHO_NODE, artifact_dir, flamegraph_manager)
 
     benchmark_cmd = [
         str(BENCHMARKS.absolute()),
@@ -152,11 +110,8 @@ def run_e2e_benchmarks(
         str(ECHO_NODE.mw_com_config.absolute()),
     ]
 
-    if profile_dir is not None:
-        echo_server_perf_data = profile_dir / "echo_server.perf.data"
-        benchmark_perf_data = profile_dir / "ipc_benchmarks.perf.data"
-        server_cmd = _perf_record_argv(echo_server_perf_data, server_cmd)
-        benchmark_cmd = _perf_record_argv(benchmark_perf_data, benchmark_cmd)
+    server_cmd = flamegraph_manager.wrap_command("echo_server", server_cmd)
+    benchmark_cmd = flamegraph_manager.wrap_command("ipc_benchmarks", benchmark_cmd)
 
     try:
         with bench_node, echo_node:
@@ -173,16 +128,7 @@ def run_e2e_benchmarks(
             )
     finally:
         if server is not None:
-            if profile_dir is not None:
-                _terminate_profiled(server)
-            else:
-                _terminate(server)
+            flamegraph_manager.terminate(server)
         server_log.close()
 
-    if scripts is not None:
-        perf_data_files = [*bench_node.perf_data_files, *echo_node.perf_data_files]
-        if echo_server_perf_data is not None:
-            perf_data_files.append(echo_server_perf_data)
-        if benchmark_perf_data is not None:
-            perf_data_files.append(benchmark_perf_data)
-        create_flamegraphs(perf_data_files, *scripts)
+    flamegraph_manager.create_flamegraphs()
