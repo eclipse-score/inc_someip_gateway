@@ -80,12 +80,9 @@ def _is_local_address(address: str) -> bool:
 def _has_sd_multicast_route() -> bool:
     if shutil.which("ip") is None:
         return True  # cannot tell, let the test fail later with the daemon logs
-    routes = subprocess.run(
-        ["ip", "route", "show"], capture_output=True, text=True, check=False
-    ).stdout
+    routes = subprocess.run(["ip", "route", "show"], capture_output=True, text=True, check=False).stdout
     return any(
-        line.startswith(f"{SD_MULTICAST_ADDRESS} ")
-        or line.startswith(f"{SD_MULTICAST_ADDRESS}/")
+        line.startswith(f"{SD_MULTICAST_ADDRESS} ") or line.startswith(f"{SD_MULTICAST_ADDRESS}/")
         for line in routes.splitlines()
     )
 
@@ -157,9 +154,7 @@ def flamegraph_tools(stackcollapse: Path, flamegraph: Path) -> tuple[str, Path, 
     return perf, stackcollapse, flamegraph
 
 
-def create_flamegraphs(
-    perf_data_files: Sequence[Path], stackcollapse: Path, flamegraph: Path
-) -> None:
+def create_flamegraphs(perf_data_files: Sequence[Path], stackcollapse: Path, flamegraph: Path) -> None:
     """Converts perf recordings to SVG flamegraphs using the FlameGraph scripts."""
     perf, stackcollapse, flamegraph = flamegraph_tools(stackcollapse, flamegraph)
 
@@ -283,9 +278,7 @@ class Node:
             handle.close()
         _remove_stale_paths()
 
-    def _spawn(
-        self, name: str, argv: Sequence[str], env: dict[str, str] | None = None
-    ) -> Path:
+    def _spawn(self, name: str, argv: Sequence[str], env: dict[str, str] | None = None) -> Path:
         log_path = self._workdir / f"{self._spec.name}_{name}.log"
         process_env = os.environ.copy()
         process_env.update(env or {})
@@ -307,9 +300,7 @@ class Node:
         self._processes.append((name, process))
         return log_path
 
-    def _wait_for_marker(
-        self, log_path: Path, marker: str, timeout: float = 30.0
-    ) -> None:
+    def _wait_for_marker(self, log_path: Path, marker: str, timeout: float = 30.0) -> None:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             for name, process in self._processes:

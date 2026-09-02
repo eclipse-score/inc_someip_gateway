@@ -126,9 +126,7 @@ def run_e2e_benchmarks(
     except PreflightError as error:
         pytest.skip(str(error))
 
-    artifact_dir = (
-        Path(os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")) / artifact_subdir
-    )
+    artifact_dir = Path(os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")) / artifact_subdir
     artifact_dir.mkdir(parents=True, exist_ok=True)
     server_log = (artifact_dir / "echo_server.log").open("wb")
     server: subprocess.Popen[bytes] | None = None
