@@ -166,7 +166,7 @@ def run_e2e_benchmarks(
                 stderr=subprocess.STDOUT,
                 start_new_session=True,
             )
-            subprocess.run(
+            _ = subprocess.run(
                 benchmark_cmd,
                 check=True,
                 timeout=180,

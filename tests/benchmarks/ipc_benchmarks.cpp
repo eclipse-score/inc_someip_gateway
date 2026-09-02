@@ -53,6 +53,9 @@ void SigTermHandlerFunction(int /*signal*/) {
     g_stop_source.request_stop();
     benchmark::Shutdown();
 }
+
+int exit_code = EXIT_SUCCESS;
+
 }  // namespace
 
 class BenchmarkFixture {
@@ -468,6 +471,7 @@ BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
         auto latency = BenchmarkFixture::Instance().SendEchoRequestSync(payload_size);
         if (latency.count() == 0) {
             state.SkipWithError("Failed to receive response or timeout occurred");
+            exit_code = EXIT_FAILURE;
             break;
         }
         state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(latency)
@@ -609,5 +613,5 @@ int main(int argc, char** argv) {
 
     BenchmarkFixture::Instance().Cleanup();
 
-    return 0;
+    return exit_code;
 }
