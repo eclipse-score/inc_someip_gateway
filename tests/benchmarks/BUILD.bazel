@@ -92,15 +92,15 @@ cc_binary(
 )
 
 generate_someip_config_bin(
-    name = "node_a_config_file",
-    json = "config/node_a_someip_config.json",
-    output = "node_a_someip_config.bin",
+    name = "bench_config_file",
+    json = "config/bench_someip_config.json",
+    output = "bench_someip_config.bin",
 )
 
 generate_someip_config_bin(
-    name = "node_b_config_file",
-    json = "config/node_b_someip_config.json",
-    output = "node_b_someip_config.bin",
+    name = "echo_config_file",
+    json = "config/echo_someip_config.json",
+    output = "echo_someip_config.bin",
 )
 
 py_pytest(
@@ -115,8 +115,8 @@ py_pytest(
         ":echo_server",
         ":flamegraph_scripts",
         ":ipc_benchmarks",
-        ":node_a_config_file",
-        ":node_b_config_file",
+        ":bench_config_file",
+        ":echo_config_file",
         "//score/gatewayd",
         "//score/someipd",
     ] + glob(["config/*.json"]),
@@ -141,8 +141,8 @@ py_pytest(
         ":echo_server",
         ":flamegraph_scripts",
         ":ipc_benchmarks",
-        ":node_a_config_file",
-        ":node_b_config_file",
+        ":bench_config_file",
+        ":echo_config_file",
         "//score/gatewayd",
         "//score/someipd",
     ] + glob(["config/*.json"]),
@@ -156,9 +156,17 @@ py_pytest(
 )
 
 validate_json_schema_test(
-    name = "benchmark_mw_com_config_schema_valid",
+    name = "bench_mw_com_config_schema_valid",
     size = "small",
-    json = "config/benchmark_mw_com_config.json",
+    json = "config/bench_mw_com_config.json",
+    schema = "@score_communication//score/mw/com:config_schema",
+    tags = ["lint"],
+)
+
+validate_json_schema_test(
+    name = "echo_mw_com_config_schema_valid",
+    size = "small",
+    json = "config/echo_mw_com_config.json",
     schema = "@score_communication//score/mw/com:config_schema",
     tags = ["lint"],
 )

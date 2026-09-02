@@ -21,8 +21,8 @@
 
 set -ueo pipefail
 
-NODE_A_IP="127.0.0.2"
-NODE_B_IP="127.0.0.3"
+BENCH_IP="127.0.0.2"
+ECHO_IP="127.0.0.3"
 SD_MULTICAST_ADDRESS="224.244.224.245"
 
 # vsomeip only offers services once it has seen the interface owning its unicast address and a
@@ -30,7 +30,7 @@ SD_MULTICAST_ADDRESS="224.244.224.245"
 setup_network() {
     ip link set lo up
 
-    for address in "${NODE_A_IP}" "${NODE_B_IP}"; do
+    for address in "${BENCH_IP}" "${ECHO_IP}"; do
         ip address add "${address}/8" dev lo
     done
 

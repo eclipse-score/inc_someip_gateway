@@ -54,23 +54,23 @@ BENCHMARKS = Path("tests/benchmarks/ipc_benchmarks")
 ECHO_SERVER = Path("tests/benchmarks/echo_server")
 CONFIG_DIR = Path("tests/benchmarks/config")
 
-NODE_A = NodeSpec(
-    name="benchmark_node_a",
-    ipc_channel="benchmark_ipc_a",
-    vsomeip_network="benchmark-node-a",
+BENCH_NODE = NodeSpec(
+    name="bench",
+    ipc_channel="benchmark_ipc_bench",
+    vsomeip_network="benchmark-node-bench",
     unicast_ip="127.0.0.2",
-    someip_config=Path("tests/benchmarks/node_a_someip_config.bin"),
-    mw_com_config=CONFIG_DIR / "node_a_mw_com_config.json",
-    vsomeip_template=CONFIG_DIR / "vsomeip_node_a.json",
+    someip_config=Path("tests/benchmarks/bench_someip_config.bin"),
+    mw_com_config=CONFIG_DIR / "bench_mw_com_config.json",
+    vsomeip_template=CONFIG_DIR / "vsomeip_bench.json",
 )
-NODE_B = NodeSpec(
-    name="benchmark_node_b",
-    ipc_channel="benchmark_ipc_b",
-    vsomeip_network="benchmark-node-b",
+ECHO_NODE = NodeSpec(
+    name="echo",
+    ipc_channel="benchmark_ipc_echo",
+    vsomeip_network="benchmark-node-echo",
     unicast_ip="127.0.0.3",
-    someip_config=Path("tests/benchmarks/node_b_someip_config.bin"),
-    mw_com_config=CONFIG_DIR / "node_b_mw_com_config.json",
-    vsomeip_template=CONFIG_DIR / "vsomeip_node_b.json",
+    someip_config=Path("tests/benchmarks/echo_someip_config.bin"),
+    mw_com_config=CONFIG_DIR / "echo_mw_com_config.json",
+    vsomeip_template=CONFIG_DIR / "vsomeip_echo.json",
 )
 
 
@@ -120,7 +120,7 @@ def run_e2e_benchmarks(
     runfiles_dir = Path(os.environ["TEST_SRCDIR"])
     scripts = _flamegraph_scripts(runfiles_dir)
     try:
-        preflight((SOMEIPD, GATEWAYD, BENCHMARKS, ECHO_SERVER), (NODE_A, NODE_B))
+        preflight((SOMEIPD, GATEWAYD, BENCHMARKS, ECHO_SERVER), (BENCH_NODE, ECHO_NODE))
         if scripts is not None:
             _ = flamegraph_tools(*scripts)
     except PreflightError as error:
@@ -133,13 +133,13 @@ def run_e2e_benchmarks(
     profile_dir = artifact_dir if scripts is not None else None
     benchmark_perf_data: Path | None = None
     echo_server_perf_data: Path | None = None
-    node_a = Node(NODE_A, artifact_dir, profile_dir)
-    node_b = Node(NODE_B, artifact_dir, profile_dir)
+    bench_node = Node(BENCH_NODE, artifact_dir, profile_dir)
+    echo_node = Node(ECHO_NODE, artifact_dir, profile_dir)
 
     benchmark_cmd = [
         str(BENCHMARKS.absolute()),
         "--service_instance_manifest",
-        str(NODE_A.mw_com_config.absolute()),
+        str(BENCH_NODE.mw_com_config.absolute()),
         f"--benchmark_out={artifact_dir / 'benchmarks.json'}",
         "--benchmark_out_format=json",
     ]
@@ -149,7 +149,7 @@ def run_e2e_benchmarks(
     server_cmd = [
         str(ECHO_SERVER.absolute()),
         "--service_instance_manifest",
-        str(NODE_B.mw_com_config.absolute()),
+        str(ECHO_NODE.mw_com_config.absolute()),
     ]
 
     if profile_dir is not None:
@@ -159,7 +159,7 @@ def run_e2e_benchmarks(
         benchmark_cmd = _perf_record_argv(benchmark_perf_data, benchmark_cmd)
 
     try:
-        with node_a, node_b:
+        with bench_node, echo_node:
             server = subprocess.Popen(
                 server_cmd,
                 stdout=server_log,
@@ -180,7 +180,7 @@ def run_e2e_benchmarks(
         server_log.close()
 
     if scripts is not None:
-        perf_data_files = [*node_a.perf_data_files, *node_b.perf_data_files]
+        perf_data_files = [*bench_node.perf_data_files, *echo_node.perf_data_files]
         if echo_server_perf_data is not None:
             perf_data_files.append(echo_server_perf_data)
         if benchmark_perf_data is not None:
