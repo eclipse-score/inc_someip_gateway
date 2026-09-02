@@ -46,8 +46,16 @@ PERF_BIN = os.environ.get("E2E_PERF_PERF_BIN", "perf")
 
 STALE_PATH_PATTERNS = (
     "/tmp/perf-node-*",
-    "/dev/shm/perf_*",
-    "/dev/shm/counterpart_perf_*",
+    "/dev/shm*/perf_*",
+    "/dev/shm*/counterpart_perf_*",
+    # lola Linux
+    "/dev/shm/lola-*",
+    "/tmp/mw_com_lola/*",
+    "/tmp/lola-*-*_lock",
+    # lola QNX
+    "/dev/shmem/lola-*",
+    "/tmp_discovery/mw_com_lola/*",
+    "/tmp_discovery/lola-*-*_lock",
 )
 
 
@@ -97,8 +105,8 @@ def _remove_stale_paths() -> None:
 
 
 def preflight(
-    required_binaries: Sequence[Path] | None = None,
-    nodes: Sequence[NodeSpec] | None = None,
+    required_binaries: Sequence[Path],
+    nodes: Sequence[NodeSpec],
 ) -> None:
     """Validates the host setup and removes leftovers from a previous run."""
     binaries = required_binaries or ()
