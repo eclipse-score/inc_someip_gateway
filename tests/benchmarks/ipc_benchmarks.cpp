@@ -582,6 +582,7 @@ int main(int argc, char** argv) {
         benchmark_args.push_back(argv[index]);
     }
     auto benchmark_argc = static_cast<int>(benchmark_args.size());
+    benchmark_args.push_back(nullptr);  // Ensure null-terminated for benchmark library
     benchmark::Initialize(&benchmark_argc, benchmark_args.data());
 
     if (benchmark::ReportUnrecognizedArguments(benchmark_argc, benchmark_args.data())) {
