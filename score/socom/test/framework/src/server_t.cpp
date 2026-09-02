@@ -52,8 +52,9 @@ Server_data::Server_data(Connector_factory& factory)
 
 Server_data::Server_data(Connector_factory& factory, Method_id method_id,
                          Payload const& expected_payload)
-    : m_connector{factory.create_and_enable(
-          expect_method_call(m_callbacks, method_id, expected_payload))} {}
+    : m_connector{
+          factory.create_and_enable(expect_method_call(m_callbacks, method_id, expected_payload))} {
+}
 
 Server_data::Server_data(Connector_factory& factory,
                          Server_service_interface_definition const& configuration,
