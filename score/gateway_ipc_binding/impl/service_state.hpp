@@ -24,6 +24,7 @@
 #include "key.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
+#include "score/mw/log/logging.h"
 #include "score/socom/client_connector.hpp"
 #include "shared_memory_managers.hpp"
 
@@ -128,7 +129,11 @@ struct Service_state {
             }
 
             if (connector != nullptr) {
-                connector->unsubscribe_event(event_it->first);
+                if (auto result = connector->unsubscribe_event(event_it->first); !result) {
+                    score::mw::log::LogError()
+                        << "[gateway_ipc_binding] Failed to unsubscribe event " << event_it->first
+                        << ": " << result.error().Message();
+                }
             }
             event_it = event_subscriptions.erase(event_it);
         }
@@ -146,7 +151,11 @@ struct Service_state {
             }
 
             if (connector != nullptr) {
-                connector->unsubscribe_event(event_it->first);
+                if (auto result = connector->unsubscribe_event(event_it->first); !result) {
+                    score::mw::log::LogError()
+                        << "[gateway_ipc_binding] Failed to unsubscribe event " << event_it->first
+                        << ": " << result.error().Message();
+                }
             }
             event_it = event_subscriptions.erase(event_it);
         }
@@ -342,7 +351,11 @@ class Service_states {
             auto& subscribers = event_subscriptions[event_id];
             auto const inserted = subscribers.insert(endpoint).second;
             if (connector != nullptr && inserted && subscribers.size() == 1U) {
-                connector->subscribe_event(event_id, socom::Event_mode::update);
+                if (auto result = connector->subscribe_event(event_id, socom::Event_mode::update);
+                    !result) {
+                    score::mw::log::LogError() << "[gateway_ipc_binding] Failed to subscribe event "
+                                               << event_id << ": " << result.error().Message();
+                }
             }
             return;
         }
@@ -359,7 +372,10 @@ class Service_states {
         }
 
         if (connector != nullptr) {
-            connector->unsubscribe_event(event_id);
+            if (auto result = connector->unsubscribe_event(event_id); !result) {
+                score::mw::log::LogError() << "[gateway_ipc_binding] Failed to unsubscribe event "
+                                           << event_id << ": " << result.error().Message();
+            }
         }
         event_subscriptions.erase(event_it);
     }

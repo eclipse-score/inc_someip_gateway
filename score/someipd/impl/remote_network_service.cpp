@@ -148,7 +148,13 @@ void RemoteNetworkService::setup_vsomeip() {
 
                 // Shrink to actual size (header + payload)
                 payload.shrink(pos);
-                server_connector_->update_event(socom_event_id, std::move(payload));
+                if (const auto result =
+                        server_connector_->update_event(socom_event_id, std::move(payload));
+                    !result) {
+                    score::mw::log::LogError()
+                        << "[someipd] RemoteNetworkService - Failed to update event "
+                        << socom_event_id << ": " << result.error().Message();
+                }
             });
 
         // TODO: Do Eventgroup handling. Currently just create one group per event with the same ID.

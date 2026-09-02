@@ -120,87 +120,114 @@ Result<std::unique_ptr<LocalServiceInstance>> LocalServiceInstance::Create(
                 .emplace(event_name, EventContext{event_config, serializer, socom_event_id})
                 .first->second;
 
-        ipc_event.SetReceiveHandler([instance_ptr = instance.get(), &ipc_event, &event_context]() {
-            ipc_event.GetNewSamples(
-                [instance_ptr, &event_context](SamplePtr<void> sample) {
-                    auto maybe_payload = instance_ptr->server_connector_->allocate_event_payload(
-                        event_context.socom_event_id);
-                    if (!maybe_payload.has_value()) {
-                        std::cout << "[gatewayd] LocalServiceInstance - Failed to allocate event "
-                                     "payload for event "
-                                  << event_context.socom_event_id << ": "
-                                  << maybe_payload.error().Message() << std::endl;
-                        return;
-                    }
-                    // Writable_payload was constructed with header_size = 0.
-                    // Therefore use .data()[0] to write the header first.
-                    auto& payload = *maybe_payload;
+        auto receive_handler = [instance_ptr = instance.get(), &ipc_event, &event_context]() {
+            if (const auto get_samples_result = ipc_event.GetNewSamples(
+                    create_process_sample_callback(instance_ptr, event_context),
+                    someip::kMaxSampleCount);
+                !get_samples_result) {
+                score::mw::log::LogError()
+                    << "[gatewayd] LocalServiceInstance - Failed to read samples for event "
+                    << event_context.socom_event_id << ": " << get_samples_result.error().Message();
+            }
+        };
 
-                    std::size_t pos = 0;
+        if (const auto set_handler_result = ipc_event.SetReceiveHandler(std::move(receive_handler));
+            !set_handler_result) {
+            score::mw::log::LogError()
+                << "[gatewayd] LocalServiceInstance - Failed to set receive handler for event "
+                << socom_event_id << ": " << set_handler_result.error().Message();
+        }
 
-                    // TODO: Design decision: the gateway needs to generate the SOME/IP message
-                    // including the header in order to have the E2E protection in the ASIL
-                    // context.
-                    std::uint16_t service_id = instance_ptr->service_type_config_->service_id();
-                    payload.wdata()[pos++] = static_cast<std::byte>(service_id >> 8);
-                    payload.wdata()[pos++] = static_cast<std::byte>(service_id & 0xFF);
-
-                    std::uint16_t method_id = event_context.config->event_id();
-                    payload.wdata()[pos++] = static_cast<std::byte>(method_id >> 8);
-                    payload.wdata()[pos++] = static_cast<std::byte>(method_id & 0xFF);
-
-                    // Length set by someipd
-                    pos += 4;
-
-                    // TODO: get client ID during registration at the someipd
-                    std::uint16_t client_id = 0xFFFF;
-                    payload.wdata()[pos++] = static_cast<std::byte>(client_id >> 8);
-                    payload.wdata()[pos++] = static_cast<std::byte>(client_id & 0xFF);
-
-                    std::uint16_t session_id = 0x0000;
-                    payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
-                    payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
-
-                    std::uint8_t protocol_version = 1;
-                    payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
-
-                    std::uint8_t interface_version =
-                        instance_ptr->service_type_config_->service_version_major();
-                    payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
-
-                    std::uint8_t message_type = 0x02;  // NOTIFICATION
-                    payload.wdata()[pos++] = static_cast<std::byte>(message_type);
-
-                    std::uint8_t return_code = 0x00;  // Unused
-                    payload.wdata()[pos++] = static_cast<std::byte>(return_code);
-
-                    std::size_t written_length = 0;
-                    auto serialize_result = score_com_serializer_serialize(
-                        event_context.serializer,
-                        reinterpret_cast<uint8_t*>(payload.wdata().data() + pos),
-                        payload.wdata().size() - pos, sample.get(), &written_length);
-                    if (serialize_result != score_com_serializer_result_ok) {
-                        score::mw::log::LogError()
-                            << "[gatewayd] Serialization failed for "
-                            << event_context.config->event_name()->string_view();
-                        return;
-                    }
-                    pos += written_length;
-                    // Shrink the payload to the actual written size (header + serialized data)
-                    payload.shrink(pos);
-
-                    instance_ptr->server_connector_->update_event(event_context.socom_event_id,
-                                                                  std::move(payload));
-                },
-                someip::kMaxSampleCount);
-        });
-
-        ipc_event.Subscribe(someip::kMaxSampleCount);
+        if (const auto subscribe_result = ipc_event.Subscribe(someip::kMaxSampleCount);
+            !subscribe_result) {
+            score::mw::log::LogError()
+                << "[gatewayd] LocalServiceInstance - Failed to subscribe event " << socom_event_id
+                << ": " << subscribe_result.error().Message();
+        }
         ++socom_event_id;
     }
 
     return instance;
 }
+
+score::cpp::move_only_function<void(SamplePtr<void>)>
+LocalServiceInstance::create_process_sample_callback(LocalServiceInstance* instance_ptr,
+                                                     EventContext const& event_context) {
+    return [instance_ptr, &event_context](SamplePtr<void> sample) {
+        auto maybe_payload =
+            instance_ptr->server_connector_->allocate_event_payload(event_context.socom_event_id);
+        if (!maybe_payload.has_value()) {
+            std::cout << "[gatewayd] LocalServiceInstance - Failed to allocate event "
+                         "payload for event "
+                      << event_context.socom_event_id << ": " << maybe_payload.error().Message()
+                      << std::endl;
+            return;
+        }
+        // Writable_payload was constructed with header_size = 0.
+        // Therefore use .data()[0] to write the header first.
+        auto& payload = *maybe_payload;
+
+        std::size_t pos = 0;
+
+        // TODO: Design decision: the gateway needs to generate the SOME/IP
+        // message including the header in order to have the E2E protection in
+        // the ASIL context.
+        std::uint16_t service_id = instance_ptr->service_type_config_->service_id();
+        payload.wdata()[pos++] = static_cast<std::byte>(service_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(service_id & 0xFF);
+
+        std::uint16_t method_id = event_context.config->event_id();
+        payload.wdata()[pos++] = static_cast<std::byte>(method_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(method_id & 0xFF);
+
+        // Length set by someipd
+        pos += 4;
+
+        // TODO: get client ID during registration at the someipd
+        std::uint16_t client_id = 0xFFFF;
+        payload.wdata()[pos++] = static_cast<std::byte>(client_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(client_id & 0xFF);
+
+        std::uint16_t session_id = 0x0000;
+        payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
+
+        std::uint8_t protocol_version = 1;
+        payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
+
+        std::uint8_t interface_version =
+            instance_ptr->service_type_config_->service_version_major();
+        payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
+
+        std::uint8_t message_type = 0x02;  // NOTIFICATION
+        payload.wdata()[pos++] = static_cast<std::byte>(message_type);
+
+        std::uint8_t return_code = 0x00;  // Unused
+        payload.wdata()[pos++] = static_cast<std::byte>(return_code);
+
+        std::size_t written_length = 0;
+        auto serialize_result = score_com_serializer_serialize(
+            event_context.serializer, reinterpret_cast<uint8_t*>(payload.wdata().data() + pos),
+            payload.wdata().size() - pos, sample.get(), &written_length);
+        if (serialize_result != score_com_serializer_result_ok) {
+            score::mw::log::LogError() << "[gatewayd] Serialization failed for "
+                                       << event_context.config->event_name()->string_view();
+            return;
+        }
+        pos += written_length;
+        // Shrink the payload to the actual written size (header + serialized
+        // data)
+        payload.shrink(pos);
+
+        if (const auto result = instance_ptr->server_connector_->update_event(
+                event_context.socom_event_id, std::move(payload));
+            !result) {
+            score::mw::log::LogError()
+                << "[gatewayd] LocalServiceInstance - Failed to update event "
+                << event_context.socom_event_id << ": " << result.error().Message();
+        }
+    };
+};
 
 namespace {
 struct FindServiceContext {
@@ -270,7 +297,12 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
             std::cout << "[gatewayd] LocalServiceInstance created for instance specifier: "
                       << instance_config->instance_specifier()->string_view() << std::endl;
 
-            GenericProxy::StopFindService(find_handle);
+            if (const auto stop_result = GenericProxy::StopFindService(find_handle); !stop_result) {
+                score::mw::log::LogError()
+                    << "[gatewayd] Failed to stop find service for instance specifier: "
+                    << instance_config->instance_specifier()->string_view()
+                    << ", error: " << stop_result.error().Message();
+            }
         },
         instance_specifier);
 }
