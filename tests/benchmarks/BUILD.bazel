@@ -112,11 +112,11 @@ py_pytest(
         "test_e2e_benchmarks.py",
     ],
     data = [
+        ":bench_config_file",
+        ":echo_config_file",
         ":echo_server",
         ":flamegraph_scripts",
         ":ipc_benchmarks",
-        ":bench_config_file",
-        ":echo_config_file",
         "//score/gatewayd",
         "//score/someipd",
     ] + glob(["config/*.json"]),
@@ -130,19 +130,19 @@ py_pytest(
 )
 
 py_pytest(
-    name = "e2e_benchmarks_stress_throughput",
+    name = "e2e_benchmarks_latency_echo",
     size = "large",
     srcs = [
         "e2e_benchmark_runner.py",
         "nodes.py",
-        "test_e2e_benchmarks_stress_throughput.py",
+        "test_e2e_benchmarks_latency_echo.py",
     ],
     data = [
+        ":bench_config_file",
+        ":echo_config_file",
         ":echo_server",
         ":flamegraph_scripts",
         ":ipc_benchmarks",
-        ":bench_config_file",
-        ":echo_config_file",
         "//score/gatewayd",
         "//score/someipd",
     ] + glob(["config/*.json"]),
