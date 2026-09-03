@@ -217,7 +217,7 @@ int main(int const argc, const char* const argv[]) {
         return 0;
     }
 
-    assert(request_proxy.has_value());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(request_proxy.has_value());
 
     // Setting up handlers
     std::cout << "Connected to benchmark clients, setting up handlers..." << std::endl;

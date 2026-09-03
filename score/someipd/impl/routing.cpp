@@ -13,9 +13,9 @@
 
 #include "routing.h"
 
-#include <cassert>
 #include <chrono>
 #include <functional>
+#include <score/assert.hpp>
 #include <thread>
 #include <utility>
 
@@ -34,7 +34,7 @@ Routing::Routing(Routing&&) noexcept = default;
 
 Routing& Routing::operator=(Routing&& other) noexcept {
     if (this != &other) {
-        assert(!processing_thread_.joinable());
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(!processing_thread_.joinable());
         config_ = std::move(other.config_);
         application_ = std::move(other.application_);
         payload_ = std::move(other.payload_);

@@ -79,7 +79,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
             runtime, std::move(ipc_server), Shared_memory_manager_factory::create({}),
             mock_on_find_service_change_cb.as_function());
 
-        assert(server && "Server creation failed");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(server && "Server creation failed");
         return server;
     }
 
@@ -94,14 +94,14 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
             runtime, std::move(connection), Shared_memory_manager_factory::create(shm_config),
             std::move(find_service_elements), std::move(server_shared_memory_configs), identifier);
 
-        assert(client && "Client creation failed");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(client && "Client creation failed");
         return client;
     }
 
     void start_and_wait_for_client_connection() {
         // Start the server
         auto start_result = server->start();
-        assert(start_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(start_result);
 
         // Wait for the client to connect and receive the reply. Bounded (rather than an
         // unconditional busy-loop) so that a broken IPC connection fails the test instead of

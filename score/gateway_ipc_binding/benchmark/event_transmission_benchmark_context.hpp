@@ -15,7 +15,6 @@
 #include <unistd.h>
 
 #include <atomic>
-#include <cassert>
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
@@ -23,6 +22,7 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
+#include <score/assert.hpp>
 #include <string>
 #include <thread>
 
@@ -52,7 +52,7 @@ using namespace std::chrono_literals;
                                                           std::size_t slot_count) {
     Shared_memory_metadata metadata{};
     auto result = fixed_string_from_string<Shared_memory_path>(path);
-    assert(result && "Path should fit into fixed-size metadata path");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "Path should fit into fixed-size metadata path");
     metadata.slot_size = slot_size;
     metadata.slot_count = slot_count;
     metadata.path = *result;
@@ -71,8 +71,8 @@ class Event_transmission_benchmark_context final {
               make_metadata(make_unique_name("/gw_server_bench"), payload_size, k_slot_count)},
           client_shm_metadata_{
               make_metadata(make_unique_name("/gw_client_bench"), payload_size, k_slot_count)} {
-        assert(runtime_server_);
-        assert(runtime_client_);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(runtime_server_);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(runtime_client_);
 
         create_gateway_pair();
         wait_for_gateway_connection();
@@ -171,11 +171,11 @@ class Event_transmission_benchmark_context final {
 
         score::message_passing::ServerFactory server_factory;
         auto ipc_server = server_factory.Create(protocol_config_, server_config_);
-        assert(ipc_server);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(ipc_server);
         gateway_server_ = Gateway_ipc_binding_server::create(
             *runtime_server_, std::move(ipc_server), Shared_memory_manager_factory::create({}),
             [](auto, auto const&, auto) {});
-        assert(gateway_server_);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(gateway_server_);
 
         score::message_passing::ClientFactory client_factory;
         auto connection = client_factory.Create(protocol_config_, client_config_);
@@ -183,11 +183,11 @@ class Event_transmission_benchmark_context final {
             *runtime_client_, std::move(connection),
             Shared_memory_manager_factory::create(client_shm_config), {},
             make_shared_memory_configs(server_shm_config));
-        assert(gateway_client_);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(gateway_client_);
 
         auto start_result = gateway_server_->start();
         (void)start_result;  // Avoid unused variable warning in non-debug builds
-        assert(start_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(start_result);
     }
 
     void wait_for_gateway_connection() {
@@ -230,9 +230,9 @@ class Event_transmission_benchmark_context final {
 
         auto sink_connector_result = runtime_server_->make_client_connector(
             server_interface_definition_, instance_, std::move(client_callbacks));
-        assert(sink_connector_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(sink_connector_result);
         sink_connector_ = std::move(sink_connector_result).value();
-        assert(sink_connector_);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(sink_connector_);
 
         score::socom::Disabled_server_connector::Callbacks server_callbacks{
             [](score::socom::Enabled_server_connector&, Method_id, score::socom::Payload,
@@ -256,11 +256,11 @@ class Event_transmission_benchmark_context final {
 
         auto disabled_connector_result = runtime_client_->make_server_connector(
             server_interface_definition_, instance_, std::move(server_callbacks));
-        assert(disabled_connector_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(disabled_connector_result);
 
         source_connector_ = score::socom::Disabled_server_connector::enable(
             std::move(disabled_connector_result).value());
-        assert(source_connector_);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(source_connector_);
     }
 
     void wait_for_service_available() {
@@ -268,20 +268,20 @@ class Event_transmission_benchmark_context final {
         auto const available = connection_state_cv_.wait_for(
             lock, 10s, [this]() noexcept { return service_available_; });
         (void)available;  // Avoid unused variable warning in non-debug builds
-        assert(available);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(available);
     }
 
     void subscribe_event() {
         auto const subscribe_result =
             sink_connector_->subscribe_event(event_id_, score::socom::Event_mode::update);
         (void)subscribe_result;  // Avoid unused variable warning in non-debug builds
-        assert(subscribe_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(subscribe_result);
 
         std::unique_lock<std::mutex> lock{connection_state_mutex_};
         auto const subscribed = connection_state_cv_.wait_for(
             lock, 10s, [this]() noexcept { return event_subscribed_; });
         (void)subscribed;  // Avoid unused variable warning in non-debug builds
-        assert(subscribed);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(subscribed);
     }
 };
 

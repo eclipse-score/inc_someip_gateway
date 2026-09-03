@@ -13,9 +13,9 @@
 
 #include <benchmark/benchmark.h>
 
-#include <cassert>
 #include <cstddef>
 #include <memory>
+#include <score/assert.hpp>
 #include <string>
 
 #include "../impl/shared_memory_managers.hpp"
@@ -38,7 +38,7 @@ class Shared_memory_manager_factory_benchmark final : public Shared_memory_manag
     Result<Shared_memory_slot_manager::Uptr> create(
         [[maybe_unused]] score::socom::Service_interface_identifier const& interface,
         [[maybe_unused]] score::socom::Service_instance const& instance) noexcept override {
-        assert(false && "Not used by this benchmark");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(false && "Not used by this benchmark");
         return {};
     }
 
@@ -61,7 +61,7 @@ void benchmark_cached_read_only_lookup(benchmark::State& state) {
     Shared_memory_metadata metadata{};
     std::string const path(static_cast<std::size_t>(state.range(0)), 'a');
     auto result = fixed_string_from_string<Shared_memory_path>(path);
-    assert(result && "Path should fit into fixed-size metadata path");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "Path should fit into fixed-size metadata path");
     metadata.path = *result;
     metadata.slot_size = 1024U;
     metadata.slot_count = 8U;

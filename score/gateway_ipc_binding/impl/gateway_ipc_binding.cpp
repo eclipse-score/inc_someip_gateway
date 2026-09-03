@@ -14,8 +14,8 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <climits>
+#include <score/assert.hpp>
 #include <string>
 #include <string_view>
 
@@ -47,14 +47,14 @@ Service make_service(score::socom::Service_interface_identifier const& interface
     service.version.major = interface.version.major;
     service.version.minor = interface.version.minor;
     auto const result = fixed_string_from_string<Service_id>(interface.id.string_view());
-    assert(result && "Service id exceeds fixed size");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "Service id exceeds fixed size");
     service.service_id = *result;
     return service;
 }
 
 Instance_id make_instance_id(score::socom::Service_instance const& instance) noexcept {
     auto const result = fixed_string_from_string<Instance_id>(instance.id.string_view());
-    assert(result && "Instance id exceeds fixed size");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "Instance id exceeds fixed size");
     return *result;
 }
 

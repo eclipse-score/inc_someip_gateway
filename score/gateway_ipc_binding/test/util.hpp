@@ -96,9 +96,9 @@ inline socom::Writable_payload create_payload(socom::Enabled_server_connector& c
                                               Event_id const& event_id,
                                               std::vector<std::byte> const& expected_payload) {
     auto payload_handle = connector.allocate_event_payload(event_id);
-    assert(payload_handle);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(payload_handle);
     auto wdata = payload_handle->wdata();
-    assert(wdata.size() >= expected_payload.size());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(wdata.size() >= expected_payload.size());
     std::copy(expected_payload.begin(), expected_payload.end(), wdata.data());
     return std::move(*payload_handle);
 }
