@@ -14,8 +14,8 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_SHARED_MEMORY_MANAGERS
 #define SRC_GATEWAY_IPC_BINDING_SRC_SHARED_MEMORY_MANAGERS
 
-#include <cassert>
 #include <optional>
+#include <score/assert.hpp>
 #include <unordered_map>
 #include <vector>
 
@@ -47,14 +47,16 @@ class Shared_memory_managers {
         }
 
         auto const interface_instance_opt = m_keys->get(key);
-        assert(interface_instance_opt.has_value() && "Interface and instance should exist for key");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(interface_instance_opt.has_value() &&
+                                        "Interface and instance should exist for key");
         auto const& [interface, instance] = interface_instance_opt.value();
 
         // Create new slot manager for this service instance
         auto slot_manager_result = m_slot_manager_factory->create(
             interface.get().to_socom_identifier(),
             socom::Service_instance{fixed_string_to_string(instance.get())});
-        assert(slot_manager_result && "Failed to create shared memory slot manager");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(slot_manager_result &&
+                                        "Failed to create shared memory slot manager");
         auto& slot_manager = **slot_manager_result;
         m_slot_managers.emplace(key, std::move(*slot_manager_result));
         return slot_manager;
@@ -63,7 +65,7 @@ class Shared_memory_managers {
     Shared_memory_metadata get_shared_memory_metadata(
         Shared_memory_slot_manager const& slot_manager) noexcept {
         auto result = fixed_string_from_string<Shared_memory_path>(slot_manager.get_path());
-        assert(result && "Path should fit into fixed-size metadata path");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "Path should fit into fixed-size metadata path");
 
         return Shared_memory_metadata{*result, slot_manager.get_slot_size(),
                                       slot_manager.get_slot_count()};
@@ -76,7 +78,7 @@ class Shared_memory_managers {
 
     void register_configuration(Shared_memory_configs const& configs) noexcept {
         auto result = m_slot_manager_factory->register_configuration(configs);
-        assert(result && "Failed to register shared memory configuration");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "Failed to register shared memory configuration");
     }
 
     void insert_allocation(Key_t const& key, socom::Payload payload, std::size_t consumer_count) {
@@ -140,7 +142,8 @@ class Read_only_memory_managers {
 
         // Create new read-only slot manager for this service instance
         auto slot_manager_result = m_slot_manager_factory->open(metadata);
-        assert(slot_manager_result && "Failed to create read-only shared memory slot manager");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(slot_manager_result &&
+                                        "Failed to create read-only shared memory slot manager");
         auto& slot_manager = **slot_manager_result;
         m_read_only_slot_managers.emplace(metadata.path, std::move(*slot_manager_result));
         return slot_manager;

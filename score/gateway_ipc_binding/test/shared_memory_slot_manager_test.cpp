@@ -32,7 +32,7 @@ template <typename Target_type>
 Fixed_string<Target_type::max_size> fixed_string_from_string_asserted(
     std::string_view value) noexcept {
     auto result = fixed_string_from_string<Target_type>(value);
-    assert(result && "String exceeds maximum size for fixed string");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "String exceeds maximum size for fixed string");
     return *result;
 }
 

@@ -14,7 +14,6 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_REQUEST_SERVICE_HANDLE
 #define SRC_GATEWAY_IPC_BINDING_SRC_REQUEST_SERVICE_HANDLE
 
-#include <cassert>
 #include <score/expected.hpp>
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
