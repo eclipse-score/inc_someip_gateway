@@ -93,13 +93,13 @@ cc_binary(
 
 generate_someip_config_bin(
     name = "bench_config_file",
-    json = "config/bench_someip_config.json",
+    json = "config/bench/someip_config.json",
     output = "bench_someip_config.bin",
 )
 
 generate_someip_config_bin(
     name = "echo_config_file",
-    json = "config/echo_someip_config.json",
+    json = "config/echo/someip_config.json",
     output = "echo_someip_config.bin",
 )
 
@@ -119,7 +119,7 @@ py_pytest(
         ":ipc_benchmarks",
         "//score/gatewayd",
         "//score/someipd",
-    ] + glob(["config/*.json"]),
+    ] + glob(["config/**/*.json"]),
     target_compatible_with = select({
         ":perf_tests": ["@platforms//os:linux"],
         "//conditions:default": ["@platforms//:incompatible"],
@@ -145,7 +145,7 @@ py_pytest(
         ":ipc_benchmarks",
         "//score/gatewayd",
         "//score/someipd",
-    ] + glob(["config/*.json"]),
+    ] + glob(["config/**/*.json"]),
     target_compatible_with = select({
         ":perf_tests": ["@platforms//os:linux"],
         "//conditions:default": ["@platforms//:incompatible"],
@@ -158,7 +158,7 @@ py_pytest(
 validate_json_schema_test(
     name = "bench_mw_com_config_schema_valid",
     size = "small",
-    json = "config/bench_mw_com_config.json",
+    json = "config/bench/mw_com_config.json",
     schema = "@score_communication//score/mw/com:config_schema",
     tags = ["lint"],
 )
@@ -166,7 +166,7 @@ validate_json_schema_test(
 validate_json_schema_test(
     name = "echo_mw_com_config_schema_valid",
     size = "small",
-    json = "config/echo_mw_com_config.json",
+    json = "config/echo/mw_com_config.json",
     schema = "@score_communication//score/mw/com:config_schema",
     tags = ["lint"],
 )

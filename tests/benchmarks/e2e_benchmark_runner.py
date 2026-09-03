@@ -55,8 +55,8 @@ BENCH_NODE = NodeSpec(
     vsomeip_network="benchmark-node-bench",
     unicast_ip="127.0.0.2",
     someip_config=Path("tests/benchmarks/bench_someip_config.bin"),
-    mw_com_config=CONFIG_DIR / "bench_mw_com_config.json",
-    vsomeip_template=CONFIG_DIR / "vsomeip_bench.json",
+    mw_com_config=CONFIG_DIR / "bench" / "mw_com_config.json",
+    vsomeip_template=CONFIG_DIR / "bench" / "vsomeip.json",
 )
 ECHO_NODE = NodeSpec(
     name="echo",
@@ -64,8 +64,8 @@ ECHO_NODE = NodeSpec(
     vsomeip_network="benchmark-node-echo",
     unicast_ip="127.0.0.3",
     someip_config=Path("tests/benchmarks/echo_someip_config.bin"),
-    mw_com_config=CONFIG_DIR / "echo_mw_com_config.json",
-    vsomeip_template=CONFIG_DIR / "vsomeip_echo.json",
+    mw_com_config=CONFIG_DIR / "echo" / "mw_com_config.json",
+    vsomeip_template=CONFIG_DIR / "echo" / "vsomeip.json",
 )
 
 
