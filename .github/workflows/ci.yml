@@ -38,6 +38,12 @@ jobs:
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
+  quality_pack_comment:
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/quality_pack_comment.yml
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.

@@ -1,0 +1,104 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Builds the docs, runs the upstream //:traceability_gate against the resulting
+# _build/metrics.json, and posts (or edits) a sticky PR comment with the gate
+# output and pass/fail status.
+#
+# The comment step is best-effort: PRs from forks get a read-only GITHUB_TOKEN
+# and the sticky-comment action will fail with 403 — marked continue-on-error
+# so those PRs still surface the numbers via the job log and artifact.
+
+name: Quality pack coverage comment
+
+on:
+  workflow_call:
+
+jobs:
+  quality-pack-comment:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: eclipse-score/more-disk-space@v1
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Create Bazel output base directory
+        run: |
+          sudo mkdir -p /mnt/.bazel
+          sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Create config indicator file
+        run: echo "host" > .bazel_config
+      - name: Setup Bazel
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+        with:
+          unique-cache-name: ${{ github.job }}
+      - name: Allow linux-sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+      - name: Build unit + component tests (needed for test links)
+        run: bazel test //:unit_tests //:component_tests
+      - name: Build docs
+        run: bazel run //:docs
+      # Thresholds are set at introduction to match the then-baseline so the gate
+      # never regresses without a follow-up ticket. Raise them as coverage grows.
+      # (--min-tests-linked is intentionally omitted — the current baseline is
+      # well below 1% and picking a floor now would flap the gate.)
+      - name: Run traceability gate
+        id: gate
+        continue-on-error: true
+        run: |
+          mkdir -p .llm_tmp
+          # --need-type=comp_req scopes the gate to component requirements;
+          # feat_req / stkh_req live upstream in eclipse-score/score and would
+          # otherwise pull the numbers to zero and flap the gate.
+          bazel run //:traceability_gate -- \
+            --metrics-json "$PWD/_build/metrics.json" \
+            --need-type=comp_req \
+            --min-req-code=67 \
+            --min-req-test=9 \
+            --min-req-fully-linked=9 \
+            > .llm_tmp/gate.txt
+      - name: Render sticky comment body
+        run: |
+          if [ "${{ steps.gate.outcome }}" = "success" ]; then
+            status="**PASS**"
+          else
+            status="**FAIL**"
+          fi
+          {
+            echo '<!-- quality-pack-coverage -->'
+            echo "### Quality pack traceability — gate: $status"
+            echo
+            echo '```text'
+            cat .llm_tmp/gate.txt
+            echo '```'
+            echo
+            echo "<sub>Produced by \`//:traceability_gate\` against \`_build/metrics.json\`.</sub>"
+          } > .llm_tmp/comment.md
+          cat .llm_tmp/comment.md
+      - name: Upload metrics + gate output
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quality-pack-metrics
+          path: |
+            _build/metrics.json
+            .llm_tmp/gate.txt
+            .llm_tmp/comment.md
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Post sticky PR comment
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # v2.9.1
+        with:
+          header: quality-pack-coverage
+          path: .llm_tmp/comment.md
