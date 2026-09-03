@@ -230,7 +230,7 @@ exports_files(["flamegraph.pl", "stackcollapse-perf.pl"])
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "8.1.0", dev_dependency = True)
+bazel_dep(name = "score_docs_as_code", version = "8.1.1", dev_dependency = True)
 
 # ============================================================================
 # Communication Framework
