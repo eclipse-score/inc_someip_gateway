@@ -54,7 +54,23 @@ void SigTermHandlerFunction(int /*signal*/) {
     benchmark::Shutdown();
 }
 
-int exit_code = EXIT_SUCCESS;
+// Wraps the default console reporter to detect whether any benchmark called State::SkipWithError().
+class ErrorTrackingReporter : public benchmark::ConsoleReporter {
+   public:
+    void ReportRuns(const std::vector<Run>& reports) override {
+        for (const auto& run : reports) {
+            if (run.skipped == benchmark::internal::SkippedWithError) {
+                had_error_ = true;
+            }
+        }
+        ConsoleReporter::ReportRuns(reports);
+    }
+
+    bool HadError() const { return had_error_; }
+
+   private:
+    bool had_error_{false};
+};
 
 }  // namespace
 
@@ -471,7 +487,6 @@ BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
         auto latency = BenchmarkFixture::Instance().SendEchoRequestSync(payload_size);
         if (latency.count() == 0) {
             state.SkipWithError("Failed to receive response or timeout occurred");
-            exit_code = EXIT_FAILURE;
             break;
         }
         state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(latency)
@@ -609,9 +624,10 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    benchmark::RunSpecifiedBenchmarks();
+    ErrorTrackingReporter reporter;
+    benchmark::RunSpecifiedBenchmarks(&reporter);
 
     BenchmarkFixture::Instance().Cleanup();
 
-    return exit_code;
+    return reporter.HadError() ? EXIT_FAILURE : EXIT_SUCCESS;
 }
