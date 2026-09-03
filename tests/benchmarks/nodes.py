@@ -261,15 +261,6 @@ def create_flamegraph_manager(runfiles_dir: Path, artifact_dir: Path) -> Flamegr
     return PerfFlamegraphManager(flamegraph.with_name("stackcollapse-perf.pl"), flamegraph, artifact_dir)
 
 
-def _terminate_process_group(process: subprocess.Popen, sig: int) -> None:
-    # Each spawned process is its own session leader (see Node._spawn), so signalling its group
-    # also reaches a `perf record` wrapper's traced child, which does not get signals otherwise.
-    try:
-        os.killpg(process.pid, sig)
-    except ProcessLookupError:
-        pass
-
-
 def _kill_traced_child(pid: int) -> bool:
     """Kills the direct child of `pid`, e.g. the process `perf record` traces.
 
@@ -299,12 +290,10 @@ class Node:
         spec: NodeSpec,
         workdir: Path,
         flamegraph_manager: FlamegraphManager,
-        shutdown_timeout: float = 5.0,
     ) -> None:
         self._spec = spec
         self._workdir = workdir
         self._flamegraph_manager = flamegraph_manager
-        self._shutdown_timeout = shutdown_timeout
         self._processes: list[tuple[str, subprocess.Popen]] = []
         self._log_handles: list = []
 
@@ -338,22 +327,7 @@ class Node:
 
     def __exit__(self, *_exc_info) -> None:
         for _, process in reversed(self._processes):
-            _terminate_process_group(process, signal.SIGTERM)
-        deadline = time.monotonic() + self._shutdown_timeout
-        for _, process in reversed(self._processes):
-            try:
-                process.wait(timeout=max(0.1, deadline - time.monotonic()))
-            except subprocess.TimeoutExpired:
-                # someipd does not always act on SIGTERM before its blocking main loop returns.
-                # Kill the traced child (if any, e.g. under `perf record`) first, so the wrapper
-                # can still flush a valid file instead of being cut off by a hard kill itself.
-                if not _kill_traced_child(process.pid):
-                    _terminate_process_group(process, signal.SIGKILL)
-                try:
-                    process.wait(timeout=5.0)
-                except subprocess.TimeoutExpired:
-                    _terminate_process_group(process, signal.SIGKILL)
-                    process.wait(timeout=5.0)
+            self._flamegraph_manager.terminate(process)
         for handle in self._log_handles:
             handle.close()
         _remove_stale_paths()
