@@ -40,7 +40,6 @@ constexpr std::uint8_t MAX_SERVICE_DISCOVERY_RETRIES{30};
 constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
 constexpr auto RESPONSE_TIMEOUT{1s};
-constexpr auto POLLING_INTERVAL{10us};
 constexpr std::uint16_t STRESS_THROUGHPUT_BATCH_SIZE{100};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
@@ -136,9 +135,9 @@ class BenchmarkFixture {
                                      " seconds. Make sure echo_server is running.");
         }
 
-        // auto handler_result = response_proxy_->echo_response_tiny_.SetReceiveHandler(
-        //     [this]() {
-        //     this->ProcessResponses<EchoResponseTiny>(response_proxy_->echo_response_tiny_); });
+        auto handler_tiny_result = response_proxy_->echo_response_tiny_.SetReceiveHandler([this]() {
+            this->ProcessResponses<EchoResponseTiny>(response_proxy_->echo_response_tiny_);
+        });
         auto handler_small_result =
             response_proxy_->echo_response_small_.SetReceiveHandler([this]() {
                 this->ProcessResponses<EchoResponseSmall>(response_proxy_->echo_response_small_);
@@ -161,7 +160,7 @@ class BenchmarkFixture {
                     response_proxy_->echo_response_xxlarge_);
             });
 
-        if (/* !handler_result.has_value() || */ !handler_small_result.has_value() ||
+        if (!handler_tiny_result.has_value() || !handler_small_result.has_value() ||
             !handler_medium_result.has_value() || !handler_large_result.has_value() ||
             !handler_xlarge_result.has_value() || !handler_xxlarge_result.has_value()) {
             throw std::runtime_error("Failed to set response handlers");
@@ -237,32 +236,26 @@ class BenchmarkFixture {
         auto send_time = std::chrono::high_resolution_clock::now();
         SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
 
-        if (true) {
-            // Use polling for tiny events
-            return ReceiveEchoRequestSyncWithPolling(sequence_id, send_time);
-        } else {
-            // Use handler-based approach for other events
-            std::unique_lock<std::mutex> lock(pending_mutex_);
-            pending_responses_[sequence_id] = {};
+        std::unique_lock<std::mutex> lock(pending_mutex_);
+        pending_responses_[sequence_id] = {};
 
-            bool received = response_cv_.wait_for(lock, RESPONSE_TIMEOUT, [this, sequence_id]() {
-                return pending_responses_[sequence_id].received;
-            });
+        bool received = response_cv_.wait_for(lock, RESPONSE_TIMEOUT, [this, sequence_id]() {
+            return pending_responses_[sequence_id].received;
+        });
 
-            if (!received) {
-                pending_responses_.erase(sequence_id);
-                throw std::runtime_error("Timeout waiting for echo response. Sequence ID: " +
-                                         std::to_string(sequence_id) +
-                                         ". Check if echo_server is properly handling requests.");
-            }
-
-            auto receive_time = std::chrono::high_resolution_clock::now();
-            auto latency =
-                std::chrono::duration_cast<std::chrono::nanoseconds>(receive_time - send_time);
-
+        if (!received) {
             pending_responses_.erase(sequence_id);
-            return latency;
+            throw std::runtime_error(
+                "Timeout waiting for echo response. Sequence ID: " + std::to_string(sequence_id) +
+                ". Check if echo_server is properly handling requests.");
         }
+
+        auto receive_time = std::chrono::high_resolution_clock::now();
+        auto latency =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(receive_time - send_time);
+
+        pending_responses_.erase(sequence_id);
+        return latency;
     }
 
     // Send echo request without waiting (for throughput testing)
@@ -274,53 +267,8 @@ class BenchmarkFixture {
     }
 
    private:
-    std::chrono::nanoseconds ReceiveEchoRequestSyncWithPolling(
-        std::uint64_t sequence_id, std::chrono::high_resolution_clock::time_point send_time) {
-        auto start_time = std::chrono::high_resolution_clock::now();
-
-        while (std::chrono::high_resolution_clock::now() - start_time < RESPONSE_TIMEOUT) {
-            if (g_stop_token.stop_requested()) {
-                std::cout << "Stop requested during polling for sequence_id: " << sequence_id
-                          << std::endl;
-                return std::chrono::nanoseconds{0};
-            }
-
-            bool found = false;
-            std::chrono::high_resolution_clock::time_point receive_time;
-
-            (void)response_proxy_->echo_response_tiny_.GetNewSamples(
-                [&](auto pre_serialized_response_sample) {
-                    static_assert(
-                        sizeof(EchoResponseTiny) <=
-                            decltype(pre_serialized_response_sample)::element_type::kMaxMessageSize,
-                        "EchoResponseTiny size exceeds max sample count");
-                    assert(pre_serialized_response_sample->size == sizeof(EchoResponseTiny));
-                    const auto* response_sample = reinterpret_cast<const EchoResponseTiny*>(
-                        pre_serialized_response_sample->data);
-
-                    if (response_sample->sequence_id == sequence_id) {
-                        receive_time = std::chrono::high_resolution_clock::now();
-                        found = true;
-                    }
-                },
-                MaxSamplesCount);
-
-            if (found) {
-                return std::chrono::duration_cast<std::chrono::nanoseconds>(receive_time -
-                                                                            send_time);
-            }
-
-            // Small delay to avoid busy waiting
-            std::this_thread::sleep_for(POLLING_INTERVAL);
-        }
-
-        std::cout << "Timeout waiting for echo response with polling. Sequence ID: " << sequence_id
-                  << ". Check if echo_server is properly handling requests." << std::endl;
-        return std::chrono::nanoseconds{0};
-    }
-
     template <typename RequestType, typename EventType>
-    void SendRequest(EventType& request_event, PayloadSize size, std::uint64_t sequence_id,
+    void SendRequest(EventType& request_event, PayloadSize size, SequenceId sequence_id,
                      std::uint32_t actual_size) {
         auto pre_serialized_request = request_event.Allocate().value();
         pre_serialized_request->size = sizeof(RequestType);
@@ -334,7 +282,7 @@ class BenchmarkFixture {
     }
 
     // Helper method to select the correct event based on payload size
-    void SendRequestUsingCorrectEvent(PayloadSize size, std::uint64_t sequence_id,
+    void SendRequestUsingCorrectEvent(PayloadSize size, SequenceId sequence_id,
                                       std::uint32_t actual_size) {
         switch (size) {
             case PayloadSize::Tiny:
@@ -397,7 +345,7 @@ class BenchmarkFixture {
     }
 
     bool initialized_{false};
-    std::atomic<std::uint64_t> next_sequence_id_{1};
+    std::atomic<SequenceId> next_sequence_id_{1};
 
     // Taking a shortcut here and skip the serialization/deserialization of messages and pretend
     // that the in memory data is already serialized.
@@ -406,7 +354,7 @@ class BenchmarkFixture {
 
     std::mutex pending_mutex_;
     std::condition_variable response_cv_;
-    std::unordered_map<std::uint64_t, PendingResponse> pending_responses_;
+    std::unordered_map<SequenceId, PendingResponse> pending_responses_;
 };
 
 class IpcBenchmark : public benchmark::Fixture {

@@ -33,10 +33,12 @@ enum class PayloadSize : std::uint32_t {
     XXLarge = 1048576
 };
 
+using SequenceId = std::uint64_t;
+
 // Template-based message structure for all payload sizes
 template <PayloadSize PayloadBytes>
 struct EchoMessage {
-    std::uint64_t sequence_id;
+    SequenceId sequence_id;
     std::uint64_t timestamp_ns;
     PayloadSize payload_size;
     std::uint32_t actual_size;
@@ -220,14 +222,14 @@ constexpr PayloadSize GetEnumFromSize(std::uint32_t size) {
 }
 
 template <PayloadSize PayloadBytes>
-std::uint64_t GetSequenceId(const EchoMessagePreSerialized<PayloadBytes>& message) {
+SequenceId GetSequenceId(const EchoMessagePreSerialized<PayloadBytes>& message) {
     // TODO: Apply proper deserialization instead of just reinterpreting the bytes. This is just a
     // quick workaround to get the sequence ID for logging purposes without having to implement a
     // full deserialization.
     static_assert(
         sizeof(std::uint64_t) <= EchoMessagePreSerialized<PayloadBytes>::kMaxMessageSize,
         "EchoMessagePreSerialized must be large enough to hold sequence_id for GetSequenceId");
-    return *reinterpret_cast<const std::uint64_t*>(&message.data[0]);
+    return *reinterpret_cast<const SequenceId*>(&message.data[0]);
 }
 template <PayloadSize PayloadBytes>
 void CopyMessageForEcho(EchoMessagePreSerialized<PayloadBytes>& response,
