@@ -239,7 +239,7 @@ class BenchmarkFixture {
 
         if (true) {
             // Use polling for tiny events
-            return SendEchoRequestSyncWithPolling(sequence_id, send_time);
+            return ReceiveEchoRequestSyncWithPolling(sequence_id, send_time);
         } else {
             // Use handler-based approach for other events
             std::unique_lock<std::mutex> lock(pending_mutex_);
@@ -274,7 +274,7 @@ class BenchmarkFixture {
     }
 
    private:
-    std::chrono::nanoseconds SendEchoRequestSyncWithPolling(
+    std::chrono::nanoseconds ReceiveEchoRequestSyncWithPolling(
         std::uint64_t sequence_id, std::chrono::high_resolution_clock::time_point send_time) {
         auto start_time = std::chrono::high_resolution_clock::now();
 
