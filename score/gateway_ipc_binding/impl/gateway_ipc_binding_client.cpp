@@ -49,9 +49,9 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
         Shared_memory_configs server_shared_memory_configs)
         : m_binding_base{runtime, std::move(slot_manager)},
           m_channel(std::move(channel)),
-          m_find_service_elements(std::move(find_service_elements)),
-          m_identifier(std::move(identifier)),
-          m_server_shared_memory_configs(std::move(server_shared_memory_configs)) {
+          m_find_service_elements(find_service_elements),
+          m_identifier(identifier),
+          m_server_shared_memory_configs(server_shared_memory_configs) {
         m_channel->Start([this](auto const state) { on_state_change(state); },
                          [this](auto const data) { on_receive_message(data); });
     }
@@ -190,8 +190,8 @@ std::unique_ptr<Gateway_ipc_binding_client> Gateway_ipc_binding_client::create(
     assert(identifier_opt && "Identifier exceeds maximum size for Client_identifier");
 
     return std::make_unique<Gateway_ipc_binding_client_impl>(
-        runtime, std::move(connection), std::move(slot_manager), std::move(find_service_elements),
-        *identifier_opt, std::move(server_shared_memory_configs));
+        runtime, std::move(connection), std::move(slot_manager), find_service_elements,
+        *identifier_opt, server_shared_memory_configs);
 }
 
 }  // namespace score::gateway_ipc_binding

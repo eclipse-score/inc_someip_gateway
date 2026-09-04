@@ -69,7 +69,7 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
                     }
                     // Subscribe to all events
                     socom::Event_id socom_event_id{0};
-                    for (auto event : *instance_ptr->service_type_config_->events()) {
+                    for (const auto* event : *instance_ptr->service_type_config_->events()) {
                         std::cout << "[someipd] LocalNetworkService - Subscribing to event "
                                   << event->event_name()->string_view() << " (socom_id "
                                   << socom_event_id << ") for service "

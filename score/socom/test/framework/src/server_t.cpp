@@ -40,7 +40,7 @@ Server_connector_callbacks_mock& expect_method_call(Server_connector_callbacks_m
 }
 
 auto ignore_call() {
-    return InvokeWithoutArgs([]() {});
+    return []() {};
 }
 
 }  // namespace
@@ -89,11 +89,11 @@ void Server_data::enable(Disabled_server_connector::Uptr disabled_connector) {
 }
 
 void Server_data::update_event(Event_id const& event_id, Payload const& payload) {
-    m_connector->update_event(event_id, clone_payload(payload));
+    EXPECT_TRUE(m_connector->update_event(event_id, clone_payload(payload)));
 }
 
 void Server_data::update_requested_event(Event_id const& event_id, Payload const& payload) {
-    m_connector->update_requested_event(event_id, clone_payload(payload));
+    EXPECT_TRUE(m_connector->update_requested_event(event_id, clone_payload(payload)));
 }
 
 std::atomic<bool> const& Server_data::expect_on_event_subscription_change(
@@ -143,7 +143,7 @@ void Server_data::expect_and_respond_update_event_request(Event_id const& event_
     auto cloned = std::make_shared<Payload>(clone_payload(payload));
     EXPECT_CALL(m_callbacks, on_event_update_request(_, event_id))
         .WillOnce([cloned](Enabled_server_connector& connector, Event_id const& eid) {
-            connector.update_requested_event(eid, clone_payload(*cloned));
+            EXPECT_TRUE(connector.update_requested_event(eid, clone_payload(*cloned)));
         });
 }
 
@@ -217,7 +217,7 @@ std::future<void> Server_data::expect_method_calls(std::size_t const& min_num,
         create_check_update_count(m_num_method_calls, min_num, std::move(methods_called));
 
     EXPECT_CALL(m_callbacks, on_method_call(_, method_id, payload_eq(payload), _))
-        .WillRepeatedly(DoAll(check_update_count, InvokeWithoutArgs([]() { return nullptr; })));
+        .WillRepeatedly(DoAll(check_update_count, []() { return nullptr; }));
     return methods_called_future;
 }
 

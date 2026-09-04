@@ -9,7 +9,7 @@
             "bindings": [
                 {
                     "binding": "SHM",
-                    "serviceId": 7000,
+                    "serviceId": 7202,
                     "events": [
                         {
                             "eventName": "echo_request_tiny",
@@ -48,7 +48,7 @@
             "bindings": [
                 {
                     "binding": "SHM",
-                    "serviceId": 7001,
+                    "serviceId": 7201,
                     "events": [
                         {
                             "eventName": "echo_response_tiny",
@@ -89,23 +89,23 @@
             },
             "instances": [
                 {
-                    "instanceId": 0,
+                    "instanceId": 1,
                     "asil-level": "QM",
                     "binding": "SHM",
                     "events": [
                         {
                             "eventName": "echo_request_tiny",
-                            "numberOfSampleSlots": 10,
+                            "numberOfSampleSlots": 64,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_small",
-                            "numberOfSampleSlots": 10,
+                            "numberOfSampleSlots": 64,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_medium",
-                            "numberOfSampleSlots": 10,
+                            "numberOfSampleSlots": 64,
                             "maxSubscribers": 1
                         },
                         {
@@ -136,23 +136,23 @@
             },
             "instances": [
                 {
-                    "instanceId": 0,
+                    "instanceId": 1,
                     "asil-level": "QM",
                     "binding": "SHM",
                     "events": [
                         {
                             "eventName": "echo_response_tiny",
-                            "numberOfSampleSlots": 10,
+                            "numberOfSampleSlots": 64,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_response_small",
-                            "numberOfSampleSlots": 10,
+                            "numberOfSampleSlots": 64,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_response_medium",
-                            "numberOfSampleSlots": 10,
+                            "numberOfSampleSlots": 64,
                             "maxSubscribers": 1
                         },
                         {

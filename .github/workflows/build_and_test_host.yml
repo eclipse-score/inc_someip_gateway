@@ -102,3 +102,30 @@ jobs:
           bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
       - run: df -h
         if: always()
+
+  build_and_perf_test_host:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: eclipse-score/more-disk-space@v1
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Create Bazel output base directory
+        run: |
+          sudo mkdir -p /mnt/.bazel
+          sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Create config indicator file
+        run: echo "host" > .bazel_config
+      - name: Setup Bazel
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+        with:
+          unique-cache-name: ${{ github.job }}
+      - name: Allow linux-sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+      - name: Allow perf
+        run: sudo sh -c 'echo -1 > /proc/sys/kernel/perf_event_paranoid'
+      - name: Run Linux perf tests
+        run: |
+          bazel test --config=perf-tests //tests/benchmarks/... --build_tests_only
+      - name: Run Linux perf tests (flamegraphs)
+        run: |
+          bazel test --config=perf-tests-flamegraphs //tests/benchmarks/... --build_tests_only

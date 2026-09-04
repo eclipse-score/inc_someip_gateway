@@ -29,18 +29,13 @@ See [integration_testing/test](integration_testing/test/BUILD) for an example us
 
 ## Typical Usage
 
-Run integration tests with defaults (Linux Docker backend):
+Run integration tests
 
 ```bash
-bazel test //tests/integration:integration
+bazel test --config=qemu-integration //tests/integration_test/...
 ```
 
-Run integration tests on Linux QEMU backend:
-
-```bash
-bazel test //tests/integration:integration \
-  --//quality/integration_testing/flags:linux_backend=qemu
-```
+These are always run with the QEMU backend.
 
 ### Execution Backend Selection
 

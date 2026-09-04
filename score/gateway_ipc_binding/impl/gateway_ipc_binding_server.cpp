@@ -100,7 +100,7 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
             [this](score::message_passing::IServerConnection& connection) {
                 assert(std::holds_alternative<std::uintptr_t>(connection.GetUserData()));
                 auto const user_data = std::get<std::uintptr_t>(connection.GetUserData());
-                Client_id const client_id = static_cast<Client_id>(user_data);
+                auto const client_id = static_cast<Client_id>(user_data);
                 m_binding_base.remove_client(client_id);
                 std::lock_guard<std::mutex> const lock(m_mutex);
                 m_connections.erase(client_id);
@@ -119,7 +119,7 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
             -> score::cpp::expected_blank<score::os::Error> {
             assert(std::holds_alternative<std::uintptr_t>(connection.GetUserData()));
             auto const user_data = std::get<std::uintptr_t>(connection.GetUserData());
-            Client_id const client_id = static_cast<Client_id>(user_data);
+            auto const client_id = static_cast<Client_id>(user_data);
 
             auto message_type = get_message_type(payload[0]);
 

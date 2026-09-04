@@ -17,6 +17,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
+#include <vector>
 
 #include "score/mw/com/types.h"
 #include "score/serializer/pre_serialized_data.h"
@@ -233,6 +234,16 @@ inline void FillTestPayload(MessageType& message, std::uint64_t pattern = 0xDEAD
     message.payload_size = utils::GetEnumFromSize(size);
     message.actual_size = static_cast<std::uint32_t>(size);
     FillTestPayload(message.payload, static_cast<std::uint32_t>(size), pattern);
+}
+
+inline auto create_command_line_arguments(int const argc, char const* const* const argv) {
+    std::vector<score::safecpp::zstring_view> command_line_arguments{};
+    command_line_arguments.reserve(static_cast<std::size_t>(argc));
+    for (std::int32_t arg_idx = 0U; arg_idx < argc; arg_idx++) {
+        auto argument = std::string_view{argv[arg_idx]};
+        command_line_arguments.emplace_back(argument.data(), argument.size());
+    }
+    return command_line_arguments;
 }
 
 }  // namespace utils

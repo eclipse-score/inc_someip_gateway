@@ -64,6 +64,7 @@ bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 # Build System Rules & Utilities
 # ============================================================================
 bazel_dep(name = "bazel_lib", version = "3.7.1", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.1.0")
@@ -215,10 +216,21 @@ download_archive(
     urls = ["https://github.com/pboettch/json-schema-validator/archive/refs/tags/2.4.0.tar.gz"],
 )
 
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "flamegraph",
+    build_file_content = """
+exports_files(["flamegraph.pl", "stackcollapse-perf.pl"])
+""",
+    commit = "41fee1f99f9276008b7cd112fca19dc3ea84ac32",
+    remote = "https://github.com/brendangregg/FlameGraph.git",
+)
+
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "score_docs_as_code", version = "8.1.0", dev_dependency = True)
+bazel_dep(name = "score_docs_as_code", version = "8.1.1", dev_dependency = True)
 
 # ============================================================================
 # Communication Framework
@@ -306,7 +318,7 @@ http_archive(
 # Integration Testing
 # ============================================================================
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
-bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.1.0", dev_dependency = True)
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 

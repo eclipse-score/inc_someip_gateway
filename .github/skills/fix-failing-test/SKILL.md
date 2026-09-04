@@ -78,6 +78,5 @@ bazel test //...
 
 ## Project-Specific Notes
 - **Build system**: Bazel — always use `bazel test`, not direct binary execution, to get correct runfiles and sandbox.
-- **Integration tests**: live under `//tests/integration`; require two daemons (`gatewayd` + `someipd`) and vsomeip config from `tests/integration/vsomeip-local.json`.
-- **Python tests**: use `py_pytest` rule; run with `bazel test //tests/integration:integration --test_output=all`.
+- **Integration tests**: live under `//tests/integration_test`.
 - **License headers**: any new source file must include the Apache 2.0 header from `AGENTS.md`.

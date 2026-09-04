@@ -39,7 +39,6 @@ pkg_files(
         "//score/gatewayd:etc/mw_com_config.json",
         "//score/serializer:null_serializer",
         "//score/someipd",
-        "//tests/integration/sample_client",
     ],
     attributes = pkg_attributes(
         mode = "0777",

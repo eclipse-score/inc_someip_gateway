@@ -26,8 +26,7 @@
 #include "score/socom/service_interface_identifier.hpp"
 #include "temporary_thread_id_add.hpp"
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 namespace server_connector {
 
@@ -39,7 +38,7 @@ Impl::Impl(Runtime_impl& runtime, Server_service_interface_definition configurat
            Final_action final_action, Posix_credentials const& credentials)
     : m_runtime{runtime},
       m_configuration{std::move(configuration)},
-      m_instance{std::move(instance)},
+      m_instance{instance},
       m_callbacks{std::move(callbacks)},
       m_subscriber(m_configuration.get_num_events()),
       m_update_requester(m_configuration.get_num_events()),
@@ -137,7 +136,7 @@ Server_service_interface_definition const& Impl::get_configuration() const noexc
 
 Service_instance const& Impl::get_service_instance() const noexcept { return m_instance; }
 
-Result<Blank> Impl::update_event(Event_id server_id, Payload payload) noexcept {
+Result<void> Impl::update_event(Event_id server_id, Payload payload) noexcept {
     if (server_id >= m_configuration.get_num_events()) {
         return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
@@ -151,10 +150,10 @@ Result<Blank> Impl::update_event(Event_id server_id, Payload payload) noexcept {
 
     // May throw std::bad_alloc: left unhandled as a design decision
     send(clients, message::Update_event{server_id, std::move(payload)});
-    return Result<Blank>{};
+    return Result<void>{};
 }
 
-Result<Blank> Impl::update_requested_event(Event_id server_id, Payload payload) noexcept {
+Result<void> Impl::update_requested_event(Event_id server_id, Payload payload) noexcept {
     if (server_id >= m_configuration.get_num_events()) {
         return MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     }
@@ -169,7 +168,7 @@ Result<Blank> Impl::update_requested_event(Event_id server_id, Payload payload) 
 
     // May throw std::bad_alloc: left unhandled as a design decision
     send(clients, message::Update_requested_event{server_id, std::move(payload)});
-    return Result<Blank>{};
+    return Result<void>{};
 }
 
 Result<Event_mode> Impl::get_event_mode(Event_id server_id) const noexcept {
@@ -389,5 +388,4 @@ std::unique_ptr<Disabled_server_connector> Enabled_server_connector::disable(
     return result;
 }
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom
