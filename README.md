@@ -43,6 +43,34 @@ bazel run @score_tooling//coverage:generate_coverage_html
 
 The HTML report is stored at `coverage_linux/index.html`. You can open it in a web browser to view the coverage results.
 
+## Quality pack
+
+Requirements traceability is produced by the documentation build. Run the tests
+first: the docs build reads `bazel-testlogs` to link each requirement to the
+tests that verify it.
+
+```sh
+bazel test //:unit_tests //:component_tests
+bazel run //:docs
+```
+
+This generates:
+
+- `_build/index.html` — documentation, showing the source-code and test
+  links on each requirement
+- `_build/needs.json` — the requirements model
+- `_build/metrics.json` — traceability metrics
+
+To print the traceability summary on the command line:
+
+```sh
+bazel run //:traceability_gate -- --metrics-json "$PWD/_build/metrics.json"
+```
+
+CI runs the same gate on every pull request with thresholds attached, and
+posts the summary as a sticky comment — see
+`.github/workflows/quality_pack_comment.yml`.
+
 ### Start the daemons
 
 Start the daemons in this order:

@@ -12,23 +12,12 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+.. _gatewayd:
 
-SOCom
-#####
+gatewayd
+########
 
-.. comp:: SOCom
-   :id: comp__socom
-   :security: NO
-   :safety: QM
-   :status: valid
-   :version: 1
-   :belongs_to: feat__someip_gateway
+Abstract
+========
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
-
-.. toctree::
-   :maxdepth: 1
-
-   design/index
+The gateway daemon. Bridges local IPC service instances with remote SOME/IP service instances across the ASIL boundary, handling service offers, requests, event subscriptions, and payload transfer.

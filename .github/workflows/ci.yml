@@ -38,6 +38,12 @@ jobs:
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
+  quality_pack_comment:
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/quality_pack_comment.yml
   static-code-analysis:
     secrets: inherit
     uses: ./.github/workflows/static-code-analysis.yml

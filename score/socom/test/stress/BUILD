@@ -22,6 +22,7 @@ cc_test(
         "TSAN_OPTIONS": "suppressions=$(location tsan.supp)",
     },
     linkstatic = True,
+    tags = ["component"],
     visibility = ["//tests/integration_test:__pkg__"],
     deps = [
         "//score/socom/test/framework:socom_test_framework",
