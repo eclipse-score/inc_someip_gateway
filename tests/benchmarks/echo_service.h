@@ -177,40 +177,50 @@ inline std::uint64_t GetCurrentTimeNanos() {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
 }
 
-inline void FillTestPayload(std::uint8_t* payload, std::uint32_t size,
+inline void FillTestPayload(score::cpp::span<std::uint8_t> payload, std::uint32_t size,
                             std::uint64_t pattern = 0xDEADBEEF) {
-    std::uint8_t base_pattern = static_cast<std::uint8_t>(pattern & 0xFF);
+    auto base_pattern = static_cast<std::uint8_t>(pattern & 0xFFU);
     for (std::uint32_t i{0}; i < size; ++i) {
-        payload[i] = static_cast<std::uint8_t>(base_pattern + (i & 0xFF));
+        payload[i] = static_cast<std::uint8_t>(base_pattern + (i & 0xFFU));
     }
 }
 
-inline bool VerifyTestPayload(const std::uint8_t* payload, std::uint32_t size,
+inline bool VerifyTestPayload(score::cpp::span<const std::uint8_t> payload, std::uint32_t size,
                               std::uint64_t pattern = 0xDEADBEEF) {
-    std::uint8_t base_pattern = static_cast<std::uint8_t>(pattern & 0xFF);
+    auto base_pattern = static_cast<std::uint8_t>(pattern & 0xFFU);
     for (std::uint32_t i{0}; i < size; ++i) {
-        if (payload[i] != static_cast<std::uint8_t>(base_pattern + (i & 0xFF))) {
+        if (payload[i] != static_cast<std::uint8_t>(base_pattern + (i & 0xFFU))) {
             return false;
         }
     }
     return true;
 }
 
-constexpr inline std::uint32_t GetSizeFromEnum(PayloadSize size) {
+constexpr std::uint32_t GetSizeFromEnum(PayloadSize size) {
     return static_cast<std::uint32_t>(size);
 }
 
-constexpr inline PayloadSize GetEnumFromSize(std::uint32_t size) {
-    if (size <= 8) return PayloadSize::Tiny;
-    if (size <= 64) return PayloadSize::Small;
-    if (size <= 1024) return PayloadSize::Medium;
-    if (size <= 8192) return PayloadSize::Large;
-    if (size <= 65536) return PayloadSize::XLarge;
+constexpr PayloadSize GetEnumFromSize(std::uint32_t size) {
+    if (size <= 8) {
+        return PayloadSize::Tiny;
+    }
+    if (size <= 64) {
+        return PayloadSize::Small;
+    }
+    if (size <= 1024) {
+        return PayloadSize::Medium;
+    }
+    if (size <= 8192) {
+        return PayloadSize::Large;
+    }
+    if (size <= 65536) {
+        return PayloadSize::XLarge;
+    }
     return PayloadSize::XXLarge;
 }
 
 template <PayloadSize PayloadBytes>
-inline std::uint64_t GetSequenceId(const EchoMessagePreSerialized<PayloadBytes>& message) {
+std::uint64_t GetSequenceId(const EchoMessagePreSerialized<PayloadBytes>& message) {
     // TODO: Apply proper deserialization instead of just reinterpreting the bytes. This is just a
     // quick workaround to get the sequence ID for logging purposes without having to implement a
     // full deserialization.
@@ -220,8 +230,8 @@ inline std::uint64_t GetSequenceId(const EchoMessagePreSerialized<PayloadBytes>&
     return *reinterpret_cast<const std::uint64_t*>(&message.data[0]);
 }
 template <PayloadSize PayloadBytes>
-inline void CopyMessageForEcho(EchoMessagePreSerialized<PayloadBytes>& response,
-                               const EchoMessagePreSerialized<PayloadBytes>& request) {
+void CopyMessageForEcho(EchoMessagePreSerialized<PayloadBytes>& response,
+                        const EchoMessagePreSerialized<PayloadBytes>& request) {
     assert(request.size <= response.kMaxMessageSize &&
            "Request size exceeds maximum message size for pre-serialized data");
     response.size = request.size;
@@ -229,18 +239,18 @@ inline void CopyMessageForEcho(EchoMessagePreSerialized<PayloadBytes>& response,
 }
 
 template <typename MessageType>
-inline void FillTestPayload(MessageType& message, std::uint64_t pattern = 0xDEADBEEF) {
+void FillTestPayload(MessageType& message, std::uint64_t pattern = 0xDEADBEEF) {
     constexpr auto size = sizeof(message.payload);
     message.payload_size = utils::GetEnumFromSize(size);
     message.actual_size = static_cast<std::uint32_t>(size);
     FillTestPayload(message.payload, static_cast<std::uint32_t>(size), pattern);
 }
 
-inline auto create_command_line_arguments(int const argc, char const* const* const argv) {
+inline auto create_command_line_arguments(score::cpp::span<char const* const> const argv) {
     std::vector<score::safecpp::zstring_view> command_line_arguments{};
-    command_line_arguments.reserve(static_cast<std::size_t>(argc));
-    for (std::int32_t arg_idx = 0U; arg_idx < argc; arg_idx++) {
-        auto argument = std::string_view{argv[arg_idx]};
+    command_line_arguments.reserve(argv.size());
+    for (const auto* arg_idx : argv) {
+        auto argument = std::string_view{arg_idx};
         command_line_arguments.emplace_back(argument.data(), argument.size());
     }
     return command_line_arguments;

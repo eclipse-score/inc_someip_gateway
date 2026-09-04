@@ -166,8 +166,8 @@ int main(int const argc, const char* const argv[]) {
 
     std::cout << "Starting Echo Server..." << std::endl;
 
-    score::mw::com::runtime::InitializeRuntime(
-        echo_service::utils::create_command_line_arguments(argc, argv));
+    score::mw::com::runtime::InitializeRuntime(echo_service::utils::create_command_line_arguments(
+        score::cpp::span<char const* const>{argv, static_cast<std::size_t>(argc)}));
 
     auto response_skeleton_result = EchoResponsePreSerializedSkeleton::Create(
         score::mw::com::InstanceSpecifier::Create(std::string{EchoResponseInstanceSpecifier})

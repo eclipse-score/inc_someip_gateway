@@ -14,6 +14,7 @@
 #include <benchmark/benchmark.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -432,12 +433,14 @@ struct PayloadConfig {
     const char* name;
 };
 
-constexpr PayloadConfig PAYLOAD_CONFIGS[] = {
-    {PayloadSize::Tiny, "Tiny_8B"},       {PayloadSize::Small, "Small_64B"},
-    {PayloadSize::Medium, "Medium_1KB"},  {PayloadSize::Large, "Large_8KB"},
-    {PayloadSize::XLarge, "XLarge_64KB"}, {PayloadSize::XXLarge, "XXLarge_1MB"}};
+constexpr std::array<PayloadConfig, 6> PAYLOAD_CONFIGS = {{{PayloadSize::Tiny, "Tiny_8B"},
+                                                           {PayloadSize::Small, "Small_64B"},
+                                                           {PayloadSize::Medium, "Medium_1KB"},
+                                                           {PayloadSize::Large, "Large_8KB"},
+                                                           {PayloadSize::XLarge, "XLarge_64KB"},
+                                                           {PayloadSize::XXLarge, "XXLarge_1MB"}}};
 
-constexpr size_t NUM_PAYLOAD_CONFIGS = sizeof(PAYLOAD_CONFIGS) / sizeof(PAYLOAD_CONFIGS[0]);
+constexpr size_t NUM_PAYLOAD_CONFIGS = PAYLOAD_CONFIGS.size();
 
 namespace {
 PayloadSize GetPayloadSizeFromArg(int64_t arg) {
