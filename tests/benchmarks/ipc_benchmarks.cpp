@@ -19,6 +19,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
+#include <cstddef>
 #include <iostream>
 #include <mutex>
 #include <optional>
@@ -323,29 +324,49 @@ class BenchmarkFixture {
             return;
         }
 
-        (void)response_event.GetNewSamples(
-            [this](auto pre_serialized_response_sample) {
-                if (g_stop_token.stop_requested()) {
-                    return;
-                }
+        std::vector<SequenceId> received_sequence_ids;
+        received_sequence_ids.reserve(MaxSamplesCount);
 
+        (void)response_event.GetNewSamples(
+            [&received_sequence_ids](auto pre_serialized_response_sample) {
                 assert(pre_serialized_response_sample->size == sizeof(ResponseType));
                 auto* response_sample =
                     reinterpret_cast<const ResponseType*>(pre_serialized_response_sample->data);
 
-                std::lock_guard<std::mutex> lock(pending_mutex_);
-                auto it = pending_responses_.find(response_sample->sequence_id);
-                if (it != pending_responses_.end()) {
-                    it->second.received = true;
-                    it->second.receive_time = std::chrono::high_resolution_clock::now();
-                    response_cv_.notify_all();
-                }
+                received_sequence_ids.push_back(response_sample->sequence_id);
             },
             MaxSamplesCount);
+
+        // assumption: order of events does not change
+        // then (highest - lowest + 1) == (received_sequence_ids.size())
+        auto const lowest_sequence_id =
+            *std::min_element(received_sequence_ids.begin(), received_sequence_ids.end());
+        auto const highest_sequence_id =
+            *std::max_element(received_sequence_ids.begin(), received_sequence_ids.end());
+        auto const num_lost_sequence_ids_in_range =
+            (highest_sequence_id - lowest_sequence_id + 1) - received_sequence_ids.size();
+        auto const num_lost_sequence_ids_before_lowest =
+            (lowest_sequence_id - last_received_sequence_id_ - 1);
+
+        num_lost_sequence_ids +=
+            num_lost_sequence_ids_before_lowest + num_lost_sequence_ids_in_range;
+        last_received_sequence_id_ = highest_sequence_id;
+
+        std::lock_guard<std::mutex> lock(pending_mutex_);
+        for (auto const& sequence_id : received_sequence_ids) {
+            auto it = pending_responses_.find(sequence_id);
+            if (it != pending_responses_.end()) {
+                it->second.received = true;
+                it->second.receive_time = std::chrono::high_resolution_clock::now();
+                response_cv_.notify_all();
+            }
+        }
     }
 
     bool initialized_{false};
     std::atomic<SequenceId> next_sequence_id_{1};
+    std::atomic<SequenceId> last_received_sequence_id_{1};
+    std::atomic<std::size_t> num_lost_sequence_ids{0};
 
     // Taking a shortcut here and skip the serialization/deserialization of messages and pretend
     // that the in memory data is already serialized.
