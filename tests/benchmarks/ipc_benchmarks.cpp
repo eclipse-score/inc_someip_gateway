@@ -83,6 +83,9 @@ class BenchmarkFixture {
     }
 
     void Initialize() {
+        last_received_sequence_id_ = next_sequence_id_.load() - 1;
+        num_lost_sequence_ids = 0;
+
         if (initialized_) {
             return;
         }
@@ -365,7 +368,7 @@ class BenchmarkFixture {
 
     bool initialized_{false};
     std::atomic<SequenceId> next_sequence_id_{1};
-    std::atomic<SequenceId> last_received_sequence_id_{1};
+    std::atomic<SequenceId> last_received_sequence_id_{next_sequence_id_.load() - 1};
     std::atomic<std::size_t> num_lost_sequence_ids{0};
 
     // Taking a shortcut here and skip the serialization/deserialization of messages and pretend
@@ -381,21 +384,13 @@ class BenchmarkFixture {
 class IpcBenchmark : public benchmark::Fixture {
    public:
     void SetUp(const ::benchmark::State& /*state*/) override {
-        if (!setup_done_) {
-            BenchmarkFixture::Instance().Initialize();
-            setup_done_ = true;
-        }
+        BenchmarkFixture::Instance().Initialize();
     }
 
     void TearDown(const ::benchmark::State& state) override {
         // Cleanup is done in global teardown
     }
-
-   private:
-    static bool setup_done_;
 };
-
-bool IpcBenchmark::setup_done_{false};
 
 struct PayloadConfig {
     PayloadSize size;
