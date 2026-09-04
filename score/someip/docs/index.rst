@@ -29,8 +29,3 @@ Abstract
 ========
 
 SOME/IP protocol type and constant definitions (message header fields, method/event IDs, error codes) per the Open SOME/IP protocol specification.
-
-.. toctree::
-   :maxdepth: 1
-
-   requirements/index

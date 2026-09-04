@@ -81,7 +81,6 @@ Module / Feature Documentation
    requirements/index
    architecture/index.rst
    tc8_conformance/index.rst
-   quality_pack
 
 
 Component documentation

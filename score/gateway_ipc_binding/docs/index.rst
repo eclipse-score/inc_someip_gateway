@@ -132,4 +132,3 @@ Further details
 
    shared_memory
    ipc_protocol
-   requirements/index

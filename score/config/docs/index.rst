@@ -29,8 +29,3 @@ Abstract
 ========
 
 Provides the FlatBuffers schema (mw_someip_config.fbs) and JSON schema used to define and validate gateway configuration.
-
-.. toctree::
-   :maxdepth: 1
-
-   requirements/index

@@ -21,8 +21,3 @@ Abstract
 ========
 
 Serialization utilities. Currently provides a null-passthrough serializer for pre-serialized payloads so the fast path avoids double serialization.
-
-.. toctree::
-   :maxdepth: 1
-
-   requirements/index

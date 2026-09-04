@@ -14,18 +14,6 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
 
-# Files carrying `// # req-Id:` markers, consumed by
-# //score/socom/docs:docs_bundle via its code_targets attribute.
-filegroup(
-    name = "requirement_marked_sources",
-    srcs = [
-        "impl/runtime_impl.cpp",
-        "impl/service_identifier.cpp",
-        "impl/string_registry.cpp",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "headers",
     srcs = glob([

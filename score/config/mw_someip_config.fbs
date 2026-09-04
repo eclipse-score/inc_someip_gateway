@@ -1,7 +1,3 @@
-// # req-Id: comp_req__config__flatbuffer_schema
-// # req-Id: comp_req__config__service_instance_ids
-// # req-Id: comp_req__config__local_remote_split
-
 namespace score.mw_someip_config;
 
 /// Top-level element of the gateway configuration

@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-// # req-Id: comp_req__someipd__local_network_service
 #include "local_network_service.h"
 
 #include <cstddef>

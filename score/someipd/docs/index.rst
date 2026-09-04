@@ -21,8 +21,3 @@ Abstract
 ========
 
 The SOME/IP daemon. Wraps the SOME/IP protocol stack, handles Service Discovery, and routes messages between remote peers and local IPC clients.
-
-.. toctree::
-   :maxdepth: 1
-
-   requirements/index

@@ -21,8 +21,3 @@ Abstract
 ========
 
 The gateway daemon. Bridges local IPC service instances with remote SOME/IP service instances across the ASIL boundary, handling service offers, requests, event subscriptions, and payload transfer.
-
-.. toctree::
-   :maxdepth: 1
-
-   requirements/index

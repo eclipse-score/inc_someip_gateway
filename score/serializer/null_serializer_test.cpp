@@ -131,10 +131,6 @@ TEST_F(NullSerializer_test, init_with_empty_file_fails) {
 // --- score_com_serializer_get ---
 
 TEST_F(NullSerializer_test, get_event_serializer_succeeds) {
-    RecordProperty("FullyVerifies",
-                   "comp_req__serializer__element_lookup, comp_req__serializer__c_abi_plugin");
-    RecordProperty("TestType", "requirements-based");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
     const score_com_serializer* serializer = nullptr;
     std::string service(kTestServiceTypeName);
     std::string element(kTestEventName);

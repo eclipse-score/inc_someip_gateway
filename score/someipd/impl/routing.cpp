@@ -11,8 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-// # req-Id: comp_req__someipd__remote_local_routing
-// # req-Id: comp_req__someipd__sd_protocol
 #include "routing.h"
 
 #include <cassert>

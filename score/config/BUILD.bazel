@@ -22,14 +22,6 @@ exports_files(
     ],
 )
 
-# Files carrying `# req-Id:` markers, consumed by
-# //score/config/docs:docs_bundle via its code_targets attribute.
-filegroup(
-    name = "requirement_marked_sources",
-    srcs = ["mw_someip_config.fbs"],
-    visibility = ["//visibility:public"],
-)
-
 flatbuffer_cc_library(
     name = "config_flatbuffers",
     srcs = ["mw_someip_config.fbs"],

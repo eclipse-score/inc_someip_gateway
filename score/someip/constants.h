@@ -16,9 +16,6 @@
 
 #include "score/someip/types.h"
 
-// # req-Id: comp_req__someip__protocol_types
-// # req-Id: comp_req__someip__protocol_limits
-
 namespace score::someip {
 
 // =============================================================================

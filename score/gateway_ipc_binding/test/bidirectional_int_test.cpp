@@ -42,9 +42,6 @@ using namespace std::chrono_literals;
 namespace score::gateway_ipc_binding {
 
 TEST_F(Gateway_ipc_binding_unconnected_integration_test, connect) {
-    RecordProperty("FullyVerifies", "comp_req__gateway_ipc_binding__ctrl_chan");
-    RecordProperty("TestType", "requirements-based");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
     // This test verifies that a client can connect to the server and receive a reply.
 
     // Start the server
@@ -91,9 +88,6 @@ INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_connected_bidirectional_integrati
                          readable_test_names);
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subscribes_to_event) {
-    RecordProperty("FullyVerifies", "comp_req__gateway_ipc_binding__pending_conn");
-    RecordProperty("TestType", "requirements-based");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
     std::promise<void> event_subscription_change_promise;
     EXPECT_CALL(server.mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::subscribed))

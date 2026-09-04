@@ -11,8 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-// # req-Id: comp_req__gateway_ipc_binding__ctrl_chan
-// # req-Id: comp_req__gateway_ipc_binding__pending_conn
 #include "binding_base.hpp"
 
 #include <cassert>

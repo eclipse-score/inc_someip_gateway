@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-// # req-Id: comp_req__socom__service_identity
 #include "service_identifier.hpp"
 
 #include <tuple>

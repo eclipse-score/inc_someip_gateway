@@ -17,7 +17,6 @@ load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 # BUILD does not need to load @score_docs_as_code.
 docs_bundle(
     name = "docs_bundle",
-    code_targets = ["//score/someip:requirement_marked_sources"],
     source_dir = "",
     visibility = ["//visibility:public"],
 )

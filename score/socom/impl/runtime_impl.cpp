@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-// # req-Id: comp_req__socom__service_runtime
 #include "runtime_impl.hpp"
 
 #include <unistd.h>

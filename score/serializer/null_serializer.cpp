@@ -14,10 +14,6 @@
 /// @file
 /// This file provides a "serializer" which actually doesn't serialize and just copies the memory.
 
-// # req-Id: comp_req__serializer__null_passthrough
-// # req-Id: comp_req__serializer__c_abi_plugin
-// # req-Id: comp_req__serializer__element_lookup
-
 #include <csignal>
 #include <cstddef>
 #include <cstring>
