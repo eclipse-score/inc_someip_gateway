@@ -42,6 +42,7 @@ constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
 constexpr auto RESPONSE_TIMEOUT{1s};
 constexpr std::uint16_t STRESS_THROUGHPUT_BATCH_SIZE{100};
+constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{100};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
@@ -270,6 +271,12 @@ class BenchmarkFixture {
         SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
     }
 
+    SequenceId get_current_sequence_id() const { return next_sequence_id_.load(); }
+
+    SequenceId get_last_received_sequence_id() const { return last_received_sequence_id_.load(); }
+
+    std::size_t get_num_lost_sequence_ids() const { return num_lost_sequence_ids.load(); }
+
    private:
     template <typename RequestType, typename EventType>
     void SendRequest(EventType& request_event, PayloadSize size, SequenceId sequence_id,
@@ -480,21 +487,46 @@ BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
     ->ComputeStatistics("p90", [](const std::vector<double>& v) { return Percentile(v, 90.0); })
     ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
 
-// Throughput benchmarks - measure message sending rate
+// Throughput benchmarks - measure the rate of messages echoed back by the echo server
 BENCHMARK_DEFINE_F(IpcBenchmark, ThroughputEcho)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
 
+    auto batch_size = THROUGHPUT_BATCH_SIZE;
+    std::size_t current_messages_lost = 0;
+
     for (auto const& _ : state) {
         BenchmarkFixture::Instance().SendEchoRequestAsync(payload_size);
+
+        // limit in flight messages to avoid overwhelming the system
+        while ((BenchmarkFixture::Instance().get_last_received_sequence_id() + batch_size) <
+               BenchmarkFixture::Instance().get_current_sequence_id() - 1) {
+            std::this_thread::yield();
+        }
+
+        // adjust batch size to minimize message loss
+        if (current_messages_lost < BenchmarkFixture::Instance().get_num_lost_sequence_ids()) {
+            batch_size /= 2;
+            current_messages_lost = BenchmarkFixture::Instance().get_num_lost_sequence_ids();
+        } else {
+            batch_size += 1;
+        }
     }
 
     state.SetLabel(GetPayloadSizeName(payload_size));
     state.counters["payload_bytes"] = static_cast<double>(payload_bytes);
-    state.counters["messages_per_sec"] =
-        benchmark::Counter(static_cast<double>(state.iterations()), benchmark::Counter::kIsRate);
-    state.counters["bytes_per_sec"] = benchmark::Counter(
-        static_cast<double>(state.iterations() * payload_bytes), benchmark::Counter::kIsRate);
+    state.counters["sent_messages"] =
+        static_cast<double>(BenchmarkFixture::Instance().get_current_sequence_id() - 1);
+    state.counters["received_messages"] =
+        static_cast<double>(BenchmarkFixture::Instance().get_last_received_sequence_id() -
+                            BenchmarkFixture::Instance().get_num_lost_sequence_ids());
+    state.counters["dropped_messages"] =
+        static_cast<double>(BenchmarkFixture::Instance().get_num_lost_sequence_ids());
+    state.counters["drop_ratio"] =
+        BenchmarkFixture::Instance().get_current_sequence_id() - 1 > 0
+            ? static_cast<double>(BenchmarkFixture::Instance().get_num_lost_sequence_ids()) /
+                  static_cast<double>(BenchmarkFixture::Instance().get_current_sequence_id() - 1)
+            : 0.0;
 }
 
 BENCHMARK_REGISTER_F(IpcBenchmark, ThroughputEcho)
@@ -504,6 +536,7 @@ BENCHMARK_REGISTER_F(IpcBenchmark, ThroughputEcho)
     // ->Arg(3)  // Large
     // ->Arg(4)  // XLarge
     // ->Arg(5)  // XXLarge
+    // ->UseManualTime()
     ->Unit(benchmark::kMicrosecond);
 
 // Stress test - send messages in batches to test system under high load
