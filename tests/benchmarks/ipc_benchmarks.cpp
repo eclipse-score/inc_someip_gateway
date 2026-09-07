@@ -41,7 +41,6 @@ constexpr std::uint8_t MAX_SERVICE_DISCOVERY_RETRIES{30};
 constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
 constexpr auto RESPONSE_TIMEOUT{1s};
-constexpr std::uint16_t STRESS_THROUGHPUT_BATCH_SIZE{100};
 constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{10};
 constexpr std::uint64_t THROUGHPUT_MIN_BATCH_SIZE{1};
 constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{10000};
@@ -509,7 +508,7 @@ BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
     ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
 
 // Throughput benchmarks - measure the rate of messages echoed back by the echo server
-BENCHMARK_DEFINE_F(IpcBenchmark, ThroughputEcho)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
 
@@ -563,44 +562,13 @@ BENCHMARK_DEFINE_F(IpcBenchmark, ThroughputEcho)(benchmark::State& state) {
         static_cast<double>(received_messages * payload_bytes), benchmark::Counter::kIsRate);
 }
 
-BENCHMARK_REGISTER_F(IpcBenchmark, ThroughputEcho)
+BENCHMARK_REGISTER_F(IpcBenchmark, Throughput)
     ->Arg(0)  // Tiny
-    // ->Arg(1)  // Small
-    // ->Arg(2)  // Medium
-    // ->Arg(3)  // Large
-    // ->Arg(4)  // XLarge
-    // ->Arg(5)  // XXLarge
-    // ->UseManualTime()
-    ->Unit(benchmark::kMicrosecond);
-
-// Stress test - send messages in batches to test system under high load
-BENCHMARK_DEFINE_F(IpcBenchmark, StressThroughput)(benchmark::State& state) {
-    auto payload_size = GetPayloadSizeFromArg(state.range(0));
-    auto payload_bytes = static_cast<std::uint32_t>(payload_size);
-
-    for (auto const& _ : state) {
-        for (std::uint16_t i{0}; i < STRESS_THROUGHPUT_BATCH_SIZE; ++i) {
-            BenchmarkFixture::Instance().SendEchoRequestAsync(payload_size);
-        }
-    }
-
-    auto batch_name =
-        GetPayloadSizeName(payload_size) + "_Batch" + std::to_string(STRESS_THROUGHPUT_BATCH_SIZE);
-    state.SetLabel(batch_name);
-    state.counters["payload_bytes"] = static_cast<double>(payload_bytes);
-    state.counters["messages_per_sec"] =
-        benchmark::Counter(static_cast<double>(state.iterations() * STRESS_THROUGHPUT_BATCH_SIZE),
-                           benchmark::Counter::kIsRate);
-    state.counters["bytes_per_sec"] = benchmark::Counter(
-        static_cast<double>(state.iterations() * STRESS_THROUGHPUT_BATCH_SIZE * payload_bytes),
-        benchmark::Counter::kIsRate);
-}
-
-BENCHMARK_REGISTER_F(IpcBenchmark, StressThroughput)
-    ->Arg(0)  // Tiny
-    // ->Arg(1)  // Small
-    // ->Arg(2)  // Medium
-    // ->Arg(3)  // Large
+    ->Arg(1)  // Small
+    ->Arg(2)  // Medium
+    ->Arg(3)  // Large
+    ->Arg(4)  // XLarge
+    ->Arg(5)  // XXLarge
     ->Unit(benchmark::kMicrosecond);
 
 int main(int argc, char** argv) {
