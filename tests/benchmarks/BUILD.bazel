@@ -118,6 +118,7 @@ py_pytest(
         ":flamegraph_scripts",
         ":ipc_benchmarks",
         "//score/gatewayd",
+        "//score/serializer:null_serializer",
         "//score/someipd",
     ] + glob(["config/**/*.json"]),
     target_compatible_with = select({
@@ -144,6 +145,7 @@ py_pytest(
         ":flamegraph_scripts",
         ":ipc_benchmarks",
         "//score/gatewayd",
+        "//score/serializer:null_serializer",
         "//score/someipd",
     ] + glob(["config/**/*.json"]),
     target_compatible_with = select({
