@@ -11,21 +11,21 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# Builds the docs, runs the upstream //:traceability_gate against the resulting
-# _build/metrics.json, and posts (or edits) a sticky PR comment with the gate
-# output and pass/fail status.
+# Builds the docs and runs the upstream //:traceability_gate against the
+# resulting _build/metrics.json, then uploads the gate output as an artifact.
 #
-# The comment step is best-effort: PRs from forks get a read-only GITHUB_TOKEN
-# and the sticky-comment action will fail with 403 — marked continue-on-error
-# so those PRs still surface the numbers via the job log and artifact.
+# This workflow does NOT comment on the PR — see quality_pack-publish.yml for
+# the elevated-permissions companion that downloads the artifact and posts.
+# The split is required so that pull requests opened from forks (which get a
+# read-only GITHUB_TOKEN) still get a comment.
 
-name: Quality pack coverage comment
+name: Quality pack coverage
 
 on:
   workflow_call:
 
 jobs:
-  quality-pack-comment:
+  quality-pack:
     runs-on: ubuntu-24.04
     steps:
       - uses: eclipse-score/more-disk-space@v1
@@ -50,51 +50,24 @@ jobs:
       # Thresholds default to 0 while comp_req coverage is being (re-)built up
       # against the SOME/IP protocol spec. Raise the --min-* flags as
       # links land, so the gate never regresses without a follow-up ticket.
+      # --need-type=comp_req scopes the gate to component requirements;
+      # feat_req / stkh_req live upstream in eclipse-score/score and would
+      # otherwise pull the numbers to zero and flap the gate.
       - name: Run traceability gate
-        id: gate
         continue-on-error: true
         run: |
-          mkdir -p .llm_tmp
-          # --need-type=comp_req scopes the gate to component requirements;
-          # feat_req / stkh_req live upstream in eclipse-score/score and would
-          # otherwise pull the numbers to zero and flap the gate.
+          mkdir -p _quality_pack
           bazel run //:traceability_gate -- \
             --metrics-json "$PWD/_build/metrics.json" \
             --need-type=comp_req \
-            > .llm_tmp/gate.txt
-      - name: Render sticky comment body
-        run: |
-          if [ "${{ steps.gate.outcome }}" = "success" ]; then
-            status="**PASS**"
-          else
-            status="**FAIL**"
-          fi
-          {
-            echo '<!-- quality-pack-coverage -->'
-            echo "### Quality pack traceability — gate: $status"
-            echo
-            echo '```text'
-            cat .llm_tmp/gate.txt
-            echo '```'
-            echo
-            echo "<sub>Produced by \`//:traceability_gate\` against \`_build/metrics.json\`.</sub>"
-          } > .llm_tmp/comment.md
-          cat .llm_tmp/comment.md
-      - name: Upload metrics + gate output
+            > _quality_pack/gate.txt
+      - name: Upload quality pack artifact
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: quality-pack-metrics
           path: |
             _build/metrics.json
-            .llm_tmp/gate.txt
-            .llm_tmp/comment.md
+            _quality_pack/gate.txt
           if-no-files-found: warn
           retention-days: 14
-      - name: Post sticky PR comment
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # v2.9.1
-        with:
-          header: quality-pack-coverage
-          path: .llm_tmp/comment.md
