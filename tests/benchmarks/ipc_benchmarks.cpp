@@ -42,7 +42,13 @@ constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
 constexpr auto RESPONSE_TIMEOUT{1s};
 constexpr std::uint16_t STRESS_THROUGHPUT_BATCH_SIZE{100};
-constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{100};
+constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{10};
+constexpr std::uint64_t THROUGHPUT_MIN_BATCH_SIZE{1};
+constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{10000};
+// Number of messages sent between two consecutive batch size adjustments.
+constexpr std::uint64_t THROUGHPUT_ADJUST_INTERVAL{50};
+// Upper bound for waiting on in-flight messages: the tail of a batch may be lost for good.
+constexpr auto THROUGHPUT_DRAIN_TIMEOUT{100ms};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
@@ -277,6 +283,12 @@ class BenchmarkFixture {
 
     std::size_t get_num_lost_sequence_ids() const { return num_lost_sequence_ids.load(); }
 
+    SequenceId get_num_in_flight_messages() const {
+        auto const sent = next_sequence_id_.load() - 1;
+        auto const received = last_received_sequence_id_.load();
+        return sent > received ? sent - received : 0;
+    }
+
    private:
     template <typename RequestType, typename EventType>
     void SendRequest(EventType& request_event, PayloadSize size, SequenceId sequence_id,
@@ -347,22 +359,31 @@ class BenchmarkFixture {
             },
             MaxSamplesCount);
 
-        // assumption: order of events does not change
-        // then (highest - lowest + 1) == (received_sequence_ids.size())
+        if (received_sequence_ids.empty()) {
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(pending_mutex_);
+
         auto const lowest_sequence_id =
             *std::min_element(received_sequence_ids.begin(), received_sequence_ids.end());
         auto const highest_sequence_id =
             *std::max_element(received_sequence_ids.begin(), received_sequence_ids.end());
-        auto const num_lost_sequence_ids_in_range =
-            (highest_sequence_id - lowest_sequence_id + 1) - received_sequence_ids.size();
-        auto const num_lost_sequence_ids_before_lowest =
-            (lowest_sequence_id - last_received_sequence_id_ - 1);
+        auto const last_received_sequence_id = last_received_sequence_id_.load();
+        // Need to support the case when messages are lost or received out of order
+        if (lowest_sequence_id > last_received_sequence_id) {
+            auto const num_lost_sequence_ids_in_range =
+                (highest_sequence_id - lowest_sequence_id + 1) - received_sequence_ids.size();
+            auto const num_lost_sequence_ids_before_lowest =
+                lowest_sequence_id - last_received_sequence_id - 1;
 
-        num_lost_sequence_ids +=
-            num_lost_sequence_ids_before_lowest + num_lost_sequence_ids_in_range;
-        last_received_sequence_id_ = highest_sequence_id;
+            num_lost_sequence_ids +=
+                num_lost_sequence_ids_before_lowest + num_lost_sequence_ids_in_range;
+        }
+        if (highest_sequence_id > last_received_sequence_id) {
+            last_received_sequence_id_ = highest_sequence_id;
+        }
 
-        std::lock_guard<std::mutex> lock(pending_mutex_);
         for (auto const& sequence_id : received_sequence_ids) {
             auto it = pending_responses_.find(sequence_id);
             if (it != pending_responses_.end()) {
@@ -492,41 +513,54 @@ BENCHMARK_DEFINE_F(IpcBenchmark, ThroughputEcho)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
 
+    auto& fixture = BenchmarkFixture::Instance();
     auto batch_size = THROUGHPUT_BATCH_SIZE;
-    std::size_t current_messages_lost = 0;
+    std::size_t messages_lost_at_last_adjustment = fixture.get_num_lost_sequence_ids();
+    std::uint64_t sends_since_last_adjustment{0};
 
     for (auto const& _ : state) {
-        BenchmarkFixture::Instance().SendEchoRequestAsync(payload_size);
+        fixture.SendEchoRequestAsync(payload_size);
 
-        // limit in flight messages to avoid overwhelming the system
-        while ((BenchmarkFixture::Instance().get_last_received_sequence_id() + batch_size) <
-               BenchmarkFixture::Instance().get_current_sequence_id() - 1) {
-            std::this_thread::yield();
+        // Additive increase / multiplicative decrease search for the largest loss free batch size.
+        // Only the loss observed since the previous adjustment is relevant, the total loss counter
+        // never decreases and would pin the batch size to its minimum forever.
+        if (++sends_since_last_adjustment >= THROUGHPUT_ADJUST_INTERVAL) {
+            auto const messages_lost = fixture.get_num_lost_sequence_ids();
+            if (messages_lost == messages_lost_at_last_adjustment) {
+                batch_size = std::min(batch_size + 1, THROUGHPUT_MAX_BATCH_SIZE);
+            } else {
+                batch_size = std::max(batch_size - 1, THROUGHPUT_MIN_BATCH_SIZE);
+            }
+            messages_lost_at_last_adjustment = messages_lost;
+            sends_since_last_adjustment = 0;
         }
 
-        // adjust batch size to minimize message loss
-        if (current_messages_lost < BenchmarkFixture::Instance().get_num_lost_sequence_ids()) {
-            batch_size /= 2;
-            current_messages_lost = BenchmarkFixture::Instance().get_num_lost_sequence_ids();
-        } else {
-            batch_size += 1;
+        // limit in flight messages to avoid overwhelming the system
+        auto const wait_start = std::chrono::steady_clock::now();
+        while (fixture.get_num_in_flight_messages() > batch_size) {
+            if ((std::chrono::steady_clock::now() - wait_start) > THROUGHPUT_DRAIN_TIMEOUT) {
+                break;
+            }
+            std::this_thread::yield();
         }
     }
 
+    auto const sent_messages = fixture.get_current_sequence_id() - 1;
+    auto const dropped_messages = fixture.get_num_lost_sequence_ids();
+    auto const received_messages =
+        static_cast<std::size_t>(fixture.get_last_received_sequence_id() - dropped_messages);
+
     state.SetLabel(GetPayloadSizeName(payload_size));
     state.counters["payload_bytes"] = static_cast<double>(payload_bytes);
-    state.counters["sent_messages"] =
-        static_cast<double>(BenchmarkFixture::Instance().get_current_sequence_id() - 1);
-    state.counters["received_messages"] =
-        static_cast<double>(BenchmarkFixture::Instance().get_last_received_sequence_id() -
-                            BenchmarkFixture::Instance().get_num_lost_sequence_ids());
-    state.counters["dropped_messages"] =
-        static_cast<double>(BenchmarkFixture::Instance().get_num_lost_sequence_ids());
-    state.counters["drop_ratio"] =
-        BenchmarkFixture::Instance().get_current_sequence_id() - 1 > 0
-            ? static_cast<double>(BenchmarkFixture::Instance().get_num_lost_sequence_ids()) /
-                  static_cast<double>(BenchmarkFixture::Instance().get_current_sequence_id() - 1)
-            : 0.0;
+    state.counters["batch_size"] = static_cast<double>(batch_size);
+    state.counters["sent_messages"] = static_cast<double>(sent_messages);
+    state.counters["received_messages"] = static_cast<double>(received_messages);
+    state.counters["dropped_messages"] = static_cast<double>(dropped_messages);
+    state.counters["drop_ratio"] = sent_messages > 0 ? static_cast<double>(dropped_messages) /
+                                                           static_cast<double>(sent_messages)
+                                                     : 0.0;
+    state.counters["bytes_per_sec"] = benchmark::Counter(
+        static_cast<double>(received_messages * payload_bytes), benchmark::Counter::kIsRate);
 }
 
 BENCHMARK_REGISTER_F(IpcBenchmark, ThroughputEcho)
