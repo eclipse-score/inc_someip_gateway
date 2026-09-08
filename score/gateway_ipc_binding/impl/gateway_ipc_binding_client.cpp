@@ -14,10 +14,10 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 
 #include <atomic>
-#include <cassert>
 #include <cerrno>
 #include <iostream>
 #include <memory>
+#include <score/assert.hpp>
 #include <string_view>
 #include <thread>
 #include <utility>
@@ -157,7 +157,7 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
     }
 
     void handle_connect_reply_message(Connect_reply const& msg) {
-        assert(msg.status);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(msg.status);
         m_connected = msg.status;
 
         if (m_connected) {
@@ -184,10 +184,11 @@ std::unique_ptr<Gateway_ipc_binding_client> Gateway_ipc_binding_client::create(
     score::cpp::pmr::unique_ptr<score::message_passing::IClientConnection> connection,
     Shared_memory_manager_factory::Uptr slot_manager, Find_service_elements find_service_elements,
     Shared_memory_configs server_shared_memory_configs, std::string_view identifier) noexcept {
-    assert(connection && "Connection must not be null");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(connection && "Connection must not be null");
 
     auto identifier_opt = fixed_string_from_string<Client_identifier>(identifier);
-    assert(identifier_opt && "Identifier exceeds maximum size for Client_identifier");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(identifier_opt &&
+                                    "Identifier exceeds maximum size for Client_identifier");
 
     return std::make_unique<Gateway_ipc_binding_client_impl>(
         runtime, std::move(connection), std::move(slot_manager), find_service_elements,

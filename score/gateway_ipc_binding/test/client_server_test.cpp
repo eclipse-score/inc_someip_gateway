@@ -74,7 +74,7 @@ class Gateway_ipc_binding_unconnected_test : public ::testing::Test, protected T
         server = Gateway_ipc_binding_server::create(*runtime_server, std::move(ipc_server),
                                                     std::move(mock_server_factory),
                                                     [](auto, auto, bool) {});
-        assert(server && "Server creation failed");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(server && "Server creation failed");
 
         // Create gateway IPC binding client
         score::message_passing::ClientFactory client_factory;
@@ -83,7 +83,7 @@ class Gateway_ipc_binding_unconnected_test : public ::testing::Test, protected T
             create_mock_unique_ptr(mock_client_shared_memory_manager_factory);
         client = Gateway_ipc_binding_client::create(*runtime_client, std::move(connection),
                                                     std::move(mock_client_factory));
-        assert(client && "Client creation failed");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(client && "Client creation failed");
     }
 };
 
@@ -117,7 +117,7 @@ class Gateway_ipc_binding_test : public Gateway_ipc_binding_unconnected_test {
     Gateway_ipc_binding_test() : Gateway_ipc_binding_unconnected_test() {
         // Start the server
         auto start_result = server->start();
-        assert(start_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(start_result);
 
         // Wait for the client to connect and receive the reply
         while (!client->is_connected()) {
@@ -175,16 +175,16 @@ class Gateway_ipc_binding_test : public Gateway_ipc_binding_unconnected_test {
 
         auto client_connector_result = client_runtime.make_client_connector(
             socom_client_config, instance, make_client_callbacks());
-        assert(client_connector_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(client_connector_result);
         auto client_connector = std::move(client_connector_result.value());
-        assert(client_connector);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(client_connector);
 
         auto server_connector_result = server_runtime.make_server_connector(
             socom_server_config, instance, make_server_callbacks());
-        assert(server_connector_result);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(server_connector_result);
         auto enabled_server_connector = score::socom::Disabled_server_connector::enable(
             std::move(server_connector_result.value()));
-        assert(enabled_server_connector);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(enabled_server_connector);
 
         return {std::move(client_connector), std::move(enabled_server_connector)};
     }

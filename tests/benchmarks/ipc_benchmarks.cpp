@@ -330,7 +330,8 @@ class BenchmarkFixture {
                         sizeof(EchoResponseTiny) <=
                             decltype(pre_serialized_response_sample)::element_type::kMaxMessageSize,
                         "EchoResponseTiny size exceeds max sample count");
-                    assert(pre_serialized_response_sample->size == sizeof(EchoResponseTiny));
+                    SCORE_LANGUAGE_FUTURECPP_ASSERT(pre_serialized_response_sample->size ==
+                                                    sizeof(EchoResponseTiny));
                     const auto* response_sample = reinterpret_cast<const EchoResponseTiny*>(
                         pre_serialized_response_sample->data);
 
@@ -428,7 +429,8 @@ class BenchmarkFixture {
 
         (void)response_event.GetNewSamples(
             [&received_sequence_ids](auto pre_serialized_response_sample) {
-                assert(pre_serialized_response_sample->size == sizeof(ResponseType));
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(pre_serialized_response_sample->size ==
+                                                sizeof(ResponseType));
                 auto* response_sample =
                     reinterpret_cast<const ResponseType*>(pre_serialized_response_sample->data);
 
