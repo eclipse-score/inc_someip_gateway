@@ -244,10 +244,10 @@ class BenchmarkFixture {
         auto sequence_id = next_sequence_id_++;
 
         auto send_time = std::chrono::high_resolution_clock::now();
-        SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
 
         std::unique_lock<std::mutex> lock(pending_mutex_);
         pending_responses_[sequence_id] = {};
+        SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
 
         bool received = response_cv_.wait_for(lock, RESPONSE_TIMEOUT, [this, sequence_id]() {
             return pending_responses_[sequence_id].received;
