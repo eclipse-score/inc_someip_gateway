@@ -94,6 +94,7 @@ class BenchmarkFixture {
         next_sequence_id_ = 1;
         last_received_sequence_id_ = next_sequence_id_.load() - 1;
         num_lost_sequence_ids = 0;
+        pending_responses_.clear();
     }
 
     void Initialize() {
@@ -644,28 +645,29 @@ BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
     for (auto const& _ : state) {
         fixture.SendEchoRequestAsync(payload_size);
 
-        // Additive increase / decrease search for the largest loss free batch size.
-        // Only the loss observed since the previous adjustment is relevant, the total loss counter
-        // never decreases and would pin the batch size to its minimum forever.
-        if (++sends_since_last_adjustment >= THROUGHPUT_ADJUST_INTERVAL) {
-            auto const messages_lost = fixture.get_num_lost_sequence_ids();
-            if (messages_lost == messages_lost_at_last_adjustment) {
-                batch_size = std::min(batch_size + 1, THROUGHPUT_MAX_BATCH_SIZE);
-            } else {
-                batch_size = std::max(batch_size - 1, THROUGHPUT_MIN_BATCH_SIZE);
-            }
-            messages_lost_at_last_adjustment = messages_lost;
-            sends_since_last_adjustment = 0;
-        }
+        // // Additive increase / decrease search for the largest loss free batch size.
+        // // Only the loss observed since the previous adjustment is relevant, the total loss
+        // counter
+        // // never decreases and would pin the batch size to its minimum forever.
+        // if (++sends_since_last_adjustment >= THROUGHPUT_ADJUST_INTERVAL) {
+        //     auto const messages_lost = fixture.get_num_lost_sequence_ids();
+        //     if (messages_lost == messages_lost_at_last_adjustment) {
+        //         batch_size = std::min(batch_size + 1, THROUGHPUT_MAX_BATCH_SIZE);
+        //     } else {
+        //         batch_size = std::max(batch_size - 1, THROUGHPUT_MIN_BATCH_SIZE);
+        //     }
+        //     messages_lost_at_last_adjustment = messages_lost;
+        //     sends_since_last_adjustment = 0;
+        // }
 
-        // limit in flight messages to avoid overwhelming the system
-        auto const wait_start = std::chrono::steady_clock::now();
-        while (fixture.get_num_in_flight_messages() > batch_size) {
-            if ((std::chrono::steady_clock::now() - wait_start) > THROUGHPUT_DRAIN_TIMEOUT) {
-                break;
-            }
-            std::this_thread::yield();
-        }
+        // // limit in flight messages to avoid overwhelming the system
+        // auto const wait_start = std::chrono::steady_clock::now();
+        // while (fixture.get_num_in_flight_messages() > batch_size) {
+        //     if ((std::chrono::steady_clock::now() - wait_start) > THROUGHPUT_DRAIN_TIMEOUT) {
+        //         break;
+        //     }
+        //     std::this_thread::yield();
+        // }
     }
 
     auto const sent_messages = state.iterations();
@@ -694,7 +696,6 @@ BENCHMARK_REGISTER_F(IpcBenchmark, Throughput)
     ->Arg(4)  // XLarge
     ->Arg(5)  // XXLarge
     ->MinWarmUpTime(1)
-    // ->Iterations(100)
     ->Unit(benchmark::kMicrosecond);
 
 int main(int argc, char** argv) {
