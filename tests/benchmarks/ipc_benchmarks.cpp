@@ -245,7 +245,10 @@ class BenchmarkFixture {
 
     std::size_t get_num_lost_sequence_ids() const { return num_lost_sequence_ids.load(); }
 
-    SequenceId get_num_in_flight_messages() const { return pending_responses_.size(); }
+    SequenceId get_num_in_flight_messages() const {
+        std::lock_guard<std::mutex> lock(pending_mutex_);
+        return pending_responses_.size();
+    }
 
     Event_wrapper GetEventWrapper(PayloadSize size) {
         switch (size) {
@@ -431,12 +434,19 @@ class BenchmarkFixture {
 
         // In the system there are currently at least 4 buffers of size kMaxSampleCount, thus in
         // flight messages might be able to fill those
-        auto const min_sequence_id = next_sequence_id_ - (score::someip::kMaxSampleCount * 5);
-        auto const current_pending_size = pending_responses_.size();
-        received_sequence_ids.erase(
-            std::remove_if(received_sequence_ids.begin(), received_sequence_ids.end(),
-                           [min_sequence_id](SequenceId id) { return id < min_sequence_id; }),
-            received_sequence_ids.end());
+        constexpr SequenceId kMaxInFlightMessages = score::someip::kMaxSampleCount * 5U;
+        const auto next_sequence_id = next_sequence_id_.load();
+        const auto min_sequence_id = next_sequence_id > kMaxInFlightMessages
+                                         ? next_sequence_id - kMaxInFlightMessages
+                                         : SequenceId{1};
+        const auto current_pending_size = pending_responses_.size();
+        for (auto it = pending_responses_.begin(); it != pending_responses_.end();) {
+            if (*it < min_sequence_id) {
+                it = pending_responses_.erase(it);
+            } else {
+                ++it;
+            }
+        }
         num_lost_sequence_ids += current_pending_size - pending_responses_.size();
     }
 
@@ -449,7 +459,7 @@ class BenchmarkFixture {
     std::optional<EchoRequestPreSerializedSkeleton> request_skeleton_;
     std::optional<EchoResponsePreSerializedProxy> response_proxy_;
 
-    std::mutex pending_mutex_;
+    mutable std::mutex pending_mutex_;
     std::unordered_set<SequenceId> pending_responses_;
 };
 
@@ -533,7 +543,7 @@ BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
     ->Arg(0)  // Tiny
     ->UseManualTime()
     ->Unit(benchmark::kMicrosecond)
-    // ->Repetitions(30)
+    ->Repetitions(30)
     ->ComputeStatistics("p50", [](const std::vector<double>& v) { return Percentile(v, 50.0); })
     ->ComputeStatistics("p90", [](const std::vector<double>& v) { return Percentile(v, 90.0); })
     ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
