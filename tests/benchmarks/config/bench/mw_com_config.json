@@ -95,17 +95,17 @@
                     "events": [
                         {
                             "eventName": "echo_request_tiny",
-                            "numberOfSampleSlots": 64,
+                            "numberOfSampleSlots": 10,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_small",
-                            "numberOfSampleSlots": 64,
+                            "numberOfSampleSlots": 10,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_request_medium",
-                            "numberOfSampleSlots": 64,
+                            "numberOfSampleSlots": 10,
                             "maxSubscribers": 1
                         },
                         {
@@ -142,17 +142,17 @@
                     "events": [
                         {
                             "eventName": "echo_response_tiny",
-                            "numberOfSampleSlots": 64,
+                            "numberOfSampleSlots": 10,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_response_small",
-                            "numberOfSampleSlots": 64,
+                            "numberOfSampleSlots": 10,
                             "maxSubscribers": 1
                         },
                         {
                             "eventName": "echo_response_medium",
-                            "numberOfSampleSlots": 64,
+                            "numberOfSampleSlots": 10,
                             "maxSubscribers": 1
                         },
                         {

@@ -31,6 +31,7 @@
 
 #include "echo_service.h"
 #include "score/mw/com/runtime.h"
+#include "score/someip/constants.h"
 #include "score/stop_token.hpp"
 
 using namespace echo_service;
@@ -41,11 +42,12 @@ constexpr std::uint8_t MAX_SERVICE_DISCOVERY_RETRIES{30};
 constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
 constexpr auto RESPONSE_TIMEOUT{1s};
-constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{10};
+// gatewayd hard codes the number of slots to someip::kMaxSampleCount
+constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{score::someip::kMaxSampleCount};
 constexpr std::uint64_t THROUGHPUT_MIN_BATCH_SIZE{1};
 constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{10000};
 // Number of messages sent between two consecutive batch size adjustments.
-constexpr std::uint64_t THROUGHPUT_ADJUST_INTERVAL{50};
+constexpr std::uint64_t THROUGHPUT_ADJUST_INTERVAL{score::someip::kMaxSampleCount};
 // Upper bound for waiting on in-flight messages: the tail of a batch may be lost for good.
 constexpr auto THROUGHPUT_DRAIN_TIMEOUT{100ms};
 
@@ -292,7 +294,16 @@ class BenchmarkFixture {
     template <typename RequestType, typename EventType>
     void SendRequest(EventType& request_event, PayloadSize size, SequenceId sequence_id,
                      std::uint32_t actual_size) {
-        auto pre_serialized_request = request_event.Allocate().value();
+        auto pre_serialized_request_result = request_event.Allocate();
+        while (!pre_serialized_request_result.has_value()) {
+            if (g_stop_token.stop_requested()) {
+                return;
+            }
+            std::this_thread::yield();
+            pre_serialized_request_result = request_event.Allocate();
+        }
+
+        auto pre_serialized_request = std::move(pre_serialized_request_result.value());
         pre_serialized_request->size = sizeof(RequestType);
         auto* request = reinterpret_cast<RequestType*>(pre_serialized_request->data);
         request->sequence_id = sequence_id;
