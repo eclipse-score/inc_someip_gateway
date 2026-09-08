@@ -37,7 +37,7 @@
 using namespace echo_service;
 using namespace std::chrono_literals;
 
-constexpr std::uint16_t MaxSamplesCount{10};
+constexpr std::uint16_t MaxSamplesCount{score::someip::kMaxSampleCount};
 constexpr std::uint8_t MAX_SERVICE_DISCOVERY_RETRIES{30};
 constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
@@ -48,8 +48,6 @@ constexpr std::uint64_t THROUGHPUT_MIN_BATCH_SIZE{1};
 constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{10000};
 // Number of messages sent between two consecutive batch size adjustments.
 constexpr std::uint64_t THROUGHPUT_ADJUST_INTERVAL{score::someip::kMaxSampleCount};
-// Upper bound for waiting on in-flight messages: the tail of a batch may be lost for good.
-constexpr auto THROUGHPUT_DRAIN_TIMEOUT{100ms};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
@@ -543,15 +541,6 @@ BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
             }
             messages_lost_at_last_adjustment = messages_lost;
             sends_since_last_adjustment = 0;
-        }
-
-        // limit in flight messages to avoid overwhelming the system
-        auto const wait_start = std::chrono::steady_clock::now();
-        while (fixture.get_num_in_flight_messages() > batch_size) {
-            if ((std::chrono::steady_clock::now() - wait_start) > THROUGHPUT_DRAIN_TIMEOUT) {
-                break;
-            }
-            std::this_thread::yield();
         }
     }
 
