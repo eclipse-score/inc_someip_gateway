@@ -281,7 +281,7 @@ class BenchmarkFixture {
    private:
     template <typename ResponseType, typename EventType>
     std::chrono::nanoseconds ReceiveEchoRequestSyncWithPolling(
-        EventType& response_event, std::uint64_t sequence_id,
+        EventType& response_event, SequenceId sequence_id,
         std::chrono::high_resolution_clock::time_point send_time) {
         auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -461,7 +461,7 @@ class IpcBenchmark : public benchmark::Fixture {
     }
 
     void TearDown(const ::benchmark::State& /*state*/) override {
-        // Further cleanup is done in global teardown
+        // Cleanup is done in global teardown
     }
 };
 
