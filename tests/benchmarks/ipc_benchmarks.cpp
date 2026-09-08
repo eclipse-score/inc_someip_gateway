@@ -292,8 +292,16 @@ class BenchmarkFixture {
     template <typename RequestType, typename EventType>
     void SendRequest(EventType& request_event, PayloadSize size, SequenceId sequence_id,
                      std::uint32_t actual_size) {
+        auto timeout = std::chrono::steady_clock::now() + RESPONSE_TIMEOUT;
+
         auto pre_serialized_request_result = request_event.Allocate();
         while (!pre_serialized_request_result.has_value()) {
+            if (timeout < std::chrono::steady_clock::now()) {
+                throw std::runtime_error(
+                    "Timeout waiting for available slot to send echo request. Sequence ID: " +
+                    std::to_string(sequence_id));
+            }
+
             if (g_stop_token.stop_requested()) {
                 return;
             }
