@@ -19,8 +19,10 @@
 #include <cstring>
 #include <vector>
 
+#include "score/language/safecpp/string_view/zstring_view.h"
 #include "score/mw/com/types.h"
 #include "score/serializer/pre_serialized_data.h"
+#include "score/span.hpp"
 
 namespace echo_service {
 
