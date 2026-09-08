@@ -293,6 +293,23 @@ class BenchmarkFixture {
         return ReceiveEchoRequestSyncWithPolling(sequence_id, send_time);
     }
 
+    // Send echo request without waiting (for throughput testing)
+    void SendEchoRequestAsync(PayloadSize size) {
+        auto actual_size = static_cast<std::uint32_t>(size);
+        auto sequence_id = next_sequence_id_++;
+        {
+            std::unique_lock<std::mutex> lock(pending_mutex_);
+            pending_responses_.insert(sequence_id);
+        }
+
+        SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
+    }
+
+    std::size_t get_num_lost_sequence_ids() const { return num_lost_sequence_ids.load(); }
+
+    SequenceId get_num_in_flight_messages() const { return pending_responses_.size(); }
+
+   private:
     std::chrono::nanoseconds ReceiveEchoRequestSyncWithPolling(
         std::uint64_t sequence_id, std::chrono::high_resolution_clock::time_point send_time) {
         auto start_time = std::chrono::high_resolution_clock::now();
@@ -338,23 +355,6 @@ class BenchmarkFixture {
             ". Check if echo_server is properly handling requests.");
     }
 
-    // Send echo request without waiting (for throughput testing)
-    void SendEchoRequestAsync(PayloadSize size) {
-        auto actual_size = static_cast<std::uint32_t>(size);
-        auto sequence_id = next_sequence_id_++;
-        {
-            std::unique_lock<std::mutex> lock(pending_mutex_);
-            pending_responses_.insert(sequence_id);
-        }
-
-        SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
-    }
-
-    std::size_t get_num_lost_sequence_ids() const { return num_lost_sequence_ids.load(); }
-
-    SequenceId get_num_in_flight_messages() const { return pending_responses_.size(); }
-
-   private:
     template <typename RequestType, typename EventType>
     void SendRequest(EventType& request_event, PayloadSize size, SequenceId sequence_id,
                      std::uint32_t actual_size) {
