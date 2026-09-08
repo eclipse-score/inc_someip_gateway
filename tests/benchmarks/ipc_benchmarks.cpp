@@ -48,6 +48,8 @@ constexpr std::uint64_t THROUGHPUT_MIN_BATCH_SIZE{1};
 constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{10000};
 // Number of messages sent between two consecutive batch size adjustments.
 constexpr std::uint64_t THROUGHPUT_ADJUST_INTERVAL{score::someip::kMaxSampleCount};
+// Upper bound for waiting on in-flight messages: the tail of a batch may be lost for good.
+constexpr auto THROUGHPUT_DRAIN_TIMEOUT{100ms};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
@@ -88,10 +90,14 @@ class BenchmarkFixture {
         return instance;
     }
 
-    void Initialize() {
+    void ResetCounters() {
         next_sequence_id_ = 1;
         last_received_sequence_id_ = next_sequence_id_.load() - 1;
         num_lost_sequence_ids = 0;
+    }
+
+    void Initialize() {
+        ResetCounters();
 
         if (initialized_) {
             return;
@@ -146,45 +152,6 @@ class BenchmarkFixture {
                                      " seconds. Make sure echo_server is running.");
         }
 
-        auto handler_tiny_result = response_proxy_->echo_response_tiny_.SetReceiveHandler([this]() {
-            this->ProcessResponses<EchoResponseTiny>(response_proxy_->echo_response_tiny_);
-        });
-        auto handler_small_result =
-            response_proxy_->echo_response_small_.SetReceiveHandler([this]() {
-                this->ProcessResponses<EchoResponseSmall>(response_proxy_->echo_response_small_);
-            });
-        auto handler_medium_result =
-            response_proxy_->echo_response_medium_.SetReceiveHandler([this]() {
-                this->ProcessResponses<EchoResponseMedium>(response_proxy_->echo_response_medium_);
-            });
-        auto handler_large_result =
-            response_proxy_->echo_response_large_.SetReceiveHandler([this]() {
-                this->ProcessResponses<EchoResponseLarge>(response_proxy_->echo_response_large_);
-            });
-        auto handler_xlarge_result =
-            response_proxy_->echo_response_xlarge_.SetReceiveHandler([this]() {
-                this->ProcessResponses<EchoResponseXLarge>(response_proxy_->echo_response_xlarge_);
-            });
-        auto handler_xxlarge_result =
-            response_proxy_->echo_response_xxlarge_.SetReceiveHandler([this]() {
-                this->ProcessResponses<EchoResponseXXLarge>(
-                    response_proxy_->echo_response_xxlarge_);
-            });
-
-        if (!handler_tiny_result.has_value() || !handler_small_result.has_value() ||
-            !handler_medium_result.has_value() || !handler_large_result.has_value() ||
-            !handler_xlarge_result.has_value() || !handler_xxlarge_result.has_value()) {
-            throw std::runtime_error("Failed to set response handlers");
-        }
-
-        std::cout << "Subscribing to echo_response service events..." << std::endl;
-        (void)response_proxy_->echo_response_tiny_.Subscribe(MaxSamplesCount);
-        (void)response_proxy_->echo_response_small_.Subscribe(MaxSamplesCount);
-        (void)response_proxy_->echo_response_medium_.Subscribe(MaxSamplesCount);
-        (void)response_proxy_->echo_response_large_.Subscribe(MaxSamplesCount);
-        (void)response_proxy_->echo_response_xlarge_.Subscribe(MaxSamplesCount);
-        (void)response_proxy_->echo_response_xxlarge_.Subscribe(MaxSamplesCount);
-
         std::cout << "Creating and offering echo_request service..." << std::endl;
         auto request_specifier =
             score::mw::com::InstanceSpecifier::Create(std::string{EchoRequestkInstanceSpecifier});
@@ -205,12 +172,127 @@ class BenchmarkFixture {
             throw std::runtime_error("Failed to offer request service");
         }
 
-        std::cout << "Waiting for echo server to connect..." << std::endl;
-        std::this_thread::sleep_for(SEQUENTIAL_HANDSHAKE_DELAY);
-
         initialized_ = true;
         std::cout << "Benchmark infrastructure initialized successfully - ready to start benchmarks"
                   << std::endl;
+    }
+
+    void SubscribeLatency(PayloadSize const size) {
+        std::cout << "Subscribing to echo_response service event" << static_cast<int>(size) << "..."
+                  << std::endl;
+
+        score::Result<void> handler_result;
+
+        switch (size) {
+            case PayloadSize::Tiny:
+                handler_result = response_proxy_->echo_response_tiny_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesLatency<EchoResponseTiny>(
+                        response_proxy_->echo_response_tiny_);
+                });
+                (void)response_proxy_->echo_response_tiny_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::Small:
+                handler_result = response_proxy_->echo_response_small_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesLatency<EchoResponseSmall>(
+                        response_proxy_->echo_response_small_);
+                });
+                (void)response_proxy_->echo_response_small_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::Medium:
+                handler_result = response_proxy_->echo_response_medium_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesLatency<EchoResponseMedium>(
+                        response_proxy_->echo_response_medium_);
+                });
+                (void)response_proxy_->echo_response_medium_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::Large:
+                handler_result = response_proxy_->echo_response_large_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesLatency<EchoResponseLarge>(
+                        response_proxy_->echo_response_large_);
+                });
+                (void)response_proxy_->echo_response_large_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::XLarge:
+                handler_result = response_proxy_->echo_response_xlarge_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesLatency<EchoResponseXLarge>(
+                        response_proxy_->echo_response_xlarge_);
+                });
+                (void)response_proxy_->echo_response_xlarge_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::XXLarge:
+                handler_result =
+                    response_proxy_->echo_response_xxlarge_.SetReceiveHandler([this]() {
+                        this->ProcessResponsesLatency<EchoResponseXXLarge>(
+                            response_proxy_->echo_response_xxlarge_);
+                    });
+                (void)response_proxy_->echo_response_xxlarge_.Subscribe(MaxSamplesCount);
+                break;
+        }
+        if (!handler_result.has_value()) {
+            throw std::runtime_error("Failed to set response handler");
+        }
+
+        std::cout << "Waiting for echo server to connect..." << std::endl;
+        std::this_thread::sleep_for(SEQUENTIAL_HANDSHAKE_DELAY);
+    }
+
+    void SubscribeThroughput(PayloadSize const size) {
+        std::cout << "Subscribing to echo_response service event" << static_cast<int>(size) << "..."
+                  << std::endl;
+
+        score::Result<void> handler_result;
+
+        switch (size) {
+            case PayloadSize::Tiny:
+                handler_result = response_proxy_->echo_response_tiny_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesThroughput<EchoResponseTiny>(
+                        response_proxy_->echo_response_tiny_);
+                });
+                (void)response_proxy_->echo_response_tiny_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::Small:
+                handler_result = response_proxy_->echo_response_small_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesThroughput<EchoResponseSmall>(
+                        response_proxy_->echo_response_small_);
+                });
+                (void)response_proxy_->echo_response_small_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::Medium:
+                handler_result = response_proxy_->echo_response_medium_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesThroughput<EchoResponseMedium>(
+                        response_proxy_->echo_response_medium_);
+                });
+                (void)response_proxy_->echo_response_medium_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::Large:
+                handler_result = response_proxy_->echo_response_large_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesThroughput<EchoResponseLarge>(
+                        response_proxy_->echo_response_large_);
+                });
+                (void)response_proxy_->echo_response_large_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::XLarge:
+                handler_result = response_proxy_->echo_response_xlarge_.SetReceiveHandler([this]() {
+                    this->ProcessResponsesThroughput<EchoResponseXLarge>(
+                        response_proxy_->echo_response_xlarge_);
+                });
+                (void)response_proxy_->echo_response_xlarge_.Subscribe(MaxSamplesCount);
+                break;
+            case PayloadSize::XXLarge:
+                handler_result =
+                    response_proxy_->echo_response_xxlarge_.SetReceiveHandler([this]() {
+                        this->ProcessResponsesThroughput<EchoResponseXXLarge>(
+                            response_proxy_->echo_response_xxlarge_);
+                    });
+                (void)response_proxy_->echo_response_xxlarge_.Subscribe(MaxSamplesCount);
+                break;
+        }
+        if (!handler_result.has_value()) {
+            throw std::runtime_error("Failed to set response handler");
+        }
+
+        std::cout << "Waiting for echo server to connect..." << std::endl;
+        std::this_thread::sleep_for(SEQUENTIAL_HANDSHAKE_DELAY);
     }
 
     void Cleanup() {
@@ -218,6 +300,15 @@ class BenchmarkFixture {
             return;
         }
 
+        Unsubscribe();
+
+        response_proxy_.reset();
+        request_skeleton_.reset();
+        initialized_ = false;
+        std::cout << "Benchmark infrastructure cleaned up" << std::endl;
+    }
+
+    void Unsubscribe() {
         if (response_proxy_.has_value()) {
             (void)response_proxy_->echo_response_tiny_.UnsetReceiveHandler();
             (void)response_proxy_->echo_response_small_.UnsetReceiveHandler();
@@ -232,11 +323,6 @@ class BenchmarkFixture {
             response_proxy_->echo_response_xlarge_.Unsubscribe();
             response_proxy_->echo_response_xxlarge_.Unsubscribe();
         }
-
-        response_proxy_.reset();
-        request_skeleton_.reset();
-        initialized_ = false;
-        std::cout << "Benchmark infrastructure cleaned up" << std::endl;
     }
 
     // Send echo request and wait for response (for latency testing)
@@ -273,21 +359,17 @@ class BenchmarkFixture {
     void SendEchoRequestAsync(PayloadSize size) {
         auto actual_size = static_cast<std::uint32_t>(size);
         auto sequence_id = next_sequence_id_++;
+        {
+            std::unique_lock<std::mutex> lock(pending_mutex_);
+            pending_responses_[sequence_id] = {};
+        }
 
         SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
     }
 
-    SequenceId get_current_sequence_id() const { return next_sequence_id_.load(); }
-
-    SequenceId get_last_received_sequence_id() const { return last_received_sequence_id_.load(); }
-
     std::size_t get_num_lost_sequence_ids() const { return num_lost_sequence_ids.load(); }
 
-    SequenceId get_num_in_flight_messages() const {
-        auto const sent = next_sequence_id_.load() - 1;
-        auto const received = last_received_sequence_id_.load();
-        return sent > received ? sent - received : 0;
-    }
+    SequenceId get_num_in_flight_messages() const { return pending_responses_.size(); }
 
    private:
     template <typename RequestType, typename EventType>
@@ -358,7 +440,7 @@ class BenchmarkFixture {
     };
 
     template <typename ResponseType, typename EventType>
-    void ProcessResponses(EventType& response_event) {
+    void ProcessResponsesLatency(EventType& response_event) {
         if (g_stop_token.stop_requested()) {
             return;
         }
@@ -382,27 +464,6 @@ class BenchmarkFixture {
 
         std::lock_guard<std::mutex> lock(pending_mutex_);
 
-        auto const lowest_sequence_id =
-            *std::min_element(received_sequence_ids.begin(), received_sequence_ids.end());
-        auto const highest_sequence_id =
-            *std::max_element(received_sequence_ids.begin(), received_sequence_ids.end());
-        auto const last_received_sequence_id = last_received_sequence_id_.load();
-        // Need to support the case when messages are lost or received out of order
-        // This code is best effort to calculate the number of lost messages. A bullet proof
-        // solution would require tracking of each individual SequenceId and its receive status.
-        if (lowest_sequence_id > last_received_sequence_id) {
-            auto const num_lost_sequence_ids_in_range =
-                (highest_sequence_id - lowest_sequence_id + 1) - received_sequence_ids.size();
-            auto const num_lost_sequence_ids_before_lowest =
-                lowest_sequence_id - last_received_sequence_id - 1;
-
-            num_lost_sequence_ids +=
-                num_lost_sequence_ids_before_lowest + num_lost_sequence_ids_in_range;
-        }
-        if (highest_sequence_id > last_received_sequence_id) {
-            last_received_sequence_id_ = highest_sequence_id;
-        }
-
         for (auto const& sequence_id : received_sequence_ids) {
             auto it = pending_responses_.find(sequence_id);
             if (it != pending_responses_.end()) {
@@ -411,6 +472,46 @@ class BenchmarkFixture {
                 response_cv_.notify_all();
             }
         }
+    }
+
+    template <typename ResponseType, typename EventType>
+    void ProcessResponsesThroughput(EventType& response_event) {
+        if (g_stop_token.stop_requested()) {
+            return;
+        }
+
+        std::vector<SequenceId> received_sequence_ids;
+        received_sequence_ids.reserve(MaxSamplesCount);
+
+        (void)response_event.GetNewSamples(
+            [&received_sequence_ids](auto pre_serialized_response_sample) {
+                assert(pre_serialized_response_sample->size == sizeof(ResponseType));
+                auto* response_sample =
+                    reinterpret_cast<const ResponseType*>(pre_serialized_response_sample->data);
+
+                received_sequence_ids.push_back(response_sample->sequence_id);
+            },
+            MaxSamplesCount);
+
+        if (received_sequence_ids.empty()) {
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(pending_mutex_);
+
+        for (auto const& sequence_id : received_sequence_ids) {
+            pending_responses_.erase(sequence_id);
+        }
+
+        // In the system there are currently at least 4 buffers of size kMaxSampleCount, thus in
+        // flight messages might be able to fill those
+        auto const min_sequence_id = next_sequence_id_ - (score::someip::kMaxSampleCount * 5);
+        auto const current_pending_size = pending_responses_.size();
+        received_sequence_ids.erase(
+            std::remove_if(received_sequence_ids.begin(), received_sequence_ids.end(),
+                           [min_sequence_id](SequenceId id) { return id < min_sequence_id; }),
+            received_sequence_ids.end());
+        num_lost_sequence_ids += current_pending_size - pending_responses_.size();
     }
 
     bool initialized_{false};
@@ -434,8 +535,9 @@ class IpcBenchmark : public benchmark::Fixture {
         BenchmarkFixture::Instance().Initialize();
     }
 
-    void TearDown(const ::benchmark::State& state) override {
-        // Cleanup is done in global teardown
+    void TearDown(const ::benchmark::State& /*state*/) override {
+        BenchmarkFixture::Instance().Unsubscribe();
+        // Further cleanup is done in global teardown
     }
 };
 
@@ -496,6 +598,7 @@ double Percentile(const std::vector<double>& v, double percentile) {
 // Latency benchmarks - measure round-trip time
 BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
+    BenchmarkFixture::Instance().SubscribeLatency(payload_size);
 
     for (auto const& _ : state) {
         auto latency = BenchmarkFixture::Instance().SendEchoRequestSync(payload_size);
@@ -513,24 +616,25 @@ BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
                            benchmark::Counter::kIsIterationInvariant);
 }
 
-BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
-    ->Arg(0)  // Tiny
-    // ->Arg(1)  // Small
-    // ->Arg(2)  // Medium
-    // ->Arg(3)  // Large
-    // ->Arg(4)  // XLarge
-    // ->Arg(5)  // XXLarge
-    ->UseManualTime()
-    ->Unit(benchmark::kMicrosecond)
-    ->Repetitions(30)
-    ->ComputeStatistics("p50", [](const std::vector<double>& v) { return Percentile(v, 50.0); })
-    ->ComputeStatistics("p90", [](const std::vector<double>& v) { return Percentile(v, 90.0); })
-    ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
+// BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
+//     ->Arg(0)  // Tiny
+//     // ->Arg(1)  // Small
+//     // ->Arg(2)  // Medium
+//     // ->Arg(3)  // Large
+//     // ->Arg(4)  // XLarge
+//     // ->Arg(5)  // XXLarge
+//     ->UseManualTime()
+//     ->Unit(benchmark::kMicrosecond)
+//     ->Repetitions(30)
+//     ->ComputeStatistics("p50", [](const std::vector<double>& v) { return Percentile(v, 50.0); })
+//     ->ComputeStatistics("p90", [](const std::vector<double>& v) { return Percentile(v, 90.0); })
+//     ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
 
 // Throughput benchmarks - measure the rate of messages echoed back by the echo server
 BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
+    BenchmarkFixture::Instance().SubscribeThroughput(payload_size);
 
     auto& fixture = BenchmarkFixture::Instance();
     auto batch_size = THROUGHPUT_BATCH_SIZE;
@@ -552,6 +656,15 @@ BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
             }
             messages_lost_at_last_adjustment = messages_lost;
             sends_since_last_adjustment = 0;
+        }
+
+        // limit in flight messages to avoid overwhelming the system
+        auto const wait_start = std::chrono::steady_clock::now();
+        while (fixture.get_num_in_flight_messages() > batch_size) {
+            if ((std::chrono::steady_clock::now() - wait_start) > THROUGHPUT_DRAIN_TIMEOUT) {
+                break;
+            }
+            std::this_thread::yield();
         }
     }
 
@@ -580,6 +693,8 @@ BENCHMARK_REGISTER_F(IpcBenchmark, Throughput)
     ->Arg(3)  // Large
     ->Arg(4)  // XLarge
     ->Arg(5)  // XXLarge
+    ->MinWarmUpTime(1)
+    // ->Iterations(100)
     ->Unit(benchmark::kMicrosecond);
 
 int main(int argc, char** argv) {

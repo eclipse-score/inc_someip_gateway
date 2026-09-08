@@ -40,6 +40,7 @@ using SequenceId = std::uint64_t;
 // Template-based message structure for all payload sizes
 template <PayloadSize PayloadBytes>
 struct EchoMessage {
+    constexpr static std::size_t size = static_cast<std::size_t>(PayloadBytes);
     SequenceId sequence_id;
     std::uint64_t timestamp_ns;
     PayloadSize payload_size;
