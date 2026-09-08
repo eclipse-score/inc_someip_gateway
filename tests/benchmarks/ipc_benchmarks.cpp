@@ -567,6 +567,12 @@ BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
     ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
 
 // Throughput benchmarks - measure the rate of messages echoed back by the echo server
+// All shared memory slots have the same number of buffers and we block until a new mw::com buffer
+// is available. This eventually leads to a self regulating system with some but minimal message
+// loss.
+// At first a more complex algorithm was implemented to track the number of in-flight messages and
+// drop messages when the number of in-flight messages exceeded a threshold. However, this basically
+// achieved the same values we have now with much more complexity.
 BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
