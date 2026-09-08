@@ -89,6 +89,7 @@ class BenchmarkFixture {
     }
 
     void Initialize() {
+        next_sequence_id_ = 1;
         last_received_sequence_id_ = next_sequence_id_.load() - 1;
         num_lost_sequence_ids = 0;
 
@@ -552,10 +553,10 @@ BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
         }
     }
 
-    auto const sent_messages = fixture.get_current_sequence_id() - 1;
+    auto const sent_messages = state.iterations();
     auto const dropped_messages = fixture.get_num_lost_sequence_ids();
     auto const received_messages =
-        static_cast<std::size_t>(fixture.get_last_received_sequence_id() - dropped_messages);
+        sent_messages - dropped_messages - fixture.get_num_in_flight_messages();
 
     state.SetLabel(GetPayloadSizeName(payload_size));
     state.counters["payload_bytes"] = static_cast<double>(payload_bytes);
