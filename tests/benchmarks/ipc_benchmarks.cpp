@@ -388,6 +388,8 @@ class BenchmarkFixture {
             *std::max_element(received_sequence_ids.begin(), received_sequence_ids.end());
         auto const last_received_sequence_id = last_received_sequence_id_.load();
         // Need to support the case when messages are lost or received out of order
+        // This code is best effort to calculate the number of lost messages. A bullet proof
+        // solution would require tracking of each individual SequenceId and its receive status.
         if (lowest_sequence_id > last_received_sequence_id) {
             auto const num_lost_sequence_ids_in_range =
                 (highest_sequence_id - lowest_sequence_id + 1) - received_sequence_ids.size();
@@ -538,7 +540,7 @@ BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
     for (auto const& _ : state) {
         fixture.SendEchoRequestAsync(payload_size);
 
-        // Additive increase / multiplicative decrease search for the largest loss free batch size.
+        // Additive increase / decrease search for the largest loss free batch size.
         // Only the loss observed since the previous adjustment is relevant, the total loss counter
         // never decreases and would pin the batch size to its minimum forever.
         if (++sends_since_last_adjustment >= THROUGHPUT_ADJUST_INTERVAL) {
