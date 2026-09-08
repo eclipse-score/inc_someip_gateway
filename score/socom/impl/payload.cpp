@@ -13,8 +13,6 @@
 
 #include "score/socom/payload.hpp"
 
-#include <cassert>
-
 namespace score::cpp {
 
 template <typename T>

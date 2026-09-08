@@ -13,8 +13,8 @@
 
 #include "client_connector_impl.hpp"
 
-#include <cassert>
 #include <iostream>
+#include <score/assert.hpp>
 
 #include "messages.hpp"
 #include "score/socom/client_connector.hpp"
@@ -171,7 +171,7 @@ Impl::Server_indication Impl::make_on_server_update_callback() {
 
 void Impl::set_registration(Registration registration) {
     m_registration = std::move(registration);
-    assert(m_registration);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(m_registration);
 }
 
 bool Impl::set_id_mappings_and_server(message::Connect_return const& connect_return) {

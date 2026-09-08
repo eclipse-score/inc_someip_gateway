@@ -13,10 +13,10 @@
 #ifndef TESTS_BENCHMARKS_ECHO_SERVICE
 #define TESTS_BENCHMARKS_ECHO_SERVICE
 
-#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
+#include <score/assert.hpp>
 #include <vector>
 
 #include "score/mw/com/types.h"
@@ -222,8 +222,9 @@ inline std::uint64_t GetSequenceId(const EchoMessagePreSerialized<PayloadBytes>&
 template <PayloadSize PayloadBytes>
 inline void CopyMessageForEcho(EchoMessagePreSerialized<PayloadBytes>& response,
                                const EchoMessagePreSerialized<PayloadBytes>& request) {
-    assert(request.size <= response.kMaxMessageSize &&
-           "Request size exceeds maximum message size for pre-serialized data");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(
+        request.size <= response.kMaxMessageSize &&
+        "Request size exceeds maximum message size for pre-serialized data");
     response.size = request.size;
     std::memcpy(response.data, request.data, request.size);
 }

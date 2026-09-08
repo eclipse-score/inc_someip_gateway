@@ -83,9 +83,9 @@ void Client_connector_with_callbacks::create_connector(
         mock_event_update_cb.as_function(), mock_event_payload_allocate_cb.as_function()};
     auto connector_result =
         runtime.make_client_connector(interface, instance, std::move(callbacks));
-    assert(connector_result);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(connector_result);
     connector = std::move(connector_result.value());
-    assert(connector);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(connector);
 }
 
 void Client_connector_with_callbacks::expect_client_connected(
@@ -144,11 +144,11 @@ void Server_connector_with_callbacks::create_connector(
 
     auto server_connector_result =
         runtime.make_server_connector(interface, instance, std::move(callbacks));
-    assert(server_connector_result);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(server_connector_result);
 
     connector =
         score::socom::Disabled_server_connector::enable(std::move(server_connector_result).value());
-    assert(connector);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(connector);
 }
 
 bool wait_on_connection_state(Gateway_ipc_binding_client const& client,

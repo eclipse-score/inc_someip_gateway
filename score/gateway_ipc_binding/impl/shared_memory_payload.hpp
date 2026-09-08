@@ -14,8 +14,8 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_SHARED_MEMORY_PAYLOAD
 #define SRC_GATEWAY_IPC_BINDING_SRC_SHARED_MEMORY_PAYLOAD
 
-#include <cassert>
 #include <memory>
+#include <score/assert.hpp>
 #include <utility>
 
 #include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
@@ -27,9 +27,9 @@ namespace score::gateway_ipc_binding {
 inline score::socom::Writable_payload make_shared_memory_writable_payload(
     Shared_memory_slot_guard guard) noexcept {
     auto mem_result = guard.get_memory();
-    assert(!mem_result.empty());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(!mem_result.empty());
     auto handle = guard.get_handle();
-    assert(handle != socom::kNoSlotHandle);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(handle != socom::kNoSlotHandle);
     return score::socom::Writable_payload{mem_result, *handle, [guard = std::move(guard)]() {}};
 }
 

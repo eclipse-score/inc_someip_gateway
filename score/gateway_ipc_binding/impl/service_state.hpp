@@ -14,8 +14,8 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_SERVICE_STATE
 #define SRC_GATEWAY_IPC_BINDING_SRC_SERVICE_STATE
 
-#include <cassert>
 #include <cerrno>
+#include <score/assert.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -96,7 +96,8 @@ struct Service_state {
                 Message_frame<Connect_service> msg;
                 msg.payload.service_id = make_service(service);
                 auto result = fixed_string_from_string<Instance_id>(instance.id.string_view());
-                assert(result && "String exceeds maximum size for fixed string");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(result &&
+                                                "String exceeds maximum size for fixed string");
                 msg.payload.instance_id = *result;
                 msg.payload.required_id = offer.required_id;
                 msg.payload.metadata =
@@ -214,7 +215,7 @@ class Service_states {
             return result;
         }
 
-        assert(msg.in_use);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(msg.in_use);
         state.counts = {configuration.num_methods, configuration.num_events};
         state.requested = msg.in_use;
         result.service_state = state;
@@ -250,7 +251,8 @@ class Service_states {
         // m_services_states is only cleaned at process_request_service(), which might be followed
         // by a call to add_server_connector(). State created prior calling add_client_connector()
         // is never cleaned up so far.
-        assert(state_ref && "Service state must exist when adding client connector");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(state_ref &&
+                                        "Service state must exist when adding client connector");
         state_ref->get().client_connector = std::move(connector);
         state_ref->get().client_connector_pending = false;
     }

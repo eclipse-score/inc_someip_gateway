@@ -13,8 +13,8 @@
 
 #include "score/socom/vector_payload.hpp"
 
-#include <cassert>
 #include <memory>
+#include <score/assert.hpp>
 
 namespace score::socom {
 
@@ -25,7 +25,7 @@ Payload make_vector_payload(Vector_buffer buffer) {
 }
 
 Payload make_vector_payload(std::size_t header_size, Vector_buffer buffer) {
-    assert(header_size <= buffer.size());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(header_size <= buffer.size());
     auto buf = std::make_unique<Vector_buffer>(std::move(buffer));
     auto span = Payload::Writable_span{*buf};
     return Payload{span, kNoSlotHandle, [buf = std::move(buf)]() {}, header_size};
@@ -33,7 +33,7 @@ Payload make_vector_payload(std::size_t header_size, Vector_buffer buffer) {
 
 Payload make_vector_payload(std::size_t lead_offset, std::size_t header_size,
                             Vector_buffer buffer) {
-    assert((lead_offset + header_size) <= buffer.size());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT((lead_offset + header_size) <= buffer.size());
     auto buf = std::make_unique<Vector_buffer>(std::move(buffer));
     auto span = Payload::Writable_span{*buf};
     return Payload{span, kNoSlotHandle, [buf = std::move(buf)]() {}, header_size, lead_offset};
@@ -47,7 +47,7 @@ Writable_payload make_writable_vector_payload(std::size_t size) {
 
 Writable_payload make_writable_vector_payload(std::size_t lead_offset, std::size_t header_size,
                                               Vector_buffer buffer) {
-    assert((lead_offset + header_size) <= buffer.size());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT((lead_offset + header_size) <= buffer.size());
     auto buf = std::make_unique<Vector_buffer>(std::move(buffer));
     auto span = Writable_payload::Writable_span{*buf};
     return Writable_payload{span, kNoSlotHandle, [buf = std::move(buf)]() {}, header_size,
