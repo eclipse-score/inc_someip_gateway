@@ -25,7 +25,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
-#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "echo_service.h"
@@ -83,7 +83,6 @@ class BenchmarkFixture {
 
     void ResetCounters() {
         next_sequence_id_ = 1;
-        last_received_sequence_id_ = next_sequence_id_.load() - 1;
         num_lost_sequence_ids = 0;
         pending_responses_.clear();
     }
@@ -280,13 +279,16 @@ class BenchmarkFixture {
 
     // Send echo request and wait for response (for latency testing)
     std::chrono::nanoseconds SendEchoRequestSync(PayloadSize size) {
+        if (PayloadSize::Tiny != size) {
+            throw std::runtime_error(
+                "SendEchoRequestSync is only supported for PayloadSize::Tiny in this benchmark");
+        }
+
         auto actual_size = static_cast<std::uint32_t>(size);
         auto sequence_id = next_sequence_id_++;
 
         auto send_time = std::chrono::high_resolution_clock::now();
 
-        std::unique_lock<std::mutex> lock(pending_mutex_);
-        pending_responses_[sequence_id] = {};
         SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
         return ReceiveEchoRequestSyncWithPolling(sequence_id, send_time);
     }
@@ -342,7 +344,7 @@ class BenchmarkFixture {
         auto sequence_id = next_sequence_id_++;
         {
             std::unique_lock<std::mutex> lock(pending_mutex_);
-            pending_responses_[sequence_id] = {};
+            pending_responses_.insert(sequence_id);
         }
 
         SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
@@ -415,11 +417,6 @@ class BenchmarkFixture {
         }
     }
 
-    struct PendingResponse {
-        bool received{false};
-        std::chrono::high_resolution_clock::time_point receive_time;
-    };
-
     template <typename ResponseType, typename EventType>
     void ProcessResponsesThroughput(EventType& response_event) {
         if (g_stop_token.stop_requested()) {
@@ -462,7 +459,6 @@ class BenchmarkFixture {
 
     bool initialized_{false};
     std::atomic<SequenceId> next_sequence_id_{1};
-    std::atomic<SequenceId> last_received_sequence_id_{next_sequence_id_.load() - 1};
     std::atomic<std::size_t> num_lost_sequence_ids{0};
 
     // Taking a shortcut here and skip the serialization/deserialization of messages and pretend
@@ -471,7 +467,7 @@ class BenchmarkFixture {
     std::optional<EchoResponsePreSerializedProxy> response_proxy_;
 
     std::mutex pending_mutex_;
-    std::unordered_map<SequenceId, PendingResponse> pending_responses_;
+    std::unordered_set<SequenceId> pending_responses_;
 };
 
 class IpcBenchmark : public benchmark::Fixture {
