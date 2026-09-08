@@ -19,6 +19,7 @@
 #include <chrono>
 #include <csignal>
 #include <cstddef>
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <optional>
@@ -44,6 +45,20 @@ constexpr auto RESPONSE_TIMEOUT{1s};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
+
+struct PayloadConfig {
+    PayloadSize size;
+    const char* name;
+};
+
+constexpr std::array<PayloadConfig, 6> PAYLOAD_CONFIGS = {{{PayloadSize::Tiny, "Tiny_8B"},
+                                                           {PayloadSize::Small, "Small_64B"},
+                                                           {PayloadSize::Medium, "Medium_1KB"},
+                                                           {PayloadSize::Large, "Large_8KB"},
+                                                           {PayloadSize::XLarge, "XLarge_64KB"},
+                                                           {PayloadSize::XXLarge, "XXLarge_1MB"}}};
+
+constexpr size_t NUM_PAYLOAD_CONFIGS = PAYLOAD_CONFIGS.size();
 
 namespace {
 score::cpp::stop_source g_stop_source{score::cpp::nostopstate_t{}};
@@ -73,6 +88,56 @@ class ErrorTrackingReporter : public benchmark::ConsoleReporter {
 };
 
 }  // namespace
+
+class Event_wrapper {
+   public:
+    using time_point = std::chrono::high_resolution_clock::time_point;
+
+    Event_wrapper(
+        std::function<void()> subscribe, std::function<void()> set_receive_handler,
+        std::function<SequenceId()> send_async,
+        std::function<std::chrono::nanoseconds(SequenceId, time_point)> receive_sync_with_polling,
+        std::function<void()> unset_receive_handler, std::function<void()> unsubscribe)
+        : subscribe_{std::move(subscribe)},
+          set_receive_handler_{std::move(set_receive_handler)},
+          send_async_{std::move(send_async)},
+          receive_sync_with_polling_{std::move(receive_sync_with_polling)},
+          unset_receive_handler_{std::move(unset_receive_handler)},
+          unsubscribe_{std::move(unsubscribe)} {}
+
+    ~Event_wrapper() {
+        try {
+            Unsubscribe();
+            UnsetReceiveHandler();
+        } catch (const std::exception& e) {
+            std::cerr << "Exception in Event_wrapper destructor: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown exception in Event_wrapper destructor" << std::endl;
+        }
+    }
+
+    void Subscribe() { subscribe_(); }
+
+    void SetReceiveHandler() { set_receive_handler_(); }
+
+    SequenceId SendAsync() { return send_async_(); }
+
+    std::chrono::nanoseconds ReceiveSyncWithPolling(SequenceId sequence_id, time_point send_time) {
+        return receive_sync_with_polling_(sequence_id, send_time);
+    }
+
+    void UnsetReceiveHandler() { unset_receive_handler_(); }
+
+    void Unsubscribe() { unsubscribe_(); }
+
+   private:
+    std::function<void()> subscribe_;
+    std::function<void()> set_receive_handler_;
+    std::function<SequenceId()> send_async_;
+    std::function<std::chrono::nanoseconds(SequenceId, time_point)> receive_sync_with_polling_;
+    std::function<void()> unset_receive_handler_;
+    std::function<void()> unsubscribe_;
+};
 
 class BenchmarkFixture {
    public:
@@ -168,91 +233,10 @@ class BenchmarkFixture {
                   << std::endl;
     }
 
-    void Subscribe(PayloadSize const size) {
-        std::cout << "Subscribing to echo_response service event" << static_cast<int>(size) << "..."
-                  << std::endl;
-
-        switch (size) {
-            case PayloadSize::Tiny:
-                (void)response_proxy_->echo_response_tiny_.Subscribe(MaxSamplesCount);
-                break;
-            case PayloadSize::Small:
-                (void)response_proxy_->echo_response_small_.Subscribe(MaxSamplesCount);
-                break;
-            case PayloadSize::Medium:
-                (void)response_proxy_->echo_response_medium_.Subscribe(MaxSamplesCount);
-                break;
-            case PayloadSize::Large:
-                (void)response_proxy_->echo_response_large_.Subscribe(MaxSamplesCount);
-                break;
-            case PayloadSize::XLarge:
-                (void)response_proxy_->echo_response_xlarge_.Subscribe(MaxSamplesCount);
-                break;
-            case PayloadSize::XXLarge:
-                (void)response_proxy_->echo_response_xxlarge_.Subscribe(MaxSamplesCount);
-                break;
-        }
-
-        std::cout << "Waiting for echo server to connect..." << std::endl;
-        std::this_thread::sleep_for(SEQUENTIAL_HANDSHAKE_DELAY);
-    }
-
-    void SetReceiveHandler(PayloadSize const size) {
-        std::cout << "Subscribing to echo_response service event" << static_cast<int>(size) << "..."
-                  << std::endl;
-
-        score::Result<void> handler_result;
-
-        switch (size) {
-            case PayloadSize::Tiny:
-                handler_result = response_proxy_->echo_response_tiny_.SetReceiveHandler([this]() {
-                    this->ProcessResponsesThroughput<EchoResponseTiny>(
-                        response_proxy_->echo_response_tiny_);
-                });
-                break;
-            case PayloadSize::Small:
-                handler_result = response_proxy_->echo_response_small_.SetReceiveHandler([this]() {
-                    this->ProcessResponsesThroughput<EchoResponseSmall>(
-                        response_proxy_->echo_response_small_);
-                });
-                break;
-            case PayloadSize::Medium:
-                handler_result = response_proxy_->echo_response_medium_.SetReceiveHandler([this]() {
-                    this->ProcessResponsesThroughput<EchoResponseMedium>(
-                        response_proxy_->echo_response_medium_);
-                });
-                break;
-            case PayloadSize::Large:
-                handler_result = response_proxy_->echo_response_large_.SetReceiveHandler([this]() {
-                    this->ProcessResponsesThroughput<EchoResponseLarge>(
-                        response_proxy_->echo_response_large_);
-                });
-                break;
-            case PayloadSize::XLarge:
-                handler_result = response_proxy_->echo_response_xlarge_.SetReceiveHandler([this]() {
-                    this->ProcessResponsesThroughput<EchoResponseXLarge>(
-                        response_proxy_->echo_response_xlarge_);
-                });
-                break;
-            case PayloadSize::XXLarge:
-                handler_result =
-                    response_proxy_->echo_response_xxlarge_.SetReceiveHandler([this]() {
-                        this->ProcessResponsesThroughput<EchoResponseXXLarge>(
-                            response_proxy_->echo_response_xxlarge_);
-                    });
-                break;
-        }
-        if (!handler_result.has_value()) {
-            throw std::runtime_error("Failed to set response handler");
-        }
-    }
-
     void Cleanup() {
         if (!initialized_) {
             return;
         }
-
-        Unsubscribe();
 
         response_proxy_.reset();
         request_skeleton_.reset();
@@ -260,58 +244,45 @@ class BenchmarkFixture {
         std::cout << "Benchmark infrastructure cleaned up" << std::endl;
     }
 
-    void Unsubscribe() {
-        if (response_proxy_.has_value()) {
-            (void)response_proxy_->echo_response_tiny_.UnsetReceiveHandler();
-            (void)response_proxy_->echo_response_small_.UnsetReceiveHandler();
-            (void)response_proxy_->echo_response_medium_.UnsetReceiveHandler();
-            (void)response_proxy_->echo_response_large_.UnsetReceiveHandler();
-            (void)response_proxy_->echo_response_xlarge_.UnsetReceiveHandler();
-            (void)response_proxy_->echo_response_xxlarge_.UnsetReceiveHandler();
-            response_proxy_->echo_response_tiny_.Unsubscribe();
-            response_proxy_->echo_response_small_.Unsubscribe();
-            response_proxy_->echo_response_medium_.Unsubscribe();
-            response_proxy_->echo_response_large_.Unsubscribe();
-            response_proxy_->echo_response_xlarge_.Unsubscribe();
-            response_proxy_->echo_response_xxlarge_.Unsubscribe();
-        }
-    }
-
-    // Send echo request and wait for response (for latency testing)
-    std::chrono::nanoseconds SendEchoRequestSync(PayloadSize size) {
-        if (PayloadSize::Tiny != size) {
-            throw std::runtime_error(
-                "SendEchoRequestSync is only supported for PayloadSize::Tiny in this benchmark");
-        }
-
-        auto actual_size = static_cast<std::uint32_t>(size);
-        auto sequence_id = next_sequence_id_++;
-
-        auto send_time = std::chrono::high_resolution_clock::now();
-
-        SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
-        return ReceiveEchoRequestSyncWithPolling(sequence_id, send_time);
-    }
-
-    // Send echo request without waiting (for throughput testing)
-    void SendEchoRequestAsync(PayloadSize size) {
-        auto actual_size = static_cast<std::uint32_t>(size);
-        auto sequence_id = next_sequence_id_++;
-        {
-            std::unique_lock<std::mutex> lock(pending_mutex_);
-            pending_responses_.insert(sequence_id);
-        }
-
-        SendRequestUsingCorrectEvent(size, sequence_id, actual_size);
-    }
-
     std::size_t get_num_lost_sequence_ids() const { return num_lost_sequence_ids.load(); }
 
     SequenceId get_num_in_flight_messages() const { return pending_responses_.size(); }
 
+    Event_wrapper GetEventWrapper(PayloadSize size) {
+        switch (size) {
+            case PayloadSize::Tiny:
+                return MakeEventWrapper<EchoRequestTiny, EchoResponseTiny>(
+                    request_skeleton_->echo_request_tiny_, response_proxy_->echo_response_tiny_,
+                    size);
+            case PayloadSize::Small:
+                return MakeEventWrapper<EchoRequestSmall, EchoResponseSmall>(
+                    request_skeleton_->echo_request_small_, response_proxy_->echo_response_small_,
+                    size);
+            case PayloadSize::Medium:
+                return MakeEventWrapper<EchoRequestMedium, EchoResponseMedium>(
+                    request_skeleton_->echo_request_medium_, response_proxy_->echo_response_medium_,
+                    size);
+            case PayloadSize::Large:
+                return MakeEventWrapper<EchoRequestLarge, EchoResponseLarge>(
+                    request_skeleton_->echo_request_large_, response_proxy_->echo_response_large_,
+                    size);
+            case PayloadSize::XLarge:
+                return MakeEventWrapper<EchoRequestXLarge, EchoResponseXLarge>(
+                    request_skeleton_->echo_request_xlarge_, response_proxy_->echo_response_xlarge_,
+                    size);
+            case PayloadSize::XXLarge:
+                return MakeEventWrapper<EchoRequestXXLarge, EchoResponseXXLarge>(
+                    request_skeleton_->echo_request_xxlarge_,
+                    response_proxy_->echo_response_xxlarge_, size);
+        }
+        throw std::runtime_error("Unsupported payload size");
+    }
+
    private:
+    template <typename ResponseType, typename EventType>
     std::chrono::nanoseconds ReceiveEchoRequestSyncWithPolling(
-        std::uint64_t sequence_id, std::chrono::high_resolution_clock::time_point send_time) {
+        EventType& response_event, std::uint64_t sequence_id,
+        std::chrono::high_resolution_clock::time_point send_time) {
         auto start_time = std::chrono::high_resolution_clock::now();
 
         while (std::chrono::high_resolution_clock::now() - start_time < RESPONSE_TIMEOUT) {
@@ -324,16 +295,16 @@ class BenchmarkFixture {
             bool found = false;
             std::chrono::high_resolution_clock::time_point receive_time;
 
-            (void)response_proxy_->echo_response_tiny_.GetNewSamples(
+            (void)response_event.GetNewSamples(
                 [&](auto pre_serialized_response_sample) {
                     static_assert(
-                        sizeof(EchoResponseTiny) <=
+                        sizeof(ResponseType) <=
                             decltype(pre_serialized_response_sample)::element_type::kMaxMessageSize,
-                        "EchoResponseTiny size exceeds max sample count");
+                        "Echo response size exceeds max sample count");
                     SCORE_LANGUAGE_FUTURECPP_ASSERT(pre_serialized_response_sample->size ==
-                                                    sizeof(EchoResponseTiny));
-                    const auto* response_sample = reinterpret_cast<const EchoResponseTiny*>(
-                        pre_serialized_response_sample->data);
+                                                    sizeof(ResponseType));
+                    const auto* response_sample =
+                        reinterpret_cast<const ResponseType*>(pre_serialized_response_sample->data);
 
                     if (response_sample->sequence_id == sequence_id) {
                         receive_time = std::chrono::high_resolution_clock::now();
@@ -343,6 +314,8 @@ class BenchmarkFixture {
                 MaxSamplesCount);
 
             if (found) {
+                std::lock_guard<std::mutex> lock(pending_mutex_);
+                pending_responses_.erase(sequence_id);
                 return std::chrono::duration_cast<std::chrono::nanoseconds>(receive_time -
                                                                             send_time);
             }
@@ -354,6 +327,46 @@ class BenchmarkFixture {
         throw std::runtime_error(
             "Timeout waiting for echo response. Sequence ID: " + std::to_string(sequence_id) +
             ". Check if echo_server is properly handling requests.");
+    }
+
+    template <typename RequestType, typename ResponseType, typename RequestEventType,
+              typename ResponseEventType>
+    Event_wrapper MakeEventWrapper(RequestEventType& request_event,
+                                   ResponseEventType& response_event, PayloadSize size) {
+        return Event_wrapper{
+            [&response_event, size]() {
+                std::cout << "Subscribing to echo_response service event" << static_cast<int>(size)
+                          << "..." << std::endl;
+                (void)response_event.Subscribe(MaxSamplesCount);
+
+                std::cout << "Waiting for echo server to connect..." << std::endl;
+                std::this_thread::sleep_for(SEQUENTIAL_HANDSHAKE_DELAY);
+            },
+            [this, &response_event]() {
+                auto handler_result = response_event.SetReceiveHandler([this, &response_event]() {
+                    this->ProcessResponsesThroughput<ResponseType>(response_event);
+                });
+                if (!handler_result.has_value()) {
+                    throw std::runtime_error("Failed to set response handler");
+                }
+            },
+            [this, &request_event, size]() {
+                auto actual_size = static_cast<std::uint32_t>(size);
+                auto sequence_id = next_sequence_id_++;
+                {
+                    std::unique_lock<std::mutex> lock(pending_mutex_);
+                    pending_responses_.insert(sequence_id);
+                }
+
+                SendRequest<RequestType>(request_event, size, sequence_id, actual_size);
+                return sequence_id;
+            },
+            [this, &response_event](SequenceId sequence_id, Event_wrapper::time_point send_time) {
+                return ReceiveEchoRequestSyncWithPolling<ResponseType>(response_event, sequence_id,
+                                                                       send_time);
+            },
+            [&response_event]() { (void)response_event.UnsetReceiveHandler(); },
+            [&response_event]() { response_event.Unsubscribe(); }};
     }
 
     template <typename RequestType, typename EventType>
@@ -385,37 +398,6 @@ class BenchmarkFixture {
         request->actual_size = actual_size;
         utils::FillTestPayload(request->payload, actual_size, sequence_id);
         (void)request_event.Send(std::move(pre_serialized_request));
-    }
-
-    // Helper method to select the correct event based on payload size
-    void SendRequestUsingCorrectEvent(PayloadSize size, SequenceId sequence_id,
-                                      std::uint32_t actual_size) {
-        switch (size) {
-            case PayloadSize::Tiny:
-                SendRequest<EchoRequestTiny>(request_skeleton_->echo_request_tiny_, size,
-                                             sequence_id, actual_size);
-                break;
-            case PayloadSize::Small:
-                SendRequest<EchoRequestSmall>(request_skeleton_->echo_request_small_, size,
-                                              sequence_id, actual_size);
-                break;
-            case PayloadSize::Medium:
-                SendRequest<EchoRequestMedium>(request_skeleton_->echo_request_medium_, size,
-                                               sequence_id, actual_size);
-                break;
-            case PayloadSize::Large:
-                SendRequest<EchoRequestLarge>(request_skeleton_->echo_request_large_, size,
-                                              sequence_id, actual_size);
-                break;
-            case PayloadSize::XLarge:
-                SendRequest<EchoRequestXLarge>(request_skeleton_->echo_request_xlarge_, size,
-                                               sequence_id, actual_size);
-                break;
-            case PayloadSize::XXLarge:
-                SendRequest<EchoRequestXXLarge>(request_skeleton_->echo_request_xxlarge_, size,
-                                                sequence_id, actual_size);
-                break;
-        }
     }
 
     template <typename ResponseType, typename EventType>
@@ -479,24 +461,9 @@ class IpcBenchmark : public benchmark::Fixture {
     }
 
     void TearDown(const ::benchmark::State& /*state*/) override {
-        BenchmarkFixture::Instance().Unsubscribe();
         // Further cleanup is done in global teardown
     }
 };
-
-struct PayloadConfig {
-    PayloadSize size;
-    const char* name;
-};
-
-constexpr std::array<PayloadConfig, 6> PAYLOAD_CONFIGS = {{{PayloadSize::Tiny, "Tiny_8B"},
-                                                           {PayloadSize::Small, "Small_64B"},
-                                                           {PayloadSize::Medium, "Medium_1KB"},
-                                                           {PayloadSize::Large, "Large_8KB"},
-                                                           {PayloadSize::XLarge, "XLarge_64KB"},
-                                                           {PayloadSize::XXLarge, "XXLarge_1MB"}}};
-
-constexpr size_t NUM_PAYLOAD_CONFIGS = PAYLOAD_CONFIGS.size();
 
 namespace {
 PayloadSize GetPayloadSizeFromArg(int64_t arg) {
@@ -541,10 +508,14 @@ double Percentile(const std::vector<double>& v, double percentile) {
 // Latency benchmarks - measure round-trip time
 BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
-    BenchmarkFixture::Instance().Subscribe(payload_size);
+    auto event_wrapper = BenchmarkFixture::Instance().GetEventWrapper(payload_size);
+    event_wrapper.Subscribe();
 
     for (auto const& _ : state) {
-        auto latency = BenchmarkFixture::Instance().SendEchoRequestSync(payload_size);
+        auto send_time = std::chrono::high_resolution_clock::now();
+        auto sequence_id = event_wrapper.SendAsync();
+        auto latency = event_wrapper.ReceiveSyncWithPolling(sequence_id, send_time);
+
         if (latency.count() == 0) {
             state.SkipWithError("Failed to receive response or timeout occurred");
             break;
@@ -578,14 +549,15 @@ BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
 BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
     auto payload_size = GetPayloadSizeFromArg(state.range(0));
     auto payload_bytes = static_cast<std::uint32_t>(payload_size);
-    BenchmarkFixture::Instance().SetReceiveHandler(payload_size);
-    BenchmarkFixture::Instance().Subscribe(payload_size);
+    auto event_wrapper = BenchmarkFixture::Instance().GetEventWrapper(payload_size);
+    event_wrapper.SetReceiveHandler();
+    event_wrapper.Subscribe();
 
     auto& fixture = BenchmarkFixture::Instance();
 
     for (auto const& _ : state) {
         // blocks when buffers are full
-        fixture.SendEchoRequestAsync(payload_size);
+        event_wrapper.SendAsync();
     }
 
     auto const sent_messages = state.iterations();
