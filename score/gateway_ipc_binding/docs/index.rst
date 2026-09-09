@@ -114,6 +114,14 @@ The implementation is not yet feature-complete. Important gaps to keep in mind:
 
 These limitations are design constraints of the current code, not documentation omissions.
 
+Alternative implementation
+--------------------------
+
+An alternative implementation of the same public interfaces, built on ``mw::com`` instead of
+``score::message_passing`` and hand-rolled shared memory, is being designed in :doc:`mw_com_binding`. It is
+selected by a Bazel feature flag and is not part of the default build. Everything described above refers to
+the current, default implementation.
+
 Further details
 ---------------
 
@@ -122,3 +130,4 @@ Further details
 
    shared_memory
    ipc_protocol
+   mw_com_binding

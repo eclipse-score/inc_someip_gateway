@@ -1,0 +1,62 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+left to right direction
+skinparam componentStyle rectangle
+
+component "Client_adapter\nGateway_ipc_binding_client" as client
+component "Server_adapter\nGateway_ipc_binding_server" as server
+component "Mw_com_binding\nC++" as binding
+component "Provider_service_binding\nC++" as provider
+component "Consumer_service_binding\nC++" as consumer
+component "SOCom runtime\nC++" as runtime
+component "mw::com\nGenericSkeleton / GenericProxy" as mwcom
+
+note bottom of client
+  create_client(): sets up all services
+  eagerly, is_connected() reports setup
+  success. No peer handshake.
+end note
+
+note bottom of server
+  create_server(): setup deferred to start().
+  get_client_identifiers() returns an empty map.
+end note
+
+note bottom of binding
+  One Service_binding per configured service
+  instance. Symmetric, no protocol state.
+end note
+
+note bottom of provider
+  Owns GenericSkeleton, per-event in-flight
+  allocation table and a SOCom Client_connector.
+  Offers while the local service is available.
+end note
+
+note bottom of consumer
+  Owns FindServiceHandle, GenericProxy and a
+  SOCom server connector. Enables it while the
+  remote instance is found.
+end note
+
+client --> binding : Delegates to
+server --> binding : Delegates to
+binding --> provider : Owns
+binding --> consumer : Owns
+provider --> runtime : make_client_connector
+consumer --> runtime : make_server_connector
+provider --> mwcom : Create / OfferService / Allocate / Send
+consumer --> mwcom : StartFindService / Subscribe / GetNewSamples
+@enduml
