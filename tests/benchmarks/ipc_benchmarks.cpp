@@ -42,6 +42,14 @@ constexpr std::uint8_t MAX_SERVICE_DISCOVERY_RETRIES{30};
 constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
 constexpr auto RESPONSE_TIMEOUT{1s};
+// gatewayd hard codes the number of slots to someip::kMaxSampleCount
+constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{score::someip::kMaxSampleCount};
+constexpr std::uint64_t THROUGHPUT_MIN_BATCH_SIZE{1};
+constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{10000};
+// Number of messages sent between two consecutive batch size adjustments.
+constexpr std::uint64_t THROUGHPUT_ADJUST_INTERVAL{score::someip::kMaxSampleCount * 2};
+// Upper bound for waiting on in-flight messages: the tail of a batch may be lost for good.
+constexpr auto THROUGHPUT_DRAIN_TIMEOUT{100ms};
 
 constexpr const char* EchoRequestkInstanceSpecifier = "benchmark/echo_request";
 constexpr const char* EchoResponseInstanceSpecifier = "benchmark/echo_response";
@@ -516,7 +524,7 @@ double Percentile(const std::vector<double>& v, double percentile) {
 
 // Latency benchmarks - measure round-trip time
 BENCHMARK_DEFINE_F(IpcBenchmark, LatencyEcho)(benchmark::State& state) {
-    auto payload_size = GetPayloadSizeFromArg(state.range(0));
+    auto const payload_size = GetPayloadSizeFromArg(state.range(0));
     auto event_wrapper = BenchmarkFixture::Instance().GetEventWrapper(payload_size);
     event_wrapper.Subscribe();
 
@@ -549,24 +557,47 @@ BENCHMARK_REGISTER_F(IpcBenchmark, LatencyEcho)
     ->ComputeStatistics("p99", [](const std::vector<double>& v) { return Percentile(v, 99.0); });
 
 // Throughput benchmarks - measure the rate of messages echoed back by the echo server
-// All shared memory slots have the same number of buffers and we block until a new mw::com buffer
-// is available. This eventually leads to a self regulating system with some but minimal message
-// loss.
-// At first a more complex algorithm was implemented to track the number of in-flight messages and
-// drop messages when the number of in-flight messages exceeded a threshold. However, this basically
-// achieved the same values we have now with much more complexity.
+// Limiting the number of in flight messages via batch_size reduces message loss.
 BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
-    auto payload_size = GetPayloadSizeFromArg(state.range(0));
-    auto payload_bytes = static_cast<std::uint32_t>(payload_size);
+    auto const payload_size = GetPayloadSizeFromArg(state.range(0));
+    auto const payload_bytes = static_cast<std::uint32_t>(payload_size);
     auto event_wrapper = BenchmarkFixture::Instance().GetEventWrapper(payload_size);
     event_wrapper.SetReceiveHandler();
     event_wrapper.Subscribe();
 
     auto& fixture = BenchmarkFixture::Instance();
+    auto batch_size = THROUGHPUT_BATCH_SIZE;
+    std::size_t messages_lost_at_last_adjustment = fixture.get_num_lost_sequence_ids();
+    std::uint64_t sends_since_last_adjustment{0};
 
     for (auto const& _ : state) {
         // blocks when buffers are full
         event_wrapper.SendAsync();
+
+        // Additive increase / decrease search for the largest loss free batch size. Only the  loss
+        // observed since the previous adjustment is relevant, the total loss counter never
+        // decreases and would pin the batch size to its minimum forever.
+        // Depending on payload size this improves or worsens the throughput, so might be removed
+        // later.
+        if (++sends_since_last_adjustment >= THROUGHPUT_ADJUST_INTERVAL) {
+            auto const messages_lost = fixture.get_num_lost_sequence_ids();
+            if (messages_lost == messages_lost_at_last_adjustment) {
+                batch_size = std::min(batch_size + 1, THROUGHPUT_MAX_BATCH_SIZE);
+            } else {
+                batch_size = std::max(batch_size - 1, THROUGHPUT_MIN_BATCH_SIZE);
+            }
+            messages_lost_at_last_adjustment = messages_lost;
+            sends_since_last_adjustment = 0;
+        }
+
+        // limit in flight messages to avoid overwhelming the system
+        auto const wait_start = std::chrono::steady_clock::now();
+        while (fixture.get_num_in_flight_messages() > batch_size) {
+            if ((std::chrono::steady_clock::now() - wait_start) > THROUGHPUT_DRAIN_TIMEOUT) {
+                break;
+            }
+            std::this_thread::yield();
+        }
     }
 
     auto const sent_messages = state.iterations();
@@ -576,6 +607,7 @@ BENCHMARK_DEFINE_F(IpcBenchmark, Throughput)(benchmark::State& state) {
 
     state.SetLabel(GetPayloadSizeName(payload_size));
     state.counters["payload_bytes"] = static_cast<double>(payload_bytes);
+    state.counters["batch_size"] = static_cast<double>(batch_size);
     state.counters["sent_messages"] = static_cast<double>(sent_messages);
     state.counters["received_messages"] = static_cast<double>(received_messages);
     state.counters["dropped_messages"] = static_cast<double>(dropped_messages);
