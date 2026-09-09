@@ -20,22 +20,34 @@ component "Server_adapter\nGateway_ipc_binding_server" as server
 component "Mw_com_binding\nC++" as binding
 component "Provider_service_binding\nC++" as provider
 component "Consumer_service_binding\nC++" as consumer
+component "Someipd_service_binding\nC++" as sdsvc
 component "SOCom runtime\nC++" as runtime
-component "mw::com\nGenericSkeleton / GenericProxy" as mwcom
+component "mw::com\nGeneric for bridged services,\ntyped for SomeipdService" as mwcom
 
 note bottom of client
-  create_client(): sets up all services
-  eagerly, is_connected() reports setup
-  success. No peer handshake.
+  create_client(): sets up all services eagerly
+  and consumes SomeipdService.
+  is_connected() follows the SomeipdService proxy.
 end note
 
 note bottom of server
-  create_server(): setup deferred to start().
+  create_server(): setup deferred to start(),
+  which provides SomeipdService first.
+  get_client_identifiers() returns an empty map.
 end note
 
 note bottom of binding
   One Service_binding per configured service
-  instance. Symmetric, no protocol state.
+  instance plus one Someipd_service_binding.
+  Symmetric for bridged services,
+  no protocol state.
+end note
+
+note bottom of sdsvc
+  Typed skeleton / proxy, not generic, so it
+  can carry methods and fields later.
+  Provided by someipd, consumed by gatewayd.
+  Replaces the Connect / Connect_reply handshake.
 end note
 
 note bottom of provider
@@ -54,8 +66,10 @@ client --> binding : Delegates to
 server --> binding : Delegates to
 binding --> provider : Owns
 binding --> consumer : Owns
+binding --> sdsvc : Owns
 provider --> runtime : make_client_connector
 consumer --> runtime : make_server_connector
 provider --> mwcom : Create / OfferService / Allocate / Send
 consumer --> mwcom : StartFindService / Subscribe / GetNewSamples
+sdsvc --> mwcom : SomeipdServiceSkeleton::OfferService (someipd)\nSomeipdServiceProxy::StartFindService / Create (gatewayd)
 @enduml
