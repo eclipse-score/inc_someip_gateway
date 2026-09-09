@@ -32,10 +32,10 @@ To additionally record the gateway daemons and create CPU flamegraphs, install `
 bazel test --config=perf-tests-flamegraphs //tests/benchmarks:e2e_benchmarks --test_output=streamed
 ```
 
-To profile only the latency echo benchmark (`IpcBenchmark/LatencyEcho`), run:
+To profile only a specific throughput benchmark (`IpcBenchmark/Throughput/3/.*`), run:
 
 ```bash
-bazel test --config=perf-tests-flamegraphs //tests/benchmarks:e2e_benchmarks_latency_echo --test_output=streamed
+bazel test --config=perf-tests-flamegraphs //tests/benchmarks:e2e_benchmarks_profiling --test_output=streamed
 ```
 
 The `.perf.data` recordings and `.perf.svg` flamegraphs are written beside `benchmarks.json`.
@@ -44,8 +44,8 @@ The test starts and stops both daemon pairs and the echo server itself. The clie
 different mw::com service ids on the shared host, which prevents a LoLa shared-memory shortcut.
 The benchmark result is written as `benchmarks.json` under
 `bazel-testlogs/tests/benchmarks/e2e_benchmarks/test.outputs/e2e_benchmarks/`.
-For the latency echo-only target, results are written under
-`bazel-testlogs/tests/benchmarks/e2e_benchmarks_latency_echo/test.outputs/e2e_benchmarks_latency_echo/`.
+For the profiling target, results are written under
+`bazel-testlogs/tests/benchmarks/e2e_benchmarks_profiling/test.outputs/e2e_benchmarks_profiling/`.
 
 Unprivileged user namespaces must be enabled so the Bazel `--run_under` wrapper can configure the
 isolated loopback addresses and the SOME/IP-SD multicast route.

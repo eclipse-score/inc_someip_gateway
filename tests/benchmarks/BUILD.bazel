@@ -132,12 +132,12 @@ py_pytest(
 )
 
 py_pytest(
-    name = "e2e_benchmarks_latency_echo",
+    name = "e2e_benchmarks_profiling",
     size = "large",
     srcs = [
         "e2e_benchmark_runner.py",
         "nodes.py",
-        "test_e2e_benchmarks_latency_echo.py",
+        "test_e2e_benchmarks_profiling.py",
     ],
     data = [
         ":bench_config_file",
