@@ -135,8 +135,9 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
                 -> score::Result<socom::Writable_payload> {
                 // Payload allocation is handled by the IPC binding (read-only SHM slot from
                 // someipd). This callback is never called in normal operation.
-                assert(false &&
-                       "on_event_payload_allocate must not be called on RemoteServiceInstance");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(
+                    false &&
+                    "on_event_payload_allocate must not be called on RemoteServiceInstance");
                 return MakeUnexpected(socom::Error::runtime_error_request_rejected);
             },
         });

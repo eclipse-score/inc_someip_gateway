@@ -13,11 +13,11 @@
 
 #include "binding_base.hpp"
 
-#include <cassert>
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <ostream>
+#include <score/assert.hpp>
 #include <utility>
 
 #include "gateway_ipc_binding_util.hpp"
@@ -58,7 +58,8 @@ Gateway_ipc_binding_base::Gateway_ipc_binding_base(score::socom::Runtime& runtim
     auto bridge_identity = score::socom::Bridge_identity::make(this);
     auto bridge_registration_result =
         m_runtime.register_service_bridge(bridge_identity, std::move(request_service_callback));
-    assert(bridge_registration_result && "Failed to register service bridge with runtime");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(bridge_registration_result &&
+                                    "Failed to register service bridge with runtime");
     m_bridge_registration = std::move(bridge_registration_result).value();
 }
 
@@ -183,7 +184,7 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
         }
         default:
             // Unhandled message type - log and ignore
-            assert(false);
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(false);
             break;
     }
 }
@@ -279,7 +280,8 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
             key, [this, event_id, &payload, &recipient_count](Client_id client_id,
                                                               Connection_metadata::Ids const& ids) {
                 Reply_channel* const conn = m_connections.get_reply_channel(client_id);
-                assert(conn != nullptr && "Connection not found for client_id");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(conn != nullptr &&
+                                                "Connection not found for client_id");
 
                 if (conn == nullptr) {
                     return;
@@ -313,8 +315,8 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
 
             m_local_offers[key] = is_available;
             auto const interface_instance_opt = m_keys.get(key);
-            assert(interface_instance_opt.has_value() &&
-                   "Interface and instance should exist for key");
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(interface_instance_opt.has_value() &&
+                                            "Interface and instance should exist for key");
             auto const& [interface, instance] = interface_instance_opt.value();
 
             m_service_states.add_service(key, interface.get(), instance.get(), configuration);
@@ -323,7 +325,8 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
             log_it("client_ids size: ", client_ids.size());
             for (const auto& client_id : client_ids) {
                 Reply_channel* const conn = m_connections.get_reply_channel(client_id);
-                assert(conn != nullptr && "Connection not found for client_id");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(conn != nullptr &&
+                                                "Connection not found for client_id");
 
                 send_offer_service_to_client(*conn, interface.get(), instance.get(), is_available);
             }
@@ -409,11 +412,12 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
         return;
     }
 
-    assert(m_service_states.has_connector(mapping_info->get().key) &&
-           "Service state should have connector for key");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(m_service_states.has_connector(mapping_info->get().key) &&
+                                    "Service state should have connector for key");
     score::socom::Enabled_server_connector* enabled_connector =
         m_service_states.get(mapping_info->get().key)->get().enabled_connector.get();
-    assert(enabled_connector != nullptr && "Enabled connector should exist for key");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(enabled_connector != nullptr &&
+                                    "Enabled connector should exist for key");
     if (enabled_connector == nullptr) {
         return;
     }
@@ -438,11 +442,12 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
             .get_read_only_shared_memory_slot_manager(mapping_info->get().remote_metadata)
             .get_payload(msg.payload, std::move(on_payload_destruction));
 
-    assert(payload.has_value() && "Failed to get payload for event update");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(payload.has_value() &&
+                                    "Failed to get payload for event update");
 
     auto update_result = enabled_connector->update_event(msg.event_id, std::move(*payload));
     (void)update_result;
-    assert(update_result);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(update_result);
 }
 
 void Gateway_ipc_binding_base::handle_payload_consumed_message(
@@ -489,7 +494,8 @@ void Gateway_ipc_binding_base::handle_connect_service_message(Client_id client_i
     m_id_mapping.add_mapping(client_id, info);
 
     auto service_state_opt = m_service_states.get(key);
-    assert(service_state_opt.has_value() && "Service state should exist for key");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(service_state_opt.has_value() &&
+                                    "Service state should exist for key");
     auto& service_state = service_state_opt->get();
 
     Message_frame<Connect_service_reply> reply;
@@ -585,7 +591,7 @@ void Gateway_ipc_binding_base::handle_connect_service_reply_message(
                                                                    std::move(server_callbacks));
 
     if (!server_connector_result) {
-        assert(false);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(false);
         return;  // Failed to create server connector, log and continue
     }
 
@@ -667,8 +673,9 @@ void Gateway_ipc_binding_base::maybe_send_connect_service_locked(Key_t const& ke
     auto send_func = [this, &key](auto const& client_id, auto const& remote_handle,
                                   auto const& connect_service) {
         auto* conn = m_connections.get_reply_channel(client_id);
-        assert(conn != nullptr &&
-               "Improper cleanup done: client_id must always have a valid connection");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(
+            conn != nullptr &&
+            "Improper cleanup done: client_id must always have a valid connection");
 
         m_pending_connects.emplace(remote_handle, {key, client_id});
 

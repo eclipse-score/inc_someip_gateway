@@ -14,7 +14,7 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_CONNECTIONS
 #define SRC_GATEWAY_IPC_BINDING_SRC_CONNECTIONS
 
-#include <cassert>
+#include <score/assert.hpp>
 #include <unordered_map>
 #include <utility>
 
@@ -58,7 +58,8 @@ class Connections {
 
     void add_client(Client_id const& client_id, Reply_channel& reply_channel) {
         auto const insert_result = m_connections.emplace(client_id, reply_channel);
-        assert(insert_result.second && "Client ID already exists in connections map");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(insert_result.second &&
+                                        "Client ID already exists in connections map");
     }
 
     void remove_client(Client_id const& client_id) { m_connections.erase(client_id); }

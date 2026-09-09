@@ -94,8 +94,8 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
                 -> score::Result<socom::Writable_payload> {
                 // Payload allocation is handled by the IPC binding (read-only SHM slot from
                 // gatewayd). This callback is never called in normal operation.
-                assert(false &&
-                       "on_event_payload_allocate must not be called on LocalNetworkService");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(
+                    false && "on_event_payload_allocate must not be called on LocalNetworkService");
                 return MakeUnexpected(socom::Error::logic_error_id_out_of_range);
             },
         });

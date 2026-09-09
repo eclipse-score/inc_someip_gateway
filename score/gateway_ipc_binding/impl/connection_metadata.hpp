@@ -15,7 +15,7 @@
 #define SRC_GATEWAY_IPC_BINDING_SRC_CONNECTION_METADATA
 
 #include <algorithm>
-#include <cassert>
+#include <score/assert.hpp>
 #include <unordered_map>
 
 #include "key.hpp"
@@ -53,7 +53,8 @@ class Connection_metadata {
     }
 
     void add_mapping(Client_id const client_id, Ids ids) {
-        assert(!is_mapping_present(client_id, ids) && "Mapping already exists for given client_id");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(!is_mapping_present(client_id, ids) &&
+                                        "Mapping already exists for given client_id");
         auto& ids_vec = m_id_to_key[client_id];
         ids_vec.push_back(std::move(ids));
         auto const index = ids_vec.size() - 1U;
@@ -150,9 +151,9 @@ class Connection_metadata {
         if (it != m_id_to_key.end()) {
             for (const auto& existing_ids : it->second) {
                 if (existing_ids.local_handle == ids.local_handle || existing_ids.key == ids.key) {
-                    assert(existing_ids.local_handle == ids.local_handle &&
-                           existing_ids.key == ids.key &&
-                           "Inconsistent mapping found for client_id");
+                    SCORE_LANGUAGE_FUTURECPP_ASSERT(existing_ids.local_handle == ids.local_handle &&
+                                                    existing_ids.key == ids.key &&
+                                                    "Inconsistent mapping found for client_id");
                     return true;
                 }
             }
