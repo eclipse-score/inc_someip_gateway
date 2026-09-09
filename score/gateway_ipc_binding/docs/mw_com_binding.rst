@@ -597,7 +597,7 @@ Testing strategy
   ``is_connected()`` false, peer restarts, true again
 - integration tests with a real ``mw::com`` runtime and a generated ``mw_com_config.json``, covering both
   roles, subscription, event round trip and service disappearance; these replace
-  ``test/bidirectional_*_int_test.cpp`` and run under ``--config=qemu-integration``
+  ``test/bidirectional_*_int_test.cpp``
 - the existing benchmarks are re-pointed at the new target so that throughput and latency can be compared
   against the current implementation before the flag is flipped
 
