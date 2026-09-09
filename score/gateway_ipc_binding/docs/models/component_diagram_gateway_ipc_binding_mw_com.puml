@@ -31,7 +31,6 @@ end note
 
 note bottom of server
   create_server(): setup deferred to start().
-  get_client_identifiers() returns an empty map.
 end note
 
 note bottom of binding

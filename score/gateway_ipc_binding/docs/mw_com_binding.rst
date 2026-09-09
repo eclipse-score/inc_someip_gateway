@@ -421,9 +421,6 @@ transport. Their behaviour is defined as follows and must be documented at the f
    * - ``Gateway_ipc_binding_server::start()``
      - Performs the setup described above and returns the first error encountered. Calling it twice returns
        an error, as today.
-   * - ``Gateway_ipc_binding_server::get_client_identifiers()``
-     - Returns an empty map. ``mw::com`` does not expose peer identities to the gateway, and no production
-       code uses this today.
 
 The behaviour of ``is_connected()`` is a genuine semantic change. ``gatewayd`` currently blocks in a loop
 until it becomes true in order to wait for ``someipd``. With this implementation that loop completes
@@ -582,8 +579,6 @@ Known gaps
   ignored.
 - **dynamic service sets**: adding a bridged service requires a configuration change and a restart of both
   daemons. This is a direct consequence of :ref:`d4-static-config`.
-- **peer identity**: ``get_client_identifiers()`` returns nothing, so a future authorisation check on the link
-  would have to use LoLa's ``allowedConsumer`` deployment lists instead.
 - **const-correctness**: turning a ``SamplePtr<void>`` into a writable ``socom::Payload`` needs a
   ``const_cast``, the same wart the current shared-memory read path already carries.
 
