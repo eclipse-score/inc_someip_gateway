@@ -241,96 +241,12 @@ service coming from the network is offered. ``is_connected() == true`` therefore
 up and accepting", not "the peer has finished setting up its services". Bridged services arrive
 asynchronously afterwards, each signalled through the normal SOCom service state.
 
-This mirrors the current implementation exactly:
-
-- ``someipd`` calls ``binding_server->start()`` before initialising the network stack and before creating any
-  ``LocalNetworkService`` or ``RemoteNetworkService`` (``score/someipd/main.cpp:152`` versus ``:159``,
-  ``:167`` and ``:198``). ``setup_vsomeip()`` is deferred further still, until vsomeip reports
-  ``ST_REGISTERED``.
-- ``Connect_reply`` is sent from ``handle_connect_message`` as soon as the client connects, independent of
-  which services exist.
-- structurally, ``Offer_service`` can only be sent to an already connected client, so the handshake always
-  precedes any service offer on the wire.
-
-Offering it first is not just parity, it is required for correct startup. ``gatewayd`` blocks on
-``is_connected()`` and only creates its ``LocalServiceInstance`` and ``RemoteServiceInstance`` objects once it
-returns true (``score/gatewayd/main.cpp:279`` versus ``:290``). ``is_connected()`` is therefore a gate that
-must open **early**. If ``SomeipdService`` were offered last, ``gatewayd``'s binding could already have
-discovered bridged services while ``gatewayd`` itself had not yet created the SOCom endpoints behind them, an
-inversion that does not exist today.
-
 Typed, not generic
 ^^^^^^^^^^^^^^^^^^
 
 ``SomeipdService`` is the one service in this design that is **not** generic. Unlike a bridged SOME/IP service
 its content is known at compile time, it is defined by this repository rather than by a customer's SOME/IP
-deployment, and it is not a pass-through for opaque bytes. A typed skeleton and proxy is therefore the right
-tool, and it buys three things a ``GenericSkeleton`` cannot:
-
-- **methods**. ``GenericProxy`` and ``GenericSkeleton`` are event-only. A typed interface can carry
-  ``Trait::Method``, which is what a real control API for ``someipd`` would need. This is the decisive reason.
-- **fields**, with ``Get`` / ``Set`` / notification semantics, which are the natural way to expose a daemon
-  state such as "network up" without inventing an event protocol.
-- **compile-time checked payload types** shared by both daemons from one header, instead of a runtime-checked
-  ``DataTypeMetaInfo`` and a manual byte layout.
-
-The interface is defined once and shared by both daemons, following the trait pattern that
-``tests/benchmarks/echo_service.h`` already uses in this repository:
-
-.. code-block:: cpp
-
-   // score/someip/someipd_service.hpp, shared by gatewayd and someipd
-   namespace score::someip {
-
-   template <typename Trait>
-   class SomeipdServiceInterface : public Trait::Base {
-      public:
-       using Trait::Base::Base;
-
-       // Intentionally empty for now. The presence of the offered instance is the
-       // liveness signal. Events, fields and methods to control someipd are added here.
-   };
-
-   using SomeipdServiceProxy = score::mw::com::AsProxy<SomeipdServiceInterface>;
-   using SomeipdServiceSkeleton = score::mw::com::AsSkeleton<SomeipdServiceInterface>;
-
-   }  // namespace score::someip
-
-Usage is the standard typed API, ``SomeipdServiceSkeleton::Create(specifier)`` plus ``OfferService()`` on the
-``someipd`` side, and ``SomeipdServiceProxy::StartFindService(handler, specifier)`` plus
-``SomeipdServiceProxy::Create(handle)`` on the ``gatewayd`` side.
-
-Extending SomeipdService
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Adding control capability later is a change to this one header plus the corresponding
-``mw_com_config.json`` entries. No change to the binding's public interface and no wire format to version:
-
-.. code-block:: cpp
-
-   template <typename Trait>
-   class SomeipdServiceInterface : public Trait::Base {
-      public:
-       using Trait::Base::Base;
-
-       // Daemon state, readable and change-notified.
-       typename Trait::template Field<SomeipdStatus, score::mw::com::WithGetter,
-                                      score::mw::com::WithNotifier>
-           status_{*this, "status"};
-
-       // Control operations.
-       typename Trait::template Method<void()> stop_offering_all_{*this, "stop_offering_all"};
-       typename Trait::template Method<SomeipdStatistics()> get_statistics_{*this, "get_statistics"};
-   };
-
-Because this path exists, the ``find_service_elements`` feature that :ref:`d4-static-config` drops does not
-have to be replaced by a new ad-hoc mechanism if it is ever needed again. It becomes a method or a field here.
-
-The interface is empty today, so the deployed instance has no service elements. This is explicitly supported:
-the ``mw_com_config.json`` schema documents ``events`` as optional, and the typed wrapper simply has no
-elements to bind. The residual risk is that an element-less instance is an unusual deployment shape, so the
-first integration test to write is "offer and find ``SomeipdService``". If a real LoLa instance turns out to
-need at least one service element, the fallback is to add the ``status_`` field above, which is wanted anyway.
+deployment, and it is not a pass-through for opaque bytes.
 
 .. _sample-layout:
 
@@ -569,9 +485,6 @@ factory functions.
      - Offers ``SomeipdService`` first, then sets up all bridged services, matching the order in which
        ``someipd`` starts its IPC server before its network services today. Returns the first error
        encountered. Calling it twice returns an error, as today.
-   * - ``Gateway_ipc_binding_server::get_client_identifiers()``
-     - Returns an empty map. ``mw::com`` does not expose consumer identities to a skeleton, and no
-       production code uses this today.
 
 ``is_connected()`` is read from a different thread than the find-service handler that maintains it, so it is
 backed by an ``std::atomic<bool>``.
@@ -701,9 +614,6 @@ Known gaps
   ignored.
 - **dynamic service sets**: adding a bridged service requires a configuration change and a restart of both
   daemons. This is a direct consequence of :ref:`d4-static-config`.
-- **peer identity**: ``get_client_identifiers()`` returns nothing. ``mw::com`` does not tell a skeleton who
-  its consumers are, so a future authorisation check on the link would have to use LoLa's ``allowedConsumer``
-  deployment lists instead.
 - **liveness granularity**: ``SomeipdService`` reports that the peer's binding is up and accepting, not that
   any given bridged service is usable, because it is offered before them, see
   :ref:`someipd-service-ordering`. That is the same guarantee ``Connect_reply`` gives today, but it is worth
