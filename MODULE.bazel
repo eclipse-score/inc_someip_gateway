@@ -235,12 +235,7 @@ bazel_dep(name = "score_docs_as_code", version = "8.1.1", dev_dependency = True)
 # ============================================================================
 # Communication Framework
 # ============================================================================
-bazel_dep(name = "score_communication", version = "0.3.0")
-git_override(
-    module_name = "score_communication",
-    commit = "d609be928f146f96ef9d4f81abb4c06bc51f1135",
-    remote = "https://github.com/eclipse-score/communication.git",
-)
+bazel_dep(name = "score_communication", version = "0.4.0")
 
 # ============================================================================
 # Base Libraries
