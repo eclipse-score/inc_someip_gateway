@@ -28,12 +28,8 @@
 #include "score/result/result.h"
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/client_connector.hpp"
-#include "score/socom/client_connector_mock.hpp"
-#include "score/socom/error.hpp"
 #include "score/socom/runtime.hpp"
-#include "score/socom/runtime_mock.hpp"
 #include "score/socom/server_connector.hpp"
-#include "score/socom/server_connector_mock.hpp"
 #include "test_constants.hpp"
 #include "util.hpp"
 
