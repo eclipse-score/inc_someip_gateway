@@ -20,12 +20,12 @@
 
 #include "connection_metadata.hpp"
 #include "connections.hpp"
+#include "ipc_messages.hpp"
 #include "key.hpp"
 #include "pending_connects.hpp"
 #include "reply_channel.hpp"
 #include "request_service_handle.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
-#include "score/socom/client_connector.hpp"
 #include "score/socom/runtime.hpp"
 #include "service_state.hpp"
 #include "shared_memory_managers.hpp"
