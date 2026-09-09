@@ -23,7 +23,6 @@ It is developed side by side with the existing implementation described in :doc:
 
 - it implements the **same public interfaces** ``Gateway_ipc_binding_client`` and ``Gateway_ipc_binding_server``
 - it is constructed through **new factory functions**, not through the existing ``create()`` methods
-- it is selected by a **Bazel feature flag** and is not built into the product by default until it is ready
 
 Because ``mw::com`` already provides service discovery, subscription management, shared-memory transport and
 slot lifetime management, this implementation has **no IPC protocol of its own**. There are no message ids, no
@@ -672,64 +671,6 @@ both files, which is the usual typed-service deployment workflow.
 Because both the sample size and the slot count now live in ``mw_com_config.json``, the size computation that
 ``gatewayd`` does today in ``event_slot_size()`` moves into config generation. The binding validates that the
 configured sample size matches ``GenericSkeletonEvent::GetSizeInfo()`` and fails setup on mismatch.
-
-Feature flag and build integration
-----------------------------------
-
-The implementation ships as a separate Bazel target so that nothing changes for the default build.
-
-.. code-block:: python
-
-   # score/gateway_ipc_binding/flags/BUILD
-   string_flag(
-       name = "implementation",
-       build_setting_default = "message_passing",
-       values = ["message_passing", "mw_com"],
-       visibility = ["//visibility:public"],
-   )
-
-   config_setting(
-       name = "mw_com",
-       flag_values = {":implementation": "mw_com"},
-       visibility = ["//visibility:public"],
-   )
-
-.. code-block:: python
-
-   # score/gateway_ipc_binding/BUILD
-   cc_library(
-       name = "gateway_ipc_binding_mw_com",
-       srcs = glob(["impl_mw_com/**"]),
-       hdrs = ["gateway_ipc_binding_mw_com.hpp"],
-       deps = [
-           ":gateway_ipc_binding",
-           "//score/socom",
-           "@score_communication//score/mw/com",
-       ],
-   )
-
-The daemons select the implementation on their dependency edge and guard the differing setup code, which is
-roughly fifteen lines in each ``main.cpp``:
-
-.. code-block:: python
-
-   # score/gatewayd/BUILD.bazel, score/someipd/BUILD.bazel
-   deps = [...] + select({
-       "//score/gateway_ipc_binding/flags:mw_com": [
-           "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
-       ],
-       "//conditions:default": [],
-   }),
-   defines = select({
-       "//score/gateway_ipc_binding/flags:mw_com": ["SCORE_GATEWAY_IPC_BINDING_MW_COM=1"],
-       "//conditions:default": [],
-   }),
-
-This follows the existing ``string_flag`` plus ``flag_values`` pattern used by
-``quality/integration_testing/flags``. A preprocessor guard is unavoidable here because the two factories take
-different arguments: the ``mw::com`` variant needs neither a ``message_passing`` connection nor a
-``Shared_memory_manager_factory``. Once the ``mw::com`` implementation is the only one, the flag, the guard
-and the old target are deleted together.
 
 Testing strategy
 ----------------
