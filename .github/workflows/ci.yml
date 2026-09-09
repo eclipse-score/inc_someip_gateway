@@ -58,6 +58,7 @@ jobs:
       - build_and_test_cross_compilation
       - coverage
       - docs
+      - quality_pack
       - static-code-analysis
     permissions: {}
     runs-on: ubuntu-latest
