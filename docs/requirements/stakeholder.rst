@@ -38,5 +38,10 @@ feature and component requirements derive from these.
 
    This is a module-local stakeholder requirement. An upstream S-CORE
    stakeholder requirement for SOME/IP interoperability does not yet exist.
-   If one is defined in a future S-CORE release, the ``:satisfies:`` link
-   on the feature requirement should be updated to reference it.
+   If one is defined in a future S-CORE release, the ``:derived_from:`` link
+   on the feature requirement(s) below should be updated to reference it.
+
+   ``feat_req__tc8_conformance__conformance`` (see
+   :doc:`/tc8_conformance/requirements`) derives from this stakeholder
+   requirement: TC8 wire-level conformance testing is the verification
+   activity for this interoperability need.

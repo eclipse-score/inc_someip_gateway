@@ -215,17 +215,12 @@ class TestSDClientStopSubscribe:
                     timeout_secs=5.0,
                     resend=_subscribe,
                 )
-                assert any(
-                    e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0
-                    for e in acks
-                ), "ETS_084: Prerequisite failed — no SubscribeAck received"
+                assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
+                    "ETS_084: Prerequisite failed — no SubscribeAck received"
+                )
 
-                pre_notifs = capture_some_ip_messages(
-                    notif_sock, SERVICE_ID, timeout_secs=4.0
-                )
-                assert pre_notifs, (
-                    "ETS_084: No notifications received after subscribe (prerequisite)"
-                )
+                pre_notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
+                assert pre_notifs, "ETS_084: No notifications received after subscribe (prerequisite)"
 
                 send_subscribe_eventgroup(
                     sd_sock,
@@ -239,9 +234,7 @@ class TestSDClientStopSubscribe:
                     ttl=0,
                 )
 
-                post_notifs = capture_some_ip_messages(
-                    notif_sock, SERVICE_ID, timeout_secs=4.0
-                )
+                post_notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
                 assert not post_notifs, (
                     f"ETS_084: {len(post_notifs)} notification(s) received after "
                     "StopSubscribeEventgroup (TTL=0). DUT must cease sending events."
@@ -282,9 +275,7 @@ class TestSDClientReboot:
             raise
 
         try:
-            _collect_sd_messages(
-                pre_sock, count=3, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS
-            )
+            _collect_sd_messages(pre_sock, count=3, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS)
         finally:
             pre_sock.close()
             terminate_dut(proc1)
@@ -303,9 +294,7 @@ class TestSDClientReboot:
             raise
 
         try:
-            post_messages = _collect_sd_messages(
-                post_sock, count=2, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS
-            )
+            post_messages = _collect_sd_messages(post_sock, count=2, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS)
         finally:
             post_sock.close()
             terminate_dut(proc2)
@@ -354,9 +343,7 @@ class TestSDClientReboot:
                 pre_sock.close()
                 raise
             try:
-                _collect_sd_messages(
-                    pre_sock, count=3, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS
-                )
+                _collect_sd_messages(pre_sock, count=3, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS)
             finally:
                 pre_sock.close()
                 terminate_dut(proc)
@@ -386,9 +373,7 @@ class TestSDClientReboot:
             raise
 
         try:
-            post_messages = _collect_sd_messages(
-                post_sock, count=2, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS
-            )
+            post_messages = _collect_sd_messages(post_sock, count=2, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS)
         finally:
             post_sock.close()
             terminate_dut(proc3)

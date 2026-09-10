@@ -110,7 +110,7 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    :status: valid
    :version: 1
    :tags: tc8, conformance, someip, verification
-   :derived_from: stkh_req__docgen_enabled__example
+   :derived_from: stkh_req__someip_gw__interoperability
    :satisfied_by: feat__someip_gateway
    :safety: QM
    :security: NO
@@ -223,6 +223,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, eventgroup, timing
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -257,6 +259,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -275,6 +279,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, reboot
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -293,6 +299,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, multicast
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -358,6 +366,8 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format, robustness
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -404,6 +414,8 @@ Component Requirements — Field Conformance
    :status: valid
    :version: 1
    :tags: tc8, conformance, fields, notification
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -421,6 +433,8 @@ Component Requirements — Field Conformance
    :status: valid
    :version: 1
    :tags: tc8, conformance, fields, request_response
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -440,6 +454,8 @@ Component Requirements — Field Conformance
    :status: valid
    :version: 1
    :tags: tc8, conformance, fields, notification
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -460,6 +476,8 @@ Component Requirements — TCP Transport Binding
    :status: valid
    :version: 1
    :tags: tc8, conformance, tcp, transport, rpc
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -493,6 +511,8 @@ Component Requirements — Multi-service and Multi-instance
    :status: valid
    :version: 1
    :tags: tc8, conformance, multi_service, routing
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -520,6 +540,8 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, format
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -547,6 +569,8 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, options
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -572,6 +596,8 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, format
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -588,6 +614,8 @@ Component Requirements — SD Robustness
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, robustness
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional
@@ -620,6 +648,8 @@ Component Requirements — UDP Transport Binding
    :status: valid
    :version: 1
    :tags: tc8, conformance, udp, transport
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
    :reqtype: Functional

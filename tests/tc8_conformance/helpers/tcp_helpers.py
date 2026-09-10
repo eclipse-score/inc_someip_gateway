@@ -40,9 +40,7 @@ def _recv_exact(sock: socket.socket, nbytes: int, deadline: float) -> bytes:
         sock.settimeout(remaining_time)
         chunk = sock.recv(nbytes - len(buf))
         if not chunk:
-            raise ConnectionError(
-                "TCP peer closed connection before all bytes received"
-            )
+            raise ConnectionError("TCP peer closed connection before all bytes received")
         buf.extend(chunk)
     return bytes(buf)
 
@@ -98,17 +96,12 @@ def tcp_receive_n_responses(
     while len(responses) < count:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
-            raise socket.timeout(
-                f"tcp_receive_n_responses: deadline exceeded after "
-                f"{len(responses)}/{count} responses"
-            )
+            raise socket.timeout(f"tcp_receive_n_responses: deadline exceeded after {len(responses)}/{count} responses")
         responses.append(tcp_receive_response(sock, timeout_secs=remaining))
     return responses
 
 
-def tcp_receive_response(
-    sock: socket.socket, timeout_secs: float = 3.0
-) -> SOMEIPHeader:
+def tcp_receive_response(sock: socket.socket, timeout_secs: float = 3.0) -> SOMEIPHeader:
     """Receive and frame one complete SOME/IP message from a TCP stream.
 
     Framing:
@@ -124,9 +117,7 @@ def tcp_receive_response(
     header_prefix = _recv_exact(sock, 8, deadline)
     length = struct.unpack("!I", header_prefix[4:8])[0]
     if length > _MAX_SOMEIP_MSG_SIZE:
-        raise ValueError(
-            f"SOME/IP length field {length} exceeds safety bound {_MAX_SOMEIP_MSG_SIZE}"
-        )
+        raise ValueError(f"SOME/IP length field {length} exceeds safety bound {_MAX_SOMEIP_MSG_SIZE}")
     body = _recv_exact(sock, length, deadline)
     resp, _ = SOMEIPHeader.parse(header_prefix + body)
     return resp
@@ -172,9 +163,7 @@ def tcp_accept_and_receive_notification(
             header_prefix = _recv_exact(conn, 8, deadline)
             length = struct.unpack("!I", header_prefix[4:8])[0]
             if length > _MAX_SOMEIP_MSG_SIZE:
-                raise ValueError(
-                    f"SOME/IP length field {length} exceeds safety bound {_MAX_SOMEIP_MSG_SIZE}"
-                )
+                raise ValueError(f"SOME/IP length field {length} exceeds safety bound {_MAX_SOMEIP_MSG_SIZE}")
             body = _recv_exact(conn, length, deadline)
             msg, _ = SOMEIPHeader.parse(header_prefix + body)
             if msg.service_id == service_id and msg.method_id == event_id:

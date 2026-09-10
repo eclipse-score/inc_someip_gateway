@@ -46,16 +46,10 @@ def _get_content_of_file_object(file_object: io.BufferedReader | None) -> str:
 
 def get_output(process: subprocess.Popen[bytes]) -> str:
     """Return combined stdout + stderr from *process* as a single string."""
-    return (
-        _get_content_of_file_object(process.stdout)
-        + "\n, stderr: "
-        + _get_content_of_file_object(process.stderr)
-    )
+    return _get_content_of_file_object(process.stdout) + "\n, stderr: " + _get_content_of_file_object(process.stderr)
 
 
-def wait_until_process_exits(
-    process: subprocess.Popen[bytes], timeout: float = 10.0
-) -> str:
+def wait_until_process_exits(process: subprocess.Popen[bytes], timeout: float = 10.0) -> str:
     """Poll *process* until it exits or *timeout* seconds elapse.
 
     Returns the combined stdout+stderr output on success.
@@ -67,10 +61,7 @@ def wait_until_process_exits(
         if process.poll() is not None:
             return get_output(process)
         time.sleep(0.5)
-    raise TimeoutError(
-        f"Process did not exit within {timeout} seconds. "
-        f"Last output: {get_output(process)}"
-    )
+    raise TimeoutError(f"Process did not exit within {timeout} seconds. Last output: {get_output(process)}")
 
 
 def stop_capture(

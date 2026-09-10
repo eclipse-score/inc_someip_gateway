@@ -60,10 +60,7 @@ def udp_receive_responses(
     while len(responses) < count:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
-            raise socket.timeout(
-                f"udp_receive_responses: deadline exceeded after "
-                f"{len(responses)}/{count} responses"
-            )
+            raise socket.timeout(f"udp_receive_responses: deadline exceeded after {len(responses)}/{count} responses")
         sock.settimeout(remaining)
         data, _ = sock.recvfrom(65535)
         msg, _ = SOMEIPHeader.parse(data)

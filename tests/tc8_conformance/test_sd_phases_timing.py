@@ -114,12 +114,8 @@ class TestSDPhasesTiming:
         sd_phase_capture: List[Tuple[float, SOMEIPSDEntry]],
     ) -> None:
         """TC8-SD-009: Repetition Phase offer gaps are shorter than cyclic_offer_delay."""
-        service_offers = [
-            (ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID
-        ]
-        assert len(service_offers) >= 2, (
-            "TC8-SD-009: Not enough OfferService entries captured for timing analysis"
-        )
+        service_offers = [(ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID]
+        assert len(service_offers) >= 2, "TC8-SD-009: Not enough OfferService entries captured for timing analysis"
 
         # The first gap must be a Repetition Phase gap (< half the cyclic period).
         gap_ms = (service_offers[1][0] - service_offers[0][0]) * 1000.0
@@ -145,12 +141,8 @@ class TestSDPhasesTiming:
         process startup. Requiring ``repetitions_max - 1 = 2`` short gaps
         still proves the Repetition Phase happened with doubling intervals.
         """
-        service_offers = [
-            (ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID
-        ]
-        assert len(service_offers) >= 2, (
-            "TC8-SD-010: Not enough OfferService entries captured for phase counting"
-        )
+        service_offers = [(ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID]
+        assert len(service_offers) >= 2, "TC8-SD-010: Not enough OfferService entries captured for phase counting"
 
         # Count "short" gaps (Repetition Phase) vs "long" gaps (Main Phase).
         cyclic_half_ms = _CYCLIC_OFFER_DELAY_MS * 0.5

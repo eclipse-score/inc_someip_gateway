@@ -138,9 +138,7 @@ def _collect_all_offers(
 
 def _get_udp_endpoint_port(entry: SOMEIPSDEntry) -> Optional[int]:
     """Return the UDP endpoint port in an SD OfferService entry, or None."""
-    options = list(getattr(entry, "options_1", ())) + list(
-        getattr(entry, "options_2", ())
-    )
+    options = list(getattr(entry, "options_1", ())) + list(getattr(entry, "options_2", ()))
     for opt in options:
         if isinstance(opt, IPv4EndpointOption) and opt.l4proto == L4Protocols.UDP:
             return int(opt.port)
@@ -167,10 +165,7 @@ class TestMultiServiceInstanceRouting:
         primary service (0x1234/0x5678) via SD; this confirms the multi-service
         config was accepted by the DUT.
         """
-        assert dut.poll() is None, (
-            "RPC_13: DUT crashed — multi-service config may have "
-            "caused an initialisation error"
-        )
+        assert dut.poll() is None, "RPC_13: DUT crashed — multi-service config may have caused an initialisation error"
 
         entries = _collect_offers_for_service(host_ip, _SERVICE_A_ID)
         assert entries, (
@@ -180,15 +175,11 @@ class TestMultiServiceInstanceRouting:
         )
 
         offered = entries[0]
-        assert offered.service_id == _SERVICE_A_ID, (
-            f"RPC_13: Unexpected service_id: 0x{offered.service_id:04X}"
-        )
+        assert offered.service_id == _SERVICE_A_ID, f"RPC_13: Unexpected service_id: 0x{offered.service_id:04X}"
         assert offered.instance_id == _SERVICE_A_INSTANCE, (
             f"RPC_13: Unexpected instance_id: 0x{offered.instance_id:04X}"
         )
-        assert offered.ttl > 0, (
-            f"RPC_13: OfferService TTL is 0 (StopOffer) — service not active"
-        )
+        assert offered.ttl > 0, f"RPC_13: OfferService TTL is 0 (StopOffer) — service not active"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__multi_service"],
@@ -214,8 +205,7 @@ class TestMultiServiceInstanceRouting:
 
         entries = _collect_offers_for_service(host_ip, _SERVICE_A_ID)
         assert entries, (
-            f"RPC_14: No OfferService for service A (0x{_SERVICE_A_ID:04X}) "
-            f"received within {_DUT_READY_TIMEOUT_SECS}s."
+            f"RPC_14: No OfferService for service A (0x{_SERVICE_A_ID:04X}) received within {_DUT_READY_TIMEOUT_SECS}s."
         )
 
         entry = entries[0]

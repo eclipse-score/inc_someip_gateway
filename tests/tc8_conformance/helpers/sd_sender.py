@@ -59,9 +59,7 @@ def open_sender_socket(local_ip: str) -> socket.socket:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     except AttributeError:
         pass  # SO_REUSEPORT not available on all platforms
-    sock.setsockopt(
-        socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(local_ip)
-    )
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(local_ip))
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
     sock.bind((local_ip, SD_PORT))
     return sock

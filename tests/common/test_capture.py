@@ -190,9 +190,7 @@ def test_tcpdump_capture_pcap_mode_includes_dash_u_flag(
     proc.wait()
 
     assert captured_args, "Popen was not called"
-    assert "-U" in captured_args[0], (
-        f"-U flag missing from tcpdump args: {captured_args[0]}"
-    )
+    assert "-U" in captured_args[0], f"-U flag missing from tcpdump args: {captured_args[0]}"
 
 
 def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
@@ -218,9 +216,7 @@ def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
     proc.wait()
 
     assert captured_args, "Popen was not called"
-    assert "-U" not in captured_args[0], (
-        f"-U should not be in text-mode args: {captured_args[0]}"
-    )
+    assert "-U" not in captured_args[0], f"-U should not be in text-mode args: {captured_args[0]}"
 
 
 def test_tcpdump_capture_includes_z_flag_with_current_user(
@@ -259,9 +255,7 @@ def test_tcpdump_capture_includes_z_flag_with_current_user(
     except KeyError:
         expected_user = "root" if os.getuid() == 0 else str(os.getuid())
 
-    assert z_user == expected_user, (
-        f"-Z argument is '{z_user}', expected '{expected_user}'"
-    )
+    assert z_user == expected_user, f"-Z argument is '{z_user}', expected '{expected_user}'"
 
 
 def test_tcpdump_capture_pcap_written_under_tmp(
@@ -292,9 +286,7 @@ def test_tcpdump_capture_pcap_written_under_tmp(
     args = captured_args[0]
     w_index = args.index("-w")
     pcap_path = args[w_index + 1]
-    assert pcap_path.startswith("/tmp/"), (
-        f"tcpdump pcap path should be under /tmp, got: {pcap_path}"
-    )
+    assert pcap_path.startswith("/tmp/"), f"tcpdump pcap path should be under /tmp, got: {pcap_path}"
 
 
 # ---------------------------------------------------------------------------
@@ -460,16 +452,9 @@ def test_stop_capture_sweeps_orphans_with_pkill(
     assert result is False
 
     pkill_invoked = any(
-        len(cmd) >= 4
-        and cmd[0] == "pkill"
-        and "-9" in cmd
-        and "-x" in cmd
-        and "tcpdump" in cmd
-        for cmd in pkill_calls
+        len(cmd) >= 4 and cmd[0] == "pkill" and "-9" in cmd and "-x" in cmd and "tcpdump" in cmd for cmd in pkill_calls
     )
-    assert pkill_invoked, (
-        f"pkill -9 -x tcpdump not called after SIGKILL; subprocess.run calls: {pkill_calls}"
-    )
+    assert pkill_invoked, f"pkill -9 -x tcpdump not called after SIGKILL; subprocess.run calls: {pkill_calls}"
 
 
 # ---------------------------------------------------------------------------

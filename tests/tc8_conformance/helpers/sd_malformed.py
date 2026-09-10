@@ -103,16 +103,8 @@ def _build_sd_payload(
     options_length_override: Optional[int] = None,
 ) -> bytes:
     """Build the SD payload section (flags + array lengths + entries + options)."""
-    entries_len = (
-        entries_length_override
-        if entries_length_override is not None
-        else len(entries_bytes)
-    )
-    options_len = (
-        options_length_override
-        if options_length_override is not None
-        else len(options_bytes)
-    )
+    entries_len = entries_length_override if entries_length_override is not None else len(entries_bytes)
+    options_len = options_length_override if options_length_override is not None else len(options_bytes)
     return (
         struct.pack(">B3xI", flags, entries_len)  # flags(1)+reserved(3)+entries_len(4)
         + entries_bytes
@@ -232,11 +224,7 @@ def _endpoint_option_bytes(
     """
     length_field = length_override if length_override is not None else 0x0009
     addr_bytes = socket.inet_aton(ip)
-    return (
-        struct.pack(">HBB", length_field, 0x04, 0x00)
-        + addr_bytes
-        + struct.pack(">BBH", 0x00, l4proto, port)
-    )
+    return struct.pack(">HBB", length_field, 0x04, 0x00) + addr_bytes + struct.pack(">BBH", 0x00, l4proto, port)
 
 
 def _unknown_option_bytes(option_type: int = 0x77, content_len: int = 4) -> bytes:
@@ -282,9 +270,7 @@ def send_sd_find_with_options(
     # Build FindService entry with num_options_1=1 so the DUT sees an option reference.
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
-        bytes(
-            [0x00, 0x00, 0x10, 0x00]
-        )  # type=Find, idx=0, num_1=1, num_2=0, service_type=0
+        bytes([0x00, 0x00, 0x10, 0x00])  # type=Find, idx=0, num_1=1, num_2=0, service_type=0
         + struct.pack(">HH", service_id, 0xFFFF)
         + bytes([0xFF])
         + ttl_3b
@@ -444,9 +430,7 @@ def send_sd_option_length_too_long(
         + b"\x00\x00"
         + struct.pack(">H", eventgroup_id & 0xFFFF)
     )
-    opt_bytes = _endpoint_option_bytes(
-        host_ip, subscriber_port, length_override=option_length_override
-    )
+    opt_bytes = _endpoint_option_bytes(host_ip, subscriber_port, length_override=option_length_override)
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
         entries_bytes=entry_bytes,
@@ -751,9 +735,7 @@ def send_sd_truncated_entry(
 
     The entry is incomplete (truncated). DUT must discard and remain alive.
     """
-    entry_bytes = _find_service_entry_bytes(service_id=service_id)[
-        :8
-    ]  # truncate to 8 bytes
+    entry_bytes = _find_service_entry_bytes(service_id=service_id)[:8]  # truncate to 8 bytes
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
         entries_bytes=entry_bytes,

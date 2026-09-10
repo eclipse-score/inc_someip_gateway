@@ -36,17 +36,11 @@ _logger = logging.getLogger(__name__)
 def pytest_configure(config: pytest.Config) -> None:
     """Register TC8 markers (mirrors conftest.py)."""
     config.addinivalue_line("markers", "tc8: mark test as a TC8 conformance test")
-    config.addinivalue_line(
-        "markers", "conformance: mark test as a protocol conformance test"
-    )
-    config.addinivalue_line(
-        "markers", "network: mark test as requiring a non-loopback network interface"
-    )
+    config.addinivalue_line("markers", "conformance: mark test as a protocol conformance test")
+    config.addinivalue_line("markers", "network: mark test as requiring a non-loopback network interface")
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Auto-mark all collected items as tc8 and conformance."""
     for item in items:
         item.add_marker(pytest.mark.tc8)
@@ -179,8 +173,7 @@ def someip_pcap_capture() -> Generator[None, None, None]:
             proc.__exit__(None, None, None)
             if clean:
                 _logger.info(
-                    "someip_pcap_capture: tcpdump stopped cleanly, pcap complete. "
-                    "output=%s",
+                    "someip_pcap_capture: tcpdump stopped cleanly, pcap complete. output=%s",
                     output_file,
                 )
             else:
@@ -256,8 +249,7 @@ def tc8_itf_config_setup(target_init: object, dut_ip: str) -> None:
         exit_code, output = target_init.execute(cmd)
         if exit_code != 0:
             pytest.fail(
-                f"Failed to render {tmpl_name} on QEMU guest "
-                f"(exit {exit_code}): {output.decode(errors='replace')}"
+                f"Failed to render {tmpl_name} on QEMU guest (exit {exit_code}): {output.decode(errors='replace')}"
             )
         _logger.info("Rendered /%s -> /tmp/%s on QEMU guest", tmpl_name, out_name)
 

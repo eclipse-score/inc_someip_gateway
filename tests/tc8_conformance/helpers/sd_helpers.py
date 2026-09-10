@@ -89,11 +89,7 @@ def parse_sd_offers(data: bytes) -> List[SOMEIPSDEntry]:
 
     sd_header = sd_header.resolve_options()
 
-    return [
-        entry
-        for entry in sd_header.entries
-        if entry.sd_type == SOMEIPSDEntryType.OfferService
-    ]
+    return [entry for entry in sd_header.entries if entry.sd_type == SOMEIPSDEntryType.OfferService]
 
 
 def capture_sd_offers(

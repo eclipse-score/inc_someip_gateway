@@ -102,10 +102,7 @@ def sd_reboot_capture(
     try:
         pre_sock = open_multicast_socket(host_ip)
     except OSError:
-        pytest.skip(
-            f"Multicast socket setup failed on {host_ip}. "
-            "Set TC8_HOST_IP to a non-loopback IP."
-        )
+        pytest.skip(f"Multicast socket setup failed on {host_ip}. Set TC8_HOST_IP to a non-loopback IP.")
 
     try:
         proc1 = launch_dut(config_path, target_init=target_init)
@@ -136,9 +133,7 @@ def sd_reboot_capture(
         raise
 
     try:
-        post_messages = _collect_sd_messages(
-            post_sock, count=2, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS
-        )
+        post_messages = _collect_sd_messages(post_sock, count=2, timeout_secs=_SD_CAPTURE_TIMEOUT_SECS)
     finally:
         post_sock.close()
         terminate_dut(proc2)
@@ -223,10 +218,7 @@ class TestSDRebootDetectionETS:
         try:
             pre_sock = open_multicast_socket(host_ip)
         except OSError:
-            pytest.skip(
-                f"Multicast socket setup failed on {host_ip}. "
-                "Set TC8_HOST_IP to a non-loopback IP."
-            )
+            pytest.skip(f"Multicast socket setup failed on {host_ip}. Set TC8_HOST_IP to a non-loopback IP.")
 
         proc1 = launch_dut(config_path, target_init=target_init)
         drained: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
@@ -284,8 +276,7 @@ class TestSDRebootDetectionETS:
             reboot_flag = bool(raw_flags & 0x80)
 
         assert reboot_flag, (
-            "TC8-SDLC-017: Reboot flag (SD flags bit 7) not set in first SD OFFER "
-            "after restart (PRS_SOMEIPSD_00157)."
+            "TC8-SDLC-017: Reboot flag (SD flags bit 7) not set in first SD OFFER after restart (PRS_SOMEIPSD_00157)."
         )
         assert outer_hdr.session_id == 1, (
             f"TC8-SDLC-017: session_id after restart = {outer_hdr.session_id}; "
@@ -318,10 +309,7 @@ class TestSDRebootDetectionETS:
         try:
             pre_sock = open_multicast_socket(host_ip)
         except OSError:
-            pytest.skip(
-                f"Multicast socket setup failed on {host_ip}. "
-                "Set TC8_HOST_IP to a non-loopback IP."
-            )
+            pytest.skip(f"Multicast socket setup failed on {host_ip}. Set TC8_HOST_IP to a non-loopback IP.")
 
         proc1 = launch_dut(config_path, target_init=target_init)
         pre_messages: List[Tuple[SOMEIPHeader, SOMEIPSDHeader]] = []
@@ -378,10 +366,7 @@ class TestSDRebootDetectionETS:
             raw_flags = getattr(sd_hdr, "flags", 0)
             reboot_flag = bool(raw_flags & 0x80)
 
-        assert reboot_flag, (
-            "TC8-SDLC-018: Reboot flag not set in first SD OFFER after restart "
-            "(PRS_SOMEIPSD_00157)."
-        )
+        assert reboot_flag, "TC8-SDLC-018: Reboot flag not set in first SD OFFER after restart (PRS_SOMEIPSD_00157)."
         assert outer_hdr.session_id == 1, (
             f"TC8-SDLC-018: session_id after restart = {outer_hdr.session_id}; "
             "expected 1 (session counter must reset on reboot per PRS_SOMEIPSD_00157)"

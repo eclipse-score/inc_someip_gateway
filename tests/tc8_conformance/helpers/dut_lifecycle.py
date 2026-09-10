@@ -88,15 +88,11 @@ class _TargetProcess:
                     "pkill -9 tc8_ets_stub 2>/dev/null || true"
                 )
             except Exception:  # noqa: BLE001
-                _logger.warning(
-                    "force-kill of someipd/gatewayd on QEMU guest failed; continuing teardown"
-                )
+                _logger.warning("force-kill of someipd/gatewayd on QEMU guest failed; continuing teardown")
         try:
             self._proc.stop()  # type: ignore[attr-defined]
         except RuntimeError as exc:
-            _logger.warning(
-                "AsyncProcess.stop() raised during teardown (ignored): %s", exc
-            )
+            _logger.warning("AsyncProcess.stop() raised during teardown (ignored): %s", exc)
         if self._secondary_proc is not None:
             try:
                 self._secondary_proc.stop()  # type: ignore[attr-defined]
@@ -206,11 +202,7 @@ def launch_dut(
     """
     if target_init is not None:
         # ITF path: production stack runs on the QEMU guest.  Configs are pre-rendered.
-        name = (
-            Path(config_path).name
-            if isinstance(config_path, Path)
-            else str(config_path)
-        )
+        name = Path(config_path).name if isinstance(config_path, Path) else str(config_path)
         guest_config = _GUEST_CONFIG_MAP.get(name, "tc8_sd.json")
 
         # 1. Start someipd — it becomes the vsomeip routing manager.
@@ -224,8 +216,7 @@ def launch_dut(
         # 2. Start the ETS stub — provides the mw::com skeleton so gatewayd's
         #    StartFindService callback fires and gatewayd calls offer_event() in vsomeip.
         stub_proc = target_init.execute_async(  # type: ignore[attr-defined]
-            f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
-            f"/tc8_ets_stub -s /tc8_ets_stub_mw_com_config.json"
+            f"MW_LOG_CONFIG_FILE=/tc8_logging.json /tc8_ets_stub -s /tc8_ets_stub_mw_com_config.json"
         )
 
         # 3. Start gatewayd — connects to someipd IPC server, discovers the stub,

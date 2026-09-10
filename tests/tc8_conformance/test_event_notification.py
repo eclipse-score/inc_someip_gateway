@@ -54,9 +54,7 @@ from helpers.constants import (
 from helpers.tcp_helpers import tcp_receive_response
 from someip.header import SOMEIPMessageType
 
-pytestmark = pytest.mark.skip(
-    reason="Production stack does not forward events without mw::com ETS app (2026-08-11)"
-)
+pytestmark = pytest.mark.skip(reason="Production stack does not forward events without mw::com ETS app (2026-08-11)")
 
 SOMEIP_CONFIG: str = "tc8_someipd_service.json"
 
@@ -222,10 +220,7 @@ class TestEventNotificationFormat:
                     from someip.header import SOMEIPHeader as _HDR
 
                     msg, _ = _HDR.parse(data)
-                    if (
-                        msg.service_id == SERVICE_ID
-                        and msg.method_id == EVENT_TEST_UINT8
-                    ):
+                    if msg.service_id == SERVICE_ID and msg.method_id == EVENT_TEST_UINT8:
                         timestamps.append(time.monotonic())
                 except Exception:
                     continue
@@ -237,9 +232,7 @@ class TestEventNotificationFormat:
 
             # Check intervals between consecutive notifications (skip first gap
             # which may be shorter due to initial-event delivery).
-            intervals = [
-                timestamps[i + 1] - timestamps[i] for i in range(1, len(timestamps) - 1)
-            ]
+            intervals = [timestamps[i + 1] - timestamps[i] for i in range(1, len(timestamps) - 1)]
             for idx, interval in enumerate(intervals):
                 assert _MIN_INTERVAL <= interval <= _MAX_INTERVAL, (
                     f"SOMEIPSRV_RPC_15: notification interval {idx + 1} = "
@@ -378,9 +371,7 @@ class TestEventSubscriptionGating:
             assert notifs, "TC8-EVT-003: No notification on subscribed socket"
 
             stray = capture_any_notifications(unsub_sock, SERVICE_ID, timeout_secs=2.0)
-            assert not stray, (
-                f"TC8-EVT-003: {len(stray)} notification(s) on unsubscribed socket"
-            )
+            assert not stray, f"TC8-EVT-003: {len(stray)} notification(s) on unsubscribed socket"
         finally:
             if sd_sock:
                 sd_sock.close()
@@ -409,9 +400,7 @@ class TestEventSubscriptionGating:
 
         try:
             stray = capture_any_notifications(listen_sock, SERVICE_ID, timeout_secs=3.0)
-            assert not stray, (
-                f"TC8-EVT-004: {len(stray)} notification(s) received without subscription"
-            )
+            assert not stray, f"TC8-EVT-004: {len(stray)} notification(s) received without subscription"
         finally:
             listen_sock.close()
 
@@ -458,9 +447,7 @@ class TestEventStopSubscribe:
                 count=1,
                 timeout_secs=5.0,
             )
-            assert notifs, (
-                "TC8-EVT-006: pre-condition failed — no notifications before StopSubscribe"
-            )
+            assert notifs, "TC8-EVT-006: pre-condition failed — no notifications before StopSubscribe"
 
             # StopSubscribe (TTL=0)
             send_subscribe_eventgroup(
@@ -477,9 +464,7 @@ class TestEventStopSubscribe:
 
             # DUT sends every 500 ms (tc8_someipd_service.json update cycle), so a 4 s window catches any leaks
             post = capture_any_notifications(notif_sock, SERVICE_ID, timeout_secs=4.0)
-            assert not post, (
-                f"TC8-EVT-006: {len(post)} notification(s) after StopSubscribeEventgroup"
-            )
+            assert not post, f"TC8-EVT-006: {len(post)} notification(s) after StopSubscribeEventgroup"
         finally:
             if sd_sock:
                 sd_sock.close()
@@ -519,10 +504,7 @@ class TestMulticastEventDelivery:
                 port=MULTICAST_EVENT_PORT,
             )
         except OSError as exc:
-            pytest.skip(
-                f"Cannot join multicast group {MULTICAST_ADDR}:{MULTICAST_EVENT_PORT} "
-                f"on {host_ip}: {exc}"
-            )
+            pytest.skip(f"Cannot join multicast group {MULTICAST_ADDR}:{MULTICAST_EVENT_PORT} on {host_ip}: {exc}")
 
         sd_sock = None
         try:
@@ -632,14 +614,8 @@ class TestEventTcpNotification:
                 ),
                 max_results=1,
             )
-            acks = [
-                e
-                for e in entries
-                if e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0
-            ]
-            assert acks, (
-                f"No SubscribeEventgroupAck for TCP eventgroup 0x{EVENTGROUP_TCP_RELIABLE:04x}"
-            )
+            acks = [e for e in entries if e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0]
+            assert acks, f"No SubscribeEventgroupAck for TCP eventgroup 0x{EVENTGROUP_TCP_RELIABLE:04x}"
 
             # Eventgroup 0x0005 contains TestEventUINT8Reliable (0x8003, TCP-only).
             # Drain until we see the expected event ID.
@@ -650,10 +626,7 @@ class TestEventTcpNotification:
                 if remaining <= 0:
                     break
                 msg = tcp_receive_response(tcp_sock, timeout_secs=remaining)
-                if (
-                    msg.message_type == SOMEIPMessageType.NOTIFICATION
-                    and msg.method_id == EVENT_TEST_UINT8_RELIABLE
-                ):
+                if msg.message_type == SOMEIPMessageType.NOTIFICATION and msg.method_id == EVENT_TEST_UINT8_RELIABLE:
                     matched = msg
                     break
             assert matched is not None, (

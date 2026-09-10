@@ -218,12 +218,9 @@ class TestFieldGetSet:
         )
 
         assert resp.return_code == SOMEIPReturnCode.E_OK, (
-            f"TC8-FLD-003: GET returned code 0x{resp.return_code.value:02x} "
-            f"({resp.return_code.name}), expected E_OK"
+            f"TC8-FLD-003: GET returned code 0x{resp.return_code.value:02x} ({resp.return_code.name}), expected E_OK"
         )
-        assert resp.payload, (
-            "TC8-FLD-003: GET response has empty payload — expected current field value"
-        )
+        assert resp.payload, "TC8-FLD-003: GET response has empty payload — expected current field value"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__fld_get_set"],
@@ -261,9 +258,7 @@ class TestFieldGetSet:
             )
 
             # Drain any initial value notification that arrived due to is_field=true.
-            capture_notifications(
-                notif_sock, EVENT_FIELD_UINT8, SERVICE_ID, count=1, timeout_secs=1.5
-            )
+            capture_notifications(notif_sock, EVENT_FIELD_UINT8, SERVICE_ID, count=1, timeout_secs=1.5)
 
             set_resp = send_set_field(
                 dut_ip,
@@ -292,8 +287,7 @@ class TestFieldGetSet:
             )
             received_payload = bytes(notifs[0].payload) if notifs[0].payload else b""
             assert received_payload == new_value, (
-                f"TC8-FLD-004: Notification payload mismatch: "
-                f"got {received_payload!r}, expected {new_value!r}"
+                f"TC8-FLD-004: Notification payload mismatch: got {received_payload!r}, expected {new_value!r}"
             )
         finally:
             if sd_sock:
@@ -336,9 +330,7 @@ class TestFieldTcpTransport:
             f"SOMEIPSRV_RPC_17: TCP GET returned code 0x{resp.return_code.value:02x} "
             f"({resp.return_code.name}), expected E_OK"
         )
-        assert resp.payload, (
-            "SOMEIPSRV_RPC_17: TCP GET response has empty payload — expected current field value"
-        )
+        assert resp.payload, "SOMEIPSRV_RPC_17: TCP GET response has empty payload — expected current field value"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__tcp_transport"],
@@ -380,6 +372,5 @@ class TestFieldTcpTransport:
         )
         received_payload = bytes(get_resp.payload) if get_resp.payload else b""
         assert received_payload == new_value, (
-            f"SOMEIPSRV_RPC_17: TCP GET after SET payload mismatch: "
-            f"got {received_payload!r}, expected {new_value!r}"
+            f"SOMEIPSRV_RPC_17: TCP GET after SET payload mismatch: got {received_payload!r}, expected {new_value!r}"
         )

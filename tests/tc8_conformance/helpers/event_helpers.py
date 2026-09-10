@@ -75,9 +75,7 @@ def subscribe_and_wait_ack(
             max_results=1,  # Return as soon as first ACK arrives; preserves subscription TTL.
         )
         acks = [e for e in entries if e.eventgroup_id == eventgroup_id and e.ttl > 0]
-        assert acks, (
-            f"No SubscribeEventgroupAck received for eventgroup 0x{eventgroup_id:04x}"
-        )
+        assert acks, f"No SubscribeEventgroupAck received for eventgroup 0x{eventgroup_id:04x}"
     except Exception:
         sd_sock.close()
         raise
@@ -174,8 +172,7 @@ def assert_notification_header(msg: SOMEIPHeader, expected_event_id: int) -> Non
         f"expected NOTIFICATION (0x{SOMEIPMessageType.NOTIFICATION:02x})"
     )
     assert msg.method_id == expected_event_id, (
-        f"TC8-EVT: event_id mismatch: got 0x{msg.method_id:04x}, "
-        f"expected 0x{expected_event_id:04x}"
+        f"TC8-EVT: event_id mismatch: got 0x{msg.method_id:04x}, expected 0x{expected_event_id:04x}"
     )
 
 
@@ -221,9 +218,7 @@ def subscribe_and_wait_ack_tcp(
             max_results=1,
         )
         acks = [e for e in entries if e.eventgroup_id == eventgroup_id and e.ttl > 0]
-        assert acks, (
-            f"No SubscribeEventgroupAck received for TCP eventgroup 0x{eventgroup_id:04x}"
-        )
+        assert acks, f"No SubscribeEventgroupAck received for TCP eventgroup 0x{eventgroup_id:04x}"
     except Exception:
         sd_sock.close()
         raise

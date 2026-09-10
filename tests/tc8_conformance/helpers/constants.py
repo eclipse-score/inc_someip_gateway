@@ -126,9 +126,7 @@ METHOD_FIELD_UINT8_RELIABLE_SET: int = 0x2B
 # ETS Sec. 6.1.4.2 eventgroup IDs
 # ---------------------------------------------------------------------------
 EVENTGROUP_UDP_UNICAST: int = 0x0002
-EVENTGROUP_TCP_RELIABLE: int = (
-    0x0005  # mixed: UDP events + TestEventUINT8Reliable (TCP)
-)
+EVENTGROUP_TCP_RELIABLE: int = 0x0005  # mixed: UDP events + TestEventUINT8Reliable (TCP)
 EVENTGROUP_UDP_MULTICAST: int = 0x0006
 
 # ---------------------------------------------------------------------------

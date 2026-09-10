@@ -106,9 +106,7 @@ def _capture_raw_sd_offer(
                     continue
                 sd_hdr_raw, _ = SOMEIPSDHeader.parse(someip_msg.payload)
                 sd_hdr_resolved = sd_hdr_raw.resolve_options()
-                for raw_entry, resolved_entry in zip(
-                    sd_hdr_raw.entries, sd_hdr_resolved.entries
-                ):
+                for raw_entry, resolved_entry in zip(sd_hdr_raw.entries, sd_hdr_resolved.entries):
                     if (
                         resolved_entry.sd_type == SOMEIPSDEntryType.OfferService
                         and resolved_entry.service_id == SERVICE_ID
@@ -120,8 +118,7 @@ def _capture_raw_sd_offer(
         sock.close()
 
     raise TimeoutError(
-        f"No OfferService for service 0x{SERVICE_ID:04x} received within "
-        f"{timeout_secs:.1f}s on {host_ip}:{SD_PORT}"
+        f"No OfferService for service 0x{SERVICE_ID:04x} received within {timeout_secs:.1f}s on {host_ip}:{SD_PORT}"
     )
 
 
@@ -161,8 +158,7 @@ def _capture_subscribe_ack(
         )
         acks = [e for e in entries if e.eventgroup_id == eventgroup_id and e.ttl > 0]
         assert acks, (
-            f"No SubscribeEventgroupAck received for eventgroup "
-            f"0x{eventgroup_id:04x} within {timeout_secs:.1f}s"
+            f"No SubscribeEventgroupAck received for eventgroup 0x{eventgroup_id:04x} within {timeout_secs:.1f}s"
         )
         return acks[0]
     finally:
@@ -218,9 +214,7 @@ def _capture_subscribe_ack_with_options(
                     continue
                 sd_hdr, _ = SOMEIPSDHeader.parse(someip_msg.payload)
                 sd_hdr_resolved = sd_hdr.resolve_options()
-                for unresolved_entry, resolved_entry in zip(
-                    sd_hdr.entries, sd_hdr_resolved.entries
-                ):
+                for unresolved_entry, resolved_entry in zip(sd_hdr.entries, sd_hdr_resolved.entries):
                     if (
                         unresolved_entry.sd_type == SOMEIPSDEntryType.SubscribeAck
                         and unresolved_entry.eventgroup_id == eventgroup_id
@@ -256,9 +250,7 @@ class TestSdHeaderFieldsOfferService:
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
-        assert someip_msg.client_id == 0x0000, (
-            f"FORMAT_01: client_id must be 0x0000; got 0x{someip_msg.client_id:04x}"
-        )
+        assert someip_msg.client_id == 0x0000, f"FORMAT_01: client_id must be 0x0000; got 0x{someip_msg.client_id:04x}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -282,12 +274,9 @@ class TestSdHeaderFieldsOfferService:
 
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip, timeout_secs=5.0)
 
-        assert someip_msg.session_id != 0x0000, (
-            "FORMAT_02: session_id must never be 0x0000 (reserved)"
-        )
+        assert someip_msg.session_id != 0x0000, "FORMAT_02: session_id must never be 0x0000 (reserved)"
         assert someip_msg.session_id <= 0xFFFF, (
-            f"FORMAT_02: session_id must fit in 16 bits; "
-            f"got 0x{someip_msg.session_id:08x}"
+            f"FORMAT_02: session_id must fit in 16 bits; got 0x{someip_msg.session_id:08x}"
         )
 
     @add_test_properties(
@@ -306,8 +295,7 @@ class TestSdHeaderFieldsOfferService:
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
         assert someip_msg.interface_version == SD_INTERFACE_VERSION, (
-            f"FORMAT_04: interface_version must be {SD_INTERFACE_VERSION}; "
-            f"got {someip_msg.interface_version}"
+            f"FORMAT_04: interface_version must be {SD_INTERFACE_VERSION}; got {someip_msg.interface_version}"
         )
 
     @add_test_properties(
@@ -347,9 +335,7 @@ class TestSdHeaderFieldsOfferService:
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
         assert someip_msg.return_code == SOMEIPReturnCode.E_OK, (
-            f"FORMAT_06: return_code must be E_OK "
-            f"(0x{SOMEIPReturnCode.E_OK:02x}); "
-            f"got 0x{someip_msg.return_code:02x}"
+            f"FORMAT_06: return_code must be E_OK (0x{SOMEIPReturnCode.E_OK:02x}); got 0x{someip_msg.return_code:02x}"
         )
 
     @add_test_properties(
@@ -369,8 +355,7 @@ class TestSdHeaderFieldsOfferService:
 
         # flags_unknown captures bits 5-0 (the reserved/undefined bits).
         assert sd_hdr.flags_unknown == 0, (
-            f"FORMAT_09: SD Flags reserved bits (5-0) must be 0; "
-            f"flags_unknown=0x{sd_hdr.flags_unknown:02x}"
+            f"FORMAT_09: SD Flags reserved bits (5-0) must be 0; flags_unknown=0x{sd_hdr.flags_unknown:02x}"
         )
 
     @add_test_properties(
@@ -409,8 +394,7 @@ class TestSdHeaderFieldsOfferService:
 
         reserved_byte = raw[2]
         assert reserved_byte == 0, (
-            f"FORMAT_10: Reserved byte [2] in OfferService SD entry must be 0; "
-            f"got 0x{reserved_byte:02x}"
+            f"FORMAT_10: Reserved byte [2] in OfferService SD entry must be 0; got 0x{reserved_byte:02x}"
         )
 
 
@@ -435,9 +419,7 @@ class TestSdOfferEntryFields:
         assigned = entry.assign_option_index([])
         entry_bytes = assigned.build()
 
-        assert len(entry_bytes) == 16, (
-            f"FORMAT_11: SD entry must be 16 bytes; got {len(entry_bytes)}"
-        )
+        assert len(entry_bytes) == 16, f"FORMAT_11: SD entry must be 16 bytes; got {len(entry_bytes)}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -458,10 +440,7 @@ class TestSdOfferEntryFields:
         raw = assigned.build()
 
         option_index_1 = raw[1]
-        assert option_index_1 == 0, (
-            f"FORMAT_12: option_index_1 (byte [1]) must be 0; "
-            f"got 0x{option_index_1:02x}"
-        )
+        assert option_index_1 == 0, f"FORMAT_12: option_index_1 (byte [1]) must be 0; got 0x{option_index_1:02x}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -482,8 +461,7 @@ class TestSdOfferEntryFields:
         # replaces the counter with the actual option objects).  Use the raw entry's
         # counter (preserved before resolve) against the resolved entry's options list.
         assert raw_entry.num_options_1 == len(entry.options_1), (
-            f"FORMAT_13: num_options_1 ({raw_entry.num_options_1}) must equal "
-            f"len(options_1) ({len(entry.options_1)})"
+            f"FORMAT_13: num_options_1 ({raw_entry.num_options_1}) must equal len(options_1) ({len(entry.options_1)})"
         )
 
     @add_test_properties(
@@ -502,8 +480,7 @@ class TestSdOfferEntryFields:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         assert entry.instance_id == INSTANCE_ID, (
-            f"FORMAT_15: instance_id must be 0x{INSTANCE_ID:04x}; "
-            f"got 0x{entry.instance_id:04x}"
+            f"FORMAT_15: instance_id must be 0x{INSTANCE_ID:04x}; got 0x{entry.instance_id:04x}"
         )
 
     @add_test_properties(
@@ -522,8 +499,7 @@ class TestSdOfferEntryFields:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         assert entry.major_version == MAJOR_VERSION, (
-            f"FORMAT_16: major_version must be 0x{MAJOR_VERSION:02x}; "
-            f"got 0x{entry.major_version:02x}"
+            f"FORMAT_16: major_version must be 0x{MAJOR_VERSION:02x}; got 0x{entry.major_version:02x}"
         )
 
     @add_test_properties(
@@ -542,8 +518,7 @@ class TestSdOfferEntryFields:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         assert entry.service_minor_version == MINOR_VERSION, (
-            f"FORMAT_18: minor_version must be 0x{MINOR_VERSION:08x}; "
-            f"got 0x{entry.service_minor_version:08x}"
+            f"FORMAT_18: minor_version must be 0x{MINOR_VERSION:08x}; got 0x{entry.service_minor_version:08x}"
         )
 
 
@@ -591,9 +566,7 @@ class TestSdHeaderFieldsSubscribeAck:
         assigned = ack.assign_option_index([])
         entry_bytes = assigned.build()
 
-        assert len(entry_bytes) == 16, (
-            f"FORMAT_20: SubscribeAck SD entry must be 16 bytes; got {len(entry_bytes)}"
-        )
+        assert len(entry_bytes) == 16, f"FORMAT_20: SubscribeAck SD entry must be 16 bytes; got {len(entry_bytes)}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -619,14 +592,12 @@ class TestSdHeaderFieldsSubscribeAck:
 
         if expected_option_count == 0:
             assert option_index_1 == 0, (
-                f"FORMAT_21: option_index_1 must be 0 when no options; "
-                f"got 0x{option_index_1:02x}"
+                f"FORMAT_21: option_index_1 must be 0 when no options; got 0x{option_index_1:02x}"
             )
         else:
             # Non-zero index is valid only when the SD packet carries options.
             assert option_index_1 < 16, (
-                f"FORMAT_21: option_index_1 must be a valid index (< 16); "
-                f"got 0x{option_index_1:02x}"
+                f"FORMAT_21: option_index_1 must be a valid index (< 16); got 0x{option_index_1:02x}"
             )
 
     @add_test_properties(
@@ -647,8 +618,7 @@ class TestSdHeaderFieldsSubscribeAck:
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         assert ack.service_id == SERVICE_ID, (
-            f"FORMAT_23: service_id must be 0x{SERVICE_ID:04x}; "
-            f"got 0x{ack.service_id:04x}"
+            f"FORMAT_23: service_id must be 0x{SERVICE_ID:04x}; got 0x{ack.service_id:04x}"
         )
 
     @add_test_properties(
@@ -669,8 +639,7 @@ class TestSdHeaderFieldsSubscribeAck:
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         assert ack.instance_id == INSTANCE_ID, (
-            f"FORMAT_24: instance_id must be 0x{INSTANCE_ID:04x}; "
-            f"got 0x{ack.instance_id:04x}"
+            f"FORMAT_24: instance_id must be 0x{INSTANCE_ID:04x}; got 0x{ack.instance_id:04x}"
         )
 
     @add_test_properties(
@@ -691,8 +660,7 @@ class TestSdHeaderFieldsSubscribeAck:
         ack = _capture_subscribe_ack(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         assert ack.major_version == MAJOR_VERSION, (
-            f"FORMAT_25: major_version must be 0x{MAJOR_VERSION:02x}; "
-            f"got 0x{ack.major_version:02x}"
+            f"FORMAT_25: major_version must be 0x{MAJOR_VERSION:02x}; got 0x{ack.major_version:02x}"
         )
 
     @add_test_properties(
@@ -788,17 +756,14 @@ class TestSdOptionsEndpoint:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         ipv4_opts = [o for o in entry.options_1 if isinstance(o, IPv4EndpointOption)]
-        assert ipv4_opts, (
-            "OPTIONS_01: No IPv4EndpointOption found in OfferService entry"
-        )
+        assert ipv4_opts, "OPTIONS_01: No IPv4EndpointOption found in OfferService entry"
         opt = ipv4_opts[0]
         raw = opt.build()
 
         # Wire format: [0-1] length field (big-endian).
         length_field = int.from_bytes(raw[0:2], "big")
         assert length_field == 0x0009, (
-            f"OPTIONS_01: IPv4EndpointOption length field must be 0x0009; "
-            f"got 0x{length_field:04x}"
+            f"OPTIONS_01: IPv4EndpointOption length field must be 0x0009; got 0x{length_field:04x}"
         )
 
     @add_test_properties(
@@ -817,18 +782,13 @@ class TestSdOptionsEndpoint:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         ipv4_opts = [o for o in entry.options_1 if isinstance(o, IPv4EndpointOption)]
-        assert ipv4_opts, (
-            "OPTIONS_02: No IPv4EndpointOption found in OfferService entry"
-        )
+        assert ipv4_opts, "OPTIONS_02: No IPv4EndpointOption found in OfferService entry"
         opt = ipv4_opts[0]
         raw = opt.build()
 
         # Wire format: [2] type byte.
         type_byte = raw[2]
-        assert type_byte == 0x04, (
-            f"OPTIONS_02: IPv4EndpointOption type byte must be 0x04; "
-            f"got 0x{type_byte:02x}"
-        )
+        assert type_byte == 0x04, f"OPTIONS_02: IPv4EndpointOption type byte must be 0x04; got 0x{type_byte:02x}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_options_fields"],
@@ -846,17 +806,14 @@ class TestSdOptionsEndpoint:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         ipv4_opts = [o for o in entry.options_1 if isinstance(o, IPv4EndpointOption)]
-        assert ipv4_opts, (
-            "OPTIONS_03: No IPv4EndpointOption found in OfferService entry"
-        )
+        assert ipv4_opts, "OPTIONS_03: No IPv4EndpointOption found in OfferService entry"
         opt = ipv4_opts[0]
         raw = opt.build()
 
         # Wire format: [3] reserved byte after type.
         reserved_byte = raw[3]
         assert reserved_byte == 0x00, (
-            f"OPTIONS_03: IPv4EndpointOption reserved byte [3] must be 0x00; "
-            f"got 0x{reserved_byte:02x}"
+            f"OPTIONS_03: IPv4EndpointOption reserved byte [3] must be 0x00; got 0x{reserved_byte:02x}"
         )
 
     @add_test_properties(
@@ -875,17 +832,14 @@ class TestSdOptionsEndpoint:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         ipv4_opts = [o for o in entry.options_1 if isinstance(o, IPv4EndpointOption)]
-        assert ipv4_opts, (
-            "OPTIONS_05: No IPv4EndpointOption found in OfferService entry"
-        )
+        assert ipv4_opts, "OPTIONS_05: No IPv4EndpointOption found in OfferService entry"
         opt = ipv4_opts[0]
         raw = opt.build()
 
         # Wire format: [8] reserved byte before protocol byte.
         reserved_byte = raw[8]
         assert reserved_byte == 0x00, (
-            f"OPTIONS_05: IPv4EndpointOption reserved byte [8] must be 0x00; "
-            f"got 0x{reserved_byte:02x}"
+            f"OPTIONS_05: IPv4EndpointOption reserved byte [8] must be 0x00; got 0x{reserved_byte:02x}"
         )
 
     @add_test_properties(
@@ -904,14 +858,11 @@ class TestSdOptionsEndpoint:
         _, _, entry, _ = _capture_raw_sd_offer(host_ip)
 
         ipv4_opts = [o for o in entry.options_1 if isinstance(o, IPv4EndpointOption)]
-        assert ipv4_opts, (
-            "OPTIONS_06: No IPv4EndpointOption found in OfferService entry"
-        )
+        assert ipv4_opts, "OPTIONS_06: No IPv4EndpointOption found in OfferService entry"
         opt = ipv4_opts[0]
 
         assert opt.l4proto == L4Protocols.UDP, (
-            f"OPTIONS_06: IPv4EndpointOption l4proto must be UDP "
-            f"(0x{L4Protocols.UDP:02x}); got {opt.l4proto!r}"
+            f"OPTIONS_06: IPv4EndpointOption l4proto must be UDP (0x{L4Protocols.UDP:02x}); got {opt.l4proto!r}"
         )
 
 
@@ -940,23 +891,19 @@ class TestSdOptionsMulticast:
                 "Set TC8_HOST_IP to a non-loopback address."
             )
 
-        _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
-        )
+        _, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST)
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
-            f"OPTIONS_08: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            f"OPTIONS_08: No IPv4MulticastOption found in SubscribeAck for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
 
         length_field = int.from_bytes(raw[0:2], "big")
         assert length_field == 0x0009, (
-            f"OPTIONS_08: IPv4MulticastOption length field must be 0x0009; "
-            f"got 0x{length_field:04x}"
+            f"OPTIONS_08: IPv4MulticastOption length field must be 0x0009; got 0x{length_field:04x}"
         )
 
     @pytest.mark.network
@@ -981,24 +928,18 @@ class TestSdOptionsMulticast:
                 "Set TC8_HOST_IP to a non-loopback address."
             )
 
-        _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
-        )
+        _, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST)
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
-            f"OPTIONS_09: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            f"OPTIONS_09: No IPv4MulticastOption found in SubscribeAck for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
 
         type_byte = raw[2]
-        assert type_byte == 0x14, (
-            f"OPTIONS_09: IPv4MulticastOption type byte must be 0x14; "
-            f"got 0x{type_byte:02x}"
-        )
+        assert type_byte == 0x14, f"OPTIONS_09: IPv4MulticastOption type byte must be 0x14; got 0x{type_byte:02x}"
 
     @pytest.mark.network
     @add_test_properties(
@@ -1022,23 +963,19 @@ class TestSdOptionsMulticast:
                 "Set TC8_HOST_IP to a non-loopback address."
             )
 
-        _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
-        )
+        _, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST)
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
-            f"OPTIONS_10: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            f"OPTIONS_10: No IPv4MulticastOption found in SubscribeAck for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
 
         reserved_byte = raw[3]
         assert reserved_byte == 0x00, (
-            f"OPTIONS_10: IPv4MulticastOption reserved byte [3] must be 0x00; "
-            f"got 0x{reserved_byte:02x}"
+            f"OPTIONS_10: IPv4MulticastOption reserved byte [3] must be 0x00; got 0x{reserved_byte:02x}"
         )
 
     @pytest.mark.network
@@ -1063,15 +1000,12 @@ class TestSdOptionsMulticast:
                 "Set TC8_HOST_IP to a non-loopback address."
             )
 
-        _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
-        )
+        _, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST)
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
-            f"OPTIONS_11: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            f"OPTIONS_11: No IPv4MulticastOption found in SubscribeAck for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
 
@@ -1102,23 +1036,19 @@ class TestSdOptionsMulticast:
                 "Set TC8_HOST_IP to a non-loopback address."
             )
 
-        _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
-        )
+        _, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST)
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
-            f"OPTIONS_12: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            f"OPTIONS_12: No IPv4MulticastOption found in SubscribeAck for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
         raw = opt.build()
 
         reserved_byte = raw[8]
         assert reserved_byte == 0x00, (
-            f"OPTIONS_12: IPv4MulticastOption reserved byte [8] must be 0x00; "
-            f"got 0x{reserved_byte:02x}"
+            f"OPTIONS_12: IPv4MulticastOption reserved byte [8] must be 0x00; got 0x{reserved_byte:02x}"
         )
 
     @pytest.mark.network
@@ -1143,21 +1073,17 @@ class TestSdOptionsMulticast:
                 "Set TC8_HOST_IP to a non-loopback address."
             )
 
-        _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
-        )
+        _, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST)
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
-            f"OPTIONS_13: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            f"OPTIONS_13: No IPv4MulticastOption found in SubscribeAck for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
 
         assert opt.l4proto == L4Protocols.UDP, (
-            f"OPTIONS_13: IPv4MulticastOption l4proto must be UDP "
-            f"(0x{L4Protocols.UDP:02x}); got {opt.l4proto!r}"
+            f"OPTIONS_13: IPv4MulticastOption l4proto must be UDP (0x{L4Protocols.UDP:02x}); got {opt.l4proto!r}"
         )
 
     @pytest.mark.network
@@ -1182,15 +1108,12 @@ class TestSdOptionsMulticast:
                 "Set TC8_HOST_IP to a non-loopback address."
             )
 
-        _, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST
-        )
+        _, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_MULTICAST)
 
         all_opts = list(resolved_ack.options_1) + list(resolved_ack.options_2)
         mcast_opts = [o for o in all_opts if isinstance(o, IPv4MulticastOption)]
         assert mcast_opts, (
-            f"OPTIONS_14: No IPv4MulticastOption found in SubscribeAck for "
-            f"eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            f"OPTIONS_14: No IPv4MulticastOption found in SubscribeAck for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
         )
         opt = mcast_opts[0]
 
@@ -1222,8 +1145,7 @@ class TestSdMissingFormatFields:
         someip_msg, _, _, _ = _capture_raw_sd_offer(host_ip)
 
         assert someip_msg.protocol_version == 1, (
-            f"FORMAT_03: protocol_version must be 0x01; "
-            f"got 0x{someip_msg.protocol_version:02x}"
+            f"FORMAT_03: protocol_version must be 0x01; got 0x{someip_msg.protocol_version:02x}"
         )
 
     @add_test_properties(
@@ -1246,8 +1168,7 @@ class TestSdMissingFormatFields:
         _, sd_hdr, _, _ = _capture_raw_sd_offer(host_ip)
 
         assert sd_hdr.flag_unicast, (
-            "FORMAT_08: SD Flags Unicast flag (bit 6) must be set in OfferService; "
-            f"flag_unicast={sd_hdr.flag_unicast}"
+            f"FORMAT_08: SD Flags Unicast flag (bit 6) must be set in OfferService; flag_unicast={sd_hdr.flag_unicast}"
         )
 
     @add_test_properties(
@@ -1274,10 +1195,7 @@ class TestSdMissingFormatFields:
         raw = assigned.build()
 
         type_byte = raw[0]
-        assert type_byte == 0x01, (
-            f"FORMAT_14: OfferService entry Type byte must be 0x01; "
-            f"got 0x{type_byte:02x}"
-        )
+        assert type_byte == 0x01, f"FORMAT_14: OfferService entry Type byte must be 0x01; got 0x{type_byte:02x}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -1303,10 +1221,7 @@ class TestSdMissingFormatFields:
 
         # Bytes [9-11] are the 3-byte big-endian TTL field.
         ttl_value = int.from_bytes(raw[9:12], "big")
-        assert ttl_value > 0, (
-            f"FORMAT_17: OfferService entry TTL (bytes[9-11]) must be > 0; "
-            f"got {ttl_value}"
-        )
+        assert ttl_value > 0, f"FORMAT_17: OfferService entry TTL (bytes[9-11]) must be > 0; got {ttl_value}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -1328,9 +1243,7 @@ class TestSdMissingFormatFields:
         """
         assert dut.poll() is None, "DUT is not running"
 
-        unresolved_ack, resolved_ack = _capture_subscribe_ack_with_options(
-            dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST
-        )
+        unresolved_ack, resolved_ack = _capture_subscribe_ack_with_options(dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
 
         # unresolved_ack.num_options_1 is the raw counter from the wire.
         # resolved_ack.options_1 is the list populated by resolve_options().
@@ -1367,10 +1280,7 @@ class TestSdEntryOptionFields:
         raw = assigned.build()
 
         type_byte = raw[0]
-        assert type_byte == 0x01, (
-            f"SD_MESSAGE_07: OfferService entry Type byte must be 0x01; "
-            f"got 0x{type_byte:02x}"
-        )
+        assert type_byte == 0x01, f"SD_MESSAGE_07: OfferService entry Type byte must be 0x01; got 0x{type_byte:02x}"
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_format_fields"],
@@ -1399,8 +1309,7 @@ class TestSdEntryOptionFields:
         # Byte [2] is option_index_2 (second option-run start index).
         option_index_2 = raw[2]
         assert option_index_2 == 0, (
-            f"SD_MESSAGE_08: OfferService option_index_2 (byte[2]) must be 0; "
-            f"got 0x{option_index_2:02x}"
+            f"SD_MESSAGE_08: OfferService option_index_2 (byte[2]) must be 0; got 0x{option_index_2:02x}"
         )
 
     @add_test_properties(
@@ -1482,8 +1391,7 @@ class TestSdEntryOptionFields:
 
         type_byte = raw[0]
         assert type_byte == 0x06, (
-            f"SD_MESSAGE_11: SubscribeEventgroup entry Type byte must be 0x06; "
-            f"got 0x{type_byte:02x}"
+            f"SD_MESSAGE_11: SubscribeEventgroup entry Type byte must be 0x06; got 0x{type_byte:02x}"
         )
 
 
@@ -1528,10 +1436,7 @@ class TestSdStopSubscribeFormat:
         assigned = stop_subscribe_entry.assign_option_index(options)
         entry = assigned.build()
 
-        assert len(entry) == 16, (
-            f"SD_MESSAGE_12: StopSubscribeEventgroup entry must be 16 bytes; "
-            f"got {len(entry)}"
-        )
+        assert len(entry) == 16, f"SD_MESSAGE_12: StopSubscribeEventgroup entry must be 16 bytes; got {len(entry)}"
 
         type_byte = entry[0]
         assert type_byte == 0x06, (
@@ -1541,6 +1446,5 @@ class TestSdStopSubscribeFormat:
 
         ttl_bytes = entry[9:12]
         assert ttl_bytes == b"\x00\x00\x00", (
-            f"SD_MESSAGE_12: StopSubscribeEventgroup TTL bytes[9:12] must be "
-            f"b'\\x00\\x00\\x00'; got {ttl_bytes!r}"
+            f"SD_MESSAGE_12: StopSubscribeEventgroup TTL bytes[9:12] must be b'\\x00\\x00\\x00'; got {ttl_bytes!r}"
         )

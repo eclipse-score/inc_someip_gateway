@@ -59,8 +59,7 @@ def collect_sd_offers_from_socket(
 
     if len(collected) < count:
         raise TimeoutError(
-            f"Captured only {len(collected)} SD OFFER entries within "
-            f"{timeout_secs:.1f}s (expected at least {count})"
+            f"Captured only {len(collected)} SD OFFER entries within {timeout_secs:.1f}s (expected at least {count})"
         )
     return collected  # pragma: no cover
 
