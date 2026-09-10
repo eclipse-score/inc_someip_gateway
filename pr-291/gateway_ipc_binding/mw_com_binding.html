@@ -1,0 +1,1376 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Gateway IPC Binding on mw::com &#8212; SOME/IP Gateway  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=bb63a8e1" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_needs.css?v=82a1844f" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_design.css?v=8048e6ee" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview.bundle.js?v=18cd53c5"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview_loader.js?v=f7ff7e7d"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
+    <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'gateway_ipc_binding/mw_com_binding';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gatewayd" href="../gatewayd/index.html" />
+    <link rel="prev" title="IPC Protocol" href="ipc_protocol.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Eclipse S-CORE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
+    SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tc8_conformance/index.html">
+    TC8 SOME/IP Conformance Testing
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../components.html">
+    <no title>
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../requirements/index.html">
+    Requirements
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
+    SOMEIP Gateway Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tc8_conformance/index.html">
+    TC8 SOME/IP Conformance Testing
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../components.html">
+    <no title>
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/eclipse-score" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../config/index.html">Config</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Gateway IPC Binding</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="shared_memory.html">Shared Memory Slot Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ipc_protocol.html">IPC Protocol</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Gateway IPC Binding on mw::com</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../gatewayd/index.html">gatewayd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../serializer/index.html">Serializer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../socom/index.html">SOCom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../someip/index.html">someip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../someipd/index.html">someipd</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../components.html" class="nav-link">&lt;no title&gt;</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Gateway IPC Binding</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Gateway IPC Binding on mw::com</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="gateway-ipc-binding-on-mw-com">
+<h1>Gateway IPC Binding on mw::com<a class="headerlink" href="#gateway-ipc-binding-on-mw-com" title="Link to this heading">#</a></h1>
+<p>This document describes an <strong>alternative implementation</strong> of the Gateway IPC Binding that replaces the
+<code class="docutils literal notranslate"><span class="pre">score::message_passing</span></code> control channel and the hand-rolled shared-memory transport with <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>
+(LoLa).</p>
+<p>It is developed side by side with the existing implementation described in <a class="reference internal" href="index.html"><span class="doc">Gateway IPC Binding</span></a>:</p>
+<ul class="simple">
+<li><p>it implements the <strong>same public interfaces</strong> <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client</span></code> and <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server</span></code></p></li>
+<li><p>it is constructed through <strong>new factory functions</strong>, not through the existing <code class="docutils literal notranslate"><span class="pre">create()</span></code> methods</p></li>
+</ul>
+<p>Because <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> already provides service discovery, subscription management, shared-memory transport and
+slot lifetime management, this implementation has <strong>no IPC protocol of its own</strong>. There are no message ids, no
+wire format and no shared-memory slot manager. The entire design question is therefore: <em>how are SOME/IP
+services mapped onto ``mw::com`` features?</em></p>
+<p>The one thing <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> does not give away for free is peer liveness, because per-service availability
+cannot distinguish “the peer is down” from “the peer is up but the service is not there”. That is solved with
+a dedicated, typed <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, see <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>.</p>
+<section id="implementation-status">
+<span id="mw-com-implementation-status"></span><h2>Implementation status<a class="headerlink" href="#implementation-status" title="Link to this heading">#</a></h2>
+<p>Peer liveness and event-based service bridging are implemented. <code class="docutils literal notranslate"><span class="pre">create_server()</span></code> provides
+<code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, <code class="docutils literal notranslate"><span class="pre">create_client()</span></code> consumes it and reports it through <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code>, and
+both factories set up the configured bridged services.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Part</p></th>
+<th class="head"><p>State</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>, <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code></p></td>
+<td><p>implemented</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> public API, <code class="docutils literal notranslate"><span class="pre">sample_size()</span></code></p></td>
+<td><p>implemented</p></td>
+</tr>
+<tr class="row-even"><td><p>bridged services: skeletons, proxies, event flow</p></td>
+<td><p>implemented</p></td>
+</tr>
+<tr class="row-odd"><td><p>method calls, requested event updates</p></td>
+<td><p>not representable, see <a class="reference internal" href="#known-gaps">Known gaps</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Code map:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">score/someip/someipd_service.hpp</span></code> — the typed <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> interface, in its own Bazel
+target <code class="docutils literal notranslate"><span class="pre">//score/someip:someipd_service</span></code> so that <code class="docutils literal notranslate"><span class="pre">//score/someip:someip</span></code> stays free of an
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> dependency</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp</span></code> — the public interface below</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/impl/mw_com/</span></code> — the implementation, built as
+<code class="docutils literal notranslate"><span class="pre">//score/gateway_ipc_binding:gateway_ipc_binding_mw_com</span></code>, a target separate from
+<code class="docutils literal notranslate"><span class="pre">//score/gateway_ipc_binding</span></code> so that users of the <code class="docutils literal notranslate"><span class="pre">message_passing</span></code> implementation do not
+pull in <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample_layout.{hpp,cpp}</span></code> — the length prefix and the <code class="docutils literal notranslate"><span class="pre">DataTypeMetaInfo</span></code> derivation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">service_binding.{hpp,cpp}</span></code> — configuration validation and the role dispatch</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">provider_service_binding.{hpp,cpp}</span></code> — <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> plus SOCom <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">consumer_service_binding.{hpp,cpp}</span></code> — <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> plus SOCom <code class="docutils literal notranslate"><span class="pre">Server_connector</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">someipd_service_binding.{hpp,cpp}</span></code> — the two halves of <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/test/mw_com/</span></code> — component test running a real <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> runtime
+with both halves of <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> and of one bridged service in one process</p></li>
+</ul>
+</section>
+<section id="goals-and-non-goals">
+<h2>Goals and non-goals<a class="headerlink" href="#goals-and-non-goals" title="Link to this heading">#</a></h2>
+<p>Goals:</p>
+<ul class="simple">
+<li><p>transport SOCom event updates between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> over <code class="docutils literal notranslate"><span class="pre">mw::com</span></code></p></li>
+<li><p>keep the SOME/IP header contiguously in front of every event payload so that E2E can be computed over
+header plus payload without an additional copy</p></li>
+<li><p>keep the public interface of the component unchanged, including the meaning of <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code>, so that
+the daemons can be switched over by exchanging a single factory call</p></li>
+<li><p>delete, not reimplement, everything that <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> already provides</p></li>
+</ul>
+<p>Non-goals:</p>
+<ul class="simple">
+<li><p>method calls. <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> are event-only, so methods stay unimplemented, as
+they are today.</p></li>
+<li><p>dynamic, runtime-driven service discovery between the two daemons. See decision <a class="reference internal" href="#d4-static-config"><span class="std std-ref">D4: the set of bridged services is static and known at startup</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> interoperability for the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to application boundary. That boundary already uses
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> and is not touched by this design.</p></li>
+</ul>
+</section>
+<section id="design-decisions-taken-up-front">
+<h2>Design decisions taken up front<a class="headerlink" href="#design-decisions-taken-up-front" title="Link to this heading">#</a></h2>
+<p>These decisions are inputs to this design, not conclusions of it. They are restated here because the rest of
+the document only makes sense with them in mind.</p>
+<section id="d1-genericproxy-and-genericskeleton-represent-a-some-ip-service">
+<span id="d1-generic"></span><h3>D1: <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> represent a SOME/IP service<a class="headerlink" href="#d1-genericproxy-and-genericskeleton-represent-a-some-ip-service" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> treat event payloads as opaque binary data and are configured at
+runtime from deployment information instead of from generated IDL code. That is exactly what a gateway
+needs: the gateway never interprets the payload of a bridged service, it only moves bytes. One bridged
+SOME/IP service instance therefore becomes one <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service instance.</p>
+</section>
+<section id="d2-every-event-sample-reserves-space-for-the-some-ip-header">
+<span id="d2-header"></span><h3>D2: every event sample reserves space for the SOME/IP header<a class="headerlink" href="#d2-every-event-sample-reserves-space-for-the-some-ip-header" title="Link to this heading">#</a></h3>
+<p>E2E protection is computed over the SOME/IP header and the payload together and requires contiguous memory.
+The event samples exchanged between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> therefore carry the SOME/IP header directly
+in front of the payload bytes. <code class="docutils literal notranslate"><span class="pre">score::socom::Payload</span></code> already models this: it distinguishes <code class="docutils literal notranslate"><span class="pre">header()</span></code>
+from <code class="docutils literal notranslate"><span class="pre">data()</span></code> while both are backed by the same buffer. See <a class="reference internal" href="#sample-layout"><span class="std std-ref">Event sample layout</span></a>.</p>
+</section>
+<section id="d3-no-shared-memory-slot-manager">
+<span id="d3-no-slot-manager"></span><h3>D3: no <code class="docutils literal notranslate"><span class="pre">Shared_memory_slot_manager</span></code><a class="headerlink" href="#d3-no-shared-memory-slot-manager" title="Link to this heading">#</a></h3>
+<p>The existing implementation gives every event of a service the same slot size and puts all events of a
+service into one shared-memory segment. <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> allocates per event, so the sizing is per event as well.
+The <code class="docutils literal notranslate"><span class="pre">Shared_memory_slot_manager</span></code> family of types is therefore <strong>not</strong> reused. Instead the factory functions
+receive a plain configuration structure that describes the <code class="docutils literal notranslate"><span class="pre">GenericSkeletonServiceElementInfo</span></code> required for
+each service. See <a class="reference internal" href="#public-interface"><span class="std std-ref">Public interface</span></a>.</p>
+</section>
+<section id="d4-the-set-of-bridged-services-is-static-and-known-at-startup">
+<span id="d4-static-config"></span><h3>D4: the set of bridged services is static and known at startup<a class="headerlink" href="#d4-the-set-of-bridged-services-is-static-and-known-at-startup" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> reads slot counts, subscriber counts and ASIL levels from a <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code> that has to
+exist before the process starts. A service instance that is not in that file cannot be created at runtime.
+Sending a list of needed services from <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> over the link, as the <code class="docutils literal notranslate"><span class="pre">Connect</span></code> message
+does today, would therefore buy nothing: <code class="docutils literal notranslate"><span class="pre">someipd</span></code> could not act on it anyway.</p>
+<p>Consequently the <code class="docutils literal notranslate"><span class="pre">find_service_elements</span></code> feature is <strong>not</strong> carried over. Every SOME/IP service that
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> offers to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> over IPC must already be known to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> at startup, and the
+<code class="docutils literal notranslate"><span class="pre">On_find_service_change</span></code> callback is not part of the new factory signature.</p>
+</section>
+</section>
+<section id="mapping-some-ip-services-to-mw-com-features">
+<h2>Mapping SOME/IP services to mw::com features<a class="headerlink" href="#mapping-some-ip-services-to-mw-com-features" title="Link to this heading">#</a></h2>
+<section id="concept-mapping">
+<h3>Concept mapping<a class="headerlink" href="#concept-mapping" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 33.0%" />
+<col style="width: 33.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Gateway concept</p></th>
+<th class="head"><p>Today (message_passing + shm)</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> implementation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Bridged service instance</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Service</span></code> + <code class="docutils literal notranslate"><span class="pre">Instance_id</span></code> key, <code class="docutils literal notranslate"><span class="pre">Connect_service</span></code> handshake</p></td>
+<td><p>one <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service instance, addressed by <code class="docutils literal notranslate"><span class="pre">InstanceSpecifier</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Service interface identity and version</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Service_interface_identifier</span></code> on the wire</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">serviceTypes</span></code> entry in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Event identity</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">socom::Event_id</span></code> (index) on the wire</p></td>
+<td><p>named <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> event; the binding maps name to index</p></td>
+</tr>
+<tr class="row-odd"><td><p>Service becomes available</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Offer_service</span></code> message</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericSkeleton::OfferService()</span></code> seen via <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Service goes away</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Offer_service(offered=false)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericSkeleton::StopOfferService()</span></code> seen via <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Event subscription propagation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Subscribe_event</span></code> message</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::Subscribe</span></code> plus
+<code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::SetReceiveHandlerRegistrationChangedHandler</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Payload buffer allocation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Shared_memory_slot_manager::allocate_slot</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::Allocate()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Event transmission</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Event_update</span></code> message plus slot handle</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::Send()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Event reception</p></td>
+<td><p>open peer segment read-only, build payload from slot index</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::SetReceiveHandler</span></code> plus <code class="docutils literal notranslate"><span class="pre">GetNewSamples</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Payload lifetime</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Payload_consumed</span></code> message, manual refcount</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SamplePtr</span></code> / <code class="docutils literal notranslate"><span class="pre">SampleAllocateePtr</span></code> ownership, handled by LoLa</p></td>
+</tr>
+<tr class="row-even"><td><p>Slot count and slot size</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Shared_memory_metadata</span></code> sent in <code class="docutils literal notranslate"><span class="pre">Connect</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">numberOfSampleSlots</span></code> and event sample size in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Peer liveness</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Connect</span></code> / <code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code> handshake</p></td>
+<td><p>dedicated typed <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, see <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p>Method calls</p></td>
+<td><p>declared, never dispatched</p></td>
+<td><p>not representable, out of scope</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Everything in the middle column that has a counterpart in the right column is deleted, not ported.</p>
+</section>
+<section id="role-assignment">
+<h3>Role assignment<a class="headerlink" href="#role-assignment" title="Link to this heading">#</a></h3>
+<p>A bridged service always has a data source and a data sink. The binding peer on the <strong>source</strong> side owns the
+<code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code>, the binding peer on the <strong>sink</strong> side owns the <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code>. Which peer is which
+follows directly from the SOME/IP configuration and is fixed at startup, as required by <a class="reference internal" href="#d4-static-config"><span class="std std-ref">D4: the set of bridged services is static and known at startup</span></a>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 19.0%" />
+<col style="width: 19.0%" />
+<col style="width: 19.0%" />
+<col style="width: 19.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Service kind</p></th>
+<th class="head"><p>Data direction</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> mw::com role</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> mw::com role</p></th>
+<th class="head"><p>Binding SOCom role on the provider side</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>local service instance (application provides, network consumes)</p></td>
+<td><p>application to network</p></td>
+<td><p>provider, <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code></p></td>
+<td><p>consumer, <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> in <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>remote service instance (network provides, application consumes)</p></td>
+<td><p>network to application</p></td>
+<td><p>consumer, <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code></p></td>
+<td><p>provider, <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> in <code class="docutils literal notranslate"><span class="pre">someipd</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Read as a rule:</p>
+<ul class="simple">
+<li><p><strong>provider role</strong>: the binding is a SOCom <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> of the locally offered SOCom service and
+pushes what it consumes into a <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code>.</p></li>
+<li><p><strong>consumer role</strong>: the binding is a SOCom <code class="docutils literal notranslate"><span class="pre">Server_connector</span></code> for the same service and publishes what it
+receives from a <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code>.</p></li>
+</ul>
+<figure class="align-center" id="id2">
+<p class="plantuml">
+<object data="../_images/plantuml-e147dab5afafdcceb90d3eedc9fae59729b7379c.svg" type="image/svg+xml" style="width:1370px;height:467px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text">Role assignment for both data directions</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p>Because both daemons hold both roles at the same time, for different services, the bridged-service part of the
+implementation is a single symmetric class. The only asymmetry left is the <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> described next,
+and it is what distinguishes the client flavour of the public interface from the server flavour.</p>
+</section>
+<section id="someipdservice-and-peer-liveness">
+<span id="someipd-service"></span><h3>SomeipdService and peer liveness<a class="headerlink" href="#someipdservice-and-peer-liveness" title="Link to this heading">#</a></h3>
+<p>The bridged services alone cannot tell <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> whether <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is running. A remote service instance
+only becomes available once the SOME/IP service behind it is available on the network, so its absence is
+ambiguous: it means either “<code class="docutils literal notranslate"><span class="pre">someipd</span></code> is down” or “<code class="docutils literal notranslate"><span class="pre">someipd</span></code> is up but the network service is not there”.
+The <code class="docutils literal notranslate"><span class="pre">Connect</span></code> / <code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code> handshake resolves exactly this ambiguity today and must be preserved.</p>
+<p>It is replaced by <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, a dedicated <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service that represents the <code class="docutils literal notranslate"><span class="pre">someipd</span></code> daemon
+itself rather than any SOME/IP service:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> provides one <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> instance. Its presence <em>is</em> the liveness signal.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> consumes it with <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code> and creates a <code class="docutils literal notranslate"><span class="pre">SomeipdServiceProxy</span></code> for it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client::is_connected()</span></code> returns true once that proxy has been created, and returns to
+false when the find-service handler reports the instance gone.</p></li>
+</ul>
+<p>Properties of this design:</p>
+<ul class="simple">
+<li><p>it is a genuine peer-liveness signal, not a local self-check, so <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s existing startup wait loop
+keeps working unchanged, with the same meaning and the same point in the sequence as today</p></li>
+<li><p>it recovers automatically. If <code class="docutils literal notranslate"><span class="pre">someipd</span></code> restarts, the handler fires with an empty container and then again
+with a handle, so <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> goes false and true again. The bridged services re-establish themselves
+independently and need no ordering guarantee relative to it.</p></li>
+<li><p>the instance specifier plays the role that the <code class="docutils literal notranslate"><span class="pre">message_passing</span></code> channel name plays today: it must be
+unique per <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> / <code class="docutils literal notranslate"><span class="pre">someipd</span></code> pair on a host, and it is the one piece of configuration both daemons
+must agree on.</p></li>
+</ul>
+<section id="offering-order">
+<span id="someipd-service-ordering"></span><h4>Offering order<a class="headerlink" href="#offering-order" title="Link to this heading">#</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> <strong>first</strong>, before it creates any bridged-service skeleton and before any
+service coming from the network is offered. <code class="docutils literal notranslate"><span class="pre">is_connected()</span> <span class="pre">==</span> <span class="pre">true</span></code> therefore means “the peer’s binding is
+up and accepting”, not “the peer has finished setting up its services”. Bridged services arrive
+asynchronously afterwards, each signalled through the normal SOCom service state.</p>
+</section>
+<section id="typed-not-generic">
+<h4>Typed, not generic<a class="headerlink" href="#typed-not-generic" title="Link to this heading">#</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> is the one service in this design that is <strong>not</strong> generic. Unlike a bridged SOME/IP service
+its content is known at compile time, it is defined by this repository rather than by a customer’s SOME/IP
+deployment, and it is not a pass-through for opaque bytes.</p>
+<p>It declares no service elements at all. That an element-less typed instance works on a real runtime is
+no longer an assumption: <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/test/mw_com/</span></code> offers such an instance and finds it,
+so no placeholder element is needed.</p>
+</section>
+</section>
+<section id="event-sample-layout">
+<span id="sample-layout"></span><h3>Event sample layout<a class="headerlink" href="#event-sample-layout" title="Link to this heading">#</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> event sample is a fixed-size, type-erased buffer described by <code class="docutils literal notranslate"><span class="pre">DataTypeMetaInfo{size,</span> <span class="pre">alignment}</span></code>.
+SOME/IP payloads are variable length and, per <a class="reference internal" href="#d2-header"><span class="std std-ref">D2: every event sample reserves space for the SOME/IP header</span></a>, need reserved space in front. The binding
+therefore defines the following layout for every event sample it exchanges:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+----------------------+------------------------+-----------------------------+</span>
+<span class="o">|</span> <span class="n">binding</span> <span class="n">prefix</span> <span class="p">(</span><span class="mi">8</span> <span class="n">B</span><span class="p">)</span> <span class="o">|</span> <span class="n">reserved</span> <span class="n">header</span> <span class="n">space</span>  <span class="o">|</span> <span class="n">payload</span> <span class="nb">bytes</span>               <span class="o">|</span>
+<span class="o">|</span>  <span class="n">u32</span> <span class="n">payload_length</span>  <span class="o">|</span>  <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">SOME</span><span class="o">/</span><span class="n">IP</span> <span class="n">header</span><span class="p">,</span>  <span class="o">|</span>  <span class="n">up</span> <span class="n">to</span> <span class="n">max_payload_size</span>     <span class="o">|</span>
+<span class="o">|</span>  <span class="n">u32</span> <span class="n">reserved</span>        <span class="o">|</span>  <span class="mi">16</span> <span class="n">B</span>                  <span class="o">|</span>                             <span class="o">|</span>
+<span class="o">+----------------------+------------------------+-----------------------------+</span>
+<span class="o">^</span>                      <span class="o">^</span>                        <span class="o">^</span>
+<span class="n">sample</span> <span class="n">base</span>            <span class="n">Payload</span><span class="p">::</span><span class="n">header</span><span class="p">()</span>        <span class="n">Payload</span><span class="p">::</span><span class="n">data</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> of the <code class="docutils literal notranslate"><span class="pre">DataTypeMetaInfo</span></code> is <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">+</span> <span class="pre">header_size</span> <span class="pre">+</span> <span class="pre">max_payload_size</span></code> rounded up to a multiple of
+8, <code class="docutils literal notranslate"><span class="pre">alignment</span></code> is 8. The 8-byte prefix keeps the reserved header space 8-byte aligned; the rounding is
+required because <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> rejects a size that is not an integer multiple of its alignment. The padding
+at the end is never addressed, so <code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code> is exactly <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code> long.</p></li>
+<li><p>the binding constructs <code class="docutils literal notranslate"><span class="pre">socom::Payload{span,</span> <span class="pre">slot_handle,</span> <span class="pre">destroyer,</span> <span class="pre">header_size,</span> <span class="pre">lead_offset</span> <span class="pre">=</span> <span class="pre">8}</span></code>, so
+the producing and consuming applications see exactly the <code class="docutils literal notranslate"><span class="pre">header()</span></code> / <code class="docutils literal notranslate"><span class="pre">data()</span></code> split they already use
+today, and E2E can run over <code class="docutils literal notranslate"><span class="pre">header()</span></code> immediately followed by <code class="docutils literal notranslate"><span class="pre">data()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">payload_length</span></code> is the only piece of binding metadata on the link. It is required because LoLa samples
+are fixed size while SOME/IP payloads are not. The producer shrinks its <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>; the binding
+writes <code class="docutils literal notranslate"><span class="pre">payload.data().size()</span></code> into the prefix just before <code class="docutils literal notranslate"><span class="pre">Send()</span></code>; the consumer side reads it back
+and sizes the <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> accordingly.</p></li>
+</ul>
+<p>Two alternatives were considered and rejected:</p>
+<ul class="simple">
+<li><p>deriving the length from the SOME/IP header length field. That would make <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> parse
+SOME/IP, which it deliberately does not do today, and the field is currently not filled in by <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p></li>
+<li><p>one <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> event per length class. That multiplies the deployment configuration and gains nothing.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">header_size</span></code> is a per-event configuration value and not hard-coded to <code class="docutils literal notranslate"><span class="pre">someip::kSomeipFullHeaderSize</span></code>.
+The daemons pass the SOME/IP value; the binding stays SOME/IP agnostic, exactly as it is today.</p>
+</section>
+<section id="availability-propagation">
+<h3>Availability propagation<a class="headerlink" href="#availability-propagation" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Request_service</span></code>, <code class="docutils literal notranslate"><span class="pre">Offer_service</span></code>, <code class="docutils literal notranslate"><span class="pre">Connect_service</span></code> and <code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code> are replaced by
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service discovery:</p>
+<ul class="simple">
+<li><p><strong>provider side</strong>: the <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> is created eagerly at startup but only offered while the local
+SOCom service is available. <code class="docutils literal notranslate"><span class="pre">Client_connector::on_service_state_change(available)</span></code> triggers
+<code class="docutils literal notranslate"><span class="pre">OfferService()</span></code>, <code class="docutils literal notranslate"><span class="pre">not_available</span></code> triggers <code class="docutils literal notranslate"><span class="pre">StopOfferService()</span></code>.</p></li>
+<li><p><strong>consumer side</strong>: <code class="docutils literal notranslate"><span class="pre">GenericProxy::StartFindService</span></code> is started at startup. A non-empty handle container
+triggers <code class="docutils literal notranslate"><span class="pre">GenericProxy::Create</span></code> and enabling of the SOCom <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code>; an empty
+container disables it again.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> object is <strong>kept alive</strong> across <code class="docutils literal notranslate"><span class="pre">StopOfferService</span></code>, matching the guidance in the
+LoLa gateway documentation: destroying it would zero the shared-memory subscription control block underneath
+consumers that still hold a subscription.</p>
+</section>
+<section id="subscription-propagation">
+<h3>Subscription propagation<a class="headerlink" href="#subscription-propagation" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Subscribe_event</span></code> is replaced by a symmetric pair of <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> callbacks, so that data is only produced
+while somebody actually wants it:</p>
+<ul class="simple">
+<li><p><strong>consumer side</strong>: SOCom <code class="docutils literal notranslate"><span class="pre">on_event_subscription_change(event_id,</span> <span class="pre">subscribed)</span></code> maps to
+<code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::Subscribe(max_sample_count)</span></code> plus <code class="docutils literal notranslate"><span class="pre">SetReceiveHandler</span></code>, and to <code class="docutils literal notranslate"><span class="pre">UnsetReceiveHandler</span></code>
+plus <code class="docutils literal notranslate"><span class="pre">Unsubscribe</span></code> on <code class="docutils literal notranslate"><span class="pre">not_subscribed</span></code>.</p></li>
+<li><p><strong>provider side</strong>: <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::SetReceiveHandlerRegistrationChangedHandler</span></code> fires when the
+first remote receive handler is registered or the last one is removed. It maps to
+<code class="docutils literal notranslate"><span class="pre">Client_connector::subscribe_event(event_id,</span> <span class="pre">Event_mode::update)</span></code> and <code class="docutils literal notranslate"><span class="pre">unsubscribe_event</span></code>.</p></li>
+</ul>
+<p>This callback exists on <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent</span></code> only, and was added upstream for exactly this gateway use
+case.</p>
+<p>The two events can race: the remote receive handler may be registered before the local SOCom service is
+available. The provider side therefore keeps a per-event desired-subscription flag and reconciles it whenever
+either input changes, rather than calling SOCom directly from the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> callback.</p>
+</section>
+<section id="payload-lifetime-and-flow-control">
+<h3>Payload lifetime and flow control<a class="headerlink" href="#payload-lifetime-and-flow-control" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Payload_consumed</span></code> and the manual reference counting disappear. LoLa owns the slots:</p>
+<ul class="simple">
+<li><p><strong>provider side</strong>: <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::Allocate()</span></code> returns a <code class="docutils literal notranslate"><span class="pre">SampleAllocateePtr&lt;void&gt;</span></code>. SOCom only
+hands the binding a <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>, so the binding keeps a small per-event table of in-flight
+allocations, keyed by the <code class="docutils literal notranslate"><span class="pre">slot_handle</span></code> it mints and stores in the payload. On
+<code class="docutils literal notranslate"><span class="pre">on_event_update(event_id,</span> <span class="pre">payload)</span></code> the binding extracts the entry, writes the length prefix and calls
+<code class="docutils literal notranslate"><span class="pre">Send(std::move(sample))</span></code>. If the producer drops the payload without sending it, the payload destructor
+removes the entry and the <code class="docutils literal notranslate"><span class="pre">SampleAllocateePtr</span></code> releases the slot.</p></li>
+<li><p><strong>consumer side</strong>: <code class="docutils literal notranslate"><span class="pre">GetNewSamples</span></code> yields a <code class="docutils literal notranslate"><span class="pre">SamplePtr&lt;void&gt;</span></code> per sample. The binding moves it into the
+destruction callback of the <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> it builds. When the consuming application drops the payload,
+the slot is returned to LoLa.</p></li>
+</ul>
+<p>Consequences:</p>
+<ul class="simple">
+<li><p>back pressure is expressed as <code class="docutils literal notranslate"><span class="pre">Allocate()</span></code> failing when all slots are held. The binding logs and drops the
+event update, as it does today when the slot pool is exhausted.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">numberOfSampleSlots</span></code> must cover the samples in flight plus the samples the peer holds. The peer holds at
+most <code class="docutils literal notranslate"><span class="pre">max_sample_count</span></code> per event, which the binding passes to <code class="docutils literal notranslate"><span class="pre">Subscribe</span></code>.</p></li>
+<li><p>all <code class="docutils literal notranslate"><span class="pre">SampleAllocateePtr</span></code> and <code class="docutils literal notranslate"><span class="pre">SamplePtr</span></code> instances must be destroyed before the owning skeleton or proxy
+event. The binding tears down in the order: unsubscribe, drain in-flight tables, destroy proxies and
+skeletons.</p></li>
+</ul>
+</section>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
+<figure class="align-center" id="id3">
+<p class="plantuml">
+<object data="../_images/plantuml-6e05035e96cd462dd7e7c598540ef284d4d67b4a.svg" type="image/svg+xml" style="width:1585px;height:529px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Client_adapter</span></code> and <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code> implement the two public interfaces. Each owns one
+<code class="docutils literal notranslate"><span class="pre">Service_binding</span></code> per configured service instance plus one <code class="docutils literal notranslate"><span class="pre">Someipd_service_binding</span></code>. Only the
+<code class="docutils literal notranslate"><span class="pre">Someipd_service_binding</span></code> half and the point in time at which the setup runs differ between them, so
+they share the factory <code class="docutils literal notranslate"><span class="pre">make_service_binding()</span></code> instead of a common aggregate class.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Someipd_service_binding</span></code> implements one of the two halves of <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>: the provider half
+owns the <code class="docutils literal notranslate"><span class="pre">SomeipdServiceSkeleton</span></code>, the consumer half owns the <code class="docutils literal notranslate"><span class="pre">FindServiceHandle</span></code>, the
+<code class="docutils literal notranslate"><span class="pre">SomeipdServiceProxy</span></code> and the <code class="docutils literal notranslate"><span class="pre">std::atomic&lt;bool&gt;</span></code> behind <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code>. It is the only place in
+the binding that touches a typed proxy or skeleton.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> holds the <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code>, its per-event allocation table, and the SOCom
+<code class="docutils literal notranslate"><span class="pre">Client_connector</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> holds the <code class="docutils literal notranslate"><span class="pre">FindServiceHandle</span></code>, the <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> once found, and the SOCom
+<code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>.</p></li>
+<li><p>Setting a bridged service up is all-or-nothing: if any entry of <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> fails, the factory
+returns <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> respectively an error from <code class="docutils literal notranslate"><span class="pre">start()</span></code> instead of leaving a link that silently carries
+only part of the configured services.</p></li>
+</ul>
+<p>What is gone compared to <a class="reference internal" href="index.html"><span class="doc">Gateway IPC Binding</span></a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">impl/ipc_messages.hpp</span></code>, <code class="docutils literal notranslate"><span class="pre">impl/gateway_ipc_binding_util.hpp</span></code>, <code class="docutils literal notranslate"><span class="pre">impl/reply_channel.hpp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">impl/connections.hpp</span></code>, <code class="docutils literal notranslate"><span class="pre">impl/pending_connects.hpp</span></code>, <code class="docutils literal notranslate"><span class="pre">impl/connection_metadata.hpp</span></code> — no protocol</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">impl/shared_memory_slot_manager.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">impl/shared_memory_managers.hpp</span></code> — no shared-memory bookkeeping</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Runtime::register_service_bridge</span></code> — with static roles the connectors are created eagerly at startup, so
+there is no on-demand <code class="docutils literal notranslate"><span class="pre">request_service</span></code> path to hook into</p></li>
+<li><p>the client/server asymmetry for bridged services. What remains of it is <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>: the client
+flavour consumes it, the server flavour provides it.</p></li>
+</ul>
+</section>
+<section id="public-interface">
+<span id="id1"></span><h2>Public interface<a class="headerlink" href="#public-interface" title="Link to this heading">#</a></h2>
+<p>A new public header <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding_mw_com.hpp</span></code> adds the configuration types and two free factory
+functions. The existing headers are not modified.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span><span class="nn">score</span><span class="o">::</span><span class="nn">gateway_ipc_binding</span><span class="o">::</span><span class="nn">mw_com</span><span class="w"> </span><span class="p">{</span>
+
+<span class="c1">/// \brief Bytes reserved at the front of every event sample for binding metadata.</span>
+<span class="kr">inline</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">kSample_prefix_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8U</span><span class="p">;</span>
+<span class="c1">/// \brief Alignment requested for every event sample.</span>
+<span class="kr">inline</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">kSample_alignment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8U</span><span class="p">;</span>
+
+<span class="c1">/// \brief Which side of a bridged service this peer implements.</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Role</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">/// This peer consumes the service locally via SOCom and offers it via a GenericSkeleton.</span>
+<span class="w">    </span><span class="n">provider</span><span class="p">,</span>
+<span class="w">    </span><span class="c1">/// This peer receives the service via a GenericProxy and offers it locally via SOCom.</span>
+<span class="w">    </span><span class="n">consumer</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="c1">/// \brief One event of a bridged service. The position in Service_config::events is the socom::Event_id.</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Event_config</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">/// \brief mw::com event name, must match mw_com_config.json.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">/// \brief Reserved leading bytes, e.g. score::someip::kSomeipFullHeaderSize.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">header_size</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">/// \brief Largest payload this event can carry.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">max_payload_size</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">/// \brief One bridged service instance.</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Service_config</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">socom</span><span class="o">::</span><span class="n">Service_interface_identifier</span><span class="w"> </span><span class="n">interface</span><span class="p">;</span>
+<span class="w">    </span><span class="n">socom</span><span class="o">::</span><span class="n">Service_instance</span><span class="w"> </span><span class="n">instance</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">/// \brief mw::com InstanceSpecifier of the gatewayd/someipd instance for this bridged service.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">instance_specifier</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Role</span><span class="w"> </span><span class="n">role</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">/// \brief Events in socom::Event_id order.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Event_config</span><span class="o">&gt;</span><span class="w"> </span><span class="n">events</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">/// \brief max_sample_count passed to GenericProxyEvent::Subscribe on the consumer side.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">max_sample_count</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">using</span><span class="w"> </span><span class="n">Service_configs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Service_config</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">/// \brief Sample size derived from an Event_config, i.e. the DataTypeMetaInfo::size.</span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="nf">sample_size</span><span class="p">(</span><span class="n">Event_config</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+
+<span class="c1">/// \brief Create the mw::com backed binding behind the client interface.</span>
+<span class="c1">/// \details Consumes SomeipdService and reports it through is_connected().</span>
+<span class="c1">/// \param runtime SOCom runtime used to create the connectors</span>
+<span class="c1">/// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance that</span>
+<span class="c1">///        the peer provides. Must be unique per gatewayd/someipd pair on a host, and must be the</span>
+<span class="c1">///        same value that the peer passes to create_server().</span>
+<span class="c1">/// \param services Bridged service instances, see D4: this set is fixed for the process lifetime</span>
+<span class="c1">/// \param identifier Optional string used for logging only</span>
+<span class="c1">/// \return Nullptr if any configured service could not be set up</span>
+<span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Gateway_ipc_binding_client</span><span class="o">&gt;</span><span class="w"> </span><span class="n">create_client</span><span class="p">(</span>
+<span class="w">    </span><span class="n">score</span><span class="o">::</span><span class="n">socom</span><span class="o">::</span><span class="n">Runtime</span><span class="o">&amp;</span><span class="w"> </span><span class="n">runtime</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">someipd_service_specifier</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Service_configs</span><span class="w"> </span><span class="n">services</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="w"> </span><span class="n">identifier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{})</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+
+<span class="c1">/// \brief Create the mw::com backed binding behind the server interface.</span>
+<span class="c1">/// \details Provides SomeipdService. Setup is deferred to Gateway_ipc_binding_server::start(),</span>
+<span class="c1">///          which offers SomeipdService first, before any bridged service is set up.</span>
+<span class="c1">/// \param runtime SOCom runtime used to create the connectors</span>
+<span class="c1">/// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance to</span>
+<span class="c1">///        provide, see create_client()</span>
+<span class="c1">/// \param services Bridged service instances</span>
+<span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Gateway_ipc_binding_server</span><span class="o">&gt;</span><span class="w"> </span><span class="n">create_server</span><span class="p">(</span>
+<span class="w">    </span><span class="n">score</span><span class="o">::</span><span class="n">socom</span><span class="o">::</span><span class="n">Runtime</span><span class="o">&amp;</span><span class="w"> </span><span class="n">runtime</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">someipd_service_specifier</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Service_configs</span><span class="w"> </span><span class="n">services</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+
+<span class="p">}</span><span class="w">  </span><span class="c1">// namespace score::gateway_ipc_binding::mw_com</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> is an owning value type. Unlike <code class="docutils literal notranslate"><span class="pre">Find_service_elements</span></code> and <code class="docutils literal notranslate"><span class="pre">Shared_memory_configs</span></code> it
+never travels over a link, so there is no reason for it to be trivially copyable or bounded by
+<code class="docutils literal notranslate"><span class="pre">kMax_find_service_elements</span></code>. That also removes today’s hard limit of four service instances.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> itself is only reached through <code class="docutils literal notranslate"><span class="pre">score::mw::com::runtime::InitializeRuntime</span></code>, which the daemons
+already call for <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and will have to start calling for <code class="docutils literal notranslate"><span class="pre">someipd</span></code>. The binding does not own the
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> runtime.</p>
+<section id="interface-semantics-under-mw-com">
+<span id="interface-semantics"></span><h3>Interface semantics under mw::com<a class="headerlink" href="#interface-semantics-under-mw-com" title="Link to this heading">#</a></h3>
+<p>The public interfaces are unchanged. Their behaviour is defined as follows and must be documented at the
+factory functions.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Behaviour</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client::is_connected()</span></code></p></td>
+<td><p>True while the <code class="docutils literal notranslate"><span class="pre">SomeipdServiceProxy</span></code> exists, i.e. while the peer’s binding is up and accepting.
+See <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>. This keeps the meaning and the sequencing it has today, so
+<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s startup wait loop is unaffected. Unlike today it can also go back to false, when the
+peer stops.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server::start()</span></code></p></td>
+<td><p>Offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> first, then sets up all bridged services, matching the order in which
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> starts its IPC server before its network services today. Returns the first error
+encountered. Calling it twice returns an error, as today.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> is read from a different thread than the find-service handler that maintains it, so it is
+backed by an <code class="docutils literal notranslate"><span class="pre">std::atomic&lt;bool&gt;</span></code>.</p>
+</section>
+</section>
+<section id="behavioural-views">
+<h2>Behavioural views<a class="headerlink" href="#behavioural-views" title="Link to this heading">#</a></h2>
+<section id="startup">
+<h3>Startup<a class="headerlink" href="#startup" title="Link to this heading">#</a></h3>
+<figure class="align-center" id="id4">
+<p class="plantuml">
+<object data="../_images/plantuml-d603eff698b0ffd2a045ba6584c72643aa030944.svg" type="image/svg+xml" style="width:1547px;height:1173px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Startup of one provider-role and one consumer-role service</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="event-flow">
+<h3>Event flow<a class="headerlink" href="#event-flow" title="Link to this heading">#</a></h3>
+<figure class="align-center" id="id5">
+<p class="plantuml">
+<object data="../_images/plantuml-a957c9a372be21c5dc6d5887f11510e7f536d2ae.svg" type="image/svg+xml" style="width:1898px;height:1320px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Subscription and event flow for one bridged service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="teardown">
+<h3>Teardown<a class="headerlink" href="#teardown" title="Link to this heading">#</a></h3>
+<p>Ordering matters because LoLa terminates the process if a <code class="docutils literal notranslate"><span class="pre">SampleAllocateePtr</span></code> or <code class="docutils literal notranslate"><span class="pre">SamplePtr</span></code> outlives its
+event:</p>
+<ol class="arabic simple">
+<li><p>consumer side: <code class="docutils literal notranslate"><span class="pre">UnsetReceiveHandler</span></code>, <code class="docutils literal notranslate"><span class="pre">Unsubscribe</span></code>, then <code class="docutils literal notranslate"><span class="pre">StopFindService</span></code></p></li>
+<li><p>destroy the SOCom connectors, which guarantees no further SOCom callback can run</p></li>
+<li><p>drop all payloads still held in the in-flight allocation tables</p></li>
+<li><p>destroy the <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> objects</p></li>
+</ol>
+</section>
+</section>
+<section id="threading-and-concurrency">
+<h2>Threading and concurrency<a class="headerlink" href="#threading-and-concurrency" title="Link to this heading">#</a></h2>
+<ul>
+<li><p>SOCom callbacks and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> receive handlers run on different threads. Every <code class="docutils literal notranslate"><span class="pre">Service_binding</span></code> guards
+its state with a mutex, plus one outer mutex per blocking transition it has to serialize.</p></li>
+<li><p>Both stacks call the binding back <strong>while holding an internal lock of their own</strong>, and both take that same
+internal lock from the API the binding calls into. A binding mutex that a callback takes may therefore
+never be held across such a call, or the two lock orders form a cycle and the daemon deadlocks against a
+stack-owned thread. Concretely:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> holds its service discovery lock across the find-service handler, and creating or destroying
+a <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> takes that same lock. Proxies are therefore constructed before, and destroyed after,
+every binding mutex is released.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mw::com</span></code> holds its event notification registry lock across the receive-handler-registration handler,
+and <code class="docutils literal notranslate"><span class="pre">OfferService()</span></code> / <code class="docutils literal notranslate"><span class="pre">StopOfferService()</span></code> take that same lock. The provider offers under
+<code class="docutils literal notranslate"><span class="pre">m_offer_mutex</span></code>, which that handler does not take.</p></li>
+<li><p>SOCom holds connector locks across the subscription callbacks, and <code class="docutils literal notranslate"><span class="pre">enable()</span></code> / <code class="docutils literal notranslate"><span class="pre">disable()</span></code> take
+those same locks. The consumer enables and disables under <code class="docutils literal notranslate"><span class="pre">m_lifecycle_mutex</span></code>, which no callback takes.</p></li>
+</ul>
+<p>The outer mutexes exist purely to keep those transitions serialized against each other while the inner
+ones are released.</p>
+</li>
+<li><p>Neither a SOCom callback nor a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> handler may block. The binding does no I/O and no allocation
+beyond the in-flight table inside them.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GetNewSamples</span></code> must not run concurrently for the same <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent</span></code>. Because the only caller is
+the receive handler registered for that event, and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> serialises those, this holds without extra
+locking; the mutex is still taken for the SOCom-visible state.</p></li>
+<li><p>The SOCom deadlock detector terminates the process if a connector is destroyed from inside one of its own
+callbacks. Teardown therefore never runs from a callback; the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> find-service handler schedules
+the disable and destroys the connector outside the handler, exactly as the current implementation does for
+<code class="docutils literal notranslate"><span class="pre">Connect_service_reply</span></code>.</p></li>
+</ul>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<p>Both daemons need a <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code> that describes the instances on the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> / <code class="docutils literal notranslate"><span class="pre">someipd</span></code>
+link. <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> already has one for its application-facing instances and gains additional entries;
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> needs one for the first time, and has to call <code class="docutils literal notranslate"><span class="pre">InitializeRuntime</span></code>.</p>
+<p>Per bridged service instance the deployment must provide:</p>
+<ul class="simple">
+<li><p>a <code class="docutils literal notranslate"><span class="pre">serviceTypes</span></code> entry whose <code class="docutils literal notranslate"><span class="pre">serviceTypeName</span></code> and <code class="docutils literal notranslate"><span class="pre">version</span></code> match the SOCom
+<code class="docutils literal notranslate"><span class="pre">Service_interface_identifier</span></code>, with one event entry per bridged event</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">serviceInstances</span></code> entry with the <code class="docutils literal notranslate"><span class="pre">instanceSpecifier</span></code> used in <code class="docutils literal notranslate"><span class="pre">Service_config</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">numberOfSampleSlots</span></code> per event, sized as described in <a class="reference internal" href="#sample-layout"><span class="std std-ref">Event sample layout</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxSubscribers:</span> <span class="pre">1</span></code>. There is exactly one peer daemon per instance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asil-level:</span> <span class="pre">&quot;QM&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is a QM component, so these instances are QM on both ends even though
+<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is ASIL-B. This is precisely why the SOME/IP header travels with the payload: E2E is what makes
+the QM data usable in the ASIL-B context.</p></li>
+</ul>
+<p>These instances must not collide with the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to application instances. The proposed convention is to
+prefix their specifiers, for example <code class="docutils literal notranslate"><span class="pre">ipc/&lt;service_type&gt;_&lt;instance_id&gt;</span></code>, and to derive them in
+<code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> rather than in code.</p>
+<p>In addition, both daemons need one entry for <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>. It is the only entry that both files must
+spell identically, and it is the replacement for the shared <code class="docutils literal notranslate"><span class="pre">ipc_channel_name</span></code> command line option:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;serviceTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;serviceTypeName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/score/someip/SomeipdService&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;major&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;minor&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;bindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;serviceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6400</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;serviceInstances&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;instanceSpecifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;someipd/daemon&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;serviceTypeName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/score/someip/SomeipdService&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;major&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;minor&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;instances&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;instanceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;asil-level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;QM&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">events</span></code> arrays are omitted on purpose: <code class="docutils literal notranslate"><span class="pre">SomeipdServiceInterface</span></code> declares no service elements yet, and
+the schema marks <code class="docutils literal notranslate"><span class="pre">events</span></code> optional. Every element added to the interface later needs a matching entry in
+both files, which is the usual typed-service deployment workflow.</p>
+<p>Because both the sample size and the slot count now live in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code>, the size computation that
+<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> does today in <code class="docutils literal notranslate"><span class="pre">event_slot_size()</span></code> moves into config generation. On the provider side the
+binding validates that the configured sample size matches <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::GetSizeInfo()</span></code> and fails
+setup on mismatch. On the consumer side the same check runs against <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::GetSampleSize()</span></code>
+once the peer’s instance is found; a mismatch there means the two deployments disagree, so the service is
+left unavailable instead of reading payloads at the wrong offset.</p>
+</section>
+<section id="testing-strategy">
+<h2>Testing strategy<a class="headerlink" href="#testing-strategy" title="Link to this heading">#</a></h2>
+<p>Everything runs in <code class="docutils literal notranslate"><span class="pre">//score/gateway_ipc_binding/test/mw_com:gateway_ipc_binding_mw_com_test</span></code>, a single
+binary with a real <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> runtime, two SOCom runtimes standing in for the two daemons, and both halves
+of the link in one process. <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> can only be initialized once per process, which is why the whole
+suite shares one <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> and one <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code>.</p>
+<p>Implemented:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sample_size()</span></code> including the rounding to <code class="docutils literal notranslate"><span class="pre">kSample_alignment</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, both the peer-liveness contract and the proof that an element-less typed instance
+works: offer, find, <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> true, peer stops, <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> false, peer restarts, true again</p></li>
+<li><p>configuration rejection: an instance missing from the deployment, an event missing from the deployment,
+no events, duplicate event names, <code class="docutils literal notranslate"><span class="pre">max_sample_count</span> <span class="pre">==</span> <span class="pre">0</span></code></p></li>
+<li><p>bridged services, in <code class="docutils literal notranslate"><span class="pre">bridged_service_test.cpp</span></code>, with a stand-in producing and consuming application in
+<code class="docutils literal notranslate"><span class="pre">bridged_service_apps.hpp</span></code>: availability propagation, per-event subscription propagation in both
+directions, event round trip including the SOME/IP header and an empty and a maximum-size payload, and
+service disappearance</p></li>
+</ul>
+<p>Still open:</p>
+<ul class="simple">
+<li><p>the <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> integration tests that would replace <code class="docutils literal notranslate"><span class="pre">test/bidirectional_*_int_test.cpp</span></code>
+by running the two daemons as separate processes</p></li>
+<li><p>re-pointing the existing benchmarks at the new target so that throughput and latency can be compared
+against the current implementation before the flag is flipped</p></li>
+</ul>
+</section>
+<section id="known-gaps">
+<h2>Known gaps<a class="headerlink" href="#known-gaps" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>method calls on bridged services</strong> are not representable, because <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code>
+are event-only. They are declared but never dispatched today, so this is not a regression, but it does close
+the door on the incremental path that the current <code class="docutils literal notranslate"><span class="pre">Connect</span></code> shared-memory configuration was designed for.
+Note that this limitation applies to <em>bridged</em> services only; <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> is typed and can carry
+methods, see <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>.</p></li>
+<li><p><strong>requested event updates</strong>: SOCom <code class="docutils literal notranslate"><span class="pre">on_event_update_request</span></code> has no LoLa counterpart. LoLa has no pull
+API on the proxy side, so field-style initial values cannot be served on demand. The request is logged and
+ignored.</p></li>
+<li><p><strong>dynamic service sets</strong>: adding a bridged service requires a configuration change and a restart of both
+daemons. This is a direct consequence of <a class="reference internal" href="#d4-static-config"><span class="std std-ref">D4: the set of bridged services is static and known at startup</span></a>.</p></li>
+<li><p><strong>liveness granularity</strong>: <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> reports that the peer’s binding is up and accepting, not that
+any given bridged service is usable, because it is offered before them, see
+<a class="reference internal" href="#someipd-service-ordering"><span class="std std-ref">Offering order</span></a>. That is the same guarantee <code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code> gives today, but it is worth
+stating because per-service availability now arrives through a second, independent discovery path.</p></li>
+<li><p><strong>const-correctness</strong>: turning a <code class="docutils literal notranslate"><span class="pre">SamplePtr&lt;void&gt;</span></code> into a writable <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> needs a
+<code class="docutils literal notranslate"><span class="pre">const_cast</span></code>, the same wart the current shared-memory read path already carries.</p></li>
+<li><p><strong>re-offering a provider service</strong>: if the local SOCom service of a provider-role bridge goes away and
+comes back, the second <code class="docutils literal notranslate"><span class="pre">OfferService()</span></code> aborts inside LoLa. <code class="docutils literal notranslate"><span class="pre">StopOfferService()</span></code> keeps the shared
+memory whenever a proxy still uses it, as it must, but <code class="docutils literal notranslate"><span class="pre">PrepareOffer()</span></code> then calls
+<code class="docutils literal notranslate"><span class="pre">RemoveStaleArtefacts()</span></code> on a region the skeleton itself still owns, which trips an assertion. Keeping
+the skeleton alive across <code class="docutils literal notranslate"><span class="pre">StopOfferService()</span></code> is what the LoLa gateway documentation demands, so this
+has to be fixed upstream rather than worked around here. A restart of the <em>providing application</em> is
+therefore not covered yet.</p></li>
+<li><p><strong>re-entrant SOCom callbacks</strong>: a consuming application must not call <code class="docutils literal notranslate"><span class="pre">unsubscribe_event()</span></code> from within
+its own <code class="docutils literal notranslate"><span class="pre">on_event_update</span></code> callback. The consumer side holds a lock across the forwarding of a sample and
+takes another one when unsubscribing, and <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::UnsetReceiveHandler()</span></code> waits for the
+running receive handler. SOCom already requires callbacks to return quickly and not to block, so this is a
+sharpening of an existing rule rather than a new one.</p></li>
+</ul>
+</section>
+<section id="open-points">
+<h2>Open points<a class="headerlink" href="#open-points" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Where the per-bridged-service <code class="docutils literal notranslate"><span class="pre">InstanceSpecifier</span></code> is authored: extending <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> with an
+explicit field is the safer option, deriving it by convention from the service type name is the cheaper one.</p></li>
+<li><p>Whether <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code> for the bridged instances should be generated from <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> at
+build time. Hand-maintaining sample sizes in two places will drift.</p></li>
+<li><p>Whether <code class="docutils literal notranslate"><span class="pre">someipd</span></code> should keep the <code class="docutils literal notranslate"><span class="pre">message_passing</span></code> implementation available behind a switch until the
+upstream re-offer problem described under <a class="reference internal" href="#known-gaps">Known gaps</a> is solved, see
+<a class="reference internal" href="#mw-com-implementation-status"><span class="std std-ref">Implementation status</span></a>.</p></li>
+</ul>
+<p>Closed points:</p>
+<ul class="simple">
+<li><p><em>Whether an element-less typed instance works end to end on a real runtime.</em> It does, see
+<a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>.</p></li>
+<li><p><em>Where</em> <code class="docutils literal notranslate"><span class="pre">someipd_service.hpp</span></code> <em>should live.</em> <code class="docutils literal notranslate"><span class="pre">score/someip/someipd_service.hpp</span></code>, in the separate
+Bazel target <code class="docutils literal notranslate"><span class="pre">//score/someip:someipd_service</span></code>. Both daemons already depend on <code class="docutils literal notranslate"><span class="pre">score/someip</span></code> and
+<code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> should not own a <code class="docutils literal notranslate"><span class="pre">someipd</span></code> control API; the separate target keeps the
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> dependency out of <code class="docutils literal notranslate"><span class="pre">//score/someip:someip</span></code>.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="ipc_protocol.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">IPC Protocol</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../gatewayd/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">gatewayd</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-status">Implementation status</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#goals-and-non-goals">Goals and non-goals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-decisions-taken-up-front">Design decisions taken up front</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d1-genericproxy-and-genericskeleton-represent-a-some-ip-service">D1: <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> represent a SOME/IP service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d2-every-event-sample-reserves-space-for-the-some-ip-header">D2: every event sample reserves space for the SOME/IP header</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d3-no-shared-memory-slot-manager">D3: no <code class="docutils literal notranslate"><span class="pre">Shared_memory_slot_manager</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d4-the-set-of-bridged-services-is-static-and-known-at-startup">D4: the set of bridged services is static and known at startup</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mapping-some-ip-services-to-mw-com-features">Mapping SOME/IP services to mw::com features</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#concept-mapping">Concept mapping</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#role-assignment">Role assignment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#someipdservice-and-peer-liveness">SomeipdService and peer liveness</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#offering-order">Offering order</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#typed-not-generic">Typed, not generic</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-sample-layout">Event sample layout</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#availability-propagation">Availability propagation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#subscription-propagation">Subscription propagation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#payload-lifetime-and-flow-control">Payload lifetime and flow control</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#public-interface">Public interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interface-semantics-under-mw-com">Interface semantics under mw::com</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#behavioural-views">Behavioural views</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#startup">Startup</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-flow">Event flow</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#teardown">Teardown</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#threading-and-concurrency">Threading and concurrency</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-strategy">Testing strategy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#known-gaps">Known gaps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open-points">Open points</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/gateway_ipc_binding/mw_com_bindingay/inc_someip_gateway/score/gateway_ipc_binding/docs/mw_com_binding.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
