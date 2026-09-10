@@ -12,6 +12,29 @@
           "serviceId": 6400
         }
       ]
+    },
+    {
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6401,
+          "events": [
+            {
+              "eventName": "event_a",
+              "eventId": 1
+            },
+            {
+              "eventName": "event_b",
+              "eventId": 2
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceInstances": [
@@ -42,6 +65,195 @@
           "instanceId": 2,
           "asil-level": "QM",
           "binding": "SHM"
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/bridged_1",
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_a",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_b",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/bridged_2",
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 2,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_a",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_b",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/bridged_3",
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 3,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_a",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_b",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/bridged_4",
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 4,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_a",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_b",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/bridged_5",
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 5,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_a",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_b",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/bridged_6",
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 6,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_a",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_b",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/bridged_7",
+      "serviceTypeName": "/test/ipc/BridgedService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 7,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_a",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_b",
+              "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
         }
       ]
     }

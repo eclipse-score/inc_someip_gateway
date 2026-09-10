@@ -88,6 +88,18 @@ enum class Mw_com_binding_error : score::result::ErrorCode {
     runtime_error_someipd_service_proxy_creation_failed,
     /// start() was called more than once
     logic_error_already_started,
+    /// A Service_config cannot describe a working bridge, e.g. it has duplicate event names
+    logic_error_invalid_service_configuration,
+    /// An event id has no counterpart in the Service_config of the bridged service
+    logic_error_unknown_event,
+    /// A bridged service could not be set up, e.g. it is missing from mw_com_config.json
+    runtime_error_service_setup_failed,
+    /// StartFindService() for a bridged service instance failed
+    runtime_error_service_find_failed,
+    /// The sample size mw::com laid out differs from the one derived from the Service_config
+    runtime_error_sample_size_mismatch,
+    /// GenericSkeletonEvent::Allocate() failed, i.e. all sample slots are in use
+    runtime_error_sample_allocation_failed,
 };
 
 score::result::Error MakeError(Mw_com_binding_error code,

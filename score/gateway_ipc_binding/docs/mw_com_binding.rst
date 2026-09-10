@@ -38,8 +38,9 @@ a dedicated, typed ``SomeipdService``, see :ref:`someipd-service`.
 Implementation status
 ---------------------
 
-The first step is implemented: peer liveness. ``create_server()`` provides ``SomeipdService``,
-``create_client()`` consumes it and reports it through ``is_connected()``.
+Peer liveness and event-based service bridging are implemented. ``create_server()`` provides
+``SomeipdService``, ``create_client()`` consumes it and reports it through ``is_connected()``, and
+both factories set up the configured bridged services.
 
 +------------------------------------------------------+------------------------------------------+
 | Part                                                  | State                                    |
@@ -48,8 +49,9 @@ The first step is implemented: peer liveness. ``create_server()`` provides ``Som
 +------------------------------------------------------+------------------------------------------+
 | ``Service_configs`` public API, ``sample_size()``     | implemented                              |
 +------------------------------------------------------+------------------------------------------+
-| bridged services: skeletons, proxies, event flow      | not implemented; the configuration is    |
-|                                                       | accepted and logged, but has no effect   |
+| bridged services: skeletons, proxies, event flow      | implemented                              |
++------------------------------------------------------+------------------------------------------+
+| method calls, requested event updates                 | not representable, see `Known gaps`_     |
 +------------------------------------------------------+------------------------------------------+
 
 Code map:
@@ -61,9 +63,16 @@ Code map:
 - ``score/gateway_ipc_binding/impl/mw_com/`` — the implementation, built as
   ``//score/gateway_ipc_binding:gateway_ipc_binding_mw_com``, a target separate from
   ``//score/gateway_ipc_binding`` so that users of the ``message_passing`` implementation do not
-  pull in ``mw::com``
+  pull in ``mw::com``:
+
+  - ``sample_layout.{hpp,cpp}`` — the length prefix and the ``DataTypeMetaInfo`` derivation
+  - ``service_binding.{hpp,cpp}`` — configuration validation and the role dispatch
+  - ``provider_service_binding.{hpp,cpp}`` — ``GenericSkeleton`` plus SOCom ``Client_connector``
+  - ``consumer_service_binding.{hpp,cpp}`` — ``GenericProxy`` plus SOCom ``Server_connector``
+  - ``someipd_service_binding.{hpp,cpp}`` — the two halves of :ref:`someipd-service`
+
 - ``score/gateway_ipc_binding/test/mw_com/`` — component test running a real ``mw::com`` runtime
-  with both halves of ``SomeipdService`` in one process
+  with both halves of ``SomeipdService`` and of one bridged service in one process
 
 Goals and non-goals
 -------------------
@@ -301,8 +310,10 @@ therefore defines the following layout for every event sample it exchanges::
    ^                      ^                        ^
    sample base            Payload::header()        Payload::data()
 
-- ``size`` of the ``DataTypeMetaInfo`` is ``8 + header_size + max_payload_size``, ``alignment`` is 8. The
-  8-byte prefix keeps the reserved header space 8-byte aligned.
+- ``size`` of the ``DataTypeMetaInfo`` is ``8 + header_size + max_payload_size`` rounded up to a multiple of
+  8, ``alignment`` is 8. The 8-byte prefix keeps the reserved header space 8-byte aligned; the rounding is
+  required because ``mw::com`` rejects a size that is not an integer multiple of its alignment. The padding
+  at the end is never addressed, so ``Payload::data()`` is exactly ``max_payload_size`` long.
 - the binding constructs ``socom::Payload{span, slot_handle, destroyer, header_size, lead_offset = 8}``, so
   the producing and consuming applications see exactly the ``header()`` / ``data()`` split they already use
   today, and E2E can run over ``header()`` immediately followed by ``data()``.
@@ -389,8 +400,10 @@ Architecture
    :align: center
    :caption: Gateway IPC Binding on mw::com, component view
 
-- ``Mw_com_binding`` owns one ``Service_binding`` per configured service instance plus one
-  ``Someipd_service_binding``.
+- ``Client_adapter`` and ``Server_adapter`` implement the two public interfaces. Each owns one
+  ``Service_binding`` per configured service instance plus one ``Someipd_service_binding``. Only the
+  ``Someipd_service_binding`` half and the point in time at which the setup runs differ between them, so
+  they share the factory ``make_service_binding()`` instead of a common aggregate class.
 - ``Someipd_service_binding`` implements one of the two halves of :ref:`someipd-service`: the provider half
   owns the ``SomeipdServiceSkeleton``, the consumer half owns the ``FindServiceHandle``, the
   ``SomeipdServiceProxy`` and the ``std::atomic<bool>`` behind ``is_connected()``. It is the only place in
@@ -399,7 +412,9 @@ Architecture
   ``Client_connector``.
 - ``Consumer_service_binding`` holds the ``FindServiceHandle``, the ``GenericProxy`` once found, and the SOCom
   ``Disabled_server_connector`` / ``Enabled_server_connector``.
-- ``Client_adapter`` and ``Server_adapter`` implement the two public interfaces on top of ``Mw_com_binding``.
+- Setting a bridged service up is all-or-nothing: if any entry of ``Service_configs`` fails, the factory
+  returns ``nullptr`` respectively an error from ``start()`` instead of leaving a link that silently carries
+  only part of the configured services.
 
 What is gone compared to :doc:`index`:
 
@@ -618,23 +633,37 @@ the schema marks ``events`` optional. Every element added to the interface later
 both files, which is the usual typed-service deployment workflow.
 
 Because both the sample size and the slot count now live in ``mw_com_config.json``, the size computation that
-``gatewayd`` does today in ``event_slot_size()`` moves into config generation. The binding validates that the
-configured sample size matches ``GenericSkeletonEvent::GetSizeInfo()`` and fails setup on mismatch.
+``gatewayd`` does today in ``event_slot_size()`` moves into config generation. On the provider side the
+binding validates that the configured sample size matches ``GenericSkeletonEvent::GetSizeInfo()`` and fails
+setup on mismatch. On the consumer side the same check runs against ``GenericProxyEvent::GetSampleSize()``
+once the peer's instance is found; a mismatch there means the two deployments disagree, so the service is
+left unavailable instead of reading payloads at the wrong offset.
 
 Testing strategy
 ----------------
 
-- unit tests for the pure logic: ``Service_config`` to ``GenericSkeletonServiceElementInfo`` conversion,
-  sample size computation, prefix encode and decode, the subscription reconciliation state machine
-- component tests against the SOCom mock runtime for the connector wiring, mirroring
-  ``test/client_server_test.cpp``
-- an integration test for ``SomeipdService`` first, since it is both the peer-liveness contract and the proof
-  that an element-less typed instance works: offer, find, ``is_connected()`` true, peer stops,
-  ``is_connected()`` false, peer restarts, true again
-- integration tests with a real ``mw::com`` runtime and a generated ``mw_com_config.json``, covering both
-  roles, subscription, event round trip and service disappearance; these replace
-  ``test/bidirectional_*_int_test.cpp``
-- the existing benchmarks are re-pointed at the new target so that throughput and latency can be compared
+Everything runs in ``//score/gateway_ipc_binding/test/mw_com:gateway_ipc_binding_mw_com_test``, a single
+binary with a real ``mw::com`` runtime, two SOCom runtimes standing in for the two daemons, and both halves
+of the link in one process. ``mw::com`` can only be initialized once per process, which is why the whole
+suite shares one ``main.cpp`` and one ``mw_com_config.json``.
+
+Implemented:
+
+- ``sample_size()`` including the rounding to ``kSample_alignment``
+- ``SomeipdService``, both the peer-liveness contract and the proof that an element-less typed instance
+  works: offer, find, ``is_connected()`` true, peer stops, ``is_connected()`` false, peer restarts, true again
+- configuration rejection: an instance missing from the deployment, an event missing from the deployment,
+  no events, duplicate event names, ``max_sample_count == 0``
+- bridged services, in ``bridged_service_test.cpp``, with a stand-in producing and consuming application in
+  ``bridged_service_apps.hpp``: availability propagation, per-event subscription propagation in both
+  directions, event round trip including the SOME/IP header and an empty and a maximum-size payload, and
+  service disappearance
+
+Still open:
+
+- the ``someipd`` and ``gatewayd`` integration tests that would replace ``test/bidirectional_*_int_test.cpp``
+  by running the two daemons as separate processes
+- re-pointing the existing benchmarks at the new target so that throughput and latency can be compared
   against the current implementation before the flag is flipped
 
 Known gaps
@@ -656,6 +685,18 @@ Known gaps
   stating because per-service availability now arrives through a second, independent discovery path.
 - **const-correctness**: turning a ``SamplePtr<void>`` into a writable ``socom::Payload`` needs a
   ``const_cast``, the same wart the current shared-memory read path already carries.
+- **re-offering a provider service**: if the local SOCom service of a provider-role bridge goes away and
+  comes back, the second ``OfferService()`` aborts inside LoLa. ``StopOfferService()`` keeps the shared
+  memory whenever a proxy still uses it, as it must, but ``PrepareOffer()`` then calls
+  ``RemoveStaleArtefacts()`` on a region the skeleton itself still owns, which trips an assertion. Keeping
+  the skeleton alive across ``StopOfferService()`` is what the LoLa gateway documentation demands, so this
+  has to be fixed upstream rather than worked around here. A restart of the *providing application* is
+  therefore not covered yet.
+- **re-entrant SOCom callbacks**: a consuming application must not call ``unsubscribe_event()`` from within
+  its own ``on_event_update`` callback. The consumer side holds a lock across the forwarding of a sample and
+  takes another one when unsubscribing, and ``GenericProxyEvent::UnsetReceiveHandler()`` waits for the
+  running receive handler. SOCom already requires callbacks to return quickly and not to block, so this is a
+  sharpening of an existing rule rather than a new one.
 
 Open points
 -----------
@@ -664,8 +705,9 @@ Open points
   explicit field is the safer option, deriving it by convention from the service type name is the cheaper one.
 - Whether ``mw_com_config.json`` for the bridged instances should be generated from ``mw_someip_config`` at
   build time. Hand-maintaining sample sizes in two places will drift.
-- Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch while the
-  bridged-service part of this implementation is still missing, see :ref:`mw-com-implementation-status`.
+- Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch until the
+  upstream re-offer problem described under `Known gaps`_ is solved, see
+  :ref:`mw-com-implementation-status`.
 
 Closed points:
 

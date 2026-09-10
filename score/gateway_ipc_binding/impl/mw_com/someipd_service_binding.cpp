@@ -16,53 +16,13 @@
 #include <utility>
 
 #include "score/gateway_ipc_binding/error.hpp"
-#include "score/mw/com/runtime.h"
 #include "score/mw/com/types.h"
 #include "score/mw/log/logging.h"
+#include "service_binding.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 
-namespace {
-
-/// \brief Turn a configured string into a mw::com InstanceSpecifier
-Result<score::mw::com::InstanceSpecifier> make_instance_specifier(
-    std::string const& instance_specifier) noexcept {
-    auto specifier = score::mw::com::InstanceSpecifier::Create(std::string{instance_specifier});
-    if (!specifier.has_value()) {
-        score::mw::log::LogError()
-            << "[gateway_ipc_binding] Invalid SomeipdService instance specifier"
-            << instance_specifier << ":" << specifier.error();
-        return MakeUnexpected(Mw_com_binding_error::logic_error_invalid_instance_specifier);
-    }
-    return std::move(specifier).value();
-}
-
-/// \brief Check that the deployment actually knows the instance
-/// \details `StartFindService` accepts a well-formed specifier that resolves to no instance at all
-///          and then simply never reports anything. Resolving up front turns that silent
-///          misconfiguration into an error at construction time, symmetric to the provider side,
-///          where `Create` already fails for an unknown instance.
-Result<void> check_instance_is_deployed(score::mw::com::InstanceSpecifier const& specifier,
-                                        std::string const& instance_specifier) noexcept {
-    auto const identifiers = score::mw::com::runtime::ResolveInstanceIDs(specifier);
-    if (!identifiers.has_value()) {
-        score::mw::log::LogError()
-            << "[gateway_ipc_binding] Failed to resolve SomeipdService instance specifier"
-            << instance_specifier << ":" << identifiers.error();
-        return MakeUnexpected(Mw_com_binding_error::logic_error_invalid_instance_specifier);
-    }
-    if (identifiers.value().empty()) {
-        score::mw::log::LogError() << "[gateway_ipc_binding] SomeipdService instance specifier"
-                                   << instance_specifier << "is not part of the mw::com deployment";
-        return MakeUnexpected(Mw_com_binding_error::logic_error_invalid_instance_specifier);
-    }
-    return {};
-}
-
-}  // namespace
-
-Someipd_service_provider::Someipd_service_provider(
-    Someipd_service_skeleton skeleton) noexcept
+Someipd_service_provider::Someipd_service_provider(Someipd_service_skeleton skeleton) noexcept
     : m_skeleton{std::move(skeleton)} {}
 
 Someipd_service_provider::~Someipd_service_provider() noexcept = default;

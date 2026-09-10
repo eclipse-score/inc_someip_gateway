@@ -17,7 +17,6 @@ skinparam componentStyle rectangle
 
 component "Client_adapter\nGateway_ipc_binding_client" as client
 component "Server_adapter\nGateway_ipc_binding_server" as server
-component "Mw_com_binding\nC++" as binding
 component "Provider_service_binding\nC++" as provider
 component "Consumer_service_binding\nC++" as consumer
 component "Someipd_service_binding\nC++" as sdsvc
@@ -28,18 +27,15 @@ note bottom of client
   create_client(): sets up all services eagerly
   and consumes SomeipdService.
   is_connected() follows the SomeipdService proxy.
+  Owns one Service_binding per configured service
+  instance plus one Someipd_service_binding.
 end note
 
 note bottom of server
   create_server(): setup deferred to start(),
   which provides SomeipdService first.
-end note
-
-note bottom of binding
-  One Service_binding per configured service
-  instance plus one Someipd_service_binding.
-  Symmetric for bridged services,
-  no protocol state.
+  Owns the same set of bindings as Client_adapter,
+  bridged services are symmetric.
 end note
 
 note bottom of sdsvc
@@ -61,11 +57,12 @@ note bottom of consumer
   remote instance is found.
 end note
 
-client --> binding : Delegates to
-server --> binding : Delegates to
-binding --> provider : Owns
-binding --> consumer : Owns
-binding --> sdsvc : Owns
+client --> provider : Owns
+client --> consumer : Owns
+client --> sdsvc : Owns (consumer half)
+server --> provider : Owns
+server --> consumer : Owns
+server --> sdsvc : Owns (provider half)
 provider --> runtime : make_client_connector
 consumer --> runtime : make_server_connector
 provider --> mwcom : Create / OfferService / Allocate / Send

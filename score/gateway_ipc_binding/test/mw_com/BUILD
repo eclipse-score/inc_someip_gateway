@@ -21,7 +21,10 @@ load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 cc_test(
     name = "gateway_ipc_binding_mw_com_test",
     size = "small",
-    srcs = glob(include = ["*.cpp"]),
+    srcs = glob(include = [
+        "*.cpp",
+        "*.hpp",
+    ]),
     data = ["mw_com_config.json"],
     features = COMPILER_WARNING_FEATURES,
     linkstatic = True,

@@ -118,9 +118,10 @@ Alternative implementation
 --------------------------
 
 An alternative implementation of the same public interfaces, built on ``mw::com`` instead of
-``score::message_passing`` and hand-rolled shared memory, is being designed in :doc:`mw_com_binding`. It is
-selected by a Bazel feature flag and is not part of the default build. Everything described above refers to
-the current, default implementation.
+``score::message_passing`` and hand-rolled shared memory, is described in :doc:`mw_com_binding`. It lives in
+the separate Bazel target ``//score/gateway_ipc_binding:gateway_ipc_binding_mw_com`` and is constructed
+through its own factory functions, so it is only used by a daemon that asks for it. Everything described
+above refers to the current, default implementation.
 
 Further details
 ---------------

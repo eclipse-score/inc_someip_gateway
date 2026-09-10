@@ -122,6 +122,18 @@ class Mw_com_binding_error_domain final : public score::result::ErrorDomain {
                 return "Failed to create the SomeipdService proxy";
             case Mw_com_binding_error::logic_error_already_started:
                 return "Server has already been started";
+            case Mw_com_binding_error::logic_error_invalid_service_configuration:
+                return "Invalid bridged service configuration";
+            case Mw_com_binding_error::logic_error_unknown_event:
+                return "Event is not part of the bridged service configuration";
+            case Mw_com_binding_error::runtime_error_service_setup_failed:
+                return "Failed to set up a bridged service";
+            case Mw_com_binding_error::runtime_error_service_find_failed:
+                return "Failed to start service discovery for a bridged service instance";
+            case Mw_com_binding_error::runtime_error_sample_size_mismatch:
+                return "Configured sample size does not match the mw::com deployment";
+            case Mw_com_binding_error::runtime_error_sample_allocation_failed:
+                return "Failed to allocate a mw::com event sample";
             default:
                 return "Unknown error";
         }
