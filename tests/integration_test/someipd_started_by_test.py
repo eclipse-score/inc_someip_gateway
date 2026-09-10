@@ -45,9 +45,7 @@ def test_start_someipd_and_gatewayd(clean_state: Target) -> None:
             ) as gatewayd_process:
                 assert gatewayd_process.is_running(), gatewayd_process.get_output()
                 console_output = wait_until_process_exits(tcpdump_process, timeout=10.0)
-                logging.info(
-                    "Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output
-                )
+                logging.info("Final tcpdump to capture SOME/IP-SD traffic...\n" + console_output)
 
                 assert gatewayd_process.is_running(), (
                     gatewayd_process.get_output(),

@@ -79,6 +79,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     qemu_image = "_init_ifs_{}".format(name)
     qnx_ifs(
         name = qemu_image,
+        testonly = True,
         out = "init_ifs_{}".format(name),
         build_file = "//quality/integration_testing/environments/qnx8_qemu:init_build",
         srcs = [qnx_filesystem, "//quality/integration_testing/environments/qnx8_qemu:qnx_config"],

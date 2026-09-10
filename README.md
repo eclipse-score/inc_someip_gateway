@@ -43,6 +43,34 @@ bazel run @score_tooling//coverage:generate_coverage_html
 
 The HTML report is stored at `coverage_linux/index.html`. You can open it in a web browser to view the coverage results.
 
+## Quality pack
+
+Requirements traceability is produced by the documentation build. Run the tests
+first: the docs build reads `bazel-testlogs` to link each requirement to the
+tests that verify it.
+
+```sh
+bazel test //:unit_tests //:component_tests
+bazel run //:docs
+```
+
+This generates:
+
+- `_build/index.html` — documentation, showing the source-code and test
+  links on each requirement
+- `_build/needs.json` — the requirements model
+- `_build/metrics.json` — traceability metrics
+
+To print the traceability summary on the command line:
+
+```sh
+bazel run //:traceability_gate -- --metrics-json "$PWD/_build/metrics.json"
+```
+
+CI runs the same gate on every pull request with thresholds attached, and
+posts the summary as a sticky comment — see
+`.github/workflows/quality_pack_comment.yml`.
+
 ### Start the daemons
 
 Start the daemons in this order:
@@ -57,42 +85,9 @@ and in a separate terminal
 bazel run //score/someipd:someipd_example
 ```
 
-### Dockerized integration test POC
+### Integration tests
 
-For integration tests, a docker based approach was taken.
-As a proof of concept `docker compose` can be used to build, setup and run the containers.
-In the future a pytest based setup can be implemented to orchestrate the containers.
-
-Build the docker containers:
-
-```sh
-docker compose --project-directory tests/integration/docker_setup/ build
-```
-
-Start up the containers:
-
-```sh
-docker compose --project-directory tests/integration/docker_setup/ up
-```
-
-Those containers are pre-configured (IP addresses, multicast route, ...).
-The someipd-1 container already starts up the `gatewayd` and the `someipd`.
-
-In Wireshark the network traffic can be seen by capturing on `any` with `ip.addr== 192.168.87.2 || ip.addr ==192.168.87.3`.
-
-On the client side, start up the `sample_client` in another shell:
-
-```sh
-docker exec -it --env VSOMEIP_CONFIGURATION=/home/source/tests/integration/sample_client/vsomeip.json docker_setup-client-1 /home/source/bazel-bin/tests/integration/sample_client/sample_client
-```
-
-Finally start the benchmark on the someipd-1 container in a third shell:
-
-```sh
-docker exec -it docker_setup-someipd-1 /home/source/bazel-bin/tests/benchmarks/ipc_benchmarks
-```
-
-For current Bazel-based integration testing backends (Docker, Linux QEMU, and QNX QEMU) and defaults, see [quality/README.md](quality/README.md).
+For current Bazel-based integration testing backends (Linux QEMU, and QNX QEMU) and defaults, see [quality/README.md](quality/README.md).
 
 
 ## 📝 Configuration
@@ -181,3 +176,9 @@ If you use a license server then add the following in in your `~/.bazelrc`:
     common --action_env=QNXLM_LICENSE_FILE=<port>@<license_server_host>
 
 > :warning: Getting license from server not yet supported within devcontainer. Need to figure out how to adjust user & hostname properly.
+
+
+## Static code analysis
+
+clang-tidy and ruff are used for static code analysis. clang-tidy is used for C/C++ code and ruff is used for Python code.
+We use the same code and interface like [Eclipse SCORE Communication](https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy).

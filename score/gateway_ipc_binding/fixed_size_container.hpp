@@ -51,7 +51,7 @@ struct Fixed_size_container {
 
     Fixed_size_container(std::initializer_list<T> initializer_list)
         : size(initializer_list.size()) {
-        assert(initializer_list.size() <= Max_size);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(initializer_list.size() <= Max_size);
         std::copy_n(initializer_list.begin(), std::min(initializer_list.size(), Max_size),
                     data.begin());
     }

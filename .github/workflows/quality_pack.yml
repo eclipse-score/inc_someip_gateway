@@ -1,0 +1,75 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Builds the docs and runs the upstream //:traceability_gate against the
+# resulting _build/metrics.json, then uploads the gate output as an artifact.
+#
+# This workflow does NOT comment on the PR — see quality_pack-publish.yml for
+# the elevated-permissions companion that downloads the artifact and posts.
+# The split is required so that pull requests opened from forks (which get a
+# read-only GITHUB_TOKEN) still get a comment.
+
+name: Quality pack coverage
+
+on:
+  workflow_call:
+
+jobs:
+  quality-pack:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: eclipse-score/more-disk-space@v1
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Create Bazel output base directory
+        run: |
+          sudo mkdir -p /mnt/.bazel
+          sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Create config indicator file
+        run: echo "host" > .bazel_config
+      - name: Setup Bazel
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+        with:
+          unique-cache-name: ${{ github.job }}
+      - name: Allow linux-sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+      - name: Install Graphviz (required by PlantUML for non-sequence diagrams)
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      - name: Build unit + component tests (needed for test links)
+        run: bazel test //:unit_tests //:component_tests
+      - name: Build docs
+        run: bazel run //:docs
+      # Thresholds default to 0 while comp_req coverage is being (re-)built up
+      # against the SOME/IP protocol spec. Raise the --min-* flags as
+      # links land, so the gate never regresses without a follow-up ticket.
+      # --need-type=comp_req scopes the gate to component requirements;
+      # feat_req / stkh_req live upstream in eclipse-score/score and would
+      # otherwise pull the numbers to zero and flap the gate.
+      - name: Run traceability gate
+        continue-on-error: true
+        run: |
+          mkdir -p _quality_pack
+          bazel run //:traceability_gate -- \
+            --metrics-json "$PWD/_build/metrics.json" \
+            --need-type=comp_req \
+            > _quality_pack/gate.txt
+      - name: Upload quality pack artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quality-pack-metrics
+          path: |
+            _build/metrics.json
+            _quality_pack/gate.txt
+          if-no-files-found: warn
+          retention-days: 14

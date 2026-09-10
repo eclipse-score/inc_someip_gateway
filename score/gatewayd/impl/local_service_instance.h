@@ -99,6 +99,10 @@ class LocalServiceInstance {
         const socom::Event_id socom_event_id;
     };
     std::map<std::string_view, EventContext> event_contexts_;
+
+    static score::cpp::move_only_function<void(score::mw::com::SamplePtr<void>)>
+    create_process_sample_callback(LocalServiceInstance* instance_ptr,
+                                   EventContext const& event_context);
 };
 }  // namespace score::someip_gateway::gatewayd
 

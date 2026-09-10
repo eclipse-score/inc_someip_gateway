@@ -1,0 +1,123 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Waits for the CI workflow of a pull request, downloads the traceability gate
+# artifact produced by quality_pack_comment.yml, and posts (or edits) a
+# comment on the pull request with the gate summary and pass/fail status.
+#
+# Runs via workflow_run so that pull requests opened from forks — which get a
+# read-only GITHUB_TOKEN and cannot write comments themselves — still get a
+# comment posted by this workflow, which runs with the base repo's token.
+
+name: Publish Quality Pack Comment
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+  quality-pack-comment:
+    name: Comment traceability gate on the pull request
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # list + download the artifacts of the triggering workflow run
+      pull-requests: write # comment on the pull request
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+    steps:
+      - name: Resolve pull request number
+        id: metadata
+        env:
+          HEAD_REPO_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
+          REF_NAME: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$PR_NUMBER" == "null" ]]; then
+            PR_NUMBER=""
+          fi
+
+          # fork-origin workflow_run payloads do not include pull_requests[]
+          if [[ -z "$PR_NUMBER" && -n "$HEAD_REPO_OWNER" && -n "$REF_NAME" ]]; then
+            PR_NUMBER="$(gh api \
+              "repos/${REPO}/pulls?state=all&head=${HEAD_REPO_OWNER}:${REF_NAME}" \
+              --jq '.[0].number // empty' || true)"
+          fi
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "Could not determine PR number for pull_request event." >&2
+            exit 1
+          fi
+
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Download quality pack artifact
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: quality-pack-metrics
+          path: _quality_pack_dl
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Render comment body
+        id: render
+        run: |
+          set -euo pipefail
+
+          GATE_FILE=_quality_pack_dl/_quality_pack/gate.txt
+          if [[ -f "$GATE_FILE" ]]; then
+            if grep -q "Threshold check passed." "$GATE_FILE"; then
+              status="**PASS**"
+            else
+              status="**FAIL**"
+            fi
+            gate_body=$(cat "$GATE_FILE")
+          else
+            status="**UNAVAILABLE**"
+            gate_body="No traceability gate output was produced by the CI run."
+          fi
+
+          {
+            echo "Quality pack traceability report for this pull request:"
+            echo
+            echo "Status: $status ([workflow run](${{ github.event.workflow_run.html_url }}))"
+            echo
+            echo '```text'
+            echo "$gate_body"
+            echo '```'
+          } > comment.md
+
+      - name: Find existing PR comment
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
+        id: fc
+        with:
+          issue-number: ${{ steps.metadata.outputs.pr_number }}
+          comment-author: "github-actions[bot]"
+          body-includes: Quality pack traceability report for this pull request
+
+      - name: Comment on PR with traceability gate summary
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          issue-number: ${{ steps.metadata.outputs.pr_number }}
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          body-path: comment.md

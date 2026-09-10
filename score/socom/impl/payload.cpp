@@ -13,12 +13,10 @@
 
 #include "score/socom/payload.hpp"
 
-#include <cassert>
-
 namespace score::cpp {
 
 template <typename T>
-bool operator==(span<T> const& lhs, span<T> const& rhs) {
+static bool operator==(span<T> const& lhs, span<T> const& rhs) {
     return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs), std::end(rhs));
 }
 }  // namespace score::cpp

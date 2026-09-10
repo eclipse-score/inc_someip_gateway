@@ -59,7 +59,6 @@ updates:
   - package-ecosystem: docker
     directories:
       - /.devcontainer
-      - /tests/integration/docker_setup
     schedule:
       interval: daily
     commit-message:

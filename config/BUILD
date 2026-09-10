@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -11,8 +11,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-from someip.header import SOMEIPHeader
-
-
-def test_dummy(someipd):
-    assert True
+# Schema aliases: convenient access to schema files
+alias(
+    name = "mw_someip_config.schema.json",
+    actual = "//score/config:config_schema",
+    visibility = ["//visibility:public"],
+)

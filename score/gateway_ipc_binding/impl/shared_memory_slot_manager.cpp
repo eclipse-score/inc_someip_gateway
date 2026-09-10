@@ -14,9 +14,9 @@
 #include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 
 #include <atomic>
-#include <cassert>
 #include <mutex>
 #include <optional>
+#include <score/assert.hpp>
 #include <utility>
 
 #include "score/gateway_ipc_binding/error.hpp"
@@ -36,10 +36,10 @@ class Shared_memory_slot_manager_impl final : public Shared_memory_slot_manager 
           m_slot_count(slot_count),
           m_shared_memory(std::move(shared_memory)),
           m_base_address(base_address) {
-        assert(m_slot_size > 0);
-        assert(m_slot_count > 0);
-        assert(m_shared_memory != nullptr);
-        assert(m_base_address != nullptr);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_slot_size > 0);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_slot_count > 0);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_shared_memory != nullptr);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_base_address != nullptr);
 
         m_slots = std::make_unique<Slot_metadata[]>(m_slot_count);
         for (std::size_t i = 0; i < m_slot_count; ++i) {
@@ -96,7 +96,7 @@ class Shared_memory_slot_manager_impl final : public Shared_memory_slot_manager 
 
         std::uint32_t new_count =
             m_slots[handle].reference_count.fetch_sub(1, std::memory_order_release);
-        assert(new_count > 0);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(new_count > 0);
         return {};
     }
 
@@ -139,7 +139,7 @@ class Shared_memory_slot_manager_impl final : public Shared_memory_slot_manager 
     }
 
     [[nodiscard]] std::string get_path() const noexcept override {
-        assert(m_shared_memory->getPath() != nullptr);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_shared_memory->getPath() != nullptr);
         return *m_shared_memory->getPath();
     }
 
@@ -157,15 +157,16 @@ class Shared_memory_slot_manager_impl final : public Shared_memory_slot_manager 
     mutable std::mutex m_mutex;
 };
 
+namespace {
 /// \brief Creates a Payload backed by a read-only view of a shared memory slot.
 ///
 /// Calls the supplied destruction callback when the Payload is destroyed,
 /// allowing the caller to send a Payload_consumed notification.
-static socom::Payload make_read_only_shared_memory_payload(
+socom::Payload make_read_only_shared_memory_payload(
     void const* base, Slot_handle slot_index, std::size_t slot_size, std::size_t used_bytes,
     Read_only_shared_memory_slot_manager::On_payload_destruction_callback callback) noexcept {
     using Byte = socom::Payload::Byte;
-    auto const* data = static_cast<Byte const*>(base) + slot_index * slot_size;
+    auto const* data = static_cast<Byte const*>(base) + (slot_index * slot_size);
     auto const actual_size = std::min(used_bytes, slot_size);
     // TODO get rid of const_cast
     // const_cast is safe: Payload::data() returns Span (const), so the data is never modified
@@ -174,6 +175,7 @@ static socom::Payload make_read_only_shared_memory_payload(
         static_cast<socom::Payload::Writable_span::size_type>(actual_size)};
     return socom::Payload{span, slot_index, std::move(callback)};
 }
+}  // namespace
 
 class Read_only_shared_memory_slot_manager_impl final
     : public Read_only_shared_memory_slot_manager {
@@ -185,10 +187,10 @@ class Read_only_shared_memory_slot_manager_impl final
           m_base_address(m_shared_memory->getUsableBaseAddress()),
           m_slot_size(slot_size),
           m_slot_count(slot_count) {
-        assert(m_shared_memory != nullptr);
-        assert(m_base_address != nullptr);
-        assert(m_slot_size > 0);
-        assert(m_slot_count > 0);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_shared_memory != nullptr);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_base_address != nullptr);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_slot_size > 0);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(m_slot_count > 0);
     }
 
     ~Read_only_shared_memory_slot_manager_impl() noexcept override {
@@ -243,9 +245,9 @@ Result<std::unique_ptr<Shared_memory_slot_manager>> create_shared_memory_slot_ma
     }
 
     // Allocate the entire memory block
-    auto base_address = shared_memory->allocate(total_size);
+    auto* base_address = shared_memory->allocate(total_size);
 
-    if (!base_address) {
+    if (base_address == nullptr) {
         return MakeUnexpected(
             Shared_memory_manager_error::runtime_error_shared_memory_allocation_failed);
     }
@@ -339,7 +341,7 @@ Shared_memory_slot_guard& Shared_memory_slot_guard::operator=(
 Shared_memory_slot_guard::~Shared_memory_slot_guard() noexcept { reset(); }
 
 Shared_memory_slot_guard Shared_memory_slot_guard::share() noexcept {
-    assert(has_slot() && "share() called on guard without a valid slot");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(has_slot() && "share() called on guard without a valid slot");
     if (!has_slot()) {
         // If adding consumer failed, return an empty guard (no slot)
         return Shared_memory_slot_guard{};
@@ -350,7 +352,7 @@ Shared_memory_slot_guard Shared_memory_slot_guard::share() noexcept {
         return Result<Shared_memory_slot_guard>{Shared_memory_slot_guard(*m_manager, m_handle)};
     });
 
-    assert(guard && "Failed to add consumer in share()");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(guard && "Failed to add consumer in share()");
     return std::move(*guard);
 }
 
@@ -403,8 +405,9 @@ Shared_memory_configs make_shared_memory_configs(
     Shared_memory_configs result{};
     for (auto const& [interface, instances] : config) {
         for (auto const& [instance, metadata] : instances) {
-            assert(result.size < Shared_memory_configs::max_size &&
-                   "make_shared_memory_configs: too many entries for fixed container");
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(
+                result.size < Shared_memory_configs::max_size &&
+                "make_shared_memory_configs: too many entries for fixed container");
             auto& entry = result.data[result.size];
             entry.service = make_service(interface);
             entry.instance_id = make_instance_id(instance);

@@ -52,7 +52,9 @@ void subscribe_events(Client_connector const& cc, std::size_t const num_events) 
     for (std::size_t i{0}; i < num_events; i++) {
         auto const event_mode =
             0 == i % 2 ? Event_mode::update : Event_mode::update_and_initial_value;
-        cc.subscribe_event(i, event_mode);
+        // In multithreading stress tests, subscribe_event may legitimately fail
+        // when the service disconnects concurrently; the return value is intentionally ignored.
+        (void)cc.subscribe_event(i, event_mode);
     }
 }
 
@@ -86,10 +88,10 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
             },
             [this](Enabled_server_connector& esc, Event_id const& eid,
                    Event_state const& /*state*/) {
-                esc.update_event(eid, clone_payload(real_payload));
+                EXPECT_TRUE(esc.update_event(eid, clone_payload(real_payload)));
             },
             [this](Enabled_server_connector& esc, Event_id const& eid) {
-                esc.update_event(eid, clone_payload(real_payload));
+                EXPECT_TRUE(esc.update_event(eid, clone_payload(real_payload)));
             },
             [](Enabled_server_connector& /*esc*/,
                Method_id const& /*mid*/) -> score::Result<Writable_payload> {
@@ -104,7 +106,7 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
             this->connector_factory.create_server_connector(create_server_callbacks()));
 
         for (std::size_t i{0}; i < connector_factory.get_num_events(); i++) {
-            esc->update_event(i, clone_payload(real_payload));
+            EXPECT_TRUE(esc->update_event(i, clone_payload(real_payload)));
         }
     };
 

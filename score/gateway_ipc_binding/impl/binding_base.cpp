@@ -13,17 +13,17 @@
 
 #include "binding_base.hpp"
 
-#include <cassert>
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <ostream>
+#include <score/assert.hpp>
 #include <utility>
 
 #include "gateway_ipc_binding_util.hpp"
-#include "score/gateway_ipc_binding/error.hpp"
 #include "shared_memory_payload.hpp"
 
+namespace {
 template <typename... Args>
 void log_it_impl(Args... args) {
     static std::mutex log_mutex;
@@ -35,6 +35,7 @@ void log_it_impl(Args... args) {
 
     std::cout << std::endl;
 }
+}  // namespace
 
 // #define log_it(...) log_it_impl(__PRETTY_FUNCTION__, ", this == ", this, ", ", __VA_ARGS__)
 #define log_it(...) void(nullptr)
@@ -57,7 +58,8 @@ Gateway_ipc_binding_base::Gateway_ipc_binding_base(score::socom::Runtime& runtim
     auto bridge_identity = score::socom::Bridge_identity::make(this);
     auto bridge_registration_result =
         m_runtime.register_service_bridge(bridge_identity, std::move(request_service_callback));
-    assert(bridge_registration_result && "Failed to register service bridge with runtime");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(bridge_registration_result &&
+                                    "Failed to register service bridge with runtime");
     m_bridge_registration = std::move(bridge_registration_result).value();
 }
 
@@ -98,91 +100,91 @@ void Gateway_ipc_binding_base::on_receive_message(Client_id client_id, Reply_cha
     log_it("message_type == ", static_cast<int>(message_type));
     switch (message_type) {
         case Message_type::Connect: {
-            auto msg_opt = check_and_cast<Connect>(data);
+            auto msg_opt = check_and_convert<Connect>(data);
             if (!msg_opt) {
                 // Invalid message - log and ignore
                 return;
             }
 
-            handle_connect_message(client_id, conn, **msg_opt);
+            handle_connect_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Connect_reply: {
-            auto msg_opt = check_and_cast<Connect_reply>(data);
+            auto msg_opt = check_and_convert<Connect_reply>(data);
             if (!msg_opt) {
                 // Invalid message - log and ignore
                 return;
             }
 
-            handle_connect_reply_message(**msg_opt);
+            handle_connect_reply_message(*msg_opt);
             break;
         }
         case Message_type::Connect_service: {
-            auto msg_opt = check_and_cast<Connect_service>(data);
+            auto msg_opt = check_and_convert<Connect_service>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_connect_service_message(client_id, conn, **msg_opt);
+            handle_connect_service_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Connect_service_reply: {
-            auto msg_opt = check_and_cast<Connect_service_reply>(data);
+            auto msg_opt = check_and_convert<Connect_service_reply>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_connect_service_reply_message(client_id, **msg_opt);
+            handle_connect_service_reply_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Request_service: {
-            auto msg_opt = check_and_cast<Request_service>(data);
+            auto msg_opt = check_and_convert<Request_service>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_request_service_message(client_id, conn, **msg_opt);
+            handle_request_service_message(client_id, conn, *msg_opt);
             break;
         }
         case Message_type::Offer_service: {
-            auto msg_opt = check_and_cast<Offer_service>(data);
+            auto msg_opt = check_and_convert<Offer_service>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_offer_service_message(client_id, **msg_opt);
+            handle_offer_service_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Subscribe_event: {
-            auto msg_opt = check_and_cast<Subscribe_event>(data);
+            auto msg_opt = check_and_convert<Subscribe_event>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_subscribe_event_message(client_id, **msg_opt);
+            handle_subscribe_event_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Event_update: {
-            auto msg_opt = check_and_cast<Event_update>(data);
+            auto msg_opt = check_and_convert<Event_update>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_event_update_message(client_id, **msg_opt);
+            handle_event_update_message(client_id, *msg_opt);
             break;
         }
         case Message_type::Payload_consumed: {
-            auto msg_opt = check_and_cast<Payload_consumed>(data);
+            auto msg_opt = check_and_convert<Payload_consumed>(data);
             if (!msg_opt) {
                 return;
             }
 
-            handle_payload_consumed_message(client_id, **msg_opt);
+            handle_payload_consumed_message(client_id, *msg_opt);
             break;
         }
         default:
             // Unhandled message type - log and ignore
-            assert(false);
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(false);
             break;
     }
 }
@@ -278,7 +280,8 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
             key, [this, event_id, &payload, &recipient_count](Client_id client_id,
                                                               Connection_metadata::Ids const& ids) {
                 Reply_channel* const conn = m_connections.get_reply_channel(client_id);
-                assert(conn != nullptr && "Connection not found for client_id");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(conn != nullptr &&
+                                                "Connection not found for client_id");
 
                 if (conn == nullptr) {
                     return;
@@ -312,8 +315,8 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
 
             m_local_offers[key] = is_available;
             auto const interface_instance_opt = m_keys.get(key);
-            assert(interface_instance_opt.has_value() &&
-                   "Interface and instance should exist for key");
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(interface_instance_opt.has_value() &&
+                                            "Interface and instance should exist for key");
             auto const& [interface, instance] = interface_instance_opt.value();
 
             m_service_states.add_service(key, interface.get(), instance.get(), configuration);
@@ -322,7 +325,8 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
             log_it("client_ids size: ", client_ids.size());
             for (const auto& client_id : client_ids) {
                 Reply_channel* const conn = m_connections.get_reply_channel(client_id);
-                assert(conn != nullptr && "Connection not found for client_id");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(conn != nullptr &&
+                                                "Connection not found for client_id");
 
                 send_offer_service_to_client(*conn, interface.get(), instance.get(), is_available);
             }
@@ -408,11 +412,12 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
         return;
     }
 
-    assert(m_service_states.has_connector(mapping_info->get().key) &&
-           "Service state should have connector for key");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(m_service_states.has_connector(mapping_info->get().key) &&
+                                    "Service state should have connector for key");
     score::socom::Enabled_server_connector* enabled_connector =
         m_service_states.get(mapping_info->get().key)->get().enabled_connector.get();
-    assert(enabled_connector != nullptr && "Enabled connector should exist for key");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(enabled_connector != nullptr &&
+                                    "Enabled connector should exist for key");
     if (enabled_connector == nullptr) {
         return;
     }
@@ -437,11 +442,12 @@ void Gateway_ipc_binding_base::handle_event_update_message(Client_id client_id,
             .get_read_only_shared_memory_slot_manager(mapping_info->get().remote_metadata)
             .get_payload(msg.payload, std::move(on_payload_destruction));
 
-    assert(payload.has_value() && "Failed to get payload for event update");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(payload.has_value() &&
+                                    "Failed to get payload for event update");
 
     auto update_result = enabled_connector->update_event(msg.event_id, std::move(*payload));
     (void)update_result;
-    assert(update_result);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(update_result);
 }
 
 void Gateway_ipc_binding_base::handle_payload_consumed_message(
@@ -488,7 +494,8 @@ void Gateway_ipc_binding_base::handle_connect_service_message(Client_id client_i
     m_id_mapping.add_mapping(client_id, info);
 
     auto service_state_opt = m_service_states.get(key);
-    assert(service_state_opt.has_value() && "Service state should exist for key");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(service_state_opt.has_value() &&
+                                    "Service state should exist for key");
     auto& service_state = service_state_opt->get();
 
     Message_frame<Connect_service_reply> reply;
@@ -584,7 +591,7 @@ void Gateway_ipc_binding_base::handle_connect_service_reply_message(
                                                                    std::move(server_callbacks));
 
     if (!server_connector_result) {
-        assert(false);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(false);
         return;  // Failed to create server connector, log and continue
     }
 
@@ -666,8 +673,9 @@ void Gateway_ipc_binding_base::maybe_send_connect_service_locked(Key_t const& ke
     auto send_func = [this, &key](auto const& client_id, auto const& remote_handle,
                                   auto const& connect_service) {
         auto* conn = m_connections.get_reply_channel(client_id);
-        assert(conn != nullptr &&
-               "Improper cleanup done: client_id must always have a valid connection");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(
+            conn != nullptr &&
+            "Improper cleanup done: client_id must always have a valid connection");
 
         m_pending_connects.emplace(remote_handle, {key, client_id});
 

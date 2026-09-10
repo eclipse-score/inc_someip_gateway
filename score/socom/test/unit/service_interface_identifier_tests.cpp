@@ -45,9 +45,6 @@ class ServiceInterfaceIdentifierTest : public Test {
 
 using ServiceInterfaceConfigurationDeathTest = ServiceInterfaceIdentifierTest;
 
-constexpr std::string_view ServiceInterfaceIdentifierTest::service_interface_id;
-constexpr std::string_view ServiceInterfaceIdentifierTest::service_interface_id_2;
-
 TEST_F(ServiceInterfaceIdentifierTest, ConfigurationEqual) {
     ASSERT_TRUE(interface_config_1 == interface_config_1);
     ASSERT_FALSE(interface_config_1 == interface_config_2);
@@ -94,11 +91,11 @@ TEST_F(ServiceInterfaceIdentifierTest, StringViewLiteralConstructorUsesStringVie
 }
 
 TEST_F(ServiceInterfaceConfigurationDeathTest, SameInterfaceDifferentNumMethodsAsserts) {
-    EXPECT_DEATH((void)(interface_config_1 == interface_config_3), "[Aa]ssertion.*failed");
+    EXPECT_DEATH((void)(interface_config_1 == interface_config_3), "");
 }
 
 TEST_F(ServiceInterfaceConfigurationDeathTest, SameInterfaceDifferentNumEventsAsserts) {
-    EXPECT_DEATH((void)(interface_config_1 == interface_config_4), "[Aa]ssertion.*failed");
+    EXPECT_DEATH((void)(interface_config_1 == interface_config_4), "");
 }
 
 class ServiceInstanceTest : public Test {

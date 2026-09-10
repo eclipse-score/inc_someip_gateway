@@ -13,10 +13,11 @@
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 
-#include <cassert>
+#include <cerrno>
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <score/assert.hpp>
 #include <utility>
 
 #include "binding_base.hpp"
@@ -41,10 +42,18 @@ class Server_reply_channel : public Reply_channel {
         if (!send_result) {
             std::cerr << __PRETTY_FUNCTION__
                       << ": Failed to send message to client: " << send_result.error() << std::endl;
+            if (send_result.error().GetOsDependentErrorCode() == EMSGSIZE) {
+                // Unrecoverable: this message will never fit, retrying/reconnecting can't help.
+                // Disconnect instead of leaving the peer waiting forever for a reply that can
+                // never arrive.
+                request_disconnect();
+            }
             return MakeUnexpected(Bidirectional_channel_error::runtime_error_send_failed);
         }
         return {};
     }
+
+    void request_disconnect() noexcept override { m_conn->RequestDisconnect(); }
 };
 
 /// \brief Implementation of Gateway_ipc_binding_server
@@ -89,9 +98,10 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
 
         auto internal_disconnect_callback =
             [this](score::message_passing::IServerConnection& connection) {
-                assert(std::holds_alternative<std::uintptr_t>(connection.GetUserData()));
+                SCORE_LANGUAGE_FUTURECPP_ASSERT(
+                    std::holds_alternative<std::uintptr_t>(connection.GetUserData()));
                 auto const user_data = std::get<std::uintptr_t>(connection.GetUserData());
-                Client_id const client_id = static_cast<Client_id>(user_data);
+                auto const client_id = static_cast<Client_id>(user_data);
                 m_binding_base.remove_client(client_id);
                 std::lock_guard<std::mutex> const lock(m_mutex);
                 m_connections.erase(client_id);
@@ -108,20 +118,21 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
                                              score::message_passing::IServerConnection& connection,
                                              score::cpp::span<std::uint8_t const> payload)
             -> score::cpp::expected_blank<score::os::Error> {
-            assert(std::holds_alternative<std::uintptr_t>(connection.GetUserData()));
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(
+                std::holds_alternative<std::uintptr_t>(connection.GetUserData()));
             auto const user_data = std::get<std::uintptr_t>(connection.GetUserData());
-            Client_id const client_id = static_cast<Client_id>(user_data);
+            auto const client_id = static_cast<Client_id>(user_data);
 
             auto message_type = get_message_type(payload[0]);
 
             if (Message_type::Connect == message_type) {
-                auto msg_opt = check_and_cast<Connect>(payload);
+                auto msg_opt = check_and_convert<Connect>(payload);
                 if (!msg_opt) {
                     // Invalid message - log and ignore
                     return {};
                 }
 
-                auto const& msg = **msg_opt;
+                auto const& msg = *msg_opt;
                 std::lock_guard<std::mutex> const lock(m_mutex);
 
                 m_client_identifiers[client_id] =
@@ -184,7 +195,7 @@ std::unique_ptr<Gateway_ipc_binding_server> Gateway_ipc_binding_server::create(
     score::cpp::pmr::unique_ptr<score::message_passing::IServer> server,
     Shared_memory_manager_factory::Uptr slot_manager,
     On_find_service_change on_find_service_change) noexcept {
-    assert(server && "Server must not be null");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(server && "Server must not be null");
 
     return std::make_unique<Gateway_ipc_binding_server_impl>(
         runtime, std::move(slot_manager), std::move(on_find_service_change), std::move(server));

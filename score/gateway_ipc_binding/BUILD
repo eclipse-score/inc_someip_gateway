@@ -13,13 +13,6 @@
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
-load("@score_docs_as_code//:docs.bzl", "docs_bundle")
-
-docs_bundle(
-    name = "docs_bundle",
-    source_dir = "docs",
-    visibility = ["//visibility:public"],
-)
 
 filegroup(
     name = "headers",

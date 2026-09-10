@@ -14,7 +14,9 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_GATEWAY_IPC_BINDING_UTIL
 #define SRC_GATEWAY_IPC_BINDING_SRC_GATEWAY_IPC_BINDING_UTIL
 
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <optional>
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
@@ -40,15 +42,23 @@ inline Message_type get_message_type(std::uint8_t data) noexcept {
     return static_cast<Message_type>(data);
 }
 
-/// \brief Check if the incoming message matches the expected type and can be safely cast to
+/// \brief Check if the incoming message matches the expected type and can be safely converted to
 /// Msg_type
 /// \tparam Msg_type Expected message type to check and cast to
 /// \param data Incoming message data (including framing)
-/// \return Pointer to the cast message if type and size are valid, std::nullopt otherwise
+/// \return Copy of the payload if type and size are valid, std::nullopt otherwise
+/// \details Extracts via memcpy rather than reinterpret_cast: message_passing transports are not
+/// guaranteed to deliver the payload at an address aligned for Msg_type (observed on QNX, where
+/// the framing byte shifts the payload off of Message_frame<Msg_type>'s alignment), and punning
+/// through a misaligned pointer is undefined behavior.
 template <typename Msg_type>
-std::optional<Msg_type const*> check_and_cast(score::cpp::span<std::uint8_t const> data) noexcept {
+std::optional<Msg_type> check_and_convert(score::cpp::span<std::uint8_t const> data) noexcept {
     static_assert(std::is_trivially_copyable_v<Message_frame<Msg_type>>,
                   "Message_frame<Msg_type> must be trivially copyable");
+    static_assert(
+        sizeof(Message_frame<Msg_type>) <= kMax_safe_message_size,
+        "Message_frame<Msg_type> exceeds kMax_safe_message_size and may not be sendable on all "
+        "message_passing backends (e.g. QNX)");
 
     if (data.empty()) {
         return std::nullopt;  // Invalid frame - too small
@@ -64,18 +74,17 @@ std::optional<Msg_type const*> check_and_cast(score::cpp::span<std::uint8_t cons
         return std::nullopt;  // Invalid frame - insufficient data
     }
 
-    if (reinterpret_cast<std::uintptr_t>(data.data()) % alignof(Message_frame<Msg_type>) != 0) {
-        return std::nullopt;  // Invalid frame - unaligned data pointer
-    }
+    Message_frame_header header{};
+    std::memcpy(&header, data.data(), sizeof(header));
 
-    Message_frame<Msg_type> const* const connect =
-        reinterpret_cast<Message_frame<Msg_type> const*>(data.data());
-
-    if (connect->header.payload_size != sizeof(Msg_type)) {
+    if (header.payload_size != sizeof(Msg_type)) {
         return std::nullopt;  // Invalid payload size
     }
 
-    return &connect->payload;
+    Msg_type payload{};
+    std::memcpy(&payload, data.data() + offsetof(Message_frame<Msg_type>, payload),
+                sizeof(payload));
+    return payload;
 }
 
 struct Service_counts {

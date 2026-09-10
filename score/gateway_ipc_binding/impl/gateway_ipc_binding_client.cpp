@@ -14,9 +14,10 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 
 #include <atomic>
-#include <cassert>
+#include <cerrno>
 #include <iostream>
 #include <memory>
+#include <score/assert.hpp>
 #include <string_view>
 #include <thread>
 #include <utility>
@@ -48,9 +49,9 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
         Shared_memory_configs server_shared_memory_configs)
         : m_binding_base{runtime, std::move(slot_manager)},
           m_channel(std::move(channel)),
-          m_find_service_elements(std::move(find_service_elements)),
-          m_identifier(std::move(identifier)),
-          m_server_shared_memory_configs(std::move(server_shared_memory_configs)) {
+          m_find_service_elements(find_service_elements),
+          m_identifier(identifier),
+          m_server_shared_memory_configs(server_shared_memory_configs) {
         m_channel->Start([this](auto const state) { on_state_change(state); },
                          [this](auto const data) { on_receive_message(data); });
     }
@@ -77,12 +78,20 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
         if (!send_result) {
             std::cerr << __PRETTY_FUNCTION__
                       << ": Failed to send message to server: " << send_result.error() << std::endl;
+            if (send_result.error().GetOsDependentErrorCode() == EMSGSIZE) {
+                // Unrecoverable: this message will never fit, retrying/reconnecting can't help.
+                // Stop instead of leaving the peer waiting forever for a reply that can never
+                // arrive.
+                request_disconnect();
+            }
             return MakeUnexpected(Bidirectional_channel_error::runtime_error_send_failed);
         }
         return {};
     }
 
     using Reply_channel::send;  // Bring template send() into scope
+
+    void request_disconnect() noexcept override { m_channel->Stop(); }
 
     bool is_connected() const noexcept override { return m_connected; }
 
@@ -136,19 +145,19 @@ class Gateway_ipc_binding_client_impl : public Gateway_ipc_binding_client, publi
         auto message_type = get_message_type(data[0]);
 
         if (Message_type::Connect_reply == message_type) {
-            auto msg_opt = check_and_cast<Connect_reply>(data);
+            auto msg_opt = check_and_convert<Connect_reply>(data);
             if (!msg_opt) {
                 // Invalid message - log and ignore
                 return;
             }
 
-            handle_connect_reply_message(**msg_opt);
+            handle_connect_reply_message(*msg_opt);
         }
         m_binding_base.on_receive_message(client_id, *this, data);
     }
 
     void handle_connect_reply_message(Connect_reply const& msg) {
-        assert(msg.status);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(msg.status);
         m_connected = msg.status;
 
         if (m_connected) {
@@ -175,14 +184,15 @@ std::unique_ptr<Gateway_ipc_binding_client> Gateway_ipc_binding_client::create(
     score::cpp::pmr::unique_ptr<score::message_passing::IClientConnection> connection,
     Shared_memory_manager_factory::Uptr slot_manager, Find_service_elements find_service_elements,
     Shared_memory_configs server_shared_memory_configs, std::string_view identifier) noexcept {
-    assert(connection && "Connection must not be null");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(connection && "Connection must not be null");
 
     auto identifier_opt = fixed_string_from_string<Client_identifier>(identifier);
-    assert(identifier_opt && "Identifier exceeds maximum size for Client_identifier");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(identifier_opt &&
+                                    "Identifier exceeds maximum size for Client_identifier");
 
     return std::make_unique<Gateway_ipc_binding_client_impl>(
-        runtime, std::move(connection), std::move(slot_manager), std::move(find_service_elements),
-        *identifier_opt, std::move(server_shared_memory_configs));
+        runtime, std::move(connection), std::move(slot_manager), find_service_elements,
+        *identifier_opt, server_shared_memory_configs);
 }
 
 }  // namespace score::gateway_ipc_binding

@@ -11,22 +11,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-"""
-Integration Tests
-"""
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
-load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
-
-py_pytest(
-    name = "integration",
-    size = "medium",
-    srcs = glob(["test_*.py"]) + ["conftest.py"],
-    data = ["vsomeip-local.json"],
-    # Restrict the test execution to Linux for the moment due to dependency on Python
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = [
-        "//score/someipd",
-        "@score_someip_gateway_pip//pytest",
-        "@score_someip_gateway_pip//someip",
-    ],
+# The bundle sits in its own package so that score/gateway_ipc_binding/BUILD carries no
+# load() of @score_docs_as_code.
+docs_bundle(
+    name = "docs_bundle",
+    source_dir = "",
+    visibility = ["//visibility:public"],
 )
