@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Features &#8212; SOME/IP Gateway  documentation</title>
+    <title>gatewayd &#8212; SOME/IP Gateway  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/features';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'gatewayd/index';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Components" href="components.html" />
-    <link rel="prev" title="SOMEIP Gateway Architecture" href="index.html" />
+    <link rel="next" title="Serializer" href="../serializer/index.html" />
+    <link rel="prev" title="IPC Protocol" href="../gateway_ipc_binding/ipc_protocol.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -166,8 +166,8 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -180,7 +180,7 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../components.html">
     <no title>
   </a>
@@ -308,8 +308,8 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../architecture/index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -322,7 +322,7 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../components.html">
     <no title>
   </a>
@@ -406,15 +406,13 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Features</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dec_someip_api_abstraction.html">DR-001-Arch: SOME/IP stack abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dec_ipc_implementation.html">DR-002-Arch: IPC implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config/index.html">Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gateway_ipc_binding/index.html">Gateway IPC Binding</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">gatewayd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../serializer/index.html">Serializer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../socom/index.html">SOCom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../someip/index.html">someip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../someipd/index.html">someipd</a></li>
 </ul>
 </div>
 </nav></div>
@@ -456,9 +454,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOMEIP Gateway Architecture</a></li>
+    <li class="breadcrumb-item"><a href="../components.html" class="nav-link">&lt;no title&gt;</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Features</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">gatewayd</span></li>
   </ul>
 </nav>
 </div>
@@ -475,54 +473,12 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="features">
-<h1>Features<a class="headerlink" href="#features" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-909c346c">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat table" id="feat__someip_gateway">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP gateway</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="../config/index.html#comp__config" title="feat__someip_gateway">comp__config</a>, <a class="reference internal" href="../gateway_ipc_binding/index.html#comp__gateway_ipc_binding" title="feat__someip_gateway">comp__gateway_ipc_binding</a>, <a class="reference internal" href="components.html#comp__gatewayd" title="feat__someip_gateway">comp__gatewayd</a>, <a class="reference internal" href="components.html#comp__null_serializer" title="feat__someip_gateway">comp__null_serializer</a>, <a class="reference internal" href="components.html#comp__serializer" title="feat__someip_gateway">comp__serializer</a>, <a class="reference internal" href="../socom/index.html#comp__socom" title="feat__someip_gateway">comp__socom</a>, <a class="reference internal" href="../someip/index.html#comp__someip" title="feat__someip_gateway">comp__someip</a>, <a class="reference internal" href="components.html#comp__someipd" title="feat__someip_gateway">comp__someipd</a></span></span></div>
-<div class="line">satisfies: <span class="satisfied_by"><span><a class="reference internal" href="../tc8_conformance/requirements.html#feat_req__tc8_conformance__conformance" title="feat__someip_gateway">feat_req__tc8_conformance__conformance</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Dummy feature to comply to the meta-model.
-Should be defined in the process itself and only referenced.
-For updating docs_as_code to version 4.x, this is required.</p></td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat__someip_gateway" title="feat__someip_gateway">feat__someip_gateway</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Feature</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+  <section id="gatewayd">
+<span id="id1"></span><h1>gatewayd<a class="headerlink" href="#gatewayd" title="Link to this heading">#</a></h1>
+<section id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Link to this heading">#</a></h2>
+<p>The gateway daemon. Bridges local IPC service instances with remote SOME/IP service instances across the ASIL boundary, handling service offers, requests, event subscriptions, and payload transfer.</p>
+</section>
 </section>
 
 
@@ -536,20 +492,20 @@ For updating docs_as_code to version 4.x, this is required.</p></td>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="../gateway_ipc_binding/ipc_protocol.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">SOMEIP Gateway Architecture</p>
+        <p class="prev-next-title">IPC Protocol</p>
       </div>
     </a>
     <a class="right-next"
-       href="components.html"
+       href="../serializer/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Components</p>
+        <p class="prev-next-title">Serializer</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -565,10 +521,22 @@ For updating docs_as_code to version 4.x, this is required.</p></td>
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstract">Abstract</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/features.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/gatewayd/indexork/inc_someip_gateway/inc_someip_gateway/score/gatewayd/docs/index.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
