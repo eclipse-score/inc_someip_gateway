@@ -43,15 +43,15 @@ Peer liveness and event-based service bridging are implemented. ``create_server(
 both factories set up the configured bridged services.
 
 +------------------------------------------------------+------------------------------------------+
-| Part                                                  | State                                    |
+| Part                                                 | State                                    |
 +======================================================+==========================================+
-| :ref:`someipd-service`, ``is_connected()``            | implemented                              |
+| :ref:`someipd-service`, ``is_connected()``           | implemented                              |
 +------------------------------------------------------+------------------------------------------+
-| ``Service_configs`` public API, ``sample_size()``     | implemented                              |
+| ``Service_configs`` public API, ``sample_size()``    | implemented                              |
 +------------------------------------------------------+------------------------------------------+
-| bridged services: skeletons, proxies, event flow      | implemented                              |
+| bridged services: skeletons, proxies, event flow     | implemented                              |
 +------------------------------------------------------+------------------------------------------+
-| method calls, requested event updates                 | not representable, see `Known gaps`_     |
+| method calls, requested event updates                | not representable, see `Known gaps`_     |
 +------------------------------------------------------+------------------------------------------+
 
 Code map:
