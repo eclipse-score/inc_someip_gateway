@@ -34,6 +34,7 @@ build --tool_java_runtime_version=remotejdk_17
 #   @score_bazel_platforms//:x86_64-qnx    - x86_64 architecture (QNX8)
 #   @score_bazel_platforms//:aarch64-qnx   - aarch64 architecture (QNX8)
 
+common --extra_toolchains=@score_linux_x86_64_ext4_toolchain//:ext4-x86_64-linux
 common:_toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux
 common:_toolchain_common --extra_toolchains=@score_gcc_x86_64_toolchain//:all
 

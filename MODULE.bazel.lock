@@ -1073,7 +1073,8 @@
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/0.1.1/MODULE.bazel": "236e5bdff6f2d6de6f96cc4f5f4b1bf2cd6137547ce279668a2dd4c54cd4236c",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/0.1.2/MODULE.bazel": "d1889bf36241521c5d5c401aaf1e98242a60f9cab9d223f8190e5d7087956e83",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/1.0.0/MODULE.bazel": "e5e386e6fc0a447a2f4a47e872e3747822e9d58994b7b55e248c78e5a3e382c0",
-    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/1.0.0/source.json": "fb428e5f4cb6cbf0e00442e72c8d038746e0eaa7493dcec394ee99be727dcb3b",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/1.1.0/MODULE.bazel": "e5c656abcad121a89cbabad3550bb20167a6865de219ef6e1c68ca30567e1c32",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_platforms/1.1.0/source.json": "9797d56e9dd68e9d3e8b674402df2d6d5e2174f84184ca4cbee78fc07dc117d9",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_tools_python/0.1.3/MODULE.bazel": "02bd71d03010d7903412b2c98d25519a46af7ec6d9492270ec371c198e15caec",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_bazel_tools_python/0.1.3/source.json": "f87907b20372ca2c4ad15719cba03423577ed1ea8392c7373eb37f73499decce",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_cr_checker/0.2.2/MODULE.bazel": "dc36d9c35543db918c3fb5b93a8e684431f56c7c784cf2a1b90f35802a373c98",
@@ -1128,6 +1129,9 @@
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_python_basics/0.3.4/source.json": "28ed0207a16f8498a84fae4983fa73060805003a4fbd68c6d749e2f1cc14601f",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_qnx_unit_tests/0.2.0/MODULE.bazel": "aaffff67916dd058737aac8e04368f12b214e7646ff58adbab48e6429d1a5410",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_qnx_unit_tests/0.2.0/source.json": "c40a614fd88beab7cb65b8640debd44eff3fbc32a7839734ef1112f265d2eeef",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_rules_imagefs/0.0.3/MODULE.bazel": "d87fcd3485438284fa96d6a5a81923d6b6672468947423517cc43c4d7692ca6a",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_rules_imagefs/0.1.0/MODULE.bazel": "7964f78b6a92aebc38916dedbfb5f011d4fa4c385d86f7612c39c7a423b012cc",
+    "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_rules_imagefs/0.1.0/source.json": "8aa1214aec6645a9cbbfec86b855402de2f0c42b9aa37224279a64788350a58e",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_rust_policies/0.0.2/MODULE.bazel": "ade2bad4a331b02d9b7e7d9842e8de8c6fded6186486e02c4f7db5cd4b71d34d",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_rust_policies/0.0.5/MODULE.bazel": "7de02547bdf121d3dedf5141b97f0fd9a545bd255ff5c7b699056b35816ffad9",
     "https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/modules/score_rust_policies/0.0.5/source.json": "22c8bf0a5cbf7c7b06f774f3f66498e0bc14346a8b2208f7427a8fbb78a42547",
@@ -11042,30 +11046,91 @@
     },
     "@@score_rules_imagefs+//extensions:imagefs.bzl%imagefs": {
       "general": {
-        "bzlTransitiveDigest": "6ZLANe53LXwcnne1ZrZm9GkJ9H5VdsCLSgSNHyUrqA4=",
-        "usagesDigest": "mRiliI8K2YbkmOrXpiz+falldLc7Q3Lv4Cz2E73ZYkk=",
+        "bzlTransitiveDigest": "AhldzzceHQweCskTyocFKGDFKZfW2t5IdpfsFJV4S9g=",
+        "usagesDigest": "QnJQIG2drn0LFTScqm0JB53gLD8wCnk805WhutXaJqQ=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
         "generatedRepoSpecs": {
           "score_qnx_x86_64_ifs_toolchain": {
-            "repoRuleId": "@@score_rules_imagefs+//rules/qnx:imagefs_toolchain.bzl%imagefs_toolchain",
+            "repoRuleId": "@@score_rules_imagefs+//rules:imagefs_toolchain.bzl%imagefs_toolchain",
             "attributes": {
               "tc_cpu": "x86_64",
               "tc_os": "qnx",
               "tc_pkg_repo": "'@@score_bazel_cpp_toolchains++gcc+score_qcc_x86_64_toolchain_pkg'",
               "sdp_version": "8.0.0",
-              "tc_type": "ifs"
+              "tc_type": "ifs",
+              "coreutils_pkg_repo": ""
             }
           },
           "score_qnx_aarch64_ifs_toolchain": {
-            "repoRuleId": "@@score_rules_imagefs+//rules/qnx:imagefs_toolchain.bzl%imagefs_toolchain",
+            "repoRuleId": "@@score_rules_imagefs+//rules:imagefs_toolchain.bzl%imagefs_toolchain",
             "attributes": {
               "tc_cpu": "aarch64",
               "tc_os": "qnx",
               "tc_pkg_repo": "'@@score_bazel_cpp_toolchains++gcc+score_qcc_aarch64_toolchain_pkg'",
               "sdp_version": "8.0.0",
-              "tc_type": "ifs"
+              "tc_type": "ifs",
+              "coreutils_pkg_repo": ""
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain_coreutils_darwin_amd64": {
+            "repoRuleId": "@@bazel_lib+//lib/private:coreutils_toolchain.bzl%coreutils_platform_repo",
+            "attributes": {
+              "platform": "darwin_amd64",
+              "version": "0.5.0"
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain_coreutils_darwin_arm64": {
+            "repoRuleId": "@@bazel_lib+//lib/private:coreutils_toolchain.bzl%coreutils_platform_repo",
+            "attributes": {
+              "platform": "darwin_arm64",
+              "version": "0.5.0"
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain_coreutils_linux_amd64": {
+            "repoRuleId": "@@bazel_lib+//lib/private:coreutils_toolchain.bzl%coreutils_platform_repo",
+            "attributes": {
+              "platform": "linux_amd64",
+              "version": "0.5.0"
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain_coreutils_linux_arm64": {
+            "repoRuleId": "@@bazel_lib+//lib/private:coreutils_toolchain.bzl%coreutils_platform_repo",
+            "attributes": {
+              "platform": "linux_arm64",
+              "version": "0.5.0"
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain_coreutils_windows_amd64": {
+            "repoRuleId": "@@bazel_lib+//lib/private:coreutils_toolchain.bzl%coreutils_platform_repo",
+            "attributes": {
+              "platform": "windows_amd64",
+              "version": "0.5.0"
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain_coreutils_windows_arm64": {
+            "repoRuleId": "@@bazel_lib+//lib/private:coreutils_toolchain.bzl%coreutils_platform_repo",
+            "attributes": {
+              "platform": "windows_arm64",
+              "version": "0.5.0"
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain_coreutils_toolchains": {
+            "repoRuleId": "@@bazel_lib+//lib/private:coreutils_toolchain.bzl%coreutils_toolchains_repo",
+            "attributes": {
+              "user_repository_name": "score_linux_x86_64_ext4_toolchain_coreutils"
+            }
+          },
+          "score_linux_x86_64_ext4_toolchain": {
+            "repoRuleId": "@@score_rules_imagefs+//rules:imagefs_toolchain.bzl%imagefs_toolchain",
+            "attributes": {
+              "tc_cpu": "x86_64",
+              "tc_os": "linux",
+              "tc_pkg_repo": "",
+              "sdp_version": "8.0.0",
+              "tc_type": "ext4",
+              "coreutils_pkg_repo": "@score_linux_x86_64_ext4_toolchain_coreutils_linux_amd64"
             }
           }
         },
@@ -11079,6 +11144,16 @@
             "",
             "score_qcc_x86_64_toolchain_pkg",
             "score_bazel_cpp_toolchains++gcc+score_qcc_x86_64_toolchain_pkg"
+          ],
+          [
+            "bazel_lib+",
+            "bazel_tools",
+            "bazel_tools"
+          ],
+          [
+            "score_rules_imagefs+",
+            "bazel_lib",
+            "bazel_lib+"
           ],
           [
             "score_rules_imagefs+",

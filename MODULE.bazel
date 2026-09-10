@@ -265,12 +265,12 @@ http_archive(
 # ============================================================================
 bazel_dep(name = "os_images", version = "1.0", dev_dependency = True)
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
-bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.1.0", dev_dependency = True)
 
 # TODO: Switch back to a released version once `--qemu-disk` is part of a tagged release.
 git_override(
     module_name = "score_itf",
-    commit = "8aa4723dffaff85f4405315f9500a651310afb74",
+    commit = "38ae9a3dd98ccc7434e1f8b57ca4a3d2bac82e2f",
     patch_strip = 1,
     patches = ["//:third_party/score_itf-qemu-ping-timeout.patch"],
     remote = "https://github.com/eclipse-score/itf.git",
@@ -279,15 +279,8 @@ git_override(
 # TODO: Switch back to a released version once the automatic /opt mount is released.
 git_override(
     module_name = "os_images",
-    commit = "90eeb7e041fef1773489dc41e75ab063ddb0cfa1",
+    commit = "6d493760c5aa5d4dc9d4a168cce49732bc976338",
     remote = "https://github.com/eclipse-score/os_images.git",
-)
-
-# TODO: Switch back to a released version once the `ext4` rule is available in a tagged release.
-git_override(
-    module_name = "score_rules_imagefs",
-    commit = "b1278766c01d9f4102c24e87b0ce9d035eaed832",
-    remote = "https://github.com/eclipse-score/rules_imagefs.git",
 )
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
@@ -305,4 +298,10 @@ imagefs.toolchain(
     target_os = "qnx",
     type = "ifs",
 )
-use_repo(imagefs, "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")
+imagefs.toolchain(
+    name = "score_linux_x86_64_ext4_toolchain",
+    target_cpu = "x86_64",
+    target_os = "linux",
+    type = "ext4",
+)
+use_repo(imagefs, "score_linux_x86_64_ext4_toolchain", "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")
