@@ -73,7 +73,6 @@ pkg_files(
     attributes = pkg_attributes(
         mode = "0777",
     ),
-    prefix = "/",
 )
 
 integration_test(

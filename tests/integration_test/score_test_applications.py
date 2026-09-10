@@ -37,7 +37,7 @@ TEST_APPLICATION_TIMEOUT_S = 30
 
 
 def _list_gtest_suites(target: Target, application: str) -> list[str]:
-    exit_code, output = target.execute(f"/{application} --gtest_list_tests")
+    exit_code, output = target.execute(f"/opt/{application} --gtest_list_tests")
     text = output.decode(errors="replace")
     assert exit_code == 0, text
 
@@ -54,7 +54,7 @@ def test_application_succeeds_on_target(target: Target, application: str) -> Non
             "gateway_ipc_binding_test is split into multiple processes on QNX, see test_gateway_ipc_binding_succeeds_on_target()"
         )
 
-    process = target.execute_async(f"/{application}")
+    process = target.execute_async(f"/opt/{application}")
     exit_code = process.wait(timeout_s=TEST_APPLICATION_TIMEOUT_S)
     assert exit_code == 0, process.get_output()
 
@@ -76,7 +76,7 @@ def test_gateway_ipc_binding_succeeds_on_target(target: Target) -> None:
 
     failures = []
     for suite in _list_gtest_suites(target, GATEWAY_IPC_BINDING_TEST):
-        process = target.execute_async(f"/{GATEWAY_IPC_BINDING_TEST} --gtest_filter={suite}*")
+        process = target.execute_async(f"/opt/{GATEWAY_IPC_BINDING_TEST} --gtest_filter={suite}*")
         exit_code = process.wait(timeout_s=TEST_APPLICATION_TIMEOUT_S)
         if exit_code != 0:
             failures.append(f"{suite} failed with {exit_code}:\n{process.get_output()}")

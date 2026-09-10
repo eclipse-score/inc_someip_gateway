@@ -55,6 +55,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
     ext4(
         name = filesystem_disk,
         srcs = [filesystem],
+        testonly = True,
         out = "qemu_disk_{}.ext4".format(name),
         tags = ["manual"],
         target_compatible_with = LINUX_TARGET_COMPATIBLE_WITH,
@@ -74,6 +75,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
         name = qnx_filesystem,
         srcs = [filesystem],
         prefix = "/opt",
+        testonly = True,
     )
 
     qemu_image = "_init_ifs_{}".format(name)

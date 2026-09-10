@@ -47,17 +47,7 @@ Integration tests are enabled only for QEMU-backed runs:
 
 ### filesystem tar
 
-The tests and their data are packaged into a filesystem tar and overlaid onto the QEMU rootfs image before test execution.
-
-### What Runs in QEMU
-
-#### Linux QEMU
-
-If QEMU is selected, the upstream ITF QEMU plugin is used.
-
-#### QNX QEMU
-
-For QNX targets, the macro builds a QNX IFS image and passes it to the upstream QEMU ITF plugin with the QNX QEMU config.
+The tests and their data are packaged into a filesystem tar and made available underneath `/opt/` in the root file system.
 
 ### Default Test Parameters Applied by the Macro
 
