@@ -34,6 +34,11 @@ using test::Producer_app;
 /// \brief SomeipdService instance used by the bridged service tests
 constexpr char const* kSomeipd_specifier = "someipd/daemon";
 
+/// \brief Bridged service instance used by the bridged service tests
+/// \details Every test may reuse it: a `Bridge` tears its skeleton, proxy and applications down
+///          again before the next test constructs its own, so no state survives a test.
+constexpr char const* kBridged_specifier = "ipc/bridged";
+
 /// \brief Names of the two events the test service type declares in mw_com_config.json
 constexpr char const* kEvent_a = "event_a";
 constexpr char const* kEvent_b = "event_b";
@@ -57,8 +62,8 @@ std::vector<Event_config> test_events() {
             Event_config{kEvent_b, kHeader_size, kMax_payload_size}};
 }
 
-Service_config test_service(std::string instance_specifier, Role const role) {
-    return Service_config{test_interface(), test_instance(),  std::move(instance_specifier), role,
+Service_config test_service(Role const role) {
+    return Service_config{test_interface(), test_instance(),  kBridged_specifier, role,
                           test_events(),    kMax_sample_count};
 }
 
@@ -94,13 +99,11 @@ class Bridged_service_test : public ::testing::Test {
 /// \details Members are destroyed bottom up, so the applications go away before the bindings,
 ///          which is the order the SOCom deadlock detector expects.
 struct Bridge {
-    Bridge(socom::Runtime& provider_runtime, socom::Runtime& consumer_runtime,
-           std::string const& instance_specifier)
+    Bridge(socom::Runtime& provider_runtime, socom::Runtime& consumer_runtime)
         : server{create_server(provider_runtime, kSomeipd_specifier,
-                               {test_service(instance_specifier, Role::provider)})},
+                               {test_service(Role::provider)})},
           consumer_runtime_ref{consumer_runtime},
-          provider_runtime_ref{provider_runtime},
-          instance_specifier_value{instance_specifier} {}
+          provider_runtime_ref{provider_runtime} {}
 
     /// \brief Bring the link up, mirroring `someipd` starting before `gatewayd` connects
     /// \param unsubscribe_on_update Whether the consuming application unsubscribes from within
@@ -109,8 +112,8 @@ struct Bridge {
         if ((server == nullptr) || !server->start().has_value()) {
             return false;
         }
-        client = create_client(consumer_runtime_ref, kSomeipd_specifier,
-                               {test_service(instance_specifier_value, Role::consumer)});
+        client =
+            create_client(consumer_runtime_ref, kSomeipd_specifier, {test_service(Role::consumer)});
         if (client == nullptr) {
             return false;
         }
@@ -128,11 +131,10 @@ struct Bridge {
 
     socom::Runtime& consumer_runtime_ref;
     socom::Runtime& provider_runtime_ref;
-    std::string instance_specifier_value;
 };
 
 TEST_F(Bridged_service_test, service_availability_is_propagated_to_the_consumer_side) {
-    Bridge bridge{*m_server_runtime, *m_client_runtime, "ipc/bridged_1"};
+    Bridge bridge{*m_server_runtime, *m_client_runtime};
     ASSERT_TRUE(bridge.start());
 
     // The producing application offering its SOCom service is what makes the GenericSkeleton be
@@ -141,7 +143,7 @@ TEST_F(Bridged_service_test, service_availability_is_propagated_to_the_consumer_
 }
 
 TEST_F(Bridged_service_test, subscription_is_propagated_to_the_provider_side) {
-    Bridge bridge{*m_server_runtime, *m_client_runtime, "ipc/bridged_2"};
+    Bridge bridge{*m_server_runtime, *m_client_runtime};
     ASSERT_TRUE(bridge.start());
     ASSERT_TRUE(bridge.consumer->wait_for_availability(true));
 
@@ -159,7 +161,7 @@ TEST_F(Bridged_service_test, subscription_is_propagated_to_the_provider_side) {
 }
 
 TEST_F(Bridged_service_test, event_header_and_payload_survive_the_round_trip) {
-    Bridge bridge{*m_server_runtime, *m_client_runtime, "ipc/bridged_3"};
+    Bridge bridge{*m_server_runtime, *m_client_runtime};
     ASSERT_TRUE(bridge.start());
     ASSERT_TRUE(bridge.consumer->wait_for_availability(true));
     ASSERT_TRUE(bridge.consumer->subscribe(0U));
@@ -181,7 +183,7 @@ TEST_F(Bridged_service_test, event_header_and_payload_survive_the_round_trip) {
 }
 
 TEST_F(Bridged_service_test, an_empty_and_a_full_payload_both_survive_the_round_trip) {
-    Bridge bridge{*m_server_runtime, *m_client_runtime, "ipc/bridged_4"};
+    Bridge bridge{*m_server_runtime, *m_client_runtime};
     ASSERT_TRUE(bridge.start());
     ASSERT_TRUE(bridge.consumer->wait_for_availability(true));
     ASSERT_TRUE(bridge.consumer->subscribe(0U));
@@ -200,7 +202,7 @@ TEST_F(Bridged_service_test, an_empty_and_a_full_payload_both_survive_the_round_
 }
 
 TEST_F(Bridged_service_test, both_events_of_a_service_are_bridged_independently) {
-    Bridge bridge{*m_server_runtime, *m_client_runtime, "ipc/bridged_5"};
+    Bridge bridge{*m_server_runtime, *m_client_runtime};
     ASSERT_TRUE(bridge.start());
     ASSERT_TRUE(bridge.consumer->wait_for_availability(true));
     ASSERT_TRUE(bridge.consumer->subscribe(0U));
@@ -224,7 +226,7 @@ TEST_F(Bridged_service_test, both_events_of_a_service_are_bridged_independently)
 }
 
 TEST_F(Bridged_service_test, the_service_becomes_unavailable_when_the_producer_stops) {
-    Bridge bridge{*m_server_runtime, *m_client_runtime, "ipc/bridged_6"};
+    Bridge bridge{*m_server_runtime, *m_client_runtime};
     ASSERT_TRUE(bridge.start());
     ASSERT_TRUE(bridge.consumer->wait_for_availability(true));
     ASSERT_TRUE(bridge.consumer->subscribe(0U));
@@ -238,7 +240,7 @@ TEST_F(Bridged_service_test, the_service_becomes_unavailable_when_the_producer_s
 }
 
 TEST_F(Bridged_service_test, no_event_is_forwarded_after_the_consumer_unsubscribes) {
-    Bridge bridge{*m_server_runtime, *m_client_runtime, "ipc/bridged_7"};
+    Bridge bridge{*m_server_runtime, *m_client_runtime};
     ASSERT_TRUE(bridge.start());
     ASSERT_TRUE(bridge.consumer->wait_for_availability(true));
     ASSERT_TRUE(bridge.consumer->subscribe(0U));

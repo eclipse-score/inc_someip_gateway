@@ -211,7 +211,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_bridged_service_without_events_is_rejected) {
     auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                                      bridged_services("ipc/bridged_1", Role::provider, {}));
+                                      bridged_services("ipc/bridged", Role::provider, {}));
     ASSERT_NE(server, nullptr);
 
     EXPECT_FALSE(server->start().has_value());
@@ -220,7 +220,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_bridged_service_without_events_is_reje
 TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_name_is_rejected) {
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
-        bridged_services("ipc/bridged_1", Role::provider,
+        bridged_services("ipc/bridged", Role::provider,
                          {Event_config{"event_a", 16U, 128U}, Event_config{"event_a", 16U, 128U}}));
     ASSERT_NE(server, nullptr);
 
@@ -229,16 +229,16 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_name_is_rejected) {
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_consumer_without_sample_budget_is_rejected) {
     // Subscribe(0) would succeed but never hand a sample to the application.
-    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
-                                      bridged_services("ipc/bridged_1", Role::consumer,
-                                                       {Event_config{"event_a", 16U, 128U}}, 0U));
+    auto const client = create_client(
+        *m_client_runtime, kSomeipd_specifier_second_pair,
+        bridged_services("ipc/bridged", Role::consumer, {Event_config{"event_a", 16U, 128U}}, 0U));
 
     EXPECT_EQ(client, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_the_deployment_is_rejected) {
     auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                                      bridged_services("ipc/bridged_1", Role::provider,
+                                      bridged_services("ipc/bridged", Role::provider,
                                                        {Event_config{"no_such_event", 16U, 128U}}));
     ASSERT_NE(server, nullptr);
 
@@ -247,13 +247,13 @@ TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_the_deployment_is_
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_service_is_offered_before_the_bridged_services) {
     auto const server = create_server(*m_server_runtime, kSomeipd_specifier,
-                                      bridged_services("ipc/bridged_1", Role::provider));
+                                      bridged_services("ipc/bridged", Role::provider));
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
 
     auto const client =
         create_client(*m_client_runtime, kSomeipd_specifier,
-                      bridged_services("ipc/bridged_1", Role::consumer), "test_client");
+                      bridged_services("ipc/bridged", Role::consumer), "test_client");
     ASSERT_NE(client, nullptr);
 
     // Peer liveness is independent of the bridged services: nothing offers the bridged service
