@@ -11,14 +11,14 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_SOMEIP_SOMEIPD_SERVICE_HPP
-#define SCORE_SOMEIP_SOMEIPD_SERVICE_HPP
+#ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_HPP
+#define SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_HPP
 
 #include <string_view>
 
 #include "score/mw/com/types.h"
 
-namespace score::someip {
+namespace score::gateway_ipc_binding::mw_com {
 
 /// \brief `mw::com` service interface representing the `someipd` daemon itself.
 ///
@@ -49,6 +49,6 @@ using Someipd_service_skeleton = score::mw::com::AsSkeleton<Someipd_service_inte
 ///        Someipd_service_interface.
 inline constexpr std::string_view kSomeipd_service_type_name{"/score/someip/SomeipdService"};
 
-}  // namespace score::someip
+}  // namespace score::gateway_ipc_binding::mw_com
 
-#endif  // SCORE_SOMEIP_SOMEIPD_SERVICE_HPP
+#endif  // SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_HPP

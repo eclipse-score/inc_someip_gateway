@@ -25,11 +25,18 @@ cc_test(
     data = ["mw_com_config.json"],
     features = COMPILER_WARNING_FEATURES,
     linkstatic = True,
-    # LoLa names its message passing endpoints LoLa_2_<pid>_QM in a host-global
-    # namespace. Under linux-sandbox every test gets its own PID namespace and
-    # therefore the same low PIDs, so two LoLa processes running at the same
-    # time collide. Run this test on its own.
-    tags = ["exclusive"],
+    # LoLa's message passing uses *abstract* unix domain sockets named
+    # LoLa_2_<pid>_QM. The abstract socket namespace is scoped to the network
+    # namespace, and under linux-sandbox every test gets a fresh PID namespace
+    # and therefore the same low PIDs. Without an own network namespace two
+    # concurrent LoLa test processes collide with "Address already in use".
+    # block-network makes linux-sandbox put this test into its own network
+    # namespace. /dev/shm and /tmp, which LoLa also uses, are already unshared
+    # for all tests via --sandbox_tmpfs_path in .bazelrc.
+    tags = [
+        "block-network",
+        "exclusive",  # block-network still does not enable concurrent LoLa tests, so run this test exclusively
+    ],
     deps = [
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",

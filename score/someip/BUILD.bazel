@@ -28,13 +28,6 @@ cc_library(
 )
 
 cc_library(
-    name = "someipd_service",
-    hdrs = ["someipd_service.hpp"],
-    visibility = ["//visibility:public"],
-    deps = ["@score_communication//score/mw/com"],
-)
-
-cc_library(
     name = "someip_error",
     srcs = ["impl/someip_error.cpp"],
     hdrs = ["someip_error.h"],

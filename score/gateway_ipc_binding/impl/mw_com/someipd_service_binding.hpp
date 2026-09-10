@@ -21,7 +21,7 @@
 #include <string>
 
 #include "score/result/result.h"
-#include "score/someip/someipd_service.hpp"
+#include "someipd_service.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 
@@ -49,9 +49,9 @@ class Someipd_service_provider {
     Result<void> offer() noexcept;
 
    private:
-    explicit Someipd_service_provider(someip::Someipd_service_skeleton skeleton) noexcept;
+    explicit Someipd_service_provider(Someipd_service_skeleton skeleton) noexcept;
 
-    someip::Someipd_service_skeleton m_skeleton;
+    Someipd_service_skeleton m_skeleton;
 };
 
 /// \brief Consumer half of the SomeipdService peer-liveness contract, owned by `gatewayd`.
@@ -86,7 +86,7 @@ class Someipd_service_consumer {
 
     /// \brief Guards m_proxy against concurrent find-service handler invocations and teardown
     std::mutex m_mutex;
-    std::optional<someip::Someipd_service_proxy> m_proxy;
+    std::optional<Someipd_service_proxy> m_proxy;
     std::atomic<bool> m_connected{false};
     std::optional<score::mw::com::FindServiceHandle> m_find_handle;
 };

@@ -62,7 +62,7 @@ Result<void> check_instance_is_deployed(score::mw::com::InstanceSpecifier const&
 }  // namespace
 
 Someipd_service_provider::Someipd_service_provider(
-    someip::Someipd_service_skeleton skeleton) noexcept
+    Someipd_service_skeleton skeleton) noexcept
     : m_skeleton{std::move(skeleton)} {}
 
 Someipd_service_provider::~Someipd_service_provider() noexcept = default;
@@ -75,7 +75,7 @@ Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::crea
             std::move(specifier).error());
     }
 
-    auto skeleton = someip::Someipd_service_skeleton::Create(specifier.value());
+    auto skeleton = Someipd_service_skeleton::Create(specifier.value());
     if (!skeleton.has_value()) {
         score::mw::log::LogError()
             << "[gateway_ipc_binding] Failed to create SomeipdService skeleton for"
@@ -116,7 +116,7 @@ Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::crea
 
     // The handler can already be invoked from within StartFindService, on this very thread. The
     // consumer is fully constructed at this point, so that is safe.
-    auto find_handle = someip::Someipd_service_proxy::StartFindService(
+    auto find_handle = Someipd_service_proxy::StartFindService(
         [raw_consumer = consumer.get()](auto handles, auto) noexcept {
             raw_consumer->on_find_service(std::move(handles));
         },
@@ -141,7 +141,7 @@ Someipd_service_consumer::~Someipd_service_consumer() noexcept {
         std::swap(find_handle, m_find_handle);
     }
     if (find_handle.has_value()) {
-        auto const stopped = someip::Someipd_service_proxy::StopFindService(find_handle.value());
+        auto const stopped = Someipd_service_proxy::StopFindService(find_handle.value());
         if (!stopped.has_value()) {
             score::mw::log::LogError()
                 << "[gateway_ipc_binding] Failed to stop service discovery for SomeipdService:"
@@ -158,7 +158,7 @@ void Someipd_service_consumer::on_find_service(
     score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept {
     // Destroyed after the lock is released: the proxy destructor must not run while the mutex is
     // held, since it synchronises with mw::com internals that can call back into discovery.
-    std::optional<someip::Someipd_service_proxy> outdated_proxy{};
+    std::optional<Someipd_service_proxy> outdated_proxy{};
 
     {
         std::lock_guard const lock{m_mutex};
@@ -174,7 +174,7 @@ void Someipd_service_consumer::on_find_service(
 
         // maxSubscribers is 1 per instance, so there is exactly one peer daemon. Should the
         // deployment ever offer more, the first handle is as good as any.
-        auto proxy = someip::Someipd_service_proxy::Create(handles.front());
+        auto proxy = Someipd_service_proxy::Create(handles.front());
         if (!proxy.has_value()) {
             score::mw::log::LogError()
                 << "[gateway_ipc_binding] Failed to create SomeipdService proxy:" << proxy.error();
