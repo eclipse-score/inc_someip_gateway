@@ -105,4 +105,33 @@ score::result::Error MakeError(Gateway_ipc_binding_error code,
     return {static_cast<score::result::ErrorCode>(code), error_domain, user_message};
 }
 
+namespace {
+class Mw_com_binding_error_domain final : public score::result::ErrorDomain {
+   public:
+    std::string_view MessageFor(score::result::ErrorCode const& code) const noexcept override {
+        switch (static_cast<Mw_com_binding_error>(code)) {
+            case Mw_com_binding_error::logic_error_invalid_instance_specifier:
+                return "Not a valid mw::com InstanceSpecifier";
+            case Mw_com_binding_error::runtime_error_someipd_service_creation_failed:
+                return "Failed to create the SomeipdService skeleton";
+            case Mw_com_binding_error::runtime_error_someipd_service_offer_failed:
+                return "Failed to offer the SomeipdService instance";
+            case Mw_com_binding_error::runtime_error_someipd_service_find_failed:
+                return "Failed to start service discovery for the SomeipdService instance";
+            case Mw_com_binding_error::runtime_error_someipd_service_proxy_creation_failed:
+                return "Failed to create the SomeipdService proxy";
+            case Mw_com_binding_error::logic_error_already_started:
+                return "Server has already been started";
+            default:
+                return "Unknown error";
+        }
+    }
+};
+}  // namespace
+
+score::result::Error MakeError(Mw_com_binding_error code, std::string_view user_message) noexcept {
+    static constexpr Mw_com_binding_error_domain error_domain;
+    return {static_cast<score::result::ErrorCode>(code), error_domain, user_message};
+}
+
 }  // namespace score::gateway_ipc_binding

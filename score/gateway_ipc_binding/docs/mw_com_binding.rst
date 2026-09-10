@@ -33,6 +33,38 @@ The one thing ``mw::com`` does not give away for free is peer liveness, because 
 cannot distinguish "the peer is down" from "the peer is up but the service is not there". That is solved with
 a dedicated, typed ``SomeipdService``, see :ref:`someipd-service`.
 
+.. _mw-com-implementation-status:
+
+Implementation status
+---------------------
+
+The first step is implemented: peer liveness. ``create_server()`` provides ``SomeipdService``,
+``create_client()`` consumes it and reports it through ``is_connected()``.
+
++------------------------------------------------------+------------------------------------------+
+| Part                                                  | State                                    |
++======================================================+==========================================+
+| :ref:`someipd-service`, ``is_connected()``            | implemented                              |
++------------------------------------------------------+------------------------------------------+
+| ``Service_configs`` public API, ``sample_size()``     | implemented                              |
++------------------------------------------------------+------------------------------------------+
+| bridged services: skeletons, proxies, event flow      | not implemented; the configuration is    |
+|                                                       | accepted and logged, but has no effect   |
++------------------------------------------------------+------------------------------------------+
+
+Code map:
+
+- ``score/someip/someipd_service.hpp`` — the typed ``SomeipdService`` interface, in its own Bazel
+  target ``//score/someip:someipd_service`` so that ``//score/someip:someip`` stays free of an
+  ``mw::com`` dependency
+- ``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp`` — the public interface below
+- ``score/gateway_ipc_binding/impl/mw_com/`` — the implementation, built as
+  ``//score/gateway_ipc_binding:gateway_ipc_binding_mw_com``, a target separate from
+  ``//score/gateway_ipc_binding`` so that users of the ``message_passing`` implementation do not
+  pull in ``mw::com``
+- ``score/gateway_ipc_binding/test/mw_com/`` — component test running a real ``mw::com`` runtime
+  with both halves of ``SomeipdService`` in one process
+
 Goals and non-goals
 -------------------
 
@@ -247,6 +279,10 @@ Typed, not generic
 ``SomeipdService`` is the one service in this design that is **not** generic. Unlike a bridged SOME/IP service
 its content is known at compile time, it is defined by this repository rather than by a customer's SOME/IP
 deployment, and it is not a pass-through for opaque bytes.
+
+It declares no service elements at all. That an element-less typed instance works on a real runtime is
+no longer an assumption: ``score/gateway_ipc_binding/test/mw_com/`` offers such an instance and finds it,
+so no placeholder element is needed.
 
 .. _sample-layout:
 
@@ -628,8 +664,14 @@ Open points
   explicit field is the safer option, deriving it by convention from the service type name is the cheaper one.
 - Whether ``mw_com_config.json`` for the bridged instances should be generated from ``mw_someip_config`` at
   build time. Hand-maintaining sample sizes in two places will drift.
-- Whether an element-less typed instance works end to end on a real runtime. The API and the schema both allow
-  it, but it needs to be proven by the first integration test; see :ref:`someipd-service` for the fallback.
-- Where ``someipd_service.hpp`` should live. ``score/someip/`` is proposed because both daemons already depend
-  on it and ``gateway_ipc_binding`` should not own a ``someipd`` control API, but that puts an ``mw::com``
-  dependency into ``score/someip``.
+- Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch while the
+  bridged-service part of this implementation is still missing, see :ref:`mw-com-implementation-status`.
+
+Closed points:
+
+- *Whether an element-less typed instance works end to end on a real runtime.* It does, see
+  :ref:`someipd-service`.
+- *Where* ``someipd_service.hpp`` *should live.* ``score/someip/someipd_service.hpp``, in the separate
+  Bazel target ``//score/someip:someipd_service``. Both daemons already depend on ``score/someip`` and
+  ``gateway_ipc_binding`` should not own a ``someipd`` control API; the separate target keeps the
+  ``mw::com`` dependency out of ``//score/someip:someip``.

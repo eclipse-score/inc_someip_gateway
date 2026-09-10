@@ -1,0 +1,52 @@
+{
+  "serviceTypes": [
+    {
+      "serviceTypeName": "/score/someip/SomeipdService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6400
+        }
+      ]
+    }
+  ],
+  "serviceInstances": [
+    {
+      "instanceSpecifier": "someipd/daemon",
+      "serviceTypeName": "/score/someip/SomeipdService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM"
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "someipd/daemon_second_pair",
+      "serviceTypeName": "/score/someip/SomeipdService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 2,
+          "asil-level": "QM",
+          "binding": "SHM"
+        }
+      ]
+    }
+  ],
+  "global": {
+    "asil-level": "QM"
+  }
+}
