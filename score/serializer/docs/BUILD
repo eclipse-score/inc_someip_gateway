@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2025 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -11,19 +11,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
-cc_test(
-    name = "socom_test",
-    size = "small",
-    srcs = glob(include = ["*.cpp"]),
-    linkstatic = True,
-    tags = ["unit"],
-    visibility = ["//tests/integration_test:__pkg__"],
-    deps = [
-        "//score/socom:mock",
-        "//score/socom/test/framework:socom_test_framework",
-        "@googletest//:gtest",
-        "@googletest//:gtest_main",
-    ],
+# Docs bundle for this component. Kept in its own package so the parent
+# BUILD does not need to load @score_docs_as_code.
+docs_bundle(
+    name = "docs_bundle",
+    source_dir = "",
+    visibility = ["//visibility:public"],
 )

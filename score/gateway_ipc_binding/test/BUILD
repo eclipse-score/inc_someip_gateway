@@ -27,6 +27,7 @@ cc_test(
     },
     features = COMPILER_WARNING_FEATURES,
     linkstatic = True,
+    tags = ["component"],
     visibility = ["//tests/integration_test:__pkg__"],
     deps = [
         "//score/gateway_ipc_binding",
