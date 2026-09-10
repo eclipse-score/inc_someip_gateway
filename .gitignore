@@ -76,3 +76,6 @@ styles/
 
 # LLM files
 /.llm_tmp
+
+# Coverage data
+coverage_linux/

@@ -22,7 +22,7 @@ on:
 jobs:
   on-pr:
     name: Common PR checks
-    uses: eclipse-score/cicd-workflows/.github/workflows/on-pr.yml@on-pr/v0.0.0
+    uses: eclipse-score/cicd-workflows/.github/workflows/on-pr.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v.0.0.3
   build_and_test_host:
     secrets: inherit
     uses: ./.github/workflows/build_and_test_host.yml
@@ -32,9 +32,15 @@ jobs:
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'test-cross')
     secrets: inherit
     uses: ./.github/workflows/build_and_test_cross_compilation.yml
+  coverage:
+    secrets: inherit
+    uses: ./.github/workflows/coverage.yml
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
+  static-code-analysis:
+    secrets: inherit
+    uses: ./.github/workflows/static-code-analysis.yml
   # check if PR can be enqueued to the merge queue or merged to main
   # individual jobs are skipped in their respective workflow files depending on the event type,
   # so we can just check the outcomes of all jobs here without checking the event type again.
@@ -47,7 +53,9 @@ jobs:
       - on-pr
       - build_and_test_host
       - build_and_test_cross_compilation
+      - coverage
       - docs
+      - static-code-analysis
     permissions: {}
     runs-on: ubuntu-latest
     steps:

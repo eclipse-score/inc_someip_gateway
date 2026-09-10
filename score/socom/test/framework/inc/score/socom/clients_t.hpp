@@ -134,8 +134,7 @@ struct Client_data {
     ///
     /// \param method_id ID of the method for which a payload should be allocated.
     /// \return A writable payload in case of successful operation, otherwise an error.
-    score::Result<Writable_payload> allocate_method_call_payload(
-        Method_id method_id);
+    score::Result<Writable_payload> allocate_method_call_payload(Method_id method_id);
 
     /// \brief Call method method_id with payload
     ///
@@ -209,8 +208,7 @@ struct Client_data {
     /// \param[in] event_id event which is updated
     /// \param[in] payload the data of the send
     /// \return boolean reference which becomes true after the event has been received
-    std::atomic<bool> const& expect_event_update(Event_id const& event_id,
-                                                 Payload const& payload);
+    std::atomic<bool> const& expect_event_update(Event_id const& event_id, Payload const& payload);
 
     /// \brief Expect event updates
     ///

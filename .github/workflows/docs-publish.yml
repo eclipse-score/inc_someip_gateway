@@ -29,7 +29,7 @@ jobs:
         github.event.workflow_run.name == 'Cache maintenance' &&
         github.event.workflow_run.event == 'pull_request'
       )
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs-publish.yml@c2c7e6dbab32b902f08ca5efc8e4ad623e6d280c
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-publish.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v.0.0.3
     permissions:
       actions: read
       pages: write

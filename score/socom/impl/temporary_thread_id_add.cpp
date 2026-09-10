@@ -14,11 +14,10 @@
 #include "temporary_thread_id_add.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <cstdlib>
+#include <score/assert.hpp>
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 Temporary_thread_id_add::Temporary_thread_id_add(std::mutex& mutex,
                                                  std::vector<std::thread::id>& thread_ids)
@@ -30,7 +29,7 @@ Temporary_thread_id_add::Temporary_thread_id_add(std::mutex& mutex,
 Temporary_thread_id_add::~Temporary_thread_id_add() noexcept {
     std::lock_guard<std::mutex> const lock{m_mutex};
     auto const id = std::find(std::begin(m_thread_ids), std::end(m_thread_ids), m_id);
-    assert(std::end(m_thread_ids) != id);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(std::end(m_thread_ids) != id);
     m_thread_ids.erase(id);
 }
 
@@ -58,5 +57,4 @@ void Deadlock_detector::check_deadlock(
     }
 }
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom

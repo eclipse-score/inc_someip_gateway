@@ -17,6 +17,8 @@ cc_test(
     name = "socom_test",
     size = "small",
     srcs = glob(include = ["*.cpp"]),
+    linkstatic = True,
+    visibility = ["//tests/integration_test:__pkg__"],
     deps = [
         "//score/socom:mock",
         "//score/socom/test/framework:socom_test_framework",

@@ -26,6 +26,8 @@ cc_test(
         "TSAN_OPTIONS": "halt_on_error=1 suppressions=$(location tsan.supp)",
     },
     features = COMPILER_WARNING_FEATURES,
+    linkstatic = True,
+    visibility = ["//tests/integration_test:__pkg__"],
     deps = [
         "//score/gateway_ipc_binding",
         "//score/socom",

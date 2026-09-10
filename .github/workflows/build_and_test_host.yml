@@ -20,6 +20,20 @@ on:
 jobs:
   build_and_test_host:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - bazel_args: ""
+            targets: "//..."
+            name: "default"
+          - bazel_args: "--features=asan --features=lsan --features=ubsan_clang"
+            targets: "//score/... //tests/..."
+            name: "with ASAN, LSAN, UBSAN"
+          - bazel_args: "--features=tsan"
+            targets: "//score/... //tests/..."
+            name: "with TSAN"
+    name: Bazel test ${{ matrix.name }}
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
@@ -31,12 +45,11 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@8fe1bc8925f83e856b204932c9278a1fa874e604
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
         with:
           unique-cache-name: ${{ github.job }}
       - name: Allow linux-sandbox
-        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@8fe1bc8925f83e856b204932c9278a1fa874e604
-      - run: df -h
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
       - name: Bazel build targets
         run: |
           bazel build //...
@@ -47,11 +60,55 @@ jobs:
           bazel test --test_tag_filters=lint //...
       - name: Bazel test targets
         run: |
-          bazel test //... --build_tests_only
+          bazel test ${{ matrix.targets }} --build_tests_only \
+            ${{ matrix.bazel_args }}
+
+  build_and_int_qemu_test_host:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - bazel_args: ""
+            name: "default"
+          - bazel_args: "--features=asan --features=lsan --features=ubsan_clang"
+            name: "with ASAN, LSAN, UBSAN"
+          - bazel_args: "--features=tsan"
+            name: "with TSAN"
+    name: Integration tests ${{ matrix.name }}
+    steps:
+      - uses: eclipse-score/more-disk-space@v1
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Create Bazel output base directory
+        run: |
+          sudo mkdir -p /mnt/.bazel
+          sudo chown -R $USER:$USER /mnt/.bazel
+      - name: Create config indicator file
+        run: echo "host" > .bazel_config
+      - name: Setup Bazel
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+        with:
+          unique-cache-name: ${{ github.job }}
+      - name: Install tools needed for ITF tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
+      - name: Allow linux-sandbox
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+      - run: df -h
+      - name: Enable KVM group permissons
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Linux QEMU integration tests
+        run: |
+          bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
       - run: df -h
         if: always()
 
-  build_and_int_qemu_test_host:
+  build_and_perf_test_host:
     runs-on: ubuntu-24.04
     steps:
       - uses: eclipse-score/more-disk-space@v1
@@ -64,24 +121,19 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@8fe1bc8925f83e856b204932c9278a1fa874e604
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
         with:
           unique-cache-name: ${{ github.job }}
-      - name: Install tools needed for ITF tests
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
       - name: Allow linux-sandbox
-        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@8fe1bc8925f83e856b204932c9278a1fa874e604
-      - run: df -h
-      - name: Enable KVM group permissons
+        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+      - name: Allow perf
+        run: sudo sh -c 'echo -1 > /proc/sys/kernel/perf_event_paranoid'
+      - name: Run Linux perf tests
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - name: Run Linux QEMU integration tests
+          bazel test --config=perf-tests //tests/benchmarks/... --build_tests_only
+      - name: Run Linux perf tests (flamegraphs)
         run: |
-          bazel test --config=qemu-integration //quality/... //tests/integration_test/...
+          bazel test --config=perf-tests-flamegraphs //tests/benchmarks/... --build_tests_only
       - name: Run TC8 ITF SOME/IP Conformance Tests
         run: |
           bazel test --config=tc8-itf --test_output=all //tests/tc8_conformance/...

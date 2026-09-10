@@ -13,24 +13,23 @@
 
 #include "score/socom/method.hpp"
 
-#include <cassert>
+#include <score/assert.hpp>
 
 #include "temporary_thread_id_add.hpp"
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 Method_call_reply_data::Method_call_reply_data(Method_reply_callback reply_callback,
                                                std::optional<Writable_payload> reply_payload)
     : reply_callback(std::move(reply_callback)), reply_payload(std::move(reply_payload)) {
-    assert(!this->reply_callback.empty());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(!this->reply_callback.empty());
 }
 
 void Method_call_reply_data::reply(Method_result const& method_reply) const {
     auto const stop_block_token = weak_stop_block_token.lock();
     if (stop_block_token) {
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
-        assert(deadlock_detector);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(deadlock_detector);
         Temporary_thread_id_add const tmptia{deadlock_detector->enter_callback()};
 #endif
         reply_callback(method_reply);
@@ -49,5 +48,4 @@ void Method_call_reply_data::set_block_token(Weak_reference_token weak_stop_bloc
 #endif
 }
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom

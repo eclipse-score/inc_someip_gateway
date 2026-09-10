@@ -1,0 +1,43 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# based on https://github.com/eclipse-score/score_cpp_policies/blob/main/clang_tidy/clang_tidy.bazelrc
+
+# ============================================================================
+# Clang-Tidy configuration
+# Use with: bazel test --config=clang-tidy //score/...
+# ============================================================================
+test:clang-tidy --aspects=//tools/lint:linters.bzl%clang_tidy
+test:clang-tidy --output_groups=+rules_lint_report,+rules_lint_human,+rules_lint_machine
+test:clang-tidy --extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux
+test:clang-tidy --@aspect_rules_lint//lint:fail_on_violation=true
+test:clang-tidy --keep_going
+
+# clang-tidy-fix: same as clang-tidy but also emits patch files for auto-fixable violations
+test:clang-tidy-fix --config=clang-tidy
+test:clang-tidy-fix --output_groups=+rules_lint_patch
+test:clang-tidy-fix --@aspect_rules_lint//lint:fix
+
+
+# Ruff configuration
+# Run ruff on all Python targets with: bazel test --config=ruff //...
+# build:ruff --config=_lint
+build:ruff --aspects=//tools/lint:linters.bzl%ruff
+# Ruff autofix configuration
+# Inherits all ruff flags above and additionally enables fix mode so that
+# aspect_rules_lint runs `ruff check --fix` in a sandbox and collects the
+# edits as a unified-diff patch. Use `bazel run //:ruff.fix` to apply those
+# patches back to the workspace.
+build:ruff-fix --config=ruff
+build:ruff-fix --@aspect_rules_lint//lint:fix
+build:ruff-fix --output_groups=+rules_lint_patch

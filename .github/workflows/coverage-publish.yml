@@ -1,0 +1,102 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Waits for the `Coverage` workflow of a pull request and posts a comment with a
+# link to the archived coverage data.
+
+name: Publish Coverage Report
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+  coverage-comment:
+    name: Comment coverage report link on the pull request
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # list the artifacts of the triggering workflow run
+      pull-requests: write # comment on the pull request
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+    steps:
+      - name: Resolve pull request number
+        id: metadata
+        env:
+          HEAD_REPO_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
+          REF_NAME: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$PR_NUMBER" == "null" ]]; then
+            PR_NUMBER=""
+          fi
+
+          # fork-origin workflow_run payloads do not include pull_requests[]
+          if [[ -z "$PR_NUMBER" && -n "$HEAD_REPO_OWNER" && -n "$REF_NAME" ]]; then
+            PR_NUMBER="$(gh api \
+              "repos/${REPO}/pulls?state=all&head=${HEAD_REPO_OWNER}:${REF_NAME}" \
+              --jq '.[0].number // empty' || true)"
+          fi
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "Could not determine PR number for pull_request event." >&2
+            exit 1
+          fi
+
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve coverage artifact link
+        id: artifact
+        run: |
+          set -euo pipefail
+
+          ARTIFACT_ID="$(gh api "repos/${REPO}/actions/runs/${RUN_ID}/artifacts" \
+            --paginate --jq '.artifacts[] | select(.name == "coverage-report") | .id' \
+            | head -n1)"
+
+          if [[ -n "$ARTIFACT_ID" ]]; then
+            LINK="[coverage-report](${GITHUB_SERVER_URL}/${REPO}/actions/runs/${RUN_ID}/artifacts/${ARTIFACT_ID})"
+          else
+            LINK="no artifact was produced"
+          fi
+
+          echo "link=$LINK" >> "$GITHUB_OUTPUT"
+
+      - name: Find existing PR comment
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
+        id: fc
+        with:
+          issue-number: ${{ steps.metadata.outputs.pr_number }}
+          comment-author: "github-actions[bot]"
+          body-includes: Coverage report for this pull request
+
+      - name: Comment on PR with coverage report link
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          issue-number: ${{ steps.metadata.outputs.pr_number }}
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            Coverage report for this pull request:
+
+            Status: **${{ github.event.workflow_run.conclusion }}** ([workflow run](${{ github.event.workflow_run.html_url }}))
+            Coverage data: ${{ steps.artifact.outputs.link }}
+
+            The archive contains the HTML report, the raw LCOV data and the JUnit XML test results.

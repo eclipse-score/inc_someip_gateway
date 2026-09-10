@@ -23,10 +23,6 @@ namespace score {
 namespace socom {
 namespace message {
 
-struct Request_disconnect {
-    using Return_type = void;
-};
-
 struct Service_state_change {
     using Return_type = void;
     Service_state const state;
@@ -57,18 +53,18 @@ struct Posix_credentials {
 };
 
 struct Subscribe_event {
-    using Return_type = score::Result<Blank>;
+    using Return_type = score::Result<void>;
     Event_id const id;
     Event_mode const mode;
 };
 
 struct Unsubscribe_event {
-    using Return_type = score::Result<Blank>;
+    using Return_type = score::Result<void>;
     Event_id const id;
 };
 
 struct Request_event_update {
-    using Return_type = score::Result<Blank>;
+    using Return_type = score::Result<void>;
     Event_id const id;
 };
 

@@ -27,7 +27,7 @@ A software element's directory looks like:
 <software element>/
 ├── BUILD
 ├── docs/
-├── include/
-└── src/
-    └── tests/
+├── mock/
+├── impl/
+└── tests/
 ```

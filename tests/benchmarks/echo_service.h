@@ -13,10 +13,11 @@
 #ifndef TESTS_BENCHMARKS_ECHO_SERVICE
 #define TESTS_BENCHMARKS_ECHO_SERVICE
 
-#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
+#include <score/assert.hpp>
+#include <vector>
 
 #include "score/mw/com/types.h"
 #include "score/serializer/pre_serialized_data.h"
@@ -221,8 +222,9 @@ inline std::uint64_t GetSequenceId(const EchoMessagePreSerialized<PayloadBytes>&
 template <PayloadSize PayloadBytes>
 inline void CopyMessageForEcho(EchoMessagePreSerialized<PayloadBytes>& response,
                                const EchoMessagePreSerialized<PayloadBytes>& request) {
-    assert(request.size <= response.kMaxMessageSize &&
-           "Request size exceeds maximum message size for pre-serialized data");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(
+        request.size <= response.kMaxMessageSize &&
+        "Request size exceeds maximum message size for pre-serialized data");
     response.size = request.size;
     std::memcpy(response.data, request.data, request.size);
 }
@@ -233,6 +235,16 @@ inline void FillTestPayload(MessageType& message, std::uint64_t pattern = 0xDEAD
     message.payload_size = utils::GetEnumFromSize(size);
     message.actual_size = static_cast<std::uint32_t>(size);
     FillTestPayload(message.payload, static_cast<std::uint32_t>(size), pattern);
+}
+
+inline auto create_command_line_arguments(int const argc, char const* const* const argv) {
+    std::vector<score::safecpp::zstring_view> command_line_arguments{};
+    command_line_arguments.reserve(static_cast<std::size_t>(argc));
+    for (std::int32_t arg_idx = 0U; arg_idx < argc; arg_idx++) {
+        auto argument = std::string_view{argv[arg_idx]};
+        command_line_arguments.emplace_back(argument.data(), argument.size());
+    }
+    return command_line_arguments;
 }
 
 }  // namespace utils

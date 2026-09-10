@@ -19,10 +19,12 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <string>
 
-#include "local_network_service.h"
-#include "remote_network_service.h"
-#include "routing.h"
+#include "impl/local_network_service.h"
+#include "impl/remote_network_service.h"
+#include "impl/routing.h"
+#include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/message_passing/server_factory.h"
@@ -30,7 +32,6 @@
 #include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
-#include "score/config/mw_someip_config_generated.h"
 
 using namespace score;
 using namespace score::someipd;
@@ -38,20 +39,22 @@ using namespace score::someipd;
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
 
-void termination_handler(int /*signal*/) {
+static void termination_handler(int /*signal*/) {
     score::mw::log::LogWarn() << "Received termination signal. Initiating graceful shutdown...";
     shutdown_requested.store(true);
 }
 
 // Help text, showing usage syntax and available options
-void print_help() {
+static void print_help() {
     std::cout << "Syntax: someipd -h/--help\n"
-              << "        someipd -c/--configuration <config.bin>\n"
+              << "        someipd -c/--configuration <config.bin> [-i/--ipc_channel <name>]\n"
               << "\n";
 
     std::cout << "Options:\n"
               << " -h/--help Displays this help\n"
               << " -c/--configuration Specifies the configuration file\n"
+              << " -i/--ipc_channel Name of the IPC channel to gatewayd (default: "
+              << score::someip::kDefaultIpcChannelName << ")\n"
               << "\n";
 }
 
@@ -60,12 +63,14 @@ int main(int argc, char* argv[]) {
     std::signal(SIGTERM, termination_handler);
     std::signal(SIGINT, termination_handler);
 
-    const char* const short_opts = "hc:";
+    const char* const short_opts = "hc:i:";
     const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
                                 {"configuration", required_argument, nullptr, 'c'},
+                                {"ipc_channel", required_argument, nullptr, 'i'},
                                 {nullptr, no_argument, nullptr, 0}};
 
     score::filesystem::Path configuration_path{};
+    std::string ipc_channel_name{score::someip::kDefaultIpcChannelName};
 
     while (true) {
         const int opt{getopt_long(argc, argv, short_opts, long_opts, nullptr)};
@@ -80,6 +85,10 @@ int main(int argc, char* argv[]) {
             }
             case 'c': {
                 configuration_path = score::filesystem::Path{optarg};
+                break;
+            }
+            case 'i': {
+                ipc_channel_name = optarg;
                 break;
             }
             // Unknown option
@@ -127,9 +136,9 @@ int main(int argc, char* argv[]) {
     auto socom_runtime = socom::create_runtime();
 
     // Create the IPC server — socket name and message sizes must match gatewayd's client config
-    message_passing::ServiceProtocolConfig const proto{
-        "someipd_gatewayd_ipc", someip::kMaxIpcMessageSize, someip::kMaxIpcMessageSize,
-        someip::kMaxIpcMessageSize};
+    message_passing::ServiceProtocolConfig const proto{ipc_channel_name, someip::kMaxIpcMessageSize,
+                                                       someip::kMaxIpcMessageSize,
+                                                       someip::kMaxIpcMessageSize};
 
     auto ipc_server = message_passing::ServerFactory{}.Create(proto, {10, 1, 10});
 
@@ -156,17 +165,16 @@ int main(int argc, char* argv[]) {
     // Create local network services — one client_connector per local service instance,
     // receiving events from gatewayd's server_connectors and forwarding to vsomeip notify().
     std::vector<std::unique_ptr<LocalNetworkService>> local_network_services;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->local_service_instances();
-        if (!service_instances) {
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->local_service_instances();
+        if (service_instances == nullptr) {
             continue;
         }
         for (auto const& service_instance_config : *service_instances) {
             score::mw::log::LogInfo()
                 << "[someipd] Creating LocalNetworkService: "
-                << service_type_config->service_type_name()->string_view()
-                << " service_id=0x" << score::mw::log::LogHex16{service_type_config->service_id()}
-                << " instance_id=0x"
+                << service_type_config->service_type_name()->string_view() << " service_id=0x"
+                << score::mw::log::LogHex16{service_type_config->service_id()} << " instance_id=0x"
                 << score::mw::log::LogHex16{service_instance_config->instance_id()};
             auto create_result = LocalNetworkService::Create(
                 std::shared_ptr<const score::mw_someip_config::ServiceInstance>(
@@ -188,17 +196,16 @@ int main(int argc, char* argv[]) {
     // receiving SOME/IP events via vsomeip and pushing to gatewayd's client_connectors.
     // setup_vsomeip() is deferred until vsomeip reaches ST_REGISTERED (via on_registered below).
     std::vector<std::unique_ptr<RemoteNetworkService>> remote_network_services;
-    for (auto service_type_config : *config->service_types()) {
-        auto service_instances = service_type_config->remote_service_instances();
-        if (!service_instances) {
+    for (const auto* service_type_config : *config->service_types()) {
+        const auto* service_instances = service_type_config->remote_service_instances();
+        if (service_instances == nullptr) {
             continue;
         }
         for (auto const& service_instance_config : *service_instances) {
             score::mw::log::LogInfo()
                 << "[someipd] Creating RemoteNetworkService: "
-                << service_type_config->service_type_name()->string_view()
-                << " service_id=0x" << score::mw::log::LogHex16{service_type_config->service_id()}
-                << " instance_id=0x"
+                << service_type_config->service_type_name()->string_view() << " service_id=0x"
+                << score::mw::log::LogHex16{service_type_config->service_id()} << " instance_id=0x"
                 << score::mw::log::LogHex16{service_instance_config->instance_id()};
             auto create_result = RemoteNetworkService::Create(
                 std::shared_ptr<const score::mw_someip_config::ServiceInstance>(

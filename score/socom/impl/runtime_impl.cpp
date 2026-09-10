@@ -16,9 +16,9 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <cassert>
 #include <iterator>
 #include <memory>
+#include <score/assert.hpp>
 #include <tuple>
 
 #include "client_connector_impl.hpp"
@@ -30,8 +30,7 @@
 #include "score/socom/service_interface_identifier.hpp"
 #include "server_connector_impl.hpp"
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 namespace {
 
@@ -168,7 +167,7 @@ void register_bridge(Bridge_registration_id const& bridge_id,
     using Key_t = typename Abr::key_type;
     using Value_t =
         typename std::tuple_element<0, typename Abr::mapped_type>::type::element_type::mapped_type;
-    assert(bridge_lock.owns_lock());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(bridge_lock.owns_lock());
 
     /// THE algorithm:
     // copy bridge_requests
@@ -223,7 +222,7 @@ void register_bridge(Bridge_registration_id const& bridge_id,
     }
 
     // leave function locked
-    assert(bridge_lock.owns_lock());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(bridge_lock.owns_lock());
 }
 
 bool is_forward_subscription(
@@ -256,7 +255,7 @@ std::shared_ptr<ReturnValue> get_bridge_requests(
     Active_bridge_requests<Instance1, Handle>& active_requests,
     Runtime_impl::Bridge_registration_to_callbacks const& bridge_to_callback,
     CreateValue const& create_value) {
-    assert(bridge_lock.owns_lock());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(bridge_lock.owns_lock());
     auto const key = std::make_tuple(configuration, instance);
     auto const find_services = active_requests.find(key);
     std::shared_ptr<ReturnValue> result = (std::end(active_requests) == find_services)
@@ -271,6 +270,8 @@ std::shared_ptr<ReturnValue> get_bridge_requests(
 
     auto& subscriber_identity_record = std::get<1>(active_requests[key]);
 
+    // Copy is needed to keep objects alive
+    // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
     auto const bridge_to_callback_copy = bridge_to_callback;
     ReturnValue tmp_result;
 
@@ -365,7 +366,7 @@ Service_record::Service_record(std::mutex& runtime_mutex) : m_runtime_mutex{runt
 Service_record::Server_registration Service_record::register_server_connector(
     Service_interface_identifier const& interface, SC_impl::Listen_endpoint connector) {
     // Duplicate server connectors are not allowed.
-    assert(!m_server);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(!m_server);
 
     m_server.emplace(Interfaced_server{interface, std::move(connector)});
     auto final_action = [this]() {
@@ -400,8 +401,8 @@ Result<Service_record::Client_registration> Service_record::register_client_conn
 Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
     Service_interface_definition configuration, Service_instance instance,
     Client_connector::Callbacks callbacks) noexcept {
-    return make_client_connector(std::move(configuration), std::move(instance),
-                                 std::move(callbacks), Posix_credentials{::getuid(), ::getgid()});
+    return make_client_connector(std::move(configuration), instance, std::move(callbacks),
+                                 Posix_credentials{::getuid(), ::getgid()});
 }
 
 Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
@@ -413,7 +414,7 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
 
     // check if one is already registered for this service interface and instance and return error
     // if yes
-    auto client_connector = std::make_unique<CC_impl>(std::move(configuration), std::move(instance),
+    auto client_connector = std::make_unique<CC_impl>(std::move(configuration), instance,
                                                       std::move(callbacks), credentials);
 
     auto registration = register_connector(client_connector->get_configuration(),
@@ -432,8 +433,8 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
     Server_service_interface_definition configuration, Service_instance instance,
     Disabled_server_connector::Callbacks callbacks) noexcept {
-    return make_server_connector(std::move(configuration), std::move(instance),
-                                 std::move(callbacks), Posix_credentials{::getuid(), ::getgid()});
+    return make_server_connector(std::move(configuration), instance, std::move(callbacks),
+                                 Posix_credentials{::getuid(), ::getgid()});
 }
 
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
@@ -461,7 +462,7 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
             }
         }};
 
-    return {std::make_unique<SC_impl>(*this, std::move(configuration), std::move(instance),
+    return {std::make_unique<SC_impl>(*this, std::move(configuration), instance,
                                       std::move(callbacks), std::move(final_action), credentials)};
 }
 
@@ -504,8 +505,8 @@ Result<Registration> Runtime_impl::register_connector(
     if (result->current_server) {
         if (is_minor_version_compatible(result->current_server->interface,
                                         configuration.interface)) {
-            assert(is_interface_compatible(result->current_server->interface,
-                                           configuration.interface));
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(is_interface_compatible(
+                result->current_server->interface, configuration.interface));
             on_server_update(result->current_server->endpoint);
         } else {
             score::mw::log::LogError()
@@ -532,7 +533,7 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
 
     auto const connect_client = [&endpoint, &interface, &instance](auto const& client) {
         if (is_minor_version_compatible(interface, client.interface)) {
-            assert(is_interface_compatible(interface, client.interface));
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(is_interface_compatible(interface, client.interface));
             client.indication(endpoint);
         } else {
             score::mw::log::LogError()
@@ -610,5 +611,4 @@ Interfaces_instances Runtime_impl::get_bridge_reported_instances(
     return {{interface, result}};
 }
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom

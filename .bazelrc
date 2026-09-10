@@ -11,6 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+# In order to overcome stability issues in GitHub
+common --experimental_repository_downloader_retries=10
+common --experimental_scale_timeouts=2.0
+common --http_connector_attempts=10
+common --http_connector_retry_max_timeout=1s
+common --http_timeout_scaling=2.0
+
 # Java Language Configuration
 build --java_language_version=17
 build --tool_java_language_version=17
@@ -77,6 +84,26 @@ test:aarch64-qnx --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
 test:aarch64-qnx --run_under=@score_itf//scripts:run_under_qemu
 
 
+# ============================================================================
+# End-to-End Performance Test Configuration
+# ============================================================================
+# The performance test wrapper creates its own isolated network namespace and configures it
+# before the test starts.
+# Usage: bazel test --config=perf-tests //tests/benchmarks:e2e_benchmarks
+test:perf-tests --run_under=//tests/benchmarks:setup_network
+test:perf-tests --define=perf_tests=true
+test:perf-tests --compilation_mode=opt
+
+# Adds debug info and keeps frame pointers on top of an optimized build for profiling.
+# Records gateway daemon CPU samples and writes flamegraphs to the benchmark test outputs.
+# Requires perf; FlameGraph scripts are downloaded by Bazel.
+# Usage: bazel test --config=perf-tests-flamegraphs //tests/benchmarks:e2e_benchmarks
+test:perf-tests-flamegraphs --config=perf-tests
+test:perf-tests-flamegraphs --copt=-fno-omit-frame-pointer
+test:perf-tests-flamegraphs --copt=-g
+test:perf-tests-flamegraphs --strip=never
+test:perf-tests-flamegraphs --define=flamegraphs=true
+
 test --test_output=errors
 build --incompatible_strict_action_env
 
@@ -91,7 +118,6 @@ common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration
 common --@score_baselibs//score/json:base_library=nlohmann
-common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 
 # unshare /dev/shm and /tmp, gateway_ipc_binding tests create files in there and concurrent test runs would influence each other
@@ -116,7 +142,14 @@ common:tc8-itf-qnx --@rules_python//python/config_settings:precompile=force_disa
 test:tc8-itf-qnx --test_tag_filters=tc8
 test:tc8-itf-qnx --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
 
+# Coverage settings
+import %workspace%/coverage.bazelrc
+
+# Clang-tidy and Ruff settings
+import %workspace%/static_analysis.bazelrc
+
 # Import custom user settings
 # Can be used to enable e.g. sanitizers or other features without modifying the main .bazelrc
-# For definition of sanitizer features see https://github.com/eclipse-score/bazel_cpp_toolchains/blob/main/templates/linux/cc_toolchain_config.bzl.template
+# For sanitizer/clang-tidy policy assets and sanitizer feature definitions see
+# https://github.com/eclipse-score/score_cpp_policies/
 try-import %workspace%/user.bazelrc

@@ -62,9 +62,7 @@ class QemuConfig:
         "port_forwarding",
     )
 
-    def __init__(
-        self, networks, ssh_port, qemu_num_cores, qemu_ram_size, port_forwarding
-    ):
+    def __init__(self, networks, ssh_port, qemu_num_cores, qemu_ram_size, port_forwarding):
         self.networks = networks
         self.ssh_port = ssh_port
         self.qemu_num_cores = qemu_num_cores
@@ -92,9 +90,7 @@ def load_configuration(config_file: str) -> QemuConfig:
     # Networks
     raw_networks = data.get("networks", [])
     if not raw_networks:
-        raise ValueError(
-            f"Invalid config '{config_file}': at least one network required"
-        )
+        raise ValueError(f"Invalid config '{config_file}': at least one network required")
     networks = [Network(**n) for n in raw_networks]
 
     # SSH port
@@ -110,9 +106,7 @@ def load_configuration(config_file: str) -> QemuConfig:
     # RAM
     qemu_ram_size = data.get("qemu_ram_size", "")
     if not _RAM_SIZE_PATTERN.match(qemu_ram_size):
-        raise ValueError(
-            f"Invalid config '{config_file}': qemu_ram_size must match [0-9]+[KMGTP]"
-        )
+        raise ValueError(f"Invalid config '{config_file}': qemu_ram_size must match [0-9]+[KMGTP]")
 
     # Port forwarding
     port_forwarding = [PortForwarding(**pf) for pf in data.get("port_forwarding", [])]

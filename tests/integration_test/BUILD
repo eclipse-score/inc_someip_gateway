@@ -51,7 +51,6 @@ pkg_files(
         "//score/gatewayd:etc/mw_com_config.json",
         "//score/serializer:null_serializer",
         "//score/someipd",
-        "//tests/integration/sample_client",
     ],
     attributes = pkg_attributes(
         mode = "0777",
@@ -61,6 +60,33 @@ pkg_files(
         "//score/config:config_file": "mw_someip_config.bin",
         "//score/gatewayd:etc/mw_com_config.json": "gatewayd_mw_com_config.json",
     },
+)
+
+pkg_files(
+    name = "score-test-applications-pkg",
+    testonly = True,
+    srcs = [
+        "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
+        "//score/serializer:null_serializer_test",
+        "//score/socom/test/stress:socom_stress_test",
+        "//score/socom/test/unit:socom_test",
+    ],
+    attributes = pkg_attributes(
+        mode = "0777",
+    ),
+    prefix = "/",
+)
+
+integration_test(
+    name = "test_score_test_applications",
+    timeout = "long",
+    srcs = [
+        "score_test_applications.py",
+    ],
+    filesystem = ":score-test-applications-pkg",
+    deps = [
+        "@score_someip_gateway_pip//pytest",
+    ],
 )
 
 integration_test(

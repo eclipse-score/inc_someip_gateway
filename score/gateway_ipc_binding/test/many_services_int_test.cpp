@@ -16,11 +16,11 @@
 
 #include <cstddef>
 #include <future>
-#include <score/gateway_ipc_binding/gateway_ipc_binding.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_client.hpp>
-#include <score/gateway_ipc_binding/gateway_ipc_binding_server.hpp>
 #include <string>
 
+#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/client_connector_mock.hpp"

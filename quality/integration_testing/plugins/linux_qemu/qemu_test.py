@@ -61,15 +61,11 @@ class DiskBootQemuTest(unittest.TestCase):
         self.assertNotIn("file=/tmp/seed.iso,format=raw,if=virtio,readonly=on", cmd)
 
     def test_build_command_normalizes_relative_seed_iso_to_absolute(self):
-        qemu = self._new_qemu(
-            seed_iso="quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
-        )
+        qemu = self._new_qemu(seed_iso="quality/integration_testing/environments/ubuntu24_04_qemu/seed.img")
 
         cmd = qemu._build_command()
 
-        expected = os.path.abspath(
-            "quality/integration_testing/environments/ubuntu24_04_qemu/seed.img"
-        )
+        expected = os.path.abspath("quality/integration_testing/environments/ubuntu24_04_qemu/seed.img")
         self.assertIn(f"file={expected},format=raw,if=virtio,readonly=on", cmd)
 
     def test_build_command_uses_valid_tcg_acceleration_args(self):

@@ -13,7 +13,7 @@
 
 #include "score/socom/service_interface_definition.hpp"
 
-#include <cassert>
+#include <score/assert.hpp>
 
 namespace score::socom {
 
@@ -29,7 +29,8 @@ Service_interface_definition::Service_interface_definition(Service_interface_ide
 
 bool operator==(Service_interface_definition const& lhs, Service_interface_definition const& rhs) {
     auto const is_equal = !(lhs < rhs) && !(rhs < lhs);
-    assert(!is_equal || (lhs.num_events == rhs.num_events && lhs.num_methods == rhs.num_methods));
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(
+        !is_equal || (lhs.num_events == rhs.num_events && lhs.num_methods == rhs.num_methods));
     return is_equal;
 }
 

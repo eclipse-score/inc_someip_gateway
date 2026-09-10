@@ -125,7 +125,7 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndServerConnectorRespondsWithUpdateE
             auto const expected_mode = score::Result<Event_mode>{Event_mode::update};
             EXPECT_EQ(expected_mode, event_mode);
 
-            connector.update_event(eid, clone_payload(real_payload));
+            EXPECT_TRUE(connector.update_event(eid, clone_payload(real_payload)));
         });
 
     auto const& expect_event_update = client.expect_event_update(event_id, real_payload);
