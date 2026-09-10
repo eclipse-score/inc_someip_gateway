@@ -174,113 +174,159 @@ void Consumer_service_binding::on_find_service(
 }
 
 void Consumer_service_binding::attach_to_peer(score::mw::com::HandleType handle) noexcept {
-    auto proxy = score::mw::com::GenericProxy::Create(std::move(handle));
-    if (!proxy.has_value()) {
+    // Outside the locks on purpose: Create() starts the proxy's auto-reconnect discovery and
+    // therefore takes the mw::com discovery lock, see the lock order note in the header.
+    auto created = score::mw::com::GenericProxy::Create(std::move(handle));
+    if (!created.has_value()) {
         score::mw::log::LogError() << kLog_tag << "Failed to create the GenericProxy for"
-                                   << m_instance_specifier << ":" << proxy.error();
+                                   << m_instance_specifier << ":" << created.error();
         return;
     }
 
-    std::lock_guard const lifecycle_lock{m_lifecycle_mutex};
+    // A proxy that turns out to be unusable is carried out of the locked region in here, because
+    // destroying it takes the mw::com discovery lock as well.
+    std::optional<score::mw::com::GenericProxy> rejected{};
+    bool enabled{false};
     {
-        std::lock_guard const lock{m_mutex};
+        std::lock_guard const lifecycle_lock{m_lifecycle_mutex};
 
-        m_proxy.emplace(std::move(proxy).value());
+        score::socom::Disabled_server_connector::Uptr disabled{};
+        {
+            std::lock_guard const subscription_lock{m_subscription_mutex};
+            std::lock_guard const lock{m_mutex};
 
-        // Not const: the const find() overload would only hand out a const event.
-        auto proxy_events = m_proxy->GetEvents();
-        for (auto& event : m_events) {
-            auto const entry = proxy_events.find(event.name);
-            if (entry == proxy_events.cend()) {
-                score::mw::log::LogError()
-                    << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
-                    << "is missing from the GenericProxy, the service stays unavailable";
-                m_proxy.reset();
-                return;
+            m_proxy.emplace(std::move(created).value());
+
+            if (bind_proxy_events()) {
+                disabled = std::move(m_disabled_connector);
+            } else {
+                std::swap(rejected, m_proxy);
             }
-
-            // The peer laid the samples out for its own configuration. If the two deployments
-            // disagree, the payload would be read at the wrong offset.
-            auto const peer_sample_size = entry->second.GetSampleSize();
-            auto const expected = kSample_prefix_size + event.header_size + event.max_payload_size;
-            if (peer_sample_size < expected) {
-                score::mw::log::LogError()
-                    << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
-                    << "has peer sample size" << peer_sample_size << "but at least" << expected
-                    << "was configured, the service stays unavailable";
-                m_proxy.reset();
-                return;
-            }
-
-            event.proxy_event = &entry->second;
         }
 
-        if (m_disabled_connector == nullptr) {
-            return;
+        if (disabled != nullptr) {
+            // Only under m_lifecycle_mutex: enable() makes local applications connect and
+            // subscribe, so it takes SOCom locks that SOCom also holds while it calls
+            // on_event_subscription_change() from other threads. Holding a mutex that callback
+            // needs across enable() would invert the lock order.
+            //
+            // Those callbacks therefore run to completion here. They only record the local
+            // demand, because m_enabled_connector is not in place yet, and the reconcile loop
+            // below acts on it.
+            auto enabled_connector =
+                score::socom::Disabled_server_connector::enable(std::move(disabled));
+
+            std::lock_guard const subscription_lock{m_subscription_mutex};
+            {
+                std::lock_guard const lock{m_mutex};
+                m_enabled_connector = std::move(enabled_connector);
+            }
+            for (std::size_t index = 0U; index < m_events.size(); ++index) {
+                reconcile_subscription(static_cast<score::socom::Event_id>(index));
+            }
+            enabled = true;
         }
-        // Held across enable() so that a receive handler cannot observe a subscribed event before
-        // m_enabled_connector is in place. enable() makes local applications connect and
-        // subscribe, which re-enters this object's callbacks on this very thread, hence the
-        // recursive mutexes. Unlike disable(), enable() does not wait for callbacks on other
-        // threads, so holding the locks across it cannot deadlock.
-        m_enabled_connector =
-            score::socom::Disabled_server_connector::enable(std::move(m_disabled_connector));
     }
 
-    // The subscription callbacks that ran inside enable() only recorded the demand, because the
-    // connector was not enabled yet. Act on it now.
-    for (std::size_t index = 0U; index < m_events.size(); ++index) {
-        reconcile_subscription(static_cast<score::socom::Event_id>(index));
-    }
+    // Not under any binding lock, see detach_from_peer().
+    rejected.reset();
 
-    score::mw::log::LogInfo() << kLog_tag << "Bridged service" << m_instance_specifier
-                              << "is available";
+    if (enabled) {
+        score::mw::log::LogInfo() << kLog_tag << "Bridged service" << m_instance_specifier
+                                  << "is available";
+    }
+}
+
+bool Consumer_service_binding::bind_proxy_events() noexcept {
+    // Not const: the const find() overload would only hand out a const event.
+    auto proxy_events = m_proxy->GetEvents();
+    for (auto& event : m_events) {
+        auto const entry = proxy_events.find(event.name);
+        if (entry == proxy_events.cend()) {
+            score::mw::log::LogError()
+                << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
+                << "is missing from the GenericProxy, the service stays unavailable";
+            clear_proxy_events();
+            return false;
+        }
+
+        // The peer laid the samples out for its own configuration. If the two deployments
+        // disagree, the payload would be read at the wrong offset.
+        auto const peer_sample_size = entry->second.GetSampleSize();
+        auto const expected = kSample_prefix_size + event.header_size + event.max_payload_size;
+        if (peer_sample_size < expected) {
+            score::mw::log::LogError()
+                << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
+                << "has peer sample size" << peer_sample_size << "but at least" << expected
+                << "was configured, the service stays unavailable";
+            clear_proxy_events();
+            return false;
+        }
+
+        event.proxy_event = &entry->second;
+    }
+    return true;
+}
+
+void Consumer_service_binding::clear_proxy_events() noexcept {
+    for (auto& event : m_events) {
+        event.proxy_event = nullptr;
+    }
 }
 
 void Consumer_service_binding::detach_from_peer() noexcept {
-    // Disabling blocks until running SOCom callbacks have finished, and those callbacks take
-    // m_lifecycle_mutex. It must therefore run before this thread acquires that lock.
-    score::socom::Enabled_server_connector::Uptr enabled{};
-    {
-        std::lock_guard const lock{m_mutex};
-        enabled = std::move(m_enabled_connector);
-    }
-    if (enabled != nullptr) {
-        auto disabled = score::socom::Enabled_server_connector::disable(std::move(enabled));
-        std::lock_guard const lock{m_mutex};
-        m_disabled_connector = std::move(disabled);
-    }
-
-    std::lock_guard const lifecycle_lock{m_lifecycle_mutex};
-
     std::optional<score::mw::com::GenericProxy> proxy{};
-    std::vector<score::mw::com::GenericProxyEvent*> subscribed{};
     {
-        std::lock_guard const lock{m_mutex};
-        std::swap(proxy, m_proxy);
-        for (auto& event : m_events) {
-            if (event.subscribed && (event.proxy_event != nullptr)) {
-                subscribed.push_back(event.proxy_event);
+        std::lock_guard const lifecycle_lock{m_lifecycle_mutex};
+
+        // Disabling blocks until running SOCom callbacks have finished, and those callbacks take
+        // m_subscription_mutex and m_mutex. It must therefore run before this thread acquires
+        // either of them, and only under m_lifecycle_mutex, which no callback takes.
+        score::socom::Enabled_server_connector::Uptr enabled{};
+        {
+            std::lock_guard const lock{m_mutex};
+            enabled = std::move(m_enabled_connector);
+        }
+        if (enabled != nullptr) {
+            auto disabled = score::socom::Enabled_server_connector::disable(std::move(enabled));
+            std::lock_guard const lock{m_mutex};
+            m_disabled_connector = std::move(disabled);
+        }
+
+        std::lock_guard const subscription_lock{m_subscription_mutex};
+
+        std::vector<score::mw::com::GenericProxyEvent*> subscribed{};
+        {
+            std::lock_guard const lock{m_mutex};
+            std::swap(proxy, m_proxy);
+            for (auto& event : m_events) {
+                if (event.subscribed && (event.proxy_event != nullptr)) {
+                    subscribed.push_back(event.proxy_event);
+                }
+                event.proxy_event = nullptr;
+                event.wanted_locally = false;
+                event.subscribed = false;
             }
-            event.proxy_event = nullptr;
-            event.wanted_locally = false;
-            event.subscribed = false;
+        }
+
+        // Not under m_mutex: both block until a running receive handler has finished, and that
+        // handler needs m_mutex. Unlike a generated proxy, a GenericProxy does not unsubscribe
+        // its events when it is destroyed, and LoLa aborts if a subscription outlives its event.
+        for (auto* const proxy_event : subscribed) {
+            (void)proxy_event->UnsetReceiveHandler();
+            proxy_event->Unsubscribe();
         }
     }
 
-    // Not under m_mutex: all three block until a running receive handler has finished, and that
-    // handler needs m_mutex. Unlike a generated proxy, a GenericProxy does not unsubscribe its
-    // events when it is destroyed, and LoLa aborts if a subscription outlives its event.
-    for (auto* const proxy_event : subscribed) {
-        (void)proxy_event->UnsetReceiveHandler();
-        proxy_event->Unsubscribe();
-    }
+    // Not under any binding lock, see the lock order note in the header. Nothing else can reach
+    // this proxy any more: it was swapped out and every event pointer into it was cleared under
+    // m_mutex, so dropping it late is safe.
     proxy.reset();
 }
 
 void Consumer_service_binding::on_event_subscription_change(score::socom::Event_id const event_id,
                                                             bool const subscribed) noexcept {
-    std::lock_guard const lifecycle_lock{m_lifecycle_mutex};
+    std::lock_guard const subscription_lock{m_subscription_mutex};
     {
         std::lock_guard const lock{m_mutex};
         if (event_id >= m_events.size()) {

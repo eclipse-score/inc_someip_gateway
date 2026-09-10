@@ -121,13 +121,24 @@ class Provider_service_binding final : public Service_binding {
     /// \pre m_mutex is held
     void reconcile_subscription(score::socom::Event_id event_id) noexcept;
 
+    /// \brief Serializes offering and withdrawing the mw::com service, and guards #m_offered
+    /// \details `OfferService()` and `StopOfferService()` take the mw::com event notification
+    ///          registry lock, and mw::com holds that very lock while it calls
+    ///          `on_peer_interest_change()`, which needs #m_mutex. Offering under #m_mutex would
+    ///          therefore close a lock cycle with the mw::com message passing thread. This second
+    ///          mutex keeps the transitions serialized instead, and is deliberately never taken
+    ///          by `on_peer_interest_change()`. Lock order is m_offer_mutex before #m_mutex.
+    ///
+    ///          Recursive for the same reason as #m_mutex: `reconcile_subscription()` calls into
+    ///          SOCom, which can call this object's callbacks back on the same thread.
+    std::recursive_mutex m_offer_mutex;
+
     /// \brief Recursive because SOCom calls binding callbacks synchronously from binding calls,
     ///        e.g. `subscribe_event()` can end in `on_event_update()` on the same thread.
     std::recursive_mutex m_mutex;
     score::mw::com::GenericSkeleton m_skeleton;
     std::vector<Event> m_events;
     bool m_service_available{false};
-    bool m_offered{false};
     std::shared_ptr<Allocations> m_allocations{std::make_shared<Allocations>()};
     score::socom::Client_connector::Uptr m_client_connector{};
 };

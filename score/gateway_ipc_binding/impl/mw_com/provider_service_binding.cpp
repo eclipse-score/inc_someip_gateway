@@ -232,24 +232,30 @@ void Provider_service_binding::on_service_state_change(
     score::socom::Service_state const state) noexcept {
     bool const available = state == score::socom::Service_state::available;
 
-    std::lock_guard const lock{m_mutex};
-    if (available == m_service_available) {
-        return;
+    // Offering and withdrawing the offer must not run under m_mutex, see the lock order note in
+    // the header. This mutex serializes the two transitions against each other instead.
+    std::lock_guard const offer_lock{m_offer_mutex};
+
+    {
+        std::lock_guard const lock{m_mutex};
+        if (available == m_service_available) {
+            return;
+        }
+        m_service_available = available;
+
+        if (!available) {
+            // SOCom drops all subscriptions when the service leaves the available state, so the
+            // flags are cleared without calling SOCom back.
+            for (auto& event : m_events) {
+                event.subscribed = false;
+            }
+        }
     }
-    m_service_available = available;
 
     if (!available) {
-        // SOCom drops all subscriptions when the service leaves the available state, so the flags
-        // are cleared without calling SOCom back.
-        for (auto& event : m_events) {
-            event.subscribed = false;
-        }
         // The skeleton object stays alive on purpose: destroying it would zero the shared-memory
         // subscription control block underneath a peer that still holds a subscription.
-        if (m_offered) {
-            m_skeleton.StopOfferService();
-            m_offered = false;
-        }
+        m_skeleton.StopOfferService();
         return;
     }
 
@@ -259,8 +265,10 @@ void Provider_service_binding::on_service_state_change(
             << kLog_tag << "Failed to offer the bridged service:" << offered.error();
         return;
     }
-    m_offered = true;
 
+    // The interest callbacks that fired from within OfferService() already reconciled what they
+    // saw. Catch up on everything they could not, and on what arrived before the offer.
+    std::lock_guard const lock{m_mutex};
     for (std::size_t index = 0U; index < m_events.size(); ++index) {
         reconcile_subscription(static_cast<score::socom::Event_id>(index));
     }

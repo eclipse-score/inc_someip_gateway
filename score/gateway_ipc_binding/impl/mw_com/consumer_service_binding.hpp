@@ -88,6 +88,17 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Build the proxy for a discovered handle and enable the SOCom connector
     void attach_to_peer(score::mw::com::HandleType handle) noexcept;
 
+    /// \brief Point every configured event at the matching event of #m_proxy
+    /// \details On failure all event pointers are cleared again, so that none of them outlives
+    ///          the proxy the caller is about to drop.
+    /// \pre m_subscription_mutex and m_mutex are held
+    /// \return True if every configured event was found and is layout compatible
+    [[nodiscard]] bool bind_proxy_events() noexcept;
+
+    /// \brief Reset the proxy event pointer of every configured event
+    /// \pre m_mutex is held
+    void clear_proxy_events() noexcept;
+
     /// \brief Tear the enabled connector and the proxy down
     /// \details Also used by the destructor, hence the separate function.
     void detach_from_peer() noexcept;
@@ -98,24 +109,41 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Bring the mw::com subscription of one event in line with the local demand
     /// \details Subscribing is deferred until the SOCom connector is enabled, because the
     ///          subscription callbacks fire from within `enable()` itself.
-    /// \pre m_lifecycle_mutex is held and m_mutex is not
+    /// \pre m_subscription_mutex is held and m_mutex is not
     void reconcile_subscription(score::socom::Event_id event_id) noexcept;
 
-    /// \brief Serializes everything that changes the proxy or its subscriptions
-    /// \details `UnsetReceiveHandler()`, `Unsubscribe()` and destroying the `GenericProxy` all
-    ///          block until a running receive handler has finished. They must therefore never run
-    ///          under #m_mutex, which that very handler needs. This second mutex keeps them
-    ///          serialized against each other instead, and is deliberately never taken by the
-    ///          receive handler. Lock order is m_lifecycle_mutex before #m_mutex.
+    /// \brief Serializes `attach_to_peer()` against `detach_from_peer()`
+    /// \details The outermost of the three mutexes, and the only one that may be held across
+    ///          `Disabled_server_connector::enable()` and `Enabled_server_connector::disable()`.
+    ///          Both take SOCom locks that SOCom in turn holds while it calls this object's
+    ///          connector callbacks, so a mutex those callbacks take must not be held across
+    ///          them. This one is deliberately never taken by any callback.
     ///
-    ///          Recursive because `Disabled_server_connector::enable()` calls
-    ///          `on_event_subscription_change()` synchronously from within `attach_to_peer()`.
+    ///          Recursive out of caution, like the other two: SOCom calls binding callbacks
+    ///          synchronously from binding calls.
     std::recursive_mutex m_lifecycle_mutex;
+
+    /// \brief Keeps the #Event::proxy_event pointers valid while they are used
+    /// \details `Subscribe()`, `Unsubscribe()`, `SetReceiveHandler()` and
+    ///          `UnsetReceiveHandler()` block until a running receive handler has finished. They
+    ///          must therefore never run under #m_mutex, which that very handler needs, and are
+    ///          called with only a raw `GenericProxyEvent*` in hand. This mutex keeps them
+    ///          serialized against each other and against the teardown that invalidates those
+    ///          pointers, and is deliberately never taken by the receive handler. Lock order is
+    ///          #m_lifecycle_mutex before m_subscription_mutex before #m_mutex.
+    std::recursive_mutex m_subscription_mutex;
 
     /// \brief Guards the state the receive handler and the SOCom callbacks share
     /// \details Recursive because SOCom calls binding callbacks synchronously from binding calls,
     ///          e.g. `update_event()` can end in `on_event_subscription_change()` on the same
     ///          thread.
+    ///
+    ///          None of the three mutexes may be held while a `GenericProxy` is created or
+    ///          destroyed. Creating and destroying one both take the mw::com service discovery
+    ///          lock, and mw::com holds that same lock while it calls the find-service handler
+    ///          that ends in `on_find_service()`, which takes all three. Holding one across
+    ///          proxy construction or destruction would close that cycle and deadlock the daemon
+    ///          against the mw::com discovery thread.
     std::recursive_mutex m_mutex;
     std::vector<Event> m_events;
     std::string m_instance_specifier;

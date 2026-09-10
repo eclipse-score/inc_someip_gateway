@@ -572,7 +572,23 @@ Threading and concurrency
 -------------------------
 
 - SOCom callbacks and ``mw::com`` receive handlers run on different threads. Every ``Service_binding`` guards
-  its state with one mutex.
+  its state with a mutex, plus one outer mutex per blocking transition it has to serialize.
+- Both stacks call the binding back **while holding an internal lock of their own**, and both take that same
+  internal lock from the API the binding calls into. A binding mutex that a callback takes may therefore
+  never be held across such a call, or the two lock orders form a cycle and the daemon deadlocks against a
+  stack-owned thread. Concretely:
+
+  - ``mw::com`` holds its service discovery lock across the find-service handler, and creating or destroying
+    a ``GenericProxy`` takes that same lock. Proxies are therefore constructed before, and destroyed after,
+    every binding mutex is released.
+  - ``mw::com`` holds its event notification registry lock across the receive-handler-registration handler,
+    and ``OfferService()`` / ``StopOfferService()`` take that same lock. The provider offers under
+    ``m_offer_mutex``, which that handler does not take.
+  - SOCom holds connector locks across the subscription callbacks, and ``enable()`` / ``disable()`` take
+    those same locks. The consumer enables and disables under ``m_lifecycle_mutex``, which no callback takes.
+
+  The outer mutexes exist purely to keep those transitions serialized against each other while the inner
+  ones are released.
 - Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O and no allocation
   beyond the in-flight table inside them.
 - ``GetNewSamples`` must not run concurrently for the same ``GenericProxyEvent``. Because the only caller is
