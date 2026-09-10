@@ -26,6 +26,7 @@ VSOMEIP_SHARED_LIBS = [
 ]
 
 # Only the shared libraries are needed on the target, the headers of @vsomeip are not.
+# ext4() does not support copying directories, which is needed for the headers
 [filegroup(
     name = "vsomeip-" + lib,
     srcs = ["@vsomeip"],
