@@ -100,8 +100,8 @@ class Bridged_service_test : public ::testing::Test {
 ///          which is the order the SOCom deadlock detector expects.
 struct Bridge {
     Bridge(socom::Runtime& provider_runtime, socom::Runtime& consumer_runtime)
-        : server{create_server(provider_runtime, kSomeipd_specifier,
-                               {test_service(Role::provider)})},
+        : server{
+              create_server(provider_runtime, kSomeipd_specifier, {test_service(Role::provider)})},
           consumer_runtime_ref{consumer_runtime},
           provider_runtime_ref{provider_runtime} {}
 
