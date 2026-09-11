@@ -317,16 +317,22 @@ http_archive(
 # ============================================================================
 # Integration Testing
 # ============================================================================
+bazel_dep(name = "os_images", version = "1.0", dev_dependency = True)
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.1.0", dev_dependency = True)
 
-http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+# TODO: Switch back to a released version once `--qemu-disk` is part of a tagged release.
+git_override(
+    module_name = "score_itf",
+    commit = "38ae9a3dd98ccc7434e1f8b57ca4a3d2bac82e2f",
+    remote = "https://github.com/eclipse-score/itf.git",
+)
 
-http_file(
-    name = "ubuntu_24_04_cloudimg",
-    downloaded_file_path = "noble-minimal-cloudimg-amd64.img",
-    integrity = "sha256-vZAj5xt7tb3tFOT7DJmODZPXFJ6QVsPmi0b/kJfdF9U=",
-    url = "https://cloud-images.ubuntu.com/minimal/releases/noble/release-20260626/ubuntu-24.04-minimal-cloudimg-amd64.img",
+# TODO: Switch back to a released version once the automatic /opt mount is released.
+git_override(
+    module_name = "os_images",
+    commit = "6d493760c5aa5d4dc9d4a168cce49732bc976338",
+    remote = "https://github.com/eclipse-score/os_images.git",
 )
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
@@ -344,4 +350,10 @@ imagefs.toolchain(
     target_os = "qnx",
     type = "ifs",
 )
-use_repo(imagefs, "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")
+imagefs.toolchain(
+    name = "score_linux_x86_64_ext4_toolchain",
+    target_cpu = "x86_64",
+    target_os = "linux",
+    type = "ext4",
+)
+use_repo(imagefs, "score_linux_x86_64_ext4_toolchain", "score_qnx_aarch64_ifs_toolchain", "score_qnx_x86_64_ifs_toolchain")

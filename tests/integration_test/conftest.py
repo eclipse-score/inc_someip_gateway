@@ -52,22 +52,22 @@ def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
 
     with ShellProcess(
         clean_state,
-        "/someipd",
+        "/opt/someipd",
         args=[
             "--configuration",
-            "/mw_someip_config.bin",
+            "/opt/mw_someip_config.bin",
         ],
-        env="VSOMEIP_CONFIGURATION=/vsomeip.json",
+        env="VSOMEIP_CONFIGURATION=/opt/vsomeip.json",
     ) as someipd_process:
         assert someipd_process.is_running(), someipd_process.get_output()
         with ShellProcess(
             clean_state,
-            "/gatewayd",
+            "/opt/gatewayd",
             args=[
                 "--configuration",
-                "/mw_someip_config.bin",
+                "/opt/mw_someip_config.bin",
                 "--service_instance_manifest",
-                "/gatewayd_mw_com_config.json",
+                "/opt/gatewayd_mw_com_config.json",
             ],
         ) as gatewayd_process:
             assert gatewayd_process.is_running(), gatewayd_process.get_output()
