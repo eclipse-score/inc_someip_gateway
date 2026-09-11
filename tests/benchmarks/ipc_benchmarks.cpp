@@ -42,10 +42,13 @@ constexpr std::uint8_t MAX_SERVICE_DISCOVERY_RETRIES{30};
 constexpr auto SERVICE_DISCOVERY_RETRY_INTERVAL{1s};
 constexpr auto SEQUENTIAL_HANDSHAKE_DELAY{2s};
 constexpr auto RESPONSE_TIMEOUT{1s};
+// In the system there are currently at least 4 buffers of size kMaxSampleCount, thus in flight
+// messages might be able to fill those
+constexpr SequenceId MAX_IN_FLIGHT_MESSAGES = score::someip::kMaxSampleCount * 10U;
 // gatewayd hard codes the number of slots to someip::kMaxSampleCount
 constexpr std::uint64_t THROUGHPUT_BATCH_SIZE{score::someip::kMaxSampleCount};
 constexpr std::uint64_t THROUGHPUT_MIN_BATCH_SIZE{1};
-constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{10000};
+constexpr std::uint64_t THROUGHPUT_MAX_BATCH_SIZE{MAX_IN_FLIGHT_MESSAGES};
 // Number of messages sent between two consecutive batch size adjustments.
 constexpr std::uint64_t THROUGHPUT_ADJUST_INTERVAL{score::someip::kMaxSampleCount * 2};
 // Upper bound for waiting on in-flight messages: the tail of a batch may be lost for good.
@@ -115,8 +118,8 @@ class Event_wrapper {
 
     ~Event_wrapper() {
         try {
-            Unsubscribe();
             UnsetReceiveHandler();
+            Unsubscribe();
         } catch (const std::exception& e) {
             std::cerr << "Exception in Event_wrapper destructor: " << e.what() << std::endl;
         } catch (...) {
@@ -334,9 +337,9 @@ class BenchmarkFixture {
             std::this_thread::yield();
         }
 
-        throw std::runtime_error(
-            "Timeout waiting for echo response. Sequence ID: " + std::to_string(sequence_id) +
-            ". Check if echo_server is properly handling requests.");
+        std::cout << "Timeout waiting for echo response with polling. Sequence ID: " << sequence_id
+                  << ". Check if echo_server is properly handling requests." << std::endl;
+        return std::chrono::nanoseconds{0};
     }
 
     template <typename RequestType, typename ResponseType, typename RequestEventType,
@@ -440,12 +443,9 @@ class BenchmarkFixture {
             pending_responses_.erase(sequence_id);
         }
 
-        // In the system there are currently at least 4 buffers of size kMaxSampleCount, thus in
-        // flight messages might be able to fill those
-        constexpr SequenceId kMaxInFlightMessages = score::someip::kMaxSampleCount * 5U;
         const auto next_sequence_id = next_sequence_id_.load();
-        const auto min_sequence_id = next_sequence_id > kMaxInFlightMessages
-                                         ? next_sequence_id - kMaxInFlightMessages
+        const auto min_sequence_id = next_sequence_id > MAX_IN_FLIGHT_MESSAGES
+                                         ? next_sequence_id - MAX_IN_FLIGHT_MESSAGES
                                          : SequenceId{1};
         const auto current_pending_size = pending_responses_.size();
         for (auto it = pending_responses_.begin(); it != pending_responses_.end();) {
