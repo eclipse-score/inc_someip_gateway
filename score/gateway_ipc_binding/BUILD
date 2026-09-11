@@ -16,14 +16,18 @@ load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER
 
 filegroup(
     name = "headers",
-    srcs = glob([
-        "*.hpp",
-    ]),
+    srcs = glob(
+        include = ["*.hpp"],
+        exclude = ["gateway_ipc_binding_mw_com.hpp"],
+    ),
 )
 
 cc_library(
     name = "gateway_ipc_binding",
-    srcs = glob(include = ["impl/**"]),
+    srcs = glob(
+        include = ["impl/**"],
+        exclude = ["impl/mw_com/**"],
+    ),
     hdrs = [":headers"],
     features = COMPILER_WARNING_FEATURES,
     linkopts = ["-latomic"],
@@ -33,5 +37,22 @@ cc_library(
         "@score_baselibs//score/mw/log",
         "@score_communication//score/memory/shared",
         "@score_communication//score/message_passing",
+    ],
+)
+
+# Alternative binding implementation on top of mw::com (LoLa),
+# see docs/mw_com_binding.rst. Kept in a separate target so that users of the
+# score::message_passing based implementation do not pull in mw::com.
+cc_library(
+    name = "gateway_ipc_binding_mw_com",
+    srcs = glob(include = ["impl/mw_com/**"]),
+    hdrs = ["gateway_ipc_binding_mw_com.hpp"],
+    features = COMPILER_WARNING_FEATURES,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gateway_ipc_binding",
+        "//score/socom",
+        "@score_baselibs//score/mw/log",
+        "@score_communication//score/mw/com",
     ],
 )

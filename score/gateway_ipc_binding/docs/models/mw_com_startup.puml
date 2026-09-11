@@ -1,0 +1,78 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+title Startup: SomeipdService first, bridged services after
+
+participant "Daemon main" as main
+participant "Mw_com_binding" as binding
+participant "Provider_service_binding" as provider
+participant "Consumer_service_binding" as consumer
+participant "Someipd_service_binding" as sdsvc
+participant "mw::com" as mwcom
+participant "SOCom runtime" as socom
+
+main -> mwcom : InitializeRuntime(mw_com_config.json)
+main -> binding : create_client / create_server(runtime,\n  someipd_service_specifier, Service_configs)
+
+group SomeipdService, someipd (server flavour), always first
+  binding -> sdsvc : construct
+  sdsvc -> mwcom : SomeipdServiceSkeleton::Create(\n  someipd_service_specifier)
+  sdsvc -> mwcom : OfferService()
+  note right of sdsvc
+    Typed skeleton, offered before any bridged
+    service below and before any service from
+    the network. Mirrors someipd starting its
+    IPC server before its network services.
+  end note
+end
+
+group SomeipdService, gatewayd (client flavour)
+  binding -> sdsvc : construct
+  sdsvc -> mwcom : SomeipdServiceProxy::StartFindService(\n  handler, someipd_service_specifier)
+  mwcom -> sdsvc : handler(handle)
+  sdsvc -> mwcom : SomeipdServiceProxy::Create(handle)
+  sdsvc -> sdsvc : is_connected = true
+end
+
+group per Service_config with role == provider
+  binding -> provider : construct
+  provider -> mwcom : GenericSkeleton::Create(\n  InstanceSpecifier,\n  GenericSkeletonServiceElementInfo)
+  provider -> mwcom : per event:\nSetReceiveHandlerRegistrationChangedHandler
+  provider -> socom : make_client_connector(interface, instance, callbacks)
+  note right of provider
+    OfferService() is deferred until
+    on_service_state_change(available).
+  end note
+end
+
+group per Service_config with role == consumer
+  binding -> consumer : construct
+  consumer -> mwcom : GenericProxy::StartFindService(handler, InstanceSpecifier)
+  consumer -> socom : make_server_connector(interface, instance, callbacks)
+  note right of consumer
+    The Disabled_server_connector is only
+    enabled once the find-service handler
+    reports a handle.
+  end note
+end
+
+binding --> main : setup complete
+note over main
+  start() returned success on the someipd side.
+  is_connected() turns true on the gatewayd side
+  as soon as the SomeipdServiceProxy exists, i.e.
+  before any bridged service is available, and
+  back to false if someipd stops.
+end note
+@enduml

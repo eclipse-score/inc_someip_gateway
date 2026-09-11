@@ -26,13 +26,9 @@
 #include "score/socom/payload.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 
-namespace score {
-namespace memory {
-namespace shared {
+namespace score::memory::shared {
 class ISharedMemoryResource;
-}  // namespace shared
-}  // namespace memory
-}  // namespace score
+}  // namespace score::memory::shared
 
 namespace score::gateway_ipc_binding {
 
