@@ -47,6 +47,7 @@ cc_test(
     size = "small",
     srcs = ["null_serializer_test.cpp"],
     linkstatic = True,
+    tags = ["unit"],
     visibility = ["//tests/integration_test:__pkg__"],
     deps = [
         ":null_serializer_impl",
