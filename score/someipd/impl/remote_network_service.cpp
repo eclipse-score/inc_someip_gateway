@@ -160,7 +160,8 @@ void RemoteNetworkService::setup_vsomeip() {
         // TODO: Do Eventgroup handling. Currently just create one group per event with the same ID.
         std::set<vsomeip::eventgroup_t> groups{vsomeip_event_id};
         vsomeip_app_->request_event(service_id, instance_id, vsomeip_event_id, groups);
-        vsomeip_app_->subscribe(service_id, instance_id, vsomeip_event_id);
+        vsomeip_app_->subscribe(service_id, instance_id, vsomeip_event_id,
+                                service_type_config_->service_version_major());
     }
 }
 

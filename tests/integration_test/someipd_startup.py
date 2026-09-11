@@ -33,7 +33,9 @@ def test_start_someipd(clean_state):
             "exit code: ",
             someipd_process.get_exit_code(),
         )
-        logging.info("someipd output:\n%s", someipd_process.get_output())
+        output = someipd_process.get_output()
+        logging.info("someipd output:\n%s", output)
+        assert "[4321.5678.8778:ffff:1]" in output, output
         ps_aux_text = get_running_processes_on_target(clean_state)
         assert "someipd" in ps_aux_text, ps_aux_text
 
