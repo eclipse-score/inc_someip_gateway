@@ -32,17 +32,17 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
-    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=bb63a8e1" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=415257cb" />
     <link rel="stylesheet" type="text/css" href="../_static/css/score_needs.css?v=82a1844f" />
     <link rel="stylesheet" type="text/css" href="../_static/css/score_design.css?v=8048e6ee" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
@@ -74,7 +74,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Shared Memory Slot Manager" href="shared_memory.html" />
-    <link rel="prev" title="3. State Dynamics View" href="../socom/design/50_state_dynamics_view.html" />
+    <link rel="prev" title="Config" href="../config/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -406,12 +406,17 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../socom/index.html">SOCom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config/index.html">Config</a></li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Gateway IPC Binding</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="shared_memory.html">Shared Memory Slot Manager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ipc_protocol.html">IPC Protocol</a></li>
 </ul>
 </details></li>
+<li class="toctree-l1"><a class="reference internal" href="../gatewayd/index.html">gatewayd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../serializer/index.html">Serializer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../socom/index.html">SOCom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../someip/index.html">someip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../someipd/index.html">someipd</a></li>
 </ul>
 </div>
 </nav></div>
@@ -473,7 +478,50 @@
                 <article class="bd-article">
                   
   <section id="gateway-ipc-binding">
-<h1>Gateway IPC Binding<a class="headerlink" href="#gateway-ipc-binding" title="Link to this heading">#</a></h1>
+<span id="id1"></span><h1>Gateway IPC Binding<a class="headerlink" href="#gateway-ipc-binding" title="Link to this heading">#</a></h1>
+<div class="need_container docutils container" id="SNCB-4f7987b1">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__gateway_ipc_binding">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">Gateway IPC Binding</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../architecture/features.html#feat__someip_gateway" title="comp__gateway_ipc_binding">feat__someip_gateway</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"></td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp__gateway_ipc_binding" title="comp__gateway_ipc_binding">comp__gateway_ipc_binding</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Gateway IPC Binding bridges SOCom service discovery and event transport across a local IPC link.
 It combines:</p>
 <ul class="simple">
@@ -535,11 +583,11 @@ It combines:</p>
 </ul>
 </li>
 </ul>
-<figure class="align-center" id="id1">
+<figure class="align-center" id="id2">
 <p class="plantuml">
 <object data="../_images/plantuml-888c522cc737d46de904816a214c85d6e920c9af.svg" type="image/svg+xml" style="width:1912px;height:346px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Gateway IPC Binding component diagram</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Gateway IPC Binding component diagram</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
@@ -602,12 +650,12 @@ It combines:</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../socom/design/50_state_dynamics_view.html"
+       href="../config/index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><span class="section-number">3. </span>State Dynamics View</p>
+        <p class="prev-next-title">Config</p>
       </div>
     </a>
     <a class="right-next"
@@ -651,7 +699,7 @@ It combines:</p>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/gateway_ipc_binding/indexeip_gateway/inc_someip_gateway/score/gateway_ipc_binding/docs/index.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/score/gateway_ipc_binding/docs/index.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
