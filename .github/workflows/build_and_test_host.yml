@@ -53,6 +53,11 @@ jobs:
       - name: Bazel build targets
         run: |
           bazel build //...
+      - run: df -h
+        if: always()
+      - name: Bazel lint targets
+        run: |
+          bazel test --test_tag_filters=lint //...
       - name: Bazel test targets
         run: |
           bazel test ${{ matrix.targets }} --build_tests_only \
@@ -100,6 +105,9 @@ jobs:
       - name: Run Linux QEMU integration tests
         run: |
           bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
+      - name: Run TC8 ITF SOME/IP Conformance Tests
+        run: |
+          bazel test --config=tc8-itf --test_output=all //tests/tc8_conformance/...
       - run: df -h
         if: always()
 
@@ -129,3 +137,5 @@ jobs:
       - name: Run Linux perf tests (flamegraphs)
         run: |
           bazel test --config=perf-tests-flamegraphs //tests/benchmarks/... --build_tests_only
+      - run: df -h
+        if: always()
