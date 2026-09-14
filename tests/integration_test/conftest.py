@@ -47,41 +47,46 @@ def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
     pcap_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", ".")
     pcap_file = os.path.join(pcap_dir, "test_traffic.pcap")
 
+    tcpdump_host = None
     try:
         tcpdump_host = tcpdump_capture("", output_file=pcap_file)
         tcpdump_host.__enter__()
     except RuntimeError:
         logging.warning("tcpdump could not start; pcap capture skipped")
 
-    with ShellProcess(
-        clean_state,
-        "/someipd",
-        args=[
-            "--configuration",
-            "/mw_someip_config.bin",
-        ],
-        env="VSOMEIP_CONFIGURATION=/vsomeip.json",
-    ) as someipd_process:
-        assert someipd_process.is_running(), someipd_process.get_output()
+    try:
         with ShellProcess(
             clean_state,
-            "/gatewayd",
+            "/someipd",
             args=[
                 "--configuration",
                 "/mw_someip_config.bin",
-                "--service_instance_manifest",
-                "/gatewayd_mw_com_config.json",
             ],
-        ) as gatewayd_process:
-            assert gatewayd_process.is_running(), gatewayd_process.get_output()
-            assert gatewayd_process.is_running(), (
-                gatewayd_process.get_output(),
-                "exit code: ",
-                gatewayd_process.get_exit_code(),
-            )
-            assert someipd_process.is_running(), (
-                someipd_process.get_output(),
-                "exit code: ",
-                someipd_process.get_exit_code(),
-            )
-            yield clean_state
+            env="VSOMEIP_CONFIGURATION=/vsomeip.json",
+        ) as someipd_process:
+            assert someipd_process.is_running(), someipd_process.get_output()
+            with ShellProcess(
+                clean_state,
+                "/gatewayd",
+                args=[
+                    "--configuration",
+                    "/mw_someip_config.bin",
+                    "--service_instance_manifest",
+                    "/gatewayd_mw_com_config.json",
+                ],
+            ) as gatewayd_process:
+                assert gatewayd_process.is_running(), gatewayd_process.get_output()
+                assert gatewayd_process.is_running(), (
+                    gatewayd_process.get_output(),
+                    "exit code: ",
+                    gatewayd_process.get_exit_code(),
+                )
+                assert someipd_process.is_running(), (
+                    someipd_process.get_output(),
+                    "exit code: ",
+                    someipd_process.get_exit_code(),
+                )
+                yield clean_state
+    finally:
+        if tcpdump_host is not None:
+            tcpdump_host.__exit__(None, None, None)

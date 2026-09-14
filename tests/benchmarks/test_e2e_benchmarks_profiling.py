@@ -23,9 +23,9 @@ sys.path.insert(0, str(Path(".").absolute()))
 from tests.benchmarks.e2e_benchmark_runner import run_e2e_benchmarks  # noqa: E402
 
 
-def test_e2e_benchmarks_latency_echo() -> None:
+def test_e2e_benchmarks_profiling() -> None:
     """Benchmark only LatencyEcho for focused profiling."""
     run_e2e_benchmarks(
-        artifact_subdir="e2e_benchmarks_latency_echo",
-        benchmark_filter="^IpcBenchmark/LatencyEcho.*",
+        artifact_subdir="e2e_benchmarks_profiling",
+        benchmark_filter="^IpcBenchmark/Throughput/3/.*",
     )

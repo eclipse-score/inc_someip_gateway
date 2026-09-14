@@ -12,23 +12,20 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _socom:
+.. _config:
 
-SOCom
-#####
+Config
+######
 
-.. comp:: SOCom
-   :id: comp__socom
+.. comp:: Config
+   :id: comp__config
    :security: NO
    :safety: QM
    :status: valid
    :version: 1
    :belongs_to: feat__someip_gateway
 
-The SOCom (Service-Oriented Communication) library provides the middleware
-abstraction layer for SOME/IP communication in the S-CORE framework.
+Abstract
+========
 
-.. toctree::
-   :maxdepth: 1
-
-   design/index
+Provides the FlatBuffers schema (mw_someip_config.fbs) and JSON schema used to define and validate gateway configuration.

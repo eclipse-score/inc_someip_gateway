@@ -85,6 +85,7 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":echo_service",
+        "//score/someip",
         "@google_benchmark//:benchmark",
         "@score_baselibs//score/language/futurecpp",
         "@score_communication//score/mw/com",
@@ -118,6 +119,7 @@ py_pytest(
         ":flamegraph_scripts",
         ":ipc_benchmarks",
         "//score/gatewayd",
+        "//score/serializer:null_serializer",
         "//score/someipd",
     ] + glob(["config/**/*.json"]),
     target_compatible_with = select({
@@ -130,12 +132,12 @@ py_pytest(
 )
 
 py_pytest(
-    name = "e2e_benchmarks_latency_echo",
+    name = "e2e_benchmarks_profiling",
     size = "large",
     srcs = [
         "e2e_benchmark_runner.py",
         "nodes.py",
-        "test_e2e_benchmarks_latency_echo.py",
+        "test_e2e_benchmarks_profiling.py",
     ],
     data = [
         ":bench_config_file",
@@ -144,6 +146,7 @@ py_pytest(
         ":flamegraph_scripts",
         ":ipc_benchmarks",
         "//score/gatewayd",
+        "//score/serializer:null_serializer",
         "//score/someipd",
     ] + glob(["config/**/*.json"]),
     target_compatible_with = select({
