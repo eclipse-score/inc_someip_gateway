@@ -10,6 +10,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_python//python:defs.bzl", "py_test")
+
 py_test(
     name = "gatewayd_test",
     srcs = ["gatewayd_test.py"],
@@ -27,9 +29,7 @@ py_test(
         "//score/someipd",
     ],
     tags = [
-        # likely vsomeip requires exclusive access to some resources
-        # "exclusive",
-        "unit",
         "block-network",
+        "unit",
     ],
 )
