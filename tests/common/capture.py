@@ -262,11 +262,17 @@ def tcpdump_capture(
     if filter_expression:
         args.append(filter_expression)
 
-    proc = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE if output_file is None else subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-    )
+    try:
+        proc = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE if output_file is None else subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+        )
+    except OSError as exc:
+        raise RuntimeError(
+            f"Failed to start tcpdump ({exc}). Check that /usr/bin/tcpdump exists and "
+            f"the process has CAP_NET_RAW capability."
+        ) from exc
 
     # tcpdump exits within milliseconds if CAP_NET_RAW is missing or binary absent.
     time.sleep(0.2)
