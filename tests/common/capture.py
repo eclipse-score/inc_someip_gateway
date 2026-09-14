@@ -78,7 +78,7 @@ def stop_capture(
     SIGKILL was required.
     """
     if proc.poll() is not None:
-        return True  # already exited
+        return True
 
     try:
         proc.send_signal(signal.SIGINT)
@@ -97,13 +97,48 @@ def stop_capture(
         return False
 
 
+def _close_pipes_and_wait(proc: subprocess.Popen[bytes], timeout: float = 5.0) -> bool:
+    """Close *proc*'s stdout/stderr pipes so it gets SIGPIPE/EPIPE on its next
+    write, then wait for it to exit; SIGKILL on timeout.
+
+    Text-mode tcpdump captures (no output file, stdout=PIPE) are torn down
+    this way rather than via SIGINT: tcpdump's -Z privilege-separation forks
+    a child even when dropping to its own current user, and that child does
+    not receive SIGINT reliably in a sandboxed user namespace (EPERM).
+    Closing the pipe it writes to is delivery-independent and reliably
+    terminates it.
+
+    Returns True if the process exited cleanly, False if SIGKILL was required.
+    """
+    if proc.poll() is not None:
+        return True
+
+    for stream in (proc.stdin, proc.stdout, proc.stderr):
+        if stream is not None:
+            try:
+                stream.close()
+            except OSError:
+                pass
+
+    try:
+        proc.wait(timeout=timeout)
+        return True
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        return False
+
+
 class CaptureProcess:
     """Context manager wrapper around a tcpdump Popen.
 
-    On context exit, sends SIGINT to flush the pcap cleanly, then falls back
-    to SIGKILL if the process does not terminate within the grace period.
-    If the pcap was written to a temporary /tmp path, it is moved to the
-    caller's requested destination after capture stops.
+    Text-mode captures (no output file) are torn down by closing stdout/stderr
+    so tcpdump gets SIGPIPE on its next write; this avoids relying on SIGINT
+    delivery to a possibly privilege-separated -Z child. Pcap-mode captures
+    (output_file set, stdout=DEVNULL) have no pipe to close, so SIGINT via
+    stop_capture is used instead, falling back to SIGKILL on timeout. If the
+    pcap was written to a temporary /tmp path, it is moved to the caller's
+    requested destination after capture stops.
     Direct attribute access (poll, kill, wait, returncode, …) is delegated to
     the wrapped Popen so callers that store the object directly continue to work.
     """
@@ -111,10 +146,12 @@ class CaptureProcess:
     def __init__(
         self,
         proc: subprocess.Popen[bytes],
+        text_mode: bool,
         tmp_pcap: str | None = None,
         final_pcap: str | None = None,
     ) -> None:
         self._proc = proc
+        self._text_mode = text_mode
         self._tmp_pcap = tmp_pcap
         self._final_pcap = final_pcap
 
@@ -127,7 +164,10 @@ class CaptureProcess:
         exc: BaseException | None,
         tb: Any,
     ) -> None:
-        stop_capture(self._proc)
+        if self._text_mode:
+            _close_pipes_and_wait(self._proc)
+        else:
+            stop_capture(self._proc)
         if self._tmp_pcap and self._final_pcap and self._tmp_pcap != self._final_pcap:
             try:
                 shutil.move(self._tmp_pcap, self._final_pcap)
@@ -155,24 +195,20 @@ def tcpdump_capture(
         RuntimeError: tcpdump exited immediately (missing binary or CAP_NET_RAW).
     """
     # Pass -Z <current_user> so tcpdump drops to the process's own uid rather
-    # than its compiled-in default user, which fails in CI without CAP_SETUID.
+    # than its compiled-in default user, which fails without CAP_SETUID in CI
+    # (observed even as root: tcpdump still tries to drop to its default
+    # non-root user unless told otherwise).
     try:
         _z_user = pwd.getpwuid(os.getuid()).pw_name
     except KeyError:
         # uid has no /etc/passwd entry (minimal container); use numeric fallback
-        _z_user = "root" if os.getuid() == 0 else str(os.getuid())
+        _z_user = str(os.getuid())
 
-    args = [
-        "/usr/bin/tcpdump",
-        "-n",
-        "-i",
-        "any",
-        "-Z",
-        _z_user,
-    ]
+    args = ["/usr/bin/tcpdump", "-n", "-i", "any", "-Z", _z_user]
 
     # Write pcap to /tmp, which is writable in all sandbox configurations.
     # CaptureProcess.__exit__ moves it to output_file after capture stops.
+    text_mode = output_file is None
     tmp_pcap: str | None = None
     if output_file is not None:
         tmp_pcap = f"/tmp/tcpdump_{os.urandom(8).hex()}.pcap"
@@ -201,4 +237,4 @@ def tcpdump_capture(
             f"CAP_NET_RAW capability. stderr: {stderr_text}"
         )
 
-    return CaptureProcess(proc, tmp_pcap=tmp_pcap, final_pcap=output_file)
+    return CaptureProcess(proc, text_mode=text_mode, tmp_pcap=tmp_pcap, final_pcap=output_file)

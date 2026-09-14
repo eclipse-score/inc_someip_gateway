@@ -15,7 +15,7 @@ load("@rules_python//python:defs.bzl", "py_library")
 load("@score_tooling//:defs.bzl", "score_py_pytest")
 
 # ---------------------------------------------------------------------------
-# Shared test utilities — consumed by both tests/integration_test and
+# Shared test utilities, consumed by both tests/integration_test and
 # tests/tc8_conformance.  imports=["."] adds tests/common/ to sys.path so
 # downstream code can do:
 #   from capture import tcpdump_capture

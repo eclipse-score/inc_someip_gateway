@@ -29,6 +29,7 @@ import signal
 
 from capture import (
     as_text,
+    _close_pipes_and_wait,
     _get_content_of_file_object,
     get_output,
     stop_capture,
@@ -148,7 +149,7 @@ def test_wait_until_process_exits_raises_on_timeout() -> None:
 
 
 # ---------------------------------------------------------------------------
-# tcpdump_capture — argument validation and flag verification
+# tcpdump_capture: argument validation and flag verification
 # ---------------------------------------------------------------------------
 
 
@@ -222,7 +223,9 @@ def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
 def test_tcpdump_capture_includes_z_flag_with_current_user(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """-Z is passed with the current username so tcpdump does not attempt to drop to its compiled-in default user (fails without CAP_SETUID in CI)."""
+    """-Z is passed with the current username (root included) so tcpdump does not
+    attempt to drop to its compiled-in default user, which fails without
+    CAP_SETUID in CI."""
     import os
     import pwd
     import capture as capture_module  # noqa: PLC0415
@@ -248,12 +251,10 @@ def test_tcpdump_capture_includes_z_flag_with_current_user(
     assert z_index + 1 < len(args), "-Z flag has no argument"
     z_user = args[z_index + 1]
 
-    # The -Z argument must be the current user's name (prevents privilege drop
-    # to the compiled-in tcpdump user).
     try:
         expected_user = pwd.getpwuid(os.getuid()).pw_name
     except KeyError:
-        expected_user = "root" if os.getuid() == 0 else str(os.getuid())
+        expected_user = str(os.getuid())
 
     assert z_user == expected_user, f"-Z argument is '{z_user}', expected '{expected_user}'"
 
@@ -458,7 +459,92 @@ def test_stop_capture_sweeps_orphans_with_pkill(
 
 
 # ---------------------------------------------------------------------------
-# tcpdump_capture — CAP_NET_RAW startup-failure detection
+# _close_pipes_and_wait
+# ---------------------------------------------------------------------------
+
+
+def test_close_pipes_and_wait_returns_true_for_already_exited_process() -> None:
+    """Returns True immediately when the process has already exited."""
+    proc = subprocess.Popen(["true"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc.wait()
+    assert _close_pipes_and_wait(proc, timeout=2.0) is True
+
+
+def test_close_pipes_and_wait_terminates_process_writing_to_stdout() -> None:
+    """Closing stdout causes a process still writing to it to die (SIGPIPE), without needing SIGINT."""
+    proc = subprocess.Popen(
+        ["python3", "-c", "import time\nwhile True:\n print('x', flush=True)\n time.sleep(0.05)"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    result = _close_pipes_and_wait(proc, timeout=5.0)
+    assert result is True
+    assert proc.poll() is not None
+
+
+def test_close_pipes_and_wait_kills_on_timeout_returns_false() -> None:
+    """Falls back to SIGKILL when closing pipes does not make the process exit in time."""
+    proc = subprocess.Popen(
+        ["sleep", "60"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    result = _close_pipes_and_wait(proc, timeout=0.3)
+    assert result is False
+    assert proc.poll() is not None
+
+
+# ---------------------------------------------------------------------------
+# CaptureProcess: text-mode vs pcap-mode teardown routing
+# ---------------------------------------------------------------------------
+
+
+def test_capture_process_text_mode_uses_pipe_close_not_sigint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Text-mode capture (output_file=None) tears down via pipe-close, not stop_capture/SIGINT."""
+    import capture as capture_module  # noqa: PLC0415
+
+    close_calls: list[bool] = []
+    stop_calls: list[bool] = []
+    monkeypatch.setattr(capture_module, "_close_pipes_and_wait", lambda proc, timeout=5.0: close_calls.append(True))
+    monkeypatch.setattr(capture_module, "stop_capture", lambda proc, timeout=5.0: stop_calls.append(True))
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=True)
+    with capture:
+        pass
+
+    assert close_calls, "expected pipe-close teardown for text mode"
+    assert not stop_calls, "SIGINT teardown should not run for text mode"
+    proc.kill()
+    proc.wait()
+
+
+def test_capture_process_pcap_mode_uses_stop_capture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Pcap-mode capture (output_file set) tears down via stop_capture/SIGINT, not pipe-close."""
+    import capture as capture_module  # noqa: PLC0415
+
+    close_calls: list[bool] = []
+    stop_calls: list[bool] = []
+    monkeypatch.setattr(capture_module, "_close_pipes_and_wait", lambda proc, timeout=5.0: close_calls.append(True))
+    monkeypatch.setattr(capture_module, "stop_capture", lambda proc, timeout=5.0: stop_calls.append(True))
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=False)
+    with capture:
+        pass
+
+    assert stop_calls, "expected SIGINT teardown for pcap mode"
+    assert not close_calls, "pipe-close teardown should not run for pcap mode"
+    proc.kill()
+    proc.wait()
+
+
+# ---------------------------------------------------------------------------
+# tcpdump_capture: CAP_NET_RAW startup-failure detection
 # ---------------------------------------------------------------------------
 
 
