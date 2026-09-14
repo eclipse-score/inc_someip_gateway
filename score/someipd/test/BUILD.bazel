@@ -21,4 +21,8 @@ py_test(
         "//score/config:config_file",
         "//score/someipd",
     ],
+    tags = [
+        "exclusive",
+        "unit",
+    ],
 )

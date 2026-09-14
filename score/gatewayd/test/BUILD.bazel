@@ -26,4 +26,8 @@ py_test(
         "//score/serializer:null_serializer",
         "//score/someipd",
     ],
+    tags = [
+        "exclusive",
+        "unit",
+    ],
 )
