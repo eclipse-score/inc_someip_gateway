@@ -13,6 +13,12 @@
 py_test(
     name = "someipd_test",
     srcs = ["someipd_test.py"],
-    args = ["$(location //score/someipd:someipd)"],
-    data = ["//score/someipd"],
+    args = [
+        "$(location //score/someipd:someipd)",
+        "$(location //score/config:config_file)",
+    ],
+    data = [
+        "//score/config:config_file",
+        "//score/someipd",
+    ],
 )
