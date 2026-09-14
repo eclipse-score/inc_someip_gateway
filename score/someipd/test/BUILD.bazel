@@ -22,7 +22,8 @@ py_test(
         "//score/someipd",
     ],
     tags = [
-        "exclusive",
+        # likely vsomeip requires exclusive access to some resources
+        # "exclusive",
         "unit",
     ],
 )

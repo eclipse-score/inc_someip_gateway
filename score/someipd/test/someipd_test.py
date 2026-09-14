@@ -26,9 +26,7 @@ class SomeipdTest(unittest.TestCase):
         self.configuration = Path(sys.argv[2])
 
     def test_help_returns_success_and_prints_usage(self) -> None:
-        result = subprocess.run(
-            [self.binary, "--help"], capture_output=True, check=False, text=True
-        )
+        result = subprocess.run([self.binary, "--help"], capture_output=True, check=False, text=True)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Syntax: someipd -h/--help", result.stdout)
@@ -50,28 +48,38 @@ class SomeipdTest(unittest.TestCase):
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True,
             start_new_session=True,
         )
         try:
+            stdout_pipe = process.stdout
+            if stdout_pipe is None:
+                self.fail("someipd test failed to capture subprocess stdout")
+            stdout_fd = stdout_pipe.fileno()
             deadline = time.monotonic() + 10
-            output = ""
+            expected_output_bytes = expected_output.encode("utf-8")
+            output_bytes = b""
             while time.monotonic() < deadline:
-                readable, _, _ = select.select([process.stdout], [], [], deadline - time.monotonic())
+                readable, _, _ = select.select([stdout_fd], [], [], deadline - time.monotonic())
                 if not readable:
                     break
-                line = process.stdout.readline()
-                if not line:
+                chunk = os.read(stdout_fd, 4096)
+                if not chunk:
                     if process.poll() is not None:
                         break
                     continue
-                output += line
-                if expected_output in output:
+                output_bytes += chunk
+                if expected_output_bytes in output_bytes:
                     return
+            output = output_bytes.decode("utf-8", errors="replace")
             self.fail(f"someipd did not create a network instance:\n{output}")
         finally:
-            os.killpg(process.pid, signal.SIGKILL)
-            process.wait(timeout=10)
+            if process.stdout is not None:
+                process.stdout.close()
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            _ = process.wait(timeout=10)
 
 
 if __name__ == "__main__":
