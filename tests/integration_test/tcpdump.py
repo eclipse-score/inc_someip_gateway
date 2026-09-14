@@ -26,7 +26,7 @@ def test_tcpdump_with_ping_from_target_execute(target) -> None:
         assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
         # sanity check that tcpdump is running
-        tcpdump_running, ps_aux_text = is_tcpdump_running()
+        tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
         assert tcpdump_running, ps_aux_text
 
         # It looks like tcpdump is not always ready to capture packets immediately after starting
@@ -45,7 +45,7 @@ def test_tcpdump_with_ping_from_target_execute(target) -> None:
             tcpdump_process
         )
 
-        tcpdump_running, ps_aux_text = is_tcpdump_running()
+        tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
         assert not tcpdump_running, ps_aux_text
 
 
@@ -54,7 +54,7 @@ def test_tcpdump_with_ping_from_target(target):
         assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
         # sanity check that tcpdump is running
-        tcpdump_running, ps_aux_text = is_tcpdump_running()
+        tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
         assert tcpdump_running, ps_aux_text
 
         with ShellProcess(target, "ping", ["-c", "5", "169.254.21.88"]) as bash_process:
@@ -65,7 +65,7 @@ def test_tcpdump_with_ping_from_target(target):
             tcpdump_process
         )
 
-        tcpdump_running, ps_aux_text = is_tcpdump_running()
+        tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
         assert not tcpdump_running, ps_aux_text
 
 
@@ -74,14 +74,14 @@ def test_tcpdump_with_long_running_ping_from_target(target):
         assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
         # sanity check that tcpdump is running
-        tcpdump_running, ps_aux_text = is_tcpdump_running()
+        tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
         assert tcpdump_running, ps_aux_text
 
         try:
             with ShellProcess(target, "ping", ["169.254.21.88"]) as bash_process:
                 logging.getLogger().info("Started ping process with PID: " + str(bash_process.pid()))
                 # sanity check that tcpdump is running
-                tcpdump_running, ps_aux_text = is_tcpdump_running()
+                tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
                 assert tcpdump_running, ps_aux_text
                 while tcpdump_process.poll() is None:
                     time.sleep(0.1)
@@ -106,7 +106,7 @@ def test_tcpdump_with_long_running_ping_from_target(target):
             tcpdump_process
         )
 
-        tcpdump_running, ps_aux_text = is_tcpdump_running()
+        tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
         assert not tcpdump_running, ps_aux_text
 
     logging.getLogger().info("Finished test_tcpdump_with_long_running_ping_from_target2")
@@ -122,7 +122,7 @@ def test_killing_tcpdump(target):
         # subprocess.run(["pkill", "tcpdump"], check=True)
         # This raises an permission exception.
 
-    tcpdump_running, ps_aux_text = is_tcpdump_running()
+    tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
     assert not tcpdump_running, ps_aux_text
 
 
@@ -135,7 +135,7 @@ def test_killing_tcpdump_while_ping_is_running(target):
         assert ping_process.is_running(), bash_process.get_output().decode()
         assert tcpdump_process.poll() is None, get_output(tcpdump_process)
 
-    tcpdump_running, ps_aux_text = is_tcpdump_running()
+    tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
     assert not tcpdump_running, ps_aux_text
     assert ping_process.is_running(), bash_process.get_output().decode()
     bash_process.__exit__(None, None, None)

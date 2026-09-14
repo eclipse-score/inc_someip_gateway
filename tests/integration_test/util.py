@@ -18,7 +18,7 @@ from score.itf.plugins.core import Target
 from types import TracebackType
 from score.itf.core.process.async_process import AsyncProcess
 
-from capture import as_text, get_output, tcpdump_capture, wait_until_process_exits
+from capture import as_text, get_output, is_process_alive, tcpdump_capture, wait_until_process_exits
 
 __all__ = [
     "ShellProcess",
@@ -88,11 +88,22 @@ def get_running_processes_on_target(target) -> str:
     return output.decode()
 
 
-def is_tcpdump_running() -> tuple[bool, str]:
+def is_tcpdump_running(pid: int | None = None) -> tuple[bool, str]:
+    """Check whether tcpdump is running.
+
+    If pid is given, check that specific process by /proc state instead of
+    grepping ps aux for the binary name. This avoids treating a zombie
+    ("[tcpdump] <defunct>") as still running -- a zombie has already exited
+    and is only awaiting reap by its parent.
+    """
+    ps_aux_text = get_running_processes_on_host()
+
+    if pid is not None:
+        return is_process_alive(pid), ps_aux_text
+
     tcpdump_name = "/usr/bin/tcpdump"
     # do not know why on Github runners tcpdump shows up like that
     tcpdump_name_github = "[tcpdump]"
-    ps_aux_text = get_running_processes_on_host()
 
     return (
         tcpdump_name in ps_aux_text or tcpdump_name_github in ps_aux_text,

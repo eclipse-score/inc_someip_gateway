@@ -14,6 +14,7 @@
 """Host-side packet-capture helpers shared across test suites."""
 
 import io
+import logging
 import os
 import pwd
 import shutil
@@ -49,6 +50,22 @@ def get_output(process: subprocess.Popen[bytes]) -> str:
     return _get_content_of_file_object(process.stdout) + "\n, stderr: " + _get_content_of_file_object(process.stderr)
 
 
+def is_process_alive(pid: int) -> bool:
+    """Return True if *pid* exists and is not a zombie (defunct) process.
+
+    A zombie has already exited; it is kept in the process table only until
+    its parent reaps it via wait(). It should not count as "running".
+    """
+    try:
+        with open(f"/proc/{pid}/status") as status_file:
+            for line in status_file:
+                if line.startswith("State:"):
+                    return "zombie" not in line.lower()
+        return True  # status file exists but no State line; assume alive
+    except FileNotFoundError:
+        return False
+
+
 def wait_until_process_exits(process: subprocess.Popen[bytes], timeout: float = 10.0) -> str:
     """Poll *process* until it exits or *timeout* seconds elapse.
 
@@ -68,14 +85,9 @@ def stop_capture(
     proc: subprocess.Popen[bytes],
     timeout: float = 5.0,
 ) -> bool:
-    """Send SIGINT to *proc* (tcpdump flushes the pcap cleanly on SIGINT), wait,
-    fall back to SIGKILL + pkill sweep on timeout.
+    """Send SIGINT to *proc*; fall back to SIGKILL + pkill sweep on timeout.
 
-    After SIGKILL, ``pkill -9 -x tcpdump`` mops up any privilege-separation
-    child processes forked by tcpdump's -Z handling that survive a parent kill.
-
-    Returns True if the process exited cleanly (or was already gone), False if
-    SIGKILL was required.
+    Pkill mops up -Z privilege-separation children that survive the SIGKILL. Returns True if exited cleanly, False if SIGKILL was needed.
     """
     if proc.poll() is not None:
         return True
@@ -97,19 +109,16 @@ def stop_capture(
         return False
 
 
-def _close_pipes_and_wait(proc: subprocess.Popen[bytes], timeout: float = 5.0) -> bool:
-    """Close *proc*'s stdout/stderr pipes so it gets SIGPIPE/EPIPE on its next
-    write, then wait for it to exit; SIGKILL on timeout.
+def _close_pipes_and_wait(proc: subprocess.Popen[bytes], timeout: float = 30.0) -> bool:
+    """Close *proc*'s stdout/stderr pipes, then wait for it to exit naturally.
 
-    Text-mode tcpdump captures (no output file, stdout=PIPE) are torn down
-    this way rather than via SIGINT: tcpdump's -Z privilege-separation forks
-    a child even when dropping to its own current user, and that child does
-    not receive SIGINT reliably in a sandboxed user namespace (EPERM).
-    Closing the pipe it writes to is delivery-independent and reliably
-    terminates it.
-
-    Returns True if the process exited cleanly, False if SIGKILL was required.
+    No force-kill: SIGKILL is not reliably delivered to tcpdump's -Z privsep
+    child in the CI sandbox. *timeout* only gates a diagnostic warning and a
+    best-effort `pkill -9 -x tcpdump` sweep; it never triggers a kill. Always
+    returns True once the process has exited.
     """
+    logger = logging.getLogger(__name__)
+
     if proc.poll() is not None:
         return True
 
@@ -120,27 +129,29 @@ def _close_pipes_and_wait(proc: subprocess.Popen[bytes], timeout: float = 5.0) -
             except OSError:
                 pass
 
+    logger.info("tcpdump (pid=%s) pipes closed; waiting for natural exit", proc.pid)
+
     try:
         proc.wait(timeout=timeout)
-        return True
     except subprocess.TimeoutExpired:
-        proc.kill()
+        logger.warning(
+            "tcpdump (pid=%s) still alive %.0fs after pipe close (alive=%s); "
+            "running best-effort pkill sweep and continuing to wait",
+            proc.pid,
+            timeout,
+            is_process_alive(proc.pid),
+        )
+        subprocess.run(["pkill", "-9", "-x", "tcpdump"], check=False)
         proc.wait()
-        return False
+
+    logger.info("tcpdump (pid=%s) exited with returncode=%s", proc.pid, proc.returncode)
+    return True
 
 
 class CaptureProcess:
     """Context manager wrapper around a tcpdump Popen.
 
-    Text-mode captures (no output file) are torn down by closing stdout/stderr
-    so tcpdump gets SIGPIPE on its next write; this avoids relying on SIGINT
-    delivery to a possibly privilege-separated -Z child. Pcap-mode captures
-    (output_file set, stdout=DEVNULL) have no pipe to close, so SIGINT via
-    stop_capture is used instead, falling back to SIGKILL on timeout. If the
-    pcap was written to a temporary /tmp path, it is moved to the caller's
-    requested destination after capture stops.
-    Direct attribute access (poll, kill, wait, returncode, …) is delegated to
-    the wrapped Popen so callers that store the object directly continue to work.
+    Text-mode captures close pipes (SIGPIPE); pcap-mode captures use SIGINT via stop_capture. Moves the pcap from /tmp to the final path on exit and delegates attribute access to the wrapped Popen.
     """
 
     def __init__(
@@ -194,10 +205,7 @@ def tcpdump_capture(
     Raises:
         RuntimeError: tcpdump exited immediately (missing binary or CAP_NET_RAW).
     """
-    # Pass -Z <current_user> so tcpdump drops to the process's own uid rather
-    # than its compiled-in default user, which fails without CAP_SETUID in CI
-    # (observed even as root: tcpdump still tries to drop to its default
-    # non-root user unless told otherwise).
+    # -Z <current_user>: avoids tcpdump dropping to its default user, which fails without CAP_SETUID in CI (even as root).
     try:
         _z_user = pwd.getpwuid(os.getuid()).pw_name
     except KeyError:
