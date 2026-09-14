@@ -15,25 +15,11 @@ load("@rules_python//python:defs.bzl", "py_library")
 load("@score_tooling//:defs.bzl", "score_py_pytest")
 
 # ---------------------------------------------------------------------------
-# Shared test utilities. The intention is for this package to hold Python
-# test utilities shared between TC8 conformance tests and integration tests.
-# For now, the files in tests/integration_test are kept as they are and have
-# not moved here yet.
-# imports=["."] adds tests/common/ to sys.path so downstream code can do:
+# Shared test utilities, consumed by both tests/integration_test and
+# tests/tc8_conformance.  imports=["."] adds tests/common/ to sys.path so
+# downstream code can do:
 #   from capture import tcpdump_capture
 # ---------------------------------------------------------------------------
-
-filegroup(
-    name = "all_files",
-    srcs = glob(
-        ["**"],
-        exclude = [
-            "**/__pycache__/**",
-            "**/*.pyc",
-        ],
-    ),
-    visibility = ["//visibility:public"],
-)
 
 py_library(
     name = "capture",

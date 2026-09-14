@@ -13,24 +13,22 @@
 
 """Unit tests for tests/common/capture.py.
 
-Covers as_text, _get_content_of_file_object, get_output,
-wait_until_process_exits, stop_capture (ProcessLookupError branch, SIGINT
-path, SIGKILL fallback + pkill sweep), and the CAP_NET_RAW startup-failure path.
-All tests are host-only (no QEMU, no network, no CAP_NET_RAW required).
+Host-only: no QEMU, network, or CAP_NET_RAW required.
 """
 
-import io
 import os
 import subprocess
 
 import pytest
 
-import signal
+import time
 
 from capture import (
     as_text,
+    _close_pipes_and_wait,
     _get_content_of_file_object,
     get_output,
+    is_process_alive,
     stop_capture,
     tcpdump_capture,
     wait_until_process_exits,
@@ -116,6 +114,53 @@ def test_get_output_empty_process() -> None:
 
 
 # ---------------------------------------------------------------------------
+# is_process_alive
+# ---------------------------------------------------------------------------
+
+
+def test_is_process_alive_true_for_running_process() -> None:
+    """A running process is reported as alive."""
+    proc = subprocess.Popen(["sleep", "5"])
+    try:
+        assert is_process_alive(proc.pid) is True
+    finally:
+        proc.kill()
+        proc.wait()
+
+
+def test_is_process_alive_false_for_missing_pid() -> None:
+    """A pid with no /proc entry is reported as not alive."""
+    missing_pid = 2**22  # far beyond any pid this test process could have
+    assert is_process_alive(missing_pid) is False
+
+
+def test_is_process_alive_false_for_zombie() -> None:
+    """A zombie (exited, not yet reaped) process is reported as not alive."""
+    proc = subprocess.Popen(["true"])
+
+    # Wait for the kernel to transition the process to zombie state, without
+    # reaping it ourselves (that would remove it from the process table).
+    deadline = time.monotonic() + 5.0
+    status_path = f"/proc/{proc.pid}/status"
+    is_zombie = False
+    while time.monotonic() < deadline:
+        try:
+            with open(status_path) as status_file:
+                if any("zombie" in line.lower() for line in status_file if line.startswith("State:")):
+                    is_zombie = True
+                    break
+        except FileNotFoundError:
+            break
+        time.sleep(0.01)
+
+    try:
+        assert is_zombie, "process did not reach zombie state before timeout"
+        assert is_process_alive(proc.pid) is False
+    finally:
+        proc.wait()  # reap
+
+
+# ---------------------------------------------------------------------------
 # wait_until_process_exits
 # ---------------------------------------------------------------------------
 
@@ -148,7 +193,7 @@ def test_wait_until_process_exits_raises_on_timeout() -> None:
 
 
 # ---------------------------------------------------------------------------
-# tcpdump_capture — argument validation and flag verification
+# tcpdump_capture: argument validation and flag verification
 # ---------------------------------------------------------------------------
 
 
@@ -196,10 +241,7 @@ def test_tcpdump_capture_pcap_mode_includes_dash_u_flag(
 def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """-U flag is NOT added in text mode (no output_file).
-
-    In text mode stdout=PIPE is used; -U is a pcap-specific flag.
-    """
+    """-U is not added in text mode (no output_file); it's a pcap-specific flag."""
     import capture as capture_module  # noqa: PLC0415
 
     original_popen = capture_module.subprocess.Popen
@@ -222,7 +264,7 @@ def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
 def test_tcpdump_capture_includes_z_flag_with_current_user(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """-Z is passed with the current username so tcpdump does not attempt to drop to its compiled-in default user (fails without CAP_SETUID in CI)."""
+    """-Z uses the current username so tcpdump doesn't drop to its default user, which fails without CAP_SETUID in CI."""
     import os
     import pwd
     import capture as capture_module  # noqa: PLC0415
@@ -248,12 +290,10 @@ def test_tcpdump_capture_includes_z_flag_with_current_user(
     assert z_index + 1 < len(args), "-Z flag has no argument"
     z_user = args[z_index + 1]
 
-    # The -Z argument must be the current user's name (prevents privilege drop
-    # to the compiled-in tcpdump user).
     try:
         expected_user = pwd.getpwuid(os.getuid()).pw_name
     except KeyError:
-        expected_user = "root" if os.getuid() == 0 else str(os.getuid())
+        expected_user = str(os.getuid())
 
     assert z_user == expected_user, f"-Z argument is '{z_user}', expected '{expected_user}'"
 
@@ -261,12 +301,7 @@ def test_tcpdump_capture_includes_z_flag_with_current_user(
 def test_tcpdump_capture_pcap_written_under_tmp(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """When output_file is set, tcpdump is told to write to /tmp (always writable).
-
-    Writing directly to TEST_UNDECLARED_OUTPUTS_DIR fails in CI because the
-    bind-mounted testlogs path becomes unwritable after tcpdump's -Z credential drop.
-    /tmp is writable in all sandbox configurations (Linux + QNX8).
-    """
+    """tcpdump writes pcaps to /tmp, which stays writable after its -Z credential drop (unlike the bind-mounted TEST_UNDECLARED_OUTPUTS_DIR)."""
     import capture as capture_module  # noqa: PLC0415
 
     original_popen = capture_module.subprocess.Popen
@@ -374,42 +409,6 @@ def test_stop_capture_graceful_sigint_returns_true() -> None:
     assert proc.poll() is not None, "process should have exited after stop_capture"
 
 
-def test_stop_capture_sweeps_orphans_on_clean_sigint_exit(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """pkill -9 -x tcpdump must run even when SIGINT causes a clean, fast exit.
-
-    tcpdump's -Z privilege-separation child is not tracked by the Popen object
-    and can outlive a parent that exits cleanly within the wait() timeout, so
-    the pkill sweep cannot be limited to the SIGKILL/timeout branch.
-    """
-    import capture as capture_module  # noqa: PLC0415
-
-    pkill_calls: list[list[str]] = []
-    original_run = capture_module.subprocess.run
-
-    def _record_run(cmd: list, **kwargs):  # type: ignore[override]
-        pkill_calls.append(list(cmd))
-        return original_run(cmd, **kwargs)
-
-    monkeypatch.setattr(capture_module.subprocess, "run", _record_run)
-
-    proc = subprocess.Popen(
-        ["sleep", "60"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-
-    result = stop_capture(proc, timeout=2.0)
-    assert result is True
-    assert proc.poll() is not None, "process should have exited after stop_capture"
-
-    pkill_invoked = any(
-        len(cmd) >= 4 and cmd[0] == "pkill" and "-9" in cmd and "-x" in cmd and "tcpdump" in cmd for cmd in pkill_calls
-    )
-    assert pkill_invoked, f"pkill -9 -x tcpdump not called after clean SIGINT exit; subprocess.run calls: {pkill_calls}"
-
-
 def test_stop_capture_kills_on_timeout_returns_false() -> None:
     """stop_capture falls back to SIGKILL when SIGINT is ignored; returns False.
 
@@ -446,12 +445,7 @@ def test_stop_capture_kills_on_timeout_returns_false() -> None:
 def test_stop_capture_sweeps_orphans_with_pkill(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """stop_capture calls pkill -9 -x tcpdump after SIGKILL to sweep orphan children.
-
-    tcpdump's -Z privilege-separation may fork a child that survives when only
-    the parent PID is killed.  pkill by name cleans up such orphans without
-    requiring process-group targeting (which raises EPERM in the CI sandbox).
-    """
+    """pkill sweeps orphaned tcpdump children by name after SIGKILL, since process-group targeting raises EPERM in the CI sandbox."""
     import capture as capture_module  # noqa: PLC0415
 
     pkill_calls: list[list[str]] = []
@@ -494,7 +488,133 @@ def test_stop_capture_sweeps_orphans_with_pkill(
 
 
 # ---------------------------------------------------------------------------
-# tcpdump_capture — CAP_NET_RAW startup-failure detection
+# _close_pipes_and_wait
+# ---------------------------------------------------------------------------
+
+
+def test_close_pipes_and_wait_returns_true_for_already_exited_process() -> None:
+    """Returns True immediately when the process has already exited."""
+    proc = subprocess.Popen(["true"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc.wait()
+    assert _close_pipes_and_wait(proc, timeout=2.0) is True
+
+
+def test_close_pipes_and_wait_terminates_process_writing_to_stdout() -> None:
+    """Closing stdout causes a process still writing to it to die (SIGPIPE), without needing a kill."""
+    proc = subprocess.Popen(
+        ["python3", "-c", "import time\nwhile True:\n print('x', flush=True)\n time.sleep(0.05)"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    kill_called = False
+
+    def _mark_kill() -> None:
+        nonlocal kill_called
+        kill_called = True
+
+    proc.kill = _mark_kill  # type: ignore[method-assign]
+
+    result = _close_pipes_and_wait(proc, timeout=5.0)
+    assert result is True
+    assert proc.poll() is not None
+    assert not kill_called, "normal SIGPIPE exit must not require a forced kill"
+
+
+def test_close_pipes_and_wait_logs_slow_teardown_and_reaps_without_kill(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A process that outlives the wait timeout is never force-killed; it logs a warning,
+    runs the best-effort pkill sweep, and keeps waiting until the process exits on its own."""
+    import capture as capture_module  # noqa: PLC0415
+
+    pkill_calls: list[list[str]] = []
+    original_run = capture_module.subprocess.run
+
+    def _record_run(cmd: list, **kwargs):  # type: ignore[override]
+        pkill_calls.append(list(cmd))
+        return original_run(cmd, **kwargs)
+
+    monkeypatch.setattr(capture_module.subprocess, "run", _record_run)
+
+    # Never writes to stdout/stderr, so pipe-close alone won't end it; exits on its own
+    # shortly after the function's wait timeout, standing in for "slow but not stuck".
+    proc = subprocess.Popen(
+        ["python3", "-c", "import time; time.sleep(0.6)"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    kill_called = False
+
+    def _mark_kill() -> None:
+        nonlocal kill_called
+        kill_called = True
+
+    proc.kill = _mark_kill  # type: ignore[method-assign]
+
+    with caplog.at_level("WARNING"):
+        result = _close_pipes_and_wait(proc, timeout=0.2)
+
+    assert result is True
+    assert proc.poll() is not None
+    assert not kill_called, "slow teardown must not fall back to a forced kill"
+    assert pkill_calls, "expected the best-effort pkill sweep to run"
+    assert any("still alive" in record.message for record in caplog.records)
+
+
+# ---------------------------------------------------------------------------
+# CaptureProcess: text-mode vs pcap-mode teardown routing
+# ---------------------------------------------------------------------------
+
+
+def test_capture_process_text_mode_uses_pipe_close_not_sigint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Text-mode capture (output_file=None) tears down via pipe-close, not stop_capture/SIGINT."""
+    import capture as capture_module  # noqa: PLC0415
+
+    close_calls: list[bool] = []
+    stop_calls: list[bool] = []
+    monkeypatch.setattr(capture_module, "_close_pipes_and_wait", lambda proc, timeout=5.0: close_calls.append(True))
+    monkeypatch.setattr(capture_module, "stop_capture", lambda proc, timeout=5.0: stop_calls.append(True))
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=True)
+    with capture:
+        pass
+
+    assert close_calls, "expected pipe-close teardown for text mode"
+    assert not stop_calls, "SIGINT teardown should not run for text mode"
+    proc.kill()
+    proc.wait()
+
+
+def test_capture_process_pcap_mode_uses_stop_capture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Pcap-mode capture (output_file set) tears down via stop_capture/SIGINT, not pipe-close."""
+    import capture as capture_module  # noqa: PLC0415
+
+    close_calls: list[bool] = []
+    stop_calls: list[bool] = []
+    monkeypatch.setattr(capture_module, "_close_pipes_and_wait", lambda proc, timeout=5.0: close_calls.append(True))
+    monkeypatch.setattr(capture_module, "stop_capture", lambda proc, timeout=5.0: stop_calls.append(True))
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=False)
+    with capture:
+        pass
+
+    assert stop_calls, "expected SIGINT teardown for pcap mode"
+    assert not close_calls, "pipe-close teardown should not run for pcap mode"
+    proc.kill()
+    proc.wait()
+
+
+# ---------------------------------------------------------------------------
+# tcpdump_capture: CAP_NET_RAW startup-failure detection
 # ---------------------------------------------------------------------------
 
 
@@ -515,35 +635,78 @@ def test_tcpdump_capture_raises_on_immediate_exit(
         tcpdump_capture("icmp")
 
 
-def test_tcpdump_capture_raises_runtime_error_on_missing_binary(
+def test_force_stop_closes_pipes_runs_stimulus_and_reaps(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """RuntimeError (not FileNotFoundError) is raised when Popen itself fails
-    because the tcpdump binary is missing or not executable.
-
-    This exercises the Popen() call raising OSError directly, before the
-    poll()-based immediate-exit check ever runs -- distinct from
-    test_tcpdump_capture_raises_on_immediate_exit, which covers a binary that
-    launches successfully but exits with a non-zero code.
-    """
+    """force_stop closes pipes, runs the stimulus command, and waits for the process to die."""
     import capture as capture_module  # noqa: PLC0415
 
-    def _popen_missing_binary(args: list, **kwargs):  # type: ignore[override]
-        raise FileNotFoundError("[Errno 2] No such file or directory: '/usr/bin/tcpdump'")
+    stimulus_calls: list[list[str]] = []
 
-    monkeypatch.setattr(capture_module.subprocess, "Popen", _popen_missing_binary)
+    def _record_run(cmd: list, **kwargs):  # type: ignore[override]
+        stimulus_calls.append(list(cmd))
+        return subprocess.CompletedProcess(cmd, 0)
 
-    with pytest.raises(RuntimeError, match="tcpdump failed to start"):
-        tcpdump_capture("icmp")
+    monkeypatch.setattr(capture_module.subprocess, "run", _record_run)
+
+    proc = subprocess.Popen(
+        ["python3", "-c", "import time; time.sleep(0.2); print('x', flush=True)"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    capture = capture_module.CaptureProcess(proc, text_mode=True)
+
+    result = capture.force_stop(stimulus_cmd=["true"], timeout=5.0)
+
+    assert result is True
+    assert proc.poll() is not None
+    assert stimulus_calls == [["true"]]
+
+
+def test_force_stop_raises_for_pcap_mode() -> None:
+    """force_stop is text-mode only; pcap-mode writes to a file, not the pipe."""
+    import capture as capture_module  # noqa: PLC0415
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=False)
+
+    try:
+        with pytest.raises(ValueError, match="text-mode"):
+            capture.force_stop()
+    finally:
+        proc.kill()
+        proc.wait()
+
+
+def test_force_stop_returns_false_if_process_survives_stimulus(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """force_stop returns False (does not raise) if the process is still alive after the timeout."""
+    import capture as capture_module  # noqa: PLC0415
+
+    monkeypatch.setattr(
+        capture_module.subprocess,
+        "run",
+        lambda cmd, **kwargs: subprocess.CompletedProcess(cmd, 0),  # stimulus is a no-op
+    )
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=True)
+
+    try:
+        result = capture.force_stop(stimulus_cmd=["true"], timeout=0.2)
+        assert result is False
+    finally:
+        proc.kill()
+        proc.wait()
 
 
 def test_tcpdump_capture_does_not_raise_on_immediate_clean_exit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """No RuntimeError when tcpdump exits immediately with code 0 (e.g. packet_count=1 captured instantly).
+    """No RuntimeError on immediate exit code 0 (e.g. packet_count=1 captured instantly).
 
-    A clean zero-exit within the 0.2 s window is a valid completion (packet_count
-    satisfied), NOT a startup failure.  Only non-zero exits indicate errors.
+    Only non-zero exits within the 0.2s window count as a startup failure.
     """
     import capture as capture_module  # noqa: PLC0415
 
