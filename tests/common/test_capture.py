@@ -638,6 +638,72 @@ def test_tcpdump_capture_raises_on_immediate_exit(
         tcpdump_capture("icmp")
 
 
+def test_force_stop_closes_pipes_runs_stimulus_and_reaps(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """force_stop closes pipes, runs the stimulus command, and waits for the process to die."""
+    import capture as capture_module  # noqa: PLC0415
+
+    stimulus_calls: list[list[str]] = []
+
+    def _record_run(cmd: list, **kwargs):  # type: ignore[override]
+        stimulus_calls.append(list(cmd))
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(capture_module.subprocess, "run", _record_run)
+
+    proc = subprocess.Popen(
+        ["python3", "-c", "import time; time.sleep(0.2); print('x', flush=True)"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    capture = capture_module.CaptureProcess(proc, text_mode=True)
+
+    result = capture.force_stop(stimulus_cmd=["true"], timeout=5.0)
+
+    assert result is True
+    assert proc.poll() is not None
+    assert stimulus_calls == [["true"]]
+
+
+def test_force_stop_raises_for_pcap_mode() -> None:
+    """force_stop is text-mode only; pcap-mode writes to a file, not the pipe."""
+    import capture as capture_module  # noqa: PLC0415
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=False)
+
+    try:
+        with pytest.raises(ValueError, match="text-mode"):
+            capture.force_stop()
+    finally:
+        proc.kill()
+        proc.wait()
+
+
+def test_force_stop_returns_false_if_process_survives_stimulus(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """force_stop returns False (does not raise) if the process is still alive after the timeout."""
+    import capture as capture_module  # noqa: PLC0415
+
+    monkeypatch.setattr(
+        capture_module.subprocess,
+        "run",
+        lambda cmd, **kwargs: subprocess.CompletedProcess(cmd, 0),  # stimulus is a no-op
+    )
+
+    proc = subprocess.Popen(["sleep", "60"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    capture = capture_module.CaptureProcess(proc, text_mode=True)
+
+    try:
+        result = capture.force_stop(stimulus_cmd=["true"], timeout=0.2)
+        assert result is False
+    finally:
+        proc.kill()
+        proc.wait()
+
+
 def test_tcpdump_capture_does_not_raise_on_immediate_clean_exit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

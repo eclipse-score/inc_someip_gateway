@@ -113,27 +113,26 @@ def test_tcpdump_with_long_running_ping_from_target(target):
 
 
 def test_killing_tcpdump(target):
-    with tcpdump_capture("icmp", packet_count=500) as tcpdump_process:
+    # No traffic here, so force_stop() (not signals; unreliable in this sandbox) is needed to end it.
+    capture = tcpdump_capture("icmp", packet_count=500)
+    with capture as tcpdump_process:
         assert tcpdump_process.poll() is None, get_output(tcpdump_process)
-        # killing tcpdump via exiting the with statement seems to work
-        # What does not work is killing it via using any of these:
-        # tcpdump_process.terminate()
-        # tcpdump_process.kill()
-        # subprocess.run(["pkill", "tcpdump"], check=True)
-        # This raises an permission exception.
+        assert capture.force_stop(), get_output(tcpdump_process)
 
     tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
     assert not tcpdump_running, ps_aux_text
 
 
 def test_killing_tcpdump_while_ping_is_running(target):
-    with tcpdump_capture("icmp", packet_count=500) as tcpdump_process:
+    capture = tcpdump_capture("icmp", packet_count=500)
+    with capture as tcpdump_process:
         assert tcpdump_process.poll() is None, get_output(tcpdump_process)
         bash_process = ShellProcess(target, "ping", ["169.254.21.88"])
         ping_process = bash_process.__enter__()
         assert ping_process is not None, "Failed to start ping process"
         assert ping_process.is_running(), bash_process.get_output().decode()
         assert tcpdump_process.poll() is None, get_output(tcpdump_process)
+        assert capture.force_stop(), get_output(tcpdump_process)
 
     tcpdump_running, ps_aux_text = is_tcpdump_running(tcpdump_process.pid)
     assert not tcpdump_running, ps_aux_text

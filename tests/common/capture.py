@@ -188,6 +188,37 @@ class CaptureProcess:
     def __getattr__(self, name: str) -> Any:  # noqa: ANN401
         return getattr(self._proc, name)
 
+    def force_stop(self, stimulus_cmd: list[str] | None = None, timeout: float = 5.0) -> bool:
+        """Stop an idle text-mode capture: close pipes, trigger one matching packet, wait.
+
+        Signals to tcpdump are not reliably delivered in this sandbox; this
+        instead forces the SIGPIPE-on-write path the traffic-based tests
+        already rely on. Not valid for pcap mode (writes to a file, not the pipe).
+        """
+        if not self._text_mode:
+            raise ValueError("force_stop only applies to text-mode captures")
+
+        for stream in (self._proc.stdin, self._proc.stdout, self._proc.stderr):
+            if stream is not None:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+
+        subprocess.run(
+            stimulus_cmd or ["ping", "-c", "1", "-W", "1", "127.0.0.1"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+
+        try:
+            self._proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            pass
+
+        return self._proc.poll() is not None
+
 
 def tcpdump_capture(
     filter_expression: str,
