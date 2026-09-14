@@ -13,9 +13,17 @@
 py_test(
     name = "gatewayd_test",
     srcs = ["gatewayd_test.py"],
-    args = ["$(location //score/gatewayd:gatewayd)"],
+    args = [
+        "$(location //score/gatewayd:gatewayd)",
+        "$(location //score/someipd:someipd)",
+        "$(location //score/config:config_file)",
+        "$(location //score/gatewayd:etc/mw_com_config.json)",
+    ],
     data = [
+        "//score/config:config_file",
         "//score/gatewayd",
+        "//score/gatewayd:etc/mw_com_config.json",
         "//score/serializer:null_serializer",
+        "//score/someipd",
     ],
 )
