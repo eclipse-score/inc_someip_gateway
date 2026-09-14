@@ -151,7 +151,9 @@ def _close_pipes_and_wait(proc: subprocess.Popen[bytes], timeout: float = 30.0) 
 class CaptureProcess:
     """Context manager wrapper around a tcpdump Popen.
 
-    Text-mode captures close pipes (SIGPIPE); pcap-mode captures use SIGINT via stop_capture. Moves the pcap from /tmp to the final path on exit and delegates attribute access to the wrapped Popen.
+    Text-mode captures close pipes (SIGPIPE); pcap-mode captures use SIGINT
+    via ``stop_capture``. Moves the pcap from /tmp to the final path on exit
+    and delegates attribute access to the wrapped Popen.
     """
 
     def __init__(

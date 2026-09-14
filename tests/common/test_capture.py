@@ -16,13 +16,10 @@
 Host-only: no QEMU, network, or CAP_NET_RAW required.
 """
 
-import io
 import os
 import subprocess
 
 import pytest
-
-import signal
 
 import time
 

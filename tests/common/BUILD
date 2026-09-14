@@ -21,18 +21,6 @@ load("@score_tooling//:defs.bzl", "score_py_pytest")
 #   from capture import tcpdump_capture
 # ---------------------------------------------------------------------------
 
-filegroup(
-    name = "all_files",
-    srcs = glob(
-        ["**"],
-        exclude = [
-            "**/__pycache__/**",
-            "**/*.pyc",
-        ],
-    ),
-    visibility = ["//visibility:public"],
-)
-
 py_library(
     name = "capture",
     srcs = ["capture.py"],
