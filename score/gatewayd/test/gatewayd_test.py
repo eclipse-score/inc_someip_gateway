@@ -36,10 +36,14 @@ class GatewaydTest(unittest.TestCase):
         self.assertIn("Syntax: gatewayd -h/--help", result.stdout)
 
     def test_creates_local_network_instance(self) -> None:
-        self._assert_creates_network_instance("Creating local service instance: window_control")
+        self._assert_creates_network_instance(
+            "Creating local service instance: window_control*Gateway started, waiting for shutdown signal..."
+        )
 
     def test_creates_remote_network_instance(self) -> None:
-        self._assert_creates_network_instance("Creating remote service instance: echo_response")
+        self._assert_creates_network_instance(
+            "Creating remote service instance: echo_response*Gateway started, waiting for shutdown signal..."
+        )
 
     def _assert_creates_network_instance(self, expected_output: str) -> None:
         ipc_channel = f"gatewayd-test-{os.getpid()}-{time.monotonic_ns()}"

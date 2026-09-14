@@ -12,12 +12,19 @@
 # *******************************************************************************
 
 import os
+import re
 import select
 import signal
 import subprocess
 import time
 from collections.abc import Sequence
 from os import PathLike
+
+
+def _glob_to_regex(pattern: str) -> re.Pattern[str]:
+    """Translate a glob pattern ('*' matches any text, including newlines) to a regex."""
+    escaped = re.escape(pattern).replace(re.escape("*"), ".*")
+    return re.compile(escaped, re.DOTALL)
 
 
 def assert_process_creates_network_instance(
@@ -46,16 +53,20 @@ def wait_for_output(
     timeout_seconds: float = 10,
     failure_prefix: str = "process did not produce expected output",
 ) -> None:
+    """Wait until the process' stdout matches `expected_output`, a glob pattern where '*' matches any text."""
     stdout_pipe = process.stdout
     if stdout_pipe is None:
         raise AssertionError("test failed to capture subprocess stdout")
 
     stdout_fd = stdout_pipe.fileno()
     deadline = time.monotonic() + timeout_seconds
-    expected_output_bytes = expected_output.encode("utf-8")
+    pattern = _glob_to_regex(expected_output)
     output_bytes = b""
-    while time.monotonic() < deadline:
-        readable, _, _ = select.select([stdout_fd], [], [], deadline - time.monotonic())
+    while True:
+        remaining_seconds = deadline - time.monotonic()
+        if remaining_seconds <= 0:
+            break
+        readable, _, _ = select.select([stdout_fd], [], [], remaining_seconds)
         if not readable:
             break
         chunk = os.read(stdout_fd, 4096)
@@ -64,7 +75,7 @@ def wait_for_output(
                 break
             continue
         output_bytes += chunk
-        if expected_output_bytes in output_bytes:
+        if pattern.search(output_bytes.decode("utf-8", errors="replace")):
             return
 
     output = output_bytes.decode("utf-8", errors="replace")
