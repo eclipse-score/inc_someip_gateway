@@ -32,4 +32,7 @@ py_test(
         "block-network",
         "unit",
     ],
+    deps = [
+        "//quality/pytest:process",
+    ],
 )

@@ -6,27 +6,7 @@
 #
 # This program and the accompanying materials are made available under the
 # terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
-load("@rules_python//python:defs.bzl", "py_test")
-
-py_test(
-    name = "someipd_test",
-    srcs = ["someipd_test.py"],
-    args = [
-        "$(location //score/someipd:someipd)",
-        "$(location //score/config:config_file)",
-    ],
-    data = [
-        "//score/config:config_file",
-        "//score/someipd",
-    ],
-    tags = [
-        "unit",
-    ],
-    deps = [
-        "//quality/pytest:process",
-    ],
-)

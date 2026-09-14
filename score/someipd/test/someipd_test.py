@@ -12,12 +12,12 @@
 
 from pathlib import Path
 import os
-import select
-import signal
 import subprocess
 import sys
 import time
 import unittest
+
+from quality.pytest.process import assert_process_creates_network_instance
 
 
 class SomeipdTest(unittest.TestCase):
@@ -38,7 +38,7 @@ class SomeipdTest(unittest.TestCase):
         self._assert_creates_network_instance("REQUEST(0100): [4321.5678")
 
     def _assert_creates_network_instance(self, expected_output: str) -> None:
-        process = subprocess.Popen(
+        assert_process_creates_network_instance(
             [
                 self.binary,
                 "--configuration",
@@ -46,40 +46,9 @@ class SomeipdTest(unittest.TestCase):
                 "--ipc_channel",
                 f"someipd-test-{os.getpid()}-{time.monotonic_ns()}",
             ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
+            expected_output,
+            failure_prefix="someipd did not create a network instance",
         )
-        try:
-            stdout_pipe = process.stdout
-            if stdout_pipe is None:
-                self.fail("someipd test failed to capture subprocess stdout")
-            stdout_fd = stdout_pipe.fileno()
-            deadline = time.monotonic() + 10
-            expected_output_bytes = expected_output.encode("utf-8")
-            output_bytes = b""
-            while time.monotonic() < deadline:
-                readable, _, _ = select.select([stdout_fd], [], [], deadline - time.monotonic())
-                if not readable:
-                    break
-                chunk = os.read(stdout_fd, 4096)
-                if not chunk:
-                    if process.poll() is not None:
-                        break
-                    continue
-                output_bytes += chunk
-                if expected_output_bytes in output_bytes:
-                    return
-            output = output_bytes.decode("utf-8", errors="replace")
-            self.fail(f"someipd did not create a network instance:\n{output}")
-        finally:
-            if process.stdout is not None:
-                process.stdout.close()
-            try:
-                os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            _ = process.wait(timeout=10)
 
 
 if __name__ == "__main__":

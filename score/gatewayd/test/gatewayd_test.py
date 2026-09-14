@@ -12,12 +12,13 @@
 
 from pathlib import Path
 import os
-import select
-import signal
 import subprocess
 import sys
 import time
 import unittest
+
+from quality.pytest.process import assert_process_creates_network_instance
+from quality.pytest.process import stop_process
 
 
 class GatewaydTest(unittest.TestCase):
@@ -53,9 +54,8 @@ class GatewaydTest(unittest.TestCase):
             stderr=subprocess.STDOUT,
             start_new_session=True,
         )
-        gatewayd_process: subprocess.Popen[bytes] | None = None
         try:
-            gatewayd_process = subprocess.Popen(
+            assert_process_creates_network_instance(
                 [
                     self.gatewayd,
                     "--configuration",
@@ -65,49 +65,10 @@ class GatewaydTest(unittest.TestCase):
                     "--ipc_channel",
                     ipc_channel,
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
+                expected_output,
             )
-            self._wait_for_output(gatewayd_process, expected_output)
         finally:
-            if gatewayd_process is not None:
-                self._stop_process(gatewayd_process)
-            self._stop_process(someipd_process)
-
-    def _wait_for_output(self, process: subprocess.Popen[bytes], expected_output: str) -> None:
-        stdout_pipe = process.stdout
-        if stdout_pipe is None:
-            self.fail("gatewayd test failed to capture subprocess stdout")
-
-        stdout_fd = stdout_pipe.fileno()
-        deadline = time.monotonic() + 10
-        expected_output_bytes = expected_output.encode("utf-8")
-        output_bytes = b""
-        while time.monotonic() < deadline:
-            readable, _, _ = select.select([stdout_fd], [], [], deadline - time.monotonic())
-            if not readable:
-                break
-            chunk = os.read(stdout_fd, 4096)
-            if not chunk:
-                if process.poll() is not None:
-                    break
-                continue
-            output_bytes += chunk
-            if expected_output_bytes in output_bytes:
-                return
-        output = output_bytes.decode("utf-8", errors="replace")
-        self.fail(f"process did not produce expected output '{expected_output}':\n{output}")
-
-    def _stop_process(self, process: subprocess.Popen[bytes]) -> None:
-        if process.stdout is not None:
-            process.stdout.close()
-        if process.poll() is None:
-            try:
-                os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-        _ = process.wait(timeout=10)
+            stop_process(someipd_process)
 
 
 if __name__ == "__main__":
