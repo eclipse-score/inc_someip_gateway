@@ -47,7 +47,7 @@ Integration tests are enabled only for QEMU-backed runs:
 
 ### filesystem tar
 
-The tests and their data are packaged into a filesystem tar and made available underneath `/opt/` in the root file system.
+The tests and their data are made available underneath `/opt/` in the root file system.
 
 ### Default Test Parameters Applied by the Macro
 
