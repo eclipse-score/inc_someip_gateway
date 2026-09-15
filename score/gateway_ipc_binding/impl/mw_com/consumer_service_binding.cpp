@@ -160,17 +160,18 @@ Result<void> Consumer_service_binding::start_find_service(
 
 void Consumer_service_binding::on_find_service(
     score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept {
-    detach_from_peer();
-
     if (handles.empty()) {
         score::mw::log::LogInfo() << kLog_tag << "Bridged service" << m_instance_specifier
                                   << "is gone";
+        detach_from_peer();
         return;
     }
 
-    // maxSubscribers is 1 per instance, so there is exactly one peer daemon. Should the
-    // deployment ever offer more, the first handle is as good as any.
-    attach_to_peer(handles.front());
+    if (!m_proxy.has_value()) {
+        // maxSubscribers is 1 per instance, so there is exactly one peer daemon. Should the
+        // deployment ever offer more, the first handle is as good as any.
+        attach_to_peer(handles.front());
+    }
 }
 
 void Consumer_service_binding::attach_to_peer(score::mw::com::HandleType handle) noexcept {
