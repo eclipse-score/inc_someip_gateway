@@ -1,0 +1,40 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "gatewayd_test",
+    srcs = ["gatewayd_test.py"],
+    args = [
+        "$(location //score/gatewayd:gatewayd)",
+        "$(location //score/someipd:someipd)",
+        "$(location //score/config:config_file)",
+        "$(location //score/gatewayd:etc/mw_com_config.json)",
+    ],
+    data = [
+        "//score/config:config_file",
+        "//score/gatewayd",
+        "//score/gatewayd:etc/mw_com_config.json",
+        "//score/serializer:null_serializer",
+        "//score/someipd",
+    ],
+    tags = [
+        "block-network",
+        "unit",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        "//quality/pytest:process",
+    ],
+)

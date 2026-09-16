@@ -22,8 +22,8 @@ cc_test(
         "*.hpp",
     ]),
     data = [
-        "//score/gateway_ipc_binding/test/mw_com:mw_com_config.json",
         "tsan.supp",
+        "//score/gateway_ipc_binding/test/mw_com:mw_com_config.json",
     ],
     env = {
         "TSAN_OPTIONS": "halt_on_error=1 suppressions=$(location tsan.supp)",
@@ -32,6 +32,7 @@ cc_test(
     linkstatic = True,
     tags = [
         "block-network",
+        "component",
         "exclusive",
     ],
     visibility = ["//tests/integration_test:__pkg__"],

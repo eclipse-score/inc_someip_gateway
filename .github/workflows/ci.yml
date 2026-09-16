@@ -38,6 +38,9 @@ jobs:
   docs:
     secrets: inherit
     uses: ./.github/workflows/docs.yml
+  quality_pack:
+    secrets: inherit
+    uses: ./.github/workflows/quality_pack.yml
   static-code-analysis:
     secrets: inherit
     uses: ./.github/workflows/static-code-analysis.yml
@@ -55,6 +58,7 @@ jobs:
       - build_and_test_cross_compilation
       - coverage
       - docs
+      - quality_pack
       - static-code-analysis
     permissions: {}
     runs-on: ubuntu-latest
