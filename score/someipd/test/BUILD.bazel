@@ -27,6 +27,7 @@ py_test(
     tags = [
         "unit",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//quality/pytest:process",
     ],

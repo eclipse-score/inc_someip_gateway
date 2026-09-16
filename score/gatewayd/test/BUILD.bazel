@@ -33,6 +33,7 @@ py_test(
         "block-network",
         "unit",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//quality/pytest:process",
     ],
