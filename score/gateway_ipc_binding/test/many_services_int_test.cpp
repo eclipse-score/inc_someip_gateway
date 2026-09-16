@@ -128,7 +128,8 @@ class Gateway_ipc_binding_many_services_integration_test
 
     Event_id const beta_event_id{1};
 
-    Gateway_ipc_binding_many_services_integration_test() {
+    void SetUp() override {
+        Gateway_ipc_binding_unconnected_integration_test::SetUp();
         client = nullptr;
         server = nullptr;
         client = create_ipc_client(*runtime_client, client_shm_config, {},

@@ -134,7 +134,8 @@ class Gateway_ipc_binding_payload_lifetime_regression_test
     socom::Runtime::Uptr runtime_client2 = score::socom::create_runtime();
     std::unique_ptr<Gateway_ipc_binding_client> client2;
 
-    Gateway_ipc_binding_payload_lifetime_regression_test() {
+    void SetUp() override {
+        Gateway_ipc_binding_unconnected_integration_test::SetUp();
         server.reset();
         client.reset();
 

@@ -15,6 +15,11 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
+exports_files(
+    ["mw_com_config.json"],
+    visibility = ["//score/gateway_ipc_binding/test:__pkg__"],
+)
+
 # Runs a real mw::com (LoLa) runtime in-process: the SomeipdService skeleton and
 # the proxy that observes it both live in this test binary. mw::com may only be
 # initialized once per process, so main.cpp does it for the whole binary.

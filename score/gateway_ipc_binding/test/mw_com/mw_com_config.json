@@ -35,6 +35,25 @@
           ]
         }
       ]
+    },
+    {
+      "serviceTypeName": "com.test.service",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6402,
+          "events": [
+            {
+              "eventName": "event",
+              "eventId": 1
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceInstances": [
@@ -89,6 +108,28 @@
             {
               "eventName": "event_b",
               "numberOfSampleSlots": 5,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "ipc/shared_test",
+      "serviceTypeName": "com.test.service",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event",
+              "numberOfSampleSlots": 4,
               "maxSubscribers": 1
             }
           ]

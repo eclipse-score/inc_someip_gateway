@@ -61,7 +61,8 @@ class Gateway_ipc_binding_different_interface_ids_integration_test
          {{instance, server_side_client_metadata}}},  // TODO should not be needed
         {server_service_interface, {{instance, server_side_server_metadata}}}};
 
-    Gateway_ipc_binding_different_interface_ids_integration_test() {
+    void SetUp() override {
+        Gateway_ipc_binding_unconnected_integration_test::SetUp();
         client.reset();
         server.reset();
         client = create_ipc_client(*runtime_client, client_shm_config, {},
