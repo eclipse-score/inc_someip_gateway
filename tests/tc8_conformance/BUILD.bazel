@@ -12,6 +12,7 @@
 # *******************************************************************************
 
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
+load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_python//python:defs.bzl", "py_library")
 load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
@@ -24,7 +25,18 @@ py_library(
     imports = ["."],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
-        "@score_someip_gateway_pip//someip",
+        "@score_someip_gateway_pip//scapy",
+    ],
+)
+
+py_pytest(
+    name = "test_golden_vectors",
+    size = "small",
+    srcs = ["test_golden_vectors.py"],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        ":tc8-helpers-lib",
+        "@score_someip_gateway_pip//pytest",
     ],
 )
 
@@ -98,7 +110,6 @@ py_library(
     deps = [
         ":tc8-helpers-lib",
         "//tests/common:capture",
-        "@score_someip_gateway_pip//someip",
     ],
 )
 

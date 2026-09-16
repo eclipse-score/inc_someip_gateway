@@ -21,7 +21,7 @@ import socket
 import time
 from typing import Callable, List
 
-from someip.header import SOMEIPHeader
+from helpers.someip_types import SOMEIPHeader
 
 # Called once per parsed SOME/IP message. Returns True to stop the receive
 # loop early (the caller has everything it needs), False to keep waiting.

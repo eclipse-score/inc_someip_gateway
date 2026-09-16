@@ -24,7 +24,7 @@ callable so it does not need to know which transport is in use.
 
 from typing import Callable
 
-from someip.header import SOMEIPHeader
+from helpers.someip_types import SOMEIPHeader
 
 from helpers.message_builder import build_request
 from helpers.sd_helpers import create_udp_socket

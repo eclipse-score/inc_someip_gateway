@@ -24,7 +24,7 @@ import time
 from typing import Callable, List, Optional, Tuple
 
 from helpers.constants import SD_PORT
-from someip.header import (
+from helpers.someip_types import (
     IPv4EndpointOption,
     L4Protocols,
     SD_INTERFACE_VERSION,
@@ -213,6 +213,7 @@ def send_subscribe_eventgroup_reserved_set(
     subscriber_port: int,
     ttl: int = 3,
     reserved_value: int = 0x0F,
+    session_id: Optional[int] = None,
 ) -> None:
     """Send a SubscribeEventgroup with the reserved counter bits in the entry set non-zero.
 
@@ -235,7 +236,8 @@ def send_subscribe_eventgroup_reserved_set(
     - Entry starts at byte 24; ``minver_or_counter`` is the last 4 bytes of the
       16-byte entry, at entry offset 12 → absolute offset 36.
     """
-    session_id = _next_session_id()
+    if session_id is None:
+        session_id = _next_session_id()
     endpoint_opt = IPv4EndpointOption(
         address=ipaddress.IPv4Address(subscriber_ip),
         l4proto=L4Protocols.UDP,

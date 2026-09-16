@@ -18,7 +18,7 @@ Subscribes to eventgroups via SD and captures NOTIFICATION messages.
 import socket
 from typing import List
 
-from someip.header import SOMEIPHeader, SOMEIPMessageType, L4Protocols
+from helpers.someip_types import SOMEIPHeader, SOMEIPMessageType, L4Protocols
 
 from helpers.sd_sender import (
     open_sender_socket,

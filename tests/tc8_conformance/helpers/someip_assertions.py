@@ -16,7 +16,7 @@ SOME/IP assertion helpers for TC8 conformance tests.
 Reusable assertion functions for SD entry fields and SOME/IP message headers.
 """
 
-from someip.header import (
+from helpers.someip_types import (
     IPv4EndpointOption,
     L4Protocols,
     SOMEIPHeader,

@@ -22,10 +22,9 @@ import socket
 import time
 from typing import List, Tuple
 
-from someip.header import SOMEIPSDEntry
-
 from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
 from helpers.sd_helpers import open_multicast_socket, parse_sd_offers
+from helpers.someip_types import SOMEIPSDEntry
 
 
 def collect_sd_offers_from_socket(

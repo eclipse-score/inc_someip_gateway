@@ -15,7 +15,7 @@
 Builds REQUEST, REQUEST_NO_RETURN, and intentionally malformed packets.
 """
 
-from someip.header import (
+from helpers.someip_types import (
     SOMEIPHeader,
     SOMEIPMessageType,
     SOMEIPReturnCode,
