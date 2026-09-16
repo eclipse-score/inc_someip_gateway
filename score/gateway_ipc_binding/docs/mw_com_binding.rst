@@ -71,8 +71,9 @@ Code map:
   - ``consumer_service_binding.{hpp,cpp}`` — ``GenericProxy`` plus SOCom ``Server_connector``
   - ``someipd_service_binding.{hpp,cpp}`` — the two halves of :ref:`someipd-service`
 
-- ``score/gateway_ipc_binding/test/mw_com/`` — component test running a real ``mw::com`` runtime
-  with both halves of ``SomeipdService`` and of one bridged service in one process
+- ``score/gateway_ipc_binding/test/`` — ``gateway_ipc_binding_test`` runs a real ``mw::com`` runtime
+  alongside the ``message_passing`` implementation, with both halves of ``SomeipdService`` and of one
+  bridged service in one process
 
 Goals and non-goals
 -------------------
@@ -288,10 +289,6 @@ Typed, not generic
 ``SomeipdService`` is the one service in this design that is **not** generic. Unlike a bridged SOME/IP service
 its content is known at compile time, it is defined by this repository rather than by a customer's SOME/IP
 deployment, and it is not a pass-through for opaque bytes.
-
-It declares no service elements at all. That an element-less typed instance works on a real runtime is
-no longer an assumption: ``score/gateway_ipc_binding/test/mw_com/`` offers such an instance and finds it,
-so no placeholder element is needed.
 
 .. _sample-layout:
 
@@ -658,10 +655,11 @@ left unavailable instead of reading payloads at the wrong offset.
 Testing strategy
 ----------------
 
-Everything runs in ``//score/gateway_ipc_binding/test/mw_com:gateway_ipc_binding_mw_com_test``, a single
-binary with a real ``mw::com`` runtime, two SOCom runtimes standing in for the two daemons, and both halves
-of the link in one process. ``mw::com`` can only be initialized once per process, which is why the whole
-suite shares one ``main.cpp`` and one ``mw_com_config.json``.
+Everything runs in ``//score/gateway_ipc_binding/test:gateway_ipc_binding_test``, the same binary that
+exercises the ``message_passing`` implementation. It carries a real ``mw::com`` runtime alongside two SOCom
+runtimes standing in for the two daemons, with both halves of the link in one process. ``mw::com`` can only
+be initialized once per process, which is why the whole suite shares one ``main.cpp`` and one
+``mw_com_config.json``.
 
 Implemented:
 
@@ -670,10 +668,10 @@ Implemented:
   works: offer, find, ``is_connected()`` true, peer stops, ``is_connected()`` false, peer restarts, true again
 - configuration rejection: an instance missing from the deployment, an event missing from the deployment,
   no events, duplicate event names, ``max_sample_count == 0``
-- bridged services, in ``bridged_service_test.cpp``, with a stand-in producing and consuming application in
-  ``bridged_service_apps.hpp``: availability propagation, per-event subscription propagation in both
-  directions, event round trip including the SOME/IP header and an empty and a maximum-size payload, and
-  service disappearance
+- bridged services, parameterized alongside the ``message_passing`` implementation in
+  ``bidirectional_int_test.cpp`` and friends: availability propagation, per-event subscription propagation
+  in both directions, event round trip including the SOME/IP header and an empty and a maximum-size payload,
+  and service disappearance including while a subscription is still live
 
 Still open:
 

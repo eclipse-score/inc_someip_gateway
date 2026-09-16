@@ -13,6 +13,12 @@
 
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+
+exports_files(
+    ["mw_com_config.json"],
+    visibility = ["//tests/integration_test:__pkg__"],
+)
 
 cc_test(
     name = "gateway_ipc_binding_test",
@@ -22,8 +28,8 @@ cc_test(
         "*.hpp",
     ]),
     data = [
+        "mw_com_config.json",
         "tsan.supp",
-        "//score/gateway_ipc_binding/test/mw_com:mw_com_config.json",
     ],
     env = {
         "TSAN_OPTIONS": "halt_on_error=1 suppressions=$(location tsan.supp)",
@@ -45,4 +51,12 @@ cc_test(
         "@score_baselibs//score/filesystem",
         "@score_communication//score/mw/com",
     ],
+)
+
+validate_json_schema_test(
+    name = "mw_com_config_schema_valid",
+    size = "small",
+    json = "mw_com_config.json",
+    schema = "@score_communication//score/mw/com:config_schema",
+    tags = ["lint"],
 )

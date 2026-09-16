@@ -336,6 +336,18 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_disc
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
+       server_disconnects_while_client_is_subscribed) {
+    // With a live subscription, tearing the offer down cannot fully release the underlying
+    // binding: something on the other side still references the subscribed event.
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
+
+    server->connector.reset();
+
+    EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
+              std::future_status::ready);
+}
+
+TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_disconnects_and_reconnects) {
     server->connector.reset();
     EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),

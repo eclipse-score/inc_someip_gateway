@@ -67,7 +67,7 @@ pkg_files(
     testonly = True,
     srcs = [
         "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
-        "//score/gateway_ipc_binding/test/mw_com:mw_com_config.json",
+        "//score/gateway_ipc_binding/test:mw_com_config.json",
         "//score/serializer:null_serializer_test",
         "//score/socom/test/stress:socom_stress_test",
         "//score/socom/test/unit:socom_test",
@@ -76,7 +76,7 @@ pkg_files(
         mode = "0777",
     ),
     renames = {
-        "//score/gateway_ipc_binding/test/mw_com:mw_com_config.json": "gateway_ipc_binding_mw_com_config.json",
+        "//score/gateway_ipc_binding/test:mw_com_config.json": "gateway_ipc_binding_mw_com_config.json",
     },
 )
 

@@ -40,7 +40,7 @@ std::string manifest_path() {
         return "/opt/gateway_ipc_binding_mw_com_config.json";
     }
     return std::string{test_srcdir} + "/" + test_workspace +
-           "/score/gateway_ipc_binding/test/mw_com/mw_com_config.json";
+           "/score/gateway_ipc_binding/test/mw_com_config.json";
 }
 
 int main(int argc, char** argv) {
