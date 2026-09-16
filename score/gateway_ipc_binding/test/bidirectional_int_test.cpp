@@ -93,13 +93,12 @@ INSTANTIATE_TEST_SUITE_P(
     Values(Bidirectional_test_parameter{Direction::Client_to_server,
                                         Ipc_binding_implementation::Message_passing},
            Bidirectional_test_parameter{Direction::Server_to_client,
-                                        Ipc_binding_implementation::Message_passing}),
+                                        Ipc_binding_implementation::Message_passing},
+           Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Mw_com}),
     readable_test_names);
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subscribes_to_event) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com event subscription is not covered yet";
-    }
     std::promise<void> event_subscription_change_promise;
     EXPECT_CALL(server->mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::subscribed))
@@ -130,9 +129,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subs
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_allocates_event_payload) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com event payload allocation is not covered yet";
-    }
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     auto payload_handle = server->connector->allocate_event_payload(event_id);
@@ -144,9 +140,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        event_payload_allocation_without_any_subscription_fails) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com event payload allocation is not covered yet";
-    }
     auto payload_handle = server->connector->allocate_event_payload(event_id);
     EXPECT_EQ(payload_handle,
               MakeUnexpected(
@@ -180,9 +173,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_sends_event_update) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com event updates are not covered yet";
-    }
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
@@ -209,9 +199,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_send
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_sends_event_update_with_shrunk_payload) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com event updates are not covered yet";
-    }
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
@@ -295,9 +282,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disconnects) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com disconnect behavior is not covered yet";
-    }
     // misuse Event subscription notification to detect client disconnect
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
@@ -316,9 +300,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disc
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_disconnects_and_reconnects) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com reconnect behavior is not covered yet";
-    }
     // misuse Event subscription notification to detect client disconnect
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
@@ -355,9 +336,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_disconnects) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com disconnect behavior is not covered yet";
-    }
     server->connector.reset();
     EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);

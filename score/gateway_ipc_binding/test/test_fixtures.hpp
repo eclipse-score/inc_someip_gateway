@@ -91,7 +91,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                                        instance,
                                        "ipc/bridged",
                                        mw_com::Role::provider,
-                                       {{"event_a", 16U, 128U}, {"event_b", 16U, 128U}},
+                                       {{"event_a", 16U, 512U}, {"event_b", 16U, 512U}},
                                        4U}});
     }
 
@@ -116,7 +116,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                                        instance,
                                        "ipc/bridged",
                                        mw_com::Role::consumer,
-                                       {{"event_a", 16U, 128U}, {"event_b", 16U, 128U}},
+                                       {{"event_a", 16U, 512U}, {"event_b", 16U, 512U}},
                                        4U}});
     }
 
