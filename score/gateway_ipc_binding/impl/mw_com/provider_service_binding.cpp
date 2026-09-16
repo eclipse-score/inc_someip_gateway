@@ -373,7 +373,7 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
         // Back pressure: every slot is held by the peer or still in flight.
         score::mw::log::LogWarn() << kLog_tag << "Failed to allocate a sample for event" << event_id
                                   << ":" << sample.error();
-        return MakeUnexpected(Mw_com_binding_error::runtime_error_sample_allocation_failed);
+        return MakeUnexpected(Shared_memory_manager_error::runtime_error_no_available_slots);
     }
 
     auto* const sample_base = static_cast<std::byte*>(sample.value().Get());

@@ -148,9 +148,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        exhausted_event_payload_slots_return_error) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com event payload allocation is not covered yet";
-    }
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::vector<std::optional<socom::Writable_payload>> payload_handles;
@@ -232,9 +229,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_keeps_event_payloads_until_server_receives_consumed_notification) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com event payload lifetimes are not covered yet";
-    }
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::vector<socom::Payload> payload_handles;

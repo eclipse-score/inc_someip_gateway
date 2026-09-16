@@ -102,12 +102,12 @@
           "events": [
             {
               "eventName": "event_a",
-              "numberOfSampleSlots": 5,
+              "numberOfSampleSlots": 4,
               "maxSubscribers": 1
             },
             {
               "eventName": "event_b",
-              "numberOfSampleSlots": 5,
+              "numberOfSampleSlots": 4,
               "maxSubscribers": 1
             }
           ]
