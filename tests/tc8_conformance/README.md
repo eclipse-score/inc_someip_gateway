@@ -28,9 +28,9 @@ For architecture diagrams and design rationale, see
 | **Protocol Conformance** | Wire-level SOME/IP (SD, messages, events, fields) | `someipd` standalone | Implemented (SD + MSG + EVT + FLD) |
 | **Application-Level Tests** | End-to-end via mw::com through the gateway | gatewayd + someipd + C++ apps | [Planned](application/README.md) |
 
-Protocol conformance tests send/receive raw SOME/IP packets using the Python `someip`
-library. Application-level tests use C++ `mw::com` applications and work with any
-SOME/IP binding.
+Protocol conformance tests send/receive raw SOME/IP packets using
+[scapy](https://scapy.net/). Application-level tests use C++ `mw::com` applications
+and work with any SOME/IP binding.
 
 ## Quick Start
 

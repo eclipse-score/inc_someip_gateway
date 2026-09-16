@@ -22,10 +22,10 @@ SOME/IP conformance testing of the SOME/IP Gateway.
 The TC8 test suite covers two scopes:
 
 - **Protocol Conformance**: Tests ``someipd`` at the wire level using raw
-  UDP/TCP sockets and the ``someip`` Python package. No application processes
-  are needed. ``someipd`` is launched on its own (``-c <config.bin>``,
-  without ``gatewayd``), so no local/remote application traffic is routed
-  through it.
+  UDP/TCP sockets and `scapy <https://scapy.net/>`_ as the packet serializer
+  and parser. No application processes are needed. ``someipd`` is launched on
+  its own (``-c <config.bin>``, without ``gatewayd``), so no local/remote
+  application traffic is routed through it.
 
 - **Application-Level Tests**: Tests the full gateway path
   (mw::com client to ``gatewayd`` to ``someipd`` to network) using C++ apps

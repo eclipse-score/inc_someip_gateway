@@ -22,8 +22,9 @@ Overview
 defines conformance tests for automotive SOME/IP implementations.
 The TC8 test suite has two scopes:
 
-- **Protocol Conformance**: tests the production ``someipd`` binary at the wire level using the
-  ``someip`` Python package. No application processes are needed.
+- **Protocol Conformance**: tests the production ``someipd`` binary at the wire level using
+  `scapy <https://scapy.net/>`_ as the packet serializer and parser. No application processes
+  are needed.
 
 - **Application Level Tests**: tests the full gateway path from mw::com client
   through ``gatewayd`` and ``someipd`` to the network, using C++ apps
