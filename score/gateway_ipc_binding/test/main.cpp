@@ -37,7 +37,7 @@ std::string manifest_path() {
     char const* const test_srcdir = std::getenv("TEST_SRCDIR");
     char const* const test_workspace = std::getenv("TEST_WORKSPACE");
     if ((test_srcdir == nullptr) || (test_workspace == nullptr)) {
-        return {};
+        return "/opt/gateway_ipc_binding_mw_com_config.json";
     }
     return std::string{test_srcdir} + "/" + test_workspace +
            "/score/gateway_ipc_binding/test/mw_com/mw_com_config.json";
@@ -49,9 +49,6 @@ int main(int argc, char** argv) {
     set_signal_handler(SIGPIPE, SIG_IGN);
 
     auto const manifest = manifest_path();
-    if (manifest.empty()) {
-        return 1;
-    }
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{score::filesystem::Path{manifest}});
 

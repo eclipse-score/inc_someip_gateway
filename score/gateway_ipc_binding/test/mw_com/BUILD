@@ -17,7 +17,10 @@ load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 exports_files(
     ["mw_com_config.json"],
-    visibility = ["//score/gateway_ipc_binding/test:__pkg__"],
+    visibility = [
+        "//score/gateway_ipc_binding/test:__pkg__",
+        "//tests/integration_test:__pkg__",
+    ],
 )
 
 # Runs a real mw::com (LoLa) runtime in-process: the SomeipdService skeleton and
