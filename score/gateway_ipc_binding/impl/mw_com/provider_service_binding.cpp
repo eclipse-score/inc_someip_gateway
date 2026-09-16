@@ -13,6 +13,7 @@
 
 #include "provider_service_binding.hpp"
 
+#include <algorithm>
 #include <string_view>
 #include <utility>
 
@@ -55,9 +56,8 @@ void Provider_service_binding::Allocations::clear() noexcept {
     m_in_flight.clear();
 }
 
-Provider_service_binding::Provider_service_binding(
-    score::mw::com::GenericSkeleton skeleton) noexcept
-    : m_skeleton{std::move(skeleton)} {}
+Provider_service_binding::Provider_service_binding(Service_config config) noexcept
+    : m_config{std::move(config)} {}
 
 Provider_service_binding::~Provider_service_binding() noexcept {
     // Teardown order matters, LoLa terminates the process if a SampleAllocateePtr outlives its
@@ -83,49 +83,22 @@ Provider_service_binding::~Provider_service_binding() noexcept {
     }
     connector.reset();
 
-    // 3. Nothing calls back anymore. Release the slots, then the skeleton that owns them.
-    m_skeleton.StopOfferService();
+    // 3. Nothing calls back anymore. Release the slots, then the skeleton that owns them, if any.
     m_allocations->clear();
+    if (m_skeleton.has_value()) {
+        m_skeleton->StopOfferService();
+    }
 }
 
 Result<std::unique_ptr<Provider_service_binding>> Provider_service_binding::create(
     score::socom::Runtime& runtime, Service_config const& config) noexcept {
-    auto specifier = make_instance_specifier(config.instance_specifier);
-    if (!specifier.has_value()) {
-        return MakeUnexpected<std::unique_ptr<Provider_service_binding>>(
-            std::move(specifier).error());
-    }
-
-    std::vector<score::mw::com::EventInfo> event_infos{};
-    event_infos.reserve(config.events.size());
-    for (auto const& event : config.events) {
-        event_infos.push_back(score::mw::com::EventInfo{event.name, sample_meta_info(event)});
-    }
-
-    score::mw::com::GenericSkeletonServiceElementInfo element_info{};
-    element_info.events = event_infos;
-
-    auto skeleton = score::mw::com::GenericSkeleton::Create(specifier.value(), element_info);
-    if (!skeleton.has_value()) {
-        score::mw::log::LogError() << kLog_tag << "Failed to create the GenericSkeleton for"
-                                   << config.instance_specifier << ":" << skeleton.error();
-        return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
-    }
-
     // Not make_unique: the constructor is private.
-    std::unique_ptr<Provider_service_binding> binding{
-        new Provider_service_binding{std::move(skeleton).value()}};
+    std::unique_ptr<Provider_service_binding> binding{new Provider_service_binding{config}};
 
-    auto resolved = binding->resolve_events(config);
-    if (!resolved.has_value()) {
+    auto created = binding->create_skeleton();
+    if (!created.has_value()) {
         return MakeUnexpected<std::unique_ptr<Provider_service_binding>>(
-            std::move(resolved).error());
-    }
-
-    auto registered = binding->register_subscription_handlers();
-    if (!registered.has_value()) {
-        return MakeUnexpected<std::unique_ptr<Provider_service_binding>>(
-            std::move(registered).error());
+            std::move(created).error());
     }
 
     auto connected = binding->create_client_connector(runtime, config);
@@ -137,9 +110,41 @@ Result<std::unique_ptr<Provider_service_binding>> Provider_service_binding::crea
     return binding;
 }
 
+Result<void> Provider_service_binding::create_skeleton() noexcept {
+    auto specifier = make_instance_specifier(m_config.instance_specifier);
+    if (!specifier.has_value()) {
+        return MakeUnexpected<void>(std::move(specifier).error());
+    }
+
+    std::vector<score::mw::com::EventInfo> event_infos{};
+    event_infos.reserve(m_config.events.size());
+    for (auto const& event : m_config.events) {
+        event_infos.push_back(score::mw::com::EventInfo{event.name, sample_meta_info(event)});
+    }
+
+    score::mw::com::GenericSkeletonServiceElementInfo element_info{};
+    element_info.events = event_infos;
+
+    auto skeleton = score::mw::com::GenericSkeleton::Create(specifier.value(), element_info);
+    if (!skeleton.has_value()) {
+        score::mw::log::LogError() << kLog_tag << "Failed to create the GenericSkeleton for"
+                                   << m_config.instance_specifier << ":" << skeleton.error();
+        return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
+    }
+    m_skeleton.emplace(std::move(skeleton).value());
+    m_events.clear();
+
+    auto resolved = resolve_events(m_config);
+    if (!resolved.has_value()) {
+        return resolved;
+    }
+
+    return register_subscription_handlers();
+}
+
 Result<void> Provider_service_binding::resolve_events(Service_config const& config) noexcept {
     // Not const: the const find() overload would only hand out a const event.
-    auto skeleton_events = m_skeleton.GetEvents();
+    auto skeleton_events = m_skeleton->GetEvents();
     m_events.reserve(config.events.size());
 
     for (auto const& event : config.events) {
@@ -236,6 +241,7 @@ void Provider_service_binding::on_service_state_change(
     // the header. This mutex serializes the two transitions against each other instead.
     std::lock_guard const offer_lock{m_offer_mutex};
 
+    bool no_peer_holds_a_subscription{false};
     {
         std::lock_guard const lock{m_mutex};
         if (available == m_service_available) {
@@ -249,25 +255,63 @@ void Provider_service_binding::on_service_state_change(
             for (auto& event : m_events) {
                 event.subscribed = false;
             }
+            no_peer_holds_a_subscription =
+                std::none_of(m_events.cbegin(), m_events.cend(),
+                             [](Event const& event) { return event.wanted_by_peer; });
         }
     }
 
     if (!available) {
-        // The skeleton object stays alive on purpose: destroying it would zero the shared-memory
-        // subscription control block underneath a peer that still holds a subscription.
-        m_skeleton.StopOfferService();
+        m_skeleton->StopOfferService();
+        // TODO this needs further inspection if the skeleton can delete shared memory while proxies
+        // might still access it
+        if (no_peer_holds_a_subscription) {
+            // No peer holds a reference into the shared memory, so the skeleton can be fully torn
+            // down and recreated on the next offer instead of being re-offered as-is, which LoLa
+            // does not support, see docs/mw_com_binding.rst, section "Known gaps". Withdraw the
+            // offer first: skipping it would leave the peer's service discovery unaware that this
+            // service went away. Same teardown order as the destructor otherwise: unset handlers
+            // before releasing what they capture.
+            for (auto& event : m_events) {
+                auto const unset =
+                    event.skeleton_event->UnsetReceiveHandlerRegistrationChangedHandler();
+                if (!unset.has_value()) {
+                    score::mw::log::LogWarn() << kLog_tag
+                                              << "Failed to unset the receive handler "
+                                                 "registration handler:"
+                                              << unset.error();
+                }
+            }
+            m_allocations->clear();
+            m_events.clear();
+            m_skeleton.reset();
+        } else {
+            // The skeleton object stays alive on purpose: destroying it would zero the
+            // shared-memory subscription control block underneath a peer that still holds a
+            // subscription.
+        }
         return;
     }
 
-    auto const offered = m_skeleton.OfferService();
+    if (!m_skeleton.has_value()) {
+        auto const recreated = create_skeleton();
+        if (!recreated.has_value()) {
+            score::mw::log::LogError()
+                << kLog_tag << "Failed to recreate the GenericSkeleton:" << recreated.error();
+            return;
+        }
+    }
+
+    auto const offered = m_skeleton->OfferService();
     if (!offered.has_value()) {
         score::mw::log::LogError()
             << kLog_tag << "Failed to offer the bridged service:" << offered.error();
         return;
     }
 
-    // The interest callbacks that fired from within OfferService() already reconciled what they
-    // saw. Catch up on everything they could not, and on what arrived before the offer.
+    // The interest callbacks that fired from within OfferService()/create_skeleton() already
+    // reconciled what they saw. Catch up on everything they could not, and on what arrived before
+    // the offer.
     std::lock_guard const lock{m_mutex};
     for (std::size_t index = 0U; index < m_events.size(); ++index) {
         reconcile_subscription(static_cast<score::socom::Event_id>(index));

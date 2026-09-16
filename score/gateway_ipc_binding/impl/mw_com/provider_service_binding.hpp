@@ -89,7 +89,7 @@ class Provider_service_binding final : public Service_binding {
 
     /// \brief Per-event state, indexed by socom::Event_id
     struct Event {
-        /// \brief Owned by m_skeleton, stable across moves of the skeleton
+        /// \brief Owned by m_skeleton, invalidated whenever the skeleton is destroyed/recreated
         score::mw::com::GenericSkeletonEvent* skeleton_event;
         std::size_t header_size;
         std::size_t addressed_sample_size;
@@ -99,7 +99,12 @@ class Provider_service_binding final : public Service_binding {
         bool subscribed{false};
     };
 
-    explicit Provider_service_binding(score::mw::com::GenericSkeleton skeleton) noexcept;
+    explicit Provider_service_binding(Service_config config) noexcept;
+
+    /// \brief Create #m_skeleton from #m_config, then resolve its events and register handlers
+    /// \details Used both by create() and to recreate a skeleton that was destroyed while no peer
+    ///          held a subscription, see on_service_state_change().
+    [[nodiscard]] Result<void> create_skeleton() noexcept;
 
     /// \brief Look the configured events up in the skeleton and check their sample size
     [[nodiscard]] Result<void> resolve_events(Service_config const& config) noexcept;
@@ -136,7 +141,10 @@ class Provider_service_binding final : public Service_binding {
     /// \brief Recursive because SOCom calls binding callbacks synchronously from binding calls,
     ///        e.g. `subscribe_event()` can end in `on_event_update()` on the same thread.
     std::recursive_mutex m_mutex;
-    score::mw::com::GenericSkeleton m_skeleton;
+    /// \brief Configuration this binding was created from, kept to recreate #m_skeleton
+    Service_config m_config;
+    /// \brief Absent while no local SOCom service is available and no peer holds a subscription
+    std::optional<score::mw::com::GenericSkeleton> m_skeleton;
     std::vector<Event> m_events;
     bool m_service_available{false};
     std::shared_ptr<Allocations> m_allocations{std::make_shared<Allocations>()};

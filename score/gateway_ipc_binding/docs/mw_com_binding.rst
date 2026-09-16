@@ -702,12 +702,16 @@ Known gaps
 - **const-correctness**: turning a ``SamplePtr<void>`` into a writable ``socom::Payload`` needs a
   ``const_cast``, the same wart the current shared-memory read path already carries.
 - **re-offering a provider service**: if the local SOCom service of a provider-role bridge goes away and
-  comes back, the second ``OfferService()`` aborts inside LoLa. ``StopOfferService()`` keeps the shared
-  memory whenever a proxy still uses it, as it must, but ``PrepareOffer()`` then calls
-  ``RemoveStaleArtefacts()`` on a region the skeleton itself still owns, which trips an assertion. Keeping
-  the skeleton alive across ``StopOfferService()`` is what the LoLa gateway documentation demands, so this
-  has to be fixed upstream rather than worked around here. A restart of the *providing application* is
-  therefore not covered yet.
+  comes back while a peer still holds an event subscription, ``Provider_service_binding`` keeps the
+  ``GenericSkeleton`` alive across ``StopOfferService()``/``OfferService()``, as the LoLa gateway
+  documentation demands, because destroying it would zero the shared-memory subscription control block
+  underneath that peer. Re-offering the same skeleton in that case still aborts inside LoLa (``PrepareOffer()``
+  calls ``RemoveStaleArtefacts()`` on a region the skeleton itself still owns), so that case has to be fixed
+  upstream rather than worked around here.
+  When no peer holds a subscription, the binding instead fully destroys and recreates the
+  ``GenericSkeleton`` on the next offer, which LoLa's own stale-shared-memory detection (an flock on a
+  per-instance usage marker file) supports. A restart of the *providing application* while a peer is
+  actively subscribed is therefore still not covered.
 - **re-entrant SOCom callbacks**: a consuming application must not call ``unsubscribe_event()`` from within
   its own ``on_event_update`` callback. The consumer side holds a lock across the forwarding of a sample and
   takes another one when unsubscribing, and ``GenericProxyEvent::UnsetReceiveHandler()`` waits for the

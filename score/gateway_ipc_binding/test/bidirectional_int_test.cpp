@@ -343,9 +343,6 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_disc
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_disconnects_and_reconnects) {
-    if (is_mw_com()) {
-        GTEST_SKIP() << "mw::com reconnect behavior is not covered yet";
-    }
     server->connector.reset();
     EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
