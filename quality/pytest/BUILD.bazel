@@ -19,5 +19,6 @@ py_library(
         "__init__.py",
         "process.py",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
 )
