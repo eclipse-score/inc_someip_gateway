@@ -157,36 +157,8 @@ only, the same test code works with any SOME/IP binding.
 Planned Topology
 ^^^^^^^^^^^^^^^^
 
-.. uml::
-
-   @startuml
-   !theme plain
-   scale max 800 width
-
-   node "Host" {
-     [TC8 Service\n(mw::com Skeleton)] as Svc
-     [gatewayd] as GW1
-     [someipd] as SD1
-
-     [someipd] as SD2
-     [gatewayd] as GW2
-     [TC8 Client\n(mw::com Proxy)] as Cli
-
-     Svc -right-> GW1 : LoLa IPC
-     GW1 -right-> SD1 : LoLa IPC
-     SD1 -right-> SD2 : SOME/IP\nUDP / TCP
-     SD2 -right-> GW2 : LoLa IPC
-     GW2 -right-> Cli : LoLa IPC
-   }
-
-   [pytest\norchestrator] as Orch
-   Orch .down.> Svc
-   Orch .down.> GW1
-   Orch .down.> SD1
-   Orch .down.> SD2
-   Orch .down.> GW2
-   Orch .down.> Cli
-   @enduml
+The application level test topology matches the "Application-Level Tests"
+package shown in the diagram under `Test Scope Overview`_.
 
 Stack-Agnostic Design
 ^^^^^^^^^^^^^^^^^^^^^

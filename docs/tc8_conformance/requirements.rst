@@ -40,12 +40,10 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
 
    **Scope boundary:** This document currently defines only the top-level
    feature requirement and the initial set of TC8 component requirements
-   established for the test infrastructure split. Full TC8 requirement
-   coverage, including the remaining component requirements for method
-   calls, field access, and the detailed traceability matrix against the
-   OA TC8 v3.0 Chapter 6 test catalog, rolls in incrementally across the
-   PR-4 through PR-9 stack of this split as the corresponding test modules
-   land.
+   established for the test infrastructure split. The remaining component
+   requirements, covering method calls, field access, and the detailed
+   traceability matrix against the OA TC8 v3.0 Chapter 6 test catalog, are
+   added together with the test modules that implement and verify them.
 
 Component Requirements: Service Discovery
 ------------------------------------------
