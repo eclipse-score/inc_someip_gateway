@@ -135,7 +135,7 @@ class SOMEIPHeader:
         return_code = SOMEIPReturnCode(pkt.retcode)
         # scapy auto-dissects known service IDs (e.g. SD) into typed layers,
         # leaving pkt.data as None. For other service IDs the payload is Raw.
-        if pkt.data is not None:
+        if pkt.data:
             payload = bytes(pkt.data[0])
         elif pkt.payload:
             payload = bytes(pkt.payload)
