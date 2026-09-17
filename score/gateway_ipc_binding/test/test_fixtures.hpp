@@ -151,10 +151,10 @@ class Gateway_ipc_binding_integration_test
 
 inline std::string readable_test_names(
     testing::TestParamInfo<Bidirectional_test_parameter> const& param) {
-    auto const direction = param.param.direction == Direction::Client_to_server
-                               ? "Client_to_server"
-                               : "Server_to_client";
-    auto const implementation =
+    const auto* const direction = param.param.direction == Direction::Client_to_server
+                                      ? "Client_to_server"
+                                      : "Server_to_client";
+    const auto* const implementation =
         param.param.implementation == Ipc_binding_implementation::Message_passing
             ? "Message_passing"
             : "Mw_com";
