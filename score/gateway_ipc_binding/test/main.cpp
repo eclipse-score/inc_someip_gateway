@@ -23,6 +23,7 @@
 #include "score/mw/com/runtime.h"
 #include "score/mw/com/runtime_configuration.h"
 
+namespace {
 void set_signal_handler(int const signal, void (*const handler)(int)) {
     struct sigaction sa{};
     sa.sa_handler = handler;
@@ -42,6 +43,7 @@ std::string manifest_path() {
     return std::string{test_srcdir} + "/" + test_workspace +
            "/score/gateway_ipc_binding/test/mw_com_config.json";
 }
+}  // namespace
 
 int main(int argc, char** argv) {
     // communication message_passing does not use MSG_NOSIGNAL, so we need to ignore SIGPIPE
