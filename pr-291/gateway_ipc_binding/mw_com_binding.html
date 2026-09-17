@@ -748,6 +748,10 @@ itself rather than any SOME/IP service:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> consumes it with <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code> and creates a <code class="docutils literal notranslate"><span class="pre">SomeipdServiceProxy</span></code> for it.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client::is_connected()</span></code> returns true once that proxy has been created, and returns to
 false when the find-service handler reports the instance gone.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> calls <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> with JSON text when <code class="docutils literal notranslate"><span class="pre">someipd</span></code> must extend its
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> deployment. The server parses the text and passes the resulting <code class="docutils literal notranslate"><span class="pre">score::json::Any</span></code> to
+<code class="docutils literal notranslate"><span class="pre">InitializeRuntimeAddonConfiguration</span></code>. The client submits a configured add-on at most once, so
+reconnecting cannot merge the same configuration twice.</p></li>
 </ul>
 <p>Properties of this design:</p>
 <ul class="simple">
@@ -962,10 +966,13 @@ functions. The existing headers are not modified.</p>
 <span class="c1">///        same value that the peer passes to create_server().</span>
 <span class="c1">/// \param services Bridged service instances, see D4: this set is fixed for the process lifetime</span>
 <span class="c1">/// \param identifier Optional string used for logging only</span>
+<span class="w">  </span><span class="c1">/// \param mw_com_config_json Optional add-on mw::com configuration sent to SomeipdService as JSON</span>
+<span class="w">  </span><span class="c1">///        text once its proxy becomes available</span>
 <span class="c1">/// \return Nullptr if any configured service could not be set up</span>
 <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Gateway_ipc_binding_client</span><span class="o">&gt;</span><span class="w"> </span><span class="n">create_client</span><span class="p">(</span>
 <span class="w">    </span><span class="n">score</span><span class="o">::</span><span class="n">socom</span><span class="o">::</span><span class="n">Runtime</span><span class="o">&amp;</span><span class="w"> </span><span class="n">runtime</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">someipd_service_specifier</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Service_configs</span><span class="w"> </span><span class="n">services</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="w"> </span><span class="n">identifier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{})</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Service_configs</span><span class="w"> </span><span class="n">services</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{},</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="w"> </span><span class="n">identifier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{},</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="o">&gt;</span><span class="w"> </span><span class="n">mw_com_config_json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">nullopt</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
 
 <span class="c1">/// \brief Create the mw::com backed binding behind the server interface.</span>
 <span class="c1">/// \details Provides SomeipdService. Setup is deferred to Gateway_ipc_binding_server::start(),</span>
@@ -1113,7 +1120,11 @@ spell identically, and it is the replacement for the shared <code class="docutil
 <span class="w">    </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;serviceTypeName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/score/someip/SomeipdService&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;major&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;minor&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;bindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;serviceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6400</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">      </span><span class="nt">&quot;bindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;serviceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6400</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;methods&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AddServiceConfiguration&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;methodId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">],</span>
 <span class="w">  </span><span class="nt">&quot;serviceInstances&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1121,15 +1132,21 @@ spell identically, and it is the replacement for the shared <code class="docutil
 <span class="w">      </span><span class="nt">&quot;instanceSpecifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;someipd/daemon&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;serviceTypeName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/score/someip/SomeipdService&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;major&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;minor&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;instances&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;instanceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;asil-level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;QM&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">      </span><span class="nt">&quot;instances&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;instanceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;asil-level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;QM&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;methods&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AddServiceConfiguration&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;queueSize&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">events</span></code> arrays are omitted on purpose: <code class="docutils literal notranslate"><span class="pre">SomeipdServiceInterface</span></code> declares no service elements yet, and
-the schema marks <code class="docutils literal notranslate"><span class="pre">events</span></code> optional. Every element added to the interface later needs a matching entry in
-both files, which is the usual typed-service deployment workflow.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> method must be present in both daemon configurations. Its argument is a
+fixed-capacity, trivially copyable text buffer because <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> transports method arguments through shared
+memory. The method returns <code class="docutils literal notranslate"><span class="pre">false</span></code> when the text is too large or cannot be parsed as JSON; incompatible
+add-on configurations retain the runtime API’s terminating behavior.</p>
 <p>Because both the sample size and the slot count now live in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code>, the size computation that
 <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> does today in <code class="docutils literal notranslate"><span class="pre">event_slot_size()</span></code> moves into config generation. On the provider side the
 binding validates that the configured sample size matches <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::GetSizeInfo()</span></code> and fails
@@ -1147,7 +1164,7 @@ be initialized once per process, which is why the whole suite shares one <code c
 <p>Implemented:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sample_size()</span></code> including the rounding to <code class="docutils literal notranslate"><span class="pre">kSample_alignment</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, both the peer-liveness contract and the proof that an element-less typed instance
+<li><p><code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, both the peer-liveness contract and its add-on configuration method
 works: offer, find, <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> true, peer stops, <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> false, peer restarts, true again</p></li>
 <li><p>configuration rejection: an instance missing from the deployment, an event missing from the deployment,
 no events, duplicate event names, <code class="docutils literal notranslate"><span class="pre">max_sample_count</span> <span class="pre">==</span> <span class="pre">0</span></code></p></li>
@@ -1214,7 +1231,7 @@ upstream re-offer problem described under <a class="reference internal" href="#k
 </ul>
 <p>Closed points:</p>
 <ul class="simple">
-<li><p><em>Whether an element-less typed instance works end to end on a real runtime.</em> It does, see
+<li><p><em>Whether the typed instance works end to end on a real runtime.</em> It does, see
 <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>.</p></li>
 <li><p><em>Where</em> <code class="docutils literal notranslate"><span class="pre">someipd_service.hpp</span></code> <em>should live.</em> <code class="docutils literal notranslate"><span class="pre">score/someip/someipd_service.hpp</span></code>, in the separate
 Bazel target <code class="docutils literal notranslate"><span class="pre">//score/someip:someipd_service</span></code>. Both daemons already depend on <code class="docutils literal notranslate"><span class="pre">score/someip</span></code> and
