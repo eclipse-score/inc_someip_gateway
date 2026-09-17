@@ -14,11 +14,18 @@
 #ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_HPP
 #define SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_HPP
 
+#include <cstddef>
 #include <string_view>
 
+#include "score/gateway_ipc_binding/fixed_size_container.hpp"
 #include "score/mw/com/types.h"
 
 namespace score::gateway_ipc_binding::mw_com {
+
+/// \brief Maximum size of an add-on mw::com configuration sent as JSON text.
+inline constexpr std::size_t kMax_service_configuration_size = 64U * 1024U;
+
+using Service_configuration_text = Fixed_string<kMax_service_configuration_size>;
 
 /// \brief `mw::com` service interface representing the `someipd` daemon itself.
 ///
@@ -26,17 +33,17 @@ namespace score::gateway_ipc_binding::mw_com {
 ///          `GenericProxy`, this interface is typed: its content is defined by this repository and
 ///          not by a customer's SOME/IP deployment.
 ///
-///          It deliberately declares no service elements. Its sole purpose is peer liveness: the
-///          presence of an offered instance means "the `someipd` binding is up and accepting".
-///          `someipd` offers it before it sets up any bridged service, so a consumer that sees the
-///          instance can rely on the peer accepting further service setup.
-///
-///          Service elements may be added later, for example a real `someipd` control API. Every
-///          element added here needs a matching entry in the `mw_com_config.json` of both daemons.
+///          The presence of an offered instance is the peer-liveness signal. Its
+///          AddServiceConfiguration method extends the provider's mw::com configuration at
+///          runtime. Every element declared here needs a matching entry in the
+///          `mw_com_config.json` of both daemons.
 template <typename Trait>
 class Someipd_service_interface : public Trait::Base {
    public:
     using Trait::Base::Base;
+
+    typename Trait::template Method<bool(Service_configuration_text)> add_service_configuration{
+        *this, "AddServiceConfiguration"};
 };
 
 /// \brief Consumer side of Someipd_service_interface, owned by `gatewayd`.

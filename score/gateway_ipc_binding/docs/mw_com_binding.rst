@@ -261,6 +261,10 @@ itself rather than any SOME/IP service:
 - ``gatewayd`` consumes it with ``StartFindService`` and creates a ``SomeipdServiceProxy`` for it.
 - ``Gateway_ipc_binding_client::is_connected()`` returns true once that proxy has been created, and returns to
   false when the find-service handler reports the instance gone.
+- ``gatewayd`` calls ``AddServiceConfiguration`` with JSON text when ``someipd`` must extend its
+  ``mw::com`` deployment. The server parses the text and passes the resulting ``score::json::Any`` to
+  ``InitializeRuntimeAddonConfiguration``. The client submits a configured add-on at most once, so
+  reconnecting cannot merge the same configuration twice.
 
 Properties of this design:
 
@@ -484,10 +488,13 @@ functions. The existing headers are not modified.
    ///        same value that the peer passes to create_server().
    /// \param services Bridged service instances, see D4: this set is fixed for the process lifetime
    /// \param identifier Optional string used for logging only
+     /// \param mw_com_config_json Optional add-on mw::com configuration sent to SomeipdService as JSON
+     ///        text once its proxy becomes available
    /// \return Nullptr if any configured service could not be set up
    std::unique_ptr<Gateway_ipc_binding_client> create_client(
        score::socom::Runtime& runtime, std::string someipd_service_specifier,
-       Service_configs services, std::string_view identifier = {}) noexcept;
+       Service_configs services = {}, std::string_view identifier = {},
+       std::optional<std::string_view> mw_com_config_json = std::nullopt) noexcept;
 
    /// \brief Create the mw::com backed binding behind the server interface.
    /// \details Provides SomeipdService. Setup is deferred to Gateway_ipc_binding_server::start(),
@@ -628,7 +635,11 @@ spell identically, and it is the replacement for the shared ``ipc_channel_name``
        {
          "serviceTypeName": "/score/someip/SomeipdService",
          "version": { "major": 1, "minor": 0 },
-         "bindings": [ { "binding": "SHM", "serviceId": 6400 } ]
+         "bindings": [ {
+           "binding": "SHM",
+           "serviceId": 6400,
+           "methods": [ { "methodName": "AddServiceConfiguration", "methodId": 1 } ]
+         } ]
        }
      ],
      "serviceInstances": [
@@ -636,14 +647,20 @@ spell identically, and it is the replacement for the shared ``ipc_channel_name``
          "instanceSpecifier": "someipd/daemon",
          "serviceTypeName": "/score/someip/SomeipdService",
          "version": { "major": 1, "minor": 0 },
-         "instances": [ { "instanceId": 1, "asil-level": "QM", "binding": "SHM" } ]
+         "instances": [ {
+           "instanceId": 1,
+           "asil-level": "QM",
+           "binding": "SHM",
+           "methods": [ { "methodName": "AddServiceConfiguration", "queueSize": 1 } ]
+         } ]
        }
      ]
    }
 
-The ``events`` arrays are omitted on purpose: ``SomeipdServiceInterface`` declares no service elements yet, and
-the schema marks ``events`` optional. Every element added to the interface later needs a matching entry in
-both files, which is the usual typed-service deployment workflow.
+The ``AddServiceConfiguration`` method must be present in both daemon configurations. Its argument is a
+fixed-capacity, trivially copyable text buffer because ``mw::com`` transports method arguments through shared
+memory. The method returns ``false`` when the text is too large or cannot be parsed as JSON; incompatible
+add-on configurations retain the runtime API's terminating behavior.
 
 Because both the sample size and the slot count now live in ``mw_com_config.json``, the size computation that
 ``gatewayd`` does today in ``event_slot_size()`` moves into config generation. On the provider side the
@@ -664,7 +681,7 @@ be initialized once per process, which is why the whole suite shares one ``main.
 Implemented:
 
 - ``sample_size()`` including the rounding to ``kSample_alignment``
-- ``SomeipdService``, both the peer-liveness contract and the proof that an element-less typed instance
+- ``SomeipdService``, both the peer-liveness contract and its add-on configuration method
   works: offer, find, ``is_connected()`` true, peer stops, ``is_connected()`` false, peer restarts, true again
 - configuration rejection: an instance missing from the deployment, an event missing from the deployment,
   no events, duplicate event names, ``max_sample_count == 0``
@@ -729,7 +746,7 @@ Open points
 
 Closed points:
 
-- *Whether an element-less typed instance works end to end on a real runtime.* It does, see
+- *Whether the typed instance works end to end on a real runtime.* It does, see
   :ref:`someipd-service`.
 - *Where* ``someipd_service.hpp`` *should live.* ``score/someip/someipd_service.hpp``, in the separate
   Bazel target ``//score/someip:someipd_service``. Both daemons already depend on ``score/someip`` and

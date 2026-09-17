@@ -52,6 +52,7 @@ cc_library(
     deps = [
         ":gateway_ipc_binding",
         "//score/socom",
+        "@score_baselibs//score/json",
         "@score_baselibs//score/mw/log",
         "@score_communication//score/mw/com",
     ],

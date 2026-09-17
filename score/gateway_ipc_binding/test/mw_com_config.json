@@ -9,7 +9,13 @@
       "bindings": [
         {
           "binding": "SHM",
-          "serviceId": 6400
+          "serviceId": 6400,
+          "methods": [
+            {
+              "methodName": "AddServiceConfiguration",
+              "methodId": 1
+            }
+          ]
         }
       ]
     },
@@ -68,7 +74,13 @@
         {
           "instanceId": 1,
           "asil-level": "QM",
-          "binding": "SHM"
+          "binding": "SHM",
+          "methods": [
+            {
+              "methodName": "AddServiceConfiguration",
+              "queueSize": 1
+            }
+          ]
         }
       ]
     },
@@ -83,7 +95,13 @@
         {
           "instanceId": 2,
           "asil-level": "QM",
-          "binding": "SHM"
+          "binding": "SHM",
+          "methods": [
+            {
+              "methodName": "AddServiceConfiguration",
+              "queueSize": 1
+            }
+          ]
         }
       ]
     },

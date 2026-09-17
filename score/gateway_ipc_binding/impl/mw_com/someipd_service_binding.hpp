@@ -15,6 +15,7 @@
 #define SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_BINDING_HPP
 
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -27,15 +28,19 @@ namespace score::gateway_ipc_binding::mw_com {
 
 /// \brief Provider half of the SomeipdService peer-liveness contract, owned by `someipd`.
 /// \details Owns the `Someipd_service_skeleton`. Its offered instance is what the consumer half
-///          observes. It carries no data; being offered *is* the signal.
+///          observes. It also handles add-on mw::com configuration requests.
 class Someipd_service_provider {
    public:
+    using Add_service_configuration_handler =
+        std::function<bool(Service_configuration_text const&)>;
+
     /// \brief Create the skeleton for the given instance specifier without offering it yet
     /// \param instance_specifier mw::com InstanceSpecifier of the SomeipdService instance
     /// \return The provider, or an error if the specifier is invalid or the skeleton could not be
     ///         created, e.g. because the instance is missing from mw_com_config.json
     static Result<std::unique_ptr<Someipd_service_provider>> create(
-        std::string const& instance_specifier) noexcept;
+        std::string const& instance_specifier,
+        Add_service_configuration_handler add_service_configuration_handler) noexcept;
 
     ~Someipd_service_provider() noexcept;
 
@@ -63,9 +68,11 @@ class Someipd_service_consumer {
     /// \details Discovery runs until this object is destroyed. The find-service handler may already
     ///          fire before this function returns, so is_connected() can be true immediately.
     /// \param instance_specifier mw::com InstanceSpecifier of the SomeipdService instance
+    /// \param mw_com_config_json Optional add-on configuration to submit when the proxy is created
     /// \return The consumer, or an error if the specifier is invalid or discovery failed to start
     static Result<std::unique_ptr<Someipd_service_consumer>> create(
-        std::string const& instance_specifier) noexcept;
+        std::string const& instance_specifier,
+        std::optional<std::string_view> mw_com_config_json = std::nullopt) noexcept;
 
     ~Someipd_service_consumer() noexcept;
 
@@ -79,7 +86,8 @@ class Someipd_service_consumer {
     [[nodiscard]] bool is_connected() const noexcept;
 
    private:
-    Someipd_service_consumer() noexcept = default;
+    explicit Someipd_service_consumer(
+        std::optional<Service_configuration_text> service_configuration) noexcept;
 
     void on_find_service(
         score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept;
@@ -89,6 +97,7 @@ class Someipd_service_consumer {
     std::optional<Someipd_service_proxy> m_proxy;
     std::atomic<bool> m_connected{false};
     std::optional<score::mw::com::FindServiceHandle> m_find_handle;
+    std::optional<Service_configuration_text> m_service_configuration;
 };
 
 }  // namespace score::gateway_ipc_binding::mw_com

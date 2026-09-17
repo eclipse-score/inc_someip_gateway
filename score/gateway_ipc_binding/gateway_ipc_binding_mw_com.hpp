@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -105,11 +106,14 @@ std::size_t sample_size(Event_config const& event) noexcept;
 ///        same value that the peer passes to create_server().
 /// \param services Bridged service instances, see D4: this set is fixed for the process lifetime
 /// \param identifier Optional string used for logging only
+/// \param mw_com_config_json Optional add-on mw::com configuration sent to SomeipdService as JSON
+///        text once its proxy becomes available
 /// \return Nullptr if service discovery for SomeipdService could not be started or if any
 ///         configured service could not be set up
 std::unique_ptr<Gateway_ipc_binding_client> create_client(
     score::socom::Runtime& runtime, std::string someipd_service_specifier,
-    Service_configs services = {}, std::string_view identifier = {}) noexcept;
+    Service_configs services = {}, std::string_view identifier = {},
+    std::optional<std::string_view> mw_com_config_json = std::nullopt) noexcept;
 
 /// \brief Create the mw::com backed binding behind the server interface.
 /// \details Provides SomeipdService. Setup is deferred to Gateway_ipc_binding_server::start(),

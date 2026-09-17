@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "score/gateway_ipc_binding/error.hpp"
+#include "score/json/json_parser.h"
+#include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
 #include "service_binding.hpp"
 #include "someipd_service_binding.hpp"
@@ -92,7 +94,27 @@ class Server_adapter final : public Gateway_ipc_binding_server {
             return MakeUnexpected(Mw_com_binding_error::logic_error_already_started);
         }
 
-        auto someipd_service = Someipd_service_provider::create(m_someipd_service_specifier);
+        auto someipd_service = Someipd_service_provider::create(
+            m_someipd_service_specifier,
+            [](Service_configuration_text const& configuration) noexcept {
+                if (configuration.size > configuration.max_size) {
+                    return false;
+                }
+
+                score::json::JsonParser const parser{};
+                auto json = parser.FromBuffer(
+                    std::string_view{configuration.data.data(), configuration.size});
+                if (!json.has_value()) {
+                    score::mw::log::LogError()
+                        << kLog_tag
+                        << "Failed to parse add-on mw::com configuration:" << json.error();
+                    return false;
+                }
+
+                return score::mw::com::runtime::InitializeRuntimeAddonConfiguration(
+                           std::move(json).value())
+                    .has_value();
+            });
         if (!someipd_service.has_value()) {
             return MakeUnexpected<void>(std::move(someipd_service).error());
         }
@@ -131,11 +153,11 @@ std::size_t sample_size(Event_config const& event) noexcept {
     return ((addressed + kSample_alignment) - 1U) / kSample_alignment * kSample_alignment;
 }
 
-std::unique_ptr<Gateway_ipc_binding_client> create_client(score::socom::Runtime& runtime,
-                                                          std::string someipd_service_specifier,
-                                                          Service_configs services,
-                                                          std::string_view identifier) noexcept {
-    auto someipd_service = Someipd_service_consumer::create(someipd_service_specifier);
+std::unique_ptr<Gateway_ipc_binding_client> create_client(
+    score::socom::Runtime& runtime, std::string someipd_service_specifier, Service_configs services,
+    std::string_view identifier, std::optional<std::string_view> mw_com_config_json) noexcept {
+    auto someipd_service =
+        Someipd_service_consumer::create(someipd_service_specifier, mw_com_config_json);
     if (!someipd_service.has_value()) {
         score::mw::log::LogError()
             << kLog_tag << "Failed to create mw::com client binding:" << someipd_service.error();

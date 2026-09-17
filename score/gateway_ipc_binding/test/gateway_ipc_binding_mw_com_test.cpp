@@ -20,6 +20,7 @@
 #include <string>
 #include <thread>
 
+#include "score/mw/com/runtime.h"
 #include "score/socom/runtime.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
@@ -141,6 +142,47 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier);
     ASSERT_NE(client, nullptr);
 
+    EXPECT_TRUE(wait_for_connected(*client, true));
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test, add_service_configuration_extends_mw_com_runtime) {
+    auto const server = create_server(*m_server_runtime, kSomeipd_specifier);
+    ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+
+    constexpr std::string_view configuration{R"({
+        "serviceTypes": [{
+            "serviceTypeName": "/test/ipc/DynamicAddonService",
+            "version": {"major": 1, "minor": 0},
+            "bindings": [{"binding": "SHM", "serviceId": 6499}]
+        }],
+        "serviceInstances": [{
+            "instanceSpecifier": "ipc/dynamic_addon",
+            "serviceTypeName": "/test/ipc/DynamicAddonService",
+            "version": {"major": 1, "minor": 0},
+            "instances": [{"instanceId": 99, "asil-level": "QM", "binding": "SHM"}]
+        }]
+    })"};
+
+    auto const client = create_client(*m_client_runtime, kSomeipd_specifier, {}, {}, configuration);
+    ASSERT_NE(client, nullptr);
+    ASSERT_TRUE(wait_for_connected(*client, true));
+
+    auto specifier = score::mw::com::InstanceSpecifier::Create(std::string{"ipc/dynamic_addon"});
+    ASSERT_TRUE(specifier.has_value());
+    auto const identifiers = score::mw::com::runtime::ResolveInstanceIDs(specifier.value());
+    ASSERT_TRUE(identifiers.has_value());
+    EXPECT_EQ(identifiers.value().size(), 1U);
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test, add_service_configuration_rejects_malformed_json) {
+    auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair);
+    ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+
+    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair, {}, {},
+                                      std::string_view{"not json"});
+    ASSERT_NE(client, nullptr);
     EXPECT_TRUE(wait_for_connected(*client, true));
 }
 

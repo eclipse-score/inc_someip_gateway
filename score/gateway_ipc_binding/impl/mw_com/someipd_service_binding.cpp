@@ -28,7 +28,8 @@ Someipd_service_provider::Someipd_service_provider(Someipd_service_skeleton skel
 Someipd_service_provider::~Someipd_service_provider() noexcept = default;
 
 Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::create(
-    std::string const& instance_specifier) noexcept {
+    std::string const& instance_specifier,
+    Add_service_configuration_handler add_service_configuration_handler) noexcept {
     auto specifier = make_instance_specifier(instance_specifier);
     if (!specifier.has_value()) {
         return MakeUnexpected<std::unique_ptr<Someipd_service_provider>>(
@@ -43,8 +44,21 @@ Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::crea
         return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
     }
 
-    return std::unique_ptr<Someipd_service_provider>{
+    std::unique_ptr<Someipd_service_provider> provider{
         new Someipd_service_provider{std::move(skeleton).value()}};
+    auto const registered = provider->m_skeleton.add_service_configuration.RegisterHandler(
+        [handler = std::move(add_service_configuration_handler)](
+            bool& result, Service_configuration_text const& configuration) {
+            result = handler(configuration);
+        });
+    if (!registered.has_value()) {
+        score::mw::log::LogError()
+            << "[gateway_ipc_binding] Failed to register AddServiceConfiguration handler:"
+            << registered.error();
+        return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
+    }
+
+    return provider;
 }
 
 Result<void> Someipd_service_provider::offer() noexcept {
@@ -57,8 +71,13 @@ Result<void> Someipd_service_provider::offer() noexcept {
     return {};
 }
 
+Someipd_service_consumer::Someipd_service_consumer(
+    std::optional<Service_configuration_text> service_configuration) noexcept
+    : m_service_configuration{service_configuration} {}
+
 Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::create(
-    std::string const& instance_specifier) noexcept {
+    std::string const& instance_specifier,
+    std::optional<std::string_view> mw_com_config_json) noexcept {
     auto specifier = make_instance_specifier(instance_specifier);
     if (!specifier.has_value()) {
         return MakeUnexpected<std::unique_ptr<Someipd_service_consumer>>(
@@ -71,8 +90,20 @@ Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::crea
             std::move(deployed).error());
     }
 
+    std::optional<Service_configuration_text> service_configuration{};
+    if (mw_com_config_json.has_value()) {
+        auto converted =
+            fixed_string_from_string<Service_configuration_text>(mw_com_config_json.value());
+        if (!converted.has_value()) {
+            return MakeUnexpected<std::unique_ptr<Someipd_service_consumer>>(
+                std::move(converted).error());
+        }
+        service_configuration.emplace(std::move(converted).value());
+    }
+
     // Not make_unique: the constructor is private.
-    std::unique_ptr<Someipd_service_consumer> consumer{new Someipd_service_consumer{}};
+    std::unique_ptr<Someipd_service_consumer> consumer{
+        new Someipd_service_consumer{service_configuration}};
 
     // The handler can already be invoked from within StartFindService, on this very thread. The
     // consumer is fully constructed at this point, so that is safe.
@@ -139,6 +170,20 @@ void Someipd_service_consumer::on_find_service(
             score::mw::log::LogError()
                 << "[gateway_ipc_binding] Failed to create SomeipdService proxy:" << proxy.error();
             return;
+        }
+
+        if (m_service_configuration.has_value()) {
+            auto configuration = std::move(m_service_configuration).value();
+            m_service_configuration.reset();
+            auto const added = proxy->add_service_configuration(configuration);
+            if (!added.has_value()) {
+                score::mw::log::LogError()
+                    << "[gateway_ipc_binding] AddServiceConfiguration call failed:"
+                    << added.error();
+            } else if (!*added.value()) {
+                score::mw::log::LogError()
+                    << "[gateway_ipc_binding] AddServiceConfiguration was rejected";
+            }
         }
 
         m_proxy.emplace(std::move(proxy).value());
