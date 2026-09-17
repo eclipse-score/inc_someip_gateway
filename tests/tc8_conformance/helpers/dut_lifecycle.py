@@ -111,7 +111,7 @@ class _TargetProcess:
                 )
 
     def kill(self) -> None:
-        """Alias for terminate — no separate SIGKILL equivalent in ITF."""
+        """Alias for terminate: no separate SIGKILL equivalent in ITF."""
         self.terminate()
 
     def wait(self, timeout: Optional[float] = None) -> int:  # noqa: ARG002
@@ -205,25 +205,27 @@ def launch_dut(
         name = Path(config_path).name if isinstance(config_path, Path) else str(config_path)
         guest_config = _GUEST_CONFIG_MAP.get(name, "tc8_sd.json")
 
-        # 1. Start someipd — it becomes the vsomeip routing manager.
+        # 1. Start someipd: it becomes the vsomeip routing manager.
         someipd_proc = target_init.execute_async(  # type: ignore[attr-defined]
-            f"LD_LIBRARY_PATH=/ "
+            f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
             f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
-            f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
-            f"/someipd -c /tc8_someipd_config.bin"
+            f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
+            f"/opt/someipd -c /opt/tc8_someipd_config.bin"
         )
 
-        # 2. Start the ETS stub — provides the mw::com skeleton so gatewayd's
+        # 2. Start the ETS stub: provides the mw::com skeleton so gatewayd's
         #    StartFindService callback fires and gatewayd calls offer_event() in vsomeip.
         stub_proc = target_init.execute_async(  # type: ignore[attr-defined]
-            f"MW_LOG_CONFIG_FILE=/tc8_logging.json /tc8_ets_stub -s /tc8_ets_stub_mw_com_config.json"
+            f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
+            f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json /opt/tc8_ets_stub -s /opt/tc8_ets_stub_mw_com_config.json"
         )
 
-        # 3. Start gatewayd — connects to someipd IPC server, discovers the stub,
+        # 3. Start gatewayd: connects to someipd IPC server, discovers the stub,
         #    and calls offer_event() so vsomeip advertises the service.
         gatewayd_proc = target_init.execute_async(  # type: ignore[attr-defined]
-            f"MW_LOG_CONFIG_FILE=/tc8_logging.json "
-            f"/gatewayd -c /tc8_someipd_config.bin -s /tc8_gatewayd_mw_com_config.json"
+            f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
+            f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
+            f"/opt/gatewayd -c /opt/tc8_someipd_config.bin -s /opt/tc8_gatewayd_mw_com_config.json"
         )
 
         return _TargetProcess(
@@ -277,7 +279,7 @@ def cleanup_vsomeip_sockets(
 
 
 # ---------------------------------------------------------------------------
-# SD readiness gate (host-side — works in both legacy and ITF modes)
+# SD readiness gate (host-side: works in both legacy and ITF modes)
 # ---------------------------------------------------------------------------
 
 
