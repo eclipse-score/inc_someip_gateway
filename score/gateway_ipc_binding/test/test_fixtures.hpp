@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <new>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -122,16 +121,6 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                                        server_metadata.slot_count}});
     }
 
-    void configure_mw_com_test_service() {
-        interface = {"bridged_/test/ipc/BridgedService", socom::Literal_tag{}, {1, 0}};
-        instance = {"1", socom::Literal_tag{}};
-        std::destroy_at(&socom_client_config);
-        ::new (&socom_client_config) socom::Service_interface_definition{interface};
-        std::destroy_at(&socom_server_config);
-        ::new (&socom_server_config) socom::Server_service_interface_definition{
-            interface, score::socom::to_num_of_methods(0), score::socom::to_num_of_events(2)};
-    }
-
     void SetUp() override {
         server = create_ipc_server(*runtime_server);
         client =
@@ -179,7 +168,6 @@ class Gateway_ipc_binding_bidirectional_test
    protected:
     void SetUp() override {
         if (GetParam().implementation == Ipc_binding_implementation::Mw_com) {
-            this->configure_mw_com_test_service();
             this->server = this->create_mw_com_server(*this->runtime_server);
             ASSERT_NE(this->server, nullptr);
             ASSERT_TRUE(this->server->start());
