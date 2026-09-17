@@ -20,7 +20,7 @@
       ]
     },
     {
-      "serviceTypeName": "/test/ipc/BridgedService",
+      "serviceTypeName": "bridged_/test/ipc/BridgedService",
       "version": {
         "major": 1,
         "minor": 0
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "serviceTypeName": "com.test.service",
+      "serviceTypeName": "bridged_com.test.service",
       "version": {
         "major": 1,
         "minor": 0
@@ -106,8 +106,8 @@
       ]
     },
     {
-      "instanceSpecifier": "ipc/bridged",
-      "serviceTypeName": "/test/ipc/BridgedService",
+      "instanceSpecifier": "bridged_ipc/bridged",
+      "serviceTypeName": "bridged_/test/ipc/BridgedService",
       "version": {
         "major": 1,
         "minor": 0
@@ -133,8 +133,8 @@
       ]
     },
     {
-      "instanceSpecifier": "ipc/shared_test",
-      "serviceTypeName": "com.test.service",
+      "instanceSpecifier": "bridged_ipc/shared_test",
+      "serviceTypeName": "bridged_com.test.service",
       "version": {
         "major": 1,
         "minor": 0

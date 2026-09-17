@@ -30,6 +30,12 @@ namespace {
 
 /// \brief Log prefix shared by the whole binding
 constexpr std::string_view kLog_tag{"[gateway_ipc_binding]"};
+constexpr std::string_view kBridged_service_prefix{"bridged_"};
+
+bool has_bridged_service_prefix(std::string_view const value) noexcept {
+    return (value.size() >= kBridged_service_prefix.size()) &&
+           (value.compare(0U, kBridged_service_prefix.size(), kBridged_service_prefix) == 0);
+}
 
 Result<void> invalid(std::string_view const instance_specifier,
                      std::string_view const reason) noexcept {
@@ -68,6 +74,13 @@ Result<void> check_instance_is_deployed(score::mw::com::InstanceSpecifier const&
 }
 
 Result<void> validate(Service_config const& config) noexcept {
+    if (!has_bridged_service_prefix(config.interface.id.string_view())) {
+        return invalid(config.instance_specifier, "service type name does not start with bridged_");
+    }
+    if (!has_bridged_service_prefix(config.instance_specifier)) {
+        return invalid(config.instance_specifier,
+                       "instance specifier does not start with bridged_");
+    }
     if (config.events.empty()) {
         return invalid(config.instance_specifier, "no events are configured");
     }

@@ -42,8 +42,9 @@ class Service_binding {
 
 /// \brief Reject a service configuration that cannot possibly work before anything is created.
 /// \details Catches the mistakes that would otherwise only surface as a silently dead bridge:
-///          a missing or duplicated event name, a payload longer than the length prefix can
-///          express, and a consumer that would subscribe for zero samples.
+///          service type names and instance specifiers without the `bridged_` prefix, a missing
+///          or duplicated event name, a payload longer than the length prefix can express, and a
+///          consumer that would subscribe for zero samples.
 /// \param config Bridged service instance to check
 /// \return Success, or Mw_com_binding_error::logic_error_invalid_service_configuration
 [[nodiscard]] Result<void> validate(Service_config const& config) noexcept;

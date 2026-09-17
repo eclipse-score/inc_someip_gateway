@@ -621,9 +621,10 @@ Per bridged service instance the deployment must provide:
   ``gatewayd`` is ASIL-B. This is precisely why the SOME/IP header travels with the payload: E2E is what makes
   the QM data usable in the ASIL-B context.
 
-These instances must not collide with the ``gatewayd`` to application instances. The proposed convention is to
-prefix their specifiers, for example ``ipc/<service_type>_<instance_id>``, and to derive them in
-``mw_someip_config`` rather than in code.
+These instances must not collide with the ``gatewayd`` to application instances. Both the service type name
+and instance specifier must start with ``bridged_``, for example
+``bridged_ipc/<service_type>_<instance_id>``, and should be derived in ``mw_someip_config`` rather than in
+code.
 
 In addition, both daemons need one entry for :ref:`someipd-service`. It is the only entry that both files must
 spell identically, and it is the replacement for the shared ``ipc_channel_name`` command line option:

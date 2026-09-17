@@ -66,9 +66,10 @@ struct Event_config {
 
 /// \brief One bridged service instance.
 struct Service_config {
+    /// \brief Bridged SOCom service type name, which must start with `bridged_`.
     socom::Service_interface_identifier interface;
     socom::Service_instance instance;
-    /// \brief mw::com InstanceSpecifier of the gatewayd/someipd instance for this bridged service.
+    /// \brief mw::com InstanceSpecifier for this bridged service, which must start with `bridged_`.
     std::string instance_specifier;
     Role role;
     /// \brief Events in socom::Event_id order.

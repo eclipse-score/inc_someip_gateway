@@ -227,15 +227,16 @@ Service_configs bridged_services(std::string instance_specifier, Role const role
                                                                                   128U}},
                                  std::size_t const max_sample_count = 4U) {
     return Service_configs{Service_config{
-        socom::Service_interface_identifier{std::string_view{"/test/ipc/BridgedService"},
+        socom::Service_interface_identifier{std::string_view{"bridged_/test/ipc/BridgedService"},
                                             socom::Service_interface_identifier::Version{1U, 0U}},
         socom::Service_instance{std::string_view{"1"}}, std::move(instance_specifier), role,
         std::move(events), max_sample_count}};
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, start_fails_when_a_bridged_service_is_not_deployed) {
-    auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                                      bridged_services("ipc/no_such_instance", Role::provider));
+    auto const server =
+        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/no_such_instance", Role::provider));
     ASSERT_NE(server, nullptr);
 
     // SomeipdService itself is fine, but a bridge that can never carry data is a startup error,
@@ -245,15 +246,16 @@ TEST_F(Gateway_ipc_binding_mw_com_test, start_fails_when_a_bridged_service_is_no
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
        create_client_fails_when_a_bridged_service_is_not_deployed) {
-    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
-                                      bridged_services("ipc/no_such_instance", Role::consumer));
+    auto const client =
+        create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/no_such_instance", Role::consumer));
 
     EXPECT_EQ(client, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_bridged_service_without_events_is_rejected) {
     auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                                      bridged_services("ipc/bridged", Role::provider, {}));
+                                      bridged_services("bridged_ipc/bridged", Role::provider, {}));
     ASSERT_NE(server, nullptr);
 
     EXPECT_FALSE(server->start().has_value());
@@ -262,7 +264,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_bridged_service_without_events_is_reje
 TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_name_is_rejected) {
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
-        bridged_services("ipc/bridged", Role::provider,
+        bridged_services("bridged_ipc/bridged", Role::provider,
                          {Event_config{"event_a", 16U, 128U}, Event_config{"event_a", 16U, 128U}}));
     ASSERT_NE(server, nullptr);
 
@@ -271,16 +273,16 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_name_is_rejected) {
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_consumer_without_sample_budget_is_rejected) {
     // Subscribe(0) would succeed but never hand a sample to the application.
-    auto const client = create_client(
-        *m_client_runtime, kSomeipd_specifier_second_pair,
-        bridged_services("ipc/bridged", Role::consumer, {Event_config{"event_a", 16U, 128U}}, 0U));
+    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
+                                      bridged_services("bridged_ipc/bridged", Role::consumer,
+                                                       {Event_config{"event_a", 16U, 128U}}, 0U));
 
     EXPECT_EQ(client, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_the_deployment_is_rejected) {
     auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                                      bridged_services("ipc/bridged", Role::provider,
+                                      bridged_services("bridged_ipc/bridged", Role::provider,
                                                        {Event_config{"no_such_event", 16U, 128U}}));
     ASSERT_NE(server, nullptr);
 
@@ -289,18 +291,38 @@ TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_the_deployment_is_
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_service_is_offered_before_the_bridged_services) {
     auto const server = create_server(*m_server_runtime, kSomeipd_specifier,
-                                      bridged_services("ipc/bridged", Role::provider));
+                                      bridged_services("bridged_ipc/bridged", Role::provider));
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
 
     auto const client =
         create_client(*m_client_runtime, kSomeipd_specifier,
-                      bridged_services("ipc/bridged", Role::consumer), "test_client");
+                      bridged_services("bridged_ipc/bridged", Role::consumer), "test_client");
     ASSERT_NE(client, nullptr);
 
     // Peer liveness is independent of the bridged services: nothing offers the bridged service
     // locally, yet the peer's binding is up and accepting.
     EXPECT_TRUE(wait_for_connected(*client, true));
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test, a_service_type_without_the_bridged_prefix_is_rejected) {
+    auto services = bridged_services("bridged_ipc/bridged", Role::consumer);
+    services.front().interface =
+        socom::Service_interface_identifier{std::string_view{"/test/ipc/BridgedService"},
+                                            socom::Service_interface_identifier::Version{1U, 0U}};
+
+    auto const client =
+        create_client(*m_client_runtime, kSomeipd_specifier_second_pair, std::move(services));
+
+    EXPECT_EQ(client, nullptr);
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test,
+       an_instance_specifier_without_the_bridged_prefix_is_rejected) {
+    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
+                                      bridged_services("ipc/bridged", Role::consumer));
+
+    EXPECT_EQ(client, nullptr);
 }
 
 }  // namespace

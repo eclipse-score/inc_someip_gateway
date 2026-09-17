@@ -89,7 +89,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
         return mw_com::create_server(runtime, "someipd/daemon",
                                      {{interface,
                                        instance,
-                                       "ipc/bridged",
+                                       "bridged_ipc/bridged",
                                        mw_com::Role::provider,
                                        {{"event_a", 16U, 512U}, {"event_b", 16U, 512U}},
                                        4U}});
@@ -114,14 +114,14 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
         return mw_com::create_client(runtime, "someipd/daemon",
                                      {{interface,
                                        instance,
-                                       "ipc/bridged",
+                                       "bridged_ipc/bridged",
                                        mw_com::Role::consumer,
                                        {{"event_a", 16U, 512U}, {"event_b", 16U, 512U}},
                                        4U}});
     }
 
     void configure_mw_com_test_service() {
-        interface = {"/test/ipc/BridgedService", socom::Literal_tag{}, {1, 0}};
+        interface = {"bridged_/test/ipc/BridgedService", socom::Literal_tag{}, {1, 0}};
         instance = {"1", socom::Literal_tag{}};
         std::destroy_at(&socom_client_config);
         ::new (&socom_client_config) socom::Service_interface_definition{interface};
