@@ -19,7 +19,62 @@ length field as the sole framing indicator.
 
 import socket
 import time
-from someip.header import SOMEIPHeader
+from typing import Callable, List
+
+from helpers.someip_types import SOMEIPHeader
+
+# Called once per parsed SOME/IP message. Returns True to stop the receive
+# loop early (the caller has everything it needs), False to keep waiting.
+_MessageHandler = Callable[[SOMEIPHeader], bool]
+
+
+def parse_datagram(data: bytes) -> List[SOMEIPHeader]:
+    """Return all SOME/IP messages packed into a single UDP datagram.
+
+    A UDP datagram may bundle multiple SOME/IP messages back to back
+    (PRS_SOMEIP_00142 / PRS_SOMEIP_00569). SOMEIPHeader.parse() returns
+    (message, remaining_bytes); looping over the remainder ensures every
+    message in the datagram is parsed, not just the first one.
+    """
+    messages: List[SOMEIPHeader] = []
+    buf = data
+    while buf:
+        try:
+            msg, buf = SOMEIPHeader.parse(buf)
+            messages.append(msg)
+        except Exception:
+            break
+    return messages
+
+
+def receive_until(
+    sock: socket.socket,
+    timeout_secs: float,
+    on_message: _MessageHandler,
+) -> bool:
+    """Shared deadline-based receive loop for SOME/IP messages over UDP.
+
+    Repeatedly calls recvfrom() until *timeout_secs* elapses. Every SOME/IP
+    message found in each datagram is parsed (a single datagram may bundle
+    several messages) and passed to *on_message*. The loop stops as soon as
+    *on_message* returns True.
+
+    Returns True if *on_message* signalled completion, False if the
+    deadline was reached first.
+    """
+    deadline = time.monotonic() + timeout_secs
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return False
+        sock.settimeout(min(remaining, 0.5))
+        try:
+            data, _ = sock.recvfrom(65535)
+        except socket.timeout:
+            continue
+        for msg in parse_datagram(data):
+            if on_message(msg):
+                return True
 
 
 def udp_send_concatenated(
@@ -43,26 +98,25 @@ def udp_receive_responses(
     sock: socket.socket,
     count: int,
     timeout_secs: float = 5.0,
-) -> list[SOMEIPHeader]:
+) -> List[SOMEIPHeader]:
     """Receive exactly *count* SOME/IP responses from a UDP socket.
 
-    Uses a single shared deadline across all *count* receive calls so the
-    total wait never exceeds *timeout_secs*. Each ``recvfrom()`` call returns
-    one complete SOME/IP message (the DUT sends one response datagram per
-    request processed from the concatenated datagram).
+    Uses a single shared deadline across the whole wait so the total wait
+    never exceeds *timeout_secs*. The DUT may bundle multiple responses
+    into a single datagram; every message in each datagram is parsed, not
+    just the first one.
 
     Raises ``socket.timeout`` if not all responses arrive in time.
 
     Used by: SOMEIP_ETS_069.
     """
-    deadline = time.monotonic() + timeout_secs
-    responses: list[SOMEIPHeader] = []
-    while len(responses) < count:
-        remaining = deadline - time.monotonic()
-        if remaining <= 0:
-            raise socket.timeout(f"udp_receive_responses: deadline exceeded after {len(responses)}/{count} responses")
-        sock.settimeout(remaining)
-        data, _ = sock.recvfrom(65535)
-        msg, _ = SOMEIPHeader.parse(data)
+    responses: List[SOMEIPHeader] = []
+
+    def _collect(msg: SOMEIPHeader) -> bool:
         responses.append(msg)
+        return len(responses) >= count
+
+    completed = receive_until(sock, timeout_secs, _collect)
+    if not completed:
+        raise socket.timeout(f"udp_receive_responses: deadline exceeded after {len(responses)}/{count} responses")
     return responses

@@ -11,7 +11,7 @@
   SPDX-License-Identifier: Apache-2.0
 ----------------------------------------------------------------------------- -->
 
-# TC8 Conformance — Application Components
+# TC8 Conformance: Application Components
 
 C++ applications used by the TC8 conformance test suite.
 

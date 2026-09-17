@@ -59,7 +59,7 @@ from helpers.constants import (
     SERVICE_ID,
 )
 from helpers.sd_helpers import capture_sd_offers
-from someip.header import SOMEIPReturnCode
+from helpers.someip_types import SOMEIPReturnCode
 
 pytestmark = pytest.mark.skip(
     reason="Production stack does not deliver initial field values or handle getter/setter methods without mw::com ETS app (2026-08-11)"

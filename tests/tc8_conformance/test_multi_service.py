@@ -37,7 +37,7 @@ from attribute_plugin import add_test_properties
 
 from helpers.constants import DUT_UNRELIABLE_PORT, SD_PORT
 from helpers.sd_helpers import open_multicast_socket, parse_sd_offers
-from someip.header import IPv4EndpointOption, L4Protocols, SOMEIPSDEntry
+from helpers.someip_types import IPv4EndpointOption, L4Protocols, SOMEIPSDEntry
 
 #: Use the multi-service DUT config with two service entries.
 #: Only service A is offered by --tc8-standalone; the config itself must load

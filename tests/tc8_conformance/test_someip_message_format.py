@@ -55,7 +55,7 @@ from helpers.tcp_helpers import (
     tcp_send_request,
 )
 from helpers.udp_helpers import udp_receive_responses, udp_send_concatenated
-from someip.header import SOMEIPHeader, SOMEIPMessageType, SOMEIPReturnCode
+from helpers.someip_types import SOMEIPHeader, SOMEIPMessageType, SOMEIPReturnCode
 
 pytestmark = pytest.mark.skip(
     reason="Production stack does not handle SOME/IP methods (gatewayd: to_num_of_methods=0) without mw::com ETS app (2026-08-11)"

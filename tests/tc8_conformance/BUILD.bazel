@@ -12,23 +12,12 @@
 # *******************************************************************************
 
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
+load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_python//python:defs.bzl", "py_library")
 load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//quality/integration_testing:integration_testing.bzl", "integration_test")
-
-filegroup(
-    name = "all_files",
-    srcs = glob(
-        ["**"],
-        exclude = [
-            "**/__pycache__/**",
-            "**/*.pyc",
-        ],
-    ),
-    visibility = ["//visibility:public"],
-)
 
 # Linux only: QNX has no Python toolchain and is excluded from the QNX build sweep.
 py_library(
@@ -37,7 +26,18 @@ py_library(
     imports = ["."],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
-        "@score_someip_gateway_pip//someip",
+        "@score_someip_gateway_pip//scapy",
+    ],
+)
+
+py_pytest(
+    name = "test_golden_vectors",
+    size = "small",
+    srcs = ["test_golden_vectors.py"],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        ":tc8-helpers-lib",
+        "@score_someip_gateway_pip//pytest",
     ],
 )
 
@@ -110,7 +110,7 @@ py_library(
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":tc8-helpers-lib",
-        "@score_someip_gateway_pip//someip",
+        "//tests/common:capture",
     ],
 )
 

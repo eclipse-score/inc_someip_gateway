@@ -24,7 +24,7 @@ pytest==9.1.1 \
     --hash=sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313 \
     --hash=sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c
     # via someip-gateway (pyproject.toml)
-someip==0.3.0 \
-    --hash=sha256:80cf06b022aff077032c1b3ee4a19cb6a3306c6ad4c97c06bdf3eb5db3366ddd \
-    --hash=sha256:b3f68da9a3240420bf520efe3697ff84247c7007040ac0a7671043b676a7ecd7
+scapy==2.7.0 \
+    --hash=sha256:bfc1ef1b93280aea1ddee53be7f74232aa28ac3d891244d41ee85200d24aa446 \
+    --hash=sha256:eb22786da92be6fd8e5c694ae5595e4f5b9ac1f4364c9c45986844f3e3063561
     # via someip-gateway (pyproject.toml)

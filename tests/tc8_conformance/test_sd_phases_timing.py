@@ -32,7 +32,7 @@ from helpers.dut_lifecycle import (
 from helpers.constants import SERVICE_ID
 from helpers.sd_helpers import open_multicast_socket
 from helpers.timing import collect_sd_offers_from_socket
-from someip.header import SOMEIPSDEntry
+from helpers.someip_types import SOMEIPSDEntry
 
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 

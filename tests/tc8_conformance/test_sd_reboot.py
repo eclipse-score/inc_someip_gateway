@@ -36,7 +36,7 @@ from helpers.dut_lifecycle import (
 )
 from helpers.constants import SD_PORT
 from helpers.sd_helpers import open_multicast_socket
-from someip.header import SOMEIPHeader, SOMEIPSDHeader
+from helpers.someip_types import SOMEIPHeader, SOMEIPSDHeader
 
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 

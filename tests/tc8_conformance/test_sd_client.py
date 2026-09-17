@@ -55,7 +55,7 @@ from helpers.sd_sender import (
     open_sender_socket,
     send_subscribe_eventgroup,
 )
-from someip.header import SOMEIPHeader, SOMEIPSDHeader
+from helpers.someip_types import SOMEIPHeader, SOMEIPSDHeader
 
 #: Uses the SD config (service 0x1234/0x5678, eventgroup 0x4455 UDP).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"

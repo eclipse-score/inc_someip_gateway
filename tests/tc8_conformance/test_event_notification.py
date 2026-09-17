@@ -52,7 +52,7 @@ from helpers.constants import (
     SERVICE_ID,
 )
 from helpers.tcp_helpers import tcp_receive_response
-from someip.header import SOMEIPMessageType
+from helpers.someip_types import SOMEIPMessageType
 
 pytestmark = pytest.mark.skip(reason="Production stack does not forward events without mw::com ETS app (2026-08-11)")
 
@@ -217,7 +217,7 @@ class TestEventNotificationFormat:
                 except socket.timeout:
                     continue
                 try:
-                    from someip.header import SOMEIPHeader as _HDR
+                    from helpers.someip_types import SOMEIPHeader as _HDR
 
                     msg, _ = _HDR.parse(data)
                     if msg.service_id == SERVICE_ID and msg.method_id == EVENT_TEST_UINT8:

@@ -47,7 +47,7 @@ import struct
 from typing import Optional, Tuple
 
 from helpers.constants import SD_PORT
-from someip.header import (
+from helpers.someip_types import (
     IPv4EndpointOption,
     L4Protocols,
     SOMEIPSDEntry,
@@ -242,6 +242,7 @@ def _unknown_option_bytes(option_type: int = 0x77, content_len: int = 4) -> byte
 def send_sd_empty_entries(
     sock: socket.socket,
     dest: Tuple[str, int],
+    session_id: int = 0,
 ) -> None:
     """ETS_111: SD packet with entries_array_length=0 (no entries, no options).
 
@@ -251,6 +252,7 @@ def send_sd_empty_entries(
         flags=_SD_FLAGS_REBOOT_UNICAST,
         entries_bytes=b"",
         options_bytes=b"",
+        session_id=session_id,
     )
     sock.sendto(pkt, dest)
 
@@ -261,6 +263,7 @@ def send_sd_find_with_options(
     service_id: int,
     host_ip: str,
     subscriber_port: int,
+    session_id: int = 0,
 ) -> None:
     """ETS_118: FindService entry with an endpoint option attached.
 
@@ -281,6 +284,7 @@ def send_sd_find_with_options(
         flags=_SD_FLAGS_REBOOT_UNICAST,
         entries_bytes=entry_bytes,
         options_bytes=opt_bytes,
+        session_id=session_id,
     )
     sock.sendto(pkt, dest)
 

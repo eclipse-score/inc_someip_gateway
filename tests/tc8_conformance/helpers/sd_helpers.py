@@ -29,7 +29,7 @@ import time
 from typing import List
 
 from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
-from someip.header import (
+from helpers.someip_types import (
     SOMEIPHeader,
     SOMEIPSDEntry,
     SOMEIPSDEntryType,

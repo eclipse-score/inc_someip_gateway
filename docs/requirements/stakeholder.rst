@@ -17,7 +17,7 @@ Stakeholder Requirements
 
 This file contains stakeholder-level requirements for the SOME/IP Gateway.
 Stakeholder requirements capture high-level needs from users, integrators,
-and safety standards. They are the top of the requirements hierarchy —
+and safety standards. They are the top of the requirements hierarchy;
 feature and component requirements derive from these.
 
 .. stkh_req:: SOME/IP Wire-Level Protocol Interoperability

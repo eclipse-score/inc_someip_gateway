@@ -21,7 +21,7 @@ import socket
 import struct
 import time
 
-from someip.header import SOMEIPHeader
+from helpers.someip_types import SOMEIPHeader
 
 _MAX_SOMEIP_MSG_SIZE: int = 65536  # 64 KB safety bound
 

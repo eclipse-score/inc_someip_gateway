@@ -49,7 +49,7 @@ from helpers.constants import (
     SERVICE_ID,
 )
 from helpers.timing import capture_sd_offers_with_timestamps
-from someip.header import SOMEIPHeader, SOMEIPSDHeader
+from helpers.someip_types import SOMEIPHeader, SOMEIPSDHeader
 
 #: SOME/IP stack config template used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
@@ -540,7 +540,7 @@ class TestSDMulticastEventgroup:
             # (SD option type 0x14).  This is distinct from IPv4EndpointOption (0x04)
             # which is used for unicast endpoints; isinstance(o, IPv4EndpointOption)
             # would silently exclude all multicast options.
-            from someip.header import (
+            from helpers.someip_types import (
                 IPv4MulticastOption,
             )  # local import to keep module-level clean
 

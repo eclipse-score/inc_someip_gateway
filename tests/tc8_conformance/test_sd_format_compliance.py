@@ -53,7 +53,7 @@ from helpers.sd_sender import (
     open_sender_socket,
     send_subscribe_eventgroup,
 )
-from someip.header import (
+from helpers.someip_types import (
     IPv4EndpointOption,
     IPv4MulticastOption,
     L4Protocols,

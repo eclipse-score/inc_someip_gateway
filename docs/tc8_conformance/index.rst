@@ -21,12 +21,14 @@ SOME/IP conformance testing of the SOME/IP Gateway.
 
 The TC8 test suite covers two scopes:
 
-- **Protocol Conformance** — Tests ``someipd`` at the wire level using raw
-  UDP/TCP sockets and the ``someip`` Python package. No application processes
-  are needed. ``someipd`` runs in ``--tc8-standalone`` mode.
+- **Protocol Conformance**: Tests ``someipd`` at the wire level using raw
+  UDP/TCP sockets and `scapy <https://scapy.net/>`_ as the packet serializer
+  and parser. No application processes are needed. ``someipd`` is launched on
+  its own (``-c <config.bin>``, without ``gatewayd``), so no local/remote
+  application traffic is routed through it.
 
-- **Application-Level Tests** — Tests the full gateway path
-  (mw::com client → ``gatewayd`` → ``someipd`` → network) using C++ apps
+- **Application-Level Tests**: Tests the full gateway path
+  (mw::com client to ``gatewayd`` to ``someipd`` to network) using C++ apps
   built on ``score::mw::com``. These tests are stack-agnostic.
 
 All tests live under ``tests/tc8_conformance/`` and share the ``tc8`` /
@@ -36,8 +38,8 @@ diagrams, and module structure, see
 
 .. note::
 
-   Protocol conformance tests run ``someipd`` in ``--tc8-standalone`` mode.
-   Fixture defaults (DUT IP, tester IP, port numbers) are defined in
+   Protocol conformance tests run ``someipd`` on its own, without
+   ``gatewayd``. Fixture defaults (DUT IP, tester IP, port numbers) are defined in
    ``tc8_itf_conftest.py``.  To run all protocol conformance tests::
 
       bazel test --config=tc8-itf //tests/tc8_conformance/...
@@ -53,7 +55,7 @@ diagrams, and module structure, see
 
 .. seealso::
 
-   :doc:`/architecture/tc8_conformance_testing` — test topology, module
+   :doc:`/architecture/tc8_conformance_testing` for test topology, module
    dependency diagrams, and planned components.
 
    :doc:`traceability` — full OA TC8 v3.0 Chapter 5 scope analysis, gap
