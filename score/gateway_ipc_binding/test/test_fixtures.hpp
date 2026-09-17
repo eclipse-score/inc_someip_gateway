@@ -170,11 +170,9 @@ class Gateway_ipc_binding_bidirectional_test
         if (GetParam().implementation == Ipc_binding_implementation::Mw_com) {
             this->server = this->create_mw_com_server(*this->runtime_server);
             ASSERT_NE(this->server, nullptr);
-            ASSERT_TRUE(this->server->start());
             this->client = this->create_mw_com_client(*this->runtime_client);
             ASSERT_NE(this->client, nullptr);
-            EXPECT_TRUE(wait_on_connection_state(*this->client, Connection_state::Connected,
-                                                 very_long_timeout));
+            this->start_and_wait_for_client_connection();
         } else {
             BASE::SetUp();
         }
