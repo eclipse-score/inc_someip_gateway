@@ -41,11 +41,25 @@ py_pytest(
     ],
 )
 
+_TC8_VSOMEIP_SHARED_LIBS = [
+    "libvsomeip3.so.3",
+    "libvsomeip3-cfg.so.3",
+    "libvsomeip3-e2e.so.3",
+    "libvsomeip3-sd.so.3",
+]
+
+# Only the shared libraries are needed on the target, the headers of @vsomeip are not.
+# ext4() does not support copying directories, which is needed for the headers.
+# Mirrors the vsomeip-runtime-pkg pattern in tests/integration_test/BUILD.
+[filegroup(
+    name = "tc8-vsomeip-" + lib,
+    srcs = ["@vsomeip"],
+    output_group = lib,
+) for lib in _TC8_VSOMEIP_SHARED_LIBS]
+
 pkg_files(
     name = "tc8-vsomeip-runtime-pkg",
-    srcs = [
-        "@vsomeip",
-    ],
+    srcs = ["tc8-vsomeip-" + lib for lib in _TC8_VSOMEIP_SHARED_LIBS],
     attributes = pkg_attributes(
         mode = "0777",
     ),
