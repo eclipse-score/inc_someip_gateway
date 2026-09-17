@@ -91,20 +91,21 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                                        instance,
                                        "bridged_ipc/bridged",
                                        mw_com::Role::provider,
-                                       {{"event_a", 16U, 512U}, {"event_b", 16U, 512U}},
-                                       4U}});
+                                       {{"event_a", 16U, server_metadata.slot_size},
+                                        {"event_b", 16U, server_metadata.slot_size}},
+                                       server_metadata.slot_count}});
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_ipc_client(
         socom::Runtime& runtime,
-        Shared_memory_manager_factory::Shared_memory_configuration shm_config,
+        Shared_memory_manager_factory::Shared_memory_configuration const& shm_config,
         Find_service_elements find_service_elements = {},
         Shared_memory_configs server_shared_memory_configs = {}, std::string_view identifier = {}) {
         score::message_passing::ClientFactory client_factory;
         auto connection = client_factory.Create(protocol_config, client_config);
         auto client = Gateway_ipc_binding_client::create(
             runtime, std::move(connection), Shared_memory_manager_factory::create(shm_config),
-            std::move(find_service_elements), std::move(server_shared_memory_configs), identifier);
+            find_service_elements, server_shared_memory_configs, identifier);
 
         SCORE_LANGUAGE_FUTURECPP_ASSERT(client && "Client creation failed");
         return client;
@@ -116,8 +117,9 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                                        instance,
                                        "bridged_ipc/bridged",
                                        mw_com::Role::consumer,
-                                       {{"event_a", 16U, 512U}, {"event_b", 16U, 512U}},
-                                       4U}});
+                                       {{"event_a", 16U, server_metadata.slot_size},
+                                        {"event_b", 16U, server_metadata.slot_size}},
+                                       server_metadata.slot_count}});
     }
 
     void configure_mw_com_test_service() {
