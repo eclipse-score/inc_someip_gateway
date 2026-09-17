@@ -22,12 +22,12 @@ from util import (
 def test_start_gatewayd(clean_state):
     with ShellProcess(
         clean_state,
-        "/gatewayd",
+        "/opt/gatewayd",
         args=[
             "--configuration",
-            "/mw_someip_config.bin",
+            "/opt/mw_someip_config.bin",
             "--service_instance_manifest",
-            "/gatewayd_mw_com_config.json",
+            "/opt/gatewayd_mw_com_config.json",
         ],
     ) as gatewayd_process:
         assert gatewayd_process.is_running(), gatewayd_process.get_output()

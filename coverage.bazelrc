@@ -38,10 +38,10 @@ coverage:llvm_cov --experimental_generate_llvm_lcov
 coverage:llvm_cov --experimental_use_llvm_covmap
 coverage:llvm_cov --extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux
 
-# The merger lives in score_tooling (no consumer-specific wiring needed); the
+# The merger lives in score_coverage (no consumer-specific wiring needed); the
 # reporter_wrapper is instantiated in THIS repository (tools/coverage/BUILD)
 # because it carries the coverage scope and LLVM tool labels.
-coverage:llvm_cov --coverage_output_generator=@score_tooling//coverage:merger
+coverage:llvm_cov --coverage_output_generator=@score_coverage//:merger
 coverage:llvm_cov --coverage_report_generator=//tools/coverage:reporter_wrapper
 
 # Keep raw profraw files instead of converting to LCOV; the merger handles
