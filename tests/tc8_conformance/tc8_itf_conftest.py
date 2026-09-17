@@ -177,7 +177,7 @@ def tc8_itf_config_setup(target_init: object, dut_ip: str) -> None:
             f" -e 's/__TC8_SVC_PORT__/{svc_port}/g'"
             f" -e 's/__TC8_SVC_TCP_PORT__/{svc_tcp_port}/g'"
             f" -e 's|__TC8_LOG_DIR__|/tmp|g'"
-            f" /{tmpl_name} > /tmp/{out_name}"
+            f" /opt/{tmpl_name} > /tmp/{out_name}"
         )
         exit_code, output = target_init.execute(cmd)
         if exit_code != 0:
