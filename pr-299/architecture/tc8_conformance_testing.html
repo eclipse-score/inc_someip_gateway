@@ -484,8 +484,9 @@
 defines conformance tests for automotive SOME/IP implementations.
 The TC8 test suite has two scopes:</p>
 <ul class="simple">
-<li><p><strong>Protocol Conformance</strong>: tests the production <code class="docutils literal notranslate"><span class="pre">someipd</span></code> binary at the wire level using the
-<code class="docutils literal notranslate"><span class="pre">someip</span></code> Python package. No application processes are needed.</p></li>
+<li><p><strong>Protocol Conformance</strong>: tests the production <code class="docutils literal notranslate"><span class="pre">someipd</span></code> binary at the wire level using
+<a class="reference external" href="https://scapy.net/">scapy</a> as the packet serializer and parser. No application processes
+are needed.</p></li>
 <li><p><strong>Application Level Tests</strong>: tests the full gateway path from mw::com client
 through <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> to the network, using C++ apps
 built on <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code>. These tests are stack-agnostic.</p></li>
