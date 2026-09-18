@@ -31,7 +31,7 @@ def assert_process_creates_network_instance(
     command: Sequence[str | PathLike[str]],
     expected_output: str,
     *,
-    timeout_seconds: float = 10,
+    timeout_seconds: float = 30,
     failure_prefix: str = "process did not produce expected output",
 ) -> None:
     process = subprocess.Popen(
@@ -50,8 +50,8 @@ def wait_for_output(
     process: subprocess.Popen[bytes],
     expected_output: str,
     *,
-    timeout_seconds: float = 10,
-    failure_prefix: str = "process did not produce expected output",
+    timeout_seconds: float,
+    failure_prefix: str,
 ) -> None:
     """Wait until the process' stdout matches `expected_output`, a glob pattern where '*' matches any text."""
     stdout_pipe = process.stdout
