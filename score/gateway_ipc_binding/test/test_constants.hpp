@@ -45,11 +45,11 @@ class Test_constants {
                                                                              false};
 
     score::socom::Service_interface_identifier const interface{
-        "com.test.service", socom::Literal_tag{}, {1, 0}};
-    score::socom::Service_instance const instance{"instance1", socom::Literal_tag{}};
+        "bridged_/test/ipc/BridgedService", socom::Literal_tag{}, {1, 0}};
+    score::socom::Service_instance const instance{"1", socom::Literal_tag{}};
     score::socom::Service_interface_definition const socom_client_config{interface};
     score::socom::Server_service_interface_definition const socom_server_config{
-        interface, score::socom::to_num_of_methods(1), score::socom::to_num_of_events(1)};
+        interface, score::socom::to_num_of_methods(0), score::socom::to_num_of_events(2)};
 
     Shared_memory_metadata const client_metadata = make_metadata("/gw_client_shm", 256, 8);
     Shared_memory_metadata const server_metadata = make_metadata("/gw_server_shm", 512, 4);
