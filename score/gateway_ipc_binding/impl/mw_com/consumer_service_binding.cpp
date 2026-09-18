@@ -253,7 +253,7 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
 
         // The peer laid the samples out for its own configuration. If the two deployments
         // disagree, the payload would be read at the wrong offset.
-        auto const peer_sample_size = entry->second.GetSampleSize();
+        auto const peer_sample_size = entry->second.GetDataTypeSizeInfo().Size();
         auto const expected = kSample_prefix_size + event.header_size + event.max_payload_size;
         if (peer_sample_size < expected) {
             score::mw::log::LogError()
