@@ -86,6 +86,24 @@ void send_event_update(Server_connector_with_callbacks& server, Service_variant 
     EXPECT_EQ(event_received_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 }
+
+using Many_services_test_parameter =
+    std::tuple<Service_variant, Service_variant, Ipc_binding_implementation>;
+
+Many_services_test_parameter tsv(Service_variant a, Service_variant b,
+                                 Ipc_binding_implementation implementation) {
+    return std::make_tuple(a, b, implementation);
+}
+
+std::string many_services_test_name(
+    testing::TestParamInfo<Many_services_test_parameter> const& param) {
+    auto const implementation = std::get<2>(param.param);
+    auto const* const implementation_name =
+        implementation == Ipc_binding_implementation::Message_passing ? "Message_passing"
+                                                                      : "Mw_com";
+    return std::string{implementation_name} + "_" + std::to_string(param.index);
+}
+
 }  // namespace
 
 class Gateway_ipc_binding_many_services_integration_test
@@ -130,15 +148,20 @@ class Gateway_ipc_binding_many_services_integration_test
         {service_interface_beta, {{instance, client_metadata_beta}}},
         {service_interface_gamma, {{instance, client_metadata_gamma}}}};
 
+    mw_com::Service_configs const mw_com_consumer_services =
+        make_mw_com_services(mw_com::Role::consumer);
+    mw_com::Service_configs const mw_com_provider_services =
+        make_mw_com_services(mw_com::Role::provider);
+
     Event_id const beta_event_id{1};
 
-    mw_com::Service_configs make_mw_com_services(Service_variant const service_type,
-                                                 mw_com::Role const role) const {
+    mw_com::Service_configs make_mw_com_services(mw_com::Role const role) const {
         mw_com::Service_configs services;
         auto add_service = [this, &services, role](auto const& interface, auto const& metadata,
                                                    std::string instance_specifier,
                                                    std::size_t event_count) {
             std::vector<mw_com::Event_config> events;
+            events.reserve(event_count);
             for (std::size_t event_index = 0U; event_index < event_count; ++event_index) {
                 events.push_back({"event_" + std::to_string(event_index), 16U, metadata.slot_size});
             }
@@ -146,41 +169,15 @@ class Gateway_ipc_binding_many_services_integration_test
                                 std::move(events), metadata.slot_count});
         };
 
-        if ((static_cast<std::uint8_t>(service_type) &
-             static_cast<std::uint8_t>(Service_variant::alpha)) != 0U) {
-            add_service(service_interface_alpha, server_metadata_alpha,
-                        "bridged_ipc/many_services_alpha", 1U);
-        }
-        if ((static_cast<std::uint8_t>(service_type) &
-             static_cast<std::uint8_t>(Service_variant::beta)) != 0U) {
-            add_service(service_interface_beta, server_metadata_beta,
-                        "bridged_ipc/many_services_beta", 2U);
-        }
-        if ((static_cast<std::uint8_t>(service_type) &
-             static_cast<std::uint8_t>(Service_variant::gamma)) != 0U) {
-            add_service(service_interface_gamma, server_metadata_gamma,
-                        "bridged_ipc/many_services_gamma", 3U);
-        }
+        add_service(service_interface_alpha, server_metadata_alpha,
+                    "bridged_ipc/many_services_alpha", 1U);
+        add_service(service_interface_beta, server_metadata_beta, "bridged_ipc/many_services_beta",
+                    2U);
+        add_service(service_interface_gamma, server_metadata_gamma,
+                    "bridged_ipc/many_services_gamma", 3U);
         return services;
     }
 };
-
-using Many_services_test_parameter =
-    std::tuple<Service_variant, Service_variant, Ipc_binding_implementation>;
-
-Many_services_test_parameter tsv(Service_variant a, Service_variant b,
-                                 Ipc_binding_implementation implementation) {
-    return std::make_tuple(a, b, implementation);
-}
-
-std::string many_services_test_name(
-    testing::TestParamInfo<Many_services_test_parameter> const& param) {
-    auto const implementation = std::get<2>(param.param);
-    auto const* const implementation_name =
-        implementation == Ipc_binding_implementation::Message_passing ? "Message_passing"
-                                                                      : "Mw_com";
-    return std::string{implementation_name} + "_" + std::to_string(param.index);
-}
 
 class Gateway_ipc_binding_many_services_param_integration_test
     : public Gateway_ipc_binding_many_services_integration_test,
@@ -194,13 +191,11 @@ class Gateway_ipc_binding_many_services_param_integration_test
         // not calling base class SetUp by intention. client and server are created here
         // Gateway_ipc_binding_many_services_integration_test::SetUp();
 
-        if (std::get<2>(GetParam()) == Ipc_binding_implementation::Mw_com) {
-            client =
-                create_mw_com_client(*runtime_client, "someipd/daemon_many_services",
-                                     make_mw_com_services(client_type, mw_com::Role::consumer));
-            server =
-                create_mw_com_server(*runtime_server, "someipd/daemon_many_services",
-                                     make_mw_com_services(server_type, mw_com::Role::provider));
+        if (implementation == Ipc_binding_implementation::Mw_com) {
+            client = create_mw_com_client(*runtime_client, "someipd/daemon_many_services",
+                                          mw_com_consumer_services);
+            server = create_mw_com_server(*runtime_server, "someipd/daemon_many_services",
+                                          mw_com_provider_services);
         } else {
             client = create_ipc_client(*runtime_client, client_shm_config, {},
                                        make_shared_memory_configs(server_shm_config));
@@ -280,11 +275,6 @@ TEST_P(Gateway_ipc_binding_many_services_param_integration_test, clients_connect
 
 TEST_P(Gateway_ipc_binding_many_services_param_integration_test,
        server_sends_event_update_to_subscribed_clients) {
-    if (this->implementation == Ipc_binding_implementation::Mw_com) {
-        GTEST_SKIP() << "Mw_com only configures services which are really going to be used. Thus "
-                        "always creating all of them will fail the test.";
-    }
-
     Server_connector_with_callbacks alpha_server_connector(*runtime_server, server_config_alpha,
                                                            instance);
     Server_connector_with_callbacks beta_server_connector(*runtime_server, server_config_beta,
@@ -309,62 +299,6 @@ TEST_P(Gateway_ipc_binding_many_services_param_integration_test,
                       beta_observer);
     send_event_update(gamma_server_connector, server_type, Service_variant::gamma, event_id,
                       gamma_observer);
-}
-
-TEST_P(Gateway_ipc_binding_many_services_param_integration_test,
-       server_sends_event_update_to_subscribed_clients2) {
-    auto alpha_server_connector = create_server_connector(
-        *runtime_server, server_type, Service_variant::alpha, server_config_alpha, instance);
-    auto beta_server_connector = create_server_connector(
-        *runtime_server, server_type, Service_variant::beta, server_config_beta, instance);
-    auto gamma_server_connector = create_server_connector(
-        *runtime_server, server_type, Service_variant::gamma, server_config_gamma, instance);
-
-    Client_connector_with_callbacks alpha_observer;
-    Client_connector_with_callbacks beta_observer;
-    Client_connector_with_callbacks gamma_observer;
-    expect_connection(alpha_observer, client_type, Service_variant::alpha, server_config_alpha);
-    expect_connection(beta_observer, client_type, Service_variant::beta, server_config_beta);
-    expect_connection(gamma_observer, client_type, Service_variant::gamma, server_config_gamma);
-
-    if ((static_cast<std::uint8_t>(client_type) &
-         static_cast<std::uint8_t>(Service_variant::alpha)) != 0U) {
-        alpha_observer.create_connector(*runtime_client, server_config_alpha, instance);
-    }
-    if ((static_cast<std::uint8_t>(client_type) &
-         static_cast<std::uint8_t>(Service_variant::beta)) != 0U) {
-        beta_observer.create_connector(*runtime_client, server_config_beta, instance);
-    }
-    if ((static_cast<std::uint8_t>(client_type) &
-         static_cast<std::uint8_t>(Service_variant::gamma)) != 0U) {
-        gamma_observer.create_connector(*runtime_client, server_config_gamma, instance);
-    }
-
-    EXPECT_EQ(alpha_observer.client_connected_promise.get_future().wait_for(very_long_timeout),
-              std::future_status::ready);
-    EXPECT_EQ(beta_observer.client_connected_promise.get_future().wait_for(very_long_timeout),
-              std::future_status::ready);
-    EXPECT_EQ(gamma_observer.client_connected_promise.get_future().wait_for(very_long_timeout),
-              std::future_status::ready);
-
-    if (alpha_server_connector != nullptr && alpha_observer.connector != nullptr) {
-        subscribe_event(alpha_observer, client_type, Service_variant::alpha,
-                        *alpha_server_connector, event_id);
-        send_event_update(*alpha_server_connector, server_type, Service_variant::alpha, event_id,
-                          alpha_observer);
-    }
-    if (beta_server_connector != nullptr && beta_observer.connector != nullptr) {
-        subscribe_event(beta_observer, client_type, Service_variant::beta, *beta_server_connector,
-                        event_id);
-        send_event_update(*beta_server_connector, server_type, Service_variant::beta, event_id,
-                          beta_observer);
-    }
-    if (gamma_server_connector != nullptr && gamma_observer.connector != nullptr) {
-        subscribe_event(gamma_observer, client_type, Service_variant::gamma,
-                        *gamma_server_connector, event_id);
-        send_event_update(*gamma_server_connector, server_type, Service_variant::gamma, event_id,
-                          gamma_observer);
-    }
 }
 
 }  // namespace score::gateway_ipc_binding
