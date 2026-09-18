@@ -78,8 +78,11 @@ class _TargetProcess:
         self._process_names = tuple(process_names)
 
     def poll(self) -> Optional[int]:
-        """Return ``None`` while running, ``0`` after the process has stopped."""
-        return None if self._proc.is_running() else 0  # type: ignore[attr-defined]
+        """Return ``None`` while running, ``0`` once any tracked process has stopped."""
+        for proc in (self._proc, self._secondary_proc, self._stub_proc):
+            if proc is not None and not proc.is_running():  # type: ignore[attr-defined]
+                return 0
+        return None
 
     def terminate(self) -> None:
         """Stop the remote processes.
@@ -268,7 +271,6 @@ def terminate_dut(proc: object) -> None:
 
 
 def cleanup_vsomeip_sockets(
-    base_path: str = "/tmp",
     target_init: object = None,
 ) -> None:
     """Remove stale vsomeip routing-manager sockets and LoLa SHM/discovery
@@ -290,13 +292,10 @@ def cleanup_vsomeip_sockets(
     target only ever runs one test session at a time. Files created by the
     custom SomeipMessageTransfer IPC binding are intentionally left alone,
     since that binding is being replaced by one built on mw::com.
-
-    *base_path* is unused; kept for backward-compatible call signature.
     """
     if target_init is None:
         _logger.warning("cleanup_vsomeip_sockets: target_init not provided; skipping cleanup (ITF mode only)")
         return
-    del base_path  # unused, kept for signature compatibility
     stale_globs = (
         "/tmp/vsomeip-*",
         "/var/run/vsomeip-*",

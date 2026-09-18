@@ -17,7 +17,6 @@ capture unicast SD responses and SOME/IP notifications.
 """
 
 import ipaddress
-import itertools
 import socket
 import struct
 import time
@@ -72,14 +71,16 @@ def open_sender_socket(local_ip: str) -> socket.socket:
 
 # SD session counter — incremented per message to avoid DUT duplicate-detection.
 # PRS_SOMEIPSD_00154 requires session_id to start at 0x0001 (0x0000 is reserved)
-# and to increment with each SD message.
+# and to increment with each SD message, wrapping from 0xFFFF back to 0x0001.
 # NOTE: Assumes serial test execution (Bazel "exclusive" tag). Not thread-safe.
-_session_counter = itertools.count(start=1)
+_last_session_id = 0
 
 
 def _next_session_id() -> int:
-    """Return the next SD session ID (wraps at 16-bit)."""
-    return next(_session_counter) & 0xFFFF or 1  # skip 0 (reserved)
+    """Return the next SD session ID, wrapping 0xFFFF -> 0x0001 (0x0000 is reserved)."""
+    global _last_session_id
+    _last_session_id = _last_session_id % 0xFFFF + 1
+    return _last_session_id
 
 
 def _build_sd_packet(entry: SOMEIPSDEntry, session_id: int = 0) -> bytes:
@@ -95,7 +96,9 @@ def _build_sd_packet(entry: SOMEIPSDEntry, session_id: int = 0) -> bytes:
     return SOMEIPHeader(
         service_id=SD_SERVICE,
         method_id=SD_METHOD,
-        client_id=0x0001,
+        # SD is control traffic, not tied to any application client; the
+        # SOME/IP-SD spec reserves client_id 0x0000 for this purpose.
+        client_id=0x0000,
         session_id=session_id,
         interface_version=SD_INTERFACE_VERSION,
         message_type=SOMEIPMessageType.NOTIFICATION,

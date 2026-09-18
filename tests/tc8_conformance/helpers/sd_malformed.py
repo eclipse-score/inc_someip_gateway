@@ -22,7 +22,7 @@ SOME/IP header (16 bytes):
   [0-1]   service_id  = 0xFFFF
   [2-3]   method_id   = 0x8100
   [4-7]   length      (big-endian, bytes from byte 8 onward)
-  [8-9]   client_id   = 0x0001
+  [8-9]   client_id   = 0x0000
   [10-11] session_id  (big-endian)
   [12]    protocol_version  = 0x01
   [13]    interface_version = 0x01
@@ -86,7 +86,9 @@ def _build_someip_header(session_id: int, payload_len: int) -> bytes:
         _SOMEIP_SD_SERVICE_ID,  # service_id
         _SOMEIP_SD_METHOD_ID,  # method_id
         length,  # length
-        0x0001,  # client_id
+        0x0000,  # client_id — reserved SD client_id per SOME/IP-SD spec; each malformed packet
+        # must carry only the ONE intended violation so the DUT cannot reject it on a
+        # different violation first; 0x0000 keeps client_id from being an unintended second violation.
         session_id,  # session_id
         0x01,  # protocol_version
         0x01,  # interface_version (SD uses 0x01)

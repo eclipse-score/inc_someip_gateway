@@ -40,6 +40,7 @@ def subscribe_and_wait_ack(
     notif_port: int,
     timeout_secs: float = 5.0,
     ttl: int = 3,
+    l4proto: L4Protocols = L4Protocols.UDP,
 ) -> socket.socket:
     """Subscribe to an eventgroup and wait for the Ack.
 
@@ -49,6 +50,10 @@ def subscribe_and_wait_ack(
     *ttl* controls the SD SubscribeEventgroup entry TTL (seconds).  Use a
     larger value (e.g. 30) when the test collects notifications over an
     interval longer than the default 3-second window.
+
+    *l4proto* selects the transport advertised for the subscription
+    (UDP by default). Use L4Protocols.TCP so the DUT delivers notifications
+    over TCP.
     """
     sd_sock = open_sender_socket(tester_ip)
     try:
@@ -64,6 +69,7 @@ def subscribe_and_wait_ack(
                 subscriber_ip=tester_ip,
                 subscriber_port=notif_port,
                 ttl=ttl,
+                l4proto=l4proto,
             )
 
         _send_sub()
@@ -155,33 +161,15 @@ def subscribe_and_wait_ack_tcp(
     endpoint (L4Proto=TCP) so the DUT delivers notifications over TCP.
     Returns the SD socket (still open). Caller must close it.
     """
-    sd_sock = open_sender_socket(tester_ip)
-    try:
-
-        def _send_sub() -> None:
-            send_subscribe_eventgroup(
-                sd_sock,
-                (host_ip, sd_port),
-                service_id,
-                instance_id,
-                eventgroup_id,
-                major_version,
-                subscriber_ip=tester_ip,
-                subscriber_port=notif_port,
-                l4proto=L4Protocols.TCP,
-            )
-
-        _send_sub()
-        entries = capture_unicast_sd_entries(
-            sd_sock,
-            filter_types=(SOMEIPSDEntryType.SubscribeAck,),
-            timeout_secs=timeout_secs,
-            resend=_send_sub,
-            max_results=1,
-        )
-        acks = [e for e in entries if e.eventgroup_id == eventgroup_id and e.ttl > 0]
-        assert acks, f"No SubscribeEventgroupAck received for TCP eventgroup 0x{eventgroup_id:04x}"
-    except Exception:
-        sd_sock.close()
-        raise
-    return sd_sock
+    return subscribe_and_wait_ack(
+        tester_ip,
+        host_ip,
+        sd_port,
+        service_id,
+        instance_id,
+        eventgroup_id,
+        major_version,
+        notif_port,
+        timeout_secs=timeout_secs,
+        l4proto=L4Protocols.TCP,
+    )

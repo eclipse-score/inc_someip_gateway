@@ -197,7 +197,7 @@ def dut(
     """Launch the full DUT stack on the QEMU guest and yield a .poll() adapter.
 
     Delegates process launch to :func:`helpers.dut_lifecycle.launch_dut`.  The
-    fixture skips the test class if the DUT does not send an OfferService within 10 s.
+    fixture fails the test class if the DUT does not send an OfferService within 10 s.
     """
     config_name: str = getattr(request.module, "SOMEIP_CONFIG", "tc8_someipd_sd.json")
 
@@ -207,7 +207,7 @@ def dut(
 
     if not wait_for_sd_readiness(host_ip):
         proc.terminate()
-        pytest.skip(
+        pytest.fail(
             "DUT did not reach SD main phase within 10 s (QEMU/ITF). "
             "Check TAP bridge, multicast route on guest, and vsomeip config."
         )

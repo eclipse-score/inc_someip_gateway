@@ -100,15 +100,19 @@ initialises a vsomeip application and calls ``offer_service()`` for each entry.
 For TC8, the config is ``tc8_someipd_config.bin``, generated at build time from
 ``tests/tc8_conformance/config/tc8_someipd_config.json``.
 
-``gatewayd`` is started alongside ``someipd`` as a companion process.  In the
-SD-only conformance tests ``gatewayd`` idles (its FlatBuffer config declares no
-service types), but the IPC handshake between ``someipd`` and ``gatewayd`` must
-complete before the test proceeds.  ``gatewayd`` becomes active only in ETS
-end-to-end tests where a mw::com application offers or consumes the TC8 service.
+``gatewayd`` is started alongside ``someipd`` as a companion process.  It is
+launched with the same ``tc8_someipd_config.bin`` as ``someipd``, so it has the
+same service type information available.  In the SD-only conformance tests
+``gatewayd`` idles, but the IPC handshake between ``someipd`` and ``gatewayd``
+must complete before the test proceeds.  ``gatewayd`` becomes active only in
+ETS end-to-end tests where a mw::com application offers or consumes the TC8
+service.
 
 ``tc8_itf_conftest.py`` launches ``someipd`` first (it becomes the vsomeip
-routing manager), waits for an OfferService multicast, then starts ``gatewayd``.
-Both processes are force-killed (``pkill -9``) during fixture teardown.
+routing manager), then the ETS stub, then ``gatewayd``, all immediately in
+that order; the fixture waits for an OfferService/SD readiness signal only
+after all three processes have started. Both processes are force-killed
+(``pkill -9``) during fixture teardown.
 
 Port Isolation and Parallel Execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

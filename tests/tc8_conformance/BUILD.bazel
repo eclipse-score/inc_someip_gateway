@@ -41,6 +41,17 @@ py_pytest(
     ],
 )
 
+py_pytest(
+    name = "test_helper_regressions",
+    size = "small",
+    srcs = ["test_helper_regressions.py"],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        ":tc8-helpers-lib",
+        "@score_someip_gateway_pip//pytest",
+    ],
+)
+
 _TC8_VSOMEIP_SHARED_LIBS = [
     "libvsomeip3.so.3",
     "libvsomeip3-cfg.so.3",
