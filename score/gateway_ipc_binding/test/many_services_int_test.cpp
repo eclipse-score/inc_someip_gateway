@@ -30,6 +30,7 @@ using testing::Values;
 
 namespace score::gateway_ipc_binding {
 
+namespace {
 enum class Service_variant : std::uint8_t { alpha = 1 << 0, beta = 1 << 1, gamma = 1 << 2 };
 
 Service_variant operator|(Service_variant a, Service_variant b) {
@@ -85,6 +86,7 @@ void send_event_update(Server_connector_with_callbacks& server, Service_variant 
     EXPECT_EQ(event_received_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 }
+}  // namespace
 
 class Gateway_ipc_binding_many_services_integration_test
     : public Gateway_ipc_binding_unconnected_integration_test {
