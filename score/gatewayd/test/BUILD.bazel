@@ -13,6 +13,8 @@
 
 # load("@rules_python//python:defs.bzl", "py_test")
 
+# TODO the test is flaky and blocks CI, investigate and fix the root cause.
+#      Root cause could not unsynchronized writes to the console.
 # py_test(
 #     name = "gatewayd_test",
 #     srcs = ["gatewayd_test.py"],
