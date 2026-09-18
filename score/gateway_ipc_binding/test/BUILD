@@ -49,7 +49,7 @@ cc_test(
         "//score/socom:mock",
         "@googletest//:gtest",
         "@score_baselibs//score/filesystem",
-        "@score_communication//score/mw/com",
+        "@score_baselibs//score/mw/log:backend_stub_testutil",
     ],
 )
 
