@@ -39,7 +39,6 @@ cc_test(
     tags = [
         "block-network",
         "component",
-        "exclusive",
     ],
     visibility = ["//tests/integration_test:__pkg__"],
     deps = [
