@@ -114,7 +114,6 @@ integration_test(
     deps = [
         "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
-        "@score_someip_gateway_pip//someip",
     ],
 )
 
@@ -130,7 +129,6 @@ integration_test(
     deps = [
         "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
-        "@score_someip_gateway_pip//someip",
     ],
 )
 
@@ -146,7 +144,6 @@ integration_test(
     deps = [
         "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
-        "@score_someip_gateway_pip//someip",
     ],
 )
 
@@ -162,6 +159,5 @@ integration_test(
     deps = [
         "//tests/common:capture",
         "@score_someip_gateway_pip//pytest",
-        "@score_someip_gateway_pip//someip",
     ],
 )
