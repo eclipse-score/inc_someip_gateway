@@ -33,48 +33,6 @@ The one thing ``mw::com`` does not give away for free is peer liveness, because 
 cannot distinguish "the peer is down" from "the peer is up but the service is not there". That is solved with
 a dedicated, typed ``SomeipdService``, see :ref:`someipd-service`.
 
-.. _mw-com-implementation-status:
-
-Implementation status
----------------------
-
-Peer liveness and event-based service bridging are implemented. ``create_server()`` provides
-``SomeipdService``, ``create_client()`` consumes it and reports it through ``is_connected()``, and
-both factories set up the configured bridged services.
-
-+------------------------------------------------------+------------------------------------------+
-| Part                                                 | State                                    |
-+======================================================+==========================================+
-| :ref:`someipd-service`, ``is_connected()``           | implemented                              |
-+------------------------------------------------------+------------------------------------------+
-| ``Service_configs`` public API, ``sample_size()``    | implemented                              |
-+------------------------------------------------------+------------------------------------------+
-| bridged services: skeletons, proxies, event flow     | implemented                              |
-+------------------------------------------------------+------------------------------------------+
-| method calls, requested event updates                | not representable, see `Known gaps`_     |
-+------------------------------------------------------+------------------------------------------+
-
-Code map:
-
-- ``score/someip/someipd_service.hpp`` — the typed ``SomeipdService`` interface, in its own Bazel
-  target ``//score/someip:someipd_service`` so that ``//score/someip:someip`` stays free of an
-  ``mw::com`` dependency
-- ``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp`` — the public interface below
-- ``score/gateway_ipc_binding/impl/mw_com/`` — the implementation, built as
-  ``//score/gateway_ipc_binding:gateway_ipc_binding_mw_com``, a target separate from
-  ``//score/gateway_ipc_binding`` so that users of the ``message_passing`` implementation do not
-  pull in ``mw::com``:
-
-  - ``sample_layout.{hpp,cpp}`` — the length prefix and the ``DataTypeMetaInfo`` derivation
-  - ``service_binding.{hpp,cpp}`` — configuration validation and the role dispatch
-  - ``provider_service_binding.{hpp,cpp}`` — ``GenericSkeleton`` plus SOCom ``Client_connector``
-  - ``consumer_service_binding.{hpp,cpp}`` — ``GenericProxy`` plus SOCom ``Server_connector``
-  - ``someipd_service_binding.{hpp,cpp}`` — the two halves of :ref:`someipd-service`
-
-- ``score/gateway_ipc_binding/test/`` — ``gateway_ipc_binding_test`` runs a real ``mw::com`` runtime
-  alongside the ``message_passing`` implementation, with both halves of ``SomeipdService`` and of one
-  bridged service in one process
-
 Goals and non-goals
 -------------------
 
@@ -91,7 +49,7 @@ Non-goals:
 
 - method calls. ``GenericProxy`` and ``GenericSkeleton`` are event-only, so methods stay unimplemented, as
   they are today.
-- dynamic, runtime-driven service discovery between the two daemons. See decision :ref:`d4-static-config`.
+- dynamic, runtime-driven service discovery between the two daemons.
 - ``mw::com`` interoperability for the ``gatewayd`` to application boundary. That boundary already uses
   ``mw::com`` and is not touched by this design.
 
@@ -131,20 +89,6 @@ service into one shared-memory segment. ``mw::com`` allocates per event, so the 
 The ``Shared_memory_slot_manager`` family of types is therefore **not** reused. Instead the factory functions
 receive a plain configuration structure that describes the ``GenericSkeletonServiceElementInfo`` required for
 each service. See :ref:`public-interface`.
-
-.. _d4-static-config:
-
-D4: the set of bridged services is static and known at startup
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``mw::com`` reads slot counts, subscriber counts and ASIL levels from a ``mw_com_config.json`` that has to
-exist before the process starts. A service instance that is not in that file cannot be created at runtime.
-Sending a list of needed services from ``gatewayd`` to ``someipd`` over the link, as the ``Connect`` message
-does today, would therefore buy nothing: ``someipd`` could not act on it anyway.
-
-Consequently the ``find_service_elements`` feature is **not** carried over. Every SOME/IP service that
-``someipd`` offers to ``gatewayd`` over IPC must already be known to ``someipd`` at startup, and the
-``On_find_service_change`` callback is not part of the new factory signature.
 
 Mapping SOME/IP services to mw::com features
 --------------------------------------------
@@ -206,8 +150,7 @@ Role assignment
 ~~~~~~~~~~~~~~~
 
 A bridged service always has a data source and a data sink. The binding peer on the **source** side owns the
-``GenericSkeleton``, the binding peer on the **sink** side owns the ``GenericProxy``. Which peer is which
-follows directly from the SOME/IP configuration and is fixed at startup, as required by :ref:`d4-static-config`.
+``GenericSkeleton``, the binding peer on the **sink** side owns the ``GenericProxy``.
 
 .. list-table::
    :header-rows: 1
@@ -286,13 +229,6 @@ Offering order
 service coming from the network is offered. ``is_connected() == true`` therefore means "the peer's binding is
 up and accepting", not "the peer has finished setting up its services". Bridged services arrive
 asynchronously afterwards, each signalled through the normal SOCom service state.
-
-Typed, not generic
-^^^^^^^^^^^^^^^^^^
-
-``SomeipdService`` is the one service in this design that is **not** generic. Unlike a bridged SOME/IP service
-its content is known at compile time, it is defined by this repository rather than by a customer's SOME/IP
-deployment, and it is not a pass-through for opaque bytes.
 
 .. _sample-layout:
 
@@ -434,88 +370,6 @@ Public interface
 
 A new public header ``gateway_ipc_binding_mw_com.hpp`` adds the configuration types and two free factory
 functions. The existing headers are not modified.
-
-.. code-block:: cpp
-
-   namespace score::gateway_ipc_binding::mw_com {
-
-   /// \brief Bytes reserved at the front of every event sample for binding metadata.
-   inline constexpr std::size_t kSample_prefix_size = 8U;
-   /// \brief Alignment requested for every event sample.
-   inline constexpr std::size_t kSample_alignment = 8U;
-
-   /// \brief Which side of a bridged service this peer implements.
-   enum class Role : std::uint8_t {
-       /// This peer consumes the service locally via SOCom and offers it via a GenericSkeleton.
-       provider,
-       /// This peer receives the service via a GenericProxy and offers it locally via SOCom.
-       consumer,
-   };
-
-   /// \brief One event of a bridged service. The position in Service_config::events is the socom::Event_id.
-   struct Event_config {
-       /// \brief mw::com event name, must match mw_com_config.json.
-       std::string name;
-       /// \brief Reserved leading bytes, e.g. score::someip::kSomeipFullHeaderSize.
-       std::size_t header_size;
-       /// \brief Largest payload this event can carry.
-       std::size_t max_payload_size;
-   };
-
-   /// \brief One bridged service instance.
-   struct Service_config {
-       socom::Service_interface_identifier interface;
-       socom::Service_instance instance;
-       /// \brief mw::com InstanceSpecifier of the gatewayd/someipd instance for this bridged service.
-       std::string instance_specifier;
-       Role role;
-       /// \brief Events in socom::Event_id order.
-       std::vector<Event_config> events;
-       /// \brief max_sample_count passed to GenericProxyEvent::Subscribe on the consumer side.
-       std::size_t max_sample_count;
-   };
-
-   using Service_configs = std::vector<Service_config>;
-
-   /// \brief Sample size derived from an Event_config, i.e. the DataTypeMetaInfo::size.
-   std::size_t sample_size(Event_config const& event) noexcept;
-
-   /// \brief Create the mw::com backed binding behind the client interface.
-   /// \details Consumes SomeipdService and reports it through is_connected().
-   /// \param runtime SOCom runtime used to create the connectors
-   /// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance that
-   ///        the peer provides. Must be unique per gatewayd/someipd pair on a host, and must be the
-   ///        same value that the peer passes to create_server().
-   /// \param services Bridged service instances, see D4: this set is fixed for the process lifetime
-   /// \param identifier Optional string used for logging only
-     /// \param mw_com_config_json Optional add-on mw::com configuration sent to SomeipdService as JSON
-     ///        text once its proxy becomes available
-   /// \return Nullptr if any configured service could not be set up
-   std::unique_ptr<Gateway_ipc_binding_client> create_client(
-       score::socom::Runtime& runtime, std::string someipd_service_specifier,
-       Service_configs services = {}, std::string_view identifier = {},
-       std::optional<std::string_view> mw_com_config_json = std::nullopt) noexcept;
-
-   /// \brief Create the mw::com backed binding behind the server interface.
-   /// \details Provides SomeipdService. Setup is deferred to Gateway_ipc_binding_server::start(),
-   ///          which offers SomeipdService first, before any bridged service is set up.
-   /// \param runtime SOCom runtime used to create the connectors
-   /// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance to
-   ///        provide, see create_client()
-   /// \param services Bridged service instances
-   std::unique_ptr<Gateway_ipc_binding_server> create_server(
-       score::socom::Runtime& runtime, std::string someipd_service_specifier,
-       Service_configs services) noexcept;
-
-   }  // namespace score::gateway_ipc_binding::mw_com
-
-``Service_configs`` is an owning value type. Unlike ``Find_service_elements`` and ``Shared_memory_configs`` it
-never travels over a link, so there is no reason for it to be trivially copyable or bounded by
-``kMax_find_service_elements``. That also removes today's hard limit of four service instances.
-
-``mw::com`` itself is only reached through ``score::mw::com::runtime::InitializeRuntime``, which the daemons
-already call for ``gatewayd`` and will have to start calling for ``someipd``. The binding does not own the
-``mw::com`` runtime.
 
 .. _interface-semantics:
 
@@ -670,34 +524,6 @@ setup on mismatch. On the consumer side the same check runs against ``GenericPro
 once the peer's instance is found; a mismatch there means the two deployments disagree, so the service is
 left unavailable instead of reading payloads at the wrong offset.
 
-Testing strategy
-----------------
-
-Everything runs in ``//score/gateway_ipc_binding/test:gateway_ipc_binding_test``, the same binary that
-exercises the ``message_passing`` implementation. It carries a real ``mw::com`` runtime alongside two SOCom
-runtimes standing in for the two daemons, with both halves of the link in one process. ``mw::com`` can only
-be initialized once per process, which is why the whole suite shares one ``main.cpp`` and one
-``mw_com_config.json``.
-
-Implemented:
-
-- ``sample_size()`` including the rounding to ``kSample_alignment``
-- ``SomeipdService``, both the peer-liveness contract and its add-on configuration method
-  works: offer, find, ``is_connected()`` true, peer stops, ``is_connected()`` false, peer restarts, true again
-- configuration rejection: an instance missing from the deployment, an event missing from the deployment,
-  no events, duplicate event names, ``max_sample_count == 0``
-- bridged services, parameterized alongside the ``message_passing`` implementation in
-  ``bidirectional_int_test.cpp`` and friends: availability propagation, per-event subscription propagation
-  in both directions, event round trip including the SOME/IP header and an empty and a maximum-size payload,
-  and service disappearance including while a subscription is still live
-
-Still open:
-
-- the ``someipd`` and ``gatewayd`` integration tests that would replace ``test/bidirectional_*_int_test.cpp``
-  by running the two daemons as separate processes
-- re-pointing the existing benchmarks at the new target so that throughput and latency can be compared
-  against the current implementation before the flag is flipped
-
 Known gaps
 ----------
 
@@ -709,12 +535,6 @@ Known gaps
 - **requested event updates**: SOCom ``on_event_update_request`` has no LoLa counterpart. LoLa has no pull
   API on the proxy side, so field-style initial values cannot be served on demand. The request is logged and
   ignored.
-- **dynamic service sets**: adding a bridged service requires a configuration change and a restart of both
-  daemons. This is a direct consequence of :ref:`d4-static-config`.
-- **liveness granularity**: ``SomeipdService`` reports that the peer's binding is up and accepting, not that
-  any given bridged service is usable, because it is offered before them, see
-  :ref:`someipd-service-ordering`. That is the same guarantee ``Connect_reply`` gives today, but it is worth
-  stating because per-service availability now arrives through a second, independent discovery path.
 - **const-correctness**: turning a ``SamplePtr<void>`` into a writable ``socom::Payload`` needs a
   ``const_cast``, the same wart the current shared-memory read path already carries.
 - **re-offering a provider service**: if the local SOCom service of a provider-role bridge goes away and
@@ -728,11 +548,6 @@ Known gaps
   ``GenericSkeleton`` on the next offer, which LoLa's own stale-shared-memory detection (an flock on a
   per-instance usage marker file) supports. A restart of the *providing application* while a peer is
   actively subscribed is therefore still not covered.
-- **re-entrant SOCom callbacks**: a consuming application must not call ``unsubscribe_event()`` from within
-  its own ``on_event_update`` callback. The consumer side holds a lock across the forwarding of a sample and
-  takes another one when unsubscribing, and ``GenericProxyEvent::UnsetReceiveHandler()`` waits for the
-  running receive handler. SOCom already requires callbacks to return quickly and not to block, so this is a
-  sharpening of an existing rule rather than a new one.
 
 Open points
 -----------
@@ -742,14 +557,4 @@ Open points
 - Whether ``mw_com_config.json`` for the bridged instances should be generated from ``mw_someip_config`` at
   build time. Hand-maintaining sample sizes in two places will drift.
 - Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch until the
-  upstream re-offer problem described under `Known gaps`_ is solved, see
-  :ref:`mw-com-implementation-status`.
-
-Closed points:
-
-- *Whether the typed instance works end to end on a real runtime.* It does, see
-  :ref:`someipd-service`.
-- *Where* ``someipd_service.hpp`` *should live.* ``score/someip/someipd_service.hpp``, in the separate
-  Bazel target ``//score/someip:someipd_service``. Both daemons already depend on ``score/someip`` and
-  ``gateway_ipc_binding`` should not own a ``someipd`` control API; the separate target keeps the
-  ``mw::com`` dependency out of ``//score/someip:someip``.
+  upstream re-offer problem described under `Known gaps`_ is solved.
