@@ -86,7 +86,7 @@ def _build_someip_header(session_id: int, payload_len: int) -> bytes:
         _SOMEIP_SD_SERVICE_ID,  # service_id
         _SOMEIP_SD_METHOD_ID,  # method_id
         length,  # length
-        0x0000,  # client_id — reserved SD client_id per SOME/IP-SD spec; each malformed packet
+        0x0000,  # client_id: reserved SD client_id per SOME/IP-SD spec; each malformed packet
         # must carry only the ONE intended violation so the DUT cannot reject it on a
         # different violation first; 0x0000 keeps client_id from being an unintended second violation.
         session_id,  # session_id
@@ -352,7 +352,7 @@ def send_sd_entry_unknown_option_type(
 ) -> None:
     """ETS_116/174: SubscribeEventgroup with an option of unknown type 0x77.
 
-    DUT may send NAck or silently discard — must not crash.
+    DUT may send NAck or silently discard, but must not crash.
     """
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
@@ -788,7 +788,7 @@ def send_sd_empty_option(
         eventgroup_id=eventgroup_id,
         num_opts=1,
     )
-    # Build an option with length=0x0001 (only 1 content byte after length field — invalid)
+    # Build an option with length=0x0001 (only 1 content byte after length field, invalid)
     opt_bytes = struct.pack(">HBB", 0x0001, 0x04, 0x00) + b"\x00" * 8
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,

@@ -31,7 +31,7 @@ from helpers.someip_types import (
 
 
 class TestSdSessionIdWraparound:
-    """Regression for item 7: session-id must wrap 0xFFFF -> 1, never emit 0x0000."""
+    """Regression for item 7: session-id must wrap from 0xFFFF to 1, never emit 0x0000."""
 
     def test_no_consecutive_duplicate_across_wraparound(self) -> None:
         sd_sender._last_session_id = 0xFFFE  # noqa: SLF001

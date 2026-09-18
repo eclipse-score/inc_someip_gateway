@@ -13,7 +13,7 @@
 """TCP transport helpers for SOME/IP over TCP (reliable binding).
 
 SOME/IP over TCP uses stream framing: the 4-byte length field in the header
-(bytes 4–7) indicates how many bytes follow after byte 7. The receiver reads
+(bytes 4-7) indicates how many bytes follow after byte 7. The receiver reads
 8 bytes (service_id + method_id + length), then reads `length` more bytes.
 """
 
@@ -106,7 +106,7 @@ def tcp_receive_response(sock: socket.socket, timeout_secs: float = 3.0) -> SOME
 
     Framing:
       1. Read 8 bytes (service_id[2] + method_id[2] + length[4]).
-      2. Extract length from bytes 4–7 (big-endian).
+      2. Extract length from bytes 4-7 (big-endian).
       3. Read exactly `length` more bytes.
       4. Parse via SOMEIPHeader.parse(header + body).
 

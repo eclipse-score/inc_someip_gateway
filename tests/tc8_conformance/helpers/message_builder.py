@@ -66,12 +66,12 @@ def build_request_no_return(
 
 
 # ---------------------------------------------------------------------------
-# Malformed message builders — TC8-MSG-007
+# Malformed message builders for TC8-MSG-007
 # ---------------------------------------------------------------------------
 
 
 def build_truncated_message() -> bytes:
-    """Return 7 raw bytes — one byte shorter than the minimum 8-byte SOME/IP header.
+    """Return 7 raw bytes, one byte shorter than the minimum 8-byte SOME/IP header.
 
     The DUT must not crash when it receives this (TC8-MSG-007).
     """
@@ -121,13 +121,13 @@ def build_oversized_message(
         session_id=session_id,
         interface_version=interface_version,
     )
-    # SOME/IP length field = bytes 4–7; it counts bytes from byte 8 onward.
+    # SOME/IP length field = bytes 4-7; it counts bytes from byte 8 onward.
     # A claim of 0x7FF3 means the message body should be 32755 bytes but is only 8.
     return raw[:4] + b"\x00\x00\x7f\xf3" + raw[8:]
 
 
 # ---------------------------------------------------------------------------
-# Group 3 message builders — protocol behaviour tests
+# Group 3 message builders for protocol behaviour tests
 # ---------------------------------------------------------------------------
 
 
@@ -141,7 +141,7 @@ def build_notification_as_request(
 ) -> bytes:
     """Build a SOME/IP packet with message_type=NOTIFICATION (0x02).
 
-    A NOTIFICATION sent in the client→server direction is invalid per the
+    A NOTIFICATION sent in the client to server direction is invalid per the
     SOME/IP spec.  Used by ETS_075: the DUT must not send a RESPONSE.
     """
     return SOMEIPHeader(

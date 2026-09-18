@@ -72,7 +72,7 @@ def send_set_field(
 
 
 # ---------------------------------------------------------------------------
-# TCP variants — SOMEIPSRV_RPC_17 (reliable transport)
+# TCP variants for SOMEIPSRV_RPC_17 (reliable transport)
 # ---------------------------------------------------------------------------
 
 

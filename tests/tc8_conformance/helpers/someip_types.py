@@ -110,7 +110,7 @@ class SOMEIPHeader:
         :param buf: buffer containing (at least) one SOME/IP packet
         :raises ValueError: if *buf* is too short, or the header contains an
             invalid protocol version, message type, or return code
-        :return: tuple ``(header, buf_rest)`` -- the parsed header and the
+        :return: tuple ``(header, buf_rest)``, the parsed header and the
             unparsed remainder of *buf* (empty if *buf* held exactly one
             message)
         """
@@ -191,7 +191,7 @@ class IPv4MulticastOption(SOMEIPSDOption):
 
     Same fields as :class:`IPv4EndpointOption` but a distinct type.
     Do not use ``isinstance`` against :class:`IPv4EndpointOption` to match
-    both -- they are not related by inheritance.
+    both, since they are not related by inheritance.
     """
 
     address: ipaddress.IPv4Address
