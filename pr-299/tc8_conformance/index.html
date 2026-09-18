@@ -473,9 +473,9 @@ SOME/IP conformance testing of the SOME/IP Gateway.</p>
 <ul class="simple">
 <li><p><strong>Protocol Conformance</strong>: Tests <code class="docutils literal notranslate"><span class="pre">someipd</span></code> at the wire level using raw
 UDP/TCP sockets and <a class="reference external" href="https://scapy.net/">scapy</a> as the packet serializer
-and parser. No application processes are needed. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is launched on
-its own (<code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">&lt;config.bin&gt;</span></code>, without <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>), so no local/remote
-application traffic is routed through it.</p></li>
+and parser. <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, the ETS stub, and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> are all started
+together as part of the DUT stack, but no application processes drive
+traffic through <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> in these tests.</p></li>
 <li><p><strong>Application-Level Tests</strong>: Tests the full gateway path
 (mw::com client to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> to network) using C++ apps
 built on <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code>. These tests are stack-agnostic.</p></li>
@@ -486,8 +486,9 @@ diagrams, and module structure, see
 <a class="reference internal" href="../architecture/tc8_conformance_testing.html"><span class="doc">TC8 SOME/IP Conformance Testing</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Protocol conformance tests run <code class="docutils literal notranslate"><span class="pre">someipd</span></code> on its own, without
-<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>. Fixture defaults (DUT IP, tester IP, port numbers) are defined in
+<p>Protocol conformance tests run the full DUT stack (<code class="docutils literal notranslate"><span class="pre">someipd</span></code>, the ETS
+stub, and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>), though only <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is exercised directly.
+Fixture defaults (DUT IP, tester IP, port numbers) are defined in
 <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code>.  To run all protocol conformance tests:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="o">/...</span>
 </pre></div>

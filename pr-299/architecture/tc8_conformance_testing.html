@@ -515,14 +515,18 @@ declares the service ID, instance ID, version, and events to offer. The binary
 initialises a vsomeip application and calls <code class="docutils literal notranslate"><span class="pre">offer_service()</span></code> for each entry.
 For TC8, the config is <code class="docutils literal notranslate"><span class="pre">tc8_someipd_config.bin</span></code>, generated at build time from
 <code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_config.json</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is started alongside <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a companion process.  In the
-SD-only conformance tests <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> idles (its FlatBuffer config declares no
-service types), but the IPC handshake between <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> must
-complete before the test proceeds.  <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> becomes active only in ETS
-end-to-end tests where a mw::com application offers or consumes the TC8 service.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is started alongside <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a companion process.  It is
+launched with the same <code class="docutils literal notranslate"><span class="pre">tc8_someipd_config.bin</span></code> as <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, so it has the
+same service type information available.  In the SD-only conformance tests
+<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> idles, but the IPC handshake between <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>
+must complete before the test proceeds.  <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> becomes active only in
+ETS end-to-end tests where a mw::com application offers or consumes the TC8
+service.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code> launches <code class="docutils literal notranslate"><span class="pre">someipd</span></code> first (it becomes the vsomeip
-routing manager), waits for an OfferService multicast, then starts <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.
-Both processes are force-killed (<code class="docutils literal notranslate"><span class="pre">pkill</span> <span class="pre">-9</span></code>) during fixture teardown.</p>
+routing manager), then the ETS stub, then <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>, all immediately in
+that order; the fixture waits for an OfferService/SD readiness signal only
+after all three processes have started. Both processes are force-killed
+(<code class="docutils literal notranslate"><span class="pre">pkill</span> <span class="pre">-9</span></code>) during fixture teardown.</p>
 </section>
 <section id="port-isolation-and-parallel-execution">
 <h3>Port Isolation and Parallel Execution<a class="headerlink" href="#port-isolation-and-parallel-execution" title="Link to this heading">#</a></h3>
