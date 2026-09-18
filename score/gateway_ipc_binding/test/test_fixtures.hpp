@@ -85,14 +85,20 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     }
 
     std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(socom::Runtime& runtime) {
-        return mw_com::create_server(runtime, "someipd/daemon",
-                                     {{interface,
-                                       instance,
-                                       "bridged_ipc/bridged",
-                                       mw_com::Role::provider,
-                                       {{"event_a", 16U, server_metadata.slot_size},
-                                        {"event_b", 16U, server_metadata.slot_size}},
-                                       server_metadata.slot_count}});
+        return create_mw_com_server(runtime, "someipd/daemon",
+                                    {{interface,
+                                      instance,
+                                      "bridged_ipc/bridged",
+                                      mw_com::Role::provider,
+                                      {{"event_a", 16U, server_metadata.slot_size},
+                                       {"event_b", 16U, server_metadata.slot_size}},
+                                      server_metadata.slot_count}});
+    }
+
+    std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(
+        socom::Runtime& runtime, std::string const& someipd_service_specifier,
+        mw_com::Service_configs services) {
+        return mw_com::create_server(runtime, someipd_service_specifier, std::move(services));
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_ipc_client(
@@ -111,14 +117,20 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(socom::Runtime& runtime) {
-        return mw_com::create_client(runtime, "someipd/daemon",
-                                     {{interface,
-                                       instance,
-                                       "bridged_ipc/bridged",
-                                       mw_com::Role::consumer,
-                                       {{"event_a", 16U, server_metadata.slot_size},
-                                        {"event_b", 16U, server_metadata.slot_size}},
-                                       server_metadata.slot_count}});
+        return create_mw_com_client(runtime, "someipd/daemon",
+                                    {{interface,
+                                      instance,
+                                      "bridged_ipc/bridged",
+                                      mw_com::Role::consumer,
+                                      {{"event_a", 16U, server_metadata.slot_size},
+                                       {"event_b", 16U, server_metadata.slot_size}},
+                                      server_metadata.slot_count}});
+    }
+
+    std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(
+        socom::Runtime& runtime, std::string const& someipd_service_specifier,
+        mw_com::Service_configs services) {
+        return mw_com::create_client(runtime, someipd_service_specifier, std::move(services));
     }
 
     void SetUp() override {

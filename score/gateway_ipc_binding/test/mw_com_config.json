@@ -60,6 +60,75 @@
           ]
         }
       ]
+    },
+    {
+      "serviceTypeName": "bridged_com.test.service.alpha",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6403,
+          "events": [
+            {
+              "eventName": "event_0",
+              "eventId": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "serviceTypeName": "bridged_com.test.service.beta",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6404,
+          "events": [
+            {
+              "eventName": "event_0",
+              "eventId": 1
+            },
+            {
+              "eventName": "event_1",
+              "eventId": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "serviceTypeName": "bridged_com.test.service.gamma",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6405,
+          "events": [
+            {
+              "eventName": "event_0",
+              "eventId": 1
+            },
+            {
+              "eventName": "event_1",
+              "eventId": 2
+            },
+            {
+              "eventName": "event_2",
+              "eventId": 3
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceInstances": [
@@ -94,6 +163,27 @@
       "instances": [
         {
           "instanceId": 2,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "methods": [
+            {
+              "methodName": "AddServiceConfiguration",
+              "queueSize": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "someipd/daemon_many_services",
+      "serviceTypeName": "/score/someip/SomeipdService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 3,
           "asil-level": "QM",
           "binding": "SHM",
           "methods": [
@@ -147,6 +237,87 @@
           "events": [
             {
               "eventName": "event",
+              "numberOfSampleSlots": 4,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "bridged_ipc/many_services_alpha",
+      "serviceTypeName": "bridged_com.test.service.alpha",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_0",
+              "numberOfSampleSlots": 4,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "bridged_ipc/many_services_beta",
+      "serviceTypeName": "bridged_com.test.service.beta",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_0",
+              "numberOfSampleSlots": 4,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_1",
+              "numberOfSampleSlots": 4,
+              "maxSubscribers": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "bridged_ipc/many_services_gamma",
+      "serviceTypeName": "bridged_com.test.service.gamma",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "event_0",
+              "numberOfSampleSlots": 4,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_1",
+              "numberOfSampleSlots": 4,
+              "maxSubscribers": 1
+            },
+            {
+              "eventName": "event_2",
               "numberOfSampleSlots": 4,
               "maxSubscribers": 1
             }
