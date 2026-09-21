@@ -473,10 +473,12 @@ following the S-CORE docs-as-code requirements process.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="stakeholder.html">Stakeholder Requirements</a></li>
-<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature Requirements</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="feature/someip/protocol.html">Open SOME/IP Specification Requirements</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="component/someipd/protocol.html">SOME/IP Network Daemon Protocol Requirements</a></li>
 </ul>
 </li>
 </ul>
@@ -569,12 +571,12 @@ S-CORE requirements engineering process:</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">stkh_req__some_ip_gateway__transparent_bridging</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">feat_req</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">feat_req__some_ip_gateway__&lt;title&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">feat_req__some_ip_gateway__e2e_protection</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">feat_req__&lt;scope&gt;__&lt;title&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">feat_req__someip__rpc</span></code> (in <code class="docutils literal notranslate"><span class="pre">requirements/feature/someip/protocol.rst</span></code>)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">comp_req__&lt;component&gt;__&lt;title&gt;</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">comp_req__gatewayd__msg_routing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">comp_req__someipd__rpc_header</span></code> (in <code class="docutils literal notranslate"><span class="pre">requirements/component/someipd/protocol.rst</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aou_req</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">aou_req__&lt;component&gt;__&lt;title&gt;</span></code></p></td>
@@ -600,13 +602,32 @@ S-CORE requirements engineering process:</p>
 <p>Every requirement directive must include these attributes:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">:id:</span></code> — unique identifier per the scheme above</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">:status:</span></code> — <code class="docutils literal notranslate"><span class="pre">valid</span></code> or <code class="docutils literal notranslate"><span class="pre">draft</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:status:</span></code>, either <code class="docutils literal notranslate"><span class="pre">valid</span></code> or <code class="docutils literal notranslate"><span class="pre">invalid</span></code> (<code class="docutils literal notranslate"><span class="pre">draft</span></code> is <strong>not</strong> an
+accepted value for requirement nodes per the metamodel)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:safety:</span></code> — <code class="docutils literal notranslate"><span class="pre">QM</span></code> or <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:security:</span></code> — <code class="docutils literal notranslate"><span class="pre">YES</span></code> or <code class="docutils literal notranslate"><span class="pre">NO</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:reqtype:</span></code> — <code class="docutils literal notranslate"><span class="pre">Functional</span></code>, <code class="docutils literal notranslate"><span class="pre">Interface</span></code>, <code class="docutils literal notranslate"><span class="pre">Process</span></code>, or <code class="docutils literal notranslate"><span class="pre">Non-Functional</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code> — parent requirement ID (mandatory for feature and component levels)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:satisfied_by:</span></code>, the corresponding architecture element ID
+(<code class="docutils literal notranslate"><span class="pre">feat</span></code> for <code class="docutils literal notranslate"><span class="pre">feat_req</span></code>, <code class="docutils literal notranslate"><span class="pre">comp</span></code> for <code class="docutils literal notranslate"><span class="pre">comp_req</span></code>); this is the
+<strong>mandatory</strong> parent/downstream link, not <code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:derived_from:</span></code>, parent requirement ID (<code class="docutils literal notranslate"><span class="pre">stkh_req</span></code> for <code class="docutils literal notranslate"><span class="pre">feat_req</span></code>,
+<code class="docutils literal notranslate"><span class="pre">feat_req</span></code> for <code class="docutils literal notranslate"><span class="pre">comp_req</span></code>); this is an <em>optional</em> upward
+traceability link, not mandatory</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:rationale:</span></code> — justification text (mandatory for stakeholder level only)</p></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The metamodel’s <code class="docutils literal notranslate"><span class="pre">id_contains_feature</span></code> validator (enforced as a build
+error) requires that for every <code class="docutils literal notranslate"><span class="pre">feat_req</span></code>/<code class="docutils literal notranslate"><span class="pre">comp_req</span></code> ID, the middle
+<code class="docutils literal notranslate"><span class="pre">&lt;scope&gt;</span></code> segment appear as a substring of the directory path of the
+RST file the requirement lives in. This is why new <code class="docutils literal notranslate"><span class="pre">feat_req</span></code>/
+<code class="docutils literal notranslate"><span class="pre">comp_req</span></code> nodes for a given scope (e.g. <code class="docutils literal notranslate"><span class="pre">someip</span></code>, <code class="docutils literal notranslate"><span class="pre">someipd</span></code>) are
+placed in their own subdirectory (e.g.
+<code class="docutils literal notranslate"><span class="pre">requirements/feature/someip/protocol.rst</span></code>,
+<code class="docutils literal notranslate"><span class="pre">requirements/component/someipd/protocol.rst</span></code>) rather than directly
+under the flat <code class="docutils literal notranslate"><span class="pre">requirements/feature/</span></code> or <code class="docutils literal notranslate"><span class="pre">requirements/component/</span></code>
+directory.</p>
+</div>
 </section>
 <section id="cross-references">
 <h3>Cross-References<a class="headerlink" href="#cross-references" title="Link to this heading">#</a></h3>

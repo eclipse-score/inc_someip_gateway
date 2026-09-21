@@ -517,7 +517,8 @@ requirement does <strong>not</strong> change when new test areas are added.</p><
 transport). Each component requirement:</p>
 <ul>
 <li><p>Describes the specific behaviour under test.</p></li>
-<li><p>References the relevant AUTOSAR PRS or TC8 specification section.</p></li>
+<li><p>References the relevant Open SOME/IP Specification chapter or TC8
+specification section.</p></li>
 <li><p>Is verified by one or more pytest functions.</p></li>
 </ul>
 </li>
@@ -584,7 +585,7 @@ and IPv4MulticastOption</p></td>
 <h2>Feature Requirement<a class="headerlink" href="#feature-requirement" title="Link to this heading">#</a></h2>
 <p>The following feature requirement establishes TC8 SOME/IP conformance testing
 as a formal verification activity for the SOME/IP Gateway’s protocol stack.</p>
-<div class="need_container docutils container" id="SNCB-ac2f91ca">
+<div class="need_container docutils container" id="SNCB-55433a88">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__tc8_conformance__conformance">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -609,7 +610,6 @@ as a formal verification activity for the SOME/IP Gateway’s protocol stack.</p
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__tc8_conformance__conformance">stkh_req__someip_gw__interoperability</a></span></span></div>
-<div class="line">derives: <span class="derived_from"><span><a class="reference internal" href="#comp_req__tc8_conformance__evt_subscription" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__evt_subscription</a>, <a class="reference internal" href="#comp_req__tc8_conformance__fld_get_set" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__fld_get_set</a>, <a class="reference internal" href="#comp_req__tc8_conformance__fld_getter_setter" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__fld_getter_setter</a>, <a class="reference internal" href="#comp_req__tc8_conformance__fld_initial_value" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__fld_initial_value</a>, <a class="reference internal" href="#comp_req__tc8_conformance__msg_error_codes" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__msg_error_codes</a>, <a class="reference internal" href="#comp_req__tc8_conformance__msg_malformed" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__msg_malformed</a>, <a class="reference internal" href="#comp_req__tc8_conformance__msg_resp_header" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__msg_resp_header</a>, <a class="reference internal" href="#comp_req__tc8_conformance__multi_service" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__multi_service</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_cyclic_timing" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_cyclic_timing</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_endpoint_option" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_endpoint_option</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_find_response" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_find_response</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_format_fields" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_format_fields</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_mcast_eg" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_mcast_eg</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_offer_format" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_offer_format</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_options_fields" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_options_fields</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_phases_timing" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_phases_timing</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_reboot" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_reboot</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_robustness" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_robustness</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_stop_sub_fmt" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_stop_sub_fmt</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_sub_lifecycle" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_sub_lifecycle</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_ttl_expiry" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_ttl_expiry</a>, <a class="reference internal" href="#comp_req__tc8_conformance__tcp_transport" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__tcp_transport</a>, <a class="reference internal" href="#comp_req__tc8_conformance__udp_transport" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__udp_transport</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/features.html#feat__someip_gateway" title="feat_req__tc8_conformance__conformance">feat__someip_gateway</a></span></span></div>
 </span></div>
 </div>
@@ -646,9 +646,9 @@ integration test suite under <code class="docutils literal notranslate"><span cl
 <section id="component-requirements-service-discovery">
 <h2>Component Requirements — Service Discovery<a class="headerlink" href="#component-requirements-service-discovery" title="Link to this heading">#</a></h2>
 <p>The following component requirements define the high-priority TC8 conformance
-tests for SOME/IP Service Discovery (SD), aligned with SOME/IP-SD Protocol
-Specification (AUTOSAR PRS_SOMEIP_SD).</p>
-<div class="need_container docutils container" id="SNCB-a03cb93f">
+tests for SOME/IP Service Discovery (SD), aligned with <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a>
+(cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-sd.rst</span></code>).</p>
+<div class="need_container docutils container" id="SNCB-dda90570">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_offer_format">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -671,7 +671,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_offer_format">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_offer_format">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_offer_format">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -682,8 +682,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).</p>
 SOME/IP-SD OfferService entries on the configured multicast group
 with correct service ID, instance ID, major/minor version, and TTL
 fields upon startup.</p>
-<p>Note: Traces to SOME/IP-SD specification sections 4.1.2.1
-(OfferService entry format) and 4.1.2.3 (Service Entry fields).
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_offer_discovery" title="comp_req__someipd__sd_offer_discovery"><em class="xref need">SOME/IP-SD Offer and Find S... (comp_req__someipd__sd_offer_discovery)</em></a>
+(OfferService entry format and Service Entry fields).
 Covers TC8-SD-001 and TC8-SD-002 from the test strategy.</p>
 </td>
 </tr>
@@ -701,7 +701,7 @@ Covers TC8-SD-001 and TC8-SD-002 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-c5d67f0a">
+<div class="need_container docutils container" id="SNCB-3490adc2">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_cyclic_timing">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -724,7 +724,7 @@ Covers TC8-SD-001 and TC8-SD-002 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_cyclic_timing">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_cyclic_timing">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_cyclic_timing">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -734,7 +734,7 @@ Covers TC8-SD-001 and TC8-SD-002 from the test strategy.</p>
 <tr class="content row-odd"><td class="content" colspan="6"><p>The conformance test suite shall verify that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> repeats
 OfferService entries at the configured <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> interval
 (±20% tolerance) during the main phase of Service Discovery.</p>
-<p>Note: Traces to SOME/IP-SD specification section 4.1.1
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_timing" title="comp_req__someipd__sd_timing"><em class="xref need">SOME/IP-SD Startup and Cycl... (comp_req__someipd__sd_timing)</em></a>
 (SD Phases — Main Phase, cyclic offer behavior).
 Covers TC8-SD-003 from the test strategy.</p>
 </td>
@@ -753,7 +753,7 @@ Covers TC8-SD-003 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-816fb99f">
+<div class="need_container docutils container" id="SNCB-92f8ed36">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_find_response">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -776,7 +776,7 @@ Covers TC8-SD-003 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_find_response">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_find_response">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_find_response">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -786,7 +786,7 @@ Covers TC8-SD-003 from the test strategy.</p>
 <tr class="content row-odd"><td class="content" colspan="6"><p>The conformance test suite shall verify that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> responds to
 a SOME/IP-SD FindService entry with a unicast OfferService for a
 known service, and does not respond for an unknown service.</p>
-<p>Note: Traces to SOME/IP-SD specification section 4.1.2.2
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_offer_discovery" title="comp_req__someipd__sd_offer_discovery"><em class="xref need">SOME/IP-SD Offer and Find S... (comp_req__someipd__sd_offer_discovery)</em></a>
 (FindService entry handling and response behavior).
 Covers TC8-SD-004 and TC8-SD-005 from the test strategy.</p>
 </td>
@@ -805,7 +805,7 @@ Covers TC8-SD-004 and TC8-SD-005 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-2f749c16">
+<div class="need_container docutils container" id="SNCB-6d12a59f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_sub_lifecycle">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -828,7 +828,7 @@ Covers TC8-SD-004 and TC8-SD-005 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_sub_lifecycle">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_sub_lifecycle">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_sub_lifecycle">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -841,9 +841,9 @@ subscriptions (SubscribeEventgroupAck), reject unknown eventgroups
 (SubscribeEventgroupNack with TTL=0), honor StopSubscribeEventgroup
 by ceasing notifications, and clean up expired subscriptions after
 the subscription TTL elapses.</p>
-<p>Note: Traces to SOME/IP-SD specification sections 4.1.2.4
-(SubscribeEventgroup), 4.1.2.5 (StopSubscribeEventgroup),
-4.1.2.6 (SubscribeEventgroupAck/Nack), and 4.1.2.7 (TTL handling).
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_subscription" title="comp_req__someipd__sd_subscription"><em class="xref need">SOME/IP-SD Eventgroup Subsc... (comp_req__someipd__sd_subscription)</em></a>
+(SubscribeEventgroup, StopSubscribeEventgroup, SubscribeEventgroupAck/Nack,
+and TTL handling).
 Covers TC8-SD-006, TC8-SD-007, TC8-SD-008, and TC8-SD-014 from the
 test strategy.</p>
 </td>
@@ -862,7 +862,7 @@ test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-81de40e9">
+<div class="need_container docutils container" id="SNCB-8e71d5e0">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_ttl_expiry">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -885,7 +885,7 @@ test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_ttl_expiry">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_ttl_expiry">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_ttl_expiry">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -911,7 +911,7 @@ after the TTL expiry, conforming to OA TC8 SOMEIP_ETS_095.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-b76c6572">
+<div class="need_container docutils container" id="SNCB-177fcb86">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_phases_timing">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -934,7 +934,7 @@ after the TTL expiry, conforming to OA TC8 SOMEIP_ETS_095.</p></td>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_phases_timing">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_phases_timing">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_phases_timing">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -945,7 +945,7 @@ after the TTL expiry, conforming to OA TC8 SOMEIP_ETS_095.</p></td>
 the three SD phases: initial wait delay within <code class="docutils literal notranslate"><span class="pre">[initial_delay_min,</span>
 <span class="pre">initial_delay_max]</span></code>, repetition of offers <code class="docutils literal notranslate"><span class="pre">repetitions_max</span></code> times
 at <code class="docutils literal notranslate"><span class="pre">repetitions_base_delay</span></code> intervals, and transition to main phase.</p>
-<p>Note: Traces to SOME/IP-SD specification section 4.1.1
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_timing" title="comp_req__someipd__sd_timing"><em class="xref need">SOME/IP-SD Startup and Cycl... (comp_req__someipd__sd_timing)</em></a>
 (SD Phases — Initial Wait, Repetition, Main Phase).
 Covers TC8-SD-009 and TC8-SD-010 from the test strategy.</p>
 </td>
@@ -964,7 +964,7 @@ Covers TC8-SD-009 and TC8-SD-010 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-b5edd524">
+<div class="need_container docutils container" id="SNCB-660a0399">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_endpoint_option">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -987,7 +987,7 @@ Covers TC8-SD-009 and TC8-SD-010 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_endpoint_option">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_endpoint_option">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_endpoint_option">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -998,7 +998,7 @@ Covers TC8-SD-009 and TC8-SD-010 from the test strategy.</p>
 a valid IPv4EndpointOption in OfferService SD entries, carrying the
 correct unicast address, port, and L4 protocol (UDP) so that clients
 can reach the offered service.</p>
-<p>Note: Traces to SOME/IP-SD specification section 4.1.2.4
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_message_format" title="comp_req__someipd__sd_message_format"><em class="xref need">SOME/IP-SD Message and Opti... (comp_req__someipd__sd_message_format)</em></a>
 (SD Options — IPv4 Endpoint Option format).
 Covers TC8-SD-011 from the test strategy.</p>
 </td>
@@ -1017,7 +1017,7 @@ Covers TC8-SD-011 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-a61ebce5">
+<div class="need_container docutils container" id="SNCB-d851f6db">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_reboot">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1040,7 +1040,7 @@ Covers TC8-SD-011 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_reboot">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_reboot">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_reboot">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1051,7 +1051,7 @@ Covers TC8-SD-011 from the test strategy.</p>
 SD state upon restart: the reboot flag (SD flags byte bit 7) shall
 be set in the first SD message after restart, and the SD session ID
 shall reset to a low value (≤ 2).</p>
-<p>Note: Traces to SOME/IP-SD specification section 4.1.1
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_timing" title="comp_req__someipd__sd_timing"><em class="xref need">SOME/IP-SD Startup and Cycl... (comp_req__someipd__sd_timing)</em></a>
 (Reboot Detection — session ID and reboot flag handling).
 Covers TC8-SD-012 from the test strategy.</p>
 </td>
@@ -1070,7 +1070,7 @@ Covers TC8-SD-012 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-a8560e60">
+<div class="need_container docutils container" id="SNCB-2b1a3f34">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_mcast_eg">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1093,7 +1093,7 @@ Covers TC8-SD-012 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_mcast_eg">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_mcast_eg">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_mcast_eg">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1104,7 +1104,7 @@ Covers TC8-SD-012 from the test strategy.</p>
 a multicast IPv4EndpointOption in the SubscribeEventgroupAck for
 eventgroups configured with a multicast address, so that clients
 know which multicast group to join for event delivery.</p>
-<p>Note: Traces to SOME/IP-SD specification section 4.1.2.6
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__sd_subscription" title="comp_req__someipd__sd_subscription"><em class="xref need">SOME/IP-SD Eventgroup Subsc... (comp_req__someipd__sd_subscription)</em></a>
 (SubscribeEventgroupAck options — multicast endpoint).
 Covers TC8-SD-013 from the test strategy.</p>
 </td>
@@ -1126,7 +1126,7 @@ Covers TC8-SD-013 from the test strategy.</p>
 </section>
 <section id="component-requirements-some-ip-message-format">
 <h2>Component Requirements — SOME/IP Message Format<a class="headerlink" href="#component-requirements-some-ip-message-format" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-b781a965">
+<div class="need_container docutils container" id="SNCB-637f1526">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__msg_resp_header">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1149,7 +1149,7 @@ Covers TC8-SD-013 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__msg_resp_header">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__msg_resp_header">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__msg_resp_header">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1160,10 +1160,9 @@ Covers TC8-SD-013 from the test strategy.</p>
 SOME/IP RESPONSE messages with correct protocol version (0x01),
 message type (0x80), matching session ID, and matching client ID
 for each received REQUEST.</p>
-<p>Note: Traces to SOME/IP specification sections 4.1.4
-(Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID —
-Client ID / Session ID). Covers TC8-MSG-001,
-TC8-MSG-002, TC8-MSG-005, and TC8-MSG-008
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_header" title="comp_req__someipd__rpc_header"><em class="xref need">SOME/IP RPC Wire Header Han... (comp_req__someipd__rpc_header)</em></a>
+(Protocol Version, Message Type, and Request ID: Client ID and Session ID).
+Covers TC8-MSG-001, TC8-MSG-002, TC8-MSG-005, and TC8-MSG-008
 from the test strategy.</p>
 </td>
 </tr>
@@ -1181,7 +1180,7 @@ from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3a6d20eb">
+<div class="need_container docutils container" id="SNCB-c826392c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__msg_error_codes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1204,7 +1203,7 @@ from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__msg_error_codes">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__msg_error_codes">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__msg_error_codes">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1217,8 +1216,8 @@ the correct SOME/IP return codes for error conditions:
 non-existent services (both are valid stack behaviors),
 <code class="docutils literal notranslate"><span class="pre">E_UNKNOWN_METHOD</span></code> (0x03) for invalid method IDs, and
 <code class="docutils literal notranslate"><span class="pre">E_WRONG_INTERFACE_VERSION</span></code> for interface version mismatches.</p>
-<p>Note: Traces to SOME/IP specification section 4.1.7 (Return Code)
-and the return code table (Table 4.14). Covers TC8-MSG-003,
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_error_handling" title="comp_req__someipd__rpc_error_handling"><em class="xref need">SOME/IP RPC Error Return Codes (comp_req__someipd__rpc_error_handling)</em></a>
+(Return Code and the return code table). Covers TC8-MSG-003,
 TC8-MSG-004, and TC8-MSG-006 from the test strategy.</p>
 </td>
 </tr>
@@ -1236,7 +1235,7 @@ TC8-MSG-004, and TC8-MSG-006 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e5a187e3">
+<div class="need_container docutils container" id="SNCB-b829a73c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__msg_malformed">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1259,7 +1258,7 @@ TC8-MSG-004, and TC8-MSG-006 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__msg_malformed">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__msg_malformed">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__msg_malformed">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1271,8 +1270,8 @@ crash when receiving malformed SOME/IP messages, including truncated
 messages (shorter than the 8-byte minimum header), messages with an
 invalid protocol version, and messages whose length field claims more
 data than the UDP payload contains.</p>
-<p>Note: Traces to SOME/IP specification section 4.1 (Header format
-validation and error handling). Covers TC8-MSG-007 from the
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_header" title="comp_req__someipd__rpc_header"><em class="xref need">SOME/IP RPC Wire Header Han... (comp_req__someipd__rpc_header)</em></a>
+(Header format validation and error handling). Covers TC8-MSG-007 from the
 test strategy.</p>
 </td>
 </tr>
@@ -1293,7 +1292,7 @@ test strategy.</p>
 </section>
 <section id="component-requirements-event-notification">
 <h2>Component Requirements — Event Notification<a class="headerlink" href="#component-requirements-event-notification" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-caffd463">
+<div class="need_container docutils container" id="SNCB-f1cbfde4">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__evt_subscription">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1316,7 +1315,7 @@ test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__evt_subscription">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__evt_subscription">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__evt_subscription">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1327,8 +1326,8 @@ test strategy.</p>
 NOTIFICATION messages (message type 0x02) with correct event ID
 only to endpoints with an active eventgroup subscription, and ceases
 delivery after StopSubscribeEventgroup.</p>
-<p>Note: Traces to SOME/IP specification section 5.1 (Events) and
-SOME/IP-SD section 4.1.2.4 (SubscribeEventgroup triggering
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_events_fields" title="comp_req__someipd__rpc_events_fields"><em class="xref need">SOME/IP RPC Event and Field... (comp_req__someipd__rpc_events_fields)</em></a>
+(Events) and <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> (SubscribeEventgroup triggering
 notification delivery). Covers TC8-EVT-001 through TC8-EVT-006
 from the test strategy.</p>
 </td>
@@ -1350,7 +1349,7 @@ from the test strategy.</p>
 </section>
 <section id="component-requirements-field-conformance">
 <h2>Component Requirements — Field Conformance<a class="headerlink" href="#component-requirements-field-conformance" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-47cf8e47">
+<div class="need_container docutils container" id="SNCB-388d827c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__fld_initial_value">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1373,7 +1372,7 @@ from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__fld_initial_value">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__fld_initial_value">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__fld_initial_value">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1383,9 +1382,10 @@ from the test strategy.</p>
 <tr class="content row-odd"><td class="content" colspan="6"><p>The conformance test suite shall verify that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> delivers an initial
 NOTIFICATION message to a new subscriber of a field eventgroup (<code class="docutils literal notranslate"><span class="pre">is_field:</span> <span class="pre">true</span></code>)
 immediately upon subscription, carrying the last known field value.</p>
-<p>Note: Traces to SOME/IP specification section 5.3 (Fields — initial value
-notification on subscribe) and AUTOSAR SWS_CM_00719.
-Covers TC8-FLD-001 and TC8-FLD-002 from the test strategy.</p>
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_events_fields" title="comp_req__someipd__rpc_events_fields"><em class="xref need">SOME/IP RPC Event and Field... (comp_req__someipd__rpc_events_fields)</em></a>
+(cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code>, Fields: initial value
+notification on subscribe). Covers TC8-FLD-001 and TC8-FLD-002 from the
+test strategy.</p>
 </td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
@@ -1402,7 +1402,7 @@ Covers TC8-FLD-001 and TC8-FLD-002 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-48f38c06">
+<div class="need_container docutils container" id="SNCB-e8ed2eaa">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__fld_get_set">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1425,7 +1425,7 @@ Covers TC8-FLD-001 and TC8-FLD-002 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__fld_get_set">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__fld_get_set">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__fld_get_set">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1437,9 +1437,9 @@ getter (method 0x0001) and setter (method 0x0002) requests: the getter
 shall return the current field value in a RESPONSE; the setter shall update
 the stored field value, respond with E_OK, and immediately notify all
 active subscribers with the new value.</p>
-<p>Note: Traces to SOME/IP specification section 5.3 (Fields — getter/setter
-methods) and AUTOSAR SWS_CM_00720/SWS_CM_00721.
-Covers TC8-FLD-003 and TC8-FLD-004 from the test strategy.</p>
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_events_fields" title="comp_req__someipd__rpc_events_fields"><em class="xref need">SOME/IP RPC Event and Field... (comp_req__someipd__rpc_events_fields)</em></a>
+(cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code>, Fields: getter/setter
+methods). Covers TC8-FLD-003 and TC8-FLD-004 from the test strategy.</p>
 </td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
@@ -1456,7 +1456,7 @@ Covers TC8-FLD-003 and TC8-FLD-004 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-b01b0f7d">
+<div class="need_container docutils container" id="SNCB-8c27eb9f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__fld_getter_setter">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1479,7 +1479,7 @@ Covers TC8-FLD-003 and TC8-FLD-004 from the test strategy.</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__fld_getter_setter">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__fld_getter_setter">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__fld_getter_setter">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1511,7 +1511,7 @@ Covered by TC8-EVT-007 in <code class="docutils literal notranslate"><span class
 </section>
 <section id="component-requirements-tcp-transport-binding">
 <h2>Component Requirements — TCP Transport Binding<a class="headerlink" href="#component-requirements-tcp-transport-binding" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-b569a334">
+<div class="need_container docutils container" id="SNCB-a2561fe1">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__tcp_transport">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1534,7 +1534,7 @@ Covered by TC8-EVT-007 in <code class="docutils literal notranslate"><span class
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__tcp_transport">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__tcp_transport">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__tcp_transport">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1548,8 +1548,9 @@ Service Discovery and successful method invocation over a TCP
 connection.</p>
 <p>Note: Traces to OA TC8 specification references SOMEIPSRV_RPC_01,
 SOMEIPSRV_RPC_02, and SOMEIPSRV_OPTIONS_15. Also traces to
-PRS_SOMEIP_00142 (SOME/IP TCP message framing) and PRS_SOMEIP_00569
-(unaligned message handling over TCP), covered by TC8-TCP-009.
+<a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_transport" title="comp_req__someipd__rpc_transport"><em class="xref need">SOME/IP RPC Transport Bindings (comp_req__someipd__rpc_transport)</em></a>
+(cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code>, TCP message framing
+and unaligned message handling over TCP), covered by TC8-TCP-009.
 Addresses Gap 1 (TCP transport binding) from the architecture
 conformance analysis.</p>
 </td>
@@ -1578,7 +1579,7 @@ see <a class="reference internal" href="test_specification.html"><span class="do
 </section>
 <section id="component-requirements-multi-service-and-multi-instance">
 <h2>Component Requirements — Multi-service and Multi-instance<a class="headerlink" href="#component-requirements-multi-service-and-multi-instance" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-026e3129">
+<div class="need_container docutils container" id="SNCB-184bc712">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__multi_service">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1601,7 +1602,7 @@ see <a class="reference internal" href="test_specification.html"><span class="do
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__multi_service">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__multi_service">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__multi_service">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1639,7 +1640,7 @@ Covered by <code class="docutils literal notranslate"><span class="pre">test_mul
 <p>The following component requirements cover byte-level field assertions for
 SOME/IP-SD messages sent by <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, corresponding to OA TC8 v3.0 §5.1.5.1
 (FORMAT_*) and §5.1.5.2 (OPTIONS_*).</p>
-<div class="need_container docutils container" id="SNCB-e1a99007">
+<div class="need_container docutils container" id="SNCB-73fe2653">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_format_fields">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1662,7 +1663,7 @@ SOME/IP-SD messages sent by <code class="docutils literal notranslate"><span cla
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_format_fields">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_format_fields">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_format_fields">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1701,7 +1702,7 @@ format assertions).</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-766a8783">
+<div class="need_container docutils container" id="SNCB-1f707e3d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_options_fields">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1724,7 +1725,7 @@ format assertions).</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_options_fields">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_options_fields">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_options_fields">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1761,7 +1762,7 @@ Multicast option tests (OPTIONS_08–14) require a non-loopback interface
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-2e90805c">
+<div class="need_container docutils container" id="SNCB-9cb598c4">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_stop_sub_fmt">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1784,7 +1785,7 @@ Multicast option tests (OPTIONS_08–14) require a non-loopback interface
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_stop_sub_fmt">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_stop_sub_fmt">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_stop_sub_fmt">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1812,7 +1813,7 @@ has entry type byte <code class="docutils literal notranslate"><span class="pre"
 </section>
 <section id="component-requirements-sd-robustness">
 <h2>Component Requirements — SD Robustness<a class="headerlink" href="#component-requirements-sd-robustness" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-aaf6bf56">
+<div class="need_container docutils container" id="SNCB-3c107e6c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_robustness">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1835,7 +1836,7 @@ has entry type byte <code class="docutils literal notranslate"><span class="pre"
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__sd_robustness">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__sd" title="comp_req__tc8_conformance__sd_robustness">feat_req__someip__sd</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__sd_robustness">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1879,7 +1880,7 @@ SD robustness cases).</p>
 </section>
 <section id="component-requirements-udp-transport-binding">
 <h2>Component Requirements — UDP Transport Binding<a class="headerlink" href="#component-requirements-udp-transport-binding" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-35886d1b">
+<div class="need_container docutils container" id="SNCB-bb7419af">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__udp_transport">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1902,7 +1903,7 @@ SD robustness cases).</p>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="#feat_req__tc8_conformance__conformance" title="comp_req__tc8_conformance__udp_transport">feat_req__tc8_conformance__conformance</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="comp_req__tc8_conformance__udp_transport">feat_req__someip__rpc</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/components.html#comp__someipd" title="comp_req__tc8_conformance__udp_transport">comp__someipd</a></span></span></div>
 </span></div>
 </div>
@@ -1914,8 +1915,9 @@ a UDP datagram that contains multiple SOME/IP messages packed consecutively,
 including the case where a message starts at a non-4-byte-aligned byte offset
 within the datagram.  The DUT shall respond to each contained SOME/IP request
 individually.</p>
-<p>Note: Traces to PRS_SOMEIP_00142 and PRS_SOMEIP_00569 (unaligned SOME/IP message
-parsing over UDP).
+<p>Traces to <a class="reference internal" href="../requirements/feature/someip/protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and <a class="reference internal" href="../requirements/component/someipd/protocol.html#comp_req__someipd__rpc_transport" title="comp_req__someipd__rpc_transport"><em class="xref need">SOME/IP RPC Transport Bindings (comp_req__someipd__rpc_transport)</em></a>
+(cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code>, unaligned SOME/IP
+message parsing over UDP).
 Covered by TC8-UDP-001 in <code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code>
 (<code class="docutils literal notranslate"><span class="pre">test_tc8_ets_069_unaligned_someip_messages_over_udp</span></code>).</p>
 </td>

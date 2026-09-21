@@ -2,7 +2,7 @@
   "schema_version": "2",
   "generated_by": "sphinx_build",
   "overall_metrics": {
-    "total": 25,
+    "total": 40,
     "with_code_link": 0,
     "with_test_link": 0,
     "fully_linked": 0,
@@ -12,7 +12,7 @@
   },
   "metrics_by_type": {
     "comp_req": {
-      "total": 23,
+      "total": 33,
       "with_code_link": 0,
       "with_test_link": 0,
       "fully_linked": 0,
@@ -21,7 +21,7 @@
       "fully_linked_pct": 0.0
     },
     "feat_req": {
-      "total": 1,
+      "total": 6,
       "with_code_link": 0,
       "with_test_link": 0,
       "fully_linked": 0,

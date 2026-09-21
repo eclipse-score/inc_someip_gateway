@@ -1837,19 +1837,22 @@ DUT sends NOTIFICATION messages (<code class="docutils literal notranslate"><spa
 <h3>TC8-TCP-009: Unaligned SOME/IP Messages over TCP (SOMEIP_ETS_068)<a class="headerlink" href="#tc8-tcp-009-unaligned-some-ip-messages-over-tcp-someip-ets-068" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>SOMEIP_ETS_068 (PRS_SOMEIP_00142, PRS_SOMEIP_00569)</p>
+<dd class="field-odd"><p>SOMEIP_ETS_068</p>
 </dd>
-<dt class="field-even">Test Module<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format</span></code></p>
+<dt class="field-even">Requirements Spec Reference<span class="colon">:</span></dt>
+<dd class="field-even"><p>Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code> (unaligned SOME/IP message parsing over TCP)</p>
 </dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_tc8_ets_068_unaligned_someip_messages_over_tcp</span></code></p>
+<dt class="field-odd">Test Module<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format</span></code></p>
 </dd>
-<dt class="field-even">Requirement ID<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__tcp_transport</span></code></p>
+<dt class="field-even">Test Function<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_tc8_ets_068_unaligned_someip_messages_over_tcp</span></code></p>
 </dd>
-<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_service.json</span></code></p>
+<dt class="field-odd">Requirement ID<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__tcp_transport</span></code></p>
+</dd>
+<dt class="field-even">DUT Config<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_service.json</span></code></p>
 </dd>
 </dl>
 <dl class="simple">
@@ -1885,19 +1888,22 @@ when multi-instance vsomeip configurations are available.</p>
 <h3>TC8-UDP-001: Unaligned SOME/IP Messages over UDP (SOMEIP_ETS_069)<a class="headerlink" href="#tc8-udp-001-unaligned-some-ip-messages-over-udp-someip-ets-069" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>SOMEIP_ETS_069 (PRS_SOMEIP_00142, PRS_SOMEIP_00569)</p>
+<dd class="field-odd"><p>SOMEIP_ETS_069</p>
 </dd>
-<dt class="field-even">Test Module<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format</span></code></p>
+<dt class="field-even">Requirements Spec Reference<span class="colon">:</span></dt>
+<dd class="field-even"><p>Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code> (unaligned SOME/IP message parsing over UDP)</p>
 </dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_tc8_ets_069_unaligned_someip_messages_over_udp</span></code></p>
+<dt class="field-odd">Test Module<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format</span></code></p>
 </dd>
-<dt class="field-even">Requirement ID<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__udp_transport</span></code></p>
+<dt class="field-even">Test Function<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_tc8_ets_069_unaligned_someip_messages_over_udp</span></code></p>
 </dd>
-<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_service.json</span></code></p>
+<dt class="field-odd">Requirement ID<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__udp_transport</span></code></p>
+</dd>
+<dt class="field-even">DUT Config<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_service.json</span></code></p>
 </dd>
 </dl>
 <dl class="simple">
@@ -4837,7 +4843,7 @@ Send REQUEST with a known <code class="docutils literal notranslate"><span class
 E_UNKNOWN_METHOD error response).</p>
 <p><strong>Expected Result:</strong>
 Error RESPONSE has <code class="docutils literal notranslate"><span class="pre">session_id</span></code> matching the REQUEST value
-(per PRS_SOMEIP_00137).</p>
+(cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code>, Request ID handling).</p>
 </section>
 </section>
 </section>
