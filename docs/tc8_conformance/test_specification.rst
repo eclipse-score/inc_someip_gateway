@@ -1019,7 +1019,8 @@ DUT sends NOTIFICATION messages (``message_type=0x02``,
 TC8-TCP-009: Unaligned SOME/IP Messages over TCP (SOMEIP_ETS_068)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: SOMEIP_ETS_068 (PRS_SOMEIP_00142, PRS_SOMEIP_00569)
+:OA Spec Reference: SOMEIP_ETS_068
+:Requirements Spec Reference: Open SOME/IP Specification, ``someip-rpc.rst`` (unaligned SOME/IP message parsing over TCP)
 :Test Module: ``test_someip_message_format``
 :Test Function: ``test_tc8_ets_068_unaligned_someip_messages_over_tcp``
 :Requirement ID: ``comp_req__tc8_conformance__tcp_transport``
@@ -1056,7 +1057,8 @@ TC8-TCP-009: Unaligned SOME/IP Messages over TCP (SOMEIP_ETS_068)
 TC8-UDP-001: Unaligned SOME/IP Messages over UDP (SOMEIP_ETS_069)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: SOMEIP_ETS_069 (PRS_SOMEIP_00142, PRS_SOMEIP_00569)
+:OA Spec Reference: SOMEIP_ETS_069
+:Requirements Spec Reference: Open SOME/IP Specification, ``someip-rpc.rst`` (unaligned SOME/IP message parsing over UDP)
 :Test Module: ``test_someip_message_format``
 :Test Function: ``test_tc8_ets_069_unaligned_someip_messages_over_udp``
 :Requirement ID: ``comp_req__tc8_conformance__udp_transport``
@@ -3341,4 +3343,4 @@ E_UNKNOWN_METHOD error response).
 
 **Expected Result:**
 Error RESPONSE has ``session_id`` matching the REQUEST value
-(per PRS_SOMEIP_00137).
+(cf. Open SOME/IP Specification, ``someip-rpc.rst``, Request ID handling).

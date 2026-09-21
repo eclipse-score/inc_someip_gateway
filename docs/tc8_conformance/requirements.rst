@@ -55,7 +55,8 @@ For TC8 conformance, the split is simple:
   transport). Each component requirement:
 
   - Describes the specific behaviour under test.
-  - References the relevant AUTOSAR PRS or TC8 specification section.
+  - References the relevant Open SOME/IP Specification chapter or TC8
+    specification section.
   - Is verified by one or more pytest functions.
 
 Requirement Areas
@@ -133,15 +134,15 @@ Component Requirements — Service Discovery
 ------------------------------------------
 
 The following component requirements define the high-priority TC8 conformance
-tests for SOME/IP Service Discovery (SD), aligned with SOME/IP-SD Protocol
-Specification (AUTOSAR PRS_SOMEIP_SD).
+tests for SOME/IP Service Discovery (SD), aligned with :need:`feat_req__someip__sd`
+(cf. Open SOME/IP Specification, ``someip-sd.rst``).
 
 .. comp_req:: TC8 SD Offer Entry Format Validation
    :id: comp_req__tc8_conformance__sd_offer_format
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -152,8 +153,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    with correct service ID, instance ID, major/minor version, and TTL
    fields upon startup.
 
-   Note: Traces to SOME/IP-SD specification sections 4.1.2.1
-   (OfferService entry format) and 4.1.2.3 (Service Entry fields).
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_offer_discovery`
+   (OfferService entry format and Service Entry fields).
    Covers TC8-SD-001 and TC8-SD-002 from the test strategy.
 
 .. comp_req:: TC8 SD Cyclic Offer Timing
@@ -161,7 +162,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, timing
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -171,7 +172,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    OfferService entries at the configured ``cyclic_offer_delay`` interval
    (±20% tolerance) during the main phase of Service Discovery.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_timing`
    (SD Phases — Main Phase, cyclic offer behavior).
    Covers TC8-SD-003 from the test strategy.
 
@@ -180,7 +181,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -190,7 +191,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    a SOME/IP-SD FindService entry with a unicast OfferService for a
    known service, and does not respond for an unknown service.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.2.2
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_offer_discovery`
    (FindService entry handling and response behavior).
    Covers TC8-SD-004 and TC8-SD-005 from the test strategy.
 
@@ -199,7 +200,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, eventgroup
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -212,9 +213,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    by ceasing notifications, and clean up expired subscriptions after
    the subscription TTL elapses.
 
-   Note: Traces to SOME/IP-SD specification sections 4.1.2.4
-   (SubscribeEventgroup), 4.1.2.5 (StopSubscribeEventgroup),
-   4.1.2.6 (SubscribeEventgroupAck/Nack), and 4.1.2.7 (TTL handling).
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_subscription`
+   (SubscribeEventgroup, StopSubscribeEventgroup, SubscribeEventgroupAck/Nack,
+   and TTL handling).
    Covers TC8-SD-006, TC8-SD-007, TC8-SD-008, and TC8-SD-014 from the
    test strategy.
 
@@ -223,7 +224,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, eventgroup, timing
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -239,7 +240,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, timing
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -250,7 +251,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    initial_delay_max]``, repetition of offers ``repetitions_max`` times
    at ``repetitions_base_delay`` intervals, and transition to main phase.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_timing`
    (SD Phases — Initial Wait, Repetition, Main Phase).
    Covers TC8-SD-009 and TC8-SD-010 from the test strategy.
 
@@ -259,7 +260,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -270,7 +271,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    correct unicast address, port, and L4 protocol (UDP) so that clients
    can reach the offered service.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.2.4
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_message_format`
    (SD Options — IPv4 Endpoint Option format).
    Covers TC8-SD-011 from the test strategy.
 
@@ -279,7 +280,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, reboot
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -290,7 +291,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    be set in the first SD message after restart, and the SD session ID
    shall reset to a low value (≤ 2).
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_timing`
    (Reboot Detection — session ID and reboot flag handling).
    Covers TC8-SD-012 from the test strategy.
 
@@ -299,7 +300,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, multicast
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -310,7 +311,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    eventgroups configured with a multicast address, so that clients
    know which multicast group to join for event delivery.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.2.6
+   Traces to :need:`feat_req__someip__sd` and :need:`comp_req__someipd__sd_subscription`
    (SubscribeEventgroupAck options — multicast endpoint).
    Covers TC8-SD-013 from the test strategy.
 
@@ -322,7 +323,7 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -333,10 +334,9 @@ Component Requirements — SOME/IP Message Format
    message type (0x80), matching session ID, and matching client ID
    for each received REQUEST.
 
-   Note: Traces to SOME/IP specification sections 4.1.4
-   (Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID —
-   Client ID / Session ID). Covers TC8-MSG-001,
-   TC8-MSG-002, TC8-MSG-005, and TC8-MSG-008
+   Traces to :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_header`
+   (Protocol Version, Message Type, and Request ID: Client ID and Session ID).
+   Covers TC8-MSG-001, TC8-MSG-002, TC8-MSG-005, and TC8-MSG-008
    from the test strategy.
 
 .. comp_req:: TC8 SOME/IP Error Return Codes
@@ -344,7 +344,7 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format, error_handling
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -357,8 +357,8 @@ Component Requirements — SOME/IP Message Format
    ``E_UNKNOWN_METHOD`` (0x03) for invalid method IDs, and
    ``E_WRONG_INTERFACE_VERSION`` for interface version mismatches.
 
-   Note: Traces to SOME/IP specification section 4.1.7 (Return Code)
-   and the return code table (Table 4.14). Covers TC8-MSG-003,
+   Traces to :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_error_handling`
+   (Return Code and the return code table). Covers TC8-MSG-003,
    TC8-MSG-004, and TC8-MSG-006 from the test strategy.
 
 .. comp_req:: TC8 SOME/IP Malformed Message Handling
@@ -366,7 +366,7 @@ Component Requirements — SOME/IP Message Format
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format, robustness
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -378,8 +378,8 @@ Component Requirements — SOME/IP Message Format
    invalid protocol version, and messages whose length field claims more
    data than the UDP payload contains.
 
-   Note: Traces to SOME/IP specification section 4.1 (Header format
-   validation and error handling). Covers TC8-MSG-007 from the
+   Traces to :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_header`
+   (Header format validation and error handling). Covers TC8-MSG-007 from the
    test strategy.
 
 Component Requirements — Event Notification
@@ -390,7 +390,7 @@ Component Requirements — Event Notification
    :status: valid
    :version: 1
    :tags: tc8, conformance, events, notification
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -401,8 +401,8 @@ Component Requirements — Event Notification
    only to endpoints with an active eventgroup subscription, and ceases
    delivery after StopSubscribeEventgroup.
 
-   Note: Traces to SOME/IP specification section 5.1 (Events) and
-   SOME/IP-SD section 4.1.2.4 (SubscribeEventgroup triggering
+   Traces to :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_events_fields`
+   (Events) and :need:`feat_req__someip__sd` (SubscribeEventgroup triggering
    notification delivery). Covers TC8-EVT-001 through TC8-EVT-006
    from the test strategy.
 
@@ -414,7 +414,7 @@ Component Requirements — Field Conformance
    :status: valid
    :version: 1
    :tags: tc8, conformance, fields, notification
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -424,16 +424,17 @@ Component Requirements — Field Conformance
    NOTIFICATION message to a new subscriber of a field eventgroup (``is_field: true``)
    immediately upon subscription, carrying the last known field value.
 
-   Note: Traces to SOME/IP specification section 5.3 (Fields — initial value
-   notification on subscribe) and AUTOSAR SWS_CM_00719.
-   Covers TC8-FLD-001 and TC8-FLD-002 from the test strategy.
+   Traces to :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_events_fields`
+   (cf. Open SOME/IP Specification, ``someip-rpc.rst``, Fields: initial value
+   notification on subscribe). Covers TC8-FLD-001 and TC8-FLD-002 from the
+   test strategy.
 
 .. comp_req:: TC8 Field Getter and Setter
    :id: comp_req__tc8_conformance__fld_get_set
    :status: valid
    :version: 1
    :tags: tc8, conformance, fields, request_response
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -445,16 +446,16 @@ Component Requirements — Field Conformance
    the stored field value, respond with E_OK, and immediately notify all
    active subscribers with the new value.
 
-   Note: Traces to SOME/IP specification section 5.3 (Fields — getter/setter
-   methods) and AUTOSAR SWS_CM_00720/SWS_CM_00721.
-   Covers TC8-FLD-003 and TC8-FLD-004 from the test strategy.
+   Traces to :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_events_fields`
+   (cf. Open SOME/IP Specification, ``someip-rpc.rst``, Fields: getter/setter
+   methods). Covers TC8-FLD-003 and TC8-FLD-004 from the test strategy.
 
 .. comp_req:: TC8 Field Getter/Setter Notification Behavior
    :id: comp_req__tc8_conformance__fld_getter_setter
    :status: valid
    :version: 1
    :tags: tc8, conformance, fields, notification
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -476,7 +477,7 @@ Component Requirements — TCP Transport Binding
    :status: valid
    :version: 1
    :tags: tc8, conformance, tcp, transport, rpc
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -490,8 +491,9 @@ Component Requirements — TCP Transport Binding
 
    Note: Traces to OA TC8 specification references SOMEIPSRV_RPC_01,
    SOMEIPSRV_RPC_02, and SOMEIPSRV_OPTIONS_15. Also traces to
-   PRS_SOMEIP_00142 (SOME/IP TCP message framing) and PRS_SOMEIP_00569
-   (unaligned message handling over TCP), covered by TC8-TCP-009.
+   :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_transport`
+   (cf. Open SOME/IP Specification, ``someip-rpc.rst``, TCP message framing
+   and unaligned message handling over TCP), covered by TC8-TCP-009.
    Addresses Gap 1 (TCP transport binding) from the architecture
    conformance analysis.
 
@@ -511,7 +513,7 @@ Component Requirements — Multi-service and Multi-instance
    :status: valid
    :version: 1
    :tags: tc8, conformance, multi_service, routing
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -540,7 +542,7 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, format
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -569,7 +571,7 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, options
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -596,7 +598,7 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, format
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -614,7 +616,7 @@ Component Requirements — SD Robustness
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, robustness
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -648,7 +650,7 @@ Component Requirements — UDP Transport Binding
    :status: valid
    :version: 1
    :tags: tc8, conformance, udp, transport
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -660,7 +662,8 @@ Component Requirements — UDP Transport Binding
    within the datagram.  The DUT shall respond to each contained SOME/IP request
    individually.
 
-   Note: Traces to PRS_SOMEIP_00142 and PRS_SOMEIP_00569 (unaligned SOME/IP message
-   parsing over UDP).
+   Traces to :need:`feat_req__someip__rpc` and :need:`comp_req__someipd__rpc_transport`
+   (cf. Open SOME/IP Specification, ``someip-rpc.rst``, unaligned SOME/IP
+   message parsing over UDP).
    Covered by TC8-UDP-001 in ``test_someip_message_format.py``
    (``test_tc8_ets_069_unaligned_someip_messages_over_udp``).
