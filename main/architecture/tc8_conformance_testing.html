@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>SOMEIP Gateway Architecture &#8212; SOME/IP Gateway  documentation</title>
+    <title>TC8 SOME/IP Conformance Testing &#8212; SOME/IP Gateway  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'architecture/tc8_conformance_testing';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Features" href="features.html" />
-    <link rel="prev" title="Component Requirements" href="../requirements/component/index.html" />
+    <link rel="next" title="TC8 SOME/IP Conformance Testing" href="../tc8_conformance/index.html" />
+    <link rel="prev" title="DR-002-Arch: IPC implementation" href="dec_ipc_implementation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -167,7 +167,7 @@
 
 
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="#">
+  <a class="nav-link nav-internal" href="index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -309,7 +309,7 @@
 
 
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="#">
+  <a class="nav-link nav-internal" href="index.html">
     SOMEIP Gateway Architecture
   </a>
 </li>
@@ -411,11 +411,11 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
 </ul>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dec_someip_api_abstraction.html">DR-001-Arch: SOME/IP stack abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dec_ipc_implementation.html">DR-002-Arch: IPC implementation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tc8_conformance_testing.html">TC8 SOME/IP Conformance Testing</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">TC8 SOME/IP Conformance Testing</a></li>
 </ul>
 </div>
 </nav></div>
@@ -456,7 +456,10 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SOMEIP Gateway Architecture</span></li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOMEIP Gateway Architecture</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">TC8 SOME/IP Conformance Testing</span></li>
   </ul>
 </nav>
 </div>
@@ -473,34 +476,124 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="someip-gateway-architecture">
-<h1>SOMEIP Gateway Architecture<a class="headerlink" href="#someip-gateway-architecture" title="Link to this heading">#</a></h1>
-<section id="feature-definition">
-<h2>Feature Definition<a class="headerlink" href="#feature-definition" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+  <section id="tc8-some-ip-conformance-testing">
+<h1>TC8 SOME/IP Conformance Testing<a class="headerlink" href="#tc8-some-ip-conformance-testing" title="Link to this heading">#</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://opensig.org/tech-committee/tc8-automotive-ethernet-ecu-test-specification/">OPEN Alliance TC8</a>
+defines conformance tests for automotive SOME/IP implementations.
+The TC8 test suite has two scopes:</p>
+<ul class="simple">
+<li><p><strong>Protocol Conformance</strong>: tests the production <code class="docutils literal notranslate"><span class="pre">someipd</span></code> binary at the wire level using
+<a class="reference external" href="https://scapy.net/">scapy</a> as the packet serializer and parser. No application processes
+are needed.</p></li>
+<li><p><strong>Application Level Tests</strong>: tests the full gateway path from mw::com client
+through <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> to the network, using C++ apps
+built on <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code>. These tests are stack-agnostic.</p></li>
 </ul>
-</div>
+<p>Both scopes live under <code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/</span></code> and share the <code class="docutils literal notranslate"><span class="pre">tc8</span></code> and
+<code class="docutils literal notranslate"><span class="pre">conformance</span></code> Bazel tags. For setup instructions and test details, see
+<code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/README.md</span></code>.</p>
 </section>
-<section id="component-definition">
-<h2>Component Definition<a class="headerlink" href="#component-definition" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
-</ul>
-</div>
+<section id="test-scope-overview">
+<h2>Test Scope Overview<a class="headerlink" href="#test-scope-overview" title="Link to this heading">#</a></h2>
+<p class="plantuml">
+<object data="../_images/plantuml-5311e37ad084d41f943c75d4f14304e076128b79.svg" type="image/svg+xml" style="width:800px;height:328px;background:#FFFFFF;"></object></p>
 </section>
-<section id="design-decisions">
-<h2>Design decisions<a class="headerlink" href="#design-decisions" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="dec_someipgw_registration.html">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dec_someip_api_abstraction.html">DR-001-Arch: SOME/IP stack abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dec_ipc_implementation.html">DR-002-Arch: IPC implementation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tc8_conformance_testing.html">TC8 SOME/IP Conformance Testing</a></li>
-</ul>
+<section id="protocol-conformance">
+<h2>Protocol Conformance<a class="headerlink" href="#protocol-conformance" title="Link to this heading">#</a></h2>
+<p>Protocol conformance tests exercise the SOME/IP stack at the wire protocol
+level. Tests send raw SOME/IP messages and verify responses against the TC8
+specification.</p>
+<section id="dut-binary">
+<h3>DUT Binary<a class="headerlink" href="#dut-binary" title="Link to this heading">#</a></h3>
+<p>The protocol conformance DUT is the production <code class="docutils literal notranslate"><span class="pre">someipd</span></code> binary.  It uses
+vsomeip directly for all SOME/IP network I/O and service discovery.
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> is QM only and is not part of the ASIL-B safety path.</p>
+<p>At startup, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> reads a FlatBuffer binary config (<code class="docutils literal notranslate"><span class="pre">-c</span></code> flag) that
+declares the service ID, instance ID, version, and events to offer. The binary
+initialises a vsomeip application and calls <code class="docutils literal notranslate"><span class="pre">offer_service()</span></code> for each entry.
+For TC8, the config is <code class="docutils literal notranslate"><span class="pre">tc8_someipd_config.bin</span></code>, generated at build time from
+<code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_config.json</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is started alongside <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a companion process.  It is
+launched with the same <code class="docutils literal notranslate"><span class="pre">tc8_someipd_config.bin</span></code> as <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, so it has the
+same service type information available.  In the SD-only conformance tests
+<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> idles, but the IPC handshake between <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>
+must complete before the test proceeds.  <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> becomes active only in
+ETS end-to-end tests where a mw::com application offers or consumes the TC8
+service.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code> launches <code class="docutils literal notranslate"><span class="pre">someipd</span></code> first (it becomes the vsomeip
+routing manager), then the ETS stub, then <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>, all immediately in
+that order; the fixture waits for an OfferService/SD readiness signal only
+after all three processes have started. Both processes are force-killed
+(<code class="docutils literal notranslate"><span class="pre">pkill</span> <span class="pre">-9</span></code>) during fixture teardown.</p>
+</section>
+<section id="port-isolation-and-parallel-execution">
+<h3>Port Isolation and Parallel Execution<a class="headerlink" href="#port-isolation-and-parallel-execution" title="Link to this heading">#</a></h3>
+<p>Each Bazel TC8 target runs in its own OS process and receives unique SOME/IP
+port values via the Bazel <code class="docutils literal notranslate"><span class="pre">env</span></code> attribute.  Three environment variables
+control port assignment:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">TC8_SD_PORT</span></code></dt><dd><p>SOME/IP-SD port.  Set in both the vsomeip config template (replacing the
+<code class="docutils literal notranslate"><span class="pre">__TC8_SD_PORT__</span></code> placeholder) and read by the Python SD sender socket
+at module import time via <code class="docutils literal notranslate"><span class="pre">helpers/constants.py</span></code>.  The SOME/IP-SD
+protocol requires SD messages to originate from the configured SD port;
+satisfying this does not require a fixed port, it requires only that
+both sides use the <em>same</em> port, which is guaranteed because both the
+vsomeip config and the Python constants read the same env var.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TC8_SVC_PORT</span></code></dt><dd><p>DUT UDP (unreliable) service port.  Replaces the <code class="docutils literal notranslate"><span class="pre">__TC8_SVC_PORT__</span></code>
+placeholder in config templates.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TC8_SVC_TCP_PORT</span></code></dt><dd><p>DUT TCP (reliable) service port.  Replaces the <code class="docutils literal notranslate"><span class="pre">__TC8_SVC_TCP_PORT__</span></code>
+placeholder in config templates.  Only set for targets that use reliable
+transport (<code class="docutils literal notranslate"><span class="pre">tc8_message_format</span></code>, <code class="docutils literal notranslate"><span class="pre">tc8_event_notification</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tc8_field_conformance</span></code>).</p>
+</dd>
+</dl>
+<p>All three constants default to the historical static values (30490 / 30509 /
+30510) when the environment variables are not set, preserving backward
+compatibility for local development runs without Bazel.</p>
+<p>For the per-target port matrix, see <code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/README.md</span></code>.</p>
+</section>
+</section>
+<section id="application-level-tests">
+<h2>Application Level Tests<a class="headerlink" href="#application-level-tests" title="Link to this heading">#</a></h2>
+<p>Application level tests verify the full gateway pipeline end to end.
+A <strong>service</strong> (mw::com Skeleton) and <strong>client</strong> (mw::com Proxy) communicate
+through <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>. Because both apps use the mw::com API
+only, the same test code works with any SOME/IP binding.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Application level tests are planned. See
+<code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/application/README.md</span></code> for the intended scope.</p>
 </div>
+<section id="planned-topology">
+<h3>Planned Topology<a class="headerlink" href="#planned-topology" title="Link to this heading">#</a></h3>
+<p>The application level test topology matches the “Application-Level Tests”
+package shown in the diagram under <a class="reference internal" href="#test-scope-overview">Test Scope Overview</a>.</p>
+</section>
+<section id="stack-agnostic-design">
+<h3>Stack-Agnostic Design<a class="headerlink" href="#stack-agnostic-design" title="Link to this heading">#</a></h3>
+<p>The test apps depend only on <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code>. Switching the SOME/IP stack
+requires changing the deployment config, not test code.</p>
+<p class="plantuml">
+<object data="../_images/plantuml-93884989ad01bb90a58b651fba01b303da07d9f4.svg" type="image/svg+xml" style="width:800px;height:441px;background:#FFFFFF;"></object></p>
+</section>
+<section id="planned-components">
+<h3>Planned Components<a class="headerlink" href="#planned-components" title="Link to this heading">#</a></h3>
+<p>The application level test design introduces four planned components.
+The <strong>Enhanced Testability Service</strong> (<strong>ETS</strong>) and <strong>Enhanced Testability
+Client</strong> (<strong>ETC</strong>) implement the TC8 service interface defined in OA TC8
+§6.1.4, while the <strong>Test Orchestrator</strong> and <strong>Process Orchestrator</strong> manage
+test and process lifecycle.</p>
+<p class="plantuml">
+<object data="../_images/plantuml-0f413ae2d1d4d9e94424fb4931db302fefa70737.svg" type="image/svg+xml" style="width:800px;height:270px;background:#FFFFFF;"></object></p>
+<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> run as the DUT in the QEMU guest. The Python
+socket-based tester and pytest run on the host side. <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code>
+manages DUT lifecycle on the QEMU guest. <code class="docutils literal notranslate"><span class="pre">TC8_DUT_IP</span></code> addresses the QEMU
+guest and <code class="docutils literal notranslate"><span class="pre">TC8_TESTER_IP</span></code> addresses the host TAP interface.</p>
+</section>
 </section>
 </section>
 
@@ -515,20 +608,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../requirements/component/index.html"
+       href="dec_ipc_implementation.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Component Requirements</p>
+        <p class="prev-next-title">DR-002-Arch: IPC implementation</p>
       </div>
     </a>
     <a class="right-next"
-       href="features.html"
+       href="../tc8_conformance/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Features</p>
+        <p class="prev-next-title">TC8 SOME/IP Conformance Testing</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -551,9 +644,19 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-definition">Feature Definition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-definition">Component Definition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-decisions">Design decisions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-scope-overview">Test Scope Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#protocol-conformance">Protocol Conformance</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dut-binary">DUT Binary</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#port-isolation-and-parallel-execution">Port Isolation and Parallel Execution</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-level-tests">Application Level Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#planned-topology">Planned Topology</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stack-agnostic-design">Stack-Agnostic Design</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#planned-components">Planned Components</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
@@ -561,7 +664,7 @@
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/index.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/architecture/tc8_conformance_testing.rst">
       <i class="fa-solid fa-pencil"></i>
       
       

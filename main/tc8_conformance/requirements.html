@@ -473,7 +473,7 @@
 <h2>Feature Requirement<a class="headerlink" href="#feature-requirement" title="Link to this heading">#</a></h2>
 <p>The following feature requirement establishes TC8 SOME/IP conformance testing
 as a formal verification activity for the SOME/IP Gateway’s protocol stack.</p>
-<div class="need_container docutils container" id="SNCB-563f40f0">
+<div class="need_container docutils container" id="SNCB-652ac833">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__tc8_conformance__conformance">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -497,7 +497,7 @@ as a formal verification activity for the SOME/IP Gateway’s protocol stack.</p
 <div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/stakeholder.html#stkh_req__docgen_enabled__example" title="feat_req__tc8_conformance__conformance">stkh_req__docgen_enabled__example</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../requirements/stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__tc8_conformance__conformance">stkh_req__someip_gw__interoperability</a></span></span></div>
 <div class="line">derives: <span class="derived_from"><span><a class="reference internal" href="#comp_req__tc8_conformance__evt_subscription" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__evt_subscription</a>, <a class="reference internal" href="#comp_req__tc8_conformance__msg_error_codes" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__msg_error_codes</a>, <a class="reference internal" href="#comp_req__tc8_conformance__msg_resp_header" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__msg_resp_header</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_cyclic_timing" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_cyclic_timing</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_find_response" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_find_response</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_offer_format" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_offer_format</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_phases_timing" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_phases_timing</a>, <a class="reference internal" href="#comp_req__tc8_conformance__sd_sub_lifecycle" title="feat_req__tc8_conformance__conformance">comp_req__tc8_conformance__sd_sub_lifecycle</a></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../architecture/features.html#feat__someip_gateway" title="feat_req__tc8_conformance__conformance">feat__someip_gateway</a></span></span></div>
 </span></div>
@@ -509,9 +509,12 @@ as a formal verification activity for the SOME/IP Gateway’s protocol stack.</p
 SOME/IP stack (<code class="docutils literal notranslate"><span class="pre">someipd</span></code>) against OPEN Alliance TC8 SOME/IP test
 specifications at the wire protocol level, without requiring application
 processes.</p>
-<p>Note: The <code class="docutils literal notranslate"><span class="pre">:derived_from:</span></code> link targets a placeholder stakeholder requirement.
-This shall be updated to reference the upstream S-CORE stakeholder requirement
-for SOME/IP interoperability once it is formally defined.</p>
+<p><strong>Scope boundary:</strong> This document currently defines only the top-level
+feature requirement and the initial set of TC8 component requirements
+established for the test infrastructure split. The remaining component
+requirements, covering method calls, field access, and the detailed
+traceability matrix against the OA TC8 v3.0 Chapter 6 test catalog, are
+added together with the test modules that implement and verify them.</p>
 </td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
@@ -530,11 +533,11 @@ for SOME/IP interoperability once it is formally defined.</p>
 </div>
 </section>
 <section id="component-requirements-service-discovery">
-<h2>Component Requirements — Service Discovery<a class="headerlink" href="#component-requirements-service-discovery" title="Link to this heading">#</a></h2>
+<h2>Component Requirements: Service Discovery<a class="headerlink" href="#component-requirements-service-discovery" title="Link to this heading">#</a></h2>
 <p>The following component requirements define the high-priority TC8 conformance
 tests for SOME/IP Service Discovery (SD), aligned with SOME/IP-SD Protocol
 Specification (AUTOSAR PRS_SOMEIP_SD).</p>
-<div class="need_container docutils container" id="SNCB-c760e13a">
+<div class="need_container docutils container" id="SNCB-c8363d67">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_offer_format">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -587,7 +590,7 @@ Covers TC8-SD-001 and TC8-SD-002 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-b753ec4a">
+<div class="need_container docutils container" id="SNCB-2e40372b">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_cyclic_timing">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -621,7 +624,7 @@ Covers TC8-SD-001 and TC8-SD-002 from the test strategy.</p>
 OfferService entries at the configured <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> interval
 (±20% tolerance) during the main phase of Service Discovery.</p>
 <p>Note: Traces to SOME/IP-SD specification section 4.1.1
-(SD Phases — Main Phase, cyclic offer behavior).
+(SD Phases, Main Phase, cyclic offer behavior).
 Covers TC8-SD-003 from the test strategy.</p>
 </td>
 </tr>
@@ -639,7 +642,7 @@ Covers TC8-SD-003 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-781da995">
+<div class="need_container docutils container" id="SNCB-37c79f83">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_find_response">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -691,7 +694,7 @@ Covers TC8-SD-004 and TC8-SD-005 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ca29921e">
+<div class="need_container docutils container" id="SNCB-86e49ccd">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_sub_lifecycle">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -746,7 +749,7 @@ Covers TC8-SD-006, TC8-SD-007, and TC8-SD-008 from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e3669281">
+<div class="need_container docutils container" id="SNCB-20542199">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__sd_phases_timing">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -781,7 +784,7 @@ the three SD phases: initial wait delay within <code class="docutils literal not
 <span class="pre">initial_delay_max]</span></code>, repetition of offers <code class="docutils literal notranslate"><span class="pre">repetitions_max</span></code> times
 at <code class="docutils literal notranslate"><span class="pre">repetitions_base_delay</span></code> intervals, and transition to main phase.</p>
 <p>Note: Traces to SOME/IP-SD specification section 4.1.1
-(SD Phases — Initial Wait, Repetition, Main Phase).
+(SD Phases, Initial Wait, Repetition, Main Phase).
 Covers TC8-SD-009 and TC8-SD-010 from the test strategy.</p>
 </td>
 </tr>
@@ -801,8 +804,8 @@ Covers TC8-SD-009 and TC8-SD-010 from the test strategy.</p>
 </div>
 </section>
 <section id="component-requirements-some-ip-message-format">
-<h2>Component Requirements — SOME/IP Message Format<a class="headerlink" href="#component-requirements-some-ip-message-format" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-792d4f08">
+<h2>Component Requirements: SOME/IP Message Format<a class="headerlink" href="#component-requirements-some-ip-message-format" title="Link to this heading">#</a></h2>
+<div class="need_container docutils container" id="SNCB-1c73b08f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__msg_resp_header">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -837,7 +840,7 @@ SOME/IP RESPONSE messages with correct protocol version (0x01),
 message type (0x80), matching session ID, and matching client ID
 for each received REQUEST.</p>
 <p>Note: Traces to SOME/IP specification sections 4.1.4
-(Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID —
+(Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID,
 Client ID / Session ID). Covers TC8-SOMEIP-MSG-001,
 TC8-SOMEIP-MSG-002, TC8-SOMEIP-MSG-005, and TC8-SOMEIP-MSG-008
 from the test strategy.</p>
@@ -857,7 +860,7 @@ from the test strategy.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-bdbdca14">
+<div class="need_container docutils container" id="SNCB-97e199a8">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__msg_error_codes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -913,8 +916,8 @@ TC8-SOMEIP-MSG-004, and TC8-SOMEIP-MSG-006 from the test strategy.</p>
 </div>
 </section>
 <section id="component-requirements-event-notification">
-<h2>Component Requirements — Event Notification<a class="headerlink" href="#component-requirements-event-notification" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-d02ff739">
+<h2>Component Requirements: Event Notification<a class="headerlink" href="#component-requirements-event-notification" title="Link to this heading">#</a></h2>
+<div class="need_container docutils container" id="SNCB-63c277df">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__tc8_conformance__evt_subscription">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -991,42 +994,42 @@ specification section it verifies.</p>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p></td>
 <td><p>TC8-SD-001, -002</p></td>
-<td><p>SOME/IP-SD §4.1.2.1, §4.1.2.3</p></td>
+<td><p>SOME/IP-SD Section 4.1.2.1, Section 4.1.2.3</p></td>
 <td><p>QM</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_cyclic_timing</span></code></p></td>
 <td><p>TC8-SD-003</p></td>
-<td><p>SOME/IP-SD §4.1.1 (Main Phase)</p></td>
+<td><p>SOME/IP-SD Section 4.1.1 (Main Phase)</p></td>
 <td><p>QM</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p></td>
 <td><p>TC8-SD-004, -005</p></td>
-<td><p>SOME/IP-SD §4.1.2.2</p></td>
+<td><p>SOME/IP-SD Section 4.1.2.2</p></td>
 <td><p>QM</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p></td>
 <td><p>TC8-SD-006, -007, -008</p></td>
-<td><p>SOME/IP-SD §4.1.2.4–4.1.2.6</p></td>
+<td><p>SOME/IP-SD Section 4.1.2.4 through Section 4.1.2.6</p></td>
 <td><p>QM</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_phases_timing</span></code></p></td>
 <td><p>TC8-SD-009, -010</p></td>
-<td><p>SOME/IP-SD §4.1.1 (Phases)</p></td>
+<td><p>SOME/IP-SD Section 4.1.1 (Phases)</p></td>
 <td><p>QM</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__msg_resp_header</span></code></p></td>
 <td><p>TC8-MSG-001, -002, -005, -008</p></td>
-<td><p>SOME/IP §4.1.3, §4.1.4, §4.1.6</p></td>
+<td><p>SOME/IP Section 4.1.3, Section 4.1.4, Section 4.1.6</p></td>
 <td><p>QM</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__msg_error_codes</span></code></p></td>
 <td><p>TC8-MSG-003, -004, -006</p></td>
-<td><p>SOME/IP §4.1.7 (Table 4.14)</p></td>
+<td><p>SOME/IP Section 4.1.7 (Table 4.14)</p></td>
 <td><p>QM</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__evt_subscription</span></code></p></td>
-<td><p>TC8-EVT-001–004, -006</p></td>
-<td><p>SOME/IP §5.1, SOME/IP-SD §4.1.2.4</p></td>
+<td><p>TC8-EVT-001 through -004, -006</p></td>
+<td><p>SOME/IP Section 5.1, SOME/IP-SD Section 4.1.2.4</p></td>
 <td><p>QM</p></td>
 </tr>
 </tbody>
@@ -1083,9 +1086,9 @@ specification section it verifies.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-requirement">Feature Requirement</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-requirements-service-discovery">Component Requirements — Service Discovery</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-requirements-some-ip-message-format">Component Requirements — SOME/IP Message Format</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-requirements-event-notification">Component Requirements — Event Notification</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-requirements-service-discovery">Component Requirements: Service Discovery</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-requirements-some-ip-message-format">Component Requirements: SOME/IP Message Format</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-requirements-event-notification">Component Requirements: Event Notification</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#traceability-summary">Traceability Summary</a></li>
 </ul>
   </nav></div>
