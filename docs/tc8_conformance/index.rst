@@ -51,6 +51,8 @@ diagrams, and module structure, see
    :maxdepth: 2
 
    requirements.rst
+   test_specification.rst
+   traceability.rst
 
 .. seealso::
 
