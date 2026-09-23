@@ -100,15 +100,19 @@ initialises a vsomeip application and calls ``offer_service()`` for each entry.
 For TC8, the config is ``tc8_someipd_config.bin``, generated at build time from
 ``tests/tc8_conformance/config/tc8_someipd_config.json``.
 
-``gatewayd`` is started alongside ``someipd`` as a companion process.  In the
-SD-only conformance tests ``gatewayd`` idles (its FlatBuffer config declares no
-service types), but the IPC handshake between ``someipd`` and ``gatewayd`` must
-complete before the test proceeds.  ``gatewayd`` becomes active only in ETS
-end-to-end tests where a mw::com application offers or consumes the TC8 service.
+``gatewayd`` is started alongside ``someipd`` as a companion process.  It is
+launched with the same ``tc8_someipd_config.bin`` as ``someipd``, so it has the
+same service type information available.  In the SD-only conformance tests
+``gatewayd`` idles, but the IPC handshake between ``someipd`` and ``gatewayd``
+must complete before the test proceeds.  ``gatewayd`` becomes active only in
+ETS end-to-end tests where a mw::com application offers or consumes the TC8
+service.
 
 ``tc8_itf_conftest.py`` launches ``someipd`` first (it becomes the vsomeip
-routing manager), waits for an OfferService multicast, then starts ``gatewayd``.
-Both processes are force-killed (``pkill -9``) during fixture teardown.
+routing manager), then the ETS stub, then ``gatewayd``, all immediately in
+that order; the fixture waits for an OfferService/SD readiness signal only
+after all three processes have started. Both processes are force-killed
+(``pkill -9``) during fixture teardown.
 
 Port Isolation and Parallel Execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -142,181 +146,6 @@ compatibility for local development runs without Bazel.
 
 For the per-target port matrix, see ``tests/tc8_conformance/README.md``.
 
-Skipped Test Categories
-^^^^^^^^^^^^^^^^^^^^^^^
-
-The production stack has no mw::com ETS application to generate events, handle
-methods, or provide field values.  The following test modules and individual
-tests are permanently skipped until a mw::com ETS app is added to the repo.
-
-.. list-table:: Skipped TC8 Tests (2026-08-11)
-   :header-rows: 1
-   :widths: 30 20 50
-
-   * - Module / Test
-     - Skip level
-     - Reason
-   * - ``test_event_notification.py``
-     - All tests
-     - No event delivery without mw::com ETS app
-   * - ``test_field_conformance.py``
-     - All tests
-     - No initial field values or getter/setter handling without mw::com ETS app
-   * - ``test_someip_message_format.py``
-     - All tests
-     - No SOME/IP method handling (gatewayd to_num_of_methods=0) without mw::com ETS app
-   * - ``test_service_discovery.py``
-     - 4 individual tests
-     - Require event notifications before SD lifecycle actions
-
-The 4 individually skipped tests in ``test_service_discovery.py`` are:
-
-- ``TestSDSubscribeLifecycle.test_tc8_sd_008_stop_subscribe_ceases_notifications``
-- ``TestSDTTLExpiry.test_tc8_sd_014_ttl_expiry_ceases_notifications``
-- ``TestSDSubscribeLifecycleAdvanced.test_ets_155_resubscribe_after_stop``
-- ``TestSDSubscribeLifecycleAdvanced.test_ets_095_subscribe_ttl_expires_no_events``
-
-Test Module Structure
-^^^^^^^^^^^^^^^^^^^^^
-
-Each TC8 area has a test module (pytest) and one or more helper modules.
-The diagrams below show the dependencies grouped by TC8 domain.
-Blue boxes represent test modules and green boxes represent shared helper
-modules. Dashed arrows indicate internal helper-to-helper dependencies.
-
-Service Discovery (SD)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-The Service Discovery tests (TC8-SD) verify SOME/IP-SD offer announcements,
-find/subscribe responses, SD phase timing, byte-level SD field values,
-malformed packet robustness, and SD client lifecycle.
-
-.. uml::
-
-   @startuml
-   !theme plain
-   scale max 800 width
-   skinparam component {
-     BackgroundColor<<test>> #E3F2FD
-     BorderColor<<test>> #1565C0
-     BackgroundColor<<helper>> #E8F5E9
-     BorderColor<<helper>> #2E7D32
-   }
-
-   title Service Discovery — Test Module Dependencies
-
-   [test_service_discovery] <<test>>
-   [test_sd_phases_timing] <<test>>
-   [test_sd_reboot] <<test>>
-   [test_sd_format_compliance] <<test>>
-   [test_sd_robustness] <<test>>
-   [test_sd_client] <<test>>
-
-   [sd_helpers] <<helper>>
-   [sd_sender] <<helper>>
-   [sd_malformed] <<helper>>
-   [someip_assertions] <<helper>>
-   [timing] <<helper>>
-
-   test_service_discovery --> sd_helpers
-   test_service_discovery --> sd_sender
-   test_service_discovery --> someip_assertions
-   test_service_discovery --> timing
-   test_sd_phases_timing --> timing
-   test_sd_phases_timing --> sd_helpers
-   test_sd_reboot --> sd_helpers
-   test_sd_format_compliance --> sd_helpers
-   test_sd_robustness --> sd_malformed
-   test_sd_robustness --> sd_helpers
-   test_sd_client --> sd_helpers
-   test_sd_client --> sd_sender
-
-   timing ..> sd_helpers : <<uses>>
-   @enduml
-
-Message Format, Events, Fields, and TCP Transport (MSG / EVT / FLD / TCP)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These tests cover message format (TC8-MSG), event notification (TC8-EVT),
-field access (TC8-FLD), and TCP transport binding. Domain-specific helpers
-handle packet construction, subscription workflows, field get/set operations,
-and TCP stream framing.
-
-.. uml::
-
-   @startuml
-   !theme plain
-   scale max 800 width
-   skinparam component {
-     BackgroundColor<<test>> #E3F2FD
-     BorderColor<<test>> #1565C0
-     BackgroundColor<<helper>> #E8F5E9
-     BorderColor<<helper>> #2E7D32
-   }
-
-   title Message / Event / Field / TCP — Test Module Dependencies
-
-   [test_someip_message_format] <<test>>
-   [test_event_notification] <<test>>
-   [test_field_conformance] <<test>>
-
-   [message_builder] <<helper>>
-   [someip_assertions] <<helper>>
-   [sd_helpers] <<helper>>
-   [sd_sender] <<helper>>
-   [event_helpers] <<helper>>
-   [field_helpers] <<helper>>
-   [tcp_helpers] <<helper>>
-   [udp_helpers] <<helper>>
-
-   test_someip_message_format --> message_builder
-   test_someip_message_format --> someip_assertions
-   test_someip_message_format --> sd_helpers
-   test_someip_message_format --> tcp_helpers
-   test_someip_message_format --> udp_helpers
-   test_event_notification --> event_helpers
-   test_event_notification --> sd_helpers
-   test_event_notification --> sd_sender
-   test_event_notification --> tcp_helpers
-   test_field_conformance --> field_helpers
-   test_field_conformance --> event_helpers
-   test_field_conformance --> sd_helpers
-
-   event_helpers ..> sd_sender : <<uses>>
-   field_helpers ..> message_builder : <<uses>>
-   field_helpers ..> tcp_helpers : <<uses>>
-   @enduml
-
-Multi-service and Multi-instance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``test_multi_service.py`` verifies that ``someipd`` correctly handles
-vsomeip configurations that declare multiple service entries, each advertising
-its own distinct UDP port in the SD endpoint option.
-
-.. uml::
-
-   @startuml
-   !theme plain
-   scale max 800 width
-   skinparam component {
-     BackgroundColor<<test>> #E3F2FD
-     BorderColor<<test>> #1565C0
-     BackgroundColor<<helper>> #E8F5E9
-     BorderColor<<helper>> #2E7D32
-   }
-
-   title Multi-service / Multi-instance — Test Module Dependencies
-
-   [test_multi_service] <<test>>
-
-   [sd_helpers] <<helper>>
-   [sd_sender] <<helper>>
-
-   test_multi_service --> sd_helpers
-   test_multi_service --> sd_sender
-   @enduml
-
 Application Level Tests
 -----------------------
 
@@ -333,36 +162,8 @@ only, the same test code works with any SOME/IP binding.
 Planned Topology
 ^^^^^^^^^^^^^^^^
 
-.. uml::
-
-   @startuml
-   !theme plain
-   scale max 800 width
-
-   node "Host" {
-     [TC8 Service\n(mw::com Skeleton)] as Svc
-     [gatewayd] as GW1
-     [someipd] as SD1
-
-     [someipd] as SD2
-     [gatewayd] as GW2
-     [TC8 Client\n(mw::com Proxy)] as Cli
-
-     Svc -right-> GW1 : LoLa IPC
-     GW1 -right-> SD1 : LoLa IPC
-     SD1 -right-> SD2 : SOME/IP\nUDP / TCP
-     SD2 -right-> GW2 : LoLa IPC
-     GW2 -right-> Cli : LoLa IPC
-   }
-
-   [pytest\norchestrator] as Orch
-   Orch .down.> Svc
-   Orch .down.> GW1
-   Orch .down.> SD1
-   Orch .down.> SD2
-   Orch .down.> GW2
-   Orch .down.> Cli
-   @enduml
+The application level test topology matches the "Application-Level Tests"
+package shown in the diagram under `Test Scope Overview`_.
 
 Stack-Agnostic Design
 ^^^^^^^^^^^^^^^^^^^^^
@@ -419,7 +220,7 @@ Planned Components
 The application level test design introduces four planned components.
 The **Enhanced Testability Service** (**ETS**) and **Enhanced Testability
 Client** (**ETC**) implement the TC8 service interface defined in OA TC8
-§5.1.4, while the **Test Orchestrator** and **Process Orchestrator** manage
+§6.1.4, while the **Test Orchestrator** and **Process Orchestrator** manage
 test and process lifecycle.
 
 .. uml::

@@ -18,19 +18,25 @@ Used by ``test_sd_client.py``, ``test_sd_reboot.py``, and
 commands execute on the QEMU guest via SSH.
 """
 
-import glob
 import logging
 import os
 import socket
-import struct
 import time
 from pathlib import Path
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
+
+from helpers.sd_helpers import open_multicast_socket, parse_sd_offers
 
 _logger = logging.getLogger(__name__)
 
+#: Binaries launched on the QEMU guest by launch_dut, used both to build the
+#: launch commands and as the fallback pkill target list in _TargetProcess.
+_SOMEIPD_BIN = "someipd"
+_GATEWAYD_BIN = "gatewayd"
+_ETS_STUB_BIN = "tc8_ets_stub"
+
 # ---------------------------------------------------------------------------
-# Config name → rendered guest path mapping
+# Config name to rendered guest path mapping
 # ---------------------------------------------------------------------------
 
 #: Maps the template filename used in BUILD.bazel ``env`` to the rendered path
@@ -60,54 +66,64 @@ class _TargetProcess:
         target_init: object = None,
         secondary_proc: object = None,
         stub_proc: object = None,
+        process_names: Iterable[str] = (),
     ) -> None:
         self._proc = proc
         self._target_init = target_init
         self._secondary_proc = secondary_proc
         self._stub_proc = stub_proc
+        # Names of the binaries this wrapper was told it launched (supplied
+        # by launch_dut). Used only by the pkill fallback in terminate() so
+        # this class does not need to hardcode binary names itself.
+        self._process_names = tuple(process_names)
 
     def poll(self) -> Optional[int]:
-        """Return ``None`` while running, ``0`` after the process has stopped."""
-        return None if self._proc.is_running() else 0  # type: ignore[attr-defined]
+        """Return ``None`` while running, ``0`` once any tracked process has stopped."""
+        for proc in (self._proc, self._secondary_proc, self._stub_proc):
+            if proc is not None and not proc.is_running():  # type: ignore[attr-defined]
+                return 0
+        return None
 
     def terminate(self) -> None:
-        """Stop the remote processes (someipd and gatewayd).
+        """Stop the remote processes.
 
-        Force-kills both binaries on the QEMU guest via ``pkill -9`` before
-        calling ``proc.stop()``.  ``pkill`` is portable: procps on Linux,
-        ``slay`` symlink on QNX8 (pgrep absent from the QNX IFS).
+        Primary mechanism: stop each tracked AsyncProcess handle returned by
+        the QemuTarget when this wrapper was constructed.
+
+        Fallback: force-kill by binary name via ``pkill -9`` using the names
+        passed in via *process_names*.  This is only a fallback because
+        stopping the AsyncProcess handles alone was found to not reliably
+        terminate these binaries on the target under QEMU.  ``pkill`` is
+        portable: procps on Linux, ``slay`` symlink on QNX8 (pgrep absent
+        from the QNX IFS).
 
         Failures are logged as warnings and do not re-raise so teardown
         does not fail the test.
         """
-        if self._target_init is not None:
+        for proc, label in (
+            (self._proc, "primary"),
+            (self._secondary_proc, "secondary"),
+            (self._stub_proc, "stub"),
+        ):
+            if proc is None:
+                continue
             try:
-                self._target_init.execute(  # type: ignore[attr-defined]
-                    "pkill -9 someipd 2>/dev/null || true; "
-                    "pkill -9 gatewayd 2>/dev/null || true; "
-                    "pkill -9 tc8_ets_stub 2>/dev/null || true"
+                proc.stop()  # type: ignore[attr-defined]
+            except RuntimeError as exc:
+                _logger.warning(
+                    "AsyncProcess.stop() for %s proc raised during teardown (ignored): %s",
+                    label,
+                    exc,
                 )
+
+        if self._target_init is not None and self._process_names:
+            kill_cmd = "; ".join(f"pkill -9 {name} 2>/dev/null || true" for name in self._process_names)
+            try:
+                self._target_init.execute(kill_cmd)  # type: ignore[attr-defined]
             except Exception:  # noqa: BLE001
-                _logger.warning("force-kill of someipd/gatewayd on QEMU guest failed; continuing teardown")
-        try:
-            self._proc.stop()  # type: ignore[attr-defined]
-        except RuntimeError as exc:
-            _logger.warning("AsyncProcess.stop() raised during teardown (ignored): %s", exc)
-        if self._secondary_proc is not None:
-            try:
-                self._secondary_proc.stop()  # type: ignore[attr-defined]
-            except RuntimeError as exc:
                 _logger.warning(
-                    "AsyncProcess.stop() for secondary proc raised during teardown (ignored): %s",
-                    exc,
-                )
-        if self._stub_proc is not None:
-            try:
-                self._stub_proc.stop()  # type: ignore[attr-defined]
-            except RuntimeError as exc:
-                _logger.warning(
-                    "AsyncProcess.stop() for stub proc raised during teardown (ignored): %s",
-                    exc,
+                    "force-kill fallback of %s on QEMU guest failed; continuing teardown",
+                    ", ".join(self._process_names),
                 )
 
     def kill(self) -> None:
@@ -184,7 +200,7 @@ def render_someip_config(
 
 def launch_dut(
     config_path: Union[Path, str],
-    target_init: object = None,
+    target_init: object,
 ) -> object:
     """Start the full DUT stack (someipd, tc8_ets_stub, gatewayd) on the QEMU guest.
 
@@ -200,42 +216,43 @@ def launch_dut(
     interface is compatible with :func:`terminate_dut`.  Calling
     ``.terminate()`` kills all three binaries and stops their async process handles.
     """
-    if target_init is not None:
-        # ITF path: production stack runs on the QEMU guest.  Configs are pre-rendered.
-        name = Path(config_path).name if isinstance(config_path, Path) else str(config_path)
-        guest_config = _GUEST_CONFIG_MAP.get(name, "tc8_sd.json")
+    if target_init is None:
+        raise RuntimeError("launch_dut: target_init must be provided (ITF mode only)")
 
-        # 1. Start someipd: it becomes the vsomeip routing manager.
-        someipd_proc = target_init.execute_async(  # type: ignore[attr-defined]
-            f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
-            f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
-            f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
-            f"/opt/someipd -c /opt/tc8_someipd_config.bin"
-        )
+    # Production stack runs on the QEMU guest. Configs are pre-rendered.
+    name = Path(config_path).name if isinstance(config_path, Path) else str(config_path)
+    guest_config = _GUEST_CONFIG_MAP.get(name, "tc8_sd.json")
 
-        # 2. Start the ETS stub: provides the mw::com skeleton so gatewayd's
-        #    StartFindService callback fires and gatewayd calls offer_event() in vsomeip.
-        stub_proc = target_init.execute_async(  # type: ignore[attr-defined]
-            f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
-            f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json /opt/tc8_ets_stub -s /opt/tc8_ets_stub_mw_com_config.json"
-        )
+    # 1. Start someipd: it becomes the vsomeip routing manager.
+    someipd_proc = target_init.execute_async(  # type: ignore[attr-defined]
+        f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
+        f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
+        f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
+        f"/opt/someipd -c /opt/tc8_someipd_config.bin"
+    )
 
-        # 3. Start gatewayd: connects to someipd IPC server, discovers the stub,
-        #    and calls offer_event() so vsomeip advertises the service.
-        gatewayd_proc = target_init.execute_async(  # type: ignore[attr-defined]
-            f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
-            f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
-            f"/opt/gatewayd -c /opt/tc8_someipd_config.bin -s /opt/tc8_gatewayd_mw_com_config.json"
-        )
+    # 2. Start the ETS stub: provides the mw::com skeleton so gatewayd's
+    #    StartFindService callback fires and gatewayd calls offer_event() in vsomeip.
+    stub_proc = target_init.execute_async(  # type: ignore[attr-defined]
+        f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
+        f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json /opt/tc8_ets_stub -s /opt/tc8_ets_stub_mw_com_config.json"
+    )
 
-        return _TargetProcess(
-            someipd_proc,
-            target_init=target_init,
-            secondary_proc=gatewayd_proc,
-            stub_proc=stub_proc,
-        )
+    # 3. Start gatewayd: connects to someipd IPC server, discovers the stub,
+    #    and calls offer_event() so vsomeip advertises the service.
+    gatewayd_proc = target_init.execute_async(  # type: ignore[attr-defined]
+        f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
+        f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
+        f"/opt/gatewayd -c /opt/tc8_someipd_config.bin -s /opt/tc8_gatewayd_mw_com_config.json"
+    )
 
-    raise RuntimeError("launch_dut: target_init must be provided (ITF mode only)")
+    return _TargetProcess(
+        someipd_proc,
+        target_init=target_init,
+        secondary_proc=gatewayd_proc,
+        stub_proc=stub_proc,
+        process_names=(_SOMEIPD_BIN, _GATEWAYD_BIN, _ETS_STUB_BIN),
+    )
 
 
 def terminate_dut(proc: object) -> None:
@@ -254,32 +271,50 @@ def terminate_dut(proc: object) -> None:
 
 
 def cleanup_vsomeip_sockets(
-    base_path: str = "/tmp",
     target_init: object = None,
 ) -> None:
-    """Remove stale vsomeip routing-manager sockets.
+    """Remove stale vsomeip routing-manager sockets and LoLa SHM/discovery
+    leftovers on the QEMU guest before each DUT (re)start.
 
-    In **legacy mode** (*target_init* is ``None``) removes
-    ``<base_path>/vsomeip-*`` socket files on the host.
+    ITF (target-based) mode is the only supported mode: *target_init* is a
+    ``QemuTarget`` and cleanup runs via SSH on the QEMU guest, covering both
+    the Linux and QNX8 target layouts:
 
-    In **ITF mode** (*target_init* is a ``QemuTarget``) runs
-    ``rm -f /tmp/vsomeip-*`` on the QEMU guest via SSH.
+    * vsomeip routing-manager sockets: ``/tmp/vsomeip-*`` (Linux),
+      ``/var/run/vsomeip-*`` (QNX8, per vsomeip-qnx8.patch).
+    * LoLa SHM shared-memory objects: ``/dev/shm/lola-*`` (Linux),
+      ``/dev/shmem/lola-*`` (QNX8).
+    * LoLa partial-restart discovery marker files:
+      ``/tmp/mw_com_lola/partial_restart/*`` (Linux),
+      ``/tmp_discovery/mw_com_lola/partial_restart/*`` (QNX8).
+
+    Cleanup is broad (not scoped to a single service/instance ID) since the
+    target only ever runs one test session at a time. Files created by the
+    custom SomeipMessageTransfer IPC binding are intentionally left alone,
+    since that binding is being replaced by one built on mw::com.
     """
-    if target_init is not None:
-        # Remove stale sockets from both paths:
-        #   Linux QEMU : /tmp/vsomeip-*
-        #   QNX8 QEMU  : /var/run/vsomeip-*  (vsomeip-qnx8.patch sets VSOMEIP_BASE_PATH="/var/run")
-        target_init.execute("rm -f /tmp/vsomeip-* /var/run/vsomeip-*")  # type: ignore[attr-defined]
+    if target_init is None:
+        _logger.warning("cleanup_vsomeip_sockets: target_init not provided; skipping cleanup (ITF mode only)")
         return
-    for stale in glob.glob(f"{base_path}/vsomeip-*"):
-        try:
-            os.unlink(stale)
-        except OSError:
-            pass
+    stale_globs = (
+        "/tmp/vsomeip-*",
+        "/var/run/vsomeip-*",
+        "/dev/shm/lola-*",
+        "/dev/shmem/lola-*",
+        "/tmp/mw_com_lola/partial_restart/*",
+        "/tmp_discovery/mw_com_lola/partial_restart/*",
+    )
+    exit_code, output = target_init.execute("rm -rf " + " ".join(stale_globs))  # type: ignore[attr-defined]
+    if exit_code != 0:
+        _logger.warning(
+            "vsomeip/LoLa cleanup on target returned %d: %s",
+            exit_code,
+            output.decode(errors="replace"),
+        )
 
 
 # ---------------------------------------------------------------------------
-# SD readiness gate (host-side: works in both legacy and ITF modes)
+# SD readiness gate (host-side)
 # ---------------------------------------------------------------------------
 
 
@@ -293,22 +328,10 @@ def wait_for_sd_readiness(
     joins the SD multicast group, and returns ``True`` as soon as a SOME/IP-SD
     OfferService entry is received.  Returns ``False`` on timeout.
 
-    Port and multicast address are read from ``helpers.constants`` so they
-    stay in sync with the vsomeip config templates.
+    Socket setup and SD parsing are delegated to ``helpers.sd_helpers``, the
+    single source of truth for SD multicast handling.
     """
-    from helpers.constants import SD_MULTICAST_ADDR, SD_PORT  # noqa: PLC0415
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    try:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    except AttributeError:
-        pass
-    sock.bind(("", SD_PORT))
-    group_bytes = socket.inet_aton(SD_MULTICAST_ADDR)
-    iface_bytes = socket.inet_aton(host_ip)
-    mreq = struct.pack("4s4s", group_bytes, iface_bytes)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    sock = open_multicast_socket(host_ip)
 
     deadline = time.monotonic() + timeout_secs
     try:
@@ -321,22 +344,8 @@ def wait_for_sd_readiness(
                 data, _ = sock.recvfrom(65535)
             except socket.timeout:
                 continue
-            if len(data) < 20:
-                continue
-            service_id = int.from_bytes(data[0:2], "big")
-            if service_id != 0xFFFF:
-                continue
-            sd_offset = 16
-            if len(data) < sd_offset + 12:
-                continue
-            entries_len = int.from_bytes(data[sd_offset + 4 : sd_offset + 8], "big")
-            entry_start = sd_offset + 8
-            pos = entry_start
-            while pos + 16 <= entry_start + entries_len and pos + 16 <= len(data):
-                entry_type = data[pos]
-                if entry_type == 0x01:  # OfferService
-                    return True
-                pos += 16
+            if parse_sd_offers(data):
+                return True
         return False
     finally:
         sock.close()

@@ -40,12 +40,12 @@ SD_PORT: int = int(os.environ.get("TC8_SD_PORT", "30490"))
 #: SOME/IP-SD multicast group address (all SOME/IP nodes join this group).
 SD_MULTICAST_ADDR: str = "224.244.224.245"
 
-#: DUT unreliable (UDP) service port — matches the ``unreliable`` port in
+#: DUT unreliable (UDP) service port. Matches the ``unreliable`` port in
 #: the DUT's ``tc8_someipd_*.json`` configuration templates.  Read from
 #: ``TC8_SVC_PORT`` env var; defaults to 30509 for local development.
 DUT_UNRELIABLE_PORT: int = int(os.environ.get("TC8_SVC_PORT", "30509"))
 
-#: DUT reliable (TCP) service port — matches the ``reliable`` port in
+#: DUT reliable (TCP) service port. Matches the ``reliable`` port in
 #: the DUT's ``tc8_someipd_*.json`` configuration templates.  Read from
 #: ``TC8_SVC_TCP_PORT`` env var; defaults to 30510 for local development.
 DUT_RELIABLE_PORT: int = int(os.environ.get("TC8_SVC_TCP_PORT", "30510"))

@@ -110,7 +110,7 @@ class SOMEIPHeader:
         :param buf: buffer containing (at least) one SOME/IP packet
         :raises ValueError: if *buf* is too short, or the header contains an
             invalid protocol version, message type, or return code
-        :return: tuple ``(header, buf_rest)`` -- the parsed header and the
+        :return: tuple ``(header, buf_rest)``, the parsed header and the
             unparsed remainder of *buf* (empty if *buf* held exactly one
             message)
         """
@@ -171,10 +171,6 @@ class L4Protocols(enum.IntEnum):
 class SOMEIPSDOption:
     """Abstract base class for SD options (parity with ``someip.header``)."""
 
-    def build(self) -> bytes:
-        """Build the byte representation of this SD option."""
-        return bytes(_option_to_scapy(self))
-
 
 @dataclasses.dataclass(frozen=True)
 class IPv4EndpointOption(SOMEIPSDOption):
@@ -195,7 +191,7 @@ class IPv4MulticastOption(SOMEIPSDOption):
 
     Same fields as :class:`IPv4EndpointOption` but a distinct type.
     Do not use ``isinstance`` against :class:`IPv4EndpointOption` to match
-    both -- they are not related by inheritance.
+    both, since they are not related by inheritance.
     """
 
     address: ipaddress.IPv4Address
@@ -383,14 +379,6 @@ class SOMEIPSDEntry:
         if self.sd_type not in (SOMEIPSDEntryType.Subscribe, SOMEIPSDEntryType.SubscribeAck):
             raise TypeError(f"SD entry is type {self.sd_type}, does not have eventgroup_id")
         return self.minver_or_counter & 0xFFFF
-
-    def build(self) -> bytes:
-        """Build the byte representation of this SD entry.
-
-        Requires option indexes to be assigned first (see
-        :meth:`assign_option_index`).
-        """
-        return bytes(_entry_to_scapy(self))
 
 
 def _entry_to_scapy(entry: SOMEIPSDEntry):

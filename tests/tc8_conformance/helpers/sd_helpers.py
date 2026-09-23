@@ -135,4 +135,4 @@ def capture_sd_offers(
             f"{timeout_secs:.1f}s (expected at least {min_count})"
         )
 
-    return collected  # pragma: no cover — reached only if min_count == 0
+    return collected  # pragma: no cover, only reached if min_count == 0

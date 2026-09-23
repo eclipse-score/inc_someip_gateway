@@ -23,9 +23,9 @@ The TC8 test suite covers two scopes:
 
 - **Protocol Conformance**: Tests ``someipd`` at the wire level using raw
   UDP/TCP sockets and `scapy <https://scapy.net/>`_ as the packet serializer
-  and parser. No application processes are needed. ``someipd`` is launched on
-  its own (``-c <config.bin>``, without ``gatewayd``), so no local/remote
-  application traffic is routed through it.
+  and parser. ``someipd``, the ETS stub, and ``gatewayd`` are all started
+  together as part of the DUT stack, but no application processes drive
+  traffic through ``gatewayd`` in these tests.
 
 - **Application-Level Tests**: Tests the full gateway path
   (mw::com client to ``gatewayd`` to ``someipd`` to network) using C++ apps
@@ -38,8 +38,9 @@ diagrams, and module structure, see
 
 .. note::
 
-   Protocol conformance tests run ``someipd`` on its own, without
-   ``gatewayd``. Fixture defaults (DUT IP, tester IP, port numbers) are defined in
+   Protocol conformance tests run the full DUT stack (``someipd``, the ETS
+   stub, and ``gatewayd``), though only ``someipd`` is exercised directly.
+   Fixture defaults (DUT IP, tester IP, port numbers) are defined in
    ``tc8_itf_conftest.py``.  To run all protocol conformance tests::
 
       bazel test --config=tc8-itf //tests/tc8_conformance/...
@@ -50,13 +51,11 @@ diagrams, and module structure, see
    :maxdepth: 2
 
    requirements.rst
-   test_specification.rst
-   traceability.rst
 
 .. seealso::
 
    :doc:`/architecture/tc8_conformance_testing` for test topology, module
    dependency diagrams, and planned components.
 
-   :doc:`traceability` — full OA TC8 v3.0 Chapter 5 scope analysis, gap
+   :doc:`traceability`: full OA TC8 v3.0 Chapter 6 scope analysis, gap
    analysis, coverage breakdown, and known stack limitations.

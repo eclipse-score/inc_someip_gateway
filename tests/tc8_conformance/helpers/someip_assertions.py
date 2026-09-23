@@ -114,9 +114,9 @@ def assert_offer_has_ipv4_endpoint_option(
     can reach the service.  The address and port must match the DUT configuration.
     """
     options = list(getattr(entry, "options_1", ())) + list(getattr(entry, "options_2", ()))
-    ipv4_opts = [o for o in options if isinstance(o, IPv4EndpointOption)]
+    ipv4_opts = [o for o in options if isinstance(o, IPv4EndpointOption) and o.l4proto == L4Protocols.UDP]
     assert ipv4_opts, (
-        "TC8-SD-011: No IPv4EndpointOption found in OfferService entry options. "
+        "TC8-SD-011: No IPv4EndpointOption (UDP) found in OfferService entry options. "
         f"Entry has {len(options)} option(s): {options}"
     )
     opt = ipv4_opts[0]
@@ -124,7 +124,6 @@ def assert_offer_has_ipv4_endpoint_option(
         f"TC8-SD-011: endpoint address mismatch: got {opt.address}, expected {expected_ip}"
     )
     assert opt.port == expected_port, f"TC8-SD-011: endpoint port mismatch: got {opt.port}, expected {expected_port}"
-    assert opt.l4proto == L4Protocols.UDP, f"TC8-SD-011: endpoint protocol mismatch: got {opt.l4proto}, expected UDP"
 
 
 def assert_offer_has_tcp_endpoint_option(

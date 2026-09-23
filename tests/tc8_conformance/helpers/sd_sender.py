@@ -17,7 +17,6 @@ capture unicast SD responses and SOME/IP notifications.
 """
 
 import ipaddress
-import itertools
 import socket
 import struct
 import time
@@ -70,16 +69,18 @@ def open_sender_socket(local_ip: str) -> socket.socket:
 # ---------------------------------------------------------------------------
 
 
-# SD session counter — incremented per message to avoid DUT duplicate-detection.
+# SD session counter, incremented per message to avoid DUT duplicate-detection.
 # PRS_SOMEIPSD_00154 requires session_id to start at 0x0001 (0x0000 is reserved)
-# and to increment with each SD message.
+# and to increment with each SD message, wrapping from 0xFFFF back to 0x0001.
 # NOTE: Assumes serial test execution (Bazel "exclusive" tag). Not thread-safe.
-_session_counter = itertools.count(start=1)
+_last_session_id = 0
 
 
 def _next_session_id() -> int:
-    """Return the next SD session ID (wraps at 16-bit)."""
-    return next(_session_counter) & 0xFFFF or 1  # skip 0 (reserved)
+    """Return the next SD session ID, wrapping from 0xFFFF to 0x0001 (0x0000 is reserved)."""
+    global _last_session_id
+    _last_session_id = _last_session_id % 0xFFFF + 1
+    return _last_session_id
 
 
 def _build_sd_packet(entry: SOMEIPSDEntry, session_id: int = 0) -> bytes:
@@ -95,7 +96,9 @@ def _build_sd_packet(entry: SOMEIPSDEntry, session_id: int = 0) -> bytes:
     return SOMEIPHeader(
         service_id=SD_SERVICE,
         method_id=SD_METHOD,
-        client_id=0x0001,
+        # SD is control traffic, not tied to any application client; the
+        # SOME/IP-SD spec reserves client_id 0x0000 for this purpose.
+        client_id=0x0000,
         session_id=session_id,
         interface_version=SD_INTERFACE_VERSION,
         message_type=SOMEIPMessageType.NOTIFICATION,
@@ -147,13 +150,15 @@ def send_subscribe_eventgroup(
 ) -> None:
     """Send a SubscribeEventgroup (or StopSubscribe when ``ttl=0``).
 
-    Endpoint Configuration:
-    - Standard (Single Protocol): Use `subscriber_port` and `l4proto` to subscribe
-      to an eventgroup that contains only UDP or only TCP events.
-    - Mixed (Multi-Protocol): Some eventgroups are configured to contain both TCP
-      and UDP events. Strict SOME/IP implementations require BOTH endpoints to be
-      provided in the subscription request. Pass `tcp_port` and/or `udp_port` to
-      explicitly attach multiple IPv4 Endpoint Options to the SD entry.
+    Endpoint configuration:
+
+    Standard (single protocol): use `subscriber_port` and `l4proto` to subscribe
+    to an eventgroup that contains only UDP or only TCP events.
+
+    Mixed (multi protocol): some eventgroups are configured to contain both TCP
+    and UDP events. Strict SOME/IP implementations require both endpoints to be
+    provided in the subscription request. Pass `tcp_port` and/or `udp_port` to
+    explicitly attach multiple IPv4 Endpoint Options to the SD entry.
     """
     endpoint_opt = []
 
@@ -230,11 +235,11 @@ def send_subscribe_eventgroup_reserved_set(
        ``reserved_value << 20``.
 
     Offset derivation (all big-endian):
-    - SOME/IP header: 16 bytes (bytes 0-15)
-    - SD flags + 3 reserved: 4 bytes (bytes 16-19)
-    - Entries-array length: 4 bytes (bytes 20-23)
-    - Entry starts at byte 24; ``minver_or_counter`` is the last 4 bytes of the
-      16-byte entry, at entry offset 12 → absolute offset 36.
+    1. SOME/IP header: 16 bytes (bytes 0-15).
+    2. SD flags plus 3 reserved bytes: 4 bytes (bytes 16-19).
+    3. Entries array length: 4 bytes (bytes 20-23).
+    4. Entry starts at byte 24; ``minver_or_counter`` is the last 4 bytes of the
+       16-byte entry, at entry offset 12, giving absolute offset 36.
     """
     if session_id is None:
         session_id = _next_session_id()

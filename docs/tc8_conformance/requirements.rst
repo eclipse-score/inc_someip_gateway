@@ -123,12 +123,12 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    specifications at the wire protocol level, without requiring application
    processes.
 
-   **Scope boundary:** The TC8 conformance tests run ``someipd`` in
-   standalone mode (``--tc8-standalone`` flag). They validate the wire-level
-   SOME/IP behavior of ``someipd`` only. They do not exercise the full
-   middleware path from ``score::mw::com`` through ``gatewayd`` to
-   ``someipd``. End-to-end middleware integration is covered by the
-   integration test suite under ``tests/integration``.
+   **Scope boundary:** This document currently defines only the top-level
+   feature requirement and the initial set of TC8 component requirements
+   established for the test infrastructure split. The remaining component
+   requirements, covering method calls, field access, and the detailed
+   traceability matrix against the OA TC8 v3.0 Chapter 6 test catalog, are
+   added together with the test modules that implement and verify them.
 
 Component Requirements: Service Discovery
 ------------------------------------------

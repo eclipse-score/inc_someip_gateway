@@ -27,6 +27,12 @@
                     "event": "0x8001",
                     "is_field": "true",
                     "update-cycle": 500
+                },
+                {
+                    "event": "0x800B",
+                    "is_field": "false",
+                    "is_reliable": "false",
+                    "update-cycle": "500"
                 }
             ],
             "eventgroups": [
@@ -39,7 +45,7 @@
                 {
                     "eventgroup": "0x0006",
                     "events": [
-                        "0x8001"
+                        "0x800B"
                     ],
                     "multicast": {
                         "address": "239.0.0.1",

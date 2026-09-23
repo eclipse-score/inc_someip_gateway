@@ -19,16 +19,18 @@ config rendering on the QEMU guest.
 
 import logging
 import os
-import socket
-import struct
 import subprocess
-import time
 from typing import Generator
 
 import pytest
 
 from capture import stop_capture, tcpdump_capture
-from helpers.dut_lifecycle import _TargetProcess, launch_dut
+from helpers.dut_lifecycle import (
+    _TargetProcess,
+    cleanup_vsomeip_sockets,
+    launch_dut,
+    wait_for_sd_readiness,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -45,75 +47,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     for item in items:
         item.add_marker(pytest.mark.tc8)
         item.add_marker(pytest.mark.conformance)
-
-
-def _wait_for_sd_readiness(
-    tester_ip: str,
-    timeout_secs: float = 10.0,
-) -> bool:
-    """Block until the DUT sends at least one multicast OfferService, or the
-    timeout expires. Returns True on success, False on timeout.
-    """
-    from helpers.constants import SD_MULTICAST_ADDR, SD_PORT  # noqa: PLC0415
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    try:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    except AttributeError:
-        pass
-    sock.bind(("", SD_PORT))
-    group_bytes = socket.inet_aton(SD_MULTICAST_ADDR)
-    iface_bytes = socket.inet_aton(tester_ip)
-    mreq = struct.pack("4s4s", group_bytes, iface_bytes)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-
-    deadline = time.monotonic() + timeout_secs
-    try:
-        while time.monotonic() < deadline:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                break
-            sock.settimeout(min(remaining, 1.0))
-            try:
-                data, _ = sock.recvfrom(65535)
-            except socket.timeout:
-                continue
-            if len(data) < 20:
-                continue
-            service_id = int.from_bytes(data[0:2], "big")
-            if service_id != 0xFFFF:
-                continue
-            sd_offset = 16
-            if len(data) < sd_offset + 12:
-                continue
-            entries_len = int.from_bytes(data[sd_offset + 4 : sd_offset + 8], "big")
-            entry_start = sd_offset + 8
-            pos = entry_start
-            while pos + 16 <= entry_start + entries_len and pos + 16 <= len(data):
-                entry_type = data[pos]
-                if entry_type == 0x01:  # OfferService
-                    return True
-                pos += 16
-        return False
-    finally:
-        sock.close()
-
-
-def _cleanup_vsomeip_sockets_on_target(target_init: object) -> None:
-    """Remove stale vsomeip routing-manager sockets on the QEMU guest. Must be
-    called before each DUT restart, or the new vsomeip instance will fail to
-    become routing manager and send no SD messages.
-    """
-    for vsomeip_socket_glob in ("/tmp/vsomeip-*", "/var/run/vsomeip-*"):
-        exit_code, output = target_init.execute(f"rm -f {vsomeip_socket_glob}")
-        if exit_code != 0:
-            _logger.warning(
-                "vsomeip socket cleanup at %s returned %d: %s",
-                vsomeip_socket_glob,
-                exit_code,
-                output.decode(errors="replace"),
-            )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -264,17 +197,17 @@ def dut(
     """Launch the full DUT stack on the QEMU guest and yield a .poll() adapter.
 
     Delegates process launch to :func:`helpers.dut_lifecycle.launch_dut`.  The
-    fixture skips the test class if the DUT does not send an OfferService within 10 s.
+    fixture fails the test class if the DUT does not send an OfferService within 10 s.
     """
     config_name: str = getattr(request.module, "SOMEIP_CONFIG", "tc8_someipd_sd.json")
 
-    _cleanup_vsomeip_sockets_on_target(target_init)
+    cleanup_vsomeip_sockets(target_init=target_init)
 
     proc: _TargetProcess = launch_dut(config_name, target_init=target_init)  # type: ignore[assignment]
 
-    if not _wait_for_sd_readiness(host_ip):
+    if not wait_for_sd_readiness(host_ip):
         proc.terminate()
-        pytest.skip(
+        pytest.fail(
             "DUT did not reach SD main phase within 10 s (QEMU/ITF). "
             "Check TAP bridge, multicast route on guest, and vsomeip config."
         )
@@ -285,4 +218,4 @@ def dut(
         yield proc
     finally:
         proc.terminate()
-        _cleanup_vsomeip_sockets_on_target(target_init)
+        cleanup_vsomeip_sockets(target_init=target_init)

@@ -213,7 +213,7 @@ class TestSdSenderGoldenVectors:
         assert sock.sent is not None
         data, dest = sock.sent
         assert dest == _DEST
-        assert data.hex() == "ffff810000000024000100070101020040000000000000100000000012340001010000030000000000000000"
+        assert data.hex() == "ffff810000000024000000070101020040000000000000100000000012340001010000030000000000000000"
         # Parse the bytes back and check the actual SD entry fields, not just the hex.
         entries = sd_sender._parse_sd_entries(data)  # noqa: SLF001
         assert len(entries) == 1
@@ -242,7 +242,7 @@ class TestSdSenderGoldenVectors:
         assert sock.sent is not None
         data, _ = sock.sent
         assert (
-            data.hex() == "ffff81000000003000010008010102004000000000000010060000101234000101000003"
+            data.hex() == "ffff81000000003000000008010102004000000000000010060000101234000101000003"
             "000000100000000c00090400c0a801320011772e"
         )
         # Parse the bytes back and check the actual SD entry and option fields.
@@ -278,7 +278,7 @@ class TestSdSenderGoldenVectors:
         assert sock.sent is not None
         data, _ = sock.sent
         assert (
-            data.hex() == "ffff81000000003c00010009010102004000000000000010060000201234000101000003"
+            data.hex() == "ffff81000000003c00000009010102004000000000000010060000201234000101000003"
             "000000100000001800090400c0a801320011773000090400c0a801320006772f"
         )
         # Parse the bytes back and check both endpoint options were carried through.
@@ -315,7 +315,7 @@ class TestSdSenderGoldenVectors:
         # The 12 reserved bits next to the eventgroup counter are set to 0x0f instead of 0,
         # which the SD entry is not supposed to carry.
         assert (
-            data.hex() == "ffff8100000000300001000101010200400000000000001006000010123400010100000300"
+            data.hex() == "ffff8100000000300000000101010200400000000000001006000010123400010100000300"
             "f000100000000c00090400c0a801320011772e"
         )
 
@@ -335,11 +335,11 @@ class TestSdSenderWireFormatParsing:
     """
 
     _WIRE_SUBSCRIBE_SINGLE_HEX = (
-        "ffff81000000003000010008010102004000000000000010060000101234000101000003"
+        "ffff81000000003000000008010102004000000000000010060000101234000101000003"
         "000000100000000c00090400c0a801320011772e"
     )
     _WIRE_SUBSCRIBE_MIXED_HEX = (
-        "ffff81000000003c00010009010102004000000000000010060000201234000101000003"
+        "ffff81000000003c00000009010102004000000000000010060000201234000101000003"
         "000000100000001800090400c0a801320011773000090400c0a801320006772f"
     )
 
@@ -387,7 +387,7 @@ class TestSdMalformedPureBuilders:
     def test_build_raw_sd_packet_empty(self) -> None:
         # No entries and no options at all: the shortest possible SD packet.
         pkt = sd_malformed.build_raw_sd_packet(session_id=0x0042)
-        assert pkt.hex() == "ffff8100000000140001004201010200c00000000000000000000000"
+        assert pkt.hex() == "ffff8100000000140000004201010200c00000000000000000000000"
 
     def test_find_service_entry_bytes(self) -> None:
         entry = sd_malformed._find_service_entry_bytes(0x1234)  # noqa: SLF001
@@ -415,7 +415,7 @@ class TestSdMalformedPureBuilders:
             session_id=0x0043,
             entries_length_override=999,
         )
-        assert pkt.hex() == ("ffff8100000000240001004301010200c0000000000003e7000000001234ffffff000003ffffffff00000000")
+        assert pkt.hex() == ("ffff8100000000240000004301010200c0000000000003e7000000001234ffffff000003ffffffff00000000")
 
 
 # ---------------------------------------------------------------------------
@@ -439,7 +439,7 @@ class TestSdMalformedSendersGoldenVectors:
         assert sock.sent is not None
         data, _ = sock.sent
         assert data.hex() == (
-            "ffff8100000000240001fffe01010200c000000000000010000000001234ffffff000003ffffffff00000000"
+            "ffff8100000000240000fffe01010200c000000000000010000000001234ffffff000003ffffffff00000000"
         )
 
     def test_send_sd_empty_entries(self) -> None:
@@ -447,7 +447,7 @@ class TestSdMalformedSendersGoldenVectors:
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
         sd_malformed.send_sd_empty_entries(sock, _DEST)
-        assert sock.sent[0].hex() == "ffff810000000014000100c801010200c00000000000000000000000"
+        assert sock.sent[0].hex() == "ffff810000000014000000c801010200c00000000000000000000000"
 
     def test_send_sd_find_with_options(self) -> None:
         # The FindService entry references an option, but the spec says options
@@ -456,7 +456,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_find_with_options(sock, _DEST, 0x1234, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010000010001234ffffff000003ffffffff"
+            "ffff810000000030000000c801010200c000000000000010000010001234ffffff000003ffffffff"
             "0000000c00090400c0a801320011772e"
         )
 
@@ -466,7 +466,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_entries_length_wrong(sock, _DEST, 0x1234, 999)
         assert sock.sent[0].hex() == (
-            "ffff810000000024000100c801010200c0000000000003e7000000001234ffffff000003ffffffff00000000"
+            "ffff810000000024000000c801010200c0000000000003e7000000001234ffffff000003ffffffff00000000"
         )
 
     def test_send_sd_entry_refs_more_options(self) -> None:
@@ -475,7 +475,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_entry_refs_more_options(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060030001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060030001234000100000003"
             "000000100000000c00090400c0a801320011772e"
         )
 
@@ -485,7 +485,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_entry_unknown_option_type(sock, _DEST, 0x1234, 0x0001, 0x0010)
         assert sock.sent[0].hex() == (
-            "ffff81000000002c000100c801010200c00000000000001006001000123400010000000300000010000000080005770000000000"
+            "ffff81000000002c000000c801010200c00000000000001006001000123400010000000300000010000000080005770000000000"
         )
 
     def test_send_sd_entry_same_option_twice(self) -> None:
@@ -494,7 +494,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_entry_same_option_twice(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000040000100c801010200c00000000000002006001000123400010000000300"
+            "ffff810000000040000000c801010200c00000000000002006001000123400010000000300"
             "000010060010001234000100000003000000100000000c00090400c0a801320011772e"
         )
 
@@ -504,7 +504,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_option_length_too_long(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510, 0x00FF)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000c00ff0400c0a801320011772e"
         )
 
@@ -514,7 +514,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_option_length_too_short(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000c00010400c0a801320011772e"
         )
 
@@ -524,7 +524,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_option_length_unaligned(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000c000a0400c0a801320011772e"
         )
 
@@ -535,7 +535,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_options_array_length_too_long(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000006400090400c0a801320011772e"
         )
 
@@ -546,7 +546,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_options_array_length_too_short(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000200090400c0a801320011772e"
         )
 
@@ -556,7 +556,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_subscribe_no_endpoint(sock, _DEST, 0x1234, 0x0001, 0x0010)
         assert sock.sent[0].hex() == (
-            "ffff810000000024000100c801010200c0000000000000100600000012340001000000030000001000000000"
+            "ffff810000000024000000c801010200c0000000000000100600000012340001000000030000001000000000"
         )
 
     def test_send_sd_subscribe_zero_ip(self) -> None:
@@ -565,7 +565,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_subscribe_zero_ip(sock, _DEST, 0x1234, 0x0001, 0x0010, 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000c00090400000000000011772e"
         )
 
@@ -577,7 +577,7 @@ class TestSdMalformedSendersGoldenVectors:
             sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510, l4proto=0x00
         )
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000c00090400c0a801320000772e"
         )
 
@@ -587,7 +587,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_subscribe_reserved_option(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000c000920000000000000000000"
         )
 
@@ -597,7 +597,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_wrong_someip_length(sock, _DEST, 0x1234, 999)
         assert sock.sent[0].hex() == (
-            "ffff8100000003e7000100c801010200c000000000000010000000001234ffffff000003ffffffff00000000"
+            "ffff8100000003e7000000c801010200c000000000000010000000001234ffffff000003ffffffff00000000"
         )
 
     def test_send_sd_wrong_someip_message_id(self) -> None:
@@ -606,7 +606,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_wrong_someip_message_id(sock, _DEST, service_id_override=0x1234)
         assert sock.sent[0].hex() == (
-            "1234810000000024000100c801010200c000000000000010000000001234ffffff000003ffffffff00000000"
+            "1234810000000024000000c801010200c000000000000010000000001234ffffff000003ffffffff00000000"
         )
 
     def test_send_sd_truncated_entry(self) -> None:
@@ -614,7 +614,7 @@ class TestSdMalformedSendersGoldenVectors:
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
         sd_malformed.send_sd_truncated_entry(sock, _DEST, 0x1234)
-        assert sock.sent[0].hex() == ("ffff81000000001c000100c801010200c000000000000010000000001234ffff00000000")
+        assert sock.sent[0].hex() == ("ffff81000000001c000000c801010200c000000000000010000000001234ffff00000000")
 
     def test_send_sd_oversized_entries_length(self) -> None:
         # The entries length field claims 0xffff bytes, far more than the actual packet.
@@ -622,7 +622,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_oversized_entries_length(sock, _DEST, 0x1234)
         assert sock.sent[0].hex() == (
-            "ffff810000000024000100c801010200c00000000000ffff000000001234ffffff000003ffffffff00000000"
+            "ffff810000000024000000c801010200c00000000000ffff000000001234ffffff000003ffffffff00000000"
         )
 
     def test_send_sd_empty_option(self) -> None:
@@ -631,7 +631,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_empty_option(sock, _DEST, 0x1234, 0x0001, 0x0010)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
             "000000100000000c000104000000000000000000"
         )
 
@@ -641,6 +641,6 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_subscribe_nonexistent_service(sock, _DEST, 0x9999, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000100c801010200c000000000000010060010009999000100000003"
+            "ffff810000000030000000c801010200c000000000000010060010009999000100000003"
             "000000100000000c00090400c0a801320011772e"
         )
