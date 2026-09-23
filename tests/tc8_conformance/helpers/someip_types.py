@@ -171,6 +171,10 @@ class L4Protocols(enum.IntEnum):
 class SOMEIPSDOption:
     """Abstract base class for SD options (parity with ``someip.header``)."""
 
+    def build(self) -> bytes:
+        """Build the byte representation of this SD option."""
+        return bytes(_option_to_scapy(self))
+
 
 @dataclasses.dataclass(frozen=True)
 class IPv4EndpointOption(SOMEIPSDOption):
@@ -358,6 +362,14 @@ class SOMEIPSDEntry:
             options_1=(),
             options_2=(),
         )
+
+    def build(self) -> bytes:
+        """Build the byte representation of this SD entry.
+
+        Requires option indexes to be assigned first (see
+        :meth:`assign_option_index`).
+        """
+        return bytes(_entry_to_scapy(self))
 
     @property
     def service_minor_version(self) -> int:
