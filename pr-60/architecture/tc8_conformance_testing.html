@@ -515,14 +515,18 @@ declares the service ID, instance ID, version, and events to offer. The binary
 initialises a vsomeip application and calls <code class="docutils literal notranslate"><span class="pre">offer_service()</span></code> for each entry.
 For TC8, the config is <code class="docutils literal notranslate"><span class="pre">tc8_someipd_config.bin</span></code>, generated at build time from
 <code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_config.json</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is started alongside <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a companion process.  In the
-SD-only conformance tests <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> idles (its FlatBuffer config declares no
-service types), but the IPC handshake between <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> must
-complete before the test proceeds.  <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> becomes active only in ETS
-end-to-end tests where a mw::com application offers or consumes the TC8 service.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is started alongside <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a companion process.  It is
+launched with the same <code class="docutils literal notranslate"><span class="pre">tc8_someipd_config.bin</span></code> as <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, so it has the
+same service type information available.  In the SD-only conformance tests
+<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> idles, but the IPC handshake between <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>
+must complete before the test proceeds.  <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> becomes active only in
+ETS end-to-end tests where a mw::com application offers or consumes the TC8
+service.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code> launches <code class="docutils literal notranslate"><span class="pre">someipd</span></code> first (it becomes the vsomeip
-routing manager), waits for an OfferService multicast, then starts <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.
-Both processes are force-killed (<code class="docutils literal notranslate"><span class="pre">pkill</span> <span class="pre">-9</span></code>) during fixture teardown.</p>
+routing manager), then the ETS stub, then <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>, all immediately in
+that order; the fixture waits for an OfferService/SD readiness signal only
+after all three processes have started. Both processes are force-killed
+(<code class="docutils literal notranslate"><span class="pre">pkill</span> <span class="pre">-9</span></code>) during fixture teardown.</p>
 </section>
 <section id="port-isolation-and-parallel-execution">
 <h3>Port Isolation and Parallel Execution<a class="headerlink" href="#port-isolation-and-parallel-execution" title="Link to this heading">#</a></h3>
@@ -552,84 +556,6 @@ transport (<code class="docutils literal notranslate"><span class="pre">tc8_mess
 compatibility for local development runs without Bazel.</p>
 <p>For the per-target port matrix, see <code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/README.md</span></code>.</p>
 </section>
-<section id="skipped-test-categories">
-<h3>Skipped Test Categories<a class="headerlink" href="#skipped-test-categories" title="Link to this heading">#</a></h3>
-<p>The production stack has no mw::com ETS application to generate events, handle
-methods, or provide field values.  The following test modules and individual
-tests are permanently skipped until a mw::com ETS app is added to the repo.</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id1">
-<caption><span class="caption-number">Table 4 </span><span class="caption-text">Skipped TC8 Tests (2026-08-11)</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 30.0%" />
-<col style="width: 20.0%" />
-<col style="width: 50.0%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Module / Test</p></th>
-<th class="head"><p>Skip level</p></th>
-<th class="head"><p>Reason</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_event_notification.py</span></code></p></td>
-<td><p>All tests</p></td>
-<td><p>No event delivery without mw::com ETS app</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_field_conformance.py</span></code></p></td>
-<td><p>All tests</p></td>
-<td><p>No initial field values or getter/setter handling without mw::com ETS app</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_someip_message_format.py</span></code></p></td>
-<td><p>All tests</p></td>
-<td><p>No SOME/IP method handling (gatewayd to_num_of_methods=0) without mw::com ETS app</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p></td>
-<td><p>4 individual tests</p></td>
-<td><p>Require event notifications before SD lifecycle actions</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>The 4 individually skipped tests in <code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code> are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycle.test_tc8_sd_008_stop_subscribe_ceases_notifications</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TestSDTTLExpiry.test_tc8_sd_014_ttl_expiry_ceases_notifications</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced.test_ets_155_resubscribe_after_stop</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced.test_ets_095_subscribe_ttl_expires_no_events</span></code></p></li>
-</ul>
-</section>
-<section id="test-module-structure">
-<h3>Test Module Structure<a class="headerlink" href="#test-module-structure" title="Link to this heading">#</a></h3>
-<p>Each TC8 area has a test module (pytest) and one or more helper modules.
-The diagrams below show the dependencies grouped by TC8 domain.
-Blue boxes represent test modules and green boxes represent shared helper
-modules. Dashed arrows indicate internal helper-to-helper dependencies.</p>
-<section id="service-discovery-sd">
-<h4>Service Discovery (SD)<a class="headerlink" href="#service-discovery-sd" title="Link to this heading">#</a></h4>
-<p>The Service Discovery tests (TC8-SD) verify SOME/IP-SD offer announcements,
-find/subscribe responses, SD phase timing, byte-level SD field values,
-malformed packet robustness, and SD client lifecycle.</p>
-<p class="plantuml">
-<object data="../_images/plantuml-0bfd3fac0baf20fcba8053f296b910c760c20a87.svg" type="image/svg+xml" style="width:800px;height:231px;background:#FFFFFF;"></object></p>
-</section>
-<section id="message-format-events-fields-and-tcp-transport-msg-evt-fld-tcp">
-<h4>Message Format, Events, Fields, and TCP Transport (MSG / EVT / FLD / TCP)<a class="headerlink" href="#message-format-events-fields-and-tcp-transport-msg-evt-fld-tcp" title="Link to this heading">#</a></h4>
-<p>These tests cover message format (TC8-MSG), event notification (TC8-EVT),
-field access (TC8-FLD), and TCP transport binding. Domain-specific helpers
-handle packet construction, subscription workflows, field get/set operations,
-and TCP stream framing.</p>
-<p class="plantuml">
-<object data="../_images/plantuml-d0e379af324109cc7bacaa6a0bbd870f180e2b15.svg" type="image/svg+xml" style="width:800px;height:388px;background:#FFFFFF;"></object></p>
-</section>
-<section id="multi-service-and-multi-instance">
-<h4>Multi-service and Multi-instance<a class="headerlink" href="#multi-service-and-multi-instance" title="Link to this heading">#</a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">test_multi_service.py</span></code> verifies that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> correctly handles
-vsomeip configurations that declare multiple service entries, each advertising
-its own distinct UDP port in the SD endpoint option.</p>
-<p class="plantuml">
-<object data="../_images/plantuml-b1b26525b866ebee78521029b92e6c4e8aef421e.svg" type="image/svg+xml" style="width:766px;height:250px;background:#FFFFFF;"></object></p>
-</section>
-</section>
 </section>
 <section id="application-level-tests">
 <h2>Application Level Tests<a class="headerlink" href="#application-level-tests" title="Link to this heading">#</a></h2>
@@ -644,8 +570,8 @@ only, the same test code works with any SOME/IP binding.</p>
 </div>
 <section id="planned-topology">
 <h3>Planned Topology<a class="headerlink" href="#planned-topology" title="Link to this heading">#</a></h3>
-<p class="plantuml">
-<object data="../_images/plantuml-bada86085fb5cd72d071d1a436319f7855d783cc.svg" type="image/svg+xml" style="width:800px;height:159px;background:#FFFFFF;"></object></p>
+<p>The application level test topology matches the “Application-Level Tests”
+package shown in the diagram under <a class="reference internal" href="#test-scope-overview">Test Scope Overview</a>.</p>
 </section>
 <section id="stack-agnostic-design">
 <h3>Stack-Agnostic Design<a class="headerlink" href="#stack-agnostic-design" title="Link to this heading">#</a></h3>
@@ -659,7 +585,7 @@ requires changing the deployment config, not test code.</p>
 <p>The application level test design introduces four planned components.
 The <strong>Enhanced Testability Service</strong> (<strong>ETS</strong>) and <strong>Enhanced Testability
 Client</strong> (<strong>ETC</strong>) implement the TC8 service interface defined in OA TC8
-§5.1.4, while the <strong>Test Orchestrator</strong> and <strong>Process Orchestrator</strong> manage
+§6.1.4, while the <strong>Test Orchestrator</strong> and <strong>Process Orchestrator</strong> manage
 test and process lifecycle.</p>
 <p class="plantuml">
 <object data="../_images/plantuml-0f413ae2d1d4d9e94424fb4931db302fefa70737.svg" type="image/svg+xml" style="width:800px;height:270px;background:#FFFFFF;"></object></p>
@@ -723,13 +649,6 @@ guest and <code class="docutils literal notranslate"><span class="pre">TC8_TESTE
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#protocol-conformance">Protocol Conformance</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dut-binary">DUT Binary</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#port-isolation-and-parallel-execution">Port Isolation and Parallel Execution</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skipped-test-categories">Skipped Test Categories</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-module-structure">Test Module Structure</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#service-discovery-sd">Service Discovery (SD)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#message-format-events-fields-and-tcp-transport-msg-evt-fld-tcp">Message Format, Events, Fields, and TCP Transport (MSG / EVT / FLD / TCP)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-service-and-multi-instance">Multi-service and Multi-instance</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-level-tests">Application Level Tests</a><ul class="nav section-nav flex-column">

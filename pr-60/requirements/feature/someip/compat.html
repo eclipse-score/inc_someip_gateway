@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Open SOME/IP Specification Requirements &#8212; SOME/IP Gateway  documentation</title>
+    <title>SOME/IP Migration and Compatibility (Section-Level) &#8212; SOME/IP Gateway  documentation</title>
   
   
   
@@ -62,7 +62,7 @@
     <script src="../../../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
     <script src="../../../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
     <script src="../../../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/feature/someip/protocol';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'requirements/feature/someip/compat';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/inc_someip_gateway/versions.json';
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="SOME/IP Migration and Compatibility (Section-Level)" href="compat.html" />
-    <link rel="prev" title="SOME/IP Specification Requirements" href="index.html" />
+    <link rel="next" title="SOME/IP-TP Segmentation (Section-Level)" href="tp.html" />
+    <link rel="prev" title="Open SOME/IP Specification Requirements" href="protocol.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -409,8 +409,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../stakeholder.html">Stakeholder Requirements</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">SOME/IP Specification Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Open SOME/IP Specification Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="compat.html">SOME/IP Migration and Compatibility (Section-Level)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html">Open SOME/IP Specification Requirements</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">SOME/IP Migration and Compatibility (Section-Level)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tp.html">SOME/IP-TP Segmentation (Section-Level)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rpc/index.html">SOME/IP RPC Section-Level Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sd/index.html">SOME/IP-SD Section-Level Requirements</a></li>
@@ -468,7 +468,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOME/IP Specification Requirements</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Open SOME/IP Specification Requirements</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SOME/IP Migration and Compatibility (Section-Level)</span></li>
   </ul>
 </nav>
 </div>
@@ -485,23 +485,18 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="open-some-ip-specification-requirements">
-<h1>Open SOME/IP Specification Requirements<a class="headerlink" href="#open-some-ip-specification-requirements" title="Link to this heading">#</a></h1>
-<p>These are feature-level requirements taken from the Open SOME/IP
-Specification (<a class="reference external" href="https://github.com/some-ip-com/open-someip-spec">open-someip-spec</a>, license
-<code class="docutils literal notranslate"><span class="pre">Community-Spec-1.0</span></code>). Each requirement below summarizes the normative
-scope of one specification chapter and names the chapter or section it
-comes from. It does not copy the specification text word for word.</p>
-<p>These requirements are the main source of truth, at the requirements
-level, for the SOME/IP wire protocol. Only the <code class="docutils literal notranslate"><span class="pre">someip-rpc</span></code> and
-<code class="docutils literal notranslate"><span class="pre">someip-sd</span></code> chapters have component-level (<code class="docutils literal notranslate"><span class="pre">someipd</span></code>) requirements
-and TC8 test coverage today. The other chapters are imported for
-completeness and have no <code class="docutils literal notranslate"><span class="pre">comp_req</span></code> or TC8 links yet.</p>
-<div class="need_container docutils container" id="SNCB-82d7df21">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc">
+  <section id="some-ip-migration-and-compatibility-section-level">
+<h1>SOME/IP Migration and Compatibility (Section-Level)<a class="headerlink" href="#some-ip-migration-and-compatibility-section-level" title="Link to this heading">#</a></h1>
+<p>These are Tier-2, section-level requirements for the <code class="docutils literal notranslate"><span class="pre">someip-compat</span></code>
+chapter of the Open SOME/IP Specification. Each requirement below refines
+<a class="reference internal" href="protocol.html#feat_req__someip__compat" title="feat_req__someip__compat"><em class="xref need">SOME/IP Migration and Compa... (feat_req__someip__compat)</em></a> and summarizes the normative scope of one
+specification section. It does not copy the specification text word for
+word.</p>
+<div class="need_container docutils container" id="SNCB-b2deefb7">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__compat_forward">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP RPC Protocol</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Forward Compatibility Handling</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
@@ -516,33 +511,34 @@ completeness and have no <code class="docutils literal notranslate"><span class=
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">someip</span><span class="needs_spacer">, </span><span class="needs_data">rpc</span><span class="needs_spacer">, </span><span class="needs_data">wire_protocol</span></span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">someip_compat</span></span></span></div>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__someip__rpc">stkh_req__someip_gw__interoperability</a></span></span></div>
-<div class="line">derives: <span class="derived_from"><span><a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__rpc_error_handling" title="feat_req__someip__rpc">comp_req__someipd__rpc_error_handling</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__rpc_events_fields" title="feat_req__someip__rpc">comp_req__someipd__rpc_events_fields</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__rpc_header" title="feat_req__someip__rpc">comp_req__someipd__rpc_header</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__rpc_request_response" title="feat_req__someip__rpc">comp_req__someipd__rpc_request_response</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__rpc_transport" title="feat_req__someip__rpc">comp_req__someipd__rpc_transport</a></span></span></div>
-<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../../architecture/features.html#feat__someip_gateway" title="feat_req__someip__rpc">feat__someip_gateway</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__someip__compat_forward">stkh_req__someip_gw__interoperability</a></span></span></div>
+<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../../architecture/features.html#feat__someip_gateway" title="feat_req__someip__compat_forward">feat__someip_gateway</a></span></span></div>
 </span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP Gateway shall implement the SOME/IP RPC wire protocol as
-defined by the Open SOME/IP Specification. This covers the 16-byte
-message header (Message ID, Length, Request ID, Protocol/Interface
-Version, Message Type, Return Code). It also covers parameter
-serialization for basic types, structs, strings, arrays, enums,
-bitfields, unions, and optionals; the UDP and TCP transport bindings;
-and the request/response, fire-and-forget, event, and field
-communication patterns, including error handling through return codes.</p>
-<p>Cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-rpc.rst</span></code> (SOME/IP RPC Protocol
-Specification).</p>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP Gateway shall tolerate forward-compatible variation in
+received SOME/IP messages. It shall not treat a message as malformed
+only because it is longer than expected, omits an optional parameter,
+or has an unknown message type. This lets the gateway keep working
+with peers that use a newer, backward-compatible version of a
+service.</p>
+<p>Refines <a class="reference internal" href="protocol.html#feat_req__someip__compat" title="feat_req__someip__compat"><em class="xref need">SOME/IP Migration and Compa... (feat_req__someip__compat)</em></a>.</p>
+<p>Cf. Open SOME/IP Specification, someip-compat.rst, Supporting forward
+compatibility; covers spec requirement IDs: feat_req_someipcompat_1197,
+feat_req_someipcompat_1216, feat_req_someipcompat_1198,
+feat_req_someipcompat_1199, feat_req_someipcompat_1200,
+feat_req_someipcompat_1201, feat_req_someipcompat_1202.</p>
 </td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_req__someip__rpc" title="feat_req__someip__rpc">feat_req__someip__rpc</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_req__someip__compat_forward" title="feat_req__someip__compat_forward">feat_req__someip__compat_forward</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
@@ -555,11 +551,11 @@ Specification).</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-cf9d8934">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd">
+<div class="need_container docutils container" id="SNCB-c4be27e7">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__compat_multi_version">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Service Discovery Protocol</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Multiple Major Version Support</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
@@ -574,205 +570,34 @@ Specification).</p>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">someip</span><span class="needs_spacer">, </span><span class="needs_data">service_discovery</span><span class="needs_spacer">, </span><span class="needs_data">wire_protocol</span></span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">someip_compat</span></span></span></div>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__someip__sd">stkh_req__someip_gw__interoperability</a></span></span></div>
-<div class="line">derives: <span class="derived_from"><span><a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__sd_message_format" title="feat_req__someip__sd">comp_req__someipd__sd_message_format</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__sd_offer_discovery" title="feat_req__someip__sd">comp_req__someipd__sd_offer_discovery</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__sd_robustness" title="feat_req__someip__sd">comp_req__someipd__sd_robustness</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__sd_subscription" title="feat_req__someip__sd">comp_req__someipd__sd_subscription</a>, <a class="reference internal" href="../../component/someipd/protocol.html#comp_req__someipd__sd_timing" title="feat_req__someip__sd">comp_req__someipd__sd_timing</a></span></span></div>
-<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../../architecture/features.html#feat__someip_gateway" title="feat_req__someip__sd">feat__someip_gateway</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__someip__compat_multi_version">stkh_req__someip_gw__interoperability</a></span></span></div>
+<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../../architecture/features.html#feat__someip_gateway" title="feat_req__someip__compat_multi_version">feat__someip_gateway</a></span></span></div>
 </span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP Gateway shall implement the SOME/IP Service Discovery
-(SOME/IP-SD) protocol as defined by the Open SOME/IP Specification.
-This covers the SD message format: the SD header, the Entry format,
-and the Options format (including IPv4/IPv6 endpoint, multicast,
-SD-endpoint, configuration, load-balancing, and MAC-groupcast
-options). It also covers the Find, Offer, StopOffer, Subscribe,
-StopSubscribe, Ack, and Nack entry types, and the startup, cyclic
-offer, response, and shutdown timing behavior, along with the state
-machines behind it.</p>
-<p>Cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-sd.rst</span></code> (SOME/IP Service
-Discovery).</p>
+<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP Gateway shall support running multiple major protocol
+versions of the same service at the same time. Each version shall use
+its own communication endpoint. This lets clients built against
+different major versions of a service definition be served at the
+same time, without the versions interfering with each other.</p>
+<p>Refines <a class="reference internal" href="protocol.html#feat_req__someip__compat" title="feat_req__someip__compat"><em class="xref need">SOME/IP Migration and Compa... (feat_req__someip__compat)</em></a>.</p>
+<p>Cf. Open SOME/IP Specification, someip-compat.rst, Supporting multiple
+versions of the same service; covers spec requirement IDs:
+feat_req_someipcompat_714, feat_req_someipcompat_799,
+feat_req_someipcompat_800, feat_req_someipcompat_802,
+feat_req_someipcompat_804, feat_req_someipcompat_803,
+feat_req_someipcompat_801.</p>
 </td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_req__someip__sd" title="feat_req__someip__sd">feat_req__someip__sd</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Feature Requirement</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-d796af04">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__tp">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP-TP Segmentation</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">someip</span><span class="needs_spacer">, </span><span class="needs_data">tp</span><span class="needs_spacer">, </span><span class="needs_data">segmentation</span><span class="needs_spacer">, </span><span class="needs_data">wire_protocol</span></span></span></div>
-<div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
-<div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__someip__tp">stkh_req__someip_gw__interoperability</a></span></span></div>
-<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../../architecture/features.html#feat__someip_gateway" title="feat_req__someip__tp">feat__someip_gateway</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP Gateway shall implement the SOME/IP Transport Protocol
-(SOME/IP-TP) as defined by the Open SOME/IP Specification, for SOME/IP
-messages that are too large for the UDP payload limit. This covers
-sender-side segmentation (segment ordering, sizing, and
-non-duplication), and receiver-side reassembly, buffering, and error
-handling for segments that arrive out of order or incomplete.</p>
-<p>Cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-tp.rst</span></code> (Transporting large
-SOME/IP messages over UDP).</p>
-</td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_req__someip__tp" title="feat_req__someip__tp">feat_req__someip__tp</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Feature Requirement</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-8780aedc">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__compat">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Migration and Compatibility</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">someip</span><span class="needs_spacer">, </span><span class="needs_data">compatibility</span><span class="needs_spacer">, </span><span class="needs_data">versioning</span><span class="needs_spacer">, </span><span class="needs_data">wire_protocol</span></span></span></div>
-<div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
-<div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__someip__compat">stkh_req__someip_gw__interoperability</a></span></span></div>
-<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../../architecture/features.html#feat__someip_gateway" title="feat_req__someip__compat">feat__someip_gateway</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The SOME/IP Gateway shall support forward-compatible handling of
-SOME/IP messages, as defined by the Open SOME/IP Specification. This
-includes tolerating messages that are longer than expected, missing
-optional parameters, and unknown message types. The Gateway shall also
-support running multiple major protocol versions of the same service
-at the same time, using a separate communication endpoint for each
-version.</p>
-<p>Cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-compat.rst</span></code> (Migration and
-Compatibility).</p>
-</td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_req__someip__compat" title="feat_req__someip__compat">feat_req__someip__compat</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Feature Requirement</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="need_container docutils container" id="SNCB-e0227060">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__ids">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOME/IP Reserved Identifiers</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">someip</span><span class="needs_spacer">, </span><span class="needs_data">ids</span><span class="needs_spacer">, </span><span class="needs_data">wire_protocol</span></span></span></div>
-<div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
-<div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
-<div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__someip__ids">stkh_req__someip_gw__interoperability</a></span></span></div>
-<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../../architecture/features.html#feat__someip_gateway" title="feat_req__someip__ids">feat__someip_gateway</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>The <code class="docutils literal notranslate"><span class="pre">someip-ids</span></code> chapter of the Open SOME/IP Specification is
-informative reference content, not a set of normative requirements.
-Every block in that chapter is a reserved-identifier table tagged
-<code class="docutils literal notranslate"><span class="pre">Information</span></code>, and none of them uses normative wording. So this node
-does not derive from a specification requirement. Instead, it records
-a project-derived design constraint: the SOME/IP Gateway shall not
-assign the reserved Service ID, Instance ID, Method ID, Event ID, or
-Eventgroup ID values from that chapter (including <code class="docutils literal notranslate"><span class="pre">0x0000</span></code>,
-<code class="docutils literal notranslate"><span class="pre">0xFFFF</span></code>, and the Enhanced Testability service ID <code class="docutils literal notranslate"><span class="pre">0x0101</span></code>) to
-application-defined SOME/IP identifiers.</p>
-<p>Cf. Open SOME/IP Specification, <code class="docutils literal notranslate"><span class="pre">someip-ids.rst</span></code> (Reserved and
-Special Identifiers for SOME/IP and SOME/IP-SD): eight informative
-reserved-identifier tables, zero normative requirement blocks.</p>
-</td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_req__someip__ids" title="feat_req__someip__ids">feat_req__someip__ids</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_req__someip__compat_multi_version" title="feat_req__someip__compat_multi_version">feat_req__someip__compat_multi_version</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
@@ -798,20 +623,20 @@ reserved-identifier tables, zero normative requirement blocks.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="protocol.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">SOME/IP Specification Requirements</p>
+        <p class="prev-next-title">Open SOME/IP Specification Requirements</p>
       </div>
     </a>
     <a class="right-next"
-       href="compat.html"
+       href="tp.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">SOME/IP Migration and Compatibility (Section-Level)</p>
+        <p class="prev-next-title">SOME/IP-TP Segmentation (Section-Level)</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -830,7 +655,7 @@ reserved-identifier tables, zero normative requirement blocks.</p>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/feature/someip/protocol.rst">
+    <a href="https://github.com/eclipse-score/inc_someip_gateway/edit/main/docs/requirements/feature/someip/compat.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
