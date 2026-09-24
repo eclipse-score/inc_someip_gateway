@@ -23,15 +23,10 @@
 #include "score/gateway_ipc_binding/error.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/client_connector.hpp"
-#include "score/socom/client_connector_mock.hpp"
-#include "score/socom/error.hpp"
 #include "score/socom/runtime.hpp"
-#include "score/socom/runtime_mock.hpp"
 #include "score/socom/server_connector.hpp"
-#include "score/socom/server_connector_mock.hpp"
 #include "test_constants.hpp"
 #include "test_fixtures.hpp"
 #include "util.hpp"
@@ -139,7 +134,8 @@ class Gateway_ipc_binding_payload_lifetime_regression_test
     socom::Runtime::Uptr runtime_client2 = score::socom::create_runtime();
     std::unique_ptr<Gateway_ipc_binding_client> client2;
 
-    Gateway_ipc_binding_payload_lifetime_regression_test() {
+    void SetUp() override {
+        Gateway_ipc_binding_unconnected_integration_test::SetUp();
         server.reset();
         client.reset();
 
