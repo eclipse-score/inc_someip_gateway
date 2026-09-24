@@ -197,19 +197,23 @@ Event Notification
      - TC8-EVT-007
      - ``fld_getter_setter``
      - ``test_event_notification::TestEventNotification::test_rpc_16_field_notifies_only_on_change``
-   * - Section 6.1.5.7, SOMEIPSRV_RPC_15
+   * - RETIRED IN v3.0 (was Section 6.1.5.7, SOMEIPSRV_RPC_15)
      - TC8-EVT-008
      - ``evt_subscription``
      - ``test_event_notification::TestEventNotificationFormat::test_rpc_15_cyclic_notification_rate``
 
 .. note::
 
-   **SOMEIPSRV_RPC_16 retired:** this test case does not exist as a
-   standalone item in OA TC8 ECU Test Specification v3.0 (Final), May 2020,
-   Chapter 6, and no renamed or renumbered successor was found. Its topic
-   (notification-sending strategy) still appears in the v3.0 coverage-mapping
-   index under clause 6.3.4.1, but there is no live v3.0 test-case body to
-   cite. TC8-EVT-007 and its passing test are kept; only the OA citation is
+   **SOMEIPSRV_RPC_16 and SOMEIPSRV_RPC_15 retired:** both test cases are
+   listed by name in the OA TC8 ECU Test Specification v3.0 (Final), May
+   2020, page 17-20 change-log as "Deprecated / Deleted Test Case", and
+   neither has a standalone body entry anywhere in Chapter 6 (confirmed by
+   direct extraction of the source PDF: the RPC_14 body entry is followed
+   immediately by RPC_17, with no RPC_15 or RPC_16 in between). No renamed
+   or renumbered successor was found. Their topic (notification-sending
+   strategy) still appears in the v3.0 coverage-mapping index under clause
+   6.3.4.1, but there is no live v3.0 test-case body to cite. TC8-EVT-007,
+   TC8-EVT-008 and their passing tests are kept; only the OA citations are
    retired.
 
 Field Conformance
@@ -480,7 +484,7 @@ SD Format and Options Compliance
      - TC8-SDF-034
      - ``sd_options_fields``
      - ``test_sd_format_compliance::TestSdOptionsMulticast::test_options_14_multicast_port_matches_config``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_12
+   * - RETIRED IN v3.0 (was Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_12)
      - TC8-SDF-035
      - ``sd_stop_sub_fmt``
      - ``test_sd_format_compliance::TestSdStopSubscribeFormat::test_sd_message_12_stop_subscribe_entry_format``
@@ -507,11 +511,12 @@ SD Format and Options Compliance
 
 .. note::
 
-   **SOMEIPSRV_FORMAT_22 retired:** this test case does not exist in OA TC8
-   ECU Test Specification v3.0 (Final), May 2020, Chapter 6, clause 6.1.5.1
-   (the FORMAT_01-28 table has no successor entry for it and no other item
-   covers the same subject). TC8-SDF-040 and its passing test are kept; only
-   the OA citation is retired.
+   **SOMEIPSRV_FORMAT_22 and SOMEIPSRV_SD_MESSAGE_12 retired:** both are
+   listed by name in the OA TC8 ECU Test Specification v3.0 (Final), May
+   2020, page 17-20 change-log as "Deprecated / Deleted Test Case", and
+   neither has a standalone body entry anywhere in Chapter 6 (confirmed by
+   direct extraction of the source PDF). TC8-SDF-040 and TC8-SDF-035 and
+   their passing tests are kept; only the OA citations are retired.
 
 .. note::
 
@@ -1051,16 +1056,24 @@ For the full test case catalog, see the OA TC8 ECU Test Specification v3.0
 
 .. note::
 
-   The 230-test-case breakdown below was carried over unchanged from this
-   section's prior Chapter 5 (v3.0, October 2019) analysis and has not been
-   re-derived against the 235 spec IDs present in Chapter 6 (v3.0, Final,
-   May 2020). Treat the per-group counts in this section as provisional
-   pending a follow-up re-audit; they are not in scope of this citation
-   re-pointing pass.
+   The 230-test-case total and per-group breakdown below have been verified
+   directly against the OA TC8 ECU Test Specification v3.0 (Final), May
+   2020, source PDF (Chapter 6 body, pages 413-664, plus the page 17-20
+   change-log). The apparent "235" ID-slot count referenced in an earlier
+   version of this note came from counting numbering-range endpoints (e.g.
+   ``SOMEIPSRV_RPC_01`` to ``RPC_20``) without subtracting IDs the spec
+   itself marks "Deprecated / Deleted Test Case" and never gave a body
+   entry (``SOMEIPSRV_FORMAT_22``, ``ONWIRE_08``, ``ONWIRE_09``, ``RPC_12``,
+   ``RPC_15``, ``RPC_16``, ``SD_BEHAVIOR_05``, ``SD_BEHAVIOR_06``,
+   ``SD_MESSAGE_10``, ``SD_MESSAGE_12``, ``SETUP_01``, ``SETUP_02`` on the
+   SOMEIPSRV side, plus 7 additional deleted ``SOMEIP_ETS_*`` IDs). Once
+   those are excluded, 93 SOMEIPSRV + 137 ETS = 230 is confirmed correct,
+   and the five-group breakdown below (93 / 74 / 14 / 44 / 5 = 230) matches
+   the actual Chapter 6 test-case bodies with no further correction needed.
 
 The specification organizes Chapter 6 into two top-level groups:
 
-- **SOME/IP Server Tests** (``SOMEIPSRV_*``, 93 items, Section 6.1.5)  - 
+- **SOME/IP Server Tests** (``SOMEIPSRV_*``, 93 items, Section 6.1.5)  -
   wire-level protocol checks. Only ``someipd`` and a raw socket are needed.
   No application code is required.
 - **Enhanced Testability Service Tests** (``SOMEIP_ETS_*``, 137 items,
@@ -1209,7 +1222,7 @@ It must expose:
 - *Echo methods* - receive a value and return it unchanged
   (``echoUINT8``, ``echoUINT8Array``, ``echoUTF8DYNAMIC``, ``echoUNION``,
   and ~40 others). These let the tester verify that the full pipeline
-  (mw::com Skeleton → gatewayd → someipd → network) serializes every
+  (mw::com Skeleton to gatewayd to someipd to network) serializes every
   SOME/IP data type correctly.
 - *Event triggers* - fire an event on demand
   (``triggerEventUINT8``, ``triggerEventUINT8Reliable``, etc.)
@@ -1268,19 +1281,19 @@ that if the limitation is fixed in a future stack version, the unexpected pass
        responded to with a NAck (SubscribeEventgroupAck with TTL = 0).
      - Sends a positive SubscribeEventgroupAck (TTL > 0) regardless of
        reserved bits.
-     - **XFAIL**  - 
+     - **XFAIL**  -
        ``test_service_discovery::TestSDSubscribeNAck::test_sd_message_19_reserved_field_set``
    * - Section 6.1.5.5, SOMEIPSRV_BASIC_03
      - When the DUT receives a message with method_id bit 15 = 1 (event
        notification ID), it MUST NOT send a RESPONSE (message_type 0x80).
      - Sends a RESPONSE (message_type 0x80) for event-ID messages even
        though the spec prohibits it.
-     - **XFAIL**  - 
+     - **XFAIL**  -
        ``test_someip_message_format::TestSomeipBasicIdentifiers::test_basic_03_event_method_id_no_response``
    * - Section 6.1.5.7, SOMEIPSRV_RPC_08
      - The DUT MUST NOT send a reply to a REQUEST message that already
        carries a non-zero return code.
      - Processes the REQUEST normally and sends a RESPONSE, ignoring the
        return code field.
-     - **XFAIL**  - 
+     - **XFAIL**  -
        ``test_someip_message_format::TestSomeipFireAndForgetAndErrors::test_rpc_08_request_with_error_return_code_no_reply``
