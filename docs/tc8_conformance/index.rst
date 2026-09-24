@@ -51,8 +51,13 @@ diagrams, and module structure, see
    :maxdepth: 2
 
    requirements.rst
+   test_specification.rst
+   traceability.rst
 
 .. seealso::
 
    :doc:`/architecture/tc8_conformance_testing` for test topology, module
    dependency diagrams, and planned components.
+
+   :doc:`traceability`: full OA TC8 v3.0 Chapter 6 scope analysis, gap
+   analysis, coverage breakdown, and known stack limitations.
