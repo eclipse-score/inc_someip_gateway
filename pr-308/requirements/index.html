@@ -535,11 +535,12 @@ S-CORE requirements engineering process:</p>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></td>
 <td><p>ASIL-B</p></td>
-<td><p>Gateway daemon: bridges IPC and SOME/IP, E2E protection, ACL enforcement</p></td>
+<td><p>Bridges IPC and SOME/IP, E2E protection, ACL enforcement</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code></p></td>
 <td><p>QM</p></td>
-<td><p>SOME/IP stack daemon: wraps vsomeip, handles network I/O and SOME/IP-SD</p></td>
+<td><p>Abstracts and wraps any SOME/IP stack implementation, managing its configuration,
+initialization and coordination with the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">network_service</span></code></p></td>
 <td><p>ASIL-B</p></td>
