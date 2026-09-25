@@ -62,10 +62,11 @@ The following component identifiers are used in requirement IDs and file names:
      - Description
    * - ``gatewayd``
      - ASIL-B
-     - Gateway daemon — bridges IPC and SOME/IP, E2E protection, ACL enforcement
+     - Bridges IPC and SOME/IP, E2E protection, ACL enforcement
    * - ``someipd``
      - QM
-     - SOME/IP stack daemon — wraps vsomeip, handles network I/O and SOME/IP-SD
+     - Abstracts and wraps any SOME/IP stack implementation, managing its configuration,
+       initialization and coordination with the ``gatewayd``
    * - ``network_service``
      - ASIL-B
      - IPC interface between ``gatewayd`` and ``someipd`` (SomeipMessageTransfer)
@@ -86,11 +87,11 @@ IDs follow the pattern ``<type>__<scope>__<title_snake_case>``:
      - ``stkh_req__some_ip_gateway__<title>``
      - ``stkh_req__some_ip_gateway__transparent_bridging``
    * - ``feat_req``
-     - ``feat_req__some_ip_gateway__<title>``
-     - ``feat_req__some_ip_gateway__e2e_protection``
+     - ``feat_req__<scope>__<title>``
+     - ``feat_req__someip__rpc`` (in ``requirements/feature/someip/protocol.rst``)
    * - ``comp_req``
      - ``comp_req__<component>__<title>``
-     - ``comp_req__gatewayd__msg_routing``
+     - ``comp_req__someipd__rpc_header`` (in ``requirements/component/someipd/protocol.rst``)
    * - ``aou_req``
      - ``aou_req__<component>__<title>``
      - ``aou_req__gatewayd__valid_config``
@@ -101,7 +102,7 @@ Document Heading Standards
 All RST requirement files follow this structure:
 
 1. Copyright header (RST comment block)
-2. Document title — ``=`` overline/underline
+2. Document title: ``=`` overline/underline
 3. Descriptive introduction paragraph
 4. Requirement directives grouped by topic
 5. Sections within a file use ``-`` underline, subsections use ``^``
@@ -111,13 +112,32 @@ Mandatory Attributes
 
 Every requirement directive must include these attributes:
 
-- ``:id:`` — unique identifier per the scheme above
-- ``:status:`` — ``valid`` or ``draft``
-- ``:safety:`` — ``QM`` or ``ASIL_B``
-- ``:security:`` — ``YES`` or ``NO``
-- ``:reqtype:`` — ``Functional``, ``Interface``, ``Process``, or ``Non-Functional``
-- ``:satisfies:`` — parent requirement ID (mandatory for feature and component levels)
-- ``:rationale:`` — justification text (mandatory for stakeholder level only)
+- ``:id:``: unique identifier per the scheme above
+- ``:status:``, either ``valid`` or ``invalid`` (``draft`` is **not** an
+  accepted value for requirement nodes per the metamodel)
+- ``:safety:``: ``QM`` or ``ASIL_B``
+- ``:security:``: ``YES`` or ``NO``
+- ``:reqtype:``: ``Functional``, ``Interface``, ``Process``, or ``Non-Functional``
+- ``:satisfied_by:``, the corresponding architecture element ID
+  (``feat`` for ``feat_req``, ``comp`` for ``comp_req``); this is the
+  **mandatory** parent/downstream link, not ``:satisfies:``
+- ``:derived_from:``, parent requirement ID (``stkh_req`` for ``feat_req``,
+  ``feat_req`` for ``comp_req``); this is an *optional* upward
+  traceability link, not mandatory
+- ``:rationale:``: justification text (mandatory for stakeholder level only)
+
+.. note::
+
+   The metamodel's ``id_contains_feature`` validator (enforced as a build
+   error) requires that for every ``feat_req``/``comp_req`` ID, the middle
+   ``<scope>`` segment appear as a substring of the directory path of the
+   RST file the requirement lives in. This is why new ``feat_req``/
+   ``comp_req`` nodes for a given scope (e.g. ``someip``, ``someipd``) are
+   placed in their own subdirectory (e.g.
+   ``requirements/feature/someip/protocol.rst``,
+   ``requirements/component/someipd/protocol.rst``) rather than directly
+   under the flat ``requirements/feature/`` or ``requirements/component/``
+   directory.
 
 Cross-References
 ^^^^^^^^^^^^^^^^
