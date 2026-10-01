@@ -21,10 +21,10 @@ derives from the corresponding feature requirement in
 :doc:`/requirements/feature/someip/protocol` and is satisfied by
 :need:`comp__someipd`.
 
-Only the ``someip-rpc`` and ``someip-sd`` chapters are covered here: they are
-the only chapters with a concrete ``someipd`` implementation and TC8
-conformance test coverage today. The ``someip-tp``, ``someip-compat``, and
-``someip-ids`` feature requirements have no component-level requirements yet.
+This file covers only the ``someip-rpc`` and ``someip-sd`` chapters, since
+those are the only ones with a ``someipd`` implementation and TC8 test
+coverage today. The ``someip-tp``, ``someip-compat``, and ``someip-ids``
+chapters have no component requirements yet.
 
 Component Requirements: SOME/IP RPC
 -----------------------------------

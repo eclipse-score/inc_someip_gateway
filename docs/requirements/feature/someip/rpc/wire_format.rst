@@ -12,15 +12,13 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP RPC Wire Format (Section-Level)
-=========================================
+SOME/IP RPC Wire Format
+=========================
 
-These are Tier-2, section-level requirements for the ``someip-rpc``
-chapter of the Open SOME/IP Specification, covering identifier
-definitions through the on-wire RPC header. Each requirement below
-refines :need:`feat_req__someip__rpc` and summarizes the normative scope
-of one specification section. It does not copy the specification text
-word for word.
+Each requirement below covers one section of the ``someip-rpc`` chapter,
+from identifier definitions through the on-wire RPC header. Each one
+refines :need:`feat_req__someip__rpc` and summarizes that section's
+normative scope. It does not copy the specification text word for word.
 
 .. feat_req:: SOME/IP Identifier Definitions
    :id: feat_req__someip__rpc_def_ids

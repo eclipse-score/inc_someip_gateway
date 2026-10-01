@@ -22,11 +22,11 @@ Specification (`open-someip-spec
 scope of one specification chapter and names the chapter or section it
 comes from. It does not copy the specification text word for word.
 
-These requirements are the main source of truth, at the requirements
-level, for the SOME/IP wire protocol. Only the ``someip-rpc`` and
-``someip-sd`` chapters have component-level (``someipd``) requirements
+These requirements are the primary source of truth for the SOME/IP wire
+protocol at the requirements level. Only the ``someip-rpc`` and
+``someip-sd`` chapters have matching ``someipd`` component requirements
 and TC8 test coverage today. The other chapters are imported for
-completeness and have no ``comp_req`` or TC8 links yet.
+completeness only.
 
 .. feat_req:: SOME/IP RPC Protocol
    :id: feat_req__someip__rpc

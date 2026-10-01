@@ -12,18 +12,17 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP-SD Messages and Communication Behavior (Section-Level)
-================================================================
+SOME/IP-SD Messages and Communication Behavior
+=================================================
 
-These are Tier-2, section-level requirements for the ``someip-sd``
-chapter of the Open SOME/IP Specification, covering the Service Discovery
-entry types (FindService, OfferService, StopOfferService,
-SubscribeEventgroup, StopSubscribeEventgroup, SubscribeEventgroupAck,
-SubscribeEventgroupNack) and the Service Discovery communication behavior
-(startup, response, shutdown, and error handling). Each requirement below
-refines :need:`feat_req__someip__sd` and summarizes the normative scope
-of one specification section. It does not copy the specification text
-word for word.
+Each requirement below covers one section of the ``someip-sd`` chapter:
+the Service Discovery entry types (FindService, OfferService,
+StopOfferService, SubscribeEventgroup, StopSubscribeEventgroup,
+SubscribeEventgroupAck, SubscribeEventgroupNack) and the Service Discovery
+communication behavior (startup, response, shutdown, and error handling).
+Each one refines :need:`feat_req__someip__sd` and summarizes that
+section's normative scope. It does not copy the specification text word
+for word.
 
 .. feat_req:: Service Discovery Messages
    :id: feat_req__someip__sd_svc_discovery_msgs

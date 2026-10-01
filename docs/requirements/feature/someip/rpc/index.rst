@@ -12,12 +12,12 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP RPC Section-Level Requirements
-=========================================
+SOME/IP RPC Requirements
+=========================
 
-These are Tier-2, section-level requirements for the ``someip-rpc``
-chapter of the Open SOME/IP Specification. They are split across three
-files so each can be written and reviewed on its own:
+Requirements for the ``someip-rpc`` chapter of the Open SOME/IP
+Specification are split across three files so each can be written and
+reviewed on its own:
 
 - ``wire_format``: identifier definitions, transport protocol,
   endianness, and the message header (and its children).

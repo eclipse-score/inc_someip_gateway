@@ -12,14 +12,13 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP Migration and Compatibility (Section-Level)
-=====================================================
+SOME/IP Migration and Compatibility
+====================================
 
-These are Tier-2, section-level requirements for the ``someip-compat``
-chapter of the Open SOME/IP Specification. Each requirement below refines
-:need:`feat_req__someip__compat` and summarizes the normative scope of one
-specification section. It does not copy the specification text word for
-word.
+Each requirement below covers one section of the ``someip-compat`` chapter
+of the Open SOME/IP Specification, refines
+:need:`feat_req__someip__compat`, and summarizes that section's normative
+scope. It does not copy the specification text word for word.
 
 .. feat_req:: SOME/IP Forward Compatibility Handling
    :id: feat_req__someip__compat_forward

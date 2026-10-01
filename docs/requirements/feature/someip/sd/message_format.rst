@@ -12,16 +12,14 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP-SD Message Format (Section-Level)
-==========================================
+SOME/IP-SD Message Format
+===========================
 
-These are Tier-2, section-level requirements for the ``someip-sd``
-chapter of the Open SOME/IP Specification, covering the ECU-internal
-SOME/IP-SD interface and the wire-level SOME/IP-SD message format
-(header, entries, and options). Each requirement below refines
-:need:`feat_req__someip__sd` and summarizes the normative scope of one
-specification section. It does not copy the specification text word for
-word.
+Each requirement below covers one section of the ``someip-sd`` chapter:
+the ECU-internal SOME/IP-SD interface and the wire-level SOME/IP-SD
+message format (header, entries, and options). Each one refines
+:need:`feat_req__someip__sd` and summarizes that section's normative
+scope. It does not copy the specification text word for word.
 
 .. feat_req:: SOME/IP-SD ECU-internal Interface
    :id: feat_req__someip__sd_ecu_internal_interface

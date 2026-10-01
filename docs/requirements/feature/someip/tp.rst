@@ -12,14 +12,13 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP-TP Segmentation (Section-Level)
-=========================================
+SOME/IP-TP Segmentation
+========================
 
-These are Tier-2, section-level requirements for the ``someip-tp`` chapter
-of the Open SOME/IP Specification. Each requirement below refines
-:need:`feat_req__someip__tp` and summarizes the normative scope of one
-specification section. It does not copy the specification text word for
-word.
+Each requirement below covers one section of the ``someip-tp`` chapter of
+the Open SOME/IP Specification, refines :need:`feat_req__someip__tp`, and
+summarizes that section's normative scope. It does not copy the
+specification text word for word.
 
 .. feat_req:: SOME/IP-TP General Segmentation Behavior
    :id: feat_req__someip__tp_general

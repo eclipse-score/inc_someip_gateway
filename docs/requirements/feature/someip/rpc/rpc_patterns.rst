@@ -12,16 +12,14 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP RPC Transport Bindings and Communication Patterns (Section-Level)
-===========================================================================
+SOME/IP RPC Transport Bindings and Communication Patterns
+===========================================================
 
-These are Tier-2, section-level requirements for the ``someip-rpc``
-chapter of the Open SOME/IP Specification, covering the transport
-protocol bindings, request/response, fire-and-forget, events, fields, and
-error handling sections. Each requirement below refines
-:need:`feat_req__someip__rpc` and summarizes the normative scope of one
-specification section. It does not copy the specification text word for
-word.
+Each requirement below covers one section of the ``someip-rpc`` chapter:
+transport protocol bindings, request/response, fire-and-forget, events,
+fields, or error handling. Each one refines :need:`feat_req__someip__rpc`
+and summarizes that section's normative scope. It does not copy the
+specification text word for word.
 
 .. feat_req:: SOME/IP RPC Transport Protocol Bindings Overview
    :id: feat_req__someip__rpc_tport_proto_bindings

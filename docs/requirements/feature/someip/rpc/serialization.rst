@@ -12,15 +12,14 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP-RPC Serialization of Parameters and Data Structures (Section-Level)
-=============================================================================
+SOME/IP-RPC Serialization of Parameters and Data Structures
+=============================================================
 
-These are Tier-2, section-level requirements for the "Serialization of
+Each requirement below covers one section of the "Serialization of
 Parameters and Data Structures" subtree of the ``someip-rpc`` chapter of
-the Open SOME/IP Specification. Each requirement below refines
-:need:`feat_req__someip__rpc` and summarizes the normative scope of one
-specification section. It does not copy the specification text word for
-word.
+the Open SOME/IP Specification. Each one refines
+:need:`feat_req__someip__rpc` and summarizes that section's normative
+scope. It does not copy the specification text word for word.
 
 .. feat_req:: SOME/IP-RPC Serialization Overview
    :id: feat_req__someip__rpc_ser_overview

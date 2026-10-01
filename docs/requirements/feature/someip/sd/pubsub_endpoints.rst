@@ -12,15 +12,14 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-SOME/IP-SD Publish/Subscribe and Endpoint Handling (Section-Level)
-====================================================================
+SOME/IP-SD Publish/Subscribe and Endpoint Handling
+=====================================================
 
-These are Tier-2, section-level requirements for the ``someip-sd``
-chapter of the Open SOME/IP Specification, covering non-SOME/IP service
-announcement, the publish/subscribe eventing mechanism, endpoint handling
-for services and events, and the mandatory SOME/IP-SD feature set. Each
-requirement below refines :need:`feat_req__someip__sd` and summarizes the
-normative scope of one specification section. It does not copy the
+Each requirement below covers one section of the ``someip-sd`` chapter:
+non-SOME/IP service announcement, the publish/subscribe eventing
+mechanism, endpoint handling for services and events, and the mandatory
+SOME/IP-SD feature set. Each one refines :need:`feat_req__someip__sd` and
+summarizes that section's normative scope. It does not copy the
 specification text word for word.
 
 .. feat_req:: Announcing Non-SOME/IP Protocols with SOME/IP-SD
