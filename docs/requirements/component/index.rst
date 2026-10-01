@@ -34,3 +34,5 @@ Assumption of Use (AoU) requirements use:
 
 .. toctree::
    :maxdepth: 1
+
+   someipd/protocol

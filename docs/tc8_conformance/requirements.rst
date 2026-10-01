@@ -49,15 +49,16 @@ Component Requirements: Service Discovery
 ------------------------------------------
 
 The following component requirements define the high-priority TC8 conformance
-tests for SOME/IP Service Discovery (SD), aligned with SOME/IP-SD Protocol
-Specification (AUTOSAR PRS_SOMEIP_SD).
+tests for SOME/IP Service Discovery (SD), aligned with
+:need:`feat_req__someip__sd_svc_discovery_msgs`
+(cf. Open SOME/IP Specification, ``someip-sd.rst``).
 
 .. comp_req:: TC8 SD Offer Entry Format Validation
    :id: comp_req__tc8_conformance__sd_offer_format
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd_offersvc_entry
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -68,8 +69,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    with correct service ID, instance ID, major/minor version, and TTL
    fields upon startup.
 
-   Note: Traces to SOME/IP-SD specification sections 4.1.2.1
-   (OfferService entry format) and 4.1.2.3 (Service Entry fields).
+   Traces to :need:`feat_req__someip__sd_offersvc_entry` and
+   :need:`comp_req__someipd__sd_offer_discovery`
+   (OfferService entry format and Service Entry fields).
    Covers TC8-SD-001 and TC8-SD-002 from the test strategy.
 
 .. comp_req:: TC8 SD Cyclic Offer Timing
@@ -77,7 +79,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, timing
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd_startup_behav
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -87,8 +89,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    OfferService entries at the configured ``cyclic_offer_delay`` interval
    (±20% tolerance) during the main phase of Service Discovery.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases, Main Phase, cyclic offer behavior).
+   Traces to :need:`feat_req__someip__sd_startup_behav` and
+   :need:`comp_req__someipd__sd_timing`
+   (SD Phases: Main Phase, cyclic offer behavior).
    Covers TC8-SD-003 from the test strategy.
 
 .. comp_req:: TC8 SD FindService Response
@@ -96,7 +99,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd_findsvc_entry, feat_req__someip__sd_response_behav
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -106,7 +109,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    a SOME/IP-SD FindService entry with a unicast OfferService for a
    known service, and does not respond for an unknown service.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.2.2
+   Traces to :need:`feat_req__someip__sd_findsvc_entry`,
+   :need:`feat_req__someip__sd_response_behav`, and
+   :need:`comp_req__someipd__sd_offer_discovery`
    (FindService entry handling and response behavior).
    Covers TC8-SD-004 and TC8-SD-005 from the test strategy.
 
@@ -115,7 +120,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, eventgroup
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd_subeg_entry, feat_req__someip__sd_stopsubeg_entry,
+                   feat_req__someip__sd_subeg_ack_entry, feat_req__someip__sd_subeg_nack_entry
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -127,9 +133,13 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    (SubscribeEventgroupNack with TTL=0), and honor StopSubscribeEventgroup
    by ceasing notifications.
 
-   Note: Traces to SOME/IP-SD specification sections 4.1.2.4
-   (SubscribeEventgroup), 4.1.2.5 (StopSubscribeEventgroup),
-   and 4.1.2.6 (SubscribeEventgroupAck/Nack).
+   Traces to :need:`feat_req__someip__sd_subeg_entry`,
+   :need:`feat_req__someip__sd_stopsubeg_entry`,
+   :need:`feat_req__someip__sd_subeg_ack_entry`,
+   :need:`feat_req__someip__sd_subeg_nack_entry`, and
+   :need:`comp_req__someipd__sd_subscription`
+   (SubscribeEventgroup, StopSubscribeEventgroup, SubscribeEventgroupAck/Nack,
+   and TTL handling).
    Covers TC8-SD-006, TC8-SD-007, and TC8-SD-008 from the test strategy.
 
 .. comp_req:: TC8 SD Initial Delay and Repetitions Phase
@@ -137,7 +147,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :status: valid
    :version: 1
    :tags: tc8, conformance, service_discovery, timing
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__sd_startup_behav
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -148,8 +158,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    initial_delay_max]``, repetition of offers ``repetitions_max`` times
    at ``repetitions_base_delay`` intervals, and transition to main phase.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases, Initial Wait, Repetition, Main Phase).
+   Traces to :need:`feat_req__someip__sd_startup_behav` and
+   :need:`comp_req__someipd__sd_timing`
+   (SD Phases: Initial Wait, Repetition, Main Phase).
    Covers TC8-SD-009 and TC8-SD-010 from the test strategy.
 
 Component Requirements: SOME/IP Message Format
@@ -160,7 +171,8 @@ Component Requirements: SOME/IP Message Format
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc_proto_ver, feat_req__someip__rpc_msg_type,
+                   feat_req__someip__rpc_struct_request_id
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -171,18 +183,20 @@ Component Requirements: SOME/IP Message Format
    message type (0x80), matching session ID, and matching client ID
    for each received REQUEST.
 
-   Note: Traces to SOME/IP specification sections 4.1.4
-   (Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID,
-   Client ID / Session ID). Covers TC8-SOMEIP-MSG-001,
-   TC8-SOMEIP-MSG-002, TC8-SOMEIP-MSG-005, and TC8-SOMEIP-MSG-008
-   from the test strategy.
+   Traces to :need:`feat_req__someip__rpc_proto_ver`,
+   :need:`feat_req__someip__rpc_msg_type`,
+   :need:`feat_req__someip__rpc_struct_request_id`, and
+   :need:`comp_req__someipd__rpc_header`
+   (Protocol Version, Message Type, and Request ID: Client ID and Session ID).
+   Covers TC8-SOMEIP-MSG-001, TC8-SOMEIP-MSG-002, TC8-SOMEIP-MSG-005,
+   and TC8-SOMEIP-MSG-008 from the test strategy.
 
 .. comp_req:: TC8 SOME/IP Error Return Codes
    :id: comp_req__tc8_conformance__msg_error_codes
    :status: valid
    :version: 1
    :tags: tc8, conformance, message_format, error_handling
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc_err_return_code, feat_req__someip__rpc_error_proc_overview
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -194,8 +208,10 @@ Component Requirements: SOME/IP Message Format
    ``E_UNKNOWN_METHOD`` (0x03) for invalid method IDs, and
    ``E_WRONG_INTERFACE_VERSION`` for interface version mismatches.
 
-   Note: Traces to SOME/IP specification section 4.1.7 (Return Code)
-   and the return code table (Table 4.14). Covers TC8-SOMEIP-MSG-003,
+   Traces to :need:`feat_req__someip__rpc_err_return_code`,
+   :need:`feat_req__someip__rpc_error_proc_overview`, and
+   :need:`comp_req__someipd__rpc_error_handling`
+   (Return Code and the return code table). Covers TC8-SOMEIP-MSG-003,
    TC8-SOMEIP-MSG-004, and TC8-SOMEIP-MSG-006 from the test strategy.
 
 Component Requirements: Event Notification
@@ -206,7 +222,8 @@ Component Requirements: Event Notification
    :status: valid
    :version: 1
    :tags: tc8, conformance, events, notification
-   :derived_from: feat_req__tc8_conformance__conformance
+   :derived_from: feat_req__someip__rpc_events, feat_req__someip__rpc_pub_sub_hdl,
+                   feat_req__someip__sd_stopsubeg_entry
    :satisfied_by: comp__someipd
    :safety: QM
    :security: NO
@@ -217,9 +234,11 @@ Component Requirements: Event Notification
    only to endpoints with an active eventgroup subscription, and ceases
    delivery after StopSubscribeEventgroup.
 
-   Note: Traces to SOME/IP specification section 5.1 (Events) and
-   SOME/IP-SD section 4.1.2.4 (SubscribeEventgroup triggering
-   notification delivery). Covers TC8-EVT-001 through TC8-EVT-004
+   Traces to :need:`feat_req__someip__rpc_events`,
+   :need:`feat_req__someip__rpc_pub_sub_hdl`, and
+   :need:`comp_req__someipd__rpc_events_fields`
+   (Events) and :need:`feat_req__someip__sd_stopsubeg_entry` (StopSubscribeEventgroup
+   ending notification delivery). Covers TC8-EVT-001 through TC8-EVT-004
    and TC8-EVT-006 from the test strategy.
 
 Traceability Summary
