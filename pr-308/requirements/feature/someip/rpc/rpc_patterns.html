@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>SOME/IP RPC Transport Bindings and Communication Patterns (Section-Level) &#8212; SOME/IP Gateway  documentation</title>
+    <title>SOME/IP RPC Transport Bindings and Communication Patterns &#8212; SOME/IP Gateway  documentation</title>
   
   
   
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="SOME/IP-SD Section-Level Requirements" href="../sd/index.html" />
-    <link rel="prev" title="SOME/IP-RPC Serialization of Parameters and Data Structures (Section-Level)" href="serialization.html" />
+    <link rel="next" title="SOME/IP-SD Requirements" href="../sd/index.html" />
+    <link rel="prev" title="SOME/IP-RPC Serialization of Parameters and Data Structures" href="serialization.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -410,15 +410,15 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html">SOME/IP Specification Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../protocol.html">Open SOME/IP Specification Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../compat.html">SOME/IP Migration and Compatibility (Section-Level)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../tp.html">SOME/IP-TP Segmentation (Section-Level)</a></li>
-<li class="toctree-l3 current active has-children"><a class="reference internal" href="index.html">SOME/IP RPC Section-Level Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="wire_format.html">SOME/IP RPC Wire Format (Section-Level)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="serialization.html">SOME/IP-RPC Serialization of Parameters and Data Structures (Section-Level)</a></li>
-<li class="toctree-l4 current active"><a class="current reference internal" href="#">SOME/IP RPC Transport Bindings and Communication Patterns (Section-Level)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../compat.html">SOME/IP Migration and Compatibility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tp.html">SOME/IP-TP Segmentation</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="index.html">SOME/IP RPC Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="wire_format.html">SOME/IP RPC Wire Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="serialization.html">SOME/IP-RPC Serialization of Parameters and Data Structures</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">SOME/IP RPC Transport Bindings and Communication Patterns</a></li>
 </ul>
 </details></li>
-<li class="toctree-l3"><a class="reference internal" href="../sd/index.html">SOME/IP-SD Section-Level Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sd/index.html">SOME/IP-SD Requirements</a></li>
 </ul>
 </details></li>
 </ul>
@@ -474,9 +474,9 @@
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">SOME/IP Specification Requirements</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOME/IP RPC Section-Level Requirements</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOME/IP RPC Requirements</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SOME/IP RPC Transport Bindings and Communication Patterns (Section-Level)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SOME/IP RPC Transport Bindings and Communication Patterns</span></li>
   </ul>
 </nav>
 </div>
@@ -493,16 +493,14 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="some-ip-rpc-transport-bindings-and-communication-patterns-section-level">
-<h1>SOME/IP RPC Transport Bindings and Communication Patterns (Section-Level)<a class="headerlink" href="#some-ip-rpc-transport-bindings-and-communication-patterns-section-level" title="Link to this heading">#</a></h1>
-<p>These are Tier-2, section-level requirements for the <code class="docutils literal notranslate"><span class="pre">someip-rpc</span></code>
-chapter of the Open SOME/IP Specification, covering the transport
-protocol bindings, request/response, fire-and-forget, events, fields, and
-error handling sections. Each requirement below refines
-<a class="reference internal" href="../protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a> and summarizes the normative scope of one
-specification section. It does not copy the specification text word for
-word.</p>
-<div class="need_container docutils container" id="SNCB-986b6613">
+  <section id="some-ip-rpc-transport-bindings-and-communication-patterns">
+<h1>SOME/IP RPC Transport Bindings and Communication Patterns<a class="headerlink" href="#some-ip-rpc-transport-bindings-and-communication-patterns" title="Link to this heading">#</a></h1>
+<p>Each requirement below covers one section of the <code class="docutils literal notranslate"><span class="pre">someip-rpc</span></code> chapter:
+transport protocol bindings, request/response, fire-and-forget, events,
+fields, or error handling. Each one refines <a class="reference internal" href="../protocol.html#feat_req__someip__rpc" title="feat_req__someip__rpc"><em class="xref need">SOME/IP RPC Protocol (feat_req__someip__rpc)</em></a>
+and summarizes that section’s normative scope. It does not copy the
+specification text word for word.</p>
+<div class="need_container docutils container" id="SNCB-717c9f58">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_tport_proto_bindings">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -558,7 +556,7 @@ feat_req_someip_732, feat_req_someip_733.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-01618e50">
+<div class="need_container docutils container" id="SNCB-adffddce">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_udp_binding">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -616,7 +614,7 @@ feat_req_someip_813.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-6782a0f9">
+<div class="need_container docutils container" id="SNCB-07ceb672">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_tcp_binding">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -676,7 +674,7 @@ feat_req_someip_680.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e086b794">
+<div class="need_container docutils container" id="SNCB-38db21f2">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_tcp_magic_cookies">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -735,7 +733,7 @@ feat_req_someip_589.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-4a4ff673">
+<div class="need_container docutils container" id="SNCB-9979c88d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_multi_svc_instances">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -791,7 +789,7 @@ feat_req_someip_967.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e7cc099b">
+<div class="need_container docutils container" id="SNCB-6f055af7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_request_response_comm">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -846,7 +844,7 @@ feat_req_someip_338.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-05484c70">
+<div class="need_container docutils container" id="SNCB-145bf6f5">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_fire_forget_comm">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -900,7 +898,7 @@ feat_req_someip_348.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-9b0befdb">
+<div class="need_container docutils container" id="SNCB-acdbbe05">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_events">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -956,7 +954,7 @@ feat_req_someip_806, feat_req_someip_807.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-880b2427">
+<div class="need_container docutils container" id="SNCB-814d7487">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_pub_sub_hdl">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1011,7 +1009,7 @@ feat_req_someip_361.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-8824c7ea">
+<div class="need_container docutils container" id="SNCB-61ee1994">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_fields">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1066,7 +1064,7 @@ feat_req_someip_633, feat_req_someip_634, feat_req_someip_635.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-88d54eee">
+<div class="need_container docutils container" id="SNCB-e155cfb2">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_err_app_codes">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1123,7 +1121,7 @@ feat_req_someip_107, feat_req_someip_101.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3aef81f2">
+<div class="need_container docutils container" id="SNCB-466c2fe1">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_err_return_code">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1182,7 +1180,7 @@ feat_req_someip_721, feat_req_someip_704.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ce050982">
+<div class="need_container docutils container" id="SNCB-0668fa72">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc_error_proc_overview">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1258,7 +1256,7 @@ feat_req_someip_818.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">SOME/IP-RPC Serialization of Parameters and Data Structures (Section-Level)</p>
+        <p class="prev-next-title">SOME/IP-RPC Serialization of Parameters and Data Structures</p>
       </div>
     </a>
     <a class="right-next"
@@ -1266,7 +1264,7 @@ feat_req_someip_818.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">SOME/IP-SD Section-Level Requirements</p>
+        <p class="prev-next-title">SOME/IP-SD Requirements</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

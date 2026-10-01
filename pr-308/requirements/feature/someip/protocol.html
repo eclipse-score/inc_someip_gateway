@@ -73,7 +73,7 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="SOME/IP Migration and Compatibility (Section-Level)" href="compat.html" />
+    <link rel="next" title="SOME/IP Migration and Compatibility" href="compat.html" />
     <link rel="prev" title="SOME/IP Specification Requirements" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -410,10 +410,10 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">SOME/IP Specification Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Open SOME/IP Specification Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="compat.html">SOME/IP Migration and Compatibility (Section-Level)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tp.html">SOME/IP-TP Segmentation (Section-Level)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rpc/index.html">SOME/IP RPC Section-Level Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sd/index.html">SOME/IP-SD Section-Level Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="compat.html">SOME/IP Migration and Compatibility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tp.html">SOME/IP-TP Segmentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rpc/index.html">SOME/IP RPC Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sd/index.html">SOME/IP-SD Requirements</a></li>
 </ul>
 </details></li>
 </ul>
@@ -492,12 +492,12 @@ Specification (<a class="reference external" href="https://github.com/some-ip-co
 <code class="docutils literal notranslate"><span class="pre">Community-Spec-1.0</span></code>). Each requirement below summarizes the normative
 scope of one specification chapter and names the chapter or section it
 comes from. It does not copy the specification text word for word.</p>
-<p>These requirements are the main source of truth, at the requirements
-level, for the SOME/IP wire protocol. Only the <code class="docutils literal notranslate"><span class="pre">someip-rpc</span></code> and
-<code class="docutils literal notranslate"><span class="pre">someip-sd</span></code> chapters have component-level (<code class="docutils literal notranslate"><span class="pre">someipd</span></code>) requirements
+<p>These requirements are the primary source of truth for the SOME/IP wire
+protocol at the requirements level. Only the <code class="docutils literal notranslate"><span class="pre">someip-rpc</span></code> and
+<code class="docutils literal notranslate"><span class="pre">someip-sd</span></code> chapters have matching <code class="docutils literal notranslate"><span class="pre">someipd</span></code> component requirements
 and TC8 test coverage today. The other chapters are imported for
-completeness and have no <code class="docutils literal notranslate"><span class="pre">comp_req</span></code> or TC8 links yet.</p>
-<div class="need_container docutils container" id="SNCB-b334b748">
+completeness only.</p>
+<div class="need_container docutils container" id="SNCB-4d2e2866">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__rpc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -555,7 +555,7 @@ Specification).</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-373fdbbd">
+<div class="need_container docutils container" id="SNCB-bb16826b">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -614,7 +614,7 @@ Discovery).</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-c6a34c9f">
+<div class="need_container docutils container" id="SNCB-b865cc79">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__tp">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -669,7 +669,7 @@ SOME/IP messages over UDP).</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ec8f1c25">
+<div class="need_container docutils container" id="SNCB-ad59028b">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__compat">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -725,7 +725,7 @@ Compatibility).</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-28f5e6be">
+<div class="need_container docutils container" id="SNCB-54f17d02">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__ids">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -811,7 +811,7 @@ reserved-identifier tables, zero normative requirement blocks.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">SOME/IP Migration and Compatibility (Section-Level)</p>
+        <p class="prev-next-title">SOME/IP Migration and Compatibility</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

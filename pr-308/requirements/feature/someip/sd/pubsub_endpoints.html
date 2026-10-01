@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>SOME/IP-SD Publish/Subscribe and Endpoint Handling (Section-Level) &#8212; SOME/IP Gateway  documentation</title>
+    <title>SOME/IP-SD Publish/Subscribe and Endpoint Handling &#8212; SOME/IP Gateway  documentation</title>
   
   
   
@@ -74,7 +74,7 @@
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
     <link rel="next" title="Component Requirements" href="../../../component/index.html" />
-    <link rel="prev" title="SOME/IP-SD Messages and Communication Behavior (Section-Level)" href="messages.html" />
+    <link rel="prev" title="SOME/IP-SD Messages and Communication Behavior" href="messages.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -410,13 +410,13 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html">SOME/IP Specification Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../protocol.html">Open SOME/IP Specification Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../compat.html">SOME/IP Migration and Compatibility (Section-Level)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../tp.html">SOME/IP-TP Segmentation (Section-Level)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../rpc/index.html">SOME/IP RPC Section-Level Requirements</a></li>
-<li class="toctree-l3 current active has-children"><a class="reference internal" href="index.html">SOME/IP-SD Section-Level Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="message_format.html">SOME/IP-SD Message Format (Section-Level)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="messages.html">SOME/IP-SD Messages and Communication Behavior (Section-Level)</a></li>
-<li class="toctree-l4 current active"><a class="current reference internal" href="#">SOME/IP-SD Publish/Subscribe and Endpoint Handling (Section-Level)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../compat.html">SOME/IP Migration and Compatibility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tp.html">SOME/IP-TP Segmentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rpc/index.html">SOME/IP RPC Requirements</a></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="index.html">SOME/IP-SD Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="message_format.html">SOME/IP-SD Message Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="messages.html">SOME/IP-SD Messages and Communication Behavior</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">SOME/IP-SD Publish/Subscribe and Endpoint Handling</a></li>
 </ul>
 </details></li>
 </ul>
@@ -474,9 +474,9 @@
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">SOME/IP Specification Requirements</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOME/IP-SD Section-Level Requirements</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOME/IP-SD Requirements</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SOME/IP-SD Publish/Subscribe and Endpoint Handling (Section-Level)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SOME/IP-SD Publish/Subscribe and Endpoint Handling</span></li>
   </ul>
 </nav>
 </div>
@@ -493,16 +493,15 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="some-ip-sd-publish-subscribe-and-endpoint-handling-section-level">
-<h1>SOME/IP-SD Publish/Subscribe and Endpoint Handling (Section-Level)<a class="headerlink" href="#some-ip-sd-publish-subscribe-and-endpoint-handling-section-level" title="Link to this heading">#</a></h1>
-<p>These are Tier-2, section-level requirements for the <code class="docutils literal notranslate"><span class="pre">someip-sd</span></code>
-chapter of the Open SOME/IP Specification, covering non-SOME/IP service
-announcement, the publish/subscribe eventing mechanism, endpoint handling
-for services and events, and the mandatory SOME/IP-SD feature set. Each
-requirement below refines <a class="reference internal" href="../protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and summarizes the
-normative scope of one specification section. It does not copy the
+  <section id="some-ip-sd-publish-subscribe-and-endpoint-handling">
+<h1>SOME/IP-SD Publish/Subscribe and Endpoint Handling<a class="headerlink" href="#some-ip-sd-publish-subscribe-and-endpoint-handling" title="Link to this heading">#</a></h1>
+<p>Each requirement below covers one section of the <code class="docutils literal notranslate"><span class="pre">someip-sd</span></code> chapter:
+non-SOME/IP service announcement, the publish/subscribe eventing
+mechanism, endpoint handling for services and events, and the mandatory
+SOME/IP-SD feature set. Each one refines <a class="reference internal" href="../protocol.html#feat_req__someip__sd" title="feat_req__someip__sd"><em class="xref need">SOME/IP Service Discovery P... (feat_req__someip__sd)</em></a> and
+summarizes that section’s normative scope. It does not copy the
 specification text word for word.</p>
-<div class="need_container docutils container" id="SNCB-b535f398">
+<div class="need_container docutils container" id="SNCB-2baa1d5d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd_announce_non_protos_with">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -564,7 +563,7 @@ feat_req_someipsd_503, feat_req_someipsd_575.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e33dd67e">
+<div class="need_container docutils container" id="SNCB-c8535bc2">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd_pub_sub_with_and">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -647,7 +646,7 @@ feat_req_someipsd_828, feat_req_someipsd_829.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-dd85af34">
+<div class="need_container docutils container" id="SNCB-65496761">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd_endpoint_handling">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -702,7 +701,7 @@ feat_req_someipsd_778.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-4919b6f6">
+<div class="need_container docutils container" id="SNCB-e6c88f25">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd_svc_eps">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -768,7 +767,7 @@ feat_req_someipsd_878, feat_req_someipsd_879.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-75bbdc57">
+<div class="need_container docutils container" id="SNCB-c72dba59">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd_eg_eps">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -833,7 +832,7 @@ feat_req_someipsd_789, feat_req_someipsd_790, feat_req_someipsd_791.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-4319c648">
+<div class="need_container docutils container" id="SNCB-5ef2fdf6">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd_security_consid">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -890,7 +889,7 @@ IDs: feat_req_someipsd_1135, feat_req_someipsd_1149.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-30b7c77f">
+<div class="need_container docutils container" id="SNCB-d17fabfa">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__someip__sd_mandatory_features">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -985,7 +984,7 @@ feat_req_someipsd_814, feat_req_someipsd_1194.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">SOME/IP-SD Messages and Communication Behavior (Section-Level)</p>
+        <p class="prev-next-title">SOME/IP-SD Messages and Communication Behavior</p>
       </div>
     </a>
     <a class="right-next"

@@ -410,10 +410,10 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Feature Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">SOME/IP Specification Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="protocol.html">Open SOME/IP Specification Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="compat.html">SOME/IP Migration and Compatibility (Section-Level)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tp.html">SOME/IP-TP Segmentation (Section-Level)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rpc/index.html">SOME/IP RPC Section-Level Requirements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sd/index.html">SOME/IP-SD Section-Level Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="compat.html">SOME/IP Migration and Compatibility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tp.html">SOME/IP-TP Segmentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rpc/index.html">SOME/IP RPC Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sd/index.html">SOME/IP-SD Requirements</a></li>
 </ul>
 </details></li>
 </ul>
@@ -486,38 +486,38 @@
 <h1>SOME/IP Specification Requirements<a class="headerlink" href="#some-ip-specification-requirements" title="Link to this heading">#</a></h1>
 <p>This section imports the Open SOME/IP Specification
 (<a class="reference external" href="https://github.com/some-ip-com/open-someip-spec">open-someip-spec</a>,
-license <code class="docutils literal notranslate"><span class="pre">Community-Spec-1.0</span></code>) into the S-CORE requirements tree, in two
-tiers.</p>
+license <code class="docutils literal notranslate"><span class="pre">Community-Spec-1.0</span></code>) into the S-CORE requirements tree.</p>
 <ul class="simple">
-<li><p><strong>Tier 1</strong> (<code class="docutils literal notranslate"><span class="pre">protocol</span></code>): five broad requirements, one per chapter of the
+<li><p><code class="docutils literal notranslate"><span class="pre">protocol</span></code> holds five broad requirements, one per chapter of the
 specification. These map one to one with the specification’s five chapter
 files and stay stable over time.</p></li>
-<li><p><strong>Tier 2</strong> (<code class="docutils literal notranslate"><span class="pre">compat</span></code>, <code class="docutils literal notranslate"><span class="pre">tp</span></code>, and the <code class="docutils literal notranslate"><span class="pre">rpc</span></code>/<code class="docutils literal notranslate"><span class="pre">sd</span></code> subdirectories):
-one requirement per specification section that has at least one normative
-statement. Each Tier-2 requirement points back to its parent Tier-1
-chapter requirement with a <code class="docutils literal notranslate"><span class="pre">Refines</span></code> reference in its body, and lists
-the specification Requirement IDs it covers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compat</span></code>, <code class="docutils literal notranslate"><span class="pre">tp</span></code>, and the <code class="docutils literal notranslate"><span class="pre">rpc</span></code>/<code class="docutils literal notranslate"><span class="pre">sd</span></code> subdirectories hold narrower
+requirements, one per specification section that has at least one
+normative statement. Each of these points back to its parent chapter
+requirement with a <code class="docutils literal notranslate"><span class="pre">Refines</span></code> reference in its body, and lists the
+specification Requirement IDs it covers.</p></li>
 </ul>
 <p>A <code class="docutils literal notranslate"><span class="pre">feat_req</span></code> cannot use <code class="docutils literal notranslate"><span class="pre">:derived_from:</span></code> to point to another
-<code class="docutils literal notranslate"><span class="pre">feat_req</span></code>. So every requirement below, in both tiers, uses
+<code class="docutils literal notranslate"><span class="pre">feat_req</span></code>. So every requirement below uses
 <code class="docutils literal notranslate"><span class="pre">:derived_from:</span> <span class="pre">stkh_req__someip_gw__interoperability</span></code> directly instead.
-The link from chapter to section is shown by document nesting, the
-<code class="docutils literal notranslate"><span class="pre">Refines</span></code> reference in the body, and matching <code class="docutils literal notranslate"><span class="pre">:tags:</span></code> values.</p>
+The link from a chapter requirement to its narrower requirements is shown
+by document nesting, the <code class="docutils literal notranslate"><span class="pre">Refines</span></code> reference in the body, and matching
+<code class="docutils literal notranslate"><span class="pre">:tags:</span></code> values.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="protocol.html">Open SOME/IP Specification Requirements</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compat.html">SOME/IP Migration and Compatibility (Section-Level)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tp.html">SOME/IP-TP Segmentation (Section-Level)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rpc/index.html">SOME/IP RPC Section-Level Requirements</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rpc/wire_format.html">SOME/IP RPC Wire Format (Section-Level)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rpc/serialization.html">SOME/IP-RPC Serialization of Parameters and Data Structures (Section-Level)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rpc/rpc_patterns.html">SOME/IP RPC Transport Bindings and Communication Patterns (Section-Level)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compat.html">SOME/IP Migration and Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tp.html">SOME/IP-TP Segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rpc/index.html">SOME/IP RPC Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rpc/wire_format.html">SOME/IP RPC Wire Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rpc/serialization.html">SOME/IP-RPC Serialization of Parameters and Data Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rpc/rpc_patterns.html">SOME/IP RPC Transport Bindings and Communication Patterns</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="sd/index.html">SOME/IP-SD Section-Level Requirements</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="sd/message_format.html">SOME/IP-SD Message Format (Section-Level)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sd/messages.html">SOME/IP-SD Messages and Communication Behavior (Section-Level)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sd/pubsub_endpoints.html">SOME/IP-SD Publish/Subscribe and Endpoint Handling (Section-Level)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sd/index.html">SOME/IP-SD Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sd/message_format.html">SOME/IP-SD Message Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sd/messages.html">SOME/IP-SD Messages and Communication Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sd/pubsub_endpoints.html">SOME/IP-SD Publish/Subscribe and Endpoint Handling</a></li>
 </ul>
 </li>
 </ul>

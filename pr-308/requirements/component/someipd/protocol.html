@@ -482,13 +482,13 @@ SOME/IP Specification RPC and Service Discovery chapters. Each requirement
 derives from the corresponding feature requirement in
 <a class="reference internal" href="../../feature/someip/protocol.html"><span class="doc">Open SOME/IP Specification Requirements</span></a> and is satisfied by
 <a class="reference internal" href="../../../architecture/components.html#comp__someipd" title="comp__someipd"><em class="xref need">SOME/IP Network Daemon (comp__someipd)</em></a>.</p>
-<p>Only the <code class="docutils literal notranslate"><span class="pre">someip-rpc</span></code> and <code class="docutils literal notranslate"><span class="pre">someip-sd</span></code> chapters are covered here: they are
-the only chapters with a concrete <code class="docutils literal notranslate"><span class="pre">someipd</span></code> implementation and TC8
-conformance test coverage today. The <code class="docutils literal notranslate"><span class="pre">someip-tp</span></code>, <code class="docutils literal notranslate"><span class="pre">someip-compat</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">someip-ids</span></code> feature requirements have no component-level requirements yet.</p>
+<p>This file covers only the <code class="docutils literal notranslate"><span class="pre">someip-rpc</span></code> and <code class="docutils literal notranslate"><span class="pre">someip-sd</span></code> chapters, since
+those are the only ones with a <code class="docutils literal notranslate"><span class="pre">someipd</span></code> implementation and TC8 test
+coverage today. The <code class="docutils literal notranslate"><span class="pre">someip-tp</span></code>, <code class="docutils literal notranslate"><span class="pre">someip-compat</span></code>, and <code class="docutils literal notranslate"><span class="pre">someip-ids</span></code>
+chapters have no component requirements yet.</p>
 <section id="component-requirements-some-ip-rpc">
 <h2>Component Requirements: SOME/IP RPC<a class="headerlink" href="#component-requirements-some-ip-rpc" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-98e9e2e6">
+<div class="need_container docutils container" id="SNCB-184ec787">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__rpc_header">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -540,7 +540,7 @@ crashing.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-6a2beade">
+<div class="need_container docutils container" id="SNCB-f35dfff9">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__rpc_transport">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -590,7 +590,7 @@ datagram.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-7390cb06">
+<div class="need_container docutils container" id="SNCB-521cc7ae">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__rpc_request_response">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -639,7 +639,7 @@ from the originating Request ID, and shall process REQUEST_NO_RETURN
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-b21ade54">
+<div class="need_container docutils container" id="SNCB-c359c035">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__rpc_events_fields">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -690,7 +690,7 @@ changes the stored field value.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-25436efa">
+<div class="need_container docutils container" id="SNCB-b2418883">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__rpc_error_handling">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -743,7 +743,7 @@ interface version mismatch.</p></td>
 </section>
 <section id="component-requirements-some-ip-service-discovery">
 <h2>Component Requirements: SOME/IP Service Discovery<a class="headerlink" href="#component-requirements-some-ip-service-discovery" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-c81994b1">
+<div class="need_container docutils container" id="SNCB-1b6f1a11">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__sd_message_format">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -792,7 +792,7 @@ entries are structurally valid per the Open SOME/IP-SD specification.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-9f7192b1">
+<div class="need_container docutils container" id="SNCB-0bc91620">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__sd_offer_discovery">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -843,7 +843,7 @@ when it withdraws a service.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-f47f2d6f">
+<div class="need_container docutils container" id="SNCB-1dabbd31">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__sd_subscription">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -893,7 +893,7 @@ and remove a subscription once its TTL elapses without renewal.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-93b3907a">
+<div class="need_container docutils container" id="SNCB-bf353967">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__sd_timing">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -943,7 +943,7 @@ on the first SD message sent after a restart.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-75ff7b23">
+<div class="need_container docutils container" id="SNCB-ab120e80">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__someipd__sd_robustness">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
