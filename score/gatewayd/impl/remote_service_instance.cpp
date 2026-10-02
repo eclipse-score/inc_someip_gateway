@@ -106,7 +106,7 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
         client_config, inst,
         {
             .on_service_state_change =
-                [instance_ptr = instance.get()](socom::Client_connector const&,
+                [instance_ptr = instance.get()](socom::Client_connector const& connector,
                                                 socom::Service_state state,
                                                 socom::Server_service_interface_definition const&) {
                     std::cout << "[gatewayd] RemoteServiceInstance - client_connector "
@@ -115,13 +115,14 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
                     if (state != socom::Service_state::available) {
                         return;
                     }
+
                     std::cout << "[gatewayd] RemoteServiceInstance - client_connector "
                                  "on_service_state_change: service is now available, subscribing "
                                  "to events\n";
                     for (std::size_t i = 0;
                          i < instance_ptr->service_type_config_->events()->size(); ++i) {
-                        (void)instance_ptr->client_connector_->subscribe_event(
-                            static_cast<socom::Event_id>(i), socom::Event_mode::update);
+                        (void)connector.subscribe_event(static_cast<socom::Event_id>(i),
+                                                        socom::Event_mode::update);
                     }
                 },
             .on_event_update =
