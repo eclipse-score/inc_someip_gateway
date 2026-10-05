@@ -30,5 +30,3 @@ Feature requirement IDs follow the format:
 
 .. toctree::
    :maxdepth: 1
-
-   someip/index
