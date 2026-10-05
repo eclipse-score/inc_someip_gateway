@@ -50,7 +50,7 @@ For TC8 conformance, the split is simple:
   "verify ``someipd`` against OA TC8 SOME/IP at the wire level." This
   requirement does **not** change when new test areas are added.
 
-* **Many component requirements** — one per testable protocol aspect
+* **Many component requirements**, one per testable protocol aspect
   (e.g., SD offer format, cyclic timing, response headers, TCP
   transport). Each component requirement:
 
@@ -129,7 +129,7 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    traceability matrix against the OA TC8 v3.0 Chapter 6 test catalog, are
    added together with the test modules that implement and verify them.
 
-Component Requirements — Service Discovery
+Component Requirements: Service Discovery
 ------------------------------------------
 
 The following component requirements define the high-priority TC8 conformance
@@ -172,7 +172,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    (±20% tolerance) during the main phase of Service Discovery.
 
    Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases — Main Phase, cyclic offer behavior).
+   (SD Phases, Main Phase, cyclic offer behavior).
    Covers TC8-SD-003 from the test strategy.
 
 .. comp_req:: TC8 SD FindService Response
@@ -251,7 +251,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    at ``repetitions_base_delay`` intervals, and transition to main phase.
 
    Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases — Initial Wait, Repetition, Main Phase).
+   (SD Phases, Initial Wait, Repetition, Main Phase).
    Covers TC8-SD-009 and TC8-SD-010 from the test strategy.
 
 .. comp_req:: TC8 SD IPv4 Endpoint Option Validation
@@ -271,7 +271,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    can reach the offered service.
 
    Note: Traces to SOME/IP-SD specification section 4.1.2.4
-   (SD Options — IPv4 Endpoint Option format).
+   (SD Options, IPv4 Endpoint Option format).
    Covers TC8-SD-011 from the test strategy.
 
 .. comp_req:: TC8 SD Reboot Detection
@@ -291,7 +291,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    shall reset to a low value (≤ 2).
 
    Note: Traces to SOME/IP-SD specification section 4.1.1
-   (Reboot Detection — session ID and reboot flag handling).
+   (Reboot Detection, session ID and reboot flag handling).
    Covers TC8-SD-012 from the test strategy.
 
 .. comp_req:: TC8 SD Multicast Eventgroup Option
@@ -311,10 +311,10 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    know which multicast group to join for event delivery.
 
    Note: Traces to SOME/IP-SD specification section 4.1.2.6
-   (SubscribeEventgroupAck options — multicast endpoint).
+   (SubscribeEventgroupAck options, multicast endpoint).
    Covers TC8-SD-013 from the test strategy.
 
-Component Requirements — SOME/IP Message Format
+Component Requirements: SOME/IP Message Format
 -----------------------------------------------
 
 .. comp_req:: TC8 SOME/IP Response Header Validation
@@ -334,7 +334,7 @@ Component Requirements — SOME/IP Message Format
    for each received REQUEST.
 
    Note: Traces to SOME/IP specification sections 4.1.4
-   (Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID —
+   (Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID,
    Client ID / Session ID). Covers TC8-MSG-001,
    TC8-MSG-002, TC8-MSG-005, and TC8-MSG-008
    from the test strategy.
@@ -382,7 +382,7 @@ Component Requirements — SOME/IP Message Format
    validation and error handling). Covers TC8-MSG-007 from the
    test strategy.
 
-Component Requirements — Event Notification
+Component Requirements: Event Notification
 -------------------------------------------
 
 .. comp_req:: TC8 Event Notification Subscription Lifecycle
@@ -406,7 +406,7 @@ Component Requirements — Event Notification
    notification delivery). Covers TC8-EVT-001 through TC8-EVT-006
    from the test strategy.
 
-Component Requirements — Field Conformance
+Component Requirements: Field Conformance
 -------------------------------------------
 
 .. comp_req:: TC8 Field Initial Value on Subscribe
@@ -424,7 +424,7 @@ Component Requirements — Field Conformance
    NOTIFICATION message to a new subscriber of a field eventgroup (``is_field: true``)
    immediately upon subscription, carrying the last known field value.
 
-   Note: Traces to SOME/IP specification section 5.3 (Fields — initial value
+   Note: Traces to SOME/IP specification section 5.3 (Fields, initial value
    notification on subscribe) and AUTOSAR SWS_CM_00719.
    Covers TC8-FLD-001 and TC8-FLD-002 from the test strategy.
 
@@ -445,7 +445,7 @@ Component Requirements — Field Conformance
    the stored field value, respond with E_OK, and immediately notify all
    active subscribers with the new value.
 
-   Note: Traces to SOME/IP specification section 5.3 (Fields — getter/setter
+   Note: Traces to SOME/IP specification section 5.3 (Fields, getter/setter
    methods) and AUTOSAR SWS_CM_00720/SWS_CM_00721.
    Covers TC8-FLD-003 and TC8-FLD-004 from the test strategy.
 
@@ -464,11 +464,11 @@ Component Requirements — Field Conformance
    notification only when the field value actually changes, not on every cyclic
    trigger or repeated SET with the same value.
 
-   Note: Traces to OA TC8 v3.0 §5.1.5.7 SOMEIPSRV_RPC_16 (on-change-only
+   Note: Traces to OA TC8 v3.0 section 5.1.5.7 SOMEIPSRV_RPC_16 (on-change-only
    notification for fields).
    Covered by TC8-EVT-007 in ``test_event_notification.py``.
 
-Component Requirements — TCP Transport Binding
+Component Requirements: TCP Transport Binding
 -----------------------------------------------
 
 .. comp_req:: TC8 TCP Transport Binding for RPC
@@ -497,13 +497,13 @@ Component Requirements — TCP Transport Binding
 
 .. seealso::
 
-   For the full traceability chain (OA specification → internal TC8 ID →
-   requirement → test function), see :doc:`traceability`.
+   For the full traceability chain (OA specification to internal TC8 ID to
+   requirement to test function), see :doc:`traceability`.
 
    For detailed test case specifications (purpose, stimuli, expected results),
    see :doc:`test_specification`.
 
-Component Requirements — Multi-service and Multi-instance
+Component Requirements: Multi-service and Multi-instance
 -----------------------------------------------------------
 
 .. comp_req:: TC8 Multi-service and Multi-instance Routing
@@ -528,12 +528,12 @@ Component Requirements — Multi-service and Multi-instance
    (multi-service hosting) and SOMEIPSRV_RPC_14 (per-instance port isolation).
    Covered by ``test_multi_service.py`` in the ``test_tc8_multi_service`` Bazel target.
 
-Component Requirements — SD Format and Options Compliance
+Component Requirements: SD Format and Options Compliance
 -----------------------------------------------------------
 
 The following component requirements cover byte-level field assertions for
-SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
-(FORMAT_*) and §5.1.5.2 (OPTIONS_*).
+SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 section 5.1.5.1
+(FORMAT_*) and section 5.1.5.2 (OPTIONS_*).
 
 .. comp_req:: TC8 SD SOME/IP Header and Entry Field Validation
    :id: comp_req__tc8_conformance__sd_format_fields
@@ -561,7 +561,7 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    (FORMAT_25), TTL > 0 (FORMAT_26), reserved field = 0 (FORMAT_27), and
    eventgroup ID (FORMAT_28) matching the subscribe request.
 
-   Note: Traces to OA TC8 v3.0 §5.1.5.1 (SOME/IP-SD header and entry
+   Note: Traces to OA TC8 v3.0 section 5.1.5.1 (SOME/IP-SD header and entry
    format assertions).
 
 .. comp_req:: TC8 SD IPv4 Endpoint and Multicast Option Field Validation
@@ -587,8 +587,8 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    = 0x00 (OPTIONS_12), L4 protocol = 0x11 UDP (OPTIONS_13), and port number
    matching configuration (OPTIONS_14).
 
-   Note: Traces to OA TC8 v3.0 §5.1.5.2 (SD Options format assertions).
-   Multicast option tests (OPTIONS_08–14) require a non-loopback interface
+   Note: Traces to OA TC8 v3.0 section 5.1.5.2 (SD Options format assertions).
+   Multicast option tests (OPTIONS_08 to OPTIONS_14) require a non-loopback interface
    (``@pytest.mark.network``).
 
 .. comp_req:: TC8 SD StopSubscribeEventgroup Entry Wire Format
@@ -603,13 +603,13 @@ SOME/IP-SD messages sent by ``someipd``, corresponding to OA TC8 v3.0 §5.1.5.1
    :reqtype: Functional
 
    The conformance test suite shall verify that a StopSubscribeEventgroup SD entry
-   has entry type byte ``0x06`` and TTL field (bytes 9–11 of the entry) equal to
+   has entry type byte ``0x06`` and TTL field (bytes 9 to 11 of the entry) equal to
    ``0x000000`` at the wire level, conforming to OA TC8 SOMEIPSRV_SD_MESSAGE_12.
 
-Component Requirements — SD Robustness
+Component Requirements: SD Robustness
 ----------------------------------------
 
-.. comp_req:: TC8 SD Robustness — Malformed Packet Survival
+.. comp_req:: TC8 SD Robustness: Malformed Packet Survival
    :id: comp_req__tc8_conformance__sd_robustness
    :status: valid
    :version: 1
@@ -637,13 +637,13 @@ Component Requirements — SD Robustness
    IDs (ETS_152), SOME/IP length field mismatches (ETS_153), and wrong
    SOME/IP service ID in the header (ETS_178).
 
-   Note: Traces to OA TC8 v3.0 §5.1.6 (Enhanced Testability Service Tests —
+   Note: Traces to OA TC8 v3.0 section 5.1.6 (Enhanced Testability Service Tests,
    SD robustness cases).
 
-Component Requirements — UDP Transport Binding
+Component Requirements: UDP Transport Binding
 -----------------------------------------------
 
-.. comp_req:: TC8 UDP Transport Binding — Multiple Messages per Datagram
+.. comp_req:: TC8 UDP Transport Binding: Multiple Messages per Datagram
    :id: comp_req__tc8_conformance__udp_transport
    :status: valid
    :version: 1
