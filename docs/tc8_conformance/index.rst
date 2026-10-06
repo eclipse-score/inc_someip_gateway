@@ -59,5 +59,5 @@ diagrams, and module structure, see
    :doc:`/architecture/tc8_conformance_testing` for test topology, module
    dependency diagrams, and planned components.
 
-   :doc:`traceability`: full OA TC8 v3.0 Chapter 6 scope analysis, gap
-   analysis, coverage breakdown, and known stack limitations.
+   :doc:`traceability`: OA TC8 v3.0 Chapter 6 test case mapping, requirement
+   links, and generated test results.

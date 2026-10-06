@@ -37,8 +37,8 @@ It belongs to a set of three documents that work together:
      - Defines *how* each test runs: purpose, preconditions, stimuli,
        and expected results.
    * - :doc:`traceability`
-     - Maps external OA spec test case IDs to internal test IDs,
-       component requirements, and Python test functions.
+     - Maps external OA spec test case IDs to internal test IDs and
+       component requirements, and shows generated test results.
 
 How the feature / component split works for TC8
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -251,7 +251,6 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
 
    Note: Traces to SOME/IP-SD specification section 4.1.1
    (Reboot Detection, session ID and reboot flag handling).
-   Covers TC8-SD-012 from the test strategy.
 
 .. comp_req:: TC8 SD Multicast Eventgroup Option
    :id: comp_req__tc8_conformance__sd_mcast_eg
