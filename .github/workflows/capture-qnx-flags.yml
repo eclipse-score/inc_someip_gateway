@@ -1,0 +1,80 @@
+# =============================================================================
+#  C O P Y R I G H T
+# =============================================================================
+#  Copyright (c) 2026 by ETAS GmbH. All rights reserved.
+#
+#  The reproduction, distribution and utilization of this file as
+#  well as the communication of its contents to others without express
+#  authorization is prohibited. Offenders will be held liable for the
+#  payment of damages. All rights reserved in the event of the grant
+#  of a patent, utility model or design.
+# =============================================================================
+
+name: Capture QNX Compilation Flags
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/capture-qnx-flags.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  capture-flags:
+    runs-on: ${{ fromJson(vars.RUNNER_LABELS_GHUB_STANDARD_X64) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
+
+      - name: Configure Inter Repo Access for Bazel
+        uses: eclipse-score/cicd-actions/inter-repo-access@212bbf86267e9381da9d2daf962d12f6feafbc90 # main branch
+        env:
+          HAS_GH_APP_PRIVATE_KEY: ${{ secrets.ETAS_ENG_SCORE_BOT_PRIVATE_KEY != '' }}
+          HAS_TOKEN: ${{ secrets.ETAS_ENG_REPO_READ_ACCESS_TOKEN != '' }}
+        if: ${{ env.HAS_GH_APP_PRIVATE_KEY == 'true' || env.HAS_TOKEN == 'true' }}
+        with:
+          github-app-client-id: ${{ vars.ETAS_ENG_SCORE_BOT_APP_ID }}
+          github-app-private-key: ${{ secrets.ETAS_ENG_SCORE_BOT_PRIVATE_KEY }}
+          token: ${{ secrets.ETAS_ENG_REPO_READ_ACCESS_TOKEN }}
+
+      - name: Configure Bazel caching
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@af1be61755b13c1f33b6c250080dc6ac025012f1 # 2026-07-20
+        with:
+          unique-cache-name: qnx-flags
+          main-branch: main
+
+      - name: Setup Artifactory Access BoschDevCloud
+        uses: etas-eng/vsps_gha_actions/.github/actions/setup-artifactory-access@284a224c90c1c83adcfb1da53d66206491fbbe6e # v1.0.0
+        id: setup-artifactory-access
+        with:
+          artifactory_user: ${{ secrets.SCORE_ARTIFACTORY_BDC_USER }}
+          artifactory_token: ${{ secrets.SCORE_ARTIFACTORY_BDC_TOKEN }}
+          artifactory_url: ${{ vars.ARTIFACTORY_BDC_URL }}
+
+      - name: Setup QNX
+        uses: eclipse-score/cicd-actions/setup-qnx-sdp@a2b3c36fc7d1b9d03880d19935c7ac9cfffe58c6 # 2026-05-19
+        with:
+          qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+          qnx-user: ${{ secrets.SCORE_QNX_USER }}
+          qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+          qnx-license-server: ${{ vars.SCORE_QNX_LICENSE_SERVER }}
+
+      - name: Capture QNX compilation flags
+        run: |
+          bazel aquery 'mnemonic("CppCompile|CppLink|CppArchive", //...)' \
+            --config=target_config_2 \
+            --check_direct_dependencies=off > qnx_flags_output.txt 2>&1
+        continue-on-error: true
+
+      - name: Upload flags as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qnx-compilation-flags
+          path: qnx_flags_output.txt
+
+      - name: Display flags (first 100 lines)
+        run: head -100 qnx_flags_output.txt || echo "No output captured"
+        continue-on-error: true
