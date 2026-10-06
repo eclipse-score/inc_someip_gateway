@@ -342,4 +342,3 @@ Component Requirements: Event Notification
    SOME/IP-SD section 4.1.2.4 (SubscribeEventgroup triggering
    notification delivery). Covers TC8-EVT-001 through TC8-EVT-004
    and TC8-EVT-006 from the test strategy.
-
