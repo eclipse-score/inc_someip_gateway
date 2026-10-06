@@ -98,7 +98,7 @@ jobs:
       - name: Run Linux QEMU integration tests
         run: |
           bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
-      - name: Run TC8 SOME/IP Conformance Tests
+      - name: Run TC8 tests
         run: |
           bazel test --config=tc8-itf --test_output=errors //tests/tc8_conformance/...
       - name: Stage TC8 test reports
