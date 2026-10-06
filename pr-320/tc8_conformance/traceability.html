@@ -471,9 +471,12 @@
                   
   <section id="tc8-conformance-traceability">
 <h1>TC8 Conformance Traceability<a class="headerlink" href="#tc8-conformance-traceability" title="Link to this heading">#</a></h1>
-<p>This document provides the single source of truth for tracing
-OPEN Alliance TC8 test cases from the external specification through
-the project’s internal requirements to the implementing test functions.</p>
+<p>This document maps OPEN Alliance TC8 test cases from the external
+specification to the project’s internal test IDs and component
+requirements. The OA specification mapping below is hand maintained.
+Requirement to test to result traceability is generated separately,
+from the test decorators and the test run’s <code class="docutils literal notranslate"><span class="pre">test.xml</span></code>, and is shown
+in the Test Results section at the end of this document.</p>
 <section id="source-document">
 <h2>Source Document<a class="headerlink" href="#source-document" title="Link to this heading">#</a></h2>
 <ul class="simple">
@@ -492,100 +495,75 @@ OA Automotive Ethernet ECU Test Specification v3.0 (Final), May 2020.
 </section>
 <section id="full-traceability-matrix">
 <h2>Full Traceability Matrix<a class="headerlink" href="#full-traceability-matrix" title="Link to this heading">#</a></h2>
-<p>The following table links each OA TC8 specification test case to the
-project’s internal test ID, component requirement, and implementing
-Python test function(s).  All requirement IDs use the
-<code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__</span></code> prefix (omitted for brevity).</p>
+<p>The following tables link each OA TC8 specification test case to the
+project’s internal test ID and component requirement. All requirement
+IDs use the <code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__</span></code> prefix (omitted for brevity).</p>
 <section id="service-discovery">
 <h3>Service Discovery<a class="headerlink" href="#service-discovery" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 12.0%" />
-<col style="width: 18.0%" />
 <col style="width: 45.0%" />
+<col style="width: 20.0%" />
+<col style="width: 35.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 6)</p></th>
 <th class="head"><p>Internal ID</p></th>
 <th class="head"><p>Requirement</p></th>
-<th class="head"><p>Test Function(s)</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08</p></td>
 <td><p>TC8-SD-001</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_001_multicast_offer_on_startup</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_14-18</p></td>
 <td><p>TC8-SD-002</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_002_offer_entry_format</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_02</p></td>
 <td><p>TC8-SD-003</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_cyclic_timing</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_003_cyclic_offer_timing</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_171</p></td>
 <td><p>TC8-SD-004</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_004_find_known_service_unicast_offer</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.4, implied by SD_BEHAVIOR_03/04</p></td>
 <td><p>TC8-SD-005</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_005_find_unknown_service_no_response</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_13</p></td>
 <td><p>TC8-SD-006</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_006_subscribe_valid_eventgroup_ack</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14; Section 6.1.6, SOMEIP_ETS_140</p></td>
 <td><p>TC8-SD-007</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_007_subscribe_unknown_eventgroup_nack</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_108, SOMEIP_ETS_092</p></td>
 <td><p>TC8-SD-008</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_008_stop_subscribe_ceases_notifications</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01</p></td>
 <td><p>TC8-SD-009</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_phases_timing</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_phases_timing::test_tc8_sd_009_repetition_phase_intervals</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01</p></td>
 <td><p>TC8-SD-010</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_phases_timing</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_phases_timing::test_tc8_sd_010_repetition_count_before_main_phase</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07</p></td>
 <td><p>TC8-SD-011</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_endpoint_option</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_011_offer_ipv4_endpoint_option</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_02, FORMAT_07</p></td>
-<td><p>TC8-SD-012</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::test_tc8_sd_012_reboot_flag_set_after_restart</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::test_tc8_sd_012_session_id_resets_after_restart</span></code></div>
-</div>
-</td>
-</tr>
-<tr class="row-even"><td><p>Section 6.1.5.2, SOMEIPSRV_OPTIONS_08-14</p></td>
+<tr class="row-odd"><td><p>Section 6.1.5.2, SOMEIPSRV_OPTIONS_08-14</p></td>
 <td><p>TC8-SD-013</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_mcast_eg</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_013_subscribe_ack_has_multicast_option</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_095</p></td>
+<tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_095</p></td>
 <td><p>TC8-SD-014</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::test_tc8_sd_014_ttl_expiry_ceases_notifications</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -595,119 +573,75 @@ Python test function(s).  All requirement IDs use the
 <h3>SD Entry Semantics<a class="headerlink" href="#sd-entry-semantics" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 12.0%" />
-<col style="width: 18.0%" />
 <col style="width: 45.0%" />
+<col style="width: 20.0%" />
+<col style="width: 35.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 6)</p></th>
 <th class="head"><p>Internal ID</p></th>
 <th class="head"><p>Requirement</p></th>
-<th class="head"><p>Test Function(s)</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_01</p></td>
 <td><p>TC8-SDM-001</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_01_instance_wildcard</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_02</p></td>
 <td><p>TC8-SDM-002</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_02_instance_specific</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_03</p></td>
 <td><p>TC8-SDM-003</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_03_major_version_wildcard</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_04</p></td>
 <td><p>TC8-SDM-004</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_04_major_version_specific</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_05</p></td>
 <td><p>TC8-SDM-005</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_05_minor_version_wildcard</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_06</p></td>
 <td><p>TC8-SDM-006</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDVersionMatching::test_sd_message_06_minor_version_specific</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14</p></td>
 <td><p>TC8-SDM-007</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_14_wrong_major_version</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_15</p></td>
 <td><p>TC8-SDM-008</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_15_wrong_service_id</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_16</p></td>
 <td><p>TC8-SDM-009</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_16_wrong_instance_id</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_17</p></td>
 <td><p>TC8-SDM-010</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_17_unknown_eventgroup_id</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_18</p></td>
 <td><p>TC8-SDM-011</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_18_ttl_zero_stop_subscribe</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19</p></td>
 <td><p>TC8-SDM-012</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeNAck::test_sd_message_19_reserved_field_set</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_03</p></td>
 <td><p>TC8-SDM-013</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_cyclic_timing</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceTiming::test_sd_behavior_03_unicast_findservice_timing</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_04</p></td>
 <td><p>TC8-SDM-014</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_cyclic_timing</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceTiming::test_sd_behavior_04_multicast_findservice_timing</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_07</p></td>
-<td><p>TC8-SDM-015</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_07_offer_entry_type_byte</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08</p></td>
-<td><p>TC8-SDM-016</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_08_offer_entry_option_run2_index_zero</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_09</p></td>
-<td><p>TC8-SDM-017</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_09_offer_entry_num_options_2_zero</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_11</p></td>
-<td><p>TC8-SDM-018</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_format_fields</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_format_compliance::TestSdEntryOptionFields::test_sd_message_11_subscribe_entry_type_byte</span></code></p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><strong>SOMEIPSRV_SD_MESSAGE_08 dual coverage:</strong> <code class="docutils literal notranslate"><span class="pre">TC8-SD-001</span></code> verifies that an
-OfferService message is <em>present</em> on multicast at startup (behavioural
-assertion).  <code class="docutils literal notranslate"><span class="pre">TC8-SDM-016</span></code> verifies the <em>option_index_2 byte</em> in the
-serialised entry is zero. This is a distinct field-level assertion from
-the same spec requirement.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -720,143 +654,84 @@ SubscribeEventgroup with reserved bits set.</p>
 <h3>SD Lifecycle Advanced<a class="headerlink" href="#sd-lifecycle-advanced" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <colgroup>
-<col style="width: 25.0%" />
-<col style="width: 12.0%" />
-<col style="width: 18.0%" />
 <col style="width: 45.0%" />
+<col style="width: 20.0%" />
+<col style="width: 35.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>OA Spec Reference (Ch. 6)</p></th>
 <th class="head"><p>Internal ID</p></th>
 <th class="head"><p>Requirement</p></th>
-<th class="head"><p>Test Function(s)</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_088</p></td>
 <td><p>TC8-SDLC-001</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_088_two_subscribes_same_session</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_092</p></td>
 <td><p>TC8-SDLC-002</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_092_ttl_zero_stop_subscribe_no_nack</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_098</p></td>
 <td><p>TC8-SDLC-003</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_098_subscribe_accepted_without_prior_rpc</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_107</p></td>
 <td><p>TC8-SDLC-004</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_107_find_service_and_subscribe_processed_independently</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_120</p></td>
 <td><p>TC8-SDLC-005</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_120_subscribe_endpoint_ip_matches_tester</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_122</p></td>
 <td><p>TC8-SDLC-006</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_122_sd_interface_version_is_one</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_155</p></td>
 <td><p>TC8-SDLC-007</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_155_resubscribe_after_stop</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_091</p></td>
 <td><p>TC8-SDLC-008</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_091_session_id_increments</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_099</p></td>
 <td><p>TC8-SDLC-009</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_099_initial_event_sent_after_subscribe</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_100</p></td>
 <td><p>TC8-SDLC-010</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_offer_format</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_100_no_findservice_emitted_by_server</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_101</p></td>
 <td><p>TC8-SDLC-011</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_101_stop_offer_ceases_client_events</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_128</p></td>
 <td><p>TC8-SDLC-012</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_128_multicast_findservice_version_wildcard</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_130</p></td>
 <td><p>TC8-SDLC-013</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDFindServiceAdvanced::test_ets_130_multicast_findservice_unicast_flag_clear</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_084</p></td>
 <td><p>TC8-SDLC-014</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_client::TestSDClientStopSubscribe::test_ets_084_stop_subscribe_ceases_events</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_081</p></td>
 <td><p>TC8-SDLC-015</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_client::TestSDClientReboot::test_ets_081_reboot_flag_set_after_first_restart</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_082</p></td>
 <td><p>TC8-SDLC-016</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_client::TestSDClientReboot::test_ets_082_reboot_flag_set_after_second_restart</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_093</p></td>
-<td><p>TC8-SDLC-017</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::TestSDReboot::test_ets_093_reboot_on_unicast_channel</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_094</p></td>
-<td><p>TC8-SDLC-018</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_reboot</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_sd_reboot::TestSDReboot::test_ets_094_server_reboot_session_id_resets</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_095</p></td>
 <td><p>TC8-SDLC-019</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sd_ttl_expiry</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery::TestSDSubscribeLifecycleAdvanced::test_ets_095_subscribe_ttl_expires_no_events</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_105</p></td>
-<td><p>TC8-SDLC-020</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p>NOT IMPLEMENTED</p></td>
-</tr>
-<tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_106</p></td>
-<td><p>TC8-SDLC-021</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p>NOT IMPLEMENTED</p></td>
-</tr>
-<tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_121</p></td>
-<td><p>TC8-SDLC-022</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">fld_initial_value</span></code></p></td>
-<td><p>NOT IMPLEMENTED</p></td>
-</tr>
-<tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_173</p></td>
-<td><p>TC8-SDLC-023</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p>NOT IMPLEMENTED</p></td>
-</tr>
-<tr class="row-odd"><td><p>Section 6.1.6, SOMEIP_ETS_104</p></td>
-<td><p>TC8-SDLC-024</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_sub_lifecycle</span></code></p></td>
-<td><p>NOT IMPLEMENTED</p></td>
-</tr>
-<tr class="row-even"><td><p>Section 6.1.6, SOMEIP_ETS_127</p></td>
-<td><p>TC8-SDLC-025</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">sd_find_response</span></code></p></td>
-<td><p>NOT IMPLEMENTED</p></td>
 </tr>
 </tbody>
 </table>
@@ -869,6 +744,249 @@ dedicated reverse-direction SD client target; the current target does not
 include that capability.</p>
 </div>
 </section>
+</section>
+<section id="test-results">
+<h2>Test Results<a class="headerlink" href="#test-results" title="Link to this heading">#</a></h2>
+<p>The table below is generated from the project’s native requirement
+to test traceability: it lists every testcase need that links, via its
+<code class="docutils literal notranslate"><span class="pre">fully_verifies</span></code> or <code class="docutils literal notranslate"><span class="pre">partially_verifies</span></code> field, to a
+<code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__</span></code> requirement, together with its last
+recorded result. It is empty on a local build until a test run’s
+<code class="docutils literal notranslate"><span class="pre">test.xml</span></code> is made available to the docs build.</p>
+<div class="needstable_wrapper docutils container" id="needtable-tc8_conformance/traceability-0">
+<div class="pst-scrollable-table-container"><table class="NEEDS_TABLE table" id="needtable-tc8_conformance/traceability-0-table_node">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Result</p></th>
+<th class="head"><p>Fully Verifies</p></th>
+<th class="head"><p>Partially Verifies</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_sd_client.py#L131">testcase__test_ets_096_tcp_connection_before_subscribe_cpdhj</a></p></td>
+<td class="needs_result"><p>skipped</p></td>
+<td class="needs_fully_verifies"><p></p></td>
+<td class="needs_partially_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_sd_client.py#L146">testcase__test_ets_097_tcp_reconnect_axtqu</a></p></td>
+<td class="needs_result"><p>skipped</p></td>
+<td class="needs_fully_verifies"><p></p></td>
+<td class="needs_partially_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_sd_client.py#L252">testcase__TestSDClientReboot__test_ets_081_reboot_flag_set_after_first_restart_nywlh</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_reboot">comp_req__tc8_conformance__sd_reboot</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_sd_client.py#L320">testcase__TestSDClientReboot__test_ets_082_reboot_flag_set_after_second_restart_ktagw</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_reboot">comp_req__tc8_conformance__sd_reboot</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_sd_client.py#L164">testcase__TestSDClientStopSubscribe__test_ets_084_stop_subscribe_ceases_events_tpacl</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L173">testcase__TestSDFindResponse__test_tc8_sd_004_find_known_service_unicast_offer_vgvsh</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L219">testcase__TestSDFindResponse__test_tc8_sd_005_find_unknown_service_no_response_ifclu</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1855">testcase__TestSDFindServiceAdvanced__test_ets_091_session_id_increments_dfrtz</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_offer_format">comp_req__tc8_conformance__sd_offer_format</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1913">testcase__TestSDFindServiceAdvanced__test_ets_099_initial_event_sent_after_subscribe_laehf</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1973">testcase__TestSDFindServiceAdvanced__test_ets_100_no_findservice_emitted_by_server_qkuvo</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_offer_format">comp_req__tc8_conformance__sd_offer_format</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L2008">testcase__TestSDFindServiceAdvanced__test_ets_101_stop_offer_ceases_client_events_zyxsq</a></p></td>
+<td class="needs_result"><p>skipped</p></td>
+<td class="needs_fully_verifies"><p></p></td>
+<td class="needs_partially_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L2023">testcase__TestSDFindServiceAdvanced__test_ets_128_multicast_findservice_version_wildcard_qjtmq</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L2070">testcase__TestSDFindServiceAdvanced__test_ets_130_multicast_findservice_unicast_flag_clear_irklv</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1185">testcase__TestSDFindServiceTiming__test_sd_behavior_03_unicast_findservice_timing_ieyha</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_cyclic_timing">comp_req__tc8_conformance__sd_cyclic_timing</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1257">testcase__TestSDFindServiceTiming__test_sd_behavior_04_multicast_findservice_timing_mpdns</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_cyclic_timing">comp_req__tc8_conformance__sd_cyclic_timing</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L484">testcase__TestSDMulticastEventgroup__test_tc8_sd_013_subscribe_ack_has_multicast_option_xbgkp</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_mcast_eg">comp_req__tc8_conformance__sd_mcast_eg</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L72">testcase__TestSDOfferFormat__test_tc8_sd_001_multicast_offer_on_startup_ynbhr</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_offer_format">comp_req__tc8_conformance__sd_offer_format</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L92">testcase__TestSDOfferFormat__test_tc8_sd_002_offer_entry_format_meyqo</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_offer_format">comp_req__tc8_conformance__sd_offer_format</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L121">testcase__TestSDOfferFormat__test_tc8_sd_003_cyclic_offer_timing_olkpm</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_cyclic_timing">comp_req__tc8_conformance__sd_cyclic_timing</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L423">testcase__TestSDOptionFormat__test_tc8_sd_011_offer_ipv4_endpoint_option_oejww</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_endpoint_option">comp_req__tc8_conformance__sd_endpoint_option</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_sd_phases_timing.py#L107">testcase__TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals_fcjqi</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_phases_timing">comp_req__tc8_conformance__sd_phases_timing</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_sd_phases_timing.py#L129">testcase__TestSDPhasesTiming__test_tc8_sd_010_repetition_count_before_main_phase_jyija</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_phases_timing">comp_req__tc8_conformance__sd_phases_timing</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L257">testcase__TestSDSubscribeLifecycle__test_tc8_sd_006_subscribe_valid_eventgroup_ack_pmdfu</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L302">testcase__TestSDSubscribeLifecycle__test_tc8_sd_007_subscribe_unknown_eventgroup_nack_ddatv</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1341">testcase__TestSDSubscribeLifecycleAdvanced__test_ets_088_two_subscribes_same_session_vzofd</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1405">testcase__TestSDSubscribeLifecycleAdvanced__test_ets_092_ttl_zero_stop_subscribe_no_nack_zefvr</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1455">testcase__TestSDSubscribeLifecycleAdvanced__test_ets_098_subscribe_accepted_without_prior_rpc_scydj</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1505">testcase__TestSDSubscribeLifecycleAdvanced__test_ets_107_find_service_and_subscribe_processed_independently_eweuw</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1600">testcase__TestSDSubscribeLifecycleAdvanced__test_ets_120_subscribe_endpoint_ip_matches_tester_krtkg</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1650">testcase__TestSDSubscribeLifecycleAdvanced__test_ets_122_sd_interface_version_is_one_pqsps</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_offer_format">comp_req__tc8_conformance__sd_offer_format</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L889">testcase__TestSDSubscribeNAck__test_sd_message_14_wrong_major_version_chhml</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L934">testcase__TestSDSubscribeNAck__test_sd_message_15_wrong_service_id_risli</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L985">testcase__TestSDSubscribeNAck__test_sd_message_16_wrong_instance_id_oaied</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1031">testcase__TestSDSubscribeNAck__test_sd_message_17_unknown_eventgroup_id_wqijt</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1078">testcase__TestSDSubscribeNAck__test_sd_message_18_ttl_zero_stop_subscribe_hsiwf</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L1122">testcase__TestSDSubscribeNAck__test_sd_message_19_reserved_field_set_zwdzs</a></p></td>
+<td class="needs_result"><p>skipped</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_sub_lifecycle">comp_req__tc8_conformance__sd_sub_lifecycle</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L632">testcase__TestSDVersionMatching__test_sd_message_01_instance_wildcard_mzeuf</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L676">testcase__TestSDVersionMatching__test_sd_message_02_instance_specific_tppza</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L716">testcase__TestSDVersionMatching__test_sd_message_03_major_version_wildcard_acrxg</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L757">testcase__TestSDVersionMatching__test_sd_message_04_major_version_specific_uiihb</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-even"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L798">testcase__TestSDVersionMatching__test_sd_message_05_minor_version_wildcard_sfltf</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+<tr class="need row-odd"><td class="needs_id external_link"><p><a class="external_link reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/d774ebf60621e0c28e2071ac178dabfa2ccafaf9/tests/tc8_conformance/test_service_discovery.py#L840">testcase__TestSDVersionMatching__test_sd_message_06_minor_version_specific_bmftd</a></p></td>
+<td class="needs_result"><p>passed</p></td>
+<td class="needs_fully_verifies"><p><a class="reference external" href="requirements.html#comp_req__tc8_conformance__sd_find_response">comp_req__tc8_conformance__sd_find_response</a></p></td>
+<td class="needs_partially_verifies"><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Tests that skip or error during setup do not get a results link today, because
+of an upstream <code class="docutils literal notranslate"><span class="pre">score_tooling</span></code> 2.1.1 limitation in its pytest results
+plugin, so a requirement verified only by a skip marked test shows no linked
+test results.</p>
 </section>
 </section>
 
@@ -926,6 +1044,7 @@ include that capability.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-lifecycle-advanced">SD Lifecycle Advanced</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-results">Test Results</a></li>
 </ul>
   </nav></div>
 
