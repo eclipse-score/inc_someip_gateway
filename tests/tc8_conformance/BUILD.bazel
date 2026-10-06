@@ -172,6 +172,8 @@ _ITF_ARGS = [
     "--color=yes",
     "-p",
     "tc8_itf_conftest",
+    "-p",
+    "attribute_plugin",
 ]
 
 _ITF_DEPS = [
