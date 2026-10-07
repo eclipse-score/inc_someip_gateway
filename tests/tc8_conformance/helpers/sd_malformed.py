@@ -297,10 +297,7 @@ def send_sd_entries_length_wrong(
     service_id: int,
     entries_length_override: int,
 ) -> None:
-    """ETS_114/123/124/125: SD packet where entries_array_length mismatches actual entry bytes.
-
-    DUT must discard and remain alive.
-    """
+    """ETS_114/123/124/125: SD packet where entries_array_length mismatches actual entry bytes."""
     entry_bytes = _find_service_entry_bytes(service_id=service_id)
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
@@ -322,7 +319,7 @@ def send_sd_entry_refs_more_options(
 ) -> None:
     """ETS_115: SubscribeEventgroup entry num_options_1=3 but options array has only 1.
 
-    DUT must discard the subscribe (and may send NAck) but must not crash.
+    DUT must discard the subscribe (and may send NAck).
     """
     # Build entry with num_options_1=3 (bits [7:4] of byte 2)
     ttl_3b = struct.pack(">I", 3)[1:]
@@ -352,7 +349,7 @@ def send_sd_entry_unknown_option_type(
 ) -> None:
     """ETS_116/174: SubscribeEventgroup with an option of unknown type 0x77.
 
-    DUT may send NAck or silently discard, but must not crash.
+    DUT may send NAck or silently discard.
     """
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
@@ -381,11 +378,7 @@ def send_sd_entry_same_option_twice(
     host_ip: str,
     subscriber_port: int,
 ) -> None:
-    """ETS_117: Two entries pointing to the same endpoint option via option index overlap.
-
-    Builds two SubscribeEventgroup entries both referencing option index 0.
-    DUT must not crash.
-    """
+    """ETS_117: Two SubscribeEventgroup entries both referencing endpoint option index 0."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry1 = (
         bytes([0x06, 0x00, 0x10, 0x00])
@@ -422,11 +415,7 @@ def send_sd_option_length_too_long(
     subscriber_port: int,
     option_length_override: int,
 ) -> None:
-    """ETS_134/135: IPv4EndpointOption with oversize length field.
-
-    The option length field claims more bytes than the options array contains.
-    DUT must discard and remain alive.
-    """
+    """ETS_134/135: IPv4EndpointOption length field claims more bytes than the options array contains."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
         bytes([0x06, 0x00, 0x10, 0x00])
@@ -454,10 +443,7 @@ def send_sd_option_length_too_short(
     host_ip: str,
     subscriber_port: int,
 ) -> None:
-    """ETS_136: IPv4EndpointOption with length field = 1 (too short for actual content).
-
-    DUT must discard and remain alive.
-    """
+    """ETS_136: IPv4EndpointOption with length field = 1 (too short for actual content)."""
     send_sd_option_length_too_long(
         sock,
         dest,
@@ -479,11 +465,8 @@ def send_sd_option_length_unaligned(
     host_ip: str,
     subscriber_port: int,
 ) -> None:
-    """ETS_137: IPv4EndpointOption with odd length that doesn't align to option boundary.
-
-    Uses length=0x000A (10) instead of 9; points one byte past the type+reserved into
-    the next field.  DUT must discard and remain alive.
-    """
+    """ETS_137: IPv4EndpointOption length=0x000A (10, instead of 9) points one byte past
+    type+reserved into the next field."""
     send_sd_option_length_too_long(
         sock,
         dest,
@@ -505,10 +488,7 @@ def send_sd_options_array_length_too_long(
     host_ip: str,
     subscriber_port: int,
 ) -> None:
-    """ETS_138: options_array_length claims more bytes than actually present.
-
-    DUT must discard and remain alive.
-    """
+    """ETS_138: options_array_length claims more bytes than actually present."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
         bytes([0x06, 0x00, 0x10, 0x00])
@@ -538,10 +518,7 @@ def send_sd_options_array_length_too_short(
     host_ip: str,
     subscriber_port: int,
 ) -> None:
-    """ETS_139: options_array_length claims fewer bytes than actually present.
-
-    DUT must discard and remain alive.
-    """
+    """ETS_139: options_array_length claims fewer bytes than actually present."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
         bytes([0x06, 0x00, 0x10, 0x00])
@@ -572,7 +549,6 @@ def send_sd_subscribe_no_endpoint(
     """ETS_109: SubscribeEventgroup with num_options_1=0 (no endpoint option).
 
     DUT must send NAck (SubscribeAck with TTL=0) or silently discard.
-    Must not crash.
     """
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
@@ -598,7 +574,7 @@ def send_sd_subscribe_zero_ip(
 ) -> None:
     """ETS_110: SubscribeEventgroup with endpoint IP = 0.0.0.0 (unspecified).
 
-    DUT must send NAck or silently discard.  Must not crash.
+    DUT must send NAck or silently discard.
     """
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
@@ -625,10 +601,8 @@ def send_sd_subscribe_wrong_l4proto(
     subscriber_port: int,
     l4proto: int = 0x00,
 ) -> None:
-    """ETS_119: SubscribeEventgroup with unknown L4 protocol byte in endpoint option.
-
-    Uses l4proto=0x00 (neither UDP=0x11 nor TCP=0x06).
-    DUT must send NAck or silently discard.  Must not crash.
+    """ETS_119: SubscribeEventgroup with unknown L4 protocol byte in endpoint option (default 0x00,
+    neither UDP=0x11 nor TCP=0x06). DUT must send NAck or silently discard.
     """
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
@@ -656,7 +630,7 @@ def send_sd_subscribe_reserved_option(
 ) -> None:
     """ETS_144: SubscribeEventgroup with a reserved option type (0x20).
 
-    DUT must send NAck or silently discard.  Must not crash.
+    DUT must send NAck or silently discard.
     """
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
@@ -679,10 +653,7 @@ def send_sd_wrong_someip_length(
     service_id: int,
     length_override: int,
 ) -> None:
-    """ETS_153: SOME/IP SD packet where the SOME/IP length field is incorrect.
-
-    DUT must discard and remain alive.
-    """
+    """ETS_153: SOME/IP SD packet where the SOME/IP length field is incorrect."""
     entry_bytes = _find_service_entry_bytes(service_id=service_id)
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
@@ -718,10 +689,7 @@ def send_sd_wrong_someip_message_id(
     dest: Tuple[str, int],
     service_id_override: int = 0x1234,
 ) -> None:
-    """ETS_178: SD packet with wrong SOME/IP service_id (not 0xFFFF).
-
-    DUT must silently discard (not SD traffic) and remain alive.
-    """
+    """ETS_178: SD packet with wrong SOME/IP service_id (not 0xFFFF); DUT must treat it as non-SD traffic."""
     entry_bytes = _find_service_entry_bytes(service_id=0x1234)
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
@@ -737,10 +705,7 @@ def send_sd_truncated_entry(
     dest: Tuple[str, int],
     service_id: int,
 ) -> None:
-    """ETS_125: SD packet with entries_array_length=16 but only 8 bytes of entry data.
-
-    The entry is incomplete (truncated). DUT must discard and remain alive.
-    """
+    """ETS_125: SD packet with entries_array_length=16 but only 8 bytes of (truncated) entry data."""
     entry_bytes = _find_service_entry_bytes(service_id=service_id)[:8]  # truncate to 8 bytes
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
@@ -756,10 +721,7 @@ def send_sd_oversized_entries_length(
     dest: Tuple[str, int],
     service_id: int,
 ) -> None:
-    """ETS_123/124: entries_array_length far exceeds packet size.
-
-    DUT must discard and remain alive.
-    """
+    """ETS_123/124: entries_array_length far exceeds packet size."""
     entry_bytes = _find_service_entry_bytes(service_id=service_id)
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
@@ -777,11 +739,7 @@ def send_sd_empty_option(
     instance_id: int,
     eventgroup_id: int,
 ) -> None:
-    """ETS_112/113: SubscribeEventgroup with an option whose length field is 0 or 1.
-
-    An option with length < 2 is malformed (type byte cannot fit).
-    DUT must discard and remain alive.
-    """
+    """ETS_112/113: SubscribeEventgroup with an option length field < 2 (too small for the type byte to fit)."""
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
         instance_id=instance_id,
@@ -809,7 +767,7 @@ def send_sd_subscribe_nonexistent_service(
 ) -> None:
     """ETS_140-143: SubscribeEventgroup for a service_id not offered by DUT.
 
-    DUT must send no SubscribeAck or a NAck. Must not crash.
+    DUT must send no SubscribeAck or a NAck.
     """
     entry_bytes = _subscribe_entry_bytes(
         service_id=unknown_service_id,

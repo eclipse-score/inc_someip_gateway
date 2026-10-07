@@ -29,13 +29,7 @@ _MessageHandler = Callable[[SOMEIPHeader], bool]
 
 
 def parse_datagram(data: bytes) -> List[SOMEIPHeader]:
-    """Return all SOME/IP messages packed into a single UDP datagram.
-
-    A UDP datagram may bundle multiple SOME/IP messages back to back
-    (PRS_SOMEIP_00142 / PRS_SOMEIP_00569). SOMEIPHeader.parse() returns
-    (message, remaining_bytes); looping over the remainder ensures every
-    message in the datagram is parsed, not just the first one.
-    """
+    """Return all SOME/IP messages packed into a single UDP datagram (PRS_SOMEIP_00142 / 00569)."""
     messages: List[SOMEIPHeader] = []
     buf = data
     while buf:
@@ -54,13 +48,9 @@ def receive_until(
 ) -> bool:
     """Shared deadline-based receive loop for SOME/IP messages over UDP.
 
-    Repeatedly calls recvfrom() until *timeout_secs* elapses. Every SOME/IP
-    message found in each datagram is parsed (a single datagram may bundle
-    several messages) and passed to *on_message*. The loop stops as soon as
-    *on_message* returns True.
-
-    Returns True if *on_message* signalled completion, False if the
-    deadline was reached first.
+    Calls *on_message* for every message found in each datagram (a single
+    datagram may bundle several) until it returns True or *timeout_secs*
+    elapses. Returns whether *on_message* signalled completion.
     """
     deadline = time.monotonic() + timeout_secs
     while True:
@@ -82,15 +72,7 @@ def udp_send_concatenated(
     addr: tuple[str, int],
     messages: list[bytes],
 ) -> None:
-    """Send multiple SOME/IP messages concatenated into ONE UDP datagram.
-
-    SOME/IP PRS_SOMEIP_00142 and PRS_SOMEIP_00569 require the DUT to parse
-    multiple SOME/IP messages packed into a single UDP datagram. This helper
-    concatenates all *messages* and delivers them as one ``sendto()`` call
-    so the DUT receives them in a single datagram.
-
-    Used by: SOMEIP_ETS_069.
-    """
+    """Send multiple SOME/IP messages concatenated into ONE UDP datagram (PRS_SOMEIP_00142 / 00569, ETS_069)."""
     sock.sendto(b"".join(messages), addr)
 
 
@@ -99,16 +81,10 @@ def udp_receive_responses(
     count: int,
     timeout_secs: float = 5.0,
 ) -> List[SOMEIPHeader]:
-    """Receive exactly *count* SOME/IP responses from a UDP socket.
+    """Receive exactly *count* SOME/IP responses from a UDP socket (ETS_069).
 
     Uses a single shared deadline across the whole wait so the total wait
-    never exceeds *timeout_secs*. The DUT may bundle multiple responses
-    into a single datagram; every message in each datagram is parsed, not
-    just the first one.
-
-    Raises ``socket.timeout`` if not all responses arrive in time.
-
-    Used by: SOMEIP_ETS_069.
+    never exceeds *timeout_secs*.
     """
     responses: List[SOMEIPHeader] = []
 

@@ -58,23 +58,12 @@ def tcp_connect(host_ip: str, port: int, timeout_secs: float = 5.0) -> socket.so
 
 
 def tcp_send_request(sock: socket.socket, request_bytes: bytes) -> None:
-    """Send a complete SOME/IP message over a TCP connection.
-
-    Uses sendall() to ensure all bytes are transmitted.
-    """
+    """Send a complete SOME/IP message over a TCP connection."""
     sock.sendall(request_bytes)
 
 
 def tcp_send_concatenated(sock: socket.socket, messages: list[bytes]) -> None:
-    """Send multiple SOME/IP messages concatenated into a single TCP write.
-
-    SOME/IP PRS_SOMEIP_00142 requires TCP receivers to handle multiple
-    SOME/IP messages arriving in a single TCP segment (unaligned packing).
-    This helper concatenates all *messages* and delivers them as one
-    ``sendall()`` call so the DUT receives them in one segment.
-
-    Used by: SOMEIP_ETS_068.
-    """
+    """Send multiple SOME/IP messages concatenated into a single TCP write (PRS_SOMEIP_00142, ETS_068)."""
     sock.sendall(b"".join(messages))
 
 
@@ -83,13 +72,10 @@ def tcp_receive_n_responses(
     count: int,
     timeout_secs: float = 5.0,
 ) -> list[SOMEIPHeader]:
-    """Receive exactly *count* SOME/IP responses from a TCP stream.
+    """Receive exactly *count* SOME/IP responses from a TCP stream (ETS_068).
 
     Uses a single shared deadline across all *count* receive calls so the
-    total wait never exceeds *timeout_secs*.  Raises ``socket.timeout`` if
-    not all responses arrive in time.
-
-    Used by: SOMEIP_ETS_068.
+    total wait never exceeds *timeout_secs*.
     """
     deadline = time.monotonic() + timeout_secs
     responses: list[SOMEIPHeader] = []
@@ -144,13 +130,9 @@ def tcp_accept_and_receive_notification(
     service_id: int,
     timeout_secs: float = 8.0,
 ) -> SOMEIPHeader:
-    """Accept a TCP connection and receive one SOME/IP notification.
+    """Accept a TCP connection and return the first notification matching *service_id* and *event_id*.
 
     The DUT connects to our listening socket to deliver event notifications.
-    Uses the same SOME/IP TCP framing as tcp_receive_response().
-
-    Returns the first notification matching *service_id* and *event_id*.
-    Raises socket.timeout or AssertionError if no matching notification arrives.
     """
     srv_sock.settimeout(timeout_secs)
     conn, _ = srv_sock.accept()

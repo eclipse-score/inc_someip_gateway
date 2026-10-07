@@ -151,16 +151,12 @@ def render_someip_config(
     service_id: str = "",
     instance_id: str = "",
 ) -> Path:
-    """Replace ``__TC8_HOST_IP__``, ``__TC8_SERVICE_ID__``,
-    ``__TC8_INSTANCE_ID__``, ``__TC8_SD_PORT__``, ``__TC8_SVC_PORT__``,
-    ``__TC8_SVC_TCP_PORT__``, and ``__TC8_LOG_DIR__`` in a config template.
+    """Render a config template's ``__TC8_*__`` placeholders and write it to *dest_dir*.
 
-    Writes the rendered config to *dest_dir* and returns the path.
-
-    In ITF mode this function is called but the resulting file is not used
-    (the QEMU guest already has its configs rendered by ``tc8_itf_config_setup``
-    via sed).  The call is kept so that the ``sd_client_config`` fixture
-    signature remains unchanged.
+    In ITF mode the resulting file is not actually used by the DUT (the QEMU
+    guest's configs are rendered separately by ``tc8_itf_config_setup`` via
+    sed); this call is kept only so the ``sd_client_config`` fixture
+    signature stays unchanged.
     """
     sd_port = os.environ.get("TC8_SD_PORT", "30490")
     svc_port = os.environ.get("TC8_SVC_PORT", "30509")
@@ -196,17 +192,10 @@ def launch_dut(
 ) -> object:
     """Start the full DUT stack (someipd, tc8_ets_stub, gatewayd) on the QEMU guest.
 
-    *target_init* is a ``QemuTarget`` provided by the ITF framework.  The
-    *config_path* filename selects the pre-rendered guest vsomeip config
-    (written to ``/tmp`` by ``tc8_itf_config_setup`` via sed, session-scoped).
-
-    someipd is started first so it becomes the vsomeip routing manager.
-    gatewayd is started immediately after; it retries the IPC handshake
-    internally until someipd is ready.
-
-    Returns a ``_TargetProcess`` adapter whose ``.terminate()`` / ``.wait()``
-    interface is compatible with :func:`terminate_dut`.  Calling
-    ``.terminate()`` kills all three binaries and stops their async process handles.
+    *config_path*'s filename selects the pre-rendered guest vsomeip config
+    (written to ``/tmp`` by ``tc8_itf_config_setup``). someipd is started
+    first so it becomes the vsomeip routing manager; gatewayd retries the
+    IPC handshake internally until someipd is ready.
     """
     if target_init is None:
         raise RuntimeError("launch_dut: target_init must be provided (ITF mode only)")
@@ -268,22 +257,11 @@ def cleanup_vsomeip_sockets(
     """Remove stale vsomeip routing-manager sockets and LoLa SHM/discovery
     leftovers on the QEMU guest before each DUT (re)start.
 
-    ITF (target-based) mode is the only supported mode: *target_init* is a
-    ``QemuTarget`` and cleanup runs via SSH on the QEMU guest, covering both
-    the Linux and QNX8 target layouts:
-
-    * vsomeip routing-manager sockets: ``/tmp/vsomeip-*`` (Linux),
-      ``/var/run/vsomeip-*`` (QNX8, per vsomeip-qnx8.patch).
-    * LoLa SHM shared-memory objects: ``/dev/shm/lola-*`` (Linux),
-      ``/dev/shmem/lola-*`` (QNX8).
-    * LoLa partial-restart discovery marker files:
-      ``/tmp/mw_com_lola/partial_restart/*`` (Linux),
-      ``/tmp_discovery/mw_com_lola/partial_restart/*`` (QNX8).
-
-    Cleanup is broad (not scoped to a single service/instance ID) since the
-    target only ever runs one test session at a time. Files created by the
-    custom SomeipMessageTransfer IPC binding are intentionally left alone,
-    since that binding is being replaced by one built on mw::com.
+    Covers both Linux (``/tmp/vsomeip-*``, ``/dev/shm/lola-*``,
+    ``/tmp/mw_com_lola/partial_restart/*``) and QNX8 (``/var/run/vsomeip-*``,
+    ``/dev/shmem/lola-*``, ``/tmp_discovery/mw_com_lola/partial_restart/*``)
+    layouts. Cleanup is broad (not scoped to one service/instance) since the
+    target only ever runs one test session at a time.
     """
     if target_init is None:
         _logger.warning("cleanup_vsomeip_sockets: target_init not provided; skipping cleanup (ITF mode only)")
@@ -314,15 +292,7 @@ def wait_for_sd_readiness(
     host_ip: str,
     timeout_secs: float = 10.0,
 ) -> bool:
-    """Wait until the DUT sends at least one multicast OfferService.
-
-    Opens a short-lived multicast socket on *host_ip* (host TAP interface),
-    joins the SD multicast group, and returns ``True`` as soon as a SOME/IP-SD
-    OfferService entry is received.  Returns ``False`` on timeout.
-
-    Socket setup and SD parsing are delegated to ``helpers.sd_helpers``, the
-    single source of truth for SD multicast handling.
-    """
+    """Wait until the DUT sends at least one multicast OfferService, or return False on timeout."""
     sock = open_multicast_socket(host_ip)
 
     deadline = time.monotonic() + timeout_secs

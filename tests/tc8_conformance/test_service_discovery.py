@@ -881,10 +881,7 @@ class TestSDVersionMatching:
 
 
 class TestSDSubscribeNAck:
-    """SOMEIPSRV_SD_MESSAGE_14-19: SubscribeEventgroup NAck scenarios.
-
-    A SubscribeEventgroup NAck is a SubscribeAck SD entry (type 0x07) with TTL=0.
-    """
+    """SOMEIPSRV_SD_MESSAGE_14-19: SubscribeEventgroup NAck scenarios (SubscribeAck entry, TTL=0)."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
@@ -943,12 +940,7 @@ class TestSDSubscribeNAck:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """SOMEIPSRV_SD_MESSAGE_15: Subscribe to unknown service_id receives NAck (TTL=0).
-
-        Per SOMEIPSRV_SD_MESSAGE_15 the DUT shall respond with a SubscribeEventgroupNAck
-        (SubscribeAck entry with TTL=0).  The DUT sends a NAck for unknown
-        service IDs; the response carries the same eventgroup_id as the request.
-        """
+        """SOMEIPSRV_SD_MESSAGE_15: Subscribe to unknown service_id receives NAck (TTL=0)."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -1194,14 +1186,7 @@ class TestSDFindServiceTiming:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """SOMEIPSRV_SD_BEHAVIOR_03: Unicast FindService response arrives within request_response_delay * 1.5.
-
-        The DUT is in its main phase (the module-scoped dut fixture has been
-        running for the full test session).  Per spec the DUT must respond within
-        ``request_response_delay`` (500 ms); we allow 1.5x = 750 ms per implementation
-        tolerance.  If the cyclic offer fires within that window it also satisfies the
-        test.  We resend every 600 ms so the measurement window starts fresh each send.
-        """
+        """SOMEIPSRV_SD_BEHAVIOR_03: Unicast FindService response arrives within request_response_delay * 1.5."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -1266,18 +1251,8 @@ class TestSDFindServiceTiming:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """SOMEIPSRV_SD_BEHAVIOR_04: Multicast FindService (Unicast flag=0) triggers a multicast OfferService.
-
-        A FindService sent to the SD multicast group shall be answered with a multicast
-        OfferService response.  This test captures the response on the SD multicast
-        socket (not the unicast sender socket) and verifies it arrives within
-        ``cyclic_offer_delay * 1.5`` of the FindService transmission.
-
-        On a loopback interface the multicast response arrives on the socket that has
-        joined the SD multicast group (``open_multicast_socket``).  Both the sender
-        and listener sockets are opened so the FindService can be injected while the
-        multicast socket is actively listening.
-        """
+        """SOMEIPSRV_SD_BEHAVIOR_04: Multicast FindService (unicast flag=0) triggers a multicast OfferService
+        within cyclic_offer_delay * 1.5."""
         assert dut.poll() is None, "DUT is not running"
 
         send_sock = open_sender_socket(tester_ip)
@@ -1350,12 +1325,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_088: Two SubscribeEventgroup entries (different eventgroups) both receive ACKs.
-
-        The spec requires the DUT to process multiple subscribe entries even when
-        sent in rapid succession.  We send two separate SD messages (one per
-        eventgroup) and assert that both receive a SubscribeAck with TTL > 0.
-        """
+        """ETS_088: Two SubscribeEventgroup entries (different eventgroups), sent back to back, both receive ACKs."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -1414,12 +1384,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_092: SubscribeEventgroup with TTL=0 is treated as StopSubscribe; no NAck sent.
-
-        Per PRS_SOMEIPSD_00386 and PRS_SOMEIPSD_00387 a subscribe entry with TTL=0 is
-        a StopSubscribeEventgroup. The DUT must not send a SubscribeAck (positive or
-        negative) in response.
-        """
+        """ETS_092: SubscribeEventgroup with TTL=0 is a StopSubscribe (PRS_SOMEIPSD_00386/00387); no NAck sent."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -1464,11 +1429,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_098: SubscribeEventgroup is accepted without a prior method call.
-
-        A server must not require the client to invoke a method before accepting
-        an eventgroup subscription.  Verify a positive ACK (TTL > 0) is received.
-        """
+        """ETS_098: SubscribeEventgroup is accepted (ACK with TTL>0) without any prior method call."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -1514,18 +1475,8 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_107: DUT processes SD entries independently of arrival order.
-
-        Send a FindService immediately followed by a SubscribeEventgroup in rapid
-        succession (two separate packets).  The DUT must process both entries
-        independently regardless of their order in the stream.
-
-        Verification strategy:
-        - FindService response (OfferService) is captured on the SD multicast
-          socket because the DUT (server) responds to incoming FindService messages on multicast.
-        - SubscribeAck arrives on the unicast sender socket.
-        Both arriving confirms the DUT processed both entries.
-        """
+        """ETS_107: DUT processes a FindService and a SubscribeEventgroup sent back to back independently
+        (OfferService on multicast, SubscribeAck on unicast both arrive)."""
         assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
@@ -1609,12 +1560,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_120: SubscribeEventgroup with explicit subscriber IP receives OfferService ACK.
-
-        The subscribe endpoint carries tester_ip as the subscriber address.
-        The DUT must send the ACK to that IP.  Verifying the ACK arrives on the
-        tester socket confirms the DUT correctly used the subscriber_ip field.
-        """
+        """ETS_120: DUT sends the ACK to the subscriber_ip given in the Subscribe entry, not the packet source."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -1707,11 +1653,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_155: Re-subscribe after StopSubscribe receives a new ACK and resumes events.
-
-        Lifecycle: Subscribe, ACK, StopSubscribe (TTL=0), Subscribe, ACK.
-        The DUT must accept the second subscription and resume event delivery.
-        """
+        """ETS_155: Subscribe, ACK, StopSubscribe, re-Subscribe receives a new ACK."""
         assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
@@ -1785,12 +1727,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_095: No NOTIFICATION messages are received after subscription TTL expires.
-
-        SOMEIP_ETS_095 (Sec. 5.1.6): After a subscription TTL elapses and is not
-        renewed the server must cease sending event notifications to the expired
-        subscriber.
-        """
+        """ETS_095 (Sec. 5.1.6): No NOTIFICATION messages are received after an unrenewed subscription TTL expires."""
         assert dut.poll() is None, "DUT is not running"
 
         # Use TTL=3 (same as TC8-SD-014); TTL=1 is too short to reliably
@@ -1862,12 +1799,7 @@ class TestSDFindServiceAdvanced:
         dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
-        """ETS_091: Successive SD messages have monotonically incrementing session_id.
-
-        Capture at least 2 OfferService packets from the DUT and verify that
-        each subsequent packet's session_id is greater than the previous one.
-        The DUT emits cyclic offers every 2000 ms; allow up to 8 s to capture 3.
-        """
+        """ETS_091: Successive SD messages have monotonically incrementing session_id (with 16-bit wrap-around)."""
         assert dut.poll() is None, "DUT is not running"
 
         mc_sock = open_multicast_socket(host_ip)
@@ -1982,13 +1914,7 @@ class TestSDFindServiceAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_100: DUT (server) must not emit FindService entries in main phase.
-
-        A SOME/IP server that has offered its service must not transmit
-        FindService SD entries.  Capture unicast SD entries on the tester
-        socket (which is bound at SD_PORT) for 5 s and assert none are
-        FindService type from the DUT.
-        """
+        """ETS_100: DUT (server) must not emit FindService entries once in main phase."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -2017,7 +1943,7 @@ class TestSDFindServiceAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_101: DUT is server-only; client StopSubscribe reaction to server StopOfferService is not applicable."""
+        """ETS_101: not applicable, DUT is server-only (see skip reason)."""
         pytest.skip("DUT is server-only; client StopSubscribe reaction to server StopOfferService is not applicable.")
 
     @add_test_properties(
@@ -2032,11 +1958,7 @@ class TestSDFindServiceAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_128: Multicast FindService with major=0xFF/minor=0xFFFFFFFF triggers OfferService.
-
-        Sending a FindService with wildcard version to the SD multicast address
-        must cause the DUT to respond with an OfferService.
-        """
+        """ETS_128: Multicast FindService with major=0xFF/minor=0xFFFFFFFF (wildcard version) triggers OfferService."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -2079,13 +2001,7 @@ class TestSDFindServiceAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_130: FindService with unicast_flag=0 (flags byte bit 6 clear) is processed.
-
-        Per SOME/IP-SD spec, the unicast flag (bit 6 of the SD flags byte) signals
-        whether the sender supports unicast responses.  With the flag clear (0) the
-        DUT may respond on multicast.  At minimum it must process the FindService
-        and we capture any resulting offer on either socket.
-        """
+        """ETS_130: FindService with unicast_flag=0 (SD flags bit 6 clear) is still processed by the DUT."""
         assert dut.poll() is None, "DUT is not running"
 
         from helpers.sd_malformed import build_raw_sd_packet, _find_service_entry_bytes  # noqa: PLC0415

@@ -13,15 +13,9 @@
 """TC8 SD Client lifecycle tests: ETS_081/082/084 and skipped ETS_096/097.
 
 This module manages its own someipd lifecycle (launch/terminate per test)
-and must NOT share the module-scoped ``dut`` fixture from conftest.py.
-Running a private DUT avoids routing-manager conflicts with other
-TC8 targets that bind the same SD port.
-
-Port assignment (from BUILD.bazel env):
-  TC8_SD_PORT  = 30498  (SD traffic)
-  TC8_SVC_PORT = 30511  (service UDP traffic)
-
-See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
+and must NOT share the module-scoped ``dut`` fixture from conftest.py, to
+avoid routing-manager conflicts with other TC8 targets that bind the same
+SD port.
 """
 
 import socket
@@ -114,14 +108,10 @@ def sd_client_config(
 ) -> Path:
     """Render the DUT config template and return the path.
 
-    Triggers ``tc8_itf_config_setup`` (session-scoped) to render vsomeip JSON
-    templates on the QEMU guest before any ``launch_dut`` call.  Without
-    this the guest ``/tc8_sd.json`` is absent or has literal ``__TC8_*__``
-    placeholders, causing vsomeip to bind loopback and SD multicast to never
-    egress the TAP interface.
-
-    ``launch_dut`` uses the path's filename to select the correct
-    pre-rendered guest config; the host-side file is harmless.
+    Triggers ``tc8_itf_config_setup`` (session-scoped) first, since without
+    pre-rendered guest templates vsomeip binds loopback and SD multicast
+    never reaches the TAP interface. ``launch_dut`` uses the path's filename
+    to select the matching pre-rendered guest config.
     """
     request.getfixturevalue("tc8_itf_config_setup")
     tmp_dir = tmp_path_factory.mktemp("tc8_sd_client_config")
@@ -174,11 +164,7 @@ class TestSDClientStopSubscribe:
         tester_ip: str,
         request: pytest.FixtureRequest,
     ) -> None:
-        """ETS_084: After StopSubscribeEventgroup (TTL=0) the DUT stops sending events.
-
-        This test has its own DUT lifecycle so that the StopSubscribe is verified
-        on a fresh subscription with a known notification history.
-        """
+        """ETS_084: After StopSubscribeEventgroup (TTL=0) the DUT stops sending events."""
         target_init = request.getfixturevalue("target_init")
 
         proc = launch_dut(sd_client_config, target_init=target_init)
@@ -328,15 +314,10 @@ class TestSDClientReboot:
         host_ip: str,
         request: pytest.FixtureRequest,
     ) -> None:
-        """ETS_082: Reboot flag and session reset hold across a second consecutive restart.
-
-        This verifies that the DUT correctly resets SD state on every cold start,
-        not just the first one.
-        """
+        """ETS_082: Reboot flag and session reset hold across a second consecutive restart."""
         target_init = request.getfixturevalue("target_init")
 
         def _drain_and_stop(pre_sock: socket.socket) -> None:
-            """Launch DUT, drain 3 messages, terminate, clean up sockets."""
             try:
                 proc = launch_dut(sd_client_config, target_init=target_init)
             except Exception:

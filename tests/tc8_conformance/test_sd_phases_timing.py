@@ -55,11 +55,8 @@ def sd_phase_capture(
 ) -> Generator[List[Tuple[float, SOMEIPSDEntry]], None, None]:
     """Start a fresh someipd and capture timestamped SD offers.
 
-    Opens the multicast socket BEFORE launching someipd to guarantee the first
-    offer is captured.  Yields the captured data to the tests.
-
-    someipd runs on the QEMU guest; ``host_ip`` is the host TAP interface
-    (169.254.21.88) used for multicast join.
+    Opens the multicast socket BEFORE launching someipd to guarantee the
+    first offer is captured.
     """
     target_init = request.getfixturevalue("target_init")
 
