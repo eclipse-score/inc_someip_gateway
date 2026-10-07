@@ -30,7 +30,7 @@
   {
     "name": "test_ets_096_tcp_connection_before_subscribe",
     "file": "tests/tc8_conformance/test_sd_client.py",
-    "line": "131",
+    "line": "121",
     "result": "skipped",
     "repo_name": "local_repo",
     "hash": "",
@@ -44,7 +44,7 @@
   {
     "name": "test_ets_097_tcp_reconnect",
     "file": "tests/tc8_conformance/test_sd_client.py",
-    "line": "146",
+    "line": "136",
     "result": "skipped",
     "repo_name": "local_repo",
     "hash": "",
@@ -58,7 +58,7 @@
   {
     "name": "TestSDClientStopSubscribe__test_ets_084_stop_subscribe_ceases_events",
     "file": "tests/tc8_conformance/test_sd_client.py",
-    "line": "164",
+    "line": "154",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -72,7 +72,7 @@
   {
     "name": "TestSDClientReboot__test_ets_081_reboot_flag_set_after_first_restart",
     "file": "tests/tc8_conformance/test_sd_client.py",
-    "line": "252",
+    "line": "238",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -86,7 +86,7 @@
   {
     "name": "TestSDClientReboot__test_ets_082_reboot_flag_set_after_second_restart",
     "file": "tests/tc8_conformance/test_sd_client.py",
-    "line": "320",
+    "line": "306",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -338,7 +338,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_14_wrong_major_version",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "889",
+    "line": "886",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -352,7 +352,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_15_wrong_service_id",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "934",
+    "line": "931",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -366,7 +366,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_16_wrong_instance_id",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "985",
+    "line": "977",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -380,7 +380,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_17_unknown_eventgroup_id",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1031",
+    "line": "1023",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -394,7 +394,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_18_ttl_zero_stop_subscribe",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1078",
+    "line": "1070",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -408,7 +408,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_19_reserved_field_set",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1122",
+    "line": "1114",
     "result": "skipped",
     "repo_name": "local_repo",
     "hash": "",
@@ -422,7 +422,7 @@
   {
     "name": "TestSDFindServiceTiming__test_sd_behavior_03_unicast_findservice_timing",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1185",
+    "line": "1177",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -436,7 +436,7 @@
   {
     "name": "TestSDFindServiceTiming__test_sd_behavior_04_multicast_findservice_timing",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1257",
+    "line": "1242",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -450,7 +450,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_088_two_subscribes_same_session",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1341",
+    "line": "1316",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -464,7 +464,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_092_ttl_zero_stop_subscribe_no_nack",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1405",
+    "line": "1375",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -478,7 +478,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_098_subscribe_accepted_without_prior_rpc",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1455",
+    "line": "1420",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -492,7 +492,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_107_find_service_and_subscribe_processed_independently",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1505",
+    "line": "1466",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -506,7 +506,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_120_subscribe_endpoint_ip_matches_tester",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1600",
+    "line": "1551",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -520,7 +520,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_122_sd_interface_version_is_one",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1650",
+    "line": "1596",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -534,7 +534,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_155_resubscribe_after_stop",
     "file": "../_main/tests/tc8_conformance/test_service_discovery.py",
-    "line": "1696",
+    "line": "1642",
     "result": "skipped",
     "repo_name": null,
     "hash": null,
@@ -548,7 +548,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_095_subscribe_ttl_expires_no_events",
     "file": "../_main/tests/tc8_conformance/test_service_discovery.py",
-    "line": "1774",
+    "line": "1716",
     "result": "skipped",
     "repo_name": null,
     "hash": null,
@@ -562,7 +562,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_091_session_id_increments",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1855",
+    "line": "1792",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -576,7 +576,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_099_initial_event_sent_after_subscribe",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1913",
+    "line": "1845",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -590,7 +590,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_100_no_findservice_emitted_by_server",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "1973",
+    "line": "1905",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -604,7 +604,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_101_stop_offer_ceases_client_events",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "2008",
+    "line": "1934",
     "result": "skipped",
     "repo_name": "local_repo",
     "hash": "",
@@ -618,7 +618,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_128_multicast_findservice_version_wildcard",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "2023",
+    "line": "1949",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -632,7 +632,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_130_multicast_findservice_unicast_flag_clear",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": "2070",
+    "line": "1992",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -646,7 +646,7 @@
   {
     "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
     "file": "tests/tc8_conformance/test_sd_phases_timing.py",
-    "line": "107",
+    "line": "104",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -660,7 +660,7 @@
   {
     "name": "TestSDPhasesTiming__test_tc8_sd_010_repetition_count_before_main_phase",
     "file": "tests/tc8_conformance/test_sd_phases_timing.py",
-    "line": "129",
+    "line": "126",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
