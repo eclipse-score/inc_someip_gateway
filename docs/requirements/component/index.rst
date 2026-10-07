@@ -9,16 +9,19 @@
    # terms of the Apache License Version 2.0 which is available at
    # https://www.apache.org/licenses/LICENSE-2.0
    #
-   # SPDX-License-Identifier: Apache-2.0
+   # SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+   # AI Disclosure: Issue #84 requirement mapping assisted by OpenAI Codex.
+   # AI-generated additions are offered under CC0-1.0; pre-existing content
+   # retains Apache-2.0. Human review is pending.
    # *******************************************************************************
 
 Component Requirements
 ======================
 
 Component-level requirements for the SOME/IP Gateway. Each component
-requirement derives from a feature requirement via ``:satisfies:`` and
+requirement derives from a feature requirement via ``:derived_from:`` and
 is scoped to a specific component (``gatewayd``, ``someipd``, or
-``network_service``).
+``network_service``, or ``socom``).
 
 Component requirement IDs follow the format:
 ``comp_req__<component>__<title_snake_case>``
@@ -34,3 +37,5 @@ Assumption of Use (AoU) requirements use:
 
 .. toctree::
    :maxdepth: 1
+
+   socom/index

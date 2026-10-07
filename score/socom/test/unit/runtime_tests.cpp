@@ -261,12 +261,12 @@ class RuntimeTest : public SingleConnectionTest {
     ///        while a different component is a distinct key - and from the design of the
     ///        registration-key lifetime in Runtime_impl.
     ///
-    ///        TestType and the PartiallyVerifies/FullyVerifies links are deliberately NOT recorded:
-    ///        this bounded slice has no verified native requirement or interface identifier to link
-    ///        to and inventing one is prohibited (same rationale as service_identifier_tests.cpp).
+    ///        Links refer to the proposed native registration requirement and verify parts only.
     void record_registration_key_metadata(std::string const& description) {
         RecordProperty("DerivationTechnique", "design-analysis,equivalence-classes");
         RecordProperty("Description", description);
+        RecordProperty("TestType", "requirements-based");
+        RecordProperty("PartiallyVerifies", "comp_req__socom__registration_identity");
     }
 };
 

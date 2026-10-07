@@ -29,6 +29,7 @@ namespace score::socom {
 /// For that check the interface is reduced to its service id and major version; the minor version
 /// is a compatibility property of the instance and is intentionally not part of the identity (see
 /// the operator< definition). This matches the canonical Service_database index.
+// req-Id: comp_req__socom__registration_identity
 struct Service_registration_key final {
     Service_interface interface;
     Service_instance instance;

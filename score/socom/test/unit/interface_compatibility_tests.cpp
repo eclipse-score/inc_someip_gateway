@@ -51,6 +51,12 @@ using Interface_configuration_and_expected_connection =
 class InterfaceCompatibilityTest
     : public ::testing::TestWithParam<Interface_configuration_and_expected_connection> {
    protected:
+    void SetUp() override {
+        RecordProperty("TestType", "requirements-based");
+        RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes");
+        RecordProperty("PartiallyVerifies", "comp_req__socom__connector_compatibility");
+    }
+
     Service_instance const instance{"VersionCompatibilityTest", Literal_tag{}};
 };
 

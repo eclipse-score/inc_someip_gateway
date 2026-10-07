@@ -68,3 +68,14 @@ cc_library(
         "@googletest//:gtest_for_library",
     ],
 )
+
+# Explicit implementation inputs for the native docs requirement source linker.
+filegroup(
+    name = "version_handling_trace",
+    srcs = [
+        "impl/runtime_impl.cpp",
+        "impl/service_identifier.hpp",
+        "service_interface_identifier.hpp",
+    ],
+    visibility = ["//score/socom/docs:__pkg__"],
+)

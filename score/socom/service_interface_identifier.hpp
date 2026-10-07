@@ -78,6 +78,7 @@ inline bool operator<(Service_instance const& lhs, Service_instance const& rhs) 
 
 /// \brief Identity of a service: its ID and exact major version.
 /// Minor versions describe compatible instances, not different services.
+// req-Id: comp_req__socom__canonical_identity
 struct Service_interface_identifier final {
     using Id = Registry_string_view;
     Id id;
@@ -111,6 +112,7 @@ inline bool operator<(Service_interface_identifier const& lhs,
 
 /// \brief Versioned connector contract: required minor for a client, offered minor for a server.
 /// Use get_identifier() when indexing services independently of their minor version.
+// req-Id: comp_req__socom__connector_compatibility
 struct Service_interface {
    public:
     /// \brief Alias for a service interface identifier.
@@ -203,6 +205,7 @@ inline bool operator<(Service_interface const& lhs, Service_interface const& rhs
 }
 
 /// \brief An offered instance, including its actual minor version.
+// req-Id: comp_req__socom__instance_identity
 struct Service_instance_identifier final {
     Service_interface_identifier interface;
     std::uint16_t minor_version;
@@ -224,6 +227,7 @@ inline bool operator<(Service_instance_identifier const& lhs,
 /// \brief Discovery filter with an exact service/major and optional minimum minor and instance.
 /// An absent minor accepts every offered minor; a present minor requires offer >= request.
 /// There is no wildcard-major sentinel. An empty instance ID is a concrete ID, not a wildcard.
+// req-Id: comp_req__socom__discovery_filters
 struct Find_service_request final {
     Service_interface_identifier interface;
     std::optional<std::uint16_t> minor_version;

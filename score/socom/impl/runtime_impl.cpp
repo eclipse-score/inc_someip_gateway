@@ -133,6 +133,7 @@ bool is_minor_version_compatible(Service_interface const& server, Service_interf
     return client.version.minor <= server.version.minor;
 }
 
+// req-Id: comp_req__socom__connector_compatibility
 bool is_interface_compatible(Service_interface const& server, Service_interface const& client) {
     // Defensive programming. This function is called in the two register_connector functions.
     // First, a record is loaded depending on service interface and instance. The record ensures
@@ -321,6 +322,7 @@ Service_record& Service_database::get_record(Service_interface const& interface,
     return record;
 }
 
+// req-Id: comp_req__socom__available_offers, comp_req__socom__bounded_discovery
 std::size_t Service_database::find_service(Find_service_request const& request,
                                            std::optional<Service_instance_identifier>* results,
                                            std::size_t capacity) const {
@@ -583,6 +585,7 @@ void Runtime_impl::remove_from_service_requests(Service_interface_definition con
     cleanup(m_service_requests, std::make_tuple(configuration, instance));
 }
 
+// req-Id: comp_req__socom__discovery_synchronization
 std::size_t Runtime_impl::find_service(Find_service_request const& request,
                                        std::optional<Service_instance_identifier>* results,
                                        std::size_t capacity) const {

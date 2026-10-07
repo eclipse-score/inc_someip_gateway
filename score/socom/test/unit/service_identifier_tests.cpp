@@ -60,14 +60,9 @@ class ServiceRegistrationKeyTest : public Test {
             "Service_registration_key duplicate-server registration key (issue #84): the key "
             "identity is (instance, service id, major) and the minor version is not part of it.");
 
-        // TestType and the PartiallyVerifies/FullyVerifies links are deliberately NOT recorded.
-        // This bounded slice has no verified native requirement or interface identifier to link
-        // to: docs/requirements/component and docs/requirements/feature define no socom
-        // requirement, and the only native requirement identifiers in the repository
-        // (comp_req__tc8_conformance__*, feat_req__tc8_conformance__*) scope TC8 wire-level
-        // conformance, not socom registration. gd_req__verification_checks_extended forbids an
-        // interface-test / requirements-based TestType without such a link, and inventing an
-        // identifier is prohibited. The missing identity is therefore recorded, not fabricated.
+        // Proposed native requirement; no acceptance or complete verification is implied.
+        RecordProperty("TestType", "requirements-based");
+        RecordProperty("PartiallyVerifies", "comp_req__socom__registration_identity");
     }
 
     static constexpr std::string_view service_id_a{"TestInterface"};

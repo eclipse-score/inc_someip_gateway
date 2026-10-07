@@ -34,6 +34,10 @@ namespace score::socom {
 namespace {
 
 TEST(ServiceIdentityTest, MinorVersionsShareCanonicalIdentityAndHash) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies",
+                   "comp_req__socom__canonical_identity, comp_req__socom__connector_compatibility");
     Service_interface const old_contract{std::string_view{"service"}, {1U, 0U}};
     Service_interface const new_contract{std::string_view{"service"}, {1U, 65535U}};
     EXPECT_EQ(old_contract.get_identifier(), new_contract.get_identifier());
@@ -44,6 +48,9 @@ TEST(ServiceIdentityTest, MinorVersionsShareCanonicalIdentityAndHash) {
 }
 
 TEST(ServiceIdentityTest, DifferentIdsAndMajorsRemainSeparate) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__canonical_identity");
     Service_interface_identifier const first{std::string_view{"service"}, 1U};
     Service_interface_identifier const other_id{std::string_view{"other"}, 1U};
     Service_interface_identifier const other_major{std::string_view{"service"}, 2U};
@@ -54,6 +61,9 @@ TEST(ServiceIdentityTest, DifferentIdsAndMajorsRemainSeparate) {
 }
 
 TEST(ServiceIdentityTest, AllConstructorsUseRegisteredStringIdentity) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__canonical_identity");
     auto const registered = service_id_registry().insert(std::string_view{"service"}).first;
     Service_interface_identifier const by_registry{registered, 1U};
     Service_interface_identifier const by_view{std::string_view{"service"}, 1U};
@@ -66,6 +76,9 @@ TEST(ServiceIdentityTest, AllConstructorsUseRegisteredStringIdentity) {
 }
 
 TEST(ServiceIdentityTest, FullInstanceIdentityIncludesActualMinorAndInstance) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__instance_identity");
     Service_interface_identifier const service{std::string_view{"service"}, 1U};
     Service_instance const instance{std::string_view{"first"}};
     Service_instance_identifier const first{service, 0U, instance};
@@ -85,6 +98,9 @@ class FindServiceCompatibilityTest
     : public ::testing::TestWithParam<std::tuple<std::uint16_t, std::uint16_t>> {};
 
 TEST_P(FindServiceCompatibilityTest, MinimumMinorUsesCompatibleOfferSemantics) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__discovery_filters");
     auto const requested = std::get<0>(GetParam());
     auto const offered = std::get<1>(GetParam());
     Service_interface_identifier const service{std::string_view{"service"}, 1U};
@@ -99,6 +115,9 @@ INSTANTIATE_TEST_SUITE_P(Boundaries, FindServiceCompatibilityTest,
                                             ::testing::Values<std::uint16_t>(0U, 1U, 42U, 65535U)));
 
 TEST(FindServiceRequestTest, MissingFiltersAcceptEveryMinorAndInstance) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__discovery_filters");
     Service_interface_identifier const service{std::string_view{"service"}, 1U};
     Find_service_request const request{service, std::nullopt, std::nullopt};
     EXPECT_TRUE(request.matches({service, 0U, Service_instance{std::string_view{""}}}));
@@ -106,6 +125,9 @@ TEST(FindServiceRequestTest, MissingFiltersAcceptEveryMinorAndInstance) {
 }
 
 TEST(FindServiceRequestTest, IdAndMajorMustMatchExactlyIncluding255) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__discovery_filters");
     Find_service_request const request{
         {std::string_view{"service"}, 255U}, std::nullopt, std::nullopt};
     EXPECT_TRUE(request.matches(
@@ -117,6 +139,9 @@ TEST(FindServiceRequestTest, IdAndMajorMustMatchExactlyIncluding255) {
 }
 
 TEST(FindServiceRequestTest, EmptyInstanceFilterIsAnExactId) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__discovery_filters");
     Service_interface_identifier const service{std::string_view{"service"}, 1U};
     Find_service_request const request{service, std::nullopt,
                                        Service_instance{std::string_view{""}}};
@@ -151,6 +176,10 @@ class FindServiceRuntimeTest : public ::testing::Test {
 };
 
 TEST_F(FindServiceRuntimeTest, NoOffersReturnsZeroAndClearsOldSlots) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies",
+                   "comp_req__socom__available_offers, comp_req__socom__bounded_discovery");
     results[0] =
         Service_instance_identifier{identity, 7U, Service_instance{std::string_view{"stale"}}};
     EXPECT_EQ(0U, find());
@@ -158,6 +187,10 @@ TEST_F(FindServiceRuntimeTest, NoOffersReturnsZeroAndClearsOldSlots) {
 }
 
 TEST_F(FindServiceRuntimeTest, ReportsActualMinorOfEachInstanceAndIgnoresOtherServices) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies",
+                   "comp_req__socom__available_offers, comp_req__socom__instance_identity");
     add_server(2U, "first");
     add_server(7U, "second");
     add_server(9U, "first", 2U);
@@ -174,6 +207,9 @@ TEST_F(FindServiceRuntimeTest, ReportsActualMinorOfEachInstanceAndIgnoresOtherSe
 }
 
 TEST_F(FindServiceRuntimeTest, AppliesMinorAndInstanceFiltersTogether) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__discovery_filters");
     add_server(2U, "first");
     add_server(7U, "second");
     ASSERT_EQ(1U, find(3U));
@@ -186,6 +222,9 @@ TEST_F(FindServiceRuntimeTest, AppliesMinorAndInstanceFiltersTogether) {
 }
 
 TEST_F(FindServiceRuntimeTest, CountOnlyAndTruncationReportAllMatchingOffers) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__bounded_discovery");
     add_server(2U, "first");
     add_server(7U, "second");
     Find_service_request const request{identity, std::nullopt, std::nullopt};
@@ -199,6 +238,9 @@ TEST_F(FindServiceRuntimeTest, CountOnlyAndTruncationReportAllMatchingOffers) {
 }
 
 TEST_F(FindServiceRuntimeTest, DisabledAndDestroyedServersAreNotDiscoverable) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__available_offers");
     Server_service_interface_definition const configuration{
         Service_interface{std::string_view{"service"}, {1U, 2U}}, to_num_of_methods(1U),
         to_num_of_events(1U)};
@@ -215,6 +257,10 @@ TEST_F(FindServiceRuntimeTest, DisabledAndDestroyedServersAreNotDiscoverable) {
 }
 
 TEST_F(FindServiceRuntimeTest, ReplacingAnOfferUsesTheNewMinorInsteadOfTheIndexKey) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies",
+                   "comp_req__socom__available_offers, comp_req__socom__registration_identity");
     add_server(2U, "first");
     ASSERT_EQ(1U, find());
     EXPECT_EQ(2U, results[0]->minor_version);
@@ -226,6 +272,9 @@ TEST_F(FindServiceRuntimeTest, ReplacingAnOfferUsesTheNewMinorInsteadOfTheIndexK
 }
 
 TEST_F(FindServiceRuntimeTest, MinimumAndMaximumMinorHaveNoSentinelMeaning) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__discovery_filters");
     add_server(0U, "first");
     add_server(std::numeric_limits<std::uint16_t>::max(), "second");
     EXPECT_EQ(2U, find(0U));
@@ -234,6 +283,9 @@ TEST_F(FindServiceRuntimeTest, MinimumAndMaximumMinorHaveNoSentinelMeaning) {
 }
 
 TEST_F(FindServiceRuntimeTest, ClientOnlyRecordDoesNotAdvertiseAnOfferOrItsMinor) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__available_offers");
     Client_connector_callbacks_mock client_callbacks;
     Service_interface_definition const configuration{
         Service_interface{std::string_view{"service"}, {1U, 0U}}};
@@ -249,6 +301,9 @@ TEST_F(FindServiceRuntimeTest, ClientOnlyRecordDoesNotAdvertiseAnOfferOrItsMinor
 }
 
 TEST_F(FindServiceRuntimeTest, SnapshotCanRunWhileOffersAreRegisteredAndDestroyed) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__discovery_synchronization");
     std::atomic<bool> stop{false};
     std::atomic<std::size_t> observations{0U};
     Find_service_request const request{identity, std::nullopt, std::nullopt};
@@ -283,6 +338,9 @@ TEST_F(FindServiceRuntimeTest, SnapshotCanRunWhileOffersAreRegisteredAndDestroye
 using FindServiceRuntimeDeathTest = FindServiceRuntimeTest;
 
 TEST_F(FindServiceRuntimeDeathTest, InvalidOutputStorageIsRejected) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes,design-analysis");
+    RecordProperty("PartiallyVerifies", "comp_req__socom__bounded_discovery");
     Find_service_request const request{identity, std::nullopt, std::nullopt};
     EXPECT_DEATH((void)runtime->find_service(request, nullptr, 1U), "");
 }

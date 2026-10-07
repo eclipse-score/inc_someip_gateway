@@ -9,14 +9,17 @@
    # terms of the Apache License Version 2.0 which is available at
    # https://www.apache.org/licenses/LICENSE-2.0
    #
-   # SPDX-License-Identifier: Apache-2.0
+   # SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+   # AI Disclosure: Issue #84 requirement mapping assisted by OpenAI Codex.
+   # AI-generated additions are offered under CC0-1.0; pre-existing content
+   # retains Apache-2.0. Human review is pending.
    # *******************************************************************************
 
 Feature Requirements
 ====================
 
 Feature-level requirements for the SOME/IP Gateway. Each feature requirement
-derives from a stakeholder requirement via ``:satisfies:`` and is scoped to
+derives from a stakeholder requirement via ``:derived_from:`` and is scoped to
 a specific gateway capability.
 
 Feature requirement IDs follow the format:
@@ -30,3 +33,5 @@ Feature requirement IDs follow the format:
 
 .. toctree::
    :maxdepth: 1
+
+   socom/index
