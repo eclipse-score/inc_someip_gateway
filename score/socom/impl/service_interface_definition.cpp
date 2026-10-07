@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "score/socom/service_interface_definition.hpp"
@@ -17,14 +20,14 @@
 
 namespace score::socom {
 
-Service_interface_definition::Service_interface_definition(Service_interface_identifier const sif,
+Service_interface_definition::Service_interface_definition(Service_interface const sif,
                                                            Num_of_methods const num_of_methods,
                                                            Num_of_events const num_of_events)
     : interface{sif},
       num_methods{static_cast<std::uint16_t>(num_of_methods)},
       num_events{static_cast<std::uint16_t>(num_of_events)} {}
 
-Service_interface_definition::Service_interface_definition(Service_interface_identifier const sif)
+Service_interface_definition::Service_interface_definition(Service_interface const sif)
     : interface{sif} {}
 
 bool operator==(Service_interface_definition const& lhs, Service_interface_definition const& rhs) {
@@ -39,7 +42,7 @@ bool operator<(Service_interface_definition const& lhs, Service_interface_defini
 }
 
 Server_service_interface_definition::Server_service_interface_definition(
-    Service_interface_identifier const& sif, Num_of_methods const num_of_methods,
+    Service_interface const& sif, Num_of_methods const num_of_methods,
     Num_of_events const num_of_events)
     : m_configuration{sif, num_of_methods, num_of_events} {}
 
@@ -62,8 +65,7 @@ std::uint16_t Server_service_interface_definition::get_num_events() const noexce
     return m_configuration.num_events;
 }
 
-Service_interface_identifier const& Server_service_interface_definition::get_interface()
-    const noexcept {
+Service_interface const& Server_service_interface_definition::get_interface() const noexcept {
     return m_configuration.interface;
 }
 

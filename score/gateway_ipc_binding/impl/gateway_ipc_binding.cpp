@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
@@ -24,9 +27,9 @@ namespace score::gateway_ipc_binding {
 static_assert(kMax_shared_memory_path_size <= NAME_MAX,
               "kMax_shared_memory_path_size must not exceed platform NAME_MAX");
 
-socom::Service_interface_identifier Service::to_socom_identifier() const noexcept {
-    return socom::Service_interface_identifier{fixed_string_to_string(service_id),
-                                               {version.major, version.minor}};
+socom::Service_interface Service::to_socom_interface() const noexcept {
+    return socom::Service_interface{fixed_string_to_string(service_id),
+                                    {version.major, version.minor}};
 }
 
 bool operator==(Service const& lhs, Service const& rhs) {
@@ -42,7 +45,7 @@ std::size_t Service_hash::operator()(Service const& s) const noexcept {
     return (h1 ^ (h2 << 1)) ^ (h3 << 2);
 }
 
-Service make_service(score::socom::Service_interface_identifier const& interface) noexcept {
+Service make_service(score::socom::Service_interface const& interface) noexcept {
     Service service{};
     service.version.major = interface.version.major;
     service.version.minor = interface.version.minor;

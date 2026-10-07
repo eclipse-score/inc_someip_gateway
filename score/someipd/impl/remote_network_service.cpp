@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "remote_network_service.h"
@@ -39,7 +42,7 @@ Result<std::unique_ptr<RemoteNetworkService>> RemoteNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime) {
-    socom::Service_interface_identifier const iface{
+    socom::Service_interface const iface{
         service_type_config->service_type_name()->string_view(),
         {service_type_config->service_version_major(),
          static_cast<uint16_t>(service_type_config->service_version_minor())}};

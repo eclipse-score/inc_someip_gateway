@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include <unistd.h>
@@ -130,8 +133,8 @@ Payload const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 
 
 Method_result const application_return{Application_return{}};
 
-auto const service_interface = Service_interface_identifier{
-    std::string_view{"TestInterface1"}, Service_interface_identifier::Version{1U, 2U}};
+auto const service_interface =
+    Service_interface{std::string_view{"TestInterface1"}, Service_interface::Version{1U, 2U}};
 auto const service_instance = Service_instance{std::string_view{"TestInstance1"}};
 
 Server_service_interface_definition const server_configuration{
@@ -617,8 +620,8 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceId) {
     auto modified_interface_id =
         connector_factory.get_configuration().get_interface().id.data() + std::to_string(1);
     auto const conf = Server_service_interface_definition{
-        Service_interface_identifier{std::move(modified_interface_id),
-                                     connector_factory.get_configuration().get_interface().version},
+        Service_interface{std::move(modified_interface_id),
+                          connector_factory.get_configuration().get_interface().version},
         to_num_of_methods(connector_factory.get_num_methods()),
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
@@ -641,7 +644,7 @@ TEST_F(ClientConnectorTest, DifferentServiceInstanceId) {
 }
 
 TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
-    auto const modified_major_interface = Service_interface_identifier{
+    auto const modified_major_interface = Service_interface{
         connector_factory.get_configuration().get_interface().id,
         {static_cast<uint16_t>(connector_factory.get_configuration().get_interface().version.major +
                                1),
@@ -658,7 +661,7 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
 }
 
 TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
-    auto const modified_minor_interface = Service_interface_identifier{
+    auto const modified_minor_interface = Service_interface{
         connector_factory.get_configuration().get_interface().id,
         {connector_factory.get_configuration().get_interface().version.major,
          static_cast<uint16_t>(connector_factory.get_configuration().get_interface().version.minor -
@@ -676,7 +679,7 @@ TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
 }
 
 TEST_F(ClientConnectorTest, SmallerServiceInterfaceMinorVersion) {
-    auto const modified_minor_interface = Service_interface_identifier{
+    auto const modified_minor_interface = Service_interface{
         connector_factory.get_configuration().get_interface().id,
         {connector_factory.get_configuration().get_interface().version.major,
          static_cast<uint16_t>(connector_factory.get_configuration().get_interface().version.minor +

@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include <gmock/gmock.h>
@@ -33,9 +36,9 @@ namespace score::gateway_ipc_binding {
 class Gateway_ipc_binding_different_interface_ids_integration_test
     : public Gateway_ipc_binding_unconnected_integration_test {
    protected:
-    socom::Service_interface_identifier const client_service_interface{
+    socom::Service_interface const client_service_interface{
         "com.test.service.client", socom::Literal_tag{}, {1, 0}};
-    socom::Service_interface_identifier const server_service_interface{
+    socom::Service_interface const server_service_interface{
         "com.test.service.server", socom::Literal_tag{}, {1, 0}};
 
     socom::Server_service_interface_definition const client_service_config{

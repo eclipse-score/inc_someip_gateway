@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "gtest/gtest.h"
@@ -23,11 +26,9 @@ class ServiceInterfaceIdentifierTest : public Test {
    protected:
     static constexpr std::string_view service_interface_id{"service1"};
     static constexpr std::string_view service_interface_id_2{"service2"};
-    Service_interface_identifier::Version const service_interface_version{1, 0};
-    Service_interface_identifier const service_interface{service_interface_id,
-                                                         service_interface_version};
-    Service_interface_identifier const service_interface_2{service_interface_id_2,
-                                                           service_interface_version};
+    Service_interface::Version const service_interface_version{1, 0};
+    Service_interface const service_interface{service_interface_id, service_interface_version};
+    Service_interface const service_interface_2{service_interface_id_2, service_interface_version};
     std::size_t num_methods{1U};
     std::size_t num_methods_2{2U};
     std::size_t num_events{2U};
@@ -54,15 +55,14 @@ TEST_F(ServiceInterfaceIdentifierTest, LiteratorConstructorUsesStringView) {
     String_registry registry;
     auto const registry_string_view = registry.insert(service_interface_id).first;
 
-    auto const interface =
-        Service_interface_identifier{registry_string_view, service_interface_version};
+    auto const interface = Service_interface{registry_string_view, service_interface_version};
     EXPECT_EQ(interface.id, registry_string_view);
     EXPECT_EQ(interface.id.data(), registry_string_view.data());
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringConstructorUsesStringView) {
     auto const interface =
-        Service_interface_identifier{std::string(service_interface_id), service_interface_version};
+        Service_interface{std::string(service_interface_id), service_interface_version};
     EXPECT_EQ(interface.id.string_view(), service_interface_id);
 
     auto const registry_string_view = service_id_registry().insert(service_interface_id).first;
@@ -71,8 +71,7 @@ TEST_F(ServiceInterfaceIdentifierTest, StringConstructorUsesStringView) {
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringViewConstructorUsesStringView) {
-    auto const interface =
-        Service_interface_identifier{service_interface_id, service_interface_version};
+    auto const interface = Service_interface{service_interface_id, service_interface_version};
     EXPECT_EQ(interface.id.string_view(), service_interface_id);
 
     auto const registry_string_view = service_id_registry().insert(service_interface_id).first;
@@ -81,8 +80,8 @@ TEST_F(ServiceInterfaceIdentifierTest, StringViewConstructorUsesStringView) {
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringViewLiteralConstructorUsesStringView) {
-    auto const interface = Service_interface_identifier{service_interface_id, Literal_tag{},
-                                                        service_interface_version};
+    auto const interface =
+        Service_interface{service_interface_id, Literal_tag{}, service_interface_version};
     EXPECT_EQ(interface.id.string_view(), service_interface_id);
 
     auto const registry_string_view = service_id_registry().insert(service_interface_id).first;

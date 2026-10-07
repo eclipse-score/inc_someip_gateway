@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #ifndef SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING
@@ -79,9 +82,9 @@ using Service_id = Fixed_string<kMax_service_id_size>;
 /// \brief Service descriptor, POD-friendly representation of socom Service
 struct Service {
     Service_id service_id;
-    socom::Service_interface_identifier::Version version;
+    socom::Service_interface::Version version;
 
-    socom::Service_interface_identifier to_socom_identifier() const noexcept;
+    socom::Service_interface to_socom_interface() const noexcept;
 };
 
 /// \brief Compares two Service objects for equality
@@ -98,7 +101,7 @@ using Instance_id = Fixed_string<kMax_instance_id_size>;
 /// \brief Peer identifier string, sent by the client during Connect
 using Client_identifier = Fixed_string<kMax_client_identifier_size>;
 
-Service make_service(score::socom::Service_interface_identifier const& interface) noexcept;
+Service make_service(score::socom::Service_interface const& interface) noexcept;
 
 Instance_id make_instance_id(score::socom::Service_instance const& instance) noexcept;
 

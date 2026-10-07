@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_IDENTIFIER
@@ -16,8 +19,11 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <tuple>
+#include <utility>
 
 #include "score/socom/registry_string_view.hpp"
 #include "score/socom/string_registry.hpp"
@@ -70,11 +76,49 @@ inline bool operator<(Service_instance const& lhs, Service_instance const& rhs) 
     return lhs.id < rhs.id;
 }
 
-/// \brief Service interface identification information.
-struct Service_interface_identifier {
+/// \brief Identity of a service: its ID and exact major version.
+/// Minor versions describe compatible instances, not different services.
+struct Service_interface_identifier final {
+    using Id = Registry_string_view;
+    Id id;
+    std::uint16_t major_version;
+
+    Service_interface_identifier(Id new_id, std::uint16_t new_major_version) noexcept
+        : id{new_id}, major_version{new_major_version} {}
+
+    Service_interface_identifier(std::string_view new_id, std::uint16_t new_major_version)
+        : id{service_id_registry().insert(new_id).first}, major_version{new_major_version} {}
+
+    Service_interface_identifier(std::string_view new_id, Literal_tag literal,
+                                 std::uint16_t new_major_version)
+        : id{service_id_registry().insert(new_id, literal).first},
+          major_version{new_major_version} {}
+
+    Service_interface_identifier(std::string&& new_id, std::uint16_t new_major_version)
+        : id{service_id_registry().insert(std::move(new_id)).first},
+          major_version{new_major_version} {}
+};
+
+inline bool operator==(Service_interface_identifier const& lhs,
+                       Service_interface_identifier const& rhs) {
+    return std::tie(lhs.id, lhs.major_version) == std::tie(rhs.id, rhs.major_version);
+}
+
+inline bool operator<(Service_interface_identifier const& lhs,
+                      Service_interface_identifier const& rhs) {
+    return std::tie(lhs.id, lhs.major_version) < std::tie(rhs.id, rhs.major_version);
+}
+
+/// \brief Versioned connector contract: required minor for a client, offered minor for a server.
+/// Use get_identifier() when indexing services independently of their minor version.
+struct Service_interface {
    public:
     /// \brief Alias for a service interface identifier.
     using Id = Registry_string_view;
+
+    [[nodiscard]] Service_interface_identifier get_identifier() const noexcept {
+        return {id, version.major};
+    }
 
     /// \brief Service interface version type.
     struct Version {
@@ -96,13 +140,12 @@ struct Service_interface_identifier {
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     /// \param new_version Version of the service interface.
-    Service_interface_identifier(Id new_id, Version new_version) noexcept
-        : id{new_id}, version{new_version} {}
+    Service_interface(Id new_id, Version new_version) noexcept : id{new_id}, version{new_version} {}
 
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     /// \param new_version Version of the service interface.
-    Service_interface_identifier(std::string_view new_id, Version new_version)
+    Service_interface(std::string_view new_id, Version new_version)
         : id{score::socom::service_id_registry().insert(new_id).first}, version{new_version} {}
 
     /// \brief Constructor.
@@ -110,56 +153,88 @@ struct Service_interface_identifier {
     /// \param is_static_string_literal Tag to indicate that the provided string is a static string
     ///                                 literal.
     /// \param new_version Version of the service interface.
-    Service_interface_identifier(std::string_view new_id, Literal_tag is_static_string_literal,
-                                 Version new_version)
+    Service_interface(std::string_view new_id, Literal_tag is_static_string_literal,
+                      Version new_version)
         : id{score::socom::service_id_registry().insert(new_id, is_static_string_literal).first},
           version{new_version} {}
 
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     /// \param new_version Version of the service interface.
-    Service_interface_identifier(std::string&& new_id, Version new_version)
+    Service_interface(std::string&& new_id, Version new_version)
         : id{score::socom::service_id_registry().insert(std::move(new_id)).first},
           version{new_version} {}
 };
 
-/// \brief Operator == for Service_interface_identifier::Version.
+/// \brief Operator == for Service_interface::Version.
 /// \param lhs Left-hand side of operator.
 /// \param rhs Right-hand side of operator.
 /// \return True in case of equality, otherwise false.
-inline bool operator==(Service_interface_identifier::Version const& lhs,
-                       Service_interface_identifier::Version const& rhs) {
+inline bool operator==(Service_interface::Version const& lhs,
+                       Service_interface::Version const& rhs) {
     return (std::tie(lhs.major, lhs.minor) == std::tie(rhs.major, rhs.minor));
 }
 
-/// \brief Operator < for Service_interface_identifier::Version.
+/// \brief Operator < for Service_interface::Version.
 /// \param lhs Left-hand side of operator.
 /// \param rhs Right-hand side of operator.
 /// \return True in case the contents of lhs are lexicographically less than the contents of rhs,
 /// otherwise false.
-inline bool operator<(Service_interface_identifier::Version const& lhs,
-                      Service_interface_identifier::Version const& rhs) {
+inline bool operator<(Service_interface::Version const& lhs,
+                      Service_interface::Version const& rhs) {
     return (std::tie(lhs.major, lhs.minor) < std::tie(rhs.major, rhs.minor));
 }
 
-/// \brief Operator == for Service_interface_identifier.
+/// \brief Operator == for Service_interface.
 /// \param lhs Left-hand side of operator.
 /// \param rhs Right-hand side of operator.
 /// \return True in case of equality, otherwise false.
-inline bool operator==(Service_interface_identifier const& lhs,
-                       Service_interface_identifier const& rhs) {
+inline bool operator==(Service_interface const& lhs, Service_interface const& rhs) {
     return (std::tie(lhs.id, lhs.version) == std::tie(rhs.id, rhs.version));
 }
 
-/// \brief Operator < for Service_interface_identifier.
+/// \brief Operator < for Service_interface.
 /// \param lhs Left-hand side of operator.
 /// \param rhs Right-hand side of operator.
 /// \return True in case the contents of lhs are lexicographically less than the contents of rhs,
 /// otherwise false.
-inline bool operator<(Service_interface_identifier const& lhs,
-                      Service_interface_identifier const& rhs) {
+inline bool operator<(Service_interface const& lhs, Service_interface const& rhs) {
     return (std::tie(lhs.id, lhs.version) < std::tie(rhs.id, rhs.version));
 }
+
+/// \brief An offered instance, including its actual minor version.
+struct Service_instance_identifier final {
+    Service_interface_identifier interface;
+    std::uint16_t minor_version;
+    Service_instance instance;
+};
+
+inline bool operator==(Service_instance_identifier const& lhs,
+                       Service_instance_identifier const& rhs) {
+    return std::tie(lhs.interface, lhs.minor_version, lhs.instance) ==
+           std::tie(rhs.interface, rhs.minor_version, rhs.instance);
+}
+
+inline bool operator<(Service_instance_identifier const& lhs,
+                      Service_instance_identifier const& rhs) {
+    return std::tie(lhs.interface, lhs.minor_version, lhs.instance) <
+           std::tie(rhs.interface, rhs.minor_version, rhs.instance);
+}
+
+/// \brief Discovery filter with an exact service/major and optional minimum minor and instance.
+/// An absent minor accepts every offered minor; a present minor requires offer >= request.
+/// There is no wildcard-major sentinel. An empty instance ID is a concrete ID, not a wildcard.
+struct Find_service_request final {
+    Service_interface_identifier interface;
+    std::optional<std::uint16_t> minor_version;
+    std::optional<Service_instance> instance;
+
+    [[nodiscard]] bool matches(Service_instance_identifier const& offer) const noexcept {
+        return interface == offer.interface &&
+               (!minor_version || *minor_version <= offer.minor_version) &&
+               (!instance || *instance == offer.instance);
+    }
+};
 
 }  // namespace score::socom
 
@@ -174,13 +249,31 @@ struct std::hash<score::socom::Service_instance> {
     }
 };
 
-/// \brief std::hash specialization for Service_interface_identifier
-///
-/// \return Hash value for the given Service_interface_identifier
-///
 template <>
 struct std::hash<score::socom::Service_interface_identifier> {
-    std::size_t operator()(score::socom::Service_interface_identifier const& s) const noexcept {
+    std::size_t operator()(
+        score::socom::Service_interface_identifier const& service) const noexcept {
+        return std::hash<score::socom::Registry_string_view>{}(service.id) ^
+               (std::hash<std::uint16_t>{}(service.major_version) << 1);
+    }
+};
+
+template <>
+struct std::hash<score::socom::Service_instance_identifier> {
+    std::size_t operator()(score::socom::Service_instance_identifier const& offer) const noexcept {
+        return std::hash<score::socom::Service_interface_identifier>{}(offer.interface) ^
+               (std::hash<std::uint16_t>{}(offer.minor_version) << 2) ^
+               (std::hash<score::socom::Service_instance>{}(offer.instance) << 3);
+    }
+};
+
+/// \brief std::hash specialization for Service_interface
+///
+/// \return Hash value for the given Service_interface
+///
+template <>
+struct std::hash<score::socom::Service_interface> {
+    std::size_t operator()(score::socom::Service_interface const& s) const noexcept {
         std::size_t const h1 = std::hash<score::socom::Registry_string_view>{}(s.id);
         std::size_t const h2 = std::hash<std::uint16_t>{}(s.version.major);
         std::size_t const h3 = std::hash<std::uint16_t>{}(s.version.minor);

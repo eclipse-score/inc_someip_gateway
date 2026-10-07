@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #ifndef SOCOM_CONNECTOR_FACTORY_HPP
@@ -46,7 +49,7 @@ class Connector_factory {
     /// \param[in] methods Number of Methods
     /// \param[in] events Number of Events
     /// \param[in] instance default intance for created server and clients
-    Connector_factory(Service_interface_identifier const& sif, Num_of_methods num_methods,
+    Connector_factory(Service_interface const& sif, Num_of_methods num_methods,
                       Num_of_events num_events, Service_instance instance);
 
     /// \brief Copy constructor which copies the configuraton of con_fac

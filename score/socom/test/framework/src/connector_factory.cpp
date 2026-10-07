@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "score/socom/connector_factory.hpp"
@@ -30,8 +33,7 @@ Connector_factory::Connector_factory(Server_service_interface_definition configu
       m_configuration{std::move(configuration)},
       m_instance{instance} {}
 
-Connector_factory::Connector_factory(Service_interface_identifier const& sif,
-                                     Num_of_methods const num_methods,
+Connector_factory::Connector_factory(Service_interface const& sif, Num_of_methods const num_methods,
                                      Num_of_events const num_events, Service_instance instance)
     : Connector_factory{Server_service_interface_definition{sif, num_methods, num_events},
                         instance} {}

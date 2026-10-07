@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #ifndef SRC_GATEWAY_IPC_BINDING_TEST_MOCKS
@@ -25,7 +28,7 @@ namespace score::gateway_ipc_binding {
 class Shared_memory_manager_factory_mock : public Shared_memory_manager_factory {
    public:
     MOCK_METHOD(Result<Shared_memory_slot_manager::Uptr>, create,
-                (score::socom::Service_interface_identifier const& interface,
+                (score::socom::Service_interface const& interface,
                  score::socom::Service_instance const& instance),
                 (noexcept, override));
 

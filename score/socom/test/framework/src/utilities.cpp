@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "score/socom/utilities.hpp"
@@ -76,9 +79,8 @@ void increase_and_fill(Vector_buffer& data, std::size_t const new_size) {
     std::generate(start, std::end(data), [&gen, &distrib]() { return std::byte(distrib(gen)); });
 }
 
-static Service_interface_identifier create_service_interface(size_t const interface_id) {
-    return Service_interface_identifier{std::string{"interface_" + std::to_string(interface_id)},
-                                        {4, 2}};
+static Service_interface create_service_interface(size_t const interface_id) {
+    return Service_interface{std::string{"interface_" + std::to_string(interface_id)}, {4, 2}};
 }
 
 Server_service_interface_definition create_service_interface_configuration(

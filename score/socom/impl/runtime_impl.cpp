@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "runtime_impl.hpp"
@@ -19,6 +22,7 @@
 #include <iterator>
 #include <memory>
 #include <score/assert.hpp>
+#include <score/span.hpp>
 #include <tuple>
 
 #include "client_connector_impl.hpp"
@@ -33,11 +37,6 @@
 namespace score::socom {
 
 namespace {
-
-bool is_matching_instance(std::optional<Service_instance> const& filter,
-                          Service_instance const& instance) {
-    return !filter || *filter == instance;
-}
 
 template <typename Map>
 std::vector<typename Map::key_type> get_keys(Map const& map) {
@@ -130,13 +129,11 @@ class Registration_collection final : public IRegistration {
     Registration m_registration1;
 };
 
-bool is_minor_version_compatible(Service_interface_identifier const& server,
-                                 Service_interface_identifier const& client) {
+bool is_minor_version_compatible(Service_interface const& server, Service_interface const& client) {
     return client.version.minor <= server.version.minor;
 }
 
-bool is_interface_compatible(Service_interface_identifier const& server,
-                             Service_interface_identifier const& client) {
+bool is_interface_compatible(Service_interface const& server, Service_interface const& client) {
     // Defensive programming. This function is called in the two register_connector functions.
     // First, a record is loaded depending on service interface and instance. The record ensures
     // that the right server/client is loaded, therefore this function will always return true.
@@ -310,11 +307,12 @@ std::shared_ptr<ReturnValue> get_bridge_requests(
 
 Service_database::Service_database(std::mutex& runtime_mutex) : m_runtime_mutex{runtime_mutex} {}
 
-Service_record& Service_database::get_record(Service_interface_identifier const& interface,
+Service_record& Service_database::get_record(Service_interface const& interface,
                                              Service_instance const& instance) {
-    auto it_interface = m_service_records.find(interface);
+    auto it_interface = m_service_records.find(interface.get_identifier());
     if (it_interface == std::end(m_service_records)) {
-        it_interface = m_service_records.emplace(interface, Service_instances{}).first;
+        it_interface =
+            m_service_records.emplace(interface.get_identifier(), Service_instances{}).first;
     }
 
     auto& record =
@@ -323,40 +321,33 @@ Service_record& Service_database::get_record(Service_interface_identifier const&
     return record;
 }
 
-Interfaces_instances Service_database::get_instances(
-    Service_interface_identifier const& interface,
-    std::optional<Service_instance> const& filter) const {
-    auto const it_interface = m_service_records.find(interface);
-    if (std::end(m_service_records) == it_interface) {
-        return {};
-    }
-    auto const& instances = it_interface->second;
-    auto const matches_filter = [&filter](Service_instances::value_type const& instance) {
-        return (instance.second.is_available() && is_matching_instance(filter, instance.first));
-    };
-
-    Service_instances filtered_instances;
-    (void)std::copy_if(std::begin(instances), std::end(instances),
-                       std::inserter(filtered_instances, std::end(filtered_instances)),
-                       matches_filter);
-    return {{interface, get_keys(filtered_instances)}};
-}
-
-Interfaces_instances Service_database::get_instances(
-    std::optional<Service_interface_identifier> const& interface,
-    std::optional<Service_instance> const& filter) const {
-    if (interface) {
-        return get_instances(*interface, filter);
-    }
-
-    Interfaces_instances result{};
-    for (auto const& interface_with_instances : m_service_records) {
-        auto& instances = result[interface_with_instances.first];
-        for (auto const& instance : interface_with_instances.second) {
-            instances.emplace_back(instance.first);
+std::size_t Service_database::find_service(Find_service_request const& request,
+                                           std::optional<Service_instance_identifier>* results,
+                                           std::size_t capacity) const {
+    auto const output =
+        score::cpp::span<std::optional<Service_instance_identifier>>{results, capacity};
+    std::size_t count{0U};
+    auto const service = m_service_records.find(request.interface);
+    if (service != m_service_records.end()) {
+        for (auto const& record : service->second) {
+            auto const* offer = record.second.get_available_interface();
+            if (offer == nullptr) {
+                continue;
+            }
+            Service_instance_identifier const identifier{offer->get_identifier(),
+                                                         offer->version.minor, record.first};
+            if (request.matches(identifier)) {
+                if (count < capacity) {
+                    output[count] = identifier;
+                }
+                ++count;
+            }
         }
     }
-    return result;
+    for (auto index = std::min(count, capacity); index < capacity; ++index) {
+        output[index].reset();
+    }
+    return count;
 }
 
 Stop_subscription::~Stop_subscription() noexcept = default;
@@ -364,7 +355,7 @@ Stop_subscription::~Stop_subscription() noexcept = default;
 Service_record::Service_record(std::mutex& runtime_mutex) : m_runtime_mutex{runtime_mutex} {}
 
 Service_record::Server_registration Service_record::register_server_connector(
-    Service_interface_identifier const& interface, SC_impl::Listen_endpoint connector) {
+    Service_interface const& interface, SC_impl::Listen_endpoint connector) {
     // Duplicate server connectors are not allowed.
     SCORE_LANGUAGE_FUTURECPP_ASSERT(!m_server);
 
@@ -382,7 +373,7 @@ Service_record::Server_registration Service_record::register_server_connector(
 }
 
 Result<Service_record::Client_registration> Service_record::register_client_connector(
-    Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update) {
+    Service_interface const& interface, CC_impl::Server_indication on_server_update) {
     if (m_client) {
         return MakeUnexpected(Construction_error::duplicate_client);
     }
@@ -440,7 +431,7 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
     Server_service_interface_definition configuration, Service_instance instance,
     Disabled_server_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
-    Service_instance_identifier const identifier{configuration.get_interface(), instance};
+    Service_registration_key const identifier{configuration.get_interface(), instance};
 
     if (!is_valid(callbacks)) {
         return MakeUnexpected(Construction_error::callback_missing);
@@ -523,7 +514,7 @@ Result<Registration> Runtime_impl::register_connector(
                                                      std::move(result->registration));
 }
 
-Registration Runtime_impl::register_connector(Service_interface_identifier const& interface,
+Registration Runtime_impl::register_connector(Service_interface const& interface,
                                               Service_instance const& instance,
                                               SC_impl::Listen_endpoint endpoint) {
     std::unique_lock<std::mutex> lock{m_runtime_mutex};
@@ -592,23 +583,12 @@ void Runtime_impl::remove_from_service_requests(Service_interface_definition con
     cleanup(m_service_requests, std::make_tuple(configuration, instance));
 }
 
-Interfaces_instances Runtime_impl::get_bridge_reported_instances(
-    Service_interface_identifier const& interface,
-    std::optional<Service_instance> const& instance) const {
-    std::lock_guard<std::mutex> const bridge_lock{m_bridge_mutex};
-    Instances result;
-    for (auto const& bridge_data : m_bridge_to_callbacks) {
-        auto bridge_services = std::get<1>(bridge_data.second);
-        auto const& instances = bridge_services.find(interface);
-        if (std::end(bridge_services) != instances) {
-            static_cast<void>(std::copy_if(std::begin(instances->second),
-                                           std::end(instances->second), std::back_inserter(result),
-                                           [&instance](Service_instance const& inst) {
-                                               return is_matching_instance(instance, inst);
-                                           }));
-        }
-    }
-    return {{interface, result}};
+std::size_t Runtime_impl::find_service(Find_service_request const& request,
+                                       std::optional<Service_instance_identifier>* results,
+                                       std::size_t capacity) const {
+    SCORE_LANGUAGE_FUTURECPP_ASSERT(results != nullptr || capacity == 0U);
+    std::lock_guard<std::mutex> const lock{m_runtime_mutex};
+    return m_database.find_service(request, results, capacity);
 }
 
 }  // namespace score::socom

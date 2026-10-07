@@ -8,14 +8,19 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #ifndef SCORE_SOCOM_RUNTIME_HPP
 #define SCORE_SOCOM_RUNTIME_HPP
 
+#include <cstddef>
 #include <functional>
 #include <memory>
+#include <optional>
 
 #include "score/socom/client_connector.hpp"
 #include "score/socom/posix_credentials.hpp"
@@ -204,6 +209,18 @@ class Runtime {
         Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept = 0;
+
+    /// \brief Takes a snapshot of currently enabled servers in this runtime.
+    /// \param request Exact service/major with optional minimum minor and instance filters.
+    /// \param results Caller-owned storage; may be null only when capacity is zero.
+    /// \param capacity Number of optional result slots, not a byte count.
+    /// \return Total matching offers, including those beyond capacity. At most capacity slots
+    /// are filled in unspecified order; remaining slots are reset. Pass zero capacity to count.
+    /// \note Performs no heap allocation and invokes no user callbacks. Availability may change
+    /// after return. Bridge/network discovery remains the responsibility of registered bridges.
+    [[nodiscard]] virtual std::size_t find_service(
+        Find_service_request const& request, std::optional<Service_instance_identifier>* results,
+        std::size_t capacity) const = 0;
 
     /// \brief Registers a bridge which transports events or method calls over an IPC channel.
     /// \param identity Bridge identity.

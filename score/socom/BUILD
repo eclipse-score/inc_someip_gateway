@@ -40,6 +40,19 @@ cc_library(
     ],
 )
 
+# Test-only view on the internal duplicate-server registration key header. The socom
+# library keeps its impl/ headers private, so a test that exercises the
+# Service_registration_key ordering needs this explicit exposure.
+cc_library(
+    name = "impl_service_identifier",
+    testonly = True,
+    hdrs = ["impl/service_identifier.hpp"],
+    visibility = ["//score/socom/test/unit:__pkg__"],
+    deps = [
+        ":socom",
+    ],
+)
+
 filegroup(
     name = "mock_headers",
     srcs = glob(["mock/**"]),

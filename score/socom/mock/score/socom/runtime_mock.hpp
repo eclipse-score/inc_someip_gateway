@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #ifndef SCORE_SOCOM_RUNTIME_MOCK_HPP
@@ -29,6 +32,10 @@ class Service_bridge_registration_handle_mock : public Service_bridge_registrati
 class Runtime_mock : public Runtime {
    public:
     // mock interface
+    MOCK_METHOD(std::size_t, find_service,
+                (Find_service_request const&, std::optional<Service_instance_identifier>*,
+                 std::size_t),
+                (const, override));
     MOCK_METHOD(Result<Client_connector::Uptr>, make_client_connector,
                 (Service_interface_definition, Service_instance, Client_connector::Callbacks),
                 (noexcept, override));

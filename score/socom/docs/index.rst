@@ -32,3 +32,4 @@ abstraction layer for SOME/IP communication in the S-CORE framework.
    :maxdepth: 1
 
    design/index
+   version_handling

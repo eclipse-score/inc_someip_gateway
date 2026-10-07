@@ -8,7 +8,10 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * AI Disclosure: Modifications for issue #84 were generated with OpenAI Codex
+ * (model revision unavailable). These AI-generated modifications are offered under
+ * CC0-1.0; pre-existing content retains Apache-2.0. Human review is pending.
  ********************************************************************************/
 
 #include "binding_base.hpp"
@@ -351,7 +354,7 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
 
     m_service_states.mark_client_connector_pending(key, msg.service_id, msg.instance_id);
     auto client_connector_result = m_runtime.make_client_connector(
-        score::socom::Service_interface_definition{msg.service_id.to_socom_identifier()},
+        score::socom::Service_interface_definition{msg.service_id.to_socom_interface()},
         socom::Service_instance{fixed_string_to_string(msg.instance_id)},
         std::move(client_callbacks));
 
