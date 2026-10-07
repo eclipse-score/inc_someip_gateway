@@ -111,9 +111,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    with correct service ID, instance ID, major/minor version, and TTL
    fields upon startup.
 
-   Note: Traces to SOME/IP-SD specification sections 4.1.2.1
-   (OfferService entry format) and 4.1.2.3 (Service Entry fields).
-   Covers TC8-SD-001 and TC8-SD-002 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, section 5.1.2.5.2 (Offer Service Entry).
 
 .. comp_req:: TC8 SD Cyclic Offer Timing
    :id: comp_req__tc8_conformance__sd_cyclic_timing
@@ -130,9 +129,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    OfferService entries at the configured ``cyclic_offer_delay`` interval
    (±20% tolerance) during the main phase of Service Discovery.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases, Main Phase, cyclic offer behavior).
-   Covers TC8-SD-003 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, section 5.1.4.1 (Startup Behavior, Main
+   Phase cyclic offer behavior).
 
 .. comp_req:: TC8 SD FindService Response
    :id: comp_req__tc8_conformance__sd_find_response
@@ -149,9 +148,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    a SOME/IP-SD FindService entry with a unicast OfferService for a
    known service, and does not respond for an unknown service.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.2.2
-   (FindService entry handling and response behavior).
-   Covers TC8-SD-004 and TC8-SD-005 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, section 5.1.4.2 (Server Answer Behavior).
 
 .. comp_req:: TC8 SD Subscribe Eventgroup Lifecycle
    :id: comp_req__tc8_conformance__sd_sub_lifecycle
@@ -171,11 +169,11 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    by ceasing notifications, and clean up expired subscriptions after
    the subscription TTL elapses.
 
-   Note: Traces to SOME/IP-SD specification sections 4.1.2.4
-   (SubscribeEventgroup), 4.1.2.5 (StopSubscribeEventgroup),
-   4.1.2.6 (SubscribeEventgroupAck/Nack), and 4.1.2.7 (TTL handling).
-   Covers TC8-SD-006, TC8-SD-007, TC8-SD-008, and TC8-SD-014 from the
-   test strategy.
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, sections 5.1.3.1.1 (Subscribe Eventgroup
+   Entry, including TTL), 5.1.3.1.2 (Stop Subscribe Eventgroup
+   Entry), 5.1.3.1.3 (Subscribe Eventgroup Acknowledgement), and
+   5.1.3.1.4 (Subscribe Eventgroup Negative Acknowledgement).
 
 .. comp_req:: TC8 SD Subscription TTL Expiry
    :id: comp_req__tc8_conformance__sd_ttl_expiry
@@ -209,9 +207,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    initial_delay_max]``, repetition of offers ``repetitions_max`` times
    at ``repetitions_base_delay`` intervals, and transition to main phase.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases, Initial Wait, Repetition, Main Phase).
-   Covers TC8-SD-009 and TC8-SD-010 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, section 5.1.4.1 (Startup Behavior, Initial
+   Wait Phase, Repetition Phase, Main Phase).
 
 .. comp_req:: TC8 SD IPv4 Endpoint Option Validation
    :id: comp_req__tc8_conformance__sd_endpoint_option
@@ -229,9 +227,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    correct unicast address, port, and L4 protocol (UDP) so that clients
    can reach the offered service.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.2.4
-   (SD Options, IPv4 Endpoint Option format).
-   Covers TC8-SD-011 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, section 5.1.2.4.3 (IPv4 Endpoint Option).
 
 .. comp_req:: TC8 SD Reboot Detection
    :id: comp_req__tc8_conformance__sd_reboot
@@ -249,8 +246,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    be set in the first SD message after restart, and the SD session ID
    shall reset to a low value (≤ 2).
 
-   Note: Traces to SOME/IP-SD specification section 4.1.1
-   (Reboot Detection, session ID and reboot flag handling).
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, section 5.1.2.2 (SOME/IP-SD Header, Reboot
+   Flag and Session ID handling).
 
 .. comp_req:: TC8 SD Multicast Eventgroup Option
    :id: comp_req__tc8_conformance__sd_mcast_eg
@@ -268,9 +266,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    eventgroups configured with a multicast address, so that clients
    know which multicast group to join for event delivery.
 
-   Note: Traces to SOME/IP-SD specification section 4.1.2.6
-   (SubscribeEventgroupAck options, multicast endpoint).
-   Covers TC8-SD-013 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
+   Specification R24-11, section 5.1.3.1.3 (Subscribe Eventgroup
+   Acknowledgement Entry, multicast endpoint option).
 
 Component Requirements: SOME/IP Message Format
 -----------------------------------------------
@@ -291,11 +289,9 @@ Component Requirements: SOME/IP Message Format
    message type (0x80), matching session ID, and matching client ID
    for each received REQUEST.
 
-   Note: Traces to SOME/IP specification sections 4.1.4
-   (Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID,
-   Client ID / Session ID). Covers TC8-SOMEIP-MSG-001,
-   TC8-SOMEIP-MSG-002, TC8-SOMEIP-MSG-005, and TC8-SOMEIP-MSG-008
-   from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Protocol Specification R24-11, sections
+   4.1.2.5 (Protocol Version), 4.1.2.7 (Message Type), and 4.1.2.4
+   (Request ID, Client ID / Session ID).
 
 .. comp_req:: TC8 SOME/IP Error Return Codes
    :id: comp_req__tc8_conformance__msg_error_codes
@@ -314,9 +310,9 @@ Component Requirements: SOME/IP Message Format
    ``E_UNKNOWN_METHOD`` (0x03) for invalid method IDs, and
    ``E_WRONG_INTERFACE_VERSION`` for interface version mismatches.
 
-   Note: Traces to SOME/IP specification section 4.1.7 (Return Code)
-   and the return code table (Table 4.14). Covers TC8-SOMEIP-MSG-003,
-   TC8-SOMEIP-MSG-004, and TC8-SOMEIP-MSG-006 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Protocol Specification R24-11, section
+   4.1.2.8 (Return Code) and section 4.2.6.1 (Return Codes,
+   requirement PRS_SOMEIP_00191).
 
 Component Requirements: Event Notification
 -------------------------------------------
@@ -337,7 +333,7 @@ Component Requirements: Event Notification
    only to endpoints with an active eventgroup subscription, and ceases
    delivery after StopSubscribeEventgroup.
 
-   Note: Traces to SOME/IP specification section 5.1 (Events) and
-   SOME/IP-SD section 4.1.2.4 (SubscribeEventgroup triggering
-   notification delivery). Covers TC8-EVT-001 through TC8-EVT-004
-   and TC8-EVT-006 from the test strategy.
+   Note: Traces to AUTOSAR SOME/IP Protocol Specification R24-11, section
+   4.2.4 (Notification Events), and AUTOSAR SOME/IP Service Discovery
+   Protocol Specification R24-11, section 5.1.3.1.1 (Subscribe
+   Eventgroup Entry).

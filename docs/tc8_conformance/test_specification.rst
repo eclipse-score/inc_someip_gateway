@@ -44,8 +44,8 @@ For requirement definitions see :doc:`requirements`.
    Throughout this specification, **"server"** refers to the SOME/IP Service Provider role
    (the DUT, which offers services and responds to requests), and **"client"** refers to the
    SOME/IP Service Consumer role (the external test harness, which discovers services and
-   subscribes to events). This usage mirrors TC8 OA Section 6.1.5 ("SOME/IP Server Tests") and
-   Section 6.1.6 ("ETS Client / Control") directly.
+   subscribes to events). This usage mirrors TC8 OA Section 6.1.5 ("Test Cases SOME/IP
+   Server") and Section 6.1.6 ("Test Cases ETS") directly.
 
 Service Discovery Tests
 -----------------------
