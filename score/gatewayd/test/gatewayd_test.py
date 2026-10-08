@@ -71,6 +71,7 @@ class GatewaydTest(unittest.TestCase):
                     ipc_channel,
                 ],
                 expected_output,
+                failure_prefix="gatewayd did not initialize successfully",
             )
         finally:
             stop_process(someipd_process)
