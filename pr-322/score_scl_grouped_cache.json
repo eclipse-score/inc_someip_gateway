@@ -1,0 +1,156 @@
+[
+  {
+    "need": "comp_req__socom__connector_compatibility",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/impl/runtime_impl.cpp",
+          "line": 136,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__connector_compatibility",
+          "full_line": "// req-Id: comp_req__socom__connector_compatibility",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "file": "score/socom/service_interface_identifier.hpp",
+          "line": 115,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__connector_compatibility",
+          "full_line": "// req-Id: comp_req__socom__connector_compatibility",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  },
+  {
+    "need": "comp_req__socom__available_offers",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/impl/runtime_impl.cpp",
+          "line": 325,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__available_offers",
+          "full_line": "// req-Id: comp_req__socom__available_offers, comp_req__socom__bounded_discovery",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  },
+  {
+    "need": "comp_req__socom__bounded_discovery",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/impl/runtime_impl.cpp",
+          "line": 325,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__bounded_discovery",
+          "full_line": "// req-Id: comp_req__socom__available_offers, comp_req__socom__bounded_discovery",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  },
+  {
+    "need": "comp_req__socom__discovery_synchronization",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/impl/runtime_impl.cpp",
+          "line": 588,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__discovery_synchronization",
+          "full_line": "// req-Id: comp_req__socom__discovery_synchronization",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  },
+  {
+    "need": "comp_req__socom__registration_identity",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/impl/service_identifier.hpp",
+          "line": 32,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__registration_identity",
+          "full_line": "// req-Id: comp_req__socom__registration_identity",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  },
+  {
+    "need": "comp_req__socom__canonical_identity",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/service_interface_identifier.hpp",
+          "line": 81,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__canonical_identity",
+          "full_line": "// req-Id: comp_req__socom__canonical_identity",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  },
+  {
+    "need": "comp_req__socom__instance_identity",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/service_interface_identifier.hpp",
+          "line": 208,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__instance_identity",
+          "full_line": "// req-Id: comp_req__socom__instance_identity",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  },
+  {
+    "need": "comp_req__socom__discovery_filters",
+    "links": {
+      "CodeLinks": [
+        {
+          "file": "score/socom/service_interface_identifier.hpp",
+          "line": 230,
+          "tag": "// req-Id:",
+          "need": "comp_req__socom__discovery_filters",
+          "full_line": "// req-Id: comp_req__socom__discovery_filters",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ],
+      "TestLinks": []
+    }
+  }
+]
