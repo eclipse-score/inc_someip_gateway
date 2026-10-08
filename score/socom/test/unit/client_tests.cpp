@@ -803,6 +803,16 @@ class ClientConnectorDeathTest : public ClientConnectorTest {
     }
 };
 
+using ClientConnectorUnsubscribeTest = ClientConnectorDeathTest;
+
+TEST_F(ClientConnectorUnsubscribeTest, ClientUnsubscribesInEventCallbackSuccessfully) {
+    EXPECT_CALL(cc_callbacks, on_event_update(_, _, _)).WillOnce([this]() {
+        EXPECT_TRUE(client0->unsubscribe_event(event_id));
+    });
+
+    server.update_event(event_id, empty_payload());
+}
+
 TEST_F(ClientConnectorDeathTest, ClientDeletionByOnStateChangeResultsInLoggingAndTermination) {
     auto const el_failure = [this]() {
         EXPECT_CALL(cc_callbacks, on_service_state_change(_, Service_state::not_available, _))

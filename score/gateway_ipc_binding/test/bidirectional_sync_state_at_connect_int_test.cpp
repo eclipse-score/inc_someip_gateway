@@ -26,9 +26,13 @@ namespace score::gateway_ipc_binding {
 using Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test =
     Gateway_ipc_binding_bidirectional_test<Gateway_ipc_binding_unconnected_integration_test>;
 
-INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
-                         Values(Direction::Client_to_server, Direction::Server_to_client),
-                         readable_test_names);
+INSTANTIATE_TEST_SUITE_P(
+    , Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
+    Values(Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Message_passing},
+           Bidirectional_test_parameter{Direction::Server_to_client,
+                                        Ipc_binding_implementation::Message_passing}),
+    readable_test_names);
 
 TEST_P(Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
        client_creates_client_connector_and_connects_to_server) {
@@ -66,9 +70,13 @@ TEST_P(Gateway_ipc_binding_bidirectional_sync_state_at_connect_integration_test,
 using Gateway_ipc_binding_bidirectional_sync_state_connected_integration_test =
     Gateway_ipc_binding_bidirectional_test<Gateway_ipc_binding_integration_test>;
 
-INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_bidirectional_sync_state_connected_integration_test,
-                         Values(Direction::Client_to_server, Direction::Server_to_client),
-                         readable_test_names);
+INSTANTIATE_TEST_SUITE_P(
+    , Gateway_ipc_binding_bidirectional_sync_state_connected_integration_test,
+    Values(Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Message_passing},
+           Bidirectional_test_parameter{Direction::Server_to_client,
+                                        Ipc_binding_implementation::Message_passing}),
+    readable_test_names);
 
 TEST_P(Gateway_ipc_binding_bidirectional_sync_state_connected_integration_test,
        ipc_server_destruction_with_server_connector) {

@@ -209,10 +209,6 @@ int main(int argc, char* argv[]) {
     // Create the SOCom runtime
     auto socom_runtime = socom::create_runtime();
 
-    // "Connect" is the largest IPC message due to the embedded SHM metadata
-    static_assert(sizeof(gateway_ipc_binding::Connect{}) <= score::someip::kMaxIpcMessageSize,
-                  "Connect message exceeds max_send_size");
-
     message_passing::ServiceProtocolConfig proto_config{
         ipc_channel_name, score::someip::kMaxIpcMessageSize, score::someip::kMaxIpcMessageSize,
         score::someip::kMaxIpcMessageSize};

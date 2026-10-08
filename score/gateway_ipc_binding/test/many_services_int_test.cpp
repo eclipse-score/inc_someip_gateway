@@ -14,21 +14,14 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <cstddef>
 #include <future>
 #include <string>
+#include <tuple>
+#include <vector>
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
-#include "score/socom/callback_mocks.hpp"
-#include "score/socom/client_connector.hpp"
-#include "score/socom/client_connector_mock.hpp"
-#include "score/socom/error.hpp"
 #include "score/socom/runtime.hpp"
-#include "score/socom/runtime_mock.hpp"
 #include "score/socom/server_connector.hpp"
-#include "score/socom/server_connector_mock.hpp"
 #include "test_fixtures.hpp"
 #include "util.hpp"
 
@@ -37,6 +30,7 @@ using testing::Values;
 
 namespace score::gateway_ipc_binding {
 
+namespace {
 enum class Service_variant : std::uint8_t { alpha = 1 << 0, beta = 1 << 1, gamma = 1 << 2 };
 
 Service_variant operator|(Service_variant a, Service_variant b) {
@@ -93,23 +87,42 @@ void send_event_update(Server_connector_with_callbacks& server, Service_variant 
               std::future_status::ready);
 }
 
+using Many_services_test_parameter =
+    std::tuple<Service_variant, Service_variant, Ipc_binding_implementation>;
+
+Many_services_test_parameter tsv(Service_variant a, Service_variant b,
+                                 Ipc_binding_implementation implementation) {
+    return std::make_tuple(a, b, implementation);
+}
+
+std::string many_services_test_name(
+    testing::TestParamInfo<Many_services_test_parameter> const& param) {
+    auto const implementation = std::get<2>(param.param);
+    auto const* const implementation_name =
+        implementation == Ipc_binding_implementation::Message_passing ? "Message_passing"
+                                                                      : "Mw_com";
+    return std::string{implementation_name} + "_" + std::to_string(param.index);
+}
+
+}  // namespace
+
 class Gateway_ipc_binding_many_services_integration_test
     : public Gateway_ipc_binding_unconnected_integration_test {
    protected:
     socom::Service_interface_identifier const service_interface_alpha{
-        std::string{"com.test.service.alpha"}, {1, 0}};
+        std::string{"bridged_com.test.service.alpha"}, {1, 0}};
     socom::Service_interface_identifier const service_interface_beta{
-        std::string{"com.test.service.beta"}, {1, 0}};
+        std::string{"bridged_com.test.service.beta"}, {1, 0}};
     socom::Service_interface_identifier const service_interface_gamma{
-        std::string{"com.test.service.gamma"}, {1, 0}};
-    socom::Service_instance const instance{"instance1", socom::Literal_tag{}};
+        std::string{"bridged_com.test.service.gamma"}, {1, 0}};
+    socom::Service_instance const instance{"1", socom::Literal_tag{}};
 
     socom::Server_service_interface_definition const server_config_alpha{
-        service_interface_alpha, socom::to_num_of_methods(1), socom::to_num_of_events(1)};
+        service_interface_alpha, socom::to_num_of_methods(0), socom::to_num_of_events(1)};
     socom::Server_service_interface_definition const server_config_beta{
-        service_interface_beta, socom::to_num_of_methods(1), socom::to_num_of_events(2)};
+        service_interface_beta, socom::to_num_of_methods(0), socom::to_num_of_events(2)};
     socom::Server_service_interface_definition const server_config_gamma{
-        service_interface_gamma, socom::to_num_of_methods(2), socom::to_num_of_events(3)};
+        service_interface_gamma, socom::to_num_of_methods(0), socom::to_num_of_events(3)};
 
     Shared_memory_metadata const client_metadata_alpha =
         make_metadata("/gw_client_shm_many_services_alpha", 256, 8);
@@ -135,44 +148,102 @@ class Gateway_ipc_binding_many_services_integration_test
         {service_interface_beta, {{instance, client_metadata_beta}}},
         {service_interface_gamma, {{instance, client_metadata_gamma}}}};
 
+    mw_com::Service_configs const mw_com_consumer_services =
+        make_mw_com_services(mw_com::Role::consumer);
+    mw_com::Service_configs const mw_com_provider_services =
+        make_mw_com_services(mw_com::Role::provider);
+
     Event_id const beta_event_id{1};
 
-    Gateway_ipc_binding_many_services_integration_test() {
-        client = nullptr;
-        server = nullptr;
-        client = create_ipc_client(*runtime_client, client_shm_config, {},
-                                   make_shared_memory_configs(server_shm_config));
-        server = create_ipc_server(*runtime_server);
+    mw_com::Service_configs make_mw_com_services(mw_com::Role const role) const {
+        mw_com::Service_configs services;
+        auto add_service = [this, &services, role](auto const& interface, auto const& metadata,
+                                                   std::string instance_specifier,
+                                                   std::size_t event_count) {
+            std::vector<mw_com::Event_config> events;
+            events.reserve(event_count);
+            for (std::size_t event_index = 0U; event_index < event_count; ++event_index) {
+                events.push_back({"event_" + std::to_string(event_index), 16U, metadata.slot_size});
+            }
+            services.push_back({interface, instance, std::move(instance_specifier), role,
+                                std::move(events), metadata.slot_count});
+        };
 
-        start_and_wait_for_client_connection();
+        add_service(service_interface_alpha, server_metadata_alpha,
+                    "bridged_ipc/many_services_alpha", 1U);
+        add_service(service_interface_beta, server_metadata_beta, "bridged_ipc/many_services_beta",
+                    2U);
+        add_service(service_interface_gamma, server_metadata_gamma,
+                    "bridged_ipc/many_services_gamma", 3U);
+        return services;
     }
 };
 
-using Service_variant_pair = std::tuple<Service_variant, Service_variant>;
-
-Service_variant_pair tsv(Service_variant a, Service_variant b) { return std::make_tuple(a, b); }
-
 class Gateway_ipc_binding_many_services_param_integration_test
     : public Gateway_ipc_binding_many_services_integration_test,
-      public testing::WithParamInterface<Service_variant_pair> {
+      public testing::WithParamInterface<Many_services_test_parameter> {
    protected:
     Service_variant const client_type = std::get<0>(GetParam());
     Service_variant const server_type = std::get<1>(GetParam());
+    Ipc_binding_implementation const implementation = std::get<2>(GetParam());
+
+    void SetUp() override {
+        // not calling base class SetUp by intention. client and server are created here
+        // Gateway_ipc_binding_many_services_integration_test::SetUp();
+
+        if (implementation == Ipc_binding_implementation::Mw_com) {
+            client = create_mw_com_client(*runtime_client, "someipd/daemon_many_services",
+                                          mw_com_consumer_services);
+            server = create_mw_com_server(*runtime_server, "someipd/daemon_many_services",
+                                          mw_com_provider_services);
+        } else {
+            client = create_ipc_client(*runtime_client, client_shm_config, {},
+                                       make_shared_memory_configs(server_shm_config));
+            server = create_ipc_server(*runtime_server);
+        }
+
+        ASSERT_NE(client, nullptr);
+        ASSERT_NE(server, nullptr);
+        auto const start_result = server->start();
+        ASSERT_TRUE(start_result);
+        EXPECT_TRUE(
+            wait_on_connection_state(*client, Connection_state::Connected, very_long_timeout));
+    }
 };
 
 INSTANTIATE_TEST_SUITE_P(
     , Gateway_ipc_binding_many_services_param_integration_test,
-    Values(tsv(Service_variant::alpha, Service_variant::alpha),
-           tsv(Service_variant::beta, Service_variant::beta),
-           tsv(Service_variant::gamma, Service_variant::gamma),
+    Values(tsv(Service_variant::alpha, Service_variant::alpha,
+               Ipc_binding_implementation::Message_passing),
+           tsv(Service_variant::beta, Service_variant::beta,
+               Ipc_binding_implementation::Message_passing),
+           tsv(Service_variant::gamma, Service_variant::gamma,
+               Ipc_binding_implementation::Message_passing),
            tsv(Service_variant::alpha | Service_variant::beta,
-               Service_variant::alpha | Service_variant::beta),
+               Service_variant::alpha | Service_variant::beta,
+               Ipc_binding_implementation::Message_passing),
            tsv(Service_variant::alpha | Service_variant::gamma,
-               Service_variant::alpha | Service_variant::gamma),
+               Service_variant::alpha | Service_variant::gamma,
+               Ipc_binding_implementation::Message_passing),
            tsv(Service_variant::beta | Service_variant::gamma,
-               Service_variant::beta | Service_variant::gamma),
+               Service_variant::beta | Service_variant::gamma,
+               Ipc_binding_implementation::Message_passing),
            tsv(Service_variant::alpha | Service_variant::beta | Service_variant::gamma,
-               Service_variant::alpha | Service_variant::beta | Service_variant::gamma)));
+               Service_variant::alpha | Service_variant::beta | Service_variant::gamma,
+               Ipc_binding_implementation::Message_passing),
+           tsv(Service_variant::alpha, Service_variant::alpha, Ipc_binding_implementation::Mw_com),
+           tsv(Service_variant::beta, Service_variant::beta, Ipc_binding_implementation::Mw_com),
+           tsv(Service_variant::gamma, Service_variant::gamma, Ipc_binding_implementation::Mw_com),
+           tsv(Service_variant::alpha | Service_variant::beta,
+               Service_variant::alpha | Service_variant::beta, Ipc_binding_implementation::Mw_com),
+           tsv(Service_variant::alpha | Service_variant::gamma,
+               Service_variant::alpha | Service_variant::gamma, Ipc_binding_implementation::Mw_com),
+           tsv(Service_variant::beta | Service_variant::gamma,
+               Service_variant::beta | Service_variant::gamma, Ipc_binding_implementation::Mw_com),
+           tsv(Service_variant::alpha | Service_variant::beta | Service_variant::gamma,
+               Service_variant::alpha | Service_variant::beta | Service_variant::gamma,
+               Ipc_binding_implementation::Mw_com)),
+    many_services_test_name);
 
 TEST_P(Gateway_ipc_binding_many_services_param_integration_test, clients_connect_to_service) {
     Client_connector_with_callbacks alpha_observer;

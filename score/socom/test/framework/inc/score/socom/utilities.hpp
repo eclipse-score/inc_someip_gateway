@@ -194,20 +194,20 @@ inline auto payload_eq(Payload const& expected) {
 inline auto create_check_update_count(std::atomic<std::uint32_t>& num_callback_called,
                                       std::size_t const& count, std::promise<void> event_received) {
     num_callback_called = 0;
-    return ::testing::InvokeWithoutArgs(
-        [&num_callback_called, count,
-         event_received = std::make_shared<std::promise<void>>(std::move(event_received))]() {
-            num_callback_called++;
-            if (count == num_callback_called) {
-                event_received->set_value();
-            }
-        });
+    return [&num_callback_called, count,
+            event_received = std::make_shared<std::promise<void>>(std::move(event_received))]() {
+        auto previous_count = num_callback_called.load();
+        while (!num_callback_called.compare_exchange_weak(previous_count, previous_count + 1U)) {
+        }
+        if (count == previous_count + 1U) {
+            event_received->set_value();
+        }
+    };
 }
 
 }  // namespace score::socom
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 // the following streaming operators are needed for fixing valgrind.
 // When no operator<< is defined it reads the parameter byte by byte and if there is uninitialized
@@ -229,15 +229,8 @@ std::ostream& operator<<(std::ostream& out, Construction_error const& error);
 
 bool operator==(Disabled_server_connector const& /*lhs*/, Disabled_server_connector const& /*rhs*/);
 
-}  // namespace socom
-}  // namespace score
-
-namespace score {
-namespace socom {
-
 bool operator==(Posix_credentials const& lhs, Posix_credentials const& rhs);
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom
 
 #endif

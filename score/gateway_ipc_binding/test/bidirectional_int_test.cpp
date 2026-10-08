@@ -16,20 +16,13 @@
 
 #include <cstddef>
 #include <future>
+#include <optional>
 #include <thread>
 
 #include "score/gateway_ipc_binding/error.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
-#include "score/socom/callback_mocks.hpp"
 #include "score/socom/client_connector.hpp"
-#include "score/socom/client_connector_mock.hpp"
 #include "score/socom/error.hpp"
-#include "score/socom/runtime.hpp"
-#include "score/socom/runtime_mock.hpp"
 #include "score/socom/server_connector.hpp"
-#include "score/socom/server_connector_mock.hpp"
 #include "test_constants.hpp"
 #include "test_fixtures.hpp"
 #include "util.hpp"
@@ -57,9 +50,15 @@ TEST_F(Gateway_ipc_binding_unconnected_integration_test, connect) {
 using Gateway_ipc_binding_bidirectional_integration_test =
     Gateway_ipc_binding_bidirectional_test<Gateway_ipc_binding_integration_test>;
 
-INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_bidirectional_integration_test,
-                         Values(Direction::Client_to_server, Direction::Server_to_client),
-                         readable_test_names);
+INSTANTIATE_TEST_SUITE_P(
+    , Gateway_ipc_binding_bidirectional_integration_test,
+    Values(Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Message_passing},
+           Bidirectional_test_parameter{Direction::Server_to_client,
+                                        Ipc_binding_implementation::Message_passing},
+           Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Mw_com}),
+    readable_test_names);
 
 TEST_P(Gateway_ipc_binding_bidirectional_integration_test,
        client_connects_to_server_with_client_connector) {
@@ -79,37 +78,49 @@ TEST_P(Gateway_ipc_binding_bidirectional_integration_test,
 class Gateway_ipc_binding_connected_bidirectional_integration_test
     : public Gateway_ipc_binding_bidirectional_integration_test {
    protected:
-    Server_connector_with_callbacks server{get_server_runtime(), socom_server_config, instance};
-    Client_connector_with_callbacks client{get_client_runtime(), socom_server_config, instance};
+    std::optional<Server_connector_with_callbacks> server;
+    std::optional<Client_connector_with_callbacks> client;
+
+    void SetUp() override {
+        Gateway_ipc_binding_bidirectional_integration_test::SetUp();
+        server.emplace(get_server_runtime(), socom_server_config, instance);
+        client.emplace(get_client_runtime(), socom_server_config, instance);
+    }
 };
 
-INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_connected_bidirectional_integration_test,
-                         Values(Direction::Client_to_server, Direction::Server_to_client),
-                         readable_test_names);
+INSTANTIATE_TEST_SUITE_P(
+    , Gateway_ipc_binding_connected_bidirectional_integration_test,
+    Values(Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Message_passing},
+           Bidirectional_test_parameter{Direction::Server_to_client,
+                                        Ipc_binding_implementation::Message_passing},
+           Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Mw_com}),
+    readable_test_names);
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subscribes_to_event) {
     std::promise<void> event_subscription_change_promise;
-    EXPECT_CALL(server.mock_event_subscription_change_cb,
+    EXPECT_CALL(server->mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::subscribed))
         .WillOnce([&event_subscription_change_promise](auto&, auto, auto) {
             event_subscription_change_promise.set_value();
         });
 
     auto const subscribe_result =
-        client.connector->subscribe_event(event_id, score::socom::Event_mode::update);
+        client->connector->subscribe_event(event_id, score::socom::Event_mode::update);
     ASSERT_TRUE(subscribe_result);
 
     EXPECT_EQ(event_subscription_change_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 
     std::promise<void> event_unsubscription_change_promise;
-    EXPECT_CALL(server.mock_event_subscription_change_cb,
+    EXPECT_CALL(server->mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::unsubscribed))
         .WillOnce([&event_unsubscription_change_promise](auto&, auto, auto) {
             event_unsubscription_change_promise.set_value();
         });
 
-    auto const unsubscribe_result = client.connector->unsubscribe_event(event_id);
+    auto const unsubscribe_result = client->connector->unsubscribe_event(event_id);
     ASSERT_TRUE(unsubscribe_result);
 
     EXPECT_EQ(event_unsubscription_change_promise.get_future().wait_for(very_long_timeout),
@@ -118,9 +129,9 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subs
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_allocates_event_payload) {
-    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
-    auto payload_handle = server.connector->allocate_event_payload(event_id);
+    auto payload_handle = server->connector->allocate_event_payload(event_id);
     ASSERT_TRUE(payload_handle);
     EXPECT_EQ(payload_handle->data().size(), get_server_metadata().slot_size);
     EXPECT_NE(payload_handle->data().data(), nullptr);
@@ -129,7 +140,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        event_payload_allocation_without_any_subscription_fails) {
-    auto payload_handle = server.connector->allocate_event_payload(event_id);
+    auto payload_handle = server->connector->allocate_event_payload(event_id);
     EXPECT_EQ(payload_handle,
               MakeUnexpected(
                   socom::Server_connector_error::runtime_error_no_client_subscribed_for_event));
@@ -137,17 +148,17 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        exhausted_event_payload_slots_return_error) {
-    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::vector<std::optional<socom::Writable_payload>> payload_handles;
 
     for (std::size_t i = 0; i < get_server_metadata().slot_count; ++i) {
-        auto payload_handle = server.connector->allocate_event_payload(event_id);
+        auto payload_handle = server->connector->allocate_event_payload(event_id);
         ASSERT_TRUE(payload_handle);
         payload_handles.push_back(std::move(*payload_handle));
     }
 
-    auto payload_handle = server.connector->allocate_event_payload(event_id);
+    auto payload_handle = server->connector->allocate_event_payload(event_id);
     EXPECT_EQ(
         payload_handle,
         MakeUnexpected(
@@ -155,21 +166,21 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
     // destruction of payload handle should enable to allocate again
     payload_handles.erase(std::begin(payload_handles));
-    EXPECT_TRUE(server.connector->allocate_event_payload(event_id));
+    EXPECT_TRUE(server->connector->allocate_event_payload(event_id));
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_sends_event_update) {
-    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
-    auto payload_handle = create_payload(*server.connector, event_id, expected_payload);
+    auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
 
     std::promise<socom::Payload> event_update_received_promise;
-    EXPECT_CALL(client.mock_event_update_cb, Call(_, event_id, _))
+    EXPECT_CALL(client->mock_event_update_cb, Call(_, event_id, _))
         .Times(1)
         .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
             event_update_received_promise.set_value(std::move(payload));
         });
-    auto update_result = server.connector->update_event(event_id, std::move(payload_handle));
+    auto update_result = server->connector->update_event(event_id, std::move(payload_handle));
     ASSERT_TRUE(update_result);
 
     auto payload_future = event_update_received_promise.get_future();
@@ -185,9 +196,9 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_send
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_sends_event_update_with_shrunk_payload) {
-    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
-    auto payload_handle = create_payload(*server.connector, event_id, expected_payload);
+    auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
     ASSERT_GT(payload_handle.data().size(), 8);
     auto const old_size = payload_handle.data().size();
     auto const new_size = old_size / 2;
@@ -195,12 +206,12 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
     ASSERT_TRUE(shrink_success);
 
     std::promise<socom::Payload> event_update_received_promise;
-    EXPECT_CALL(client.mock_event_update_cb, Call(_, event_id, _))
+    EXPECT_CALL(client->mock_event_update_cb, Call(_, event_id, _))
         .Times(1)
         .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
             event_update_received_promise.set_value(std::move(payload));
         });
-    auto update_result = server.connector->update_event(event_id, std::move(payload_handle));
+    auto update_result = server->connector->update_event(event_id, std::move(payload_handle));
     ASSERT_TRUE(update_result);
 
     auto payload_future = event_update_received_promise.get_future();
@@ -218,23 +229,23 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_keeps_event_payloads_until_server_receives_consumed_notification) {
-    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::vector<socom::Payload> payload_handles;
 
     for (std::size_t i = 0; i < get_server_metadata().slot_count; ++i) {
-        auto payload_handle = create_payload(*server.connector, event_id, expected_payload);
+        auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
         ASSERT_NE(payload_handle.data().size(), 0);
         payload_handle.wdata()[0] =
             std::byte{static_cast<std::uint8_t>(i)};  // differentiate payloads
 
         std::promise<socom::Payload> event_update_received_promise;
-        EXPECT_CALL(client.mock_event_update_cb, Call(_, event_id, _))
+        EXPECT_CALL(client->mock_event_update_cb, Call(_, event_id, _))
             .Times(1)
             .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
                 event_update_received_promise.set_value(std::move(payload));
             });
-        auto update_result = server.connector->update_event(event_id, std::move(payload_handle));
+        auto update_result = server->connector->update_event(event_id, std::move(payload_handle));
         ASSERT_TRUE(update_result);
 
         auto payload_future = event_update_received_promise.get_future();
@@ -247,7 +258,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
         payload_handles.push_back(std::move(received_payload));
     }
 
-    auto payload_handle = server.connector->allocate_event_payload(event_id);
+    auto payload_handle = server->connector->allocate_event_payload(event_id);
     EXPECT_EQ(
         payload_handle,
         MakeUnexpected(
@@ -257,7 +268,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
     payload_handles.erase(std::begin(payload_handles));
     // need to wait for IPC
     while (
-        server.connector->allocate_event_payload(event_id) ==
+        server->connector->allocate_event_payload(event_id) ==
         MakeUnexpected(
             gateway_ipc_binding::Shared_memory_manager_error::runtime_error_no_available_slots)) {
         std::this_thread::sleep_for(10ms);
@@ -266,16 +277,16 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disconnects) {
     // misuse Event subscription notification to detect client disconnect
-    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::promise<void> event_unsubscription_change_promise;
-    EXPECT_CALL(server.mock_event_subscription_change_cb,
+    EXPECT_CALL(server->mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::unsubscribed))
         .WillOnce([&event_unsubscription_change_promise](auto&, auto, auto) {
             event_unsubscription_change_promise.set_value();
         });
 
-    client.connector.reset();
+    client->connector.reset();
 
     EXPECT_EQ(event_unsubscription_change_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
@@ -284,66 +295,78 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disc
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_disconnects_and_reconnects) {
     // misuse Event subscription notification to detect client disconnect
-    client.subscribe_event(server.mock_event_subscription_change_cb, event_id);
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::promise<void> event_unsubscription_change_promise;
-    EXPECT_CALL(server.mock_event_subscription_change_cb,
+    EXPECT_CALL(server->mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::unsubscribed))
         .WillOnce([&event_unsubscription_change_promise](auto&, auto, auto) {
             event_unsubscription_change_promise.set_value();
         });
 
-    client.connector.reset();
+    client->connector.reset();
 
     EXPECT_EQ(event_unsubscription_change_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 
     // now reconnect to service
     std::promise<void> client_connected_promise;
-    EXPECT_CALL(client.mock_service_state_change_cb,
+    EXPECT_CALL(client->mock_service_state_change_cb,
                 Call(_, score::socom::Service_state::available, socom_server_config))
         .Times(1)
         .WillOnce([&client_connected_promise](auto&, auto, auto) {
             client_connected_promise.set_value();
         });
 
-    EXPECT_CALL(client.mock_service_state_change_cb,
+    EXPECT_CALL(client->mock_service_state_change_cb,
                 Call(_, score::socom::Service_state::not_available, socom_server_config))
         // Callback call is racy with IPC message exchange at test teardown
         .Times(AtMost(1));
 
-    client.create_connector(get_client_runtime(), socom_server_config, instance);
+    client->create_connector(get_client_runtime(), socom_server_config, instance);
 
     EXPECT_EQ(client_connected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_disconnects) {
-    server.connector.reset();
-    EXPECT_EQ(client.client_disconnected_promise.get_future().wait_for(very_long_timeout),
+    server->connector.reset();
+    EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
+              std::future_status::ready);
+}
+
+TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
+       server_disconnects_while_client_is_subscribed) {
+    // With a live subscription, tearing the offer down cannot fully release the underlying
+    // binding: something on the other side still references the subscribed event.
+    client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
+
+    server->connector.reset();
+
+    EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_disconnects_and_reconnects) {
-    server.connector.reset();
-    EXPECT_EQ(client.client_disconnected_promise.get_future().wait_for(very_long_timeout),
+    server->connector.reset();
+    EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 
     std::promise<void> client_connected_promise;
-    EXPECT_CALL(client.mock_service_state_change_cb,
+    EXPECT_CALL(client->mock_service_state_change_cb,
                 Call(_, score::socom::Service_state::available, socom_server_config))
         .Times(1)
         .WillOnce([&client_connected_promise](auto&, auto, auto) {
             client_connected_promise.set_value();
         });
 
-    server.create_connector(get_server_runtime(), socom_server_config, instance);
+    server->create_connector(get_server_runtime(), socom_server_config, instance);
 
     EXPECT_EQ(client_connected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
 
-    EXPECT_CALL(client.mock_service_state_change_cb,
+    EXPECT_CALL(client->mock_service_state_change_cb,
                 Call(_, score::socom::Service_state::not_available, socom_server_config))
         // Callback call is racy with IPC message exchange at test teardown
         .Times(AtMost(1));
