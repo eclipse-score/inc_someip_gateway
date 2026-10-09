@@ -142,6 +142,177 @@ py_library(
     ],
 )
 
+_ITF_ARGS = [
+    "--color=yes",
+    "-p",
+    "tc8_itf_conftest",
+]
+
+_ITF_DEPS = [
+    ":tc8-itf-lib",
+    "//tests/common:capture",
+    "@score_tooling//python_basics/score_pytest:attribute_plugin",
+]
+
+integration_test(
+    name = "test_tc8_service_discovery",
+    timeout = "long",
+    srcs = [
+        "test_service_discovery.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# exclusive: timing sensitive capture
+integration_test(
+    name = "test_tc8_sd_phases_timing",
+    timeout = "long",
+    srcs = [
+        "test_sd_phases_timing.py",
+    ],
+    args = _ITF_ARGS,
+    data = glob(["config/*.json"]),
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# exclusive: lifecycle sensitive reboot detection
+integration_test(
+    name = "test_tc8_sd_reboot",
+    timeout = "long",
+    srcs = [
+        "test_sd_reboot.py",
+    ],
+    args = _ITF_ARGS,
+    data = glob(["config/*.json"]),
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_format_compliance",
+    timeout = "long",
+    srcs = [
+        "test_sd_format_compliance.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_robustness",
+    timeout = "long",
+    srcs = [
+        "test_sd_robustness.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# exclusive: manages DUT lifecycle directly
+integration_test(
+    name = "test_tc8_sd_client",
+    timeout = "long",
+    srcs = [
+        "test_sd_client.py",
+    ],
+    args = _ITF_ARGS,
+    data = glob(["config/*.json"]),
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_someip_message_format",
+    timeout = "long",
+    srcs = [
+        "test_someip_message_format.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_event_notification",
+    timeout = "long",
+    srcs = [
+        "test_event_notification.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_field_conformance",
+    timeout = "long",
+    srcs = [
+        "test_field_conformance.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_multi_service",
+    timeout = "long",
+    srcs = [
+        "test_multi_service.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
 [validate_json_schema_test(
     name = cfg.replace(".json", "_schema_valid"),
     size = "small",

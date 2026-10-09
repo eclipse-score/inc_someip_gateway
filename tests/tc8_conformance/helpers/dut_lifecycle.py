@@ -87,25 +87,27 @@ class _TargetProcess:
     def terminate(self) -> None:
         """Stop the remote processes.
 
-        Primary mechanism: stop each tracked AsyncProcess handle returned by
-        the QemuTarget when this wrapper was constructed.
-
-        Fallback: force-kill by binary name via ``pkill -9`` using the names
-        passed in via *process_names*.  This is only a fallback because
-        stopping the AsyncProcess handles alone was found to not reliably
-        terminate these binaries on the target under QEMU.  ``pkill`` is
-        portable: procps on Linux, ``slay`` symlink on QNX8 (pgrep absent
-        from the QNX IFS).
-
-        Failures are logged as warnings and do not re-raise so teardown
-        does not fail the test.
+        pkill -9 runs first so stop()'s 15s wait() timeout is only hit as a
+        fallback, not on every teardown. Do not reorder.
         """
-        for proc, label in (
-            (self._proc, "primary"),
-            (self._secondary_proc, "secondary"),
-            (self._stub_proc, "stub"),
-        ):
+        names = self._process_names
+        entries = (
+            (self._proc, "primary", names[0] if len(names) > 0 else None),
+            (self._secondary_proc, "secondary", names[1] if len(names) > 1 else None),
+            (self._stub_proc, "stub", names[2] if len(names) > 2 else None),
+        )
+        for proc, label, name in entries:
             if proc is None:
+                continue
+            if name is not None and self._target_init is not None:
+                try:
+                    self._target_init.execute(f"pkill -9 {name} 2>/dev/null || true")  # type: ignore[attr-defined]
+                except Exception:  # noqa: BLE001
+                    _logger.warning(
+                        "force-kill fallback of %s on QEMU guest failed; continuing teardown",
+                        name,
+                    )
+            if not proc.is_running():  # type: ignore[attr-defined]
                 continue
             try:
                 proc.stop()  # type: ignore[attr-defined]
@@ -114,16 +116,6 @@ class _TargetProcess:
                     "AsyncProcess.stop() for %s proc raised during teardown (ignored): %s",
                     label,
                     exc,
-                )
-
-        if self._target_init is not None and self._process_names:
-            kill_cmd = "; ".join(f"pkill -9 {name} 2>/dev/null || true" for name in self._process_names)
-            try:
-                self._target_init.execute(kill_cmd)  # type: ignore[attr-defined]
-            except Exception:  # noqa: BLE001
-                _logger.warning(
-                    "force-kill fallback of %s on QEMU guest failed; continuing teardown",
-                    ", ".join(self._process_names),
                 )
 
     def kill(self) -> None:

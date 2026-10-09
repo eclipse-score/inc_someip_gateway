@@ -62,10 +62,10 @@ The following component identifiers are used in requirement IDs and file names:
      - Description
    * - ``gatewayd``
      - ASIL-B
-     - Gateway daemon — bridges IPC and SOME/IP, E2E protection, ACL enforcement
+     - Gateway daemon: bridges IPC and SOME/IP, E2E protection, ACL enforcement
    * - ``someipd``
      - QM
-     - SOME/IP stack daemon — wraps vsomeip, handles network I/O and SOME/IP-SD
+     - SOME/IP stack daemon: handles network I/O and SOME/IP-SD
    * - ``network_service``
      - ASIL-B
      - IPC interface between ``gatewayd`` and ``someipd`` (SomeipMessageTransfer)
@@ -101,7 +101,7 @@ Document Heading Standards
 All RST requirement files follow this structure:
 
 1. Copyright header (RST comment block)
-2. Document title — ``=`` overline/underline
+2. Document title, ``=`` overline/underline
 3. Descriptive introduction paragraph
 4. Requirement directives grouped by topic
 5. Sections within a file use ``-`` underline, subsections use ``^``
@@ -111,13 +111,14 @@ Mandatory Attributes
 
 Every requirement directive must include these attributes:
 
-- ``:id:`` — unique identifier per the scheme above
-- ``:status:`` — ``valid`` or ``draft``
-- ``:safety:`` — ``QM`` or ``ASIL_B``
-- ``:security:`` — ``YES`` or ``NO``
-- ``:reqtype:`` — ``Functional``, ``Interface``, ``Process``, or ``Non-Functional``
-- ``:satisfies:`` — parent requirement ID (mandatory for feature and component levels)
-- ``:rationale:`` — justification text (mandatory for stakeholder level only)
+- ``:id:``: unique identifier per the scheme above
+- ``:status:``: ``valid`` or ``invalid``
+- ``:safety:``: ``QM`` or ``ASIL_B``
+- ``:security:``: ``YES`` or ``NO``
+- ``:reqtype:``: ``Functional``, ``Interface``, ``Process``, or ``Non-Functional``
+- ``:satisfied_by:``: the implementing node (``feat`` for a feature requirement,
+  ``comp`` for a component requirement); this is the mandatory parent link
+- ``:rationale:``: justification text (mandatory for stakeholder level only)
 
 Cross-References
 ^^^^^^^^^^^^^^^^
