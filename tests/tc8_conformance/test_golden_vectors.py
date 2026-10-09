@@ -12,15 +12,10 @@
 # *******************************************************************************
 """Golden byte-vector regression tests for TC8 conformance helpers.
 
-Verifies that ``helpers/message_builder.py``, ``helpers/sd_sender.py``, and
-``helpers/sd_malformed.py`` produce the expected wire-format bytes for a set
-of representative inputs.  The hex literals are the reference values for the
-SOME/IP and SOME/IP-SD packet formats these helpers must produce; they are
-kept permanently as a regression guard against accidental changes to packet
-structure.
-
-Session-id counters in ``sd_sender`` and ``sd_malformed`` are reset before
-each call that depends on them, so the golden bytes are reproducible.
+Pins the exact wire-format bytes ``message_builder.py``, ``sd_sender.py``,
+and ``sd_malformed.py`` must produce, guarding against accidental changes to
+packet structure. Session-id counters in those modules are reset before each
+call that depends on them, so the golden bytes stay reproducible.
 """
 
 import itertools
@@ -62,20 +57,12 @@ class _FakeSocket:
 
 
 def _reset_sd_sender_counter() -> None:
-    """Reset ``sd_sender``'s private session counter to a fixed start value.
-
-    Test-only seam for the non-determinism documented in the module
-    docstring (finding 1). Not a production code change.
-    """
+    """Reset ``sd_sender``'s private session counter so golden bytes are reproducible."""
     sd_sender._session_counter = itertools.count(start=1)  # noqa: SLF001
 
 
 def _reset_sd_malformed_counter() -> None:
-    """Reset ``sd_malformed``'s private session counter to its documented start value.
-
-    Test-only seam for the non-determinism documented in the module
-    docstring (finding 2). Not a production code change.
-    """
+    """Reset ``sd_malformed``'s private session counter so golden bytes are reproducible."""
     sd_malformed._malformed_session = itertools.count(start=200)  # noqa: SLF001
 
 
@@ -194,9 +181,9 @@ class TestMessageBuilderGoldenVectors:
 class TestSdSenderGoldenVectors:
     """Golden byte vectors for the public builders in ``sd_sender.py``.
 
-    All calls below pass ``session_id`` explicitly, which is deterministic.
-    ``send_subscribe_eventgroup_reserved_set`` has no such seam (finding 1 in
-    the module docstring); its counter is reset before the call instead.
+    All calls pass ``session_id`` explicitly, except
+    ``send_subscribe_eventgroup_reserved_set``, whose counter is reset
+    before the call instead.
     """
 
     def test_send_find_service(self) -> None:
@@ -328,10 +315,8 @@ class TestSdSenderGoldenVectors:
 class TestSdSenderWireFormatParsing:
     """Frozen wire-format byte blobs and their expected parsed results.
 
-    These hex blobs are hardcoded independently so this class validates the
-    parser even if the builder tests above are removed. Covers SD option
-    resolution and the IPv4EndpointOption (0x04) vs IPv4MulticastOption
-    (0x14) type distinction.
+    Hardcoded independently so this class validates the parser even if the
+    builder tests above are removed.
     """
 
     _WIRE_SUBSCRIBE_SINGLE_HEX = (
@@ -426,10 +411,9 @@ class TestSdMalformedPureBuilders:
 class TestSdMalformedSendersGoldenVectors:
     """Golden byte vectors for every public ``send_sd_*`` wrapper.
 
-    ``send_sd_high_session_id`` takes ``session_id`` explicitly (deterministic).
-    Every other wrapper here relies on the shared, private
-    ``_malformed_session`` counter (finding 2 in the module docstring); each
-    test resets it to a fixed start value immediately before the call.
+    ``send_sd_high_session_id`` takes ``session_id`` explicitly; every other
+    wrapper relies on the shared, private ``_malformed_session`` counter, so
+    each test resets it immediately before the call.
     """
 
     def test_send_sd_high_session_id(self) -> None:

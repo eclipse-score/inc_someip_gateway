@@ -86,11 +86,7 @@ def build_wrong_protocol_version_request(
     session_id: int = 0x0001,
     interface_version: int = MAJOR_VERSION,
 ) -> bytes:
-    """Build a valid REQUEST but with protocol_version patched to 0xFF.
-
-    SOME/IP wire layout: byte 12 is protocol_version.
-    The DUT should reject or drop this message (TC8-MSG-007).
-    """
+    """Build a valid REQUEST but with protocol_version patched to 0xFF (TC8-MSG-007)."""
     raw = build_request(
         service_id,
         method_id,
@@ -109,11 +105,7 @@ def build_oversized_message(
     session_id: int = 0x0001,
     interface_version: int = MAJOR_VERSION,
 ) -> bytes:
-    """Build a 16-byte packet whose length field claims 0x7FF3 bytes of payload.
-
-    The actual UDP payload is only 16 bytes so the DUT will receive a
-    packet far shorter than advertised.  The DUT must not crash (TC8-MSG-007).
-    """
+    """Build a 16-byte packet whose length field claims 0x7FF3 bytes of payload (TC8-MSG-007)."""
     raw = build_request(
         service_id,
         method_id,
@@ -167,9 +159,8 @@ def build_request_with_return_code(
 ) -> bytes:
     """Build a REQUEST with an explicit return_code byte value.
 
-    Per SOME/IP spec the return_code in a REQUEST must be E_OK (0x00).
-    Setting it to a non-zero value tests DUT robustness (RPC_06/07/08).
-    The return_code byte is byte 15 in the SOME/IP header wire layout.
+    Per SOME/IP spec the return_code in a REQUEST must be E_OK (0x00);
+    setting it non-zero tests DUT robustness (RPC_06/07/08).
     """
     raw = build_request(
         service_id,

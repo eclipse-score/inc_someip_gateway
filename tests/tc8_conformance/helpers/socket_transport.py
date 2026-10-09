@@ -33,11 +33,7 @@ RequestTransport = Callable[[bytes, float], SOMEIPHeader]
 
 
 def udp_request_transport(host_ip: str, dut_port: int) -> RequestTransport:
-    """Build a UDP transport for send_request().
-
-    Opens a fresh UDP socket, sends the request to (host_ip, dut_port),
-    waits for a single response datagram, and returns the parsed message.
-    """
+    """Build a UDP transport for send_request() that opens a fresh socket per call."""
 
     def _transport(request_bytes: bytes, timeout_secs: float) -> SOMEIPHeader:
         sock = create_udp_socket(port=0)
@@ -54,11 +50,7 @@ def udp_request_transport(host_ip: str, dut_port: int) -> RequestTransport:
 
 
 def tcp_request_transport(host_ip: str, dut_port: int) -> RequestTransport:
-    """Build a TCP transport for send_request().
-
-    Connects to (host_ip, dut_port), sends the request, and returns the
-    parsed response using SOME/IP TCP stream framing.
-    """
+    """Build a TCP transport for send_request() using SOME/IP TCP stream framing."""
 
     def _transport(request_bytes: bytes, timeout_secs: float) -> SOMEIPHeader:
         sock = tcp_connect(host_ip, dut_port, timeout_secs=timeout_secs)

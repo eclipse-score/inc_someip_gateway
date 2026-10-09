@@ -47,10 +47,9 @@ from helpers.someip_types import (
 def open_sender_socket(local_ip: str) -> socket.socket:
     """Open a UDP socket at ``(local_ip, SD_PORT)`` for SD send/receive.
 
-    Binds to ``SD_PORT`` because the SOME/IP stack drops SD messages from other ports.
-    ``local_ip`` must differ from the DUT address (use the ``tester_ip`` fixture).
-    Multicast loopback is enabled so the local DUT receives our packets.
-    Caller must close the socket.
+    Binds to ``SD_PORT`` because the SOME/IP stack drops SD messages from
+    other ports. ``local_ip`` must differ from the DUT address. Caller must
+    close the socket.
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -150,21 +149,14 @@ def send_subscribe_eventgroup(
 ) -> None:
     """Send a SubscribeEventgroup (or StopSubscribe when ``ttl=0``).
 
-    Endpoint configuration:
-
-    Standard (single protocol): use `subscriber_port` and `l4proto` to subscribe
-    to an eventgroup that contains only UDP or only TCP events.
-
-    Mixed (multi protocol): some eventgroups are configured to contain both TCP
-    and UDP events. Strict SOME/IP implementations require both endpoints to be
-    provided in the subscription request. Pass `tcp_port` and/or `udp_port` to
-    explicitly attach multiple IPv4 Endpoint Options to the SD entry.
+    For eventgroups mixing TCP and UDP events, strict SOME/IP implementations
+    require both endpoints in the subscription request: pass `tcp_port`
+    and/or `udp_port` instead of `subscriber_port`/`l4proto` to attach
+    multiple IPv4 Endpoint Options to the SD entry.
     """
     endpoint_opt = []
 
     if tcp_port is None and udp_port is None:
-        # Standard behavior: Attach a single IPv4 Endpoint Option.
-        # This relies on the fallback 'l4proto' and 'subscriber_port'
         endpoint_opt.append(
             IPv4EndpointOption(
                 address=ipaddress.IPv4Address(subscriber_ip),
@@ -173,10 +165,6 @@ def send_subscribe_eventgroup(
             )
         )
     else:
-        # Mixed behavior: The caller explicitly defined protocol-specific ports.
-        # We ignore 'subscriber_port' and 'l4proto', and instead attach up to two
-        # separate IPv4 Endpoint Options. This informs the provider exactly where
-        # to route UDP events and where to route TCP events for this eventgroup.
         if udp_port is not None:
             endpoint_opt.append(
                 IPv4EndpointOption(
@@ -222,24 +210,11 @@ def send_subscribe_eventgroup_reserved_set(
 ) -> None:
     """Send a SubscribeEventgroup with the reserved counter bits in the entry set non-zero.
 
-    The SubscribeEventgroup SD entry encodes a 4-bit counter nibble and a 12-bit
-    reserved field in the upper 16 bits of the ``minver_or_counter`` word (wire bytes
-    12-15 of the entry).  This function sets the 12 reserved bits to ``reserved_value``
-    to exercise SOMEIPSRV_SD_MESSAGE_19: the DUT shall send a NAck or silently ignore
-    the subscribe.
-
-    The packet is built by:
-    1. Constructing a normal subscribe via ``_build_sd_packet()`` (library path).
-    2. Locating the entry's ``minver_or_counter`` bytes in the serialised buffer.
-    3. OR-ing the reserved bits (bits [31:20] of the 32-bit counter word) with
-       ``reserved_value << 20``.
-
-    Offset derivation (all big-endian):
-    1. SOME/IP header: 16 bytes (bytes 0-15).
-    2. SD flags plus 3 reserved bytes: 4 bytes (bytes 16-19).
-    3. Entries array length: 4 bytes (bytes 20-23).
-    4. Entry starts at byte 24; ``minver_or_counter`` is the last 4 bytes of the
-       16-byte entry, at entry offset 12, giving absolute offset 36.
+    The SubscribeEventgroup SD entry encodes a 4-bit counter nibble and a
+    12-bit reserved field in the upper 16 bits of the ``minver_or_counter``
+    word. This function sets the 12 reserved bits to ``reserved_value`` to
+    exercise SOMEIPSRV_SD_MESSAGE_19: the DUT shall send a NAck or silently
+    ignore the subscribe.
     """
     if session_id is None:
         session_id = _next_session_id()
@@ -283,19 +258,13 @@ def capture_unicast_sd_entries(
     resend_interval_secs: float = 1.5,
     max_results: Optional[int] = None,
 ) -> List[SOMEIPSDEntry]:
-    """Receive SD entries on *sock* within *timeout_secs*.
+    """Receive SD entries on *sock* within *timeout_secs*, optionally filtered by *filter_types*.
 
-    If *filter_types* is set, only matching entry types are returned.
-
-    When *resend* is provided it is called every *resend_interval_secs*
-    while no matching entries have been captured.  This mirrors real-world
-    SD client behaviour where FindService / Subscribe messages are sent
-    periodically.
-
-    When *max_results* is set, the function returns as soon as that many
-    matching entries have been collected (early-exit).  This avoids
-    consuming the full *timeout_secs* when the desired entries arrive quickly,
-    which matters for tests where the subscription TTL must stay alive.
+    When *resend* is provided it is called every *resend_interval_secs* while
+    no matching entries have been captured, mirroring real-world SD client
+    retry behavior. When *max_results* is set, returns early once that many
+    matching entries are collected, so the subscription TTL has more time
+    left to live.
     """
     collected: List[SOMEIPSDEntry] = []
     deadline = time.monotonic() + timeout_secs
@@ -375,9 +344,6 @@ def _parse_sd_entries(data: bytes) -> List[SOMEIPSDEntry]:
         sd_header, _ = SOMEIPSDHeader.parse(someip_msg.payload)
     except Exception:
         return []
-    # resolve_options() links each entry's options_1/options_2 tuples to the
-    # actual SOMEIPSDOption objects from sd_header.options.  Without this call
-    # options_1 and options_2 on every SOMEIPSDEntry remain empty tuples even
-    # when the wire packet carries options (e.g. the multicast IPv4Endpoint
-    # option in a SubscribeEventgroupAck for TC8-SD-013).
+    # Without resolve_options(), options_1/options_2 on every entry stay empty
+    # even when the wire packet carries options.
     return list(sd_header.resolve_options().entries)

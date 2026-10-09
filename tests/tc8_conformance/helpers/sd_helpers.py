@@ -10,17 +10,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""
-SD multicast capture and OFFER parsing for TC8 tests.
+"""SD multicast capture and OFFER parsing for TC8 tests.
 
-Single source of truth for SD parsing and multicast sockets.
-Other helpers (``timing.py``, ``sd_sender.py``) import from here.
+Single source of truth for SD parsing and multicast sockets; other helpers
+(``timing.py``, ``sd_sender.py``) import from here.
 
-Uses blocking sockets (no asyncio).
-
-Note: Loopback multicast needs ``bazel test --config=tc8`` (auto-configures
-a private network namespace).  Alternatively, set ``TC8_HOST_IP`` to a
-non-loopback interface address to avoid this.
+Note: loopback multicast needs ``bazel test --config=tc8-itf`` (auto-configures
+a private network namespace), or set ``TC8_HOST_IP`` to a non-loopback
+interface address instead.
 """
 
 import socket

@@ -89,7 +89,6 @@ class SOMEIPHeader:
     payload: bytes = b""
 
     def build(self) -> bytes:
-        """Build the byte representation of this SOME/IP packet."""
         pkt = SOMEIP(
             srv_id=self.service_id,
             sub_id=self.method_id,
@@ -105,14 +104,10 @@ class SOMEIPHeader:
 
     @classmethod
     def parse(cls, buf: bytes) -> typing.Tuple["SOMEIPHeader", bytes]:
-        """Parse one SOME/IP packet from the front of *buf*.
+        """Parse one SOME/IP packet from the front of *buf*; returns ``(header, buf_rest)``.
 
-        :param buf: buffer containing (at least) one SOME/IP packet
-        :raises ValueError: if *buf* is too short, or the header contains an
-            invalid protocol version, message type, or return code
-        :return: tuple ``(header, buf_rest)``, the parsed header and the
-            unparsed remainder of *buf* (empty if *buf* held exactly one
-            message)
+        Raises ``ValueError`` if *buf* is too short or the header is malformed
+        (bad protocol version, message type, or return code).
         """
         if len(buf) < 8:
             raise ValueError(f"can not parse SOMEIPHeader, got only {len(buf)} bytes")
@@ -211,7 +206,6 @@ def _l4proto_from_int(val: int) -> typing.Union[L4Protocols, int]:
 
 
 def _option_to_scapy(option: SOMEIPSDOption):
-    """Convert an SD option object to its scapy wire representation."""
     if type(option) is IPv4EndpointOption:
         return SDOption_IP4_EndPoint(addr=str(option.address), l4_proto=int(option.l4proto), port=option.port)
     if type(option) is IPv4MulticastOption:
@@ -220,7 +214,6 @@ def _option_to_scapy(option: SOMEIPSDOption):
 
 
 def _option_from_scapy(option) -> SOMEIPSDOption:
-    """Convert a dissected scapy SD option into an SD option object."""
     if type(option) is SDOption_IP4_EndPoint:
         return IPv4EndpointOption(
             address=ipaddress.IPv4Address(option.addr),
@@ -303,11 +296,7 @@ class SOMEIPSDEntry:
         )
 
     def resolve_options(self, options: typing.Tuple[SOMEIPSDOption, ...]) -> "SOMEIPSDEntry":
-        """Resolve this entry's options against the containing header's option list.
-
-        :return: a new :class:`SOMEIPSDEntry` with :attr:`options_1` /
-            :attr:`options_2` populated and the index/count fields cleared
-        """
+        """Resolve this entry's options against the containing header's option list."""
         if self.options_resolved:
             raise ValueError("options already resolved")
 
@@ -456,11 +445,7 @@ class SOMEIPSDHeader:
     flags_unknown: int = 0
 
     def resolve_options(self) -> "SOMEIPSDHeader":
-        """Resolve all ``entries``' options from the ``options`` list.
-
-        :return: a new :class:`SOMEIPSDHeader` with entries that have
-            resolved ``options_1`` / ``options_2`` tuples
-        """
+        """Resolve all ``entries``' options from the ``options`` list."""
         entries = [e.resolve_options(self.options) for e in self.entries]
         return dataclasses.replace(self, entries=tuple(entries))
 
@@ -471,7 +456,6 @@ class SOMEIPSDHeader:
         return dataclasses.replace(self, entries=tuple(entries), options=tuple(options))
 
     def build(self) -> bytes:
-        """Build the byte representation of this SOME/IP-SD packet."""
         flags = self.flags_unknown
         if self.flag_reboot:
             flags |= 0x80
@@ -485,12 +469,10 @@ class SOMEIPSDHeader:
 
     @classmethod
     def parse(cls, buf: bytes) -> typing.Tuple["SOMEIPSDHeader", bytes]:
-        """Parse a SOME/IP-SD packet from *buf*.
+        """Parse a SOME/IP-SD packet from *buf* into ``(header, buf_rest)``.
 
-        Entries are returned with ``options_1``/``options_2`` as empty tuples;
+        Entries are returned with ``options_1``/``options_2`` unresolved (empty);
         callers must call :meth:`resolve_options` to populate them.
-
-        :return: tuple ``(header, buf_rest)``
         """
         sd = SD(buf)
         entries = tuple(_entry_from_scapy(e) for e in sd.entry_array)

@@ -44,16 +44,10 @@ def subscribe_and_wait_ack(
 ) -> socket.socket:
     """Subscribe to an eventgroup and wait for the Ack.
 
-    Returns the SD socket (still open). Caller must close it.
-    Raises AssertionError if no Ack is received.
-
-    *ttl* controls the SD SubscribeEventgroup entry TTL (seconds).  Use a
-    larger value (e.g. 30) when the test collects notifications over an
-    interval longer than the default 3-second window.
-
-    *l4proto* selects the transport advertised for the subscription
-    (UDP by default). Use L4Protocols.TCP so the DUT delivers notifications
-    over TCP.
+    Returns the SD socket (still open); caller must close it. Raises
+    AssertionError if no Ack is received. Use a larger *ttl* when the test
+    collects notifications over an interval longer than the default 3 s
+    window.
     """
     sd_sock = open_sender_socket(tester_ip)
     try:

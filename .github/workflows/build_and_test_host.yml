@@ -98,6 +98,27 @@ jobs:
       - name: Run Linux QEMU integration tests
         run: |
           bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
+      - name: Run TC8 tests
+        run: |
+          bazel test --config=tc8-itf --test_output=errors //tests/tc8_conformance/...
+      - name: Stage TC8 test reports
+        if: always() && matrix.name == 'default'
+        run: |
+          mkdir -p tc8-test-reports/tests/tc8_conformance
+          find bazel-testlogs/tests/tc8_conformance -name 'test.xml' -print0 2>/dev/null | while IFS= read -r -d '' f; do
+            rel="${f#bazel-testlogs/}"
+            mkdir -p "tc8-test-reports/$(dirname "$rel")"
+            cp "$f" "tc8-test-reports/$rel"
+          done
+          find tc8-test-reports -mindepth 1 | grep -q . || touch tc8-test-reports/tests/tc8_conformance/.keep
+      - name: Upload TC8 test reports
+        if: always() && matrix.name == 'default'
+        uses: actions/upload-artifact@v7
+        with:
+          name: tc8-test-reports
+          path: tc8-test-reports
+          if-no-files-found: warn
+          retention-days: 14
       - run: df -h
         if: always()
 

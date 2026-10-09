@@ -87,25 +87,27 @@ class _TargetProcess:
     def terminate(self) -> None:
         """Stop the remote processes.
 
-        Primary mechanism: stop each tracked AsyncProcess handle returned by
-        the QemuTarget when this wrapper was constructed.
-
-        Fallback: force-kill by binary name via ``pkill -9`` using the names
-        passed in via *process_names*.  This is only a fallback because
-        stopping the AsyncProcess handles alone was found to not reliably
-        terminate these binaries on the target under QEMU.  ``pkill`` is
-        portable: procps on Linux, ``slay`` symlink on QNX8 (pgrep absent
-        from the QNX IFS).
-
-        Failures are logged as warnings and do not re-raise so teardown
-        does not fail the test.
+        pkill -9 runs first so stop()'s 15s wait() timeout is only hit as a
+        fallback, not on every teardown. Do not reorder.
         """
-        for proc, label in (
-            (self._proc, "primary"),
-            (self._secondary_proc, "secondary"),
-            (self._stub_proc, "stub"),
-        ):
+        names = self._process_names
+        entries = (
+            (self._proc, "primary", names[0] if len(names) > 0 else None),
+            (self._secondary_proc, "secondary", names[1] if len(names) > 1 else None),
+            (self._stub_proc, "stub", names[2] if len(names) > 2 else None),
+        )
+        for proc, label, name in entries:
             if proc is None:
+                continue
+            if name is not None and self._target_init is not None:
+                try:
+                    self._target_init.execute(f"pkill -9 {name} 2>/dev/null || true")  # type: ignore[attr-defined]
+                except Exception:  # noqa: BLE001
+                    _logger.warning(
+                        "force-kill fallback of %s on QEMU guest failed; continuing teardown",
+                        name,
+                    )
+            if not proc.is_running():  # type: ignore[attr-defined]
                 continue
             try:
                 proc.stop()  # type: ignore[attr-defined]
@@ -114,16 +116,6 @@ class _TargetProcess:
                     "AsyncProcess.stop() for %s proc raised during teardown (ignored): %s",
                     label,
                     exc,
-                )
-
-        if self._target_init is not None and self._process_names:
-            kill_cmd = "; ".join(f"pkill -9 {name} 2>/dev/null || true" for name in self._process_names)
-            try:
-                self._target_init.execute(kill_cmd)  # type: ignore[attr-defined]
-            except Exception:  # noqa: BLE001
-                _logger.warning(
-                    "force-kill fallback of %s on QEMU guest failed; continuing teardown",
-                    ", ".join(self._process_names),
                 )
 
     def kill(self) -> None:
@@ -159,16 +151,12 @@ def render_someip_config(
     service_id: str = "",
     instance_id: str = "",
 ) -> Path:
-    """Replace ``__TC8_HOST_IP__``, ``__TC8_SERVICE_ID__``,
-    ``__TC8_INSTANCE_ID__``, ``__TC8_SD_PORT__``, ``__TC8_SVC_PORT__``,
-    ``__TC8_SVC_TCP_PORT__``, and ``__TC8_LOG_DIR__`` in a config template.
+    """Render a config template's ``__TC8_*__`` placeholders and write it to *dest_dir*.
 
-    Writes the rendered config to *dest_dir* and returns the path.
-
-    In ITF mode this function is called but the resulting file is not used
-    (the QEMU guest already has its configs rendered by ``tc8_itf_config_setup``
-    via sed).  The call is kept so that the ``sd_client_config`` fixture
-    signature remains unchanged.
+    In ITF mode the resulting file is not actually used by the DUT (the QEMU
+    guest's configs are rendered separately by ``tc8_itf_config_setup`` via
+    sed); this call is kept only so the ``sd_client_config`` fixture
+    signature stays unchanged.
     """
     sd_port = os.environ.get("TC8_SD_PORT", "30490")
     svc_port = os.environ.get("TC8_SVC_PORT", "30509")
@@ -204,17 +192,10 @@ def launch_dut(
 ) -> object:
     """Start the full DUT stack (someipd, tc8_ets_stub, gatewayd) on the QEMU guest.
 
-    *target_init* is a ``QemuTarget`` provided by the ITF framework.  The
-    *config_path* filename selects the pre-rendered guest vsomeip config
-    (written to ``/tmp`` by ``tc8_itf_config_setup`` via sed, session-scoped).
-
-    someipd is started first so it becomes the vsomeip routing manager.
-    gatewayd is started immediately after; it retries the IPC handshake
-    internally until someipd is ready.
-
-    Returns a ``_TargetProcess`` adapter whose ``.terminate()`` / ``.wait()``
-    interface is compatible with :func:`terminate_dut`.  Calling
-    ``.terminate()`` kills all three binaries and stops their async process handles.
+    *config_path*'s filename selects the pre-rendered guest vsomeip config
+    (written to ``/tmp`` by ``tc8_itf_config_setup``). someipd is started
+    first so it becomes the vsomeip routing manager; gatewayd retries the
+    IPC handshake internally until someipd is ready.
     """
     if target_init is None:
         raise RuntimeError("launch_dut: target_init must be provided (ITF mode only)")
@@ -276,22 +257,11 @@ def cleanup_vsomeip_sockets(
     """Remove stale vsomeip routing-manager sockets and LoLa SHM/discovery
     leftovers on the QEMU guest before each DUT (re)start.
 
-    ITF (target-based) mode is the only supported mode: *target_init* is a
-    ``QemuTarget`` and cleanup runs via SSH on the QEMU guest, covering both
-    the Linux and QNX8 target layouts:
-
-    * vsomeip routing-manager sockets: ``/tmp/vsomeip-*`` (Linux),
-      ``/var/run/vsomeip-*`` (QNX8, per vsomeip-qnx8.patch).
-    * LoLa SHM shared-memory objects: ``/dev/shm/lola-*`` (Linux),
-      ``/dev/shmem/lola-*`` (QNX8).
-    * LoLa partial-restart discovery marker files:
-      ``/tmp/mw_com_lola/partial_restart/*`` (Linux),
-      ``/tmp_discovery/mw_com_lola/partial_restart/*`` (QNX8).
-
-    Cleanup is broad (not scoped to a single service/instance ID) since the
-    target only ever runs one test session at a time. Files created by the
-    custom SomeipMessageTransfer IPC binding are intentionally left alone,
-    since that binding is being replaced by one built on mw::com.
+    Covers both Linux (``/tmp/vsomeip-*``, ``/dev/shm/lola-*``,
+    ``/tmp/mw_com_lola/partial_restart/*``) and QNX8 (``/var/run/vsomeip-*``,
+    ``/dev/shmem/lola-*``, ``/tmp_discovery/mw_com_lola/partial_restart/*``)
+    layouts. Cleanup is broad (not scoped to one service/instance) since the
+    target only ever runs one test session at a time.
     """
     if target_init is None:
         _logger.warning("cleanup_vsomeip_sockets: target_init not provided; skipping cleanup (ITF mode only)")
@@ -322,15 +292,7 @@ def wait_for_sd_readiness(
     host_ip: str,
     timeout_secs: float = 10.0,
 ) -> bool:
-    """Wait until the DUT sends at least one multicast OfferService.
-
-    Opens a short-lived multicast socket on *host_ip* (host TAP interface),
-    joins the SD multicast group, and returns ``True`` as soon as a SOME/IP-SD
-    OfferService entry is received.  Returns ``False`` on timeout.
-
-    Socket setup and SD parsing are delegated to ``helpers.sd_helpers``, the
-    single source of truth for SD multicast handling.
-    """
+    """Wait until the DUT sends at least one multicast OfferService, or return False on timeout."""
     sock = open_multicast_socket(host_ip)
 
     deadline = time.monotonic() + timeout_secs

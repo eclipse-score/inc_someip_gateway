@@ -35,34 +35,29 @@ def assert_sd_offer_entry(
     expected_minor_version: int = 0x00000000,
 ) -> None:
     """Assert that an SD OFFER entry has the expected fields (TC8-SD-002)."""
-    # TC8-SD-002: entry type must be OfferService
     assert entry.sd_type == SOMEIPSDEntryType.OfferService, (
         f"TC8-SD-002: expected OfferService entry, got {entry.sd_type.name}"
     )
 
-    # TC8-SD-002: service ID must match configuration
     assert entry.service_id == expected_service_id, (
         f"TC8-SD-002: service_id mismatch: got 0x{entry.service_id:04x}, expected 0x{expected_service_id:04x}"
     )
 
-    # TC8-SD-002: instance ID must match configuration
     assert entry.instance_id == expected_instance_id, (
         f"TC8-SD-002: instance_id mismatch: got 0x{entry.instance_id:04x}, expected 0x{expected_instance_id:04x}"
     )
 
-    # TC8-SD-002: major version must match service definition
     assert entry.major_version == expected_major_version, (
         f"TC8-SD-002: major_version mismatch: got 0x{entry.major_version:02x}, expected 0x{expected_major_version:02x}"
     )
 
-    # TC8-SD-002: minor version must match service definition
     assert entry.service_minor_version == expected_minor_version, (
         f"TC8-SD-002: minor_version mismatch: "
         f"got 0x{entry.service_minor_version:08x}, "
         f"expected 0x{expected_minor_version:08x}"
     )
 
-    # TC8-SD-002: TTL must be > 0 (TTL=0 means StopOffer)
+    # TTL=0 means StopOffer, so an OFFER entry's TTL must be > 0.
     assert entry.ttl > 0, f"TC8-SD-002: OFFER TTL must be > 0; got {entry.ttl}"
 
 

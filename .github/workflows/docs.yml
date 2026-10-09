@@ -24,3 +24,4 @@ jobs:
 
     with:
       retention-days: 3
+      tests-report-artifact: tc8-test-reports
