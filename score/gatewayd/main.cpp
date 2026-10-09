@@ -255,12 +255,14 @@ int main(int argc, char* argv[]) {
         }
 
         const std::size_t slot_size = event_slot_size(*service_type_config);
-        if (service_type_config->local_service_instances() != nullptr) {
+        if (service_type_config->local_service_instances() != nullptr &&
+            !service_type_config->local_service_instances()->empty()) {
             shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
             server_shm_config[iface][inst] = {*counterpart_shm_path_result, 1, 1};
-        } else if (service_type_config->remote_service_instances() != nullptr) {
+        } else if (service_type_config->remote_service_instances() != nullptr &&
+                   !service_type_config->remote_service_instances()->empty()) {
             server_shm_config[iface][inst] = {*shm_path_result, slot_size, someip::kMaxSampleCount};
             // TODO: Needed by the ipc binding for future use of method calls. Set to the smallest
             // possible size for now.
