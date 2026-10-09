@@ -117,7 +117,6 @@ pkg_files(
     attributes = pkg_attributes(
         mode = "0777",
     ),
-    prefix = "/",
     renames = {
         "//tests/tc8_conformance/application/ets_stub:config/tc8_ets_stub_mw_com_config.json": "tc8_ets_stub_mw_com_config.json",
         "config/tc8_gatewayd_mw_com_config.json": "tc8_gatewayd_mw_com_config.json",
