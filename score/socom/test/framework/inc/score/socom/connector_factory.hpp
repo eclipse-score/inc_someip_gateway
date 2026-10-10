@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SOCOM_CONNECTOR_FACTORY_HPP
@@ -46,7 +47,7 @@ class Connector_factory {
     /// \param[in] methods Number of Methods
     /// \param[in] events Number of Events
     /// \param[in] instance default intance for created server and clients
-    Connector_factory(Service_interface_identifier const& sif, Num_of_methods num_methods,
+    Connector_factory(Service_interface const& sif, Num_of_methods num_methods,
                       Num_of_events num_events, Service_instance instance);
 
     /// \brief Copy constructor which copies the configuraton of con_fac

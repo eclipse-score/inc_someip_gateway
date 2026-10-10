@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include <gmock/gmock.h>
@@ -24,8 +25,8 @@ namespace score::socom {
 class Runtime_test : public ::testing::Test {
    protected:
     Server_service_interface_definition config{
-        Service_interface_identifier{"example.interface", Literal_tag{}, {1, 0}},
-        to_num_of_methods(1), to_num_of_events(1)};
+        Service_interface{"example.interface", Literal_tag{}, {1, 0}}, to_num_of_methods(1),
+        to_num_of_events(1)};
     Service_instance instance{"instance1", Literal_tag{}};
 
     Runtime::Uptr runtime = create_runtime();

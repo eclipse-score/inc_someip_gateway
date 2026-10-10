@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include <benchmark/benchmark.h>
@@ -36,7 +37,7 @@ class Read_only_shared_memory_slot_manager_benchmark final
 class Shared_memory_manager_factory_benchmark final : public Shared_memory_manager_factory {
    public:
     Result<Shared_memory_slot_manager::Uptr> create(
-        [[maybe_unused]] score::socom::Service_interface_identifier const& interface,
+        [[maybe_unused]] score::socom::Service_interface const& interface,
         [[maybe_unused]] score::socom::Service_instance const& instance) noexcept override {
         SCORE_LANGUAGE_FUTURECPP_ASSERT(false && "Not used by this benchmark");
         return {};

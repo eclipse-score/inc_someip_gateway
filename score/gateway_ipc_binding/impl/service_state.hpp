@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_SERVICE_STATE
@@ -57,7 +58,7 @@ struct Offer_state {
 };
 
 struct Service_state {
-    socom::Service_interface_identifier service;
+    socom::Service_interface service;
     socom::Service_instance instance;
     Service_counts counts{};
     bool requested{false};
@@ -67,7 +68,7 @@ struct Service_state {
     score::socom::Enabled_server_connector::Uptr enabled_connector{};
     Event_subscribers event_subscriptions;
 
-    Service_state(socom::Service_interface_identifier service, socom::Service_instance instance)
+    Service_state(socom::Service_interface service, socom::Service_instance instance)
         : service{std::move(service)}, instance{std::move(instance)} {}
 
     // iterate over offers and send connect IPC message
@@ -412,7 +413,7 @@ class Service_states {
     Service_state& get_or_create(Key_t const& key, Service const& interface,
                                  Instance_id const& instance) {
         auto const insert_result = m_service_states.emplace(
-            key, Service_state{interface.to_socom_identifier(),
+            key, Service_state{interface.to_socom_interface(),
                                socom::Service_instance{fixed_string_to_string(instance)}});
         return insert_result.first->second;
     }

@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include <limits>
@@ -48,6 +49,12 @@ using Interface_configuration_and_expected_connection =
 class InterfaceCompatibilityTest
     : public ::testing::TestWithParam<Interface_configuration_and_expected_connection> {
    protected:
+    void SetUp() override {
+        RecordProperty("TestType", "requirements-based");
+        RecordProperty("DerivationTechnique", "boundary-values,equivalence-classes");
+        RecordProperty("PartiallyVerifies", "comp_req__socom__connector_compatibility");
+    }
+
     Service_instance const instance{"VersionCompatibilityTest", Literal_tag{}};
 };
 
@@ -123,7 +130,7 @@ TEST_P(InterfaceCompatibilityTest, ClientCreatedBeforeServer) {
 }
 
 Interface_configuration_and_expected_connection create_conf(
-    Service_interface_identifier const& client, Service_interface_identifier const& server,
+    Service_interface const& client, Service_interface const& server,
     Expectation const& expected_connection) {
     using Server_conf = Server_service_interface_definition;
     return std::make_tuple(Server_conf{client, {}, {}}, Server_conf{server, {}, {}},
@@ -135,17 +142,17 @@ constexpr std::string_view id1{"1"};
 constexpr std::string_view empty_id{""};
 constexpr std::string_view huge_id{"biggest interface id on earth with huge text description"};
 
-using Major_t = decltype(Service_interface_identifier::Version::major);
-using Minor_t = decltype(Service_interface_identifier::Version::minor);
+using Major_t = decltype(Service_interface::Version::major);
+using Minor_t = decltype(Service_interface::Version::minor);
 auto const min_major = std::numeric_limits<Major_t>::min();
 auto const max_major = std::numeric_limits<Major_t>::max();
 auto const min_minor = std::numeric_limits<Minor_t>::min();
 auto const max_minor = std::numeric_limits<Minor_t>::max();
 
-auto const min_version = Service_interface_identifier::Version{min_major, min_minor};
-auto const max_version = Service_interface_identifier::Version{max_major, max_minor};
+auto const min_version = Service_interface::Version{min_major, min_minor};
+auto const max_version = Service_interface::Version{max_major, max_minor};
 
-auto const default_interface = Service_interface_identifier{id0, min_version};
+auto const default_interface = Service_interface{id0, min_version};
 
 std::string readable_test_names(
     TestParamInfo<Interface_configuration_and_expected_connection> const& param) {
@@ -179,35 +186,35 @@ std::string readable_test_names(
 INSTANTIATE_TEST_SUITE_P(
     Identifier, InterfaceCompatibilityTest,
     Values(create_conf(default_interface, default_interface, Expectation::connect),
-           create_conf(default_interface, Service_interface_identifier{id1, min_version},
+           create_conf(default_interface, Service_interface{id1, min_version},
                        Expectation::no_connect),
-           create_conf(Service_interface_identifier{empty_id, min_version},
-                       Service_interface_identifier{empty_id, min_version}, Expectation::connect),
-           create_conf(Service_interface_identifier{huge_id, min_version},
-                       Service_interface_identifier{huge_id, min_version}, Expectation::connect)),
+           create_conf(Service_interface{empty_id, min_version},
+                       Service_interface{empty_id, min_version}, Expectation::connect),
+           create_conf(Service_interface{huge_id, min_version},
+                       Service_interface{huge_id, min_version}, Expectation::connect)),
     readable_test_names);
 
 INSTANTIATE_TEST_SUITE_P(
     Version, InterfaceCompatibilityTest,
     Values(create_conf(default_interface, default_interface, Expectation::connect),
-           create_conf(Service_interface_identifier{id0, {10, min_minor}}, default_interface,
+           create_conf(Service_interface{id0, {10, min_minor}}, default_interface,
                        Expectation::no_connect),
-           create_conf(default_interface, Service_interface_identifier{id0, {10, min_minor}},
+           create_conf(default_interface, Service_interface{id0, {10, min_minor}},
                        Expectation::no_connect),
-           create_conf(Service_interface_identifier{id0, {min_major, 10}}, default_interface,
+           create_conf(Service_interface{id0, {min_major, 10}}, default_interface,
                        Expectation::no_connect),
-           create_conf(default_interface, Service_interface_identifier{id0, {min_major, 10}},
+           create_conf(default_interface, Service_interface{id0, {min_major, 10}},
                        Expectation::connect),
-           create_conf(Service_interface_identifier{id0, {max_major, min_minor}}, default_interface,
+           create_conf(Service_interface{id0, {max_major, min_minor}}, default_interface,
                        Expectation::no_connect),
-           create_conf(default_interface, Service_interface_identifier{id0, {max_major, min_minor}},
+           create_conf(default_interface, Service_interface{id0, {max_major, min_minor}},
                        Expectation::no_connect),
-           create_conf(Service_interface_identifier{id0, {min_major, max_minor}}, default_interface,
+           create_conf(Service_interface{id0, {min_major, max_minor}}, default_interface,
                        Expectation::no_connect),
-           create_conf(default_interface, Service_interface_identifier{id0, {min_major, max_minor}},
+           create_conf(default_interface, Service_interface{id0, {min_major, max_minor}},
                        Expectation::connect),
-           create_conf(Service_interface_identifier{id0, max_version},
-                       Service_interface_identifier{id0, max_version}, Expectation::connect)),
+           create_conf(Service_interface{id0, max_version}, Service_interface{id0, max_version},
+                       Expectation::connect)),
     readable_test_names);
 
 }  // namespace score::socom

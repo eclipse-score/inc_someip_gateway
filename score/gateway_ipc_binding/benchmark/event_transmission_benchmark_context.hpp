@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include <benchmark/benchmark.h>
@@ -135,7 +136,7 @@ class Event_transmission_benchmark_context final {
     score::message_passing::IClientFactory::ClientConfig const client_config_{10, 10, false, false,
                                                                               false};
 
-    score::socom::Service_interface_identifier const interface_{
+    score::socom::Service_interface const interface_{
         "com.test.gateway.benchmark", score::socom::Literal_tag{}, {1, 0}};
     score::socom::Service_instance const instance_{"instance1", score::socom::Literal_tag{}};
     score::socom::Server_service_interface_definition const server_interface_definition_{

@@ -10,13 +10,14 @@
    # https://www.apache.org/licenses/LICENSE-2.0
    #
    # SPDX-License-Identifier: Apache-2.0
+   # AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
    # *******************************************************************************
 
 Feature Requirements
 ====================
 
 Feature-level requirements for the SOME/IP Gateway. Each feature requirement
-derives from a stakeholder requirement via ``:satisfies:`` and is scoped to
+derives from a stakeholder requirement via ``:derived_from:`` and is scoped to
 a specific gateway capability.
 
 Feature requirement IDs follow the format:
@@ -30,3 +31,5 @@ Feature requirement IDs follow the format:
 
 .. toctree::
    :maxdepth: 1
+
+   socom/index

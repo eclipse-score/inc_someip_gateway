@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SRC_GATEWAY_IPC_BINDING_TEST_TEST_CONSTANTS
@@ -44,7 +45,7 @@ class Test_constants {
     score::message_passing::IClientFactory::ClientConfig const client_config{10, 10, false, false,
                                                                              false};
 
-    score::socom::Service_interface_identifier const interface{
+    score::socom::Service_interface const interface{
         "com.test.service", socom::Literal_tag{}, {1, 0}};
     score::socom::Service_instance const instance{"instance1", socom::Literal_tag{}};
     score::socom::Service_interface_definition const socom_client_config{interface};

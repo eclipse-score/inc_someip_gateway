@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include <getopt.h>
@@ -226,7 +227,7 @@ int main(int argc, char* argv[]) {
     gateway_ipc_binding::Shared_memory_manager_factory::Shared_memory_configuration
         server_shm_config;
     for (const auto* service_type_config : *config->service_types()) {
-        socom::Service_interface_identifier const iface{
+        socom::Service_interface const iface{
             service_type_config->service_type_name()->string_view(),
             {service_type_config->service_version_major(),
              static_cast<uint16_t>(service_type_config->service_version_minor())}};

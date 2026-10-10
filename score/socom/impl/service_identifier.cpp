@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include "service_identifier.hpp"
@@ -17,8 +18,9 @@
 
 namespace score::socom {
 
-bool operator<(Service_instance_identifier const& lhs, Service_instance_identifier const& rhs) {
-    return std::tie(lhs.instance, lhs.interface) < std::tie(rhs.instance, rhs.interface);
+bool operator<(Service_registration_key const& lhs, Service_registration_key const& rhs) {
+    return std::make_tuple(lhs.instance, lhs.interface.get_identifier()) <
+           std::make_tuple(rhs.instance, rhs.interface.get_identifier());
 }
 
 }  // namespace score::socom

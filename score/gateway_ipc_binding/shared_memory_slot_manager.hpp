@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_SHARED_MEMORY_SLOT_MANAGER
@@ -287,7 +288,7 @@ class Shared_memory_manager_factory {
     virtual ~Shared_memory_manager_factory() = default;
 
     using Shared_memory_configuration =
-        std::map<score::socom::Service_interface_identifier,
+        std::map<score::socom::Service_interface,
                  std::map<score::socom::Service_instance, Shared_memory_metadata>>;
 
     /// \brief Create a concrete Shared_memory_manager_factory
@@ -305,7 +306,7 @@ class Shared_memory_manager_factory {
     /// \param instance Service instance for which the slot manager is being created
     /// \return Result containing a unique pointer to the created Shared_memory_slot_manager
     virtual Result<Shared_memory_slot_manager::Uptr> create(
-        score::socom::Service_interface_identifier const& interface,
+        score::socom::Service_interface const& interface,
         score::socom::Service_instance const& instance) noexcept = 0;
 
     /// \brief Register shared memory configuration for a service instance
