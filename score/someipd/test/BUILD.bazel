@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_test")
 
 py_test(
@@ -30,5 +31,20 @@ py_test(
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//quality/pytest:process",
+    ],
+)
+
+cc_test(
+    name = "local_network_service_test",
+    size = "small",
+    srcs = ["local_network_service_test.cpp"],
+    tags = ["unit"],
+    deps = [
+        "//score/config:config_flatbuffers",
+        "//score/socom",
+        "//score/socom:mock",
+        "//score/someipd:local_network_service",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
     ],
 )

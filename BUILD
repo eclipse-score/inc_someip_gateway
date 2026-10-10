@@ -54,6 +54,7 @@ test_suite(
     tests = [
         "//score/serializer:null_serializer_test",
         "//score/socom/test/unit:socom_test",
+        "//score/someipd/test:local_network_service_test",
     ],
     visibility = ["//visibility:public"],
 )
