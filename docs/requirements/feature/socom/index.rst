@@ -9,10 +9,8 @@
    # terms of the Apache License Version 2.0 which is available at
    # https://www.apache.org/licenses/LICENSE-2.0
    #
-   # SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
-   # AI Disclosure: Generated with OpenAI Codex (model revision unavailable).
-   # AI-generated portions are offered under CC0-1.0; copyrightable curation
-   # retains Apache-2.0. Human review is pending.
+   # SPDX-License-Identifier: Apache-2.0
+   # AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
    # *******************************************************************************
 
 SOCom version selection

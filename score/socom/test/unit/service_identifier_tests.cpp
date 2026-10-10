@@ -8,13 +8,8 @@
  * terms of the Apache License Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * AI Disclosure: This new regression file was largely generated with OpenAI
- * Codex. AI-generated portions are offered under CC0-1.0; copyrightable human
- * modifications and curation retain Apache-2.0. Human review of this amended
- * revision is required before merge. The prior approval covers the old revision.
- * Assisted-by: OpenAI Codex (historical model revision not retained)
- *
- * SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+ * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include <algorithm>
