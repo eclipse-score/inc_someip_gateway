@@ -43,6 +43,12 @@
                     ]
                 },
                 {
+                    "eventgroup": "0x0005",
+                    "events": [
+                        "0x8001"
+                    ]
+                },
+                {
                     "eventgroup": "0x0006",
                     "events": [
                         "0x800B"

@@ -41,6 +41,7 @@ from helpers.someip_assertions import (
 )
 from helpers.constants import (
     DUT_UNRELIABLE_PORT,
+    EVENTGROUP_TCP_RELIABLE,
     EVENTGROUP_UDP_MULTICAST,
     EVENTGROUP_UDP_UNICAST,
     INSTANCE_ID,
@@ -59,6 +60,9 @@ SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 #: Service and instance IDs declared in ``tc8_someipd_sd.json``.
 _UNKNOWNEVENTGROUP_UDP_UNICAST: int = 0xBEEF
 _UNKNOWNSERVICE_ID: int = 0xBEEF
+
+#: Eventgroups subscribed together in ETS_088.
+_ETS_088_EVENTGROUPS = (EVENTGROUP_UDP_UNICAST, EVENTGROUP_TCP_RELIABLE, EVENTGROUP_UDP_MULTICAST)
 
 #: SD configuration values from ``tc8_someipd_sd.json``.
 _CYCLIC_OFFER_DELAY_MS: float = 2000.0
@@ -359,7 +363,7 @@ class TestSDSubscribeLifecycle:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """TC8-SD-008: StopSubscribeEventgroup (TTL=0) ceases event notifications."""
+        """TC8-SD-008 (ETS_108): after StopSubscribeEventgroup for eventgroup 0x05 no events are sent."""
         assert dut.poll() is None, "DUT is not running"
 
         # sd_sock: SD sender at tester_ip:SD_PORT.
@@ -378,7 +382,7 @@ class TestSDSubscribeLifecycle:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
+                    EVENTGROUP_TCP_RELIABLE,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -391,7 +395,7 @@ class TestSDSubscribeLifecycle:
                 timeout_secs=5.0,
                 resend=_send_sub_008,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
+            assert any(e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0 for e in acks), (
                 "TC8-SD-008: Prerequisite failed — no SubscribeEventgroupAck received"
             )
 
@@ -404,7 +408,7 @@ class TestSDSubscribeLifecycle:
                 (dut_ip, SD_PORT),
                 SERVICE_ID,
                 INSTANCE_ID,
-                EVENTGROUP_UDP_UNICAST,
+                EVENTGROUP_TCP_RELIABLE,
                 MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=notif_port,
@@ -1326,7 +1330,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_088: One SD message with two SubscribeEventgroup entries (different eventgroups) gets both ACKs."""
+        """ETS_088: One SD message with SubscribeEventgroup entries for 0x02, 0x05, 0x06 gets an ACK for each."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
@@ -1336,7 +1340,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 build_subscribe_entry(
                     SERVICE_ID, INSTANCE_ID, eg, MAJOR_VERSION, subscriber_ip=tester_ip, subscriber_port=sender_port
                 )
-                for eg in (EVENTGROUP_UDP_UNICAST, EVENTGROUP_UDP_MULTICAST)
+                for eg in _ETS_088_EVENTGROUPS
             ]
 
             def _send() -> None:
@@ -1349,10 +1353,9 @@ class TestSDSubscribeLifecycleAdvanced:
                 timeout_secs=6.0,
                 resend=_send,
             )
-            acks_eg1 = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0]
-            acks_eg2 = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_MULTICAST and e.ttl > 0]
-            assert acks_eg1, f"ETS_088: No SubscribeAck received for eventgroup 0x{EVENTGROUP_UDP_UNICAST:04x}"
-            assert acks_eg2, f"ETS_088: No SubscribeAck received for eventgroup 0x{EVENTGROUP_UDP_MULTICAST:04x}"
+            for eg in _ETS_088_EVENTGROUPS:
+                acks = [e for e in entries if e.eventgroup_id == eg and e.ttl > 0]
+                assert acks, f"ETS_088: No SubscribeAck received for eventgroup 0x{eg:04x}"
         finally:
             sock.close()
 
@@ -1391,12 +1394,8 @@ class TestSDSubscribeLifecycleAdvanced:
                 filter_types=(SOMEIPSDEntryType.SubscribeAck,),
                 timeout_secs=2.0,
             )
-            # Per spec a NAck (TTL=0 Ack) must NOT be sent for a stop-subscribe.
-            nacks = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl == 0]
-            assert not nacks, (
-                f"ETS_092: DUT sent NAck (TTL=0 SubscribeAck) in response to "
-                f"StopSubscribeEventgroup (TTL=0). Got {len(nacks)} NAck(s). "
-                "StopSubscribe must not trigger any acknowledgement."
+            assert not entries, (
+                f"ETS_092: DUT reacted to StopSubscribeEventgroup (TTL=0) with {len(entries)} SubscribeAck/NAck entries"
             )
         finally:
             sock.close()
@@ -1634,7 +1633,7 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_155: Subscribe, ACK, StopSubscribe, re-Subscribe receives a new ACK."""
+        """ETS_155: Subscribe, ACK, StopSubscribe, re-Subscribe gets a new ACK and notifications."""
         assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
@@ -1680,6 +1679,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 ttl=0,
             )
             time.sleep(0.5)  # Allow DUT to process the StopSubscribe.
+            capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=0.1)  # Drop stale events.
 
             _subscribe()
             acks2 = capture_unicast_sd_entries(
@@ -1691,6 +1691,10 @@ class TestSDSubscribeLifecycleAdvanced:
             assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks2), (
                 "ETS_155: No SubscribeAck received after re-subscribe following StopSubscribe"
             )
+            # Limitation: initial events cannot be told apart from cyclic ones, so this
+            # only shows that notifications arrive after the re-subscribe.
+            notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
+            assert notifs, "ETS_155: No notifications received after re-subscribe"
         finally:
             sd_sock.close()
             notif_sock.close()

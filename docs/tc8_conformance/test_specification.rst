@@ -219,18 +219,20 @@ SubscribeEventgroupAck with TTL = 0 (Nack) received.
 TC8-SD-008: StopSubscribe Ceases Notifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: Section 6.1.6, SOMEIP_ETS_108, SOMEIP_ETS_092
+:OA Spec Reference: Section 6.1.6, SOMEIP_ETS_108
 :Test Module: ``test_service_discovery.py``
 :Test Function: ``test_tc8_sd_008_stop_subscribe_ceases_notifications``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
 **Purpose:**
-Verify that notifications cease after StopSubscribeEventgroup (TTL = 0).
+Verify that no events are sent after StopSubscribeEventgroup (TTL = 0)
+(ETS_108, eventgroup ``0x0005``). The OA trigger method TestEventUINT8 is not
+used; the cyclic event of the DUT is observed instead.
 
 **Preconditions:**
 
-- Active subscription to eventgroup ``0x0002``.
+- Active subscription to eventgroup ``0x0005``.
 - At least one notification received.
 
 **Stimuli:**
@@ -613,15 +615,14 @@ TC8-SDLC-001: Two Simultaneous Subscribes
 :Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_088_two_subscribes_same_session``
 
 **Purpose:**
-Verify that two SubscribeEventgroup entries in one SD message each receive a
-positive ACK. OA ETS_088 uses three eventgroups, so the test only partially
-verifies the requirement.
+Verify that three SubscribeEventgroup entries (eventgroups ``0x0002``,
+``0x0005``, ``0x0006``) in one SD message each receive a positive ACK.
 
 **Stimulus:**
-Send an SD message containing two SubscribeEventgroup entries.
+Send an SD message containing three SubscribeEventgroup entries.
 
 **Expected Result:**
-Two ACK entries received (one per subscription).
+Three ACK entries received (one per subscription).
 
 TC8-SDLC-002: TTL = 0 as StopSubscribe (No NAck)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -721,14 +722,15 @@ TC8-SDLC-007: Re-subscribe After StopSubscribe
 
 **Purpose:**
 Verify that a subscription can be re-established after a StopSubscribeEventgroup
-(TTL = 0) and that a new ACK is sent. The initial fields after the second ACK
-are not checked, so the test only partially verifies the requirement.
+(TTL = 0), a new ACK is sent and notifications arrive. Initial events cannot be
+told apart from cyclic ones, so the test only partially verifies the requirement.
 
 **Stimulus:**
 Subscribe, wait for the ACK, StopSubscribe, re-Subscribe.
 
 **Expected Result:**
-A new SubscribeAck is received after the re-subscription.
+A new SubscribeAck and at least one notification are received after the
+re-subscription.
 
 TC8-SDLC-008: Session ID Increments per OfferService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

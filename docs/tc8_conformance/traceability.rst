@@ -75,7 +75,7 @@ Service Discovery
    * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14; Section 6.1.6, SOMEIP_ETS_140
      - TC8-SD-007
      - ``sd_sub_lifecycle``
-   * - Section 6.1.6, SOMEIP_ETS_108, SOMEIP_ETS_092
+   * - Section 6.1.6, SOMEIP_ETS_108
      - TC8-SD-008
      - ``sd_sub_lifecycle``
    * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01
