@@ -347,7 +347,6 @@ class TestSDSubscribeLifecycle:
         finally:
             sock.close()
 
-    @pytest.mark.skip(reason="Production stack sends no event notifications without mw::com ETS app (2026-08-11)")
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
         test_type="requirements-based",
@@ -564,7 +563,6 @@ class TestSDMulticastEventgroup:
 class TestSDTTLExpiry:
     """TC8-SD-014: Subscription with finite TTL is cleaned up after expiry."""
 
-    @pytest.mark.skip(reason="Production stack sends no event notifications without mw::com ETS app (2026-08-11)")
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
         test_type="requirements-based",
@@ -1317,7 +1315,7 @@ class TestSDSubscribeLifecycleAdvanced:
     """ETS_088/092/098/107/120/122/155: Multi-subscribe and lifecycle edge cases."""
 
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+        partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
@@ -1522,11 +1520,11 @@ class TestSDSubscribeLifecycleAdvanced:
             notif_sock.close()
 
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+        partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
-    def test_ets_120_subscribe_endpoint_ip_matches_tester(
+    def test_ets_120_events_sent_to_endpoint_option_port(
         self,
         dut: subprocess.Popen[bytes],
         host_ip: str,
@@ -1624,9 +1622,8 @@ class TestSDSubscribeLifecycleAdvanced:
             "expected 0x01 per PRS_SOMEIPSD_00357, PRS_SOMEIPSD_00360"
         )
 
-    @pytest.mark.skip(reason="Production stack sends no event notifications without mw::com ETS app (2026-08-11)")
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+        partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
@@ -1770,7 +1767,7 @@ class TestSDSubscribeLifecycleAdvanced:
 
 
 class TestSDFindServiceAdvanced:
-    """ETS_091/121/100/128/130: FindService and offer lifecycle advanced scenarios."""
+    """ETS_091/121/128/130 and one project-specific test: FindService and offer lifecycle advanced scenarios."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_offer_format"],
@@ -1882,18 +1879,18 @@ class TestSDFindServiceAdvanced:
             notif_sock.close()
 
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_offer_format"],
+        partially_verifies=["comp_req__tc8_conformance__sd_offer_format"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
-    def test_ets_100_no_findservice_emitted_by_server(
+    def test_sd_server_no_findservice_in_main_phase(
         self,
         dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_100: DUT (server) must not emit FindService entries once in main phase."""
+        """Project-specific: the DUT (server) must not emit FindService entries in the main phase."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_multicast_socket(host_ip)
@@ -1904,7 +1901,7 @@ class TestSDFindServiceAdvanced:
                 timeout_secs=5.0,
             )
             assert not entries, (
-                f"ETS_100: DUT emitted {len(entries)} FindService SD entry/ies. "
+                f"DUT emitted {len(entries)} FindService SD entry/ies. "
                 "A server in main phase must not send FindService."
             )
         finally:
