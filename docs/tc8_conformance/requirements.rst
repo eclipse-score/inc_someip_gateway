@@ -26,7 +26,7 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    :status: valid
    :version: 1
    :tags: tc8, conformance, someip, verification
-   :derived_from: stkh_req__docgen_enabled__example
+   :derived_from: stkh_req__someip_gw__interoperability
    :satisfied_by: feat__someip_gateway
    :safety: QM
    :security: NO
@@ -38,11 +38,14 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    specifications at the wire protocol level, without requiring application
    processes.
 
-   Note: The ``:derived_from:`` link targets a placeholder stakeholder requirement.
-   This shall be updated to reference the upstream S-CORE stakeholder requirement
-   for SOME/IP interoperability once it is formally defined.
+   **Scope boundary:** This document currently defines only the top-level
+   feature requirement and the initial set of TC8 component requirements
+   established for the test infrastructure split. The remaining component
+   requirements, covering method calls, field access, and the detailed
+   traceability matrix against the OA TC8 v3.0 Chapter 6 test catalog, are
+   added together with the test modules that implement and verify them.
 
-Component Requirements — Service Discovery
+Component Requirements: Service Discovery
 ------------------------------------------
 
 The following component requirements define the high-priority TC8 conformance
@@ -85,7 +88,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    (±20% tolerance) during the main phase of Service Discovery.
 
    Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases — Main Phase, cyclic offer behavior).
+   (SD Phases, Main Phase, cyclic offer behavior).
    Covers TC8-SD-003 from the test strategy.
 
 .. comp_req:: TC8 SD FindService Response
@@ -146,10 +149,10 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    at ``repetitions_base_delay`` intervals, and transition to main phase.
 
    Note: Traces to SOME/IP-SD specification section 4.1.1
-   (SD Phases — Initial Wait, Repetition, Main Phase).
+   (SD Phases, Initial Wait, Repetition, Main Phase).
    Covers TC8-SD-009 and TC8-SD-010 from the test strategy.
 
-Component Requirements — SOME/IP Message Format
+Component Requirements: SOME/IP Message Format
 -----------------------------------------------
 
 .. comp_req:: TC8 SOME/IP Response Header Validation
@@ -169,7 +172,7 @@ Component Requirements — SOME/IP Message Format
    for each received REQUEST.
 
    Note: Traces to SOME/IP specification sections 4.1.4
-   (Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID —
+   (Protocol Version), 4.1.6 (Message Type), and 4.1.3 (Request ID,
    Client ID / Session ID). Covers TC8-SOMEIP-MSG-001,
    TC8-SOMEIP-MSG-002, TC8-SOMEIP-MSG-005, and TC8-SOMEIP-MSG-008
    from the test strategy.
@@ -195,7 +198,7 @@ Component Requirements — SOME/IP Message Format
    and the return code table (Table 4.14). Covers TC8-SOMEIP-MSG-003,
    TC8-SOMEIP-MSG-004, and TC8-SOMEIP-MSG-006 from the test strategy.
 
-Component Requirements — Event Notification
+Component Requirements: Event Notification
 -------------------------------------------
 
 .. comp_req:: TC8 Event Notification Subscription Lifecycle
@@ -235,33 +238,33 @@ specification section it verifies.
      - Safety
    * - ``comp_req__tc8_conformance__sd_offer_format``
      - TC8-SD-001, -002
-     - SOME/IP-SD §4.1.2.1, §4.1.2.3
+     - SOME/IP-SD Section 4.1.2.1, Section 4.1.2.3
      - QM
    * - ``comp_req__tc8_conformance__sd_cyclic_timing``
      - TC8-SD-003
-     - SOME/IP-SD §4.1.1 (Main Phase)
+     - SOME/IP-SD Section 4.1.1 (Main Phase)
      - QM
    * - ``comp_req__tc8_conformance__sd_find_response``
      - TC8-SD-004, -005
-     - SOME/IP-SD §4.1.2.2
+     - SOME/IP-SD Section 4.1.2.2
      - QM
    * - ``comp_req__tc8_conformance__sd_sub_lifecycle``
      - TC8-SD-006, -007, -008
-     - SOME/IP-SD §4.1.2.4–4.1.2.6
+     - SOME/IP-SD Section 4.1.2.4 through Section 4.1.2.6
      - QM
    * - ``comp_req__tc8_conformance__sd_phases_timing``
      - TC8-SD-009, -010
-     - SOME/IP-SD §4.1.1 (Phases)
+     - SOME/IP-SD Section 4.1.1 (Phases)
      - QM
    * - ``comp_req__tc8_conformance__msg_resp_header``
      - TC8-MSG-001, -002, -005, -008
-     - SOME/IP §4.1.3, §4.1.4, §4.1.6
+     - SOME/IP Section 4.1.3, Section 4.1.4, Section 4.1.6
      - QM
    * - ``comp_req__tc8_conformance__msg_error_codes``
      - TC8-MSG-003, -004, -006
-     - SOME/IP §4.1.7 (Table 4.14)
+     - SOME/IP Section 4.1.7 (Table 4.14)
      - QM
    * - ``comp_req__tc8_conformance__evt_subscription``
-     - TC8-EVT-001–004, -006
-     - SOME/IP §5.1, SOME/IP-SD §4.1.2.4
+     - TC8-EVT-001 through -004, -006
+     - SOME/IP Section 5.1, SOME/IP-SD Section 4.1.2.4
      - QM

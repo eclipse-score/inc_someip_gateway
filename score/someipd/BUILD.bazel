@@ -47,6 +47,7 @@ cc_library(
     name = "local_network_service",
     srcs = ["impl/local_network_service.cpp"],
     hdrs = ["impl/local_network_service.h"],
+    visibility = ["//score/someipd/test:__pkg__"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/socom",

@@ -1,0 +1,7 @@
+{
+    "appId": "TC8D",
+    "appDesc": "TC8 DUT",
+    "logLevel": "kInfo",
+    "logLevelThresholdConsole": "kInfo",
+    "logMode": "kConsole"
+}

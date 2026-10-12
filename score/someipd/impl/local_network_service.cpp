@@ -38,8 +38,10 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime) {
     // Create instance first with null connector - needed because callbacks capture the instance
-    // pointer. Callbacks are not invoked until after make_client_connector returns (initial state
-    // is always not_available), so this is safe.
+    // pointer. SOCom may invoke on_service_state_change before client_connector_ is assigned:
+    // from the IPC thread when the service becomes available, or synchronously inside
+    // make_client_connector() if a matching server is already registered (as in the unit test).
+    // Callbacks must therefore use the connector passed to them.
     auto instance = std::unique_ptr<LocalNetworkService>(new LocalNetworkService(
         service_instance_config, service_type_config, std::move(vsomeip_app), nullptr));
 
@@ -59,7 +61,7 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
         client_connector_config, inst,
         {
             .on_service_state_change =
-                [instance_ptr = instance.get()](socom::Client_connector const&,
+                [instance_ptr = instance.get()](socom::Client_connector const& connector,
                                                 socom::Service_state state,
                                                 socom::Server_service_interface_definition const&) {
                     std::cout << "[someipd] LocalNetworkService - on_service_state_change called"
@@ -76,8 +78,7 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
                                   << instance_ptr->service_type_config_->service_type_name()
                                          ->string_view()
                                   << std::endl;
-                        (void)instance_ptr->client_connector_->subscribe_event(
-                            socom_event_id, socom::Event_mode::update);
+                        (void)connector.subscribe_event(socom_event_id, socom::Event_mode::update);
                         ++socom_event_id;
                     }
                 },
