@@ -99,7 +99,7 @@ None, passive observation.
 
 **Expected Result:**
 OfferService entry has ``service_id=0x1234``, ``instance_id=0x5678``,
-``major_version=0x00``, ``minor_version=0x00000000``, and ``TTL > 0``.
+``major_version=0x01``, ``minor_version=0x00000000``, and ``TTL > 0``.
 
 TC8-SD-003: Cyclic Offer Timing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -185,10 +185,10 @@ valid eventgroup subscription.
 
 **Preconditions:**
 
-- DUT offering eventgroup ``0x4455``.
+- DUT offering eventgroup ``0x0002``.
 
 **Stimuli:**
-Send SD SubscribeEventgroup for service ``0x1234``, eventgroup ``0x4455``.
+Send SD SubscribeEventgroup for service ``0x1234``, eventgroup ``0x0002``.
 
 **Expected Result:**
 SubscribeEventgroupAck with TTL > 0 received.
@@ -230,7 +230,7 @@ Verify that notifications cease after StopSubscribeEventgroup (TTL = 0).
 
 **Preconditions:**
 
-- Active subscription to eventgroup ``0x4455``.
+- Active subscription to eventgroup ``0x0002``.
 - At least one notification received.
 
 **Stimuli:**
@@ -326,10 +326,10 @@ a multicast IPv4EndpointOption.
 **Preconditions:**
 
 - Non-loopback network interface (``TC8_TESTER_IP`` set).
-- Eventgroup ``0x4465`` configured with multicast address ``239.0.0.1``.
+- Eventgroup ``0x0006`` configured with multicast address ``239.0.0.1``.
 
 **Stimuli:**
-Send SD SubscribeEventgroup for eventgroup ``0x4465``.
+Send SD SubscribeEventgroup for eventgroup ``0x0006``.
 
 **Expected Result:**
 SubscribeEventgroupAck contains a multicast IPv4EndpointOption.
@@ -420,10 +420,10 @@ TC8-SDM-004: FindService Specific Major Version
 :Test Function: ``TestSDVersionMatching::test_sd_message_04_major_version_specific``
 
 **Purpose:**
-Verify that a FindService with the exact major_version = 0x00 elicits an OfferService.
+Verify that a FindService with the exact major_version = 0x01 elicits an OfferService.
 
 **Stimulus:**
-Send FindService with major_version = 0x00.
+Send FindService with major_version = 0x01.
 
 **Expected Result:**
 OfferService received for the configured service.
@@ -474,7 +474,7 @@ Verify that a SubscribeEventgroup with a non-matching major version is rejected 
 NAck (SubscribeEventgroupAck TTL = 0) or silently ignored.
 
 **Stimulus:**
-Send SubscribeEventgroup with major_version = 0x7F (not 0x00).
+Send SubscribeEventgroup with major_version = 0x7F (not 0x01).
 
 **Expected Result:**
 No positive SubscribeAck (TTL > 0) received; DUT remains functional.
@@ -656,22 +656,24 @@ Send SubscribeEventgroup immediately after service discovery, without any RPC.
 **Expected Result:**
 Positive SubscribeAck received.
 
-TC8-SDLC-004: Non-Standard SD Entry Order Handled
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDLC-004: Entries In One Message Processed In Order
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.6, SOMEIP_ETS_107
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_107_find_service_and_subscribe_processed_independently``
+:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_107_consider_entries_order``
 
 **Purpose:**
-Verify that the DUT correctly handles SD messages where FindService and
-SubscribeEventgroup entries appear in a non-standard order.
+Verify that the DUT handles the entries of one SD message in order
+(SOMEIP_ETS_107, SD_Consider_Entries_Order).
 
 **Stimulus:**
-Send SD message with FindService followed by SubscribeEventgroup.
+Subscribe, then send one SD message with a StopSubscribeEventgroup entry
+(TTL = 0) followed by a SubscribeEventgroup entry for the same eventgroup.
 
 **Expected Result:**
-Both entries processed; OfferService and SubscribeAck received.
+The entries are processed in order: a new SubscribeAck is received and events
+arrive after the re-subscribe.
 
 TC8-SDLC-005: Subscribe Endpoint IP Matches Tester
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -681,14 +683,15 @@ TC8-SDLC-005: Subscribe Endpoint IP Matches Tester
 :Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_120_subscribe_endpoint_ip_matches_tester``
 
 **Purpose:**
-Verify that the DUT delivers events to the IP address specified in the subscribe
-endpoint option, not the IP address the SD message was sourced from.
+Verify that events go to the address and port in the endpoint option, not to the
+SD packet source port.
 
 **Stimulus:**
-Send SubscribeEventgroup with endpoint option IP = tester_ip.
+Send SubscribeEventgroup from the SD socket with an endpoint option naming a
+different tester port.
 
 **Expected Result:**
-Events delivered to the tester_ip address.
+The ACK arrives on the SD socket and events arrive on the endpoint option socket.
 
 TC8-SDLC-006: SD Interface Version = 0x01
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -741,22 +744,23 @@ Capture two consecutive OfferService messages.
 **Expected Result:**
 ``session_id[n+1] == session_id[n] + 1`` (with wrap from 0xFFFF to 0x0001).
 
-TC8-SDLC-009: Initial Event Sent After Subscribe
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDLC-009: Events Sent After Subscribe ACK
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: Section 6.1.6, SOMEIP_ETS_099
+:OA Reference: Section 6.1.6, SOMEIP_ETS_121
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDFindServiceAdvanced::test_ets_099_initial_event_sent_after_subscribe``
+:Test Function: ``TestSDFindServiceAdvanced::test_ets_121_events_sent_after_subscribe_ack``
 
 **Purpose:**
-Verify that the DUT sends an initial notification to a new subscriber immediately
-after a successful SubscribeEventgroup ACK.
+Verify that the DUT sends at least one notification to a new subscriber after a
+successful SubscribeEventgroup ACK. The initial event cannot be told apart from
+a cyclic one, so the test only partially verifies the requirement.
 
 **Stimulus:**
-Subscribe to eventgroup; wait for first notification.
+Subscribe to eventgroup; wait for the first notification.
 
 **Expected Result:**
-NOTIFICATION received promptly after ACK.
+At least one NOTIFICATION received within 5 seconds after the ACK.
 
 TC8-SDLC-010: Server Does Not Emit FindService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -841,7 +845,7 @@ Verify that after a client sends StopSubscribeEventgroup (TTL = 0) the DUT stops
 sending NOTIFICATION messages to that subscriber.
 
 **Preconditions:**
-Active subscription to eventgroup 0x4455; at least one notification received.
+Active subscription to eventgroup 0x0002; at least one notification received.
 
 **Stimulus:**
 Send SubscribeEventgroup with TTL = 0.

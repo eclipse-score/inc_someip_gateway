@@ -187,7 +187,7 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :reqtype: Functional
 
    The conformance test suite shall verify that event notifications cease to arrive
-   after the subscription TTL expires: when a tester subscribes with TTL = 1 and no
+   after the subscription TTL expires: when a tester subscribes with TTL = 3 and no
    renewal is sent, no further SOME/IP notifications shall be received beyond 2 seconds
    after the TTL expiry, conforming to OA TC8 SOMEIP_ETS_095.
 
