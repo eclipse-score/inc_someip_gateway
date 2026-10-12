@@ -614,7 +614,8 @@ TC8-SDLC-001: Two Simultaneous Subscribes
 
 **Purpose:**
 Verify that two SubscribeEventgroup entries in one SD message each receive a
-positive ACK.
+positive ACK. OA ETS_088 uses three eventgroups, so the test only partially
+verifies the requirement.
 
 **Stimulus:**
 Send an SD message containing two SubscribeEventgroup entries.
@@ -675,16 +676,17 @@ Subscribe, then send one SD message with a StopSubscribeEventgroup entry
 The entries are processed in order: a new SubscribeAck is received and events
 arrive after the re-subscribe.
 
-TC8-SDLC-005: Subscribe Endpoint IP Matches Tester
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDLC-005: Events Sent to Endpoint Option Port
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.6, SOMEIP_ETS_120
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_120_subscribe_endpoint_ip_matches_tester``
+:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_120_events_sent_to_endpoint_option_port``
 
 **Purpose:**
 Verify that events go to the address and port in the endpoint option, not to the
-SD packet source port.
+SD packet source port. OA ETS_120 also changes the IP address, but the test uses
+the tester IP with a different port, so it only partially verifies the requirement.
 
 **Stimulus:**
 Send SubscribeEventgroup from the SD socket with an endpoint option naming a
@@ -719,13 +721,14 @@ TC8-SDLC-007: Re-subscribe After StopSubscribe
 
 **Purpose:**
 Verify that a subscription can be re-established after a StopSubscribeEventgroup
-(TTL = 0) and that events resume.
+(TTL = 0) and that a new ACK is sent. The initial fields after the second ACK
+are not checked, so the test only partially verifies the requirement.
 
 **Stimulus:**
-Subscribe, verify events, StopSubscribe, re-Subscribe, verify events resume.
+Subscribe, wait for the ACK, StopSubscribe, re-Subscribe.
 
 **Expected Result:**
-Events received after re-subscription.
+A new SubscribeAck is received after the re-subscription.
 
 TC8-SDLC-008: Session ID Increments per OfferService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -765,9 +768,9 @@ At least one NOTIFICATION received within 5 seconds after the ACK.
 TC8-SDLC-010: Server Does Not Emit FindService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: Section 6.1.6, SOMEIP_ETS_100
+:OA Reference: none (project-specific, OA ETS_100 is a client-mode scenario)
 :Requirement: ``comp_req__tc8_conformance__sd_offer_format``
-:Test Function: ``TestSDFindServiceAdvanced::test_ets_100_no_findservice_emitted_by_server``
+:Test Function: ``TestSDFindServiceAdvanced::test_sd_server_no_findservice_in_main_phase``
 
 **Purpose:**
 Verify that the DUT (acting as service provider) does not emit FindService entries

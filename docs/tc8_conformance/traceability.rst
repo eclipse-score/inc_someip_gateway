@@ -190,7 +190,7 @@ SD Lifecycle Advanced
    * - Section 6.1.6, SOMEIP_ETS_121
      - TC8-SDLC-009
      - ``sd_sub_lifecycle``
-   * - Section 6.1.6, SOMEIP_ETS_100
+   * - Project-specific (no OA scenario)
      - TC8-SDLC-010
      - ``sd_offer_format``
    * - Section 6.1.6, SOMEIP_ETS_101
