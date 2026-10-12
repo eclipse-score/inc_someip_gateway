@@ -20,7 +20,7 @@ import ipaddress
 import socket
 import struct
 import time
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from helpers.constants import SD_PORT
 from helpers.someip_types import (
@@ -82,16 +82,21 @@ def _next_session_id() -> int:
     return _last_session_id
 
 
-def _build_sd_packet(entry: SOMEIPSDEntry, session_id: int = 0) -> bytes:
-    """Wrap a single SD entry into a SOME/IP-SD UDP datagram.
+def _build_sd_packet(
+    entries: Sequence[SOMEIPSDEntry],
+    session_id: int = 0,
+    flag_unicast: bool = True,
+) -> bytes:
+    """Wrap SD entries into one SOME/IP-SD UDP datagram.
 
     When *session_id* is 0 (default), an auto-incrementing counter is used.
+    Entries with identical options share one option run.
     """
     if session_id == 0:
         session_id = _next_session_id()
     options: List[SOMEIPSDOption] = []
-    indexed = entry.assign_option_index(options)
-    sd_hdr = SOMEIPSDHeader(entries=(indexed,), options=tuple(options))
+    indexed = tuple(e.assign_option_index(options) for e in entries)
+    sd_hdr = SOMEIPSDHeader(entries=indexed, options=tuple(options), flag_unicast=flag_unicast)
     return SOMEIPHeader(
         service_id=SD_SERVICE,
         method_id=SD_METHOD,
@@ -119,8 +124,12 @@ def send_find_service(
     major_version: int = 0xFF,
     minor_version: int = 0xFFFFFFFF,
     session_id: int = 0,
+    flag_unicast: bool = True,
 ) -> None:
-    """Send a FindService SD message to *sd_dest*."""
+    """Send a FindService SD message to *sd_dest*.
+
+    Pass ``flag_unicast=False`` to clear the SD header unicast flag.
+    """
     entry = SOMEIPSDEntry(
         sd_type=SOMEIPSDEntryType.FindService,
         service_id=service_id,
@@ -129,7 +138,43 @@ def send_find_service(
         ttl=3,
         minver_or_counter=minor_version,
     )
-    sock.sendto(_build_sd_packet(entry, session_id), sd_dest)
+    sock.sendto(_build_sd_packet((entry,), session_id, flag_unicast), sd_dest)
+
+
+def build_subscribe_entry(
+    service_id: int,
+    instance_id: int,
+    eventgroup_id: int,
+    major_version: int,
+    subscriber_ip: str,
+    subscriber_port: int,
+    ttl: int = 3,
+) -> SOMEIPSDEntry:
+    """Build a SubscribeEventgroup entry with one UDP endpoint option."""
+    endpoint_opt = IPv4EndpointOption(
+        address=ipaddress.IPv4Address(subscriber_ip),
+        l4proto=L4Protocols.UDP,
+        port=subscriber_port,
+    )
+    return SOMEIPSDEntry(
+        sd_type=SOMEIPSDEntryType.Subscribe,
+        service_id=service_id,
+        instance_id=instance_id,
+        major_version=major_version,
+        ttl=ttl,
+        minver_or_counter=eventgroup_id & 0xFFFF,
+        options_1=(endpoint_opt,),
+    )
+
+
+def send_sd_entries(
+    sock: socket.socket,
+    sd_dest: Tuple[str, int],
+    entries: Sequence[SOMEIPSDEntry],
+    session_id: int = 0,
+) -> None:
+    """Send several SD entries to *sd_dest* in one SD message."""
+    sock.sendto(_build_sd_packet(entries, session_id), sd_dest)
 
 
 def send_subscribe_eventgroup(
@@ -192,7 +237,7 @@ def send_subscribe_eventgroup(
         minver_or_counter=eventgroup_id & 0xFFFF,
         options_1=tuple(endpoint_opt),
     )
-    sock.sendto(_build_sd_packet(entry, session_id), sd_dest)
+    sock.sendto(_build_sd_packet((entry,), session_id), sd_dest)
 
 
 def send_subscribe_eventgroup_reserved_set(
@@ -232,7 +277,7 @@ def send_subscribe_eventgroup_reserved_set(
         minver_or_counter=eventgroup_id & 0xFFFF,
         options_1=(endpoint_opt,),
     )
-    raw = bytearray(_build_sd_packet(entry, session_id))
+    raw = bytearray(_build_sd_packet((entry,), session_id))
 
     # Patch bytes 36-39: the 4-byte ``minver_or_counter`` in the first SD entry.
     # Structure at those bytes is: [reserved(12 bits) | counter(4 bits) | eventgroup_id(16 bits)].

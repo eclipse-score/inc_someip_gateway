@@ -132,28 +132,30 @@ class TestSDPhasesTiming:
         self,
         sd_phase_capture: List[Tuple[float, SOMEIPSDEntry]],
     ) -> None:
-        """TC8-SD-010: At least repetitions_max - 1 short-gap offers before Main Phase.
+        """TC8-SD-010: Repetition Phase gaps grow, at least repetitions_max - 1 of them, before Main Phase.
 
         The first offer may be missed due to a race between socket setup and
-        process startup. Requiring ``repetitions_max - 1 = 2`` short gaps
-        still proves the Repetition Phase happened with doubling intervals.
+        process startup, so ``repetitions_max - 1 = 2`` short gaps are required.
+        Short gaps must grow by at least 1.5x each (base delay doubles), and a
+        long gap must follow once five offers were captured.
         """
         service_offers = [(ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID]
         assert len(service_offers) >= 2, "TC8-SD-010: Not enough OfferService entries captured for phase counting"
 
-        # Count "short" gaps (Repetition Phase) vs "long" gaps (Main Phase).
+        gaps = [(service_offers[i + 1][0] - service_offers[i][0]) * 1000.0 for i in range(len(service_offers) - 1)]
         cyclic_half_ms = _CYCLIC_OFFER_DELAY_MS * 0.5
-        short_gap_count = 0
-
-        for i in range(len(service_offers) - 1):
-            gap_ms = (service_offers[i + 1][0] - service_offers[i][0]) * 1000.0
-            if gap_ms < cyclic_half_ms:
-                short_gap_count += 1
+        short_gaps = [g for g in gaps if g < cyclic_half_ms]
 
         # Allow repetitions_max - 1 to tolerate the first-offer capture race.
         min_short_gaps = _REPETITIONS_MAX - 1
-        assert short_gap_count >= min_short_gaps, (
-            f"TC8-SD-010: Only {short_gap_count} Repetition Phase gap(s) observed; "
+        assert len(short_gaps) >= min_short_gaps, (
+            f"TC8-SD-010: Only {len(short_gaps)} Repetition Phase gap(s) observed; "
             f"expected at least {min_short_gaps} "
             f"(repetitions_max={_REPETITIONS_MAX}, tolerance: -1 for first-offer capture race)"
         )
+        for prev, nxt in zip(short_gaps, short_gaps[1:]):
+            assert nxt >= prev * 1.5, f"TC8-SD-010: Repetition gaps do not grow: {[round(g) for g in short_gaps]} ms"
+        if len(gaps) >= _REPETITIONS_MAX + 1:
+            assert gaps[-1] >= cyclic_half_ms, (
+                f"TC8-SD-010: Last gap {gaps[-1]:.0f} ms is not a Main Phase gap (>= {cyclic_half_ms:.0f} ms)"
+            )

@@ -51,7 +51,7 @@ from helpers.sd_sender import (
 )
 from helpers.someip_types import SOMEIPHeader, SOMEIPSDHeader
 
-#: Uses the SD config (service 0x1234/0x5678, eventgroup 0x4455 UDP).
+#: Uses the SD config (service 0x1234/0x5678, eventgroup 0x0002 UDP).
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: Maximum wait time for SD messages, derived from TC8 spec Sec. 4 IUT parameters:
@@ -192,6 +192,7 @@ class TestSDClientStopSubscribe:
                         MAJOR_VERSION,
                         subscriber_ip=tester_ip,
                         subscriber_port=notif_port,
+                        ttl=30,
                     )
 
                 _subscribe()
@@ -200,6 +201,7 @@ class TestSDClientStopSubscribe:
                     filter_types=(SOMEIPSDEntryType.SubscribeAck,),
                     timeout_secs=5.0,
                     resend=_subscribe,
+                    max_results=1,
                 )
                 assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
                     "ETS_084: Prerequisite failed — no SubscribeAck received"

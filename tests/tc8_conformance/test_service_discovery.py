@@ -29,7 +29,9 @@ from helpers.sd_sender import (
     capture_some_ip_messages,
     capture_unicast_sd_entries,
     open_sender_socket,
+    build_subscribe_entry,
     send_find_service,
+    send_sd_entries,
     send_subscribe_eventgroup,
     send_subscribe_eventgroup_reserved_set,
 )
@@ -49,7 +51,7 @@ from helpers.constants import (
     SERVICE_ID,
 )
 from helpers.timing import capture_sd_offers_with_timestamps
-from helpers.someip_types import SOMEIPHeader, SOMEIPSDHeader
+from helpers.someip_types import SOMEIPHeader, SOMEIPSDEntry, SOMEIPSDHeader
 
 #: SOME/IP stack config template used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
@@ -494,7 +496,7 @@ class TestSDMulticastEventgroup:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """TC8-SD-013: Subscribing to multicast eventgroup 0x4465 yields a multicast endpoint option."""
+        """TC8-SD-013: Subscribing to multicast eventgroup 0x0006 yields a multicast endpoint option."""
 
         # On loopback, vsomeip 3.6.1 does not include IPv4MulticastOption in
         # SUBSCRIBE_ACK.  Requires a non-loopback interface.
@@ -909,7 +911,7 @@ class TestSDSubscribeNAck:
                     SERVICE_ID,
                     INSTANCE_ID,
                     EVENTGROUP_UDP_UNICAST,
-                    major_version=0xFF,  # DUT expects 0x00
+                    major_version=0xFF,  # DUT expects 0x01
                     subscriber_ip=tester_ip,
                     subscriber_port=sender_port,
                 )
@@ -1265,6 +1267,7 @@ class TestSDFindServiceTiming:
                 service_id=SERVICE_ID,
                 instance_id=0xFFFF,
                 major_version=0xFF,
+                flag_unicast=False,
             )
 
             # Listen on the multicast socket for the DUT's OfferService response.
@@ -1325,45 +1328,28 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_088: Two SubscribeEventgroup entries (different eventgroups), sent back to back, both receive ACKs."""
+        """ETS_088: One SD message with two SubscribeEventgroup entries (different eventgroups) gets both ACKs."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
         try:
             sender_port = sock.getsockname()[1]
-
-            def _subscribe_eg1() -> None:
-                send_subscribe_eventgroup(
-                    sock,
-                    (dut_ip, SD_PORT),
-                    SERVICE_ID,
-                    INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
-                    MAJOR_VERSION,
-                    subscriber_ip=tester_ip,
-                    subscriber_port=sender_port,
+            entries_in = [
+                build_subscribe_entry(
+                    SERVICE_ID, INSTANCE_ID, eg, MAJOR_VERSION, subscriber_ip=tester_ip, subscriber_port=sender_port
                 )
+                for eg in (EVENTGROUP_UDP_UNICAST, EVENTGROUP_UDP_MULTICAST)
+            ]
 
-            def _subscribe_eg2() -> None:
-                send_subscribe_eventgroup(
-                    sock,
-                    (dut_ip, SD_PORT),
-                    SERVICE_ID,
-                    INSTANCE_ID,
-                    EVENTGROUP_UDP_MULTICAST,
-                    MAJOR_VERSION,
-                    subscriber_ip=tester_ip,
-                    subscriber_port=sender_port,
-                )
+            def _send() -> None:
+                send_sd_entries(sock, (dut_ip, SD_PORT), entries_in)
 
-            _subscribe_eg1()
-            _subscribe_eg2()
-
+            _send()
             entries = capture_unicast_sd_entries(
                 sock,
                 filter_types=(SOMEIPSDEntryType.SubscribeAck,),
                 timeout_secs=6.0,
-                resend=lambda: (_subscribe_eg1(), _subscribe_eg2()),  # type: ignore[func-returns-value]
+                resend=_send,
             )
             acks_eg1 = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0]
             acks_eg2 = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_MULTICAST and e.ttl > 0]
@@ -1464,89 +1450,76 @@ class TestSDSubscribeLifecycleAdvanced:
             sock.close()
 
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+        partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
-    def test_ets_107_find_service_and_subscribe_processed_independently(
+    def test_ets_107_consider_entries_order(
         self,
         dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_107: DUT processes a FindService and a SubscribeEventgroup sent back to back independently
-        (OfferService on multicast, SubscribeAck on unicast both arrive)."""
+        """ETS_107 (SD_Consider_Entries_Order): after an initial subscribe, one SD message carries a
+        StopSubscribe (TTL=0) entry followed by a Subscribe entry for the same eventgroup. The DUT must
+        process them in order: the tester ends up subscribed, with a new ACK and events."""
         assert dut.poll() is None, "DUT is not running"
 
         sd_sock = open_sender_socket(tester_ip)
-        mc_sock = open_multicast_socket(host_ip)
+        notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        notif_sock.bind((tester_ip, 0))
+        notif_port: int = notif_sock.getsockname()[1]
         try:
-            sender_port = sd_sock.getsockname()[1]
 
-            def _send_both() -> None:
-                send_find_service(
-                    sd_sock,
-                    (SD_MULTICAST_ADDR, SD_PORT),
-                    service_id=SERVICE_ID,
-                    instance_id=INSTANCE_ID,
-                )
-                send_subscribe_eventgroup(
-                    sd_sock,
-                    (dut_ip, SD_PORT),
+            def _entry(ttl: int) -> SOMEIPSDEntry:
+                return build_subscribe_entry(
                     SERVICE_ID,
                     INSTANCE_ID,
                     EVENTGROUP_UDP_UNICAST,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
-                    subscriber_port=sender_port,
+                    subscriber_port=notif_port,
+                    ttl=ttl,
                 )
 
-            _send_both()
+            def _first() -> None:
+                send_sd_entries(sd_sock, (dut_ip, SD_PORT), [_entry(30)])
+
+            _first()
+            first_acks = capture_unicast_sd_entries(
+                sd_sock,
+                filter_types=(SOMEIPSDEntryType.SubscribeAck,),
+                timeout_secs=5.0,
+                resend=_first,
+                max_results=1,
+            )
+            assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in first_acks), (
+                "ETS_107: Prerequisite failed, no SubscribeAck for the initial subscribe"
+            )
+
+            # Discard the initial events and any duplicate ACK.
+            capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=1.0)
+            capture_unicast_sd_entries(sd_sock, timeout_secs=0.2)
+
+            send_sd_entries(sd_sock, (dut_ip, SD_PORT), [_entry(0), _entry(30)])
 
             acks = capture_unicast_sd_entries(
                 sd_sock,
                 filter_types=(SOMEIPSDEntryType.SubscribeAck,),
-                timeout_secs=6.0,
-                resend=_send_both,
+                timeout_secs=5.0,
+                max_results=1,
             )
-            acks_valid = [e for e in acks if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0]
-
-            # Capture OfferService on the multicast socket (FindService response).
-            _max_secs = (_CYCLIC_OFFER_DELAY_MS * 1.5) / 1000.0
-            deadline = time.monotonic() + _max_secs
-            offers: list = []
-            while time.monotonic() < deadline and not offers:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    break
-                mc_sock.settimeout(min(remaining, 0.5))
-                try:
-                    data, _ = mc_sock.recvfrom(65535)
-                except socket.timeout:
-                    continue
-                try:
-                    someip_msg, _ = SOMEIPHeader.parse(data)
-                    if someip_msg.service_id != 0xFFFF:
-                        continue
-                    sd_hdr, _ = SOMEIPSDHeader.parse(someip_msg.payload)
-                    for entry in sd_hdr.entries:
-                        if entry.sd_type == SOMEIPSDEntryType.OfferService and entry.service_id == SERVICE_ID:
-                            offers.append(entry)
-                except Exception:  # noqa: BLE001
-                    continue
-
-            assert offers, (
-                "ETS_107: No OfferService received on multicast after FindService burst. "
-                "DUT must process FindService independently of co-arriving SD entries."
+            assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
+                "ETS_107: No SubscribeAck after one message with StopSubscribe followed by Subscribe. "
+                "DUT must process the entries in order."
             )
-            assert acks_valid, (
-                "ETS_107: No SubscribeAck received after SubscribeEventgroup burst. "
-                "DUT must process SubscribeEventgroup independently of co-arriving SD entries."
-            )
+            notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
+            assert notifs, "ETS_107: No events received after the re-subscription"
         finally:
             sd_sock.close()
-            mc_sock.close()
+            notif_sock.close()
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
@@ -1560,12 +1533,18 @@ class TestSDSubscribeLifecycleAdvanced:
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_120: DUT sends the ACK to the subscriber_ip given in the Subscribe entry, not the packet source."""
+        """ETS_120: The ACK goes to the SD packet source; events go to the address and port in the endpoint option.
+
+        The endpoint option names a different port than the SD source port.
+        """
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
+        notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        notif_sock.bind((tester_ip, 0))
+        notif_port: int = notif_sock.getsockname()[1]
         try:
-            sender_port = sock.getsockname()[1]
 
             def _send() -> None:
                 send_subscribe_eventgroup(
@@ -1576,7 +1555,7 @@ class TestSDSubscribeLifecycleAdvanced:
                     EVENTGROUP_UDP_UNICAST,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
-                    subscriber_port=sender_port,
+                    subscriber_port=notif_port,
                 )
 
             _send()
@@ -1587,11 +1566,16 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=_send,
             )
             acks = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0]
-            assert acks, (
-                f"ETS_120: No SubscribeAck received at tester_ip={tester_ip} for subscribe with explicit subscriber_ip."
+            assert acks, f"ETS_120: No SubscribeAck received at tester_ip={tester_ip} on the SD source socket."
+
+            notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
+            assert notifs, (
+                f"ETS_120: No events received at {tester_ip}:{notif_port} from the endpoint option. "
+                "Events must go to the endpoint option address and port."
             )
         finally:
             sock.close()
+            notif_sock.close()
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_offer_format"],
@@ -1714,7 +1698,6 @@ class TestSDSubscribeLifecycleAdvanced:
             sd_sock.close()
             notif_sock.close()
 
-    @pytest.mark.skip(reason="Production stack sends no event notifications without mw::com ETS app (2026-08-11)")
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_ttl_expiry"],
         test_type="requirements-based",
@@ -1787,7 +1770,7 @@ class TestSDSubscribeLifecycleAdvanced:
 
 
 class TestSDFindServiceAdvanced:
-    """ETS_091/099/100/128/130: FindService and offer lifecycle advanced scenarios."""
+    """ETS_091/121/100/128/130: FindService and offer lifecycle advanced scenarios."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_offer_format"],
@@ -1843,21 +1826,21 @@ class TestSDFindServiceAdvanced:
             assert is_increment, f"ETS_091: session_id did not increment monotonically: {current:#06x} -> {nxt:#06x}"
 
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
+        partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
-    def test_ets_099_initial_event_sent_after_subscribe(
+    def test_ets_121_events_sent_after_subscribe_ack(
         self,
         dut: subprocess.Popen[bytes],
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
     ) -> None:
-        """ETS_099: DUT sends initial field value as event after SubscribeEventgroup ACK.
+        """ETS_121 (SD_Initial_Events_after_SubscribeEventgroup): at least one event arrives after the ACK.
 
-        The eventgroup 0x4455 carries a field event (update-cycle=2000ms in config).
-        After subscribing, the first notification must arrive within the cycle window.
+        Eventgroup 0x0002 carries events with update-cycle=500ms, so the initial event
+        cannot be told apart from a cyclic one.
         """
         assert dut.poll() is None, "DUT is not running"
 
@@ -1889,15 +1872,11 @@ class TestSDFindServiceAdvanced:
                 resend=_subscribe,
             )
             assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
-                "ETS_099: Prerequisite failed — no SubscribeAck received"
+                "ETS_121: Prerequisite failed, no SubscribeAck received"
             )
 
-            # Expect at least one notification (field sends initial value + cyclic updates).
             notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=5.0)
-            assert notifs, (
-                "ETS_099: No SOME/IP notifications received after subscribe. "
-                "DUT must send initial field value on subscription."
-            )
+            assert notifs, "ETS_121: No SOME/IP notifications received after the SubscribeAck."
         finally:
             sd_sock.close()
             notif_sock.close()
@@ -1917,7 +1896,7 @@ class TestSDFindServiceAdvanced:
         """ETS_100: DUT (server) must not emit FindService entries once in main phase."""
         assert dut.poll() is None, "DUT is not running"
 
-        sock = open_sender_socket(tester_ip)
+        sock = open_multicast_socket(host_ip)
         try:
             entries = capture_unicast_sd_entries(
                 sock,
