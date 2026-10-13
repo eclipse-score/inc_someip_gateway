@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SRC_SOCOM_INCLUDE_SCORE_SOCOM_SERVICE_INTERFACE_DEFINITION
@@ -44,14 +45,14 @@ struct Service_interface_definition final {
     /// \param sif Service interface identification information.
     /// \param methods Methods of the service interface.
     /// \param events Events of the service interface.
-    Service_interface_definition(Service_interface_identifier sif, Num_of_methods num_of_methods,
+    Service_interface_definition(Service_interface sif, Num_of_methods num_of_methods,
                                  Num_of_events num_of_events);
 
     /// \brief Constructor without methods and events.
     /// \details Client_connectors which have no member configuration must use the provided
     /// Server_service_interface_definition configuration.
     /// \param sif Service interface identification information.
-    explicit Service_interface_definition(Service_interface_identifier sif);
+    explicit Service_interface_definition(Service_interface sif);
 
     Service_interface_definition(Service_interface_definition const&) = default;
     Service_interface_definition(Service_interface_definition&&) noexcept = default;
@@ -62,7 +63,7 @@ struct Service_interface_definition final {
     Service_interface_definition& operator=(Service_interface_definition&&) = delete;
 
     /// \brief Service interface identification information.
-    Service_interface_identifier const interface;
+    Service_interface const interface;
     std::uint16_t num_methods{0U};
     std::uint16_t num_events{0U};
 };
@@ -82,8 +83,8 @@ class Server_service_interface_definition final {
     /// \param sif Service interface identification information.
     /// \param methods Methods of the service interface.
     /// \param events Events of the service interface.
-    Server_service_interface_definition(Service_interface_identifier const& sif,
-                                        Num_of_methods num_of_methods, Num_of_events num_of_events);
+    Server_service_interface_definition(Service_interface const& sif, Num_of_methods num_of_methods,
+                                        Num_of_events num_of_events);
 
     Server_service_interface_definition(Server_service_interface_definition const& rhs);
     Server_service_interface_definition(Server_service_interface_definition&& rhs) noexcept;
@@ -102,7 +103,7 @@ class Server_service_interface_definition final {
 
     std::uint16_t get_num_methods() const noexcept;
     std::uint16_t get_num_events() const noexcept;
-    Service_interface_identifier const& get_interface() const noexcept;
+    Service_interface const& get_interface() const noexcept;
 };
 
 }  // namespace score::socom

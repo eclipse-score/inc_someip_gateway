@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include "score/socom/utilities.hpp"
@@ -76,9 +77,8 @@ void increase_and_fill(Vector_buffer& data, std::size_t const new_size) {
     std::generate(start, std::end(data), [&gen, &distrib]() { return std::byte(distrib(gen)); });
 }
 
-static Service_interface_identifier create_service_interface(size_t const interface_id) {
-    return Service_interface_identifier{std::string{"interface_" + std::to_string(interface_id)},
-                                        {4, 2}};
+static Service_interface create_service_interface(size_t const interface_id) {
+    return Service_interface{std::string{"interface_" + std::to_string(interface_id)}, {4, 2}};
 }
 
 Server_service_interface_definition create_service_interface_configuration(

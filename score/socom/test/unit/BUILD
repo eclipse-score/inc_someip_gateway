@@ -21,6 +21,7 @@ cc_test(
     tags = ["unit"],
     visibility = ["//tests/integration_test:__pkg__"],
     deps = [
+        "//score/socom:impl_service_identifier",
         "//score/socom:mock",
         "//score/socom/test/framework:socom_test_framework",
         "@googletest//:gtest",

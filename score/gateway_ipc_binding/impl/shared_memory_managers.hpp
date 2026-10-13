@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SRC_GATEWAY_IPC_BINDING_SRC_SHARED_MEMORY_MANAGERS
@@ -53,7 +54,7 @@ class Shared_memory_managers {
 
         // Create new slot manager for this service instance
         auto slot_manager_result = m_slot_manager_factory->create(
-            interface.get().to_socom_identifier(),
+            interface.get().to_socom_interface(),
             socom::Service_instance{fixed_string_to_string(instance.get())});
         SCORE_LANGUAGE_FUTURECPP_ASSERT(slot_manager_result &&
                                         "Failed to create shared memory slot manager");

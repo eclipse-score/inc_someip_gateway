@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include "remote_service_instance.h"
@@ -86,7 +87,7 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
         ++socom_event_id;
     }
 
-    socom::Service_interface_identifier const iface{
+    socom::Service_interface const iface{
         service_type_config->service_type_name()->string_view(),
         {service_type_config->service_version_major(),
          static_cast<uint16_t>(service_type_config->service_version_minor())}};

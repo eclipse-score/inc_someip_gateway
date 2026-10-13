@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SRC_SOCOM_TEST_UNIT2_FRAMEWORK_INC_SINGLE_CONNECTION_TEST_FIXTURE
@@ -34,8 +35,8 @@ Payload const& error_data();
 ///        in each test
 class SingleConnectionTest : public ::testing::Test {
    public:
-    Service_interface_identifier const service_interface{Service_interface_identifier{
-        "TestInterface1", Literal_tag{}, Service_interface_identifier::Version{1U, 2U}}};
+    Service_interface const service_interface{
+        Service_interface{"TestInterface1", Literal_tag{}, Service_interface::Version{1U, 2U}}};
     Service_instance const service_instance{"TestInterface1", Literal_tag{}};
     std::size_t num_methods{2U};
     std::size_t num_events{3U};

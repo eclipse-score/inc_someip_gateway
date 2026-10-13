@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
@@ -262,7 +263,7 @@ class Shared_memory_manager_factory_impl final : public Shared_memory_manager_fa
         : m_configuration(std::move(configuration)) {}
 
     Result<Shared_memory_slot_manager::Uptr> create(
-        score::socom::Service_interface_identifier const& interface,
+        score::socom::Service_interface const& interface,
         score::socom::Service_instance const& instance) noexcept override {
         auto interface_it = m_configuration.find(interface);
         if (interface_it == m_configuration.end()) {
@@ -283,7 +284,7 @@ class Shared_memory_manager_factory_impl final : public Shared_memory_manager_fa
     Result<void> register_configuration(Shared_memory_configs const& configs) noexcept override {
         for (std::size_t i = 0; i < configs.size; ++i) {
             auto const& entry = configs.data[i];
-            auto const interface = entry.service.to_socom_identifier();
+            auto const interface = entry.service.to_socom_interface();
             auto const instance =
                 socom::Service_instance{fixed_string_to_string(entry.instance_id)};
 

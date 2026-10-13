@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include "binding_base.hpp"
@@ -351,7 +352,7 @@ void Gateway_ipc_binding_base::handle_request_service_message(Client_id client_i
 
     m_service_states.mark_client_connector_pending(key, msg.service_id, msg.instance_id);
     auto client_connector_result = m_runtime.make_client_connector(
-        score::socom::Service_interface_definition{msg.service_id.to_socom_identifier()},
+        score::socom::Service_interface_definition{msg.service_id.to_socom_interface()},
         socom::Service_instance{fixed_string_to_string(msg.instance_id)},
         std::move(client_callbacks));
 

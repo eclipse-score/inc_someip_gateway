@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #include <gmock/gmock.h>
@@ -33,9 +34,9 @@ namespace score::gateway_ipc_binding {
 class Gateway_ipc_binding_different_interface_ids_integration_test
     : public Gateway_ipc_binding_unconnected_integration_test {
    protected:
-    socom::Service_interface_identifier const client_service_interface{
+    socom::Service_interface const client_service_interface{
         "com.test.service.client", socom::Literal_tag{}, {1, 0}};
-    socom::Service_interface_identifier const server_service_interface{
+    socom::Service_interface const server_service_interface{
         "com.test.service.server", socom::Literal_tag{}, {1, 0}};
 
     socom::Server_service_interface_definition const client_service_config{

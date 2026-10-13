@@ -9,6 +9,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  *
  * SPDX-License-Identifier: Apache-2.0
+ * AI Disclosure: Assisted by OpenAI Codex (GPT-6.1 Sol).
  ********************************************************************************/
 
 #ifndef SCORE_SOCOM_RUNTIME_IMPL_HPP
@@ -53,17 +54,17 @@ struct Mutexed_variable {
     T data{};
 };
 
-using Service_identifiers = Mutexed_variable<std::set<Service_instance_identifier>>;
+using Service_identifiers = Mutexed_variable<std::set<Service_registration_key>>;
 
 class Service_record {
    public:
     struct Interfaced_server {
-        Service_interface_identifier interface;
+        Service_interface interface;
         SC_impl::Listen_endpoint endpoint;
     };
 
     struct Interfaced_client {
-        Service_interface_identifier interface;
+        Service_interface interface;
         CC_impl::Server_indication indication;
     };
 
@@ -82,13 +83,15 @@ class Service_record {
 
     explicit Service_record(std::mutex& runtime_mutex);
 
-    Server_registration register_server_connector(Service_interface_identifier const& interface,
+    Server_registration register_server_connector(Service_interface const& interface,
                                                   SC_impl::Listen_endpoint connector);
 
     Result<Client_registration> register_client_connector(
-        Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update);
+        Service_interface const& interface, CC_impl::Server_indication on_server_update);
 
-    bool is_available() const { return m_server.has_value(); }
+    Service_interface const* get_available_interface() const noexcept {
+        return m_server ? &m_server->interface : nullptr;
+    }
 
    private:
     std::mutex& m_runtime_mutex;
@@ -97,41 +100,22 @@ class Service_record {
 };
 
 using Instances = std::vector<Service_instance>;
-using Interfaces_instances = std::unordered_map<Service_interface_identifier, Instances>;
+using Interfaces_instances = std::unordered_map<Service_interface, Instances>;
 
 class Service_database {
    public:
     explicit Service_database(std::mutex& runtime_mutex);
 
-    Service_record& get_record(Service_interface_identifier const& interface,
+    Service_record& get_record(Service_interface const& interface,
                                Service_instance const& instance);
 
-    Interfaces_instances get_instances(Service_interface_identifier const& interface,
-                                       std::optional<Service_instance> const& filter) const;
-
-    Interfaces_instances get_instances(std::optional<Service_interface_identifier> const& interface,
-                                       std::optional<Service_instance> const& filter) const;
+    std::size_t find_service(Find_service_request const& request,
+                             std::optional<Service_instance_identifier>* results,
+                             std::size_t capacity) const;
 
    private:
-    struct Minor_version_ignoring_key_equal {
-        bool operator()(Service_interface_identifier const& lhs,
-                        Service_interface_identifier const& rhs) const noexcept {
-            return (lhs.id == rhs.id) && (lhs.version.major == rhs.version.major);
-        }
-    };
-
-    struct Minor_version_ignoring_hash {
-        std::size_t operator()(Service_interface_identifier const& sii) const noexcept {
-            auto const id_hash = std::hash<Registry_string_view>{}(sii.id);
-            auto const major_hash = std::hash<std::uint16_t>{}(sii.version.major);
-            return id_hash ^ (major_hash << 1);
-        }
-    };
-
     using Service_instances = std::unordered_map<Service_instance, Service_record>;
-    using Service_interfaces =
-        std::unordered_map<Service_interface_identifier, Service_instances,
-                           Minor_version_ignoring_hash, Minor_version_ignoring_key_equal>;
+    using Service_interfaces = std::unordered_map<Service_interface_identifier, Service_instances>;
 
     std::mutex& m_runtime_mutex;
     Service_interfaces m_service_records;
@@ -188,6 +172,10 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept override;
 
+    std::size_t find_service(Find_service_request const& request,
+                             std::optional<Service_instance_identifier>* results,
+                             std::size_t capacity) const override;
+
     // NOLINTBEGIN(bugprone-exception-escape)(ClangTidy Android Warning)
     Result<Service_bridge_registration> register_service_bridge(
         Bridge_identity identity, Request_service_function request_service) noexcept override;
@@ -197,7 +185,7 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
                                             Service_instance const& instance,
                                             CC_impl::Server_indication const& on_server_update);
 
-    Registration register_connector(Service_interface_identifier const& interface,
+    Registration register_connector(Service_interface const& interface,
                                     Service_instance const& instance,
                                     SC_impl::Listen_endpoint endpoint);
 
@@ -212,10 +200,6 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
 
     Registration bridge_service_requests(Service_interface_definition const& configuration,
                                          Service_instance const& instance);
-
-    Interfaces_instances get_bridge_reported_instances(
-        Service_interface_identifier const& interface,
-        std::optional<Service_instance> const& instance) const;
 
     mutable std::mutex m_runtime_mutex{};
     Service_database m_database{m_runtime_mutex};
