@@ -105,7 +105,7 @@ jobs:
       - name: Stage TC8 test reports
         if: always() && matrix.name == 'default'
         run: |
-          mkdir -p tc8-test-reports/tests/tc8_conformance
+          mkdir -p tc8-test-reports
           find bazel-testlogs/tests/tc8_conformance -name 'test.xml' -print0 2>/dev/null | while IFS= read -r -d '' f; do
             rel="${f#bazel-testlogs/}"
             mkdir -p "tc8-test-reports/$(dirname "$rel")"
