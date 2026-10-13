@@ -1,0 +1,52 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+title Role assignment per data direction
+
+skinparam componentStyle rectangle
+
+package "gatewayd (ASIL-B)" {
+  component "application facing\nmw::com" as gw_app
+  component "Gateway IPC Binding\n(mw::com implementation)" as gw_bind
+}
+
+package "someipd (QM)" {
+  component "Gateway IPC Binding\n(mw::com implementation)" as sd_bind
+  component "vsomeip\nnetwork" as sd_net
+}
+
+note top of gw_bind
+  provider role for local service instances
+  consumer role for remote service instances
+end note
+
+note top of sd_bind
+  consumer role for local service instances
+  provider role for remote service instances
+end note
+
+gw_app -down-> gw_bind : SOCom Server_connector\n(local service instance)
+gw_bind -right-> sd_bind : GenericSkeleton -> GenericProxy\napplication to network
+sd_bind -down-> sd_net : SOCom Client_connector
+
+sd_net -up-> sd_bind : SOCom Server_connector\n(remote service instance)
+sd_bind -left-> gw_bind : GenericSkeleton -> GenericProxy\nnetwork to application
+gw_bind -up-> gw_app : SOCom Client_connector
+
+note bottom
+  The peer that owns the data source owns the GenericSkeleton.
+  The peer that consumes owns the GenericProxy.
+  Roles are fixed at startup, see decision D4.
+end note
+@enduml

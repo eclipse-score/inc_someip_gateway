@@ -1,0 +1,69 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+title Subscription and event flow for one bridged service
+
+participant "Producer app\n(SOCom server)" as prod
+participant "Provider_service_binding" as provider
+participant "mw::com\n(LoLa)" as mwcom
+participant "Consumer_service_binding" as consumer
+participant "Consumer app\n(SOCom client)" as cons
+
+== Availability ==
+prod -> provider : on_service_state_change(available)
+provider -> mwcom : GenericSkeleton::OfferService()
+mwcom -> consumer : find-service handler(handle)
+consumer -> mwcom : GenericProxy::Create(handle)
+consumer -> cons : Disabled_server_connector::enable()
+
+== Subscription ==
+cons -> consumer : subscribe_event(event_id)
+consumer -> mwcom : GenericProxyEvent::Subscribe(max_sample_count)
+consumer -> mwcom : SetReceiveHandler(cb)
+mwcom -> provider : receive handler registration changed(registered)
+provider -> prod : Client_connector::subscribe_event(event_id, update)
+
+== Event update ==
+prod -> provider : allocate_event_payload(event_id)
+provider -> mwcom : GenericSkeletonEvent::Allocate()
+mwcom --> provider : SampleAllocateePtr<void>
+note right of provider
+  Store the SampleAllocateePtr in the in-flight
+  table keyed by the minted slot_handle and wrap
+  the sample as socom::Writable_payload with
+  lead_offset = 8 and header_size = header_size.
+end note
+provider --> prod : Writable_payload
+prod -> prod : write SOME/IP header and payload, shrink()
+prod -> provider : update_event(event_id, payload)
+provider -> provider : write payload_length prefix,\ntake sample out of the in-flight table
+provider -> mwcom : GenericSkeletonEvent::Send(sample)
+
+mwcom -> consumer : receive handler
+consumer -> mwcom : GetNewSamples(receiver, max_sample_count)
+mwcom --> consumer : SamplePtr<void>
+note right of consumer
+  Read payload_length, build socom::Payload over
+  the sample and move the SamplePtr into its
+  destruction callback.
+end note
+consumer -> cons : Enabled_server_connector::update_event(event_id, payload)
+cons -> cons : payload destroyed, SamplePtr releases the slot
+
+== Teardown ==
+cons -> consumer : unsubscribe_event(event_id)
+consumer -> mwcom : UnsetReceiveHandler / Unsubscribe
+mwcom -> provider : receive handler registration changed(unregistered)
+provider -> prod : Client_connector::unsubscribe_event(event_id)
+@enduml

@@ -30,6 +30,14 @@ namespace score::gateway_ipc_binding {
 
 namespace {
 
+/// \brief Information about a connected client
+struct Client_info {
+    /// \brief Identifier supplied by the client in its Connect message (empty if none)
+    Client_identifier identifier;
+    /// \brief Transport-level client identity (PID, UID, GID)
+    score::message_passing::ClientIdentity client_identity;
+};
+
 class Server_reply_channel : public Reply_channel {
     score::message_passing::IServerConnection* m_conn;
 
@@ -169,11 +177,6 @@ class Gateway_ipc_binding_server_impl : public Gateway_ipc_binding_server {
 
         m_listening = true;
         return {};
-    }
-
-    std::unordered_map<Client_id, Client_info> get_client_identifiers() const noexcept override {
-        std::lock_guard<std::mutex> const lock(m_mutex);
-        return m_client_identifiers;
     }
 
    private:

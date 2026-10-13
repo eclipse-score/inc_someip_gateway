@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <score/span.hpp>
 
-#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
+#include "ipc_messages.hpp"
 #include "score/result/result.h"
 
 namespace score::gateway_ipc_binding {

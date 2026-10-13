@@ -18,6 +18,7 @@
 #include <score/assert.hpp>
 #include <unordered_map>
 
+#include "ipc_messages.hpp"
 #include "key.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 
