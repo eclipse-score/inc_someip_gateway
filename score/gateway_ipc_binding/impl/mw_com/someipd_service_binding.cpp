@@ -150,47 +150,56 @@ void Someipd_service_consumer::on_find_service(
     // Destroyed after the lock is released: the proxy destructor must not run while the mutex is
     // held, since it synchronises with mw::com internals that can call back into discovery.
     std::optional<Someipd_service_proxy> outdated_proxy{};
+    bool found_service = false;
 
     {
         std::lock_guard const lock{m_mutex};
 
         std::swap(outdated_proxy, m_proxy);
-        m_connected.store(false);
 
         if (handles.empty()) {
             score::mw::log::LogInfo() << "[gateway_ipc_binding] SomeipdService is gone, peer is "
                                          "not connected anymore";
-            return;
-        }
-
-        // maxSubscribers is 1 per instance, so there is exactly one peer daemon. Should the
-        // deployment ever offer more, the first handle is as good as any.
-        auto proxy = Someipd_service_proxy::Create(handles.front());
-        if (!proxy.has_value()) {
-            score::mw::log::LogError()
-                << "[gateway_ipc_binding] Failed to create SomeipdService proxy:" << proxy.error();
-            return;
-        }
-
-        if (m_service_configuration.has_value()) {
-            auto configuration = std::move(m_service_configuration).value();
-            m_service_configuration.reset();
-            auto const added = proxy->add_service_configuration(configuration);
-            if (!added.has_value()) {
+        } else {
+            // maxSubscribers is 1 per instance, so there is exactly one peer daemon. Should the
+            // deployment ever offer more, the first handle is as good as any.
+            auto proxy = Someipd_service_proxy::Create(handles.front());
+            if (!proxy.has_value()) {
                 score::mw::log::LogError()
-                    << "[gateway_ipc_binding] AddServiceConfiguration call failed:"
-                    << added.error();
-            } else if (!*added.value()) {
-                score::mw::log::LogError()
-                    << "[gateway_ipc_binding] AddServiceConfiguration was rejected";
+                    << "[gateway_ipc_binding] Failed to create SomeipdService proxy:"
+                    << proxy.error();
+            } else {
+                if (m_service_configuration.has_value()) {
+                    auto configuration = std::move(m_service_configuration).value();
+                    m_service_configuration.reset();
+                    auto const added = proxy->add_service_configuration(configuration);
+                    if (!added.has_value()) {
+                        score::mw::log::LogError()
+                            << "[gateway_ipc_binding] AddServiceConfiguration call failed:"
+                            << added.error();
+                    } else if (!*added.value()) {
+                        score::mw::log::LogError()
+                            << "[gateway_ipc_binding] AddServiceConfiguration was rejected";
+                    }
+                }
+
+                m_proxy.emplace(std::move(proxy).value());
+                found_service = true;
             }
         }
-
-        m_proxy.emplace(std::move(proxy).value());
-        m_connected.store(true);
     }
 
-    score::mw::log::LogInfo() << "[gateway_ipc_binding] SomeipdService found, peer is connected";
+    outdated_proxy.reset();
+
+    {
+        std::lock_guard const lock{m_mutex};
+        m_connected.store(m_proxy.has_value());
+    }
+
+    if (found_service) {
+        score::mw::log::LogInfo()
+            << "[gateway_ipc_binding] SomeipdService found, peer is connected";
+    }
 }
 
 }  // namespace score::gateway_ipc_binding::mw_com
