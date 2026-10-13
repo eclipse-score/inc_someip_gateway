@@ -56,8 +56,6 @@ external
 /.cache/
 __pycache__/
 
-# docs:incremental and docs:ide_support build artifacts
-
 # docs-as-code build artifacts
 # Please don't edit locally; repo_policy_sync keeps this block in sync from score_tools.
 _build/
