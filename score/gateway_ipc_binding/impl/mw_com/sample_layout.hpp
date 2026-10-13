@@ -27,27 +27,27 @@ namespace score::gateway_ipc_binding::mw_com {
 ///
 /// \details See `docs/mw_com_binding.rst`, section "Event sample layout":
 ///
-///     +----------------------+-----------------------+------------------------+
-///     | binding prefix (8 B) | reserved header space | payload bytes          |
-///     |  u32 payload_length  |  header_size          |  max_payload_size      |
-///     |  u32 reserved        |                       |                        |
-///     +----------------------+-----------------------+------------------------+
-///     ^                      ^                       ^
-///     sample base            Payload::header()       Payload::data()
+///     +----------------------+------------------------+
+///     | binding prefix (8 B) | payload bytes          |
+///     |  u32 payload_length  |  max_payload_size      |
+///     |  u32 reserved        |                        |
+///     +----------------------+------------------------+
+///     ^                      ^
+///     sample base            Payload::data()
 ///
 ///          `mw::com` samples are fixed size while SOME/IP payloads are not, so the actual
 ///          length of the payload travels in the prefix. The prefix is 8 bytes so that the
-///          reserved header space stays 8-byte aligned.
+///          payload stays 8-byte aligned.
 
 /// \brief Largest payload length the 32 bit length prefix can express.
 inline constexpr std::size_t kMax_payload_length =
     static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max());
 
 /// \brief Number of bytes of a sample the binding actually addresses.
-/// \details This is `kSample_prefix_size + header_size + max_payload_size`. It can be smaller
+/// \details This is `kSample_prefix_size + max_payload_size`. It can be smaller
 ///          than `sample_size()`, which rounds up to `kSample_alignment` because a
 ///          `DataTypeMetaInfo::size` must be an integer multiple of its alignment. The padding
-///          at the end is never addressed, so spans are built over this size and
+///          at the end is never addressed, so spans end at this size and
 ///          `Payload::data().size()` is exactly `max_payload_size`.
 /// \param event Event configuration to size
 /// \return Number of addressed bytes

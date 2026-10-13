@@ -75,8 +75,7 @@ Result<std::unique_ptr<Consumer_service_binding>> Consumer_service_binding::crea
     std::vector<Event> events{};
     events.reserve(config.events.size());
     for (auto const& event : config.events) {
-        events.push_back(
-            Event{event.name, event.header_size, event.max_payload_size, config.max_sample_count});
+        events.push_back(Event{event.name, event.max_payload_size, config.max_sample_count});
     }
 
     // Not make_unique: the constructor is private.
@@ -251,10 +250,10 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
             return false;
         }
 
-        // The peer laid the samples out for its own configuration. If the two deployments
-        // disagree, the payload would be read at the wrong offset.
+        // The peer laid the samples out for its own configuration. If its samples are smaller
+        // than configured here, reading a full-size payload would run past the end of a sample.
         auto const peer_sample_size = entry->second.GetDataTypeSizeInfo().Size();
-        auto const expected = kSample_prefix_size + event.header_size + event.max_payload_size;
+        auto const expected = kSample_prefix_size + event.max_payload_size;
         if (peer_sample_size < expected) {
             score::mw::log::LogError()
                 << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
@@ -416,22 +415,15 @@ void Consumer_service_binding::on_samples_available(
                 return;
             }
 
-            // Turning a read-only sample into a writable socom::Payload needs a const_cast, the
-            // same wart the shared-memory read path of the message_passing implementation has.
-            // Neither this binding nor the receiving application writes to it.
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see above
-            auto* const writable_base = const_cast<std::byte*>(sample_base);
-            score::socom::Payload::Writable_span const span{
-                writable_base, kSample_prefix_size + event.header_size + length};
-
             score::socom::Payload payload{
-                span, score::socom::kNoSlotHandle,
+                score::socom::Payload::Span{sample_base, kSample_prefix_size + length}.subspan(
+                    kSample_prefix_size),
+                score::socom::kNoSlotHandle,
                 // Owning the SamplePtr here is what returns the slot to LoLa once the receiving
                 // application is done with the payload. It is boxed because a SamplePtr does not
                 // fit into the inline storage of socom::Payload::Payload_destroyed.
                 [sample = std::make_unique<score::mw::com::SamplePtr<void>>(
-                     std::move(sample))]() noexcept {},
-                event.header_size, kSample_prefix_size};
+                     std::move(sample))]() noexcept {}};
 
             auto const updated = m_enabled_connector->update_event(event_id, std::move(payload));
             if (!updated.has_value()) {

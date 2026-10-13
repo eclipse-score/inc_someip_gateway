@@ -163,7 +163,7 @@ class Gateway_ipc_binding_many_services_integration_test
             std::vector<mw_com::Event_config> events;
             events.reserve(event_count);
             for (std::size_t event_index = 0U; event_index < event_count; ++event_index) {
-                events.push_back({"event_" + std::to_string(event_index), 16U, metadata.slot_size});
+                events.push_back({"event_" + std::to_string(event_index), metadata.slot_size});
             }
             services.push_back({interface, instance, std::move(instance_specifier), role,
                                 std::move(events), metadata.slot_count});

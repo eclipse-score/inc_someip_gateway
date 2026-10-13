@@ -58,8 +58,6 @@ enum class Role : std::uint8_t {
 struct Event_config {
     /// \brief mw::com event name, must match mw_com_config.json.
     std::string name;
-    /// \brief Reserved leading bytes, e.g. score::someip::kSomeipFullHeaderSize.
-    std::size_t header_size;
     /// \brief Largest payload this event can carry.
     std::size_t max_payload_size;
 };
@@ -82,8 +80,7 @@ struct Service_config {
 using Service_configs = std::vector<Service_config>;
 
 /// \brief Sample size derived from an Event_config, i.e. the DataTypeMetaInfo::size.
-/// \details The layout is `kSample_prefix_size` bytes of binding metadata, followed by
-///          `header_size` reserved bytes for the SOME/IP header, followed by up to
+/// \details The layout is `kSample_prefix_size` bytes of binding metadata, followed by up to
 ///          `max_payload_size` payload bytes. The result is rounded up to `kSample_alignment`,
 ///          because a mw::com `DataTypeMetaInfo::size` must be an integer multiple of its
 ///          alignment. The padding at the end is never used.
