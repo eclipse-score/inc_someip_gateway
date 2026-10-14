@@ -77,6 +77,103 @@
                     ]
                 }
             ]
+        },
+        {
+            "serviceTypeName": "/score/someip/SomeipdService",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "bindings": [
+                {
+                    "binding": "SHM",
+                    "serviceId": 7210,
+                    "methods": [
+                        {
+                            "methodName": "AddServiceConfiguration",
+                            "methodId": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "serviceTypeName": "bridged_benchmark_req_tx",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "bindings": [
+                {
+                    "binding": "SHM",
+                    "serviceId": 7211,
+                    "events": [
+                        {
+                            "eventName": "echo_request_tiny",
+                            "eventId": 1
+                        },
+                        {
+                            "eventName": "echo_request_small",
+                            "eventId": 2
+                        },
+                        {
+                            "eventName": "echo_request_medium",
+                            "eventId": 3
+                        },
+                        {
+                            "eventName": "echo_request_large",
+                            "eventId": 4
+                        },
+                        {
+                            "eventName": "echo_request_xlarge",
+                            "eventId": 5
+                        },
+                        {
+                            "eventName": "echo_request_xxlarge",
+                            "eventId": 6
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "serviceTypeName": "bridged_benchmark_resp_rx",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "bindings": [
+                {
+                    "binding": "SHM",
+                    "serviceId": 7212,
+                    "events": [
+                        {
+                            "eventName": "echo_response_tiny",
+                            "eventId": 1
+                        },
+                        {
+                            "eventName": "echo_response_small",
+                            "eventId": 2
+                        },
+                        {
+                            "eventName": "echo_response_medium",
+                            "eventId": 3
+                        },
+                        {
+                            "eventName": "echo_response_large",
+                            "eventId": 4
+                        },
+                        {
+                            "eventName": "echo_response_xlarge",
+                            "eventId": 5
+                        },
+                        {
+                            "eventName": "echo_response_xxlarge",
+                            "eventId": 6
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "serviceInstances": [
@@ -168,6 +265,121 @@
                         {
                             "eventName": "echo_response_xxlarge",
                             "numberOfSampleSlots": 10,
+                            "maxSubscribers": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "instanceSpecifier": "someipd/daemon",
+            "serviceTypeName": "/score/someip/SomeipdService",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "instances": [
+                {
+                    "instanceId": 1,
+                    "asil-level": "QM",
+                    "binding": "SHM",
+                    "methods": [
+                        {
+                            "methodName": "AddServiceConfiguration",
+                            "queueSize": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "instanceSpecifier": "bridged_ipc/benchmark_req_tx",
+            "serviceTypeName": "bridged_benchmark_req_tx",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "instances": [
+                {
+                    "instanceId": 1,
+                    "asil-level": "QM",
+                    "binding": "SHM",
+                    "events": [
+                        {
+                            "eventName": "echo_request_tiny",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_request_small",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_request_medium",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_request_large",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_request_xlarge",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_request_xxlarge",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "instanceSpecifier": "bridged_ipc/benchmark_resp_rx",
+            "serviceTypeName": "bridged_benchmark_resp_rx",
+            "version": {
+                "major": 1,
+                "minor": 0
+            },
+            "instances": [
+                {
+                    "instanceId": 1,
+                    "asil-level": "QM",
+                    "binding": "SHM",
+                    "events": [
+                        {
+                            "eventName": "echo_response_tiny",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_response_small",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_response_medium",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_response_large",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_response_xlarge",
+                            "numberOfSampleSlots": 20,
+                            "maxSubscribers": 1
+                        },
+                        {
+                            "eventName": "echo_response_xxlarge",
+                            "numberOfSampleSlots": 20,
                             "maxSubscribers": 1
                         }
                     ]

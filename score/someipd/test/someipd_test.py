@@ -12,19 +12,19 @@
 # *******************************************************************************
 
 from pathlib import Path
-import os
 import subprocess
 import sys
-import time
 import unittest
 
-from quality.pytest.process import assert_process_creates_network_instance
+from quality.pytest.process import stop_process
+from quality.pytest.process import wait_for_output
 
 
 class SomeipdTest(unittest.TestCase):
     def setUp(self) -> None:
         self.binary = Path(sys.argv[1])
         self.configuration = Path(sys.argv[2])
+        self.service_instance_manifest = Path(sys.argv[3])
 
     def test_help_returns_success_and_prints_usage(self) -> None:
         result = subprocess.run([self.binary, "--help"], capture_output=True, check=False, text=True)
@@ -33,23 +33,48 @@ class SomeipdTest(unittest.TestCase):
         self.assertIn("Syntax: someipd -h/--help", result.stdout)
 
     def test_creates_local_network_instance(self) -> None:
-        self._assert_creates_network_instance("OFFER(0100): [0001.0001")
-
-    def test_creates_remote_network_instance(self) -> None:
-        self._assert_creates_network_instance("REQUEST(0100): [4321.5678")
-
-    def _assert_creates_network_instance(self, expected_output: str) -> None:
-        assert_process_creates_network_instance(
+        someipd_process = subprocess.Popen(
             [
                 self.binary,
                 "--configuration",
                 self.configuration,
-                "--ipc_channel",
-                f"someipd-test-{os.getpid()}-{time.monotonic_ns()}",
+                "--service_instance_manifest",
+                self.service_instance_manifest,
             ],
-            expected_output,
-            failure_prefix="someipd did not create a network instance",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
         )
+        try:
+            wait_for_output(
+                someipd_process,
+                "OFFER(0100): [0001.0001",
+                failure_prefix="someipd did not create a network instance",
+            )
+        finally:
+            stop_process(someipd_process)
+
+    def test_creates_remote_network_instance(self) -> None:
+        someipd_process = subprocess.Popen(
+            [
+                self.binary,
+                "--configuration",
+                self.configuration,
+                "--service_instance_manifest",
+                self.service_instance_manifest,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        try:
+            wait_for_output(
+                someipd_process,
+                "REQUEST(0100): [4321.5678",
+                failure_prefix="someipd did not create a network instance",
+            )
+        finally:
+            stop_process(someipd_process)
 
 
 if __name__ == "__main__":

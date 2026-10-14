@@ -20,12 +20,15 @@ py_test(
     args = [
         "$(location //score/someipd:someipd)",
         "$(location //score/config:config_file)",
+        "$(location //score/someipd:etc/mw_com_config.json)",
     ],
     data = [
         "//score/config:config_file",
         "//score/someipd",
+        "//score/someipd:etc/mw_com_config.json",
     ],
     tags = [
+        "block-network",
         "unit",
     ],
     target_compatible_with = ["@platforms//os:linux"],

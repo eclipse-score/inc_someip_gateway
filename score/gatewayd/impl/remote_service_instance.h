@@ -44,6 +44,7 @@ class RemoteServiceInstance {
     /// \param service_instance_config Configuration for this service instance
     /// \param service_type_config Configuration for the service type of this instance
     /// \param ipc_skeleton IPC skeleton for forwarding events to local consumer applications
+    /// \param socom_interface SOCom interface of the client connector
     /// \param socom_runtime SOCom runtime used to create the client connector
     /// \return Result containing the created instance on success, or an error on failure
     /// \details This factory method creates a remote service instance with the necessary
@@ -52,11 +53,13 @@ class RemoteServiceInstance {
     static Result<std::unique_ptr<RemoteServiceInstance>> Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        score::mw::com::GenericSkeleton&& ipc_skeleton, socom::Runtime& socom_runtime);
+        score::mw::com::GenericSkeleton&& ipc_skeleton,
+        socom::Service_interface_identifier const& socom_interface, socom::Runtime& socom_runtime);
 
     /// \brief Asynchronously creates a remote service instance
     /// \param service_instance_config Configuration for the service instance to create
     /// \param service_type_config Configuration for the service type of the instance to create
+    /// \param socom_interface SOCom interface of the client connector
     /// \param socom_runtime SOCom runtime used to create the client connector
     /// \param instances Reference to the vector to store the created remote service instance
     /// \return Result containing an Error on failure.
@@ -68,7 +71,7 @@ class RemoteServiceInstance {
     static Result<void> CreateAsyncRemoteService(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        socom::Runtime& socom_runtime,
+        socom::Service_interface_identifier const& socom_interface, socom::Runtime& socom_runtime,
         std::vector<std::unique_ptr<RemoteServiceInstance>>& instances);
 
     RemoteServiceInstance(const RemoteServiceInstance&) = delete;

@@ -44,6 +44,7 @@ class LocalServiceInstance {
     /// \param service_instance_config Configuration for this service instance
     /// \param service_type_config Configuration for the service type of this instance
     /// \param ipc_proxy Generic proxy for IPC communication with the local service
+    /// \param socom_interface SOCom interface of the server connector
     /// \param socom_runtime SOCom runtime used to create the server connector
     /// \return Result containing the created instance on success, or an error on failure
     /// \details This factory method creates a local service instance with the necessary
@@ -52,11 +53,13 @@ class LocalServiceInstance {
     static Result<std::unique_ptr<LocalServiceInstance>> Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        score::mw::com::GenericProxy&& ipc_proxy, socom::Runtime& socom_runtime);
+        score::mw::com::GenericProxy&& ipc_proxy,
+        socom::Service_interface_identifier const& socom_interface, socom::Runtime& socom_runtime);
 
     /// \brief Asynchronously creates a local service instance
     /// \param service_instance_config Configuration for the service instance to create
     /// \param service_type_config Configuration for the service type of the instance to create
+    /// \param socom_interface SOCom interface of the server connector
     /// \param socom_runtime SOCom runtime used to create the server connector
     /// \param instances Reference to the vector to store the created local service instance
     /// \return Result containing a FindServiceHandle on success, or an error on failure
@@ -68,7 +71,7 @@ class LocalServiceInstance {
     static Result<mw::com::FindServiceHandle> CreateAsyncLocalServices(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        socom::Runtime& socom_runtime,
+        socom::Service_interface_identifier const& socom_interface, socom::Runtime& socom_runtime,
         std::vector<std::unique_ptr<LocalServiceInstance>>& instances);
 
     LocalServiceInstance(const LocalServiceInstance&) = delete;

@@ -15,6 +15,7 @@
 #define IMPL_SOMEIPD_LOCAL_NETWORK_SERVICE
 
 #include <memory>
+#include <optional>
 #include <vector>
 #include <vsomeip/vsomeip.hpp>
 
@@ -38,11 +39,14 @@ class LocalNetworkService {
     /// \param service_type_config Configuration for the service type of the instance to create
     /// \param vsomeip_app vsomeip application used to notify events on the SOME/IP network
     /// \param socom_runtime SOCom runtime used to create the client connector
+    /// \param socom_interface SOCom interface of the client connector; without it, the service
+    ///        type name and version of service_type_config
     /// \return Result containing the created instance on success, or an error on failure
     static Result<std::unique_ptr<LocalNetworkService>> Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime);
+        std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime,
+        std::optional<socom::Service_interface_identifier> const& socom_interface = std::nullopt);
 
     LocalNetworkService(const LocalNetworkService&) = delete;
     LocalNetworkService& operator=(const LocalNetworkService&) = delete;
