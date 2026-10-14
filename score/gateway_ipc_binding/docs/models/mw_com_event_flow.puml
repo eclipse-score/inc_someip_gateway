@@ -14,56 +14,83 @@
 @startuml
 title Subscription and event flow for one bridged service
 
-participant "Producer app\n(SOCom server)" as prod
+participant "score::socom::Server_connector\n(producer application)" as producer
 participant "Provider_service_binding" as provider
-participant "mw::com\n(LoLa)" as mwcom
+participant "score::socom::Runtime" as socom_runtime
+participant "score::socom::Client_connector\n(provider binding)" as provider_connector
+participant "GenericSkeleton" as skeleton
+participant "GenericSkeletonEvent" as skeleton_event
+participant "GenericProxy" as proxy
+participant "GenericProxyEvent" as proxy_event
 participant "Consumer_service_binding" as consumer
-participant "Consumer app\n(SOCom client)" as cons
+participant "score::socom::Disabled_server_connector" as disabled_connector
+participant "score::socom::Enabled_server_connector" as enabled_connector
+participant "score::socom::Client_connector\n(consumer application)" as consumer_app
 
 == Availability ==
-prod -> provider : on_service_state_change(available)
-provider -> mwcom : GenericSkeleton::OfferService()
-mwcom -> consumer : find-service handler(handle)
-consumer -> mwcom : GenericProxy::Create(handle)
-consumer -> cons : Disabled_server_connector::enable()
+provider -> skeleton : GenericSkeleton::Create(InstanceSpecifier,\nGenericSkeletonServiceElementInfo)
+provider -> skeleton : GetEvents()
+skeleton --> provider : GenericSkeletonEvent references
+provider -> skeleton_event : SetReceiveHandlerRegistrationChangedHandler(callback)
+skeleton_event --> provider : registration handler installed
+provider -> socom_runtime : make_client_connector(interface, instance, callbacks)
+socom_runtime --> provider : Client_connector
+provider_connector -> provider : on_service_state_change(available)
+provider -> skeleton : OfferService()
+provider -> consumer : find-service handler(handle)
+consumer -> proxy : GenericProxy::Create(handle)
+proxy -> consumer : GenericProxy
+consumer -> proxy : GetEvents()
+proxy --> consumer : GenericProxyEvent references
+consumer -> disabled_connector : enable()
+disabled_connector --> consumer : Enabled_server_connector
 
 == Subscription ==
-cons -> consumer : subscribe_event(event_id)
-consumer -> mwcom : GenericProxyEvent::Subscribe(max_sample_count)
-consumer -> mwcom : SetReceiveHandler(cb)
-mwcom -> provider : receive handler registration changed(registered)
-provider -> prod : Client_connector::subscribe_event(event_id, update)
+consumer_app -> enabled_connector : subscribe_event(event_id)
+enabled_connector -> consumer : on_event_subscription_change(event_id, true)
+consumer -> proxy_event : Subscribe(max_sample_count)
+consumer -> proxy_event : SetReceiveHandler(callback)
+proxy_event -> skeleton_event : remote receive-handler registration changes
+skeleton_event -> provider : callback(wanted=true)
+provider -> provider_connector : subscribe_event(event_id, Event_mode::update)
 
 == Event update ==
-prod -> provider : allocate_event_payload(event_id)
-provider -> mwcom : GenericSkeletonEvent::Allocate()
-mwcom --> provider : SampleAllocateePtr<void>
+producer -> provider_connector : allocate_event_payload(event_id)
+provider_connector -> provider : on_event_payload_allocate(event_id)
+provider -> skeleton_event : Allocate()
+skeleton_event --> provider : SampleAllocateePtr<void>
 note right of provider
   Store the SampleAllocateePtr in the in-flight
   table keyed by the minted slot_handle and wrap
   the sample as socom::Writable_payload with
   lead_offset = 8 and header_size = header_size.
 end note
-provider --> prod : Writable_payload
-prod -> prod : write SOME/IP header and payload, shrink()
-prod -> provider : update_event(event_id, payload)
+provider --> provider_connector : Writable_payload
+provider_connector --> producer : Writable_payload
+producer -> producer : write SOME/IP header and payload, shrink()
+producer -> provider_connector : update_event(event_id, payload)
+provider_connector -> provider : on_event_update(event_id, payload)
 provider -> provider : write payload_length prefix,\ntake sample out of the in-flight table
-provider -> mwcom : GenericSkeletonEvent::Send(sample)
+provider -> skeleton_event : Send(sample)
 
-mwcom -> consumer : receive handler
-consumer -> mwcom : GetNewSamples(receiver, max_sample_count)
-mwcom --> consumer : SamplePtr<void>
+proxy_event -> consumer : receive handler
+consumer -> proxy_event : GetNewSamples(receiver, max_sample_count)
+proxy_event --> consumer : SamplePtr<void>
 note right of consumer
   Read payload_length, build socom::Payload over
   the sample and move the SamplePtr into its
   destruction callback.
 end note
-consumer -> cons : Enabled_server_connector::update_event(event_id, payload)
-cons -> cons : payload destroyed, SamplePtr releases the slot
+consumer -> enabled_connector : update_event(event_id, payload)
+enabled_connector -> consumer_app : event update
+consumer_app -> consumer_app : payload destroyed, SamplePtr releases the slot
 
 == Teardown ==
-cons -> consumer : unsubscribe_event(event_id)
-consumer -> mwcom : UnsetReceiveHandler / Unsubscribe
-mwcom -> provider : receive handler registration changed(unregistered)
-provider -> prod : Client_connector::unsubscribe_event(event_id)
+consumer_app -> enabled_connector : unsubscribe_event(event_id)
+enabled_connector -> consumer : on_event_subscription_change(event_id, false)
+consumer -> proxy_event : UnsetReceiveHandler()
+consumer -> proxy_event : Unsubscribe()
+proxy_event -> skeleton_event : remote receive-handler registration changes
+skeleton_event -> provider : callback(wanted=false)
+provider -> provider_connector : unsubscribe_event(event_id)
 @enduml

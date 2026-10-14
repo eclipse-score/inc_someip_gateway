@@ -1,0 +1,78 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+title someipd startup
+
+box "someipd process"
+participant "Gateway_ipc_binding_server" as public_api
+participant "Server_adapter" as adapter
+participant "Someipd_service_provider" as someipd_provider
+participant "Someipd_service_skeleton" as someipd_skeleton
+participant "Provider_service_binding" as provider
+participant "GenericSkeleton" as generic_skeleton
+participant "GenericSkeletonEvent" as skeleton_event
+participant "score::socom::Client_connector" as provider_connector
+participant "Consumer_service_binding" as consumer
+participant "score::mw::com::GenericProxy" as generic_proxy
+participant "score::socom::Disabled_server_connector" as disabled_connector
+participant "score::socom::Runtime" as socom_runtime
+end box
+
+participant "score::mw::com::runtime" as mwcom_runtime
+
+note over public_api, mwcom_runtime
+  mw::com::Runtime is initialized before start().
+end note
+public_api -> adapter : start()
+adapter -> someipd_provider : create(someipd_service_specifier,\nadd_service_configuration_handler)
+someipd_provider -> someipd_skeleton : Create(InstanceSpecifier)
+someipd_skeleton --> someipd_provider : Someipd_service_skeleton
+someipd_provider --> adapter : Someipd_service_provider
+adapter -> someipd_provider : offer()
+someipd_provider -> someipd_skeleton : OfferService()
+
+note over adapter, someipd_skeleton
+  SomeipdService is offered before bridged
+  services are created.
+end note
+
+loop for each Service_config
+  alt role == provider
+    adapter -> provider : create(score::socom::Runtime&, config)
+    provider -> generic_skeleton : Create(InstanceSpecifier,\nGenericSkeletonServiceElementInfo)
+    generic_skeleton --> provider : GenericSkeleton
+    provider -> generic_skeleton : GetEvents()
+    generic_skeleton --> provider : GenericSkeletonEvent references
+    provider -> skeleton_event : SetReceiveHandlerRegistrationChangedHandler(callback)
+    provider -> socom_runtime : make_client_connector(interface, instance, callbacks)
+    socom_runtime --> provider : Client_connector
+    opt local SOCom service becomes available
+      provider_connector -> provider : on_service_state_change(available)
+      provider -> generic_skeleton : OfferService()
+    end
+  else role == consumer
+    adapter -> consumer : create(score::socom::Runtime&, config)
+    consumer -> socom_runtime : make_server_connector(interface, instance, callbacks)
+    socom_runtime --> consumer : Disabled_server_connector
+    consumer -> generic_proxy : StartFindService(handler, InstanceSpecifier)
+    opt matching GenericSkeleton is available
+      generic_proxy -> consumer : find-service handler(handles)
+      consumer -> generic_proxy : GenericProxy::Create(handle)
+      consumer -> disabled_connector : enable()
+    end
+  end
+end
+
+adapter --> public_api : start() returns success
+@enduml

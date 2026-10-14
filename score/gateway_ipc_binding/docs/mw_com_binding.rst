@@ -404,9 +404,13 @@ Behavioural views
 Startup
 ~~~~~~~
 
-.. uml:: models/mw_com_startup.puml
+.. uml:: models/mw_com_startup_someipd.puml
    :align: center
-   :caption: Startup of one provider-role and one consumer-role service
+   :caption: ``someipd`` startup: ``SomeipdService`` before bridged services
+
+.. uml:: models/mw_com_startup_gatewayd.puml
+   :align: center
+   :caption: ``gatewayd`` startup: peer discovery and bridged-service bindings
 
 Event flow
 ~~~~~~~~~~
