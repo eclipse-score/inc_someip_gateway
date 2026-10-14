@@ -15,13 +15,13 @@
 title Availability for one bridged service
 
 participant "Provider_service_binding" as provider
-participant "score::socom::Runtime" as socom_runtime
-participant "score::socom::Client_connector\n(provider binding)" as provider_connector
+participant "socom::Runtime" as socom_runtime
+participant "socom::Client_connector\n(provider binding)" as provider_connector
 participant "GenericSkeleton" as skeleton
 participant "GenericSkeletonEvent" as skeleton_event
 participant "GenericProxy" as proxy
 participant "Consumer_service_binding" as consumer
-participant "score::socom::Disabled_server_connector" as disabled_connector
+participant "socom::Disabled_server_connector" as disabled_connector
 
 == Availability ==
 provider -> skeleton : GenericSkeleton::Create(InstanceSpecifier,\nGenericSkeletonServiceElementInfo)

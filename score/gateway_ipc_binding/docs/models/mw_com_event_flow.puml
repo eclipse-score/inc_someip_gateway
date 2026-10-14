@@ -14,14 +14,14 @@
 @startuml
 title Event delivery for one bridged service
 
-participant "score::socom::Server_connector\n(producer application)" as producer
+participant "socom::Server_connector\n(producer application)" as producer
 participant "Provider_service_binding" as provider
-participant "score::socom::Client_connector\n(provider binding)" as provider_connector
+participant "socom::Client_connector\n(provider binding)" as provider_connector
 participant "GenericSkeletonEvent" as skeleton_event
 participant "GenericProxyEvent" as proxy_event
 participant "Consumer_service_binding" as consumer
-participant "score::socom::Enabled_server_connector" as enabled_connector
-participant "score::socom::Client_connector\n(consumer application)" as consumer_app
+participant "socom::Enabled_server_connector" as enabled_connector
+participant "socom::Client_connector\n(consumer application)" as consumer_app
 
 == Event update ==
 producer -> provider_connector : allocate_event_payload(event_id)

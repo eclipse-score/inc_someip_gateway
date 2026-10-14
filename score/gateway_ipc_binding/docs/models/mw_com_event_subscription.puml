@@ -15,12 +15,12 @@
 title Subscription lifecycle for one bridged service
 
 participant "Provider_service_binding" as provider
-participant "score::socom::Client_connector\n(provider binding)" as provider_connector
+participant "socom::Client_connector\n(provider binding)" as provider_connector
 participant "GenericSkeletonEvent" as skeleton_event
 participant "GenericProxyEvent" as proxy_event
 participant "Consumer_service_binding" as consumer
-participant "score::socom::Enabled_server_connector" as enabled_connector
-participant "score::socom::Client_connector\n(consumer application)" as consumer_app
+participant "socom::Enabled_server_connector" as enabled_connector
+participant "socom::Client_connector\n(consumer application)" as consumer_app
 
 == Subscription ==
 consumer_app -> enabled_connector : subscribe_event(event_id)
