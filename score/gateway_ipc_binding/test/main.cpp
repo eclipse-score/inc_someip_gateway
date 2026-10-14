@@ -34,14 +34,32 @@ void set_signal_handler(int const signal, void (*const handler)(int)) {
     }
 }
 
-std::string manifest_path() {
-    char const* const test_srcdir = std::getenv("TEST_SRCDIR");
-    char const* const test_workspace = std::getenv("TEST_WORKSPACE");
-    if ((test_srcdir == nullptr) || (test_workspace == nullptr)) {
-        return "/opt/gateway_ipc_binding_mw_com_config.json";
+std::string manifest_path(int& argc, char** argv) {
+    std::string manifest;
+    for (int i = 1; i < argc;) {
+        if (std::strcmp(argv[i], "--mw-com-config") != 0) {
+            ++i;
+            continue;
+        }
+        if ((i + 1 >= argc) || (argv[i + 1][0] == '\0')) {
+            throw std::invalid_argument("--mw-com-config requires a path");
+        }
+        if (!manifest.empty()) {
+            throw std::invalid_argument("--mw-com-config may only be specified once");
+        }
+        manifest = argv[i + 1];
+        // remove the --mw-com-config argument and its value from argv
+        // argv will be parsed by Google Test after this function returns
+        for (int j = i; j + 2 < argc; ++j) {
+            argv[j] = argv[j + 2];
+        }
+        argc -= 2;
+        argv[argc] = nullptr;
     }
-    return std::string{test_srcdir} + "/" + test_workspace +
-           "/score/gateway_ipc_binding/test/mw_com_config.json";
+    if (manifest.empty()) {
+        throw std::invalid_argument("Missing required argument --mw-com-config <path>");
+    }
+    return manifest;
 }
 }  // namespace
 
@@ -50,7 +68,7 @@ int main(int argc, char** argv) {
     // globally in tests to avoid crashes when writing to closed sockets
     set_signal_handler(SIGPIPE, SIG_IGN);
 
-    auto const manifest = manifest_path();
+    auto const manifest = manifest_path(argc, argv);
     score::mw::com::runtime::InitializeRuntime(
         score::mw::com::runtime::RuntimeConfiguration{score::filesystem::Path{manifest}});
 

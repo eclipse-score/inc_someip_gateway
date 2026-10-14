@@ -16,20 +16,20 @@
 import pytest
 from score.itf.plugins.core import Target
 
-TEST_APPLICATIONS = [
-    "gateway_ipc_binding_test",
-    "null_serializer_test",
-    "socom_stress_test",
-    "socom_test",
-]
-
 
 def _is_qnx(target: Target) -> bool:
     exit_code, output = target.execute("uname")
     return exit_code == 0 and "QNX" in output.decode(errors="replace")
 
 
-GATEWAY_IPC_BINDING_TEST = "gateway_ipc_binding_test"
+GATEWAY_IPC_BINDING_TEST_COMMAND = "gateway_ipc_binding_test --mw-com-config /opt/mw_com_config.json"
+
+TEST_APPLICATIONS = [
+    GATEWAY_IPC_BINDING_TEST_COMMAND,
+    "null_serializer_test",
+    "socom_stress_test",
+    "socom_test",
+]
 
 # QNX fsevmgr lacks poll/select support for inotify descriptors, so LoLa discovery
 # can miss service changes and hang mw::com tests until the SDK component is fixed.
@@ -54,7 +54,7 @@ def _list_gtest_suites(target: Target, application: str) -> list[str]:
 
 @pytest.mark.parametrize("application", TEST_APPLICATIONS)
 def test_application_succeeds_on_target(target: Target, application: str) -> None:
-    if _is_qnx(target) and application == GATEWAY_IPC_BINDING_TEST:
+    if _is_qnx(target) and application == GATEWAY_IPC_BINDING_TEST_COMMAND:
         pytest.skip(
             "gateway_ipc_binding_test is split into multiple processes on QNX, see test_gateway_ipc_binding_succeeds_on_target()"
         )
@@ -80,9 +80,9 @@ def test_gateway_ipc_binding_succeeds_on_target(target: Target) -> None:
         pytest.skip("gateway_ipc_binding_test is only split into multiple processes on QNX")
 
     failures = []
-    for suite in _list_gtest_suites(target, GATEWAY_IPC_BINDING_TEST):
+    for suite in _list_gtest_suites(target, GATEWAY_IPC_BINDING_TEST_COMMAND):
         process = target.execute_async(
-            f"/opt/{GATEWAY_IPC_BINDING_TEST} --gtest_filter='{suite}*-{QNX_DISABLED_GTEST_FILTER}'"
+            f"/opt/{GATEWAY_IPC_BINDING_TEST_COMMAND} --gtest_filter='{suite}*-{QNX_DISABLED_GTEST_FILTER}'"
         )
         exit_code = process.wait(timeout_s=TEST_APPLICATION_TIMEOUT_S)
         if exit_code != 0:

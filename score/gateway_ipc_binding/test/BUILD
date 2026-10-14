@@ -31,6 +31,10 @@ cc_test(
         "mw_com_config.json",
         "tsan.supp",
     ],
+    args = [
+        "--mw-com-config",
+        "$(rootpath mw_com_config.json)",
+    ],
     env = {
         "TSAN_OPTIONS": "halt_on_error=1 suppressions=$(location tsan.supp)",
     },
