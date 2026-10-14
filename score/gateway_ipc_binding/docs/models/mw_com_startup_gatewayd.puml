@@ -29,11 +29,6 @@ participant "score::socom::Disabled_server_connector" as disabled_connector
 participant "score::socom::Runtime" as socom_runtime
 end box
 
-participant "score::mw::com::runtime" as mwcom_runtime
-
-note over create_client, mwcom_runtime
-  mw::com::Runtime is initialized before create_client().
-end note
 create_client -> someipd_consumer : create(someipd_service_specifier,\nmw_com_config_json)
 someipd_consumer -> someipd_proxy : StartFindService(handler, InstanceSpecifier)
 someipd_consumer --> create_client : Someipd_service_consumer

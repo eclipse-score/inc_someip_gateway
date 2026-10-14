@@ -29,11 +29,6 @@ participant "score::socom::Disabled_server_connector" as disabled_connector
 participant "score::socom::Runtime" as socom_runtime
 end box
 
-participant "score::mw::com::runtime" as mwcom_runtime
-
-note over public_api, mwcom_runtime
-  mw::com::Runtime is initialized before start().
-end note
 public_api -> adapter : start()
 adapter -> someipd_provider : create(someipd_service_specifier,\nadd_service_configuration_handler)
 someipd_provider -> someipd_skeleton : Create(InstanceSpecifier)
