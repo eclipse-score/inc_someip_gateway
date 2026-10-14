@@ -419,9 +419,28 @@ Startup
 Event flow
 ~~~~~~~~~~
 
+The flow for one bridged service is split into availability, subscription lifecycle and event delivery.
+Availability precedes subscription; event delivery takes place between subscription and unsubscription.
+
+.. uml:: models/mw_com_event_availability.puml
+   :align: center
+   :caption: Availability for one bridged service
+
+.. uml:: models/mw_com_event_subscription.puml
+   :align: center
+   :caption: Subscription lifecycle for one bridged service
+
 .. uml:: models/mw_com_event_flow.puml
    :align: center
-   :caption: Subscription and event flow for one bridged service
+   :caption: Event delivery for one bridged service
+
+Ownership markers in the event delivery diagram:
+
+1. **Allocation ownership:** Store the ``SampleAllocateePtr`` in the in-flight table keyed by the minted
+   ``slot_handle`` and wrap the sample as ``socom::Writable_payload`` with ``lead_offset = 8`` and
+   ``header_size = header_size``.
+2. **Received sample ownership:** Read ``payload_length``, build ``socom::Payload`` over the sample and move
+   the ``SamplePtr`` into its destruction callback.
 
 Teardown
 ~~~~~~~~

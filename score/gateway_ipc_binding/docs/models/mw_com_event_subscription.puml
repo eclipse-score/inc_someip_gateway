@@ -1,0 +1,45 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml
+title Subscription lifecycle for one bridged service
+
+participant "Provider_service_binding" as provider
+participant "score::socom::Client_connector\n(provider binding)" as provider_connector
+participant "GenericSkeletonEvent" as skeleton_event
+participant "GenericProxyEvent" as proxy_event
+participant "Consumer_service_binding" as consumer
+participant "score::socom::Enabled_server_connector" as enabled_connector
+participant "score::socom::Client_connector\n(consumer application)" as consumer_app
+
+== Subscription ==
+consumer_app -> enabled_connector : subscribe_event(event_id)
+enabled_connector -> consumer : on_event_subscription_change(event_id, true)
+consumer -> proxy_event : Subscribe(max_sample_count)
+consumer -> proxy_event : SetReceiveHandler(callback)
+proxy_event -> skeleton_event : remote receive-handler registration changes
+skeleton_event -> provider : callback(wanted=true)
+provider -> provider_connector : subscribe_event(event_id, Event_mode::update)
+
+== Event delivery ==
+note over provider, consumer_app : See the event delivery diagram for allocation, sending and sample release.
+
+== Teardown ==
+consumer_app -> enabled_connector : unsubscribe_event(event_id)
+enabled_connector -> consumer : on_event_subscription_change(event_id, false)
+consumer -> proxy_event : UnsetReceiveHandler()
+consumer -> proxy_event : Unsubscribe()
+proxy_event -> skeleton_event : remote receive-handler registration changes
+skeleton_event -> provider : callback(wanted=false)
+provider -> provider_connector : unsubscribe_event(event_id)
+@enduml
