@@ -246,7 +246,7 @@ single_version_override(
 # ============================================================================
 # Base Libraries
 # ============================================================================
-bazel_dep(name = "score_baselibs", version = "0.2.14")
+bazel_dep(name = "score_baselibs", version = "0.2.15")
 single_version_override(
     module_name = "score_baselibs",
     patch_strip = 1,
@@ -321,6 +321,11 @@ http_archive(
 bazel_dep(name = "os_images", version = "1.0", dev_dependency = True)
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.1.0", dev_dependency = True)
+git_override(
+    module_name = "score_rules_imagefs",
+    commit = "80eceea649a53fc274dc6b9a93d872b8c00c0da9",
+    remote = "https://github.com/eclipse-score/rules_imagefs.git",
+)
 
 # TODO: Switch back to a released version once `--qemu-disk` is part of a tagged release.
 git_override(

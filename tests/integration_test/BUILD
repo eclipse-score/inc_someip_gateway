@@ -18,24 +18,9 @@ Integration Tests
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("//quality/integration_testing:integration_testing.bzl", "integration_test")
 
-VSOMEIP_SHARED_LIBS = [
-    "libvsomeip3.so.3",
-    "libvsomeip3-cfg.so.3",
-    "libvsomeip3-e2e.so.3",
-    "libvsomeip3-sd.so.3",
-]
-
-# Only the shared libraries are needed on the target, the headers of @vsomeip are not.
-# ext4() does not support copying directories, which is needed for the headers
-[filegroup(
-    name = "vsomeip-" + lib,
-    srcs = ["@vsomeip"],
-    output_group = lib,
-) for lib in VSOMEIP_SHARED_LIBS]
-
 pkg_files(
     name = "vsomeip-runtime-pkg",
-    srcs = ["vsomeip-" + lib for lib in VSOMEIP_SHARED_LIBS],
+    srcs = ["@vsomeip"],
     attributes = pkg_attributes(
         mode = "0777",
     ),
