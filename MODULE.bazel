@@ -323,7 +323,7 @@ bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.1.0", dev_dependency = True)
 git_override(
     module_name = "score_rules_imagefs",
-    commit = "6362220605297601571156c684e9df236052bede",
+    commit = "80eceea649a53fc274dc6b9a93d872b8c00c0da9",
     remote = "https://github.com/eclipse-score/rules_imagefs.git",
 )
 
