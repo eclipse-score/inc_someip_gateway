@@ -17,7 +17,6 @@
 #include <cstddef>
 #include <memory>
 #include <score/callback.hpp>
-#include <unordered_map>
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
@@ -29,13 +28,7 @@ namespace score::gateway_ipc_binding {
 
 /// \brief Client identifier type
 using Client_id = std::size_t;
-/// \brief Information about a connected client
-struct Client_info {
-    /// \brief Identifier supplied by the client in its Connect message (empty if none)
-    Client_identifier identifier;
-    /// \brief Transport-level client identity (PID, UID, GID)
-    score::message_passing::ClientIdentity client_identity;
-};
+
 /// \brief Server-side transport endpoint for Gateway IPC Binding
 /// \details Owns a `score::message_passing` server that accepts multiple incoming IPC
 ///          connections and forwards their protocol traffic into the shared binding base.
@@ -68,13 +61,6 @@ class Gateway_ipc_binding_server {
     /// \brief Start listening for incoming IPC connections
     /// \return Success or error if the transport could not start or is already listening
     virtual Result<void> start() noexcept = 0;
-
-    /// \brief Returns information about all currently connected clients
-    /// \details Maps each connected client's `Client_id` to a `Client_info` containing the
-    ///          identifier string it sent in the `Connect` message (empty if none was supplied)
-    ///          and the transport-level `ClientIdentity` (PID, UID, GID).
-    /// \return Map from Client_id to Client_info
-    virtual std::unordered_map<Client_id, Client_info> get_client_identifiers() const noexcept = 0;
 
    protected:
     Gateway_ipc_binding_server() = default;

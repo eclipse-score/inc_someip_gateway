@@ -16,6 +16,7 @@
 
 #include <unordered_map>
 
+#include "ipc_messages.hpp"
 #include "key.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 
@@ -42,7 +43,7 @@ class Pending_connects {
     }
 
     void clear_pending_connects_for_key(Key_t const& key) noexcept {
-        return clear_pending_connects([&key](auto const& val) { return val.key == key; });
+        clear_pending_connects([&key](auto const& val) { return val.key == key; });
     }
 
     typename Pending_connects_map::const_iterator find(Remote_handle const remote_handle) const {

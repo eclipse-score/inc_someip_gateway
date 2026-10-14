@@ -17,7 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <cstddef>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -25,21 +25,23 @@
 #include "mocks.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/message_passing/client_factory.h"
 #include "score/message_passing/server_factory.h"
 #include "score/socom/callback_mocks.hpp"
-#include "score/socom/client_connector.hpp"
-#include "score/socom/client_connector_mock.hpp"
-#include "score/socom/error.hpp"
 #include "score/socom/runtime.hpp"
-#include "score/socom/runtime_mock.hpp"
-#include "score/socom/server_connector.hpp"
-#include "score/socom/server_connector_mock.hpp"
 #include "test_constants.hpp"
 #include "util.hpp"
 
 namespace score::gateway_ipc_binding {
+
+enum class Ipc_binding_implementation { Message_passing, Mw_com };
+
+struct Bidirectional_test_parameter {
+    Direction direction;
+    Ipc_binding_implementation implementation;
+};
 
 class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                                                          protected Test_constants {
@@ -61,9 +63,8 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     socom::Event_request_update_callback_mock mock_event_request_update_cb;
     socom::Method_call_payload_allocate_callback_mock mock_method_payload_allocate_cb;
 
-    std::unique_ptr<Gateway_ipc_binding_server> server = create_ipc_server(*runtime_server);
-    std::unique_ptr<Gateway_ipc_binding_client> client =
-        create_ipc_client(*runtime_client, client_shm_config, {}, server_shared_memory_configs);
+    std::unique_ptr<Gateway_ipc_binding_server> server;
+    std::unique_ptr<Gateway_ipc_binding_client> client;
 
     ~Gateway_ipc_binding_unconnected_integration_test() {
         client.reset();
@@ -83,19 +84,59 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
         return server;
     }
 
+    std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(socom::Runtime& runtime) {
+        return create_mw_com_server(runtime, "someipd/daemon",
+                                    {{interface,
+                                      instance,
+                                      "bridged_ipc/bridged",
+                                      mw_com::Role::provider,
+                                      {{"event_a", 16U, server_metadata.slot_size},
+                                       {"event_b", 16U, server_metadata.slot_size}},
+                                      server_metadata.slot_count}});
+    }
+
+    std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(
+        socom::Runtime& runtime, std::string const& someipd_service_specifier,
+        mw_com::Service_configs services) {
+        return mw_com::create_server(runtime, someipd_service_specifier, std::move(services));
+    }
+
     std::unique_ptr<Gateway_ipc_binding_client> create_ipc_client(
         socom::Runtime& runtime,
-        Shared_memory_manager_factory::Shared_memory_configuration shm_config,
+        Shared_memory_manager_factory::Shared_memory_configuration const& shm_config,
         Find_service_elements find_service_elements = {},
         Shared_memory_configs server_shared_memory_configs = {}, std::string_view identifier = {}) {
         score::message_passing::ClientFactory client_factory;
         auto connection = client_factory.Create(protocol_config, client_config);
         auto client = Gateway_ipc_binding_client::create(
             runtime, std::move(connection), Shared_memory_manager_factory::create(shm_config),
-            std::move(find_service_elements), std::move(server_shared_memory_configs), identifier);
+            find_service_elements, server_shared_memory_configs, identifier);
 
         SCORE_LANGUAGE_FUTURECPP_ASSERT(client && "Client creation failed");
         return client;
+    }
+
+    std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(socom::Runtime& runtime) {
+        return create_mw_com_client(runtime, "someipd/daemon",
+                                    {{interface,
+                                      instance,
+                                      "bridged_ipc/bridged",
+                                      mw_com::Role::consumer,
+                                      {{"event_a", 16U, server_metadata.slot_size},
+                                       {"event_b", 16U, server_metadata.slot_size}},
+                                      server_metadata.slot_count}});
+    }
+
+    std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(
+        socom::Runtime& runtime, std::string const& someipd_service_specifier,
+        mw_com::Service_configs services) {
+        return mw_com::create_client(runtime, someipd_service_specifier, std::move(services));
+    }
+
+    void SetUp() override {
+        server = create_ipc_server(*runtime_server);
+        client =
+            create_ipc_client(*runtime_client, client_shm_config, {}, server_shared_memory_configs);
     }
 
     void start_and_wait_for_client_connection() {
@@ -114,31 +155,57 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
 class Gateway_ipc_binding_integration_test
     : public Gateway_ipc_binding_unconnected_integration_test {
    protected:
-    Gateway_ipc_binding_integration_test() : Gateway_ipc_binding_unconnected_integration_test() {
+    void SetUp() override {
+        Gateway_ipc_binding_unconnected_integration_test::SetUp();
         start_and_wait_for_client_connection();
     }
 };
 
-inline std::string readable_test_names(testing::TestParamInfo<Direction> const& param) {
-    return param.param == Direction::Client_to_server ? "Client_to_server" : "Server_to_client";
+inline std::string readable_test_names(
+    testing::TestParamInfo<Bidirectional_test_parameter> const& param) {
+    const auto* const direction = param.param.direction == Direction::Client_to_server
+                                      ? "Client_to_server"
+                                      : "Server_to_client";
+    const auto* const implementation =
+        param.param.implementation == Ipc_binding_implementation::Message_passing
+            ? "Message_passing"
+            : "Mw_com";
+    return std::string{direction} + "_" + implementation;
 }
 
 template <typename BASE>
-class Gateway_ipc_binding_bidirectional_test : public BASE,
-                                               public ::testing::WithParamInterface<Direction> {
+class Gateway_ipc_binding_bidirectional_test
+    : public BASE,
+      public ::testing::WithParamInterface<Bidirectional_test_parameter> {
    protected:
+    void SetUp() override {
+        if (GetParam().implementation == Ipc_binding_implementation::Mw_com) {
+            this->server = this->create_mw_com_server(*this->runtime_server);
+            ASSERT_NE(this->server, nullptr);
+            this->client = this->create_mw_com_client(*this->runtime_client);
+            ASSERT_NE(this->client, nullptr);
+            this->start_and_wait_for_client_connection();
+        } else {
+            BASE::SetUp();
+        }
+    }
+
+    bool is_mw_com() const noexcept {
+        return GetParam().implementation == Ipc_binding_implementation::Mw_com;
+    }
+
     socom::Runtime& get_client_runtime() {
-        return GetParam() == Direction::Client_to_server ? *this->runtime_client
-                                                         : *this->runtime_server;
+        return GetParam().direction == Direction::Client_to_server ? *this->runtime_client
+                                                                   : *this->runtime_server;
     }
     socom::Runtime& get_server_runtime() {
-        return GetParam() == Direction::Client_to_server ? *this->runtime_server
-                                                         : *this->runtime_client;
+        return GetParam().direction == Direction::Client_to_server ? *this->runtime_server
+                                                                   : *this->runtime_client;
     }
 
     Shared_memory_metadata const& get_server_metadata() {
-        return GetParam() == Direction::Client_to_server ? this->server_metadata
-                                                         : this->client_metadata;
+        return GetParam().direction == Direction::Client_to_server ? this->server_metadata
+                                                                   : this->client_metadata;
     }
 };
 

@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ipc_messages.hpp"
 #include "key.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"

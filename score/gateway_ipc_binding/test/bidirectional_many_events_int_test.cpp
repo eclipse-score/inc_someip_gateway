@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <optional>
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "test_constants.hpp"
@@ -48,11 +49,15 @@ class Gateway_ipc_binding_bidirectional_many_events_integration_test
     score::socom::Server_service_interface_definition const socom_server_config_many_events{
         interface, score::socom::to_num_of_methods(1), score::socom::to_num_of_events(10)};
 
-    Server_connector_with_callbacks server{get_server_runtime(), socom_server_config_many_events,
-                                           instance};
-    Client_connector_with_callbacks client{get_client_runtime(), socom_server_config_many_events,
-                                           instance};
+    std::optional<Server_connector_with_callbacks> server;
+    std::optional<Client_connector_with_callbacks> client;
     std::vector<socom::Event_id> const& event_ids = std::get<1>(GetParam());
+
+    void SetUp() override {
+        Gateway_ipc_binding_integration_test::SetUp();
+        server.emplace(get_server_runtime(), socom_server_config_many_events, instance);
+        client.emplace(get_client_runtime(), socom_server_config_many_events, instance);
+    }
 };
 
 INSTANTIATE_TEST_SUITE_P(
@@ -72,19 +77,20 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(Gateway_ipc_binding_bidirectional_many_events_integration_test,
        server_sends_update_for_some_events) {
     for (socom::Event_id current_event_id : event_ids) {
-        client.subscribe_event(server.mock_event_subscription_change_cb, current_event_id);
-        auto payload_handle = create_payload(*server.connector, current_event_id, expected_payload);
+        client->subscribe_event(server->mock_event_subscription_change_cb, current_event_id);
+        auto payload_handle =
+            create_payload(*server->connector, current_event_id, expected_payload);
         payload_handle.wdata()[0] = std::byte{static_cast<std::uint8_t>(
             current_event_id)};  // differentiate payloads of different events
 
         std::promise<socom::Payload> event_update_received_promise;
-        EXPECT_CALL(client.mock_event_update_cb, Call(_, current_event_id, _))
+        EXPECT_CALL(client->mock_event_update_cb, Call(_, current_event_id, _))
             .Times(1)
             .WillOnce([&event_update_received_promise](auto&, auto, auto payload) {
                 event_update_received_promise.set_value(std::move(payload));
             });
         auto update_result =
-            server.connector->update_event(current_event_id, std::move(payload_handle));
+            server->connector->update_event(current_event_id, std::move(payload_handle));
         ASSERT_TRUE(update_result);
 
         auto payload_future = event_update_received_promise.get_future();

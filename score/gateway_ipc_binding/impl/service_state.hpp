@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "gateway_ipc_binding_util.hpp"
+#include "ipc_messages.hpp"
 #include "key.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
-#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 #include "score/mw/log/logging.h"
 #include "score/socom/client_connector.hpp"
 #include "shared_memory_managers.hpp"
