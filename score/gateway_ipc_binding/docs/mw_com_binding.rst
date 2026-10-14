@@ -412,6 +412,10 @@ Startup
    :align: center
    :caption: ``gatewayd`` startup: peer discovery and bridged-service bindings
 
+.. uml:: models/mw_com_service_bindings.puml
+  :align: center
+  :caption: Shared creation flow for bridged-service bindings
+
 Event flow
 ~~~~~~~~~~
 
