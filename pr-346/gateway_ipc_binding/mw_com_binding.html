@@ -887,28 +887,59 @@ backed by an <code class="docutils literal notranslate"><span class="pre">std::a
 <h3>Startup<a class="headerlink" href="#startup" title="Link to this heading">#</a></h3>
 <figure class="align-center" id="id4">
 <p class="plantuml">
-<object data="../_images/plantuml-44066299f0167369df18361e43b1f3d7ce3067e4.svg" type="image/svg+xml" style="width:2957px;height:1137px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-d2e83084e7de81638b8ed1cb625d766bb0aaf4d9.svg" type="image/svg+xml" style="width:941px;height:494px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 5 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">someipd</span></code> startup: <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> before bridged services</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <figure class="align-center" id="id5">
 <p class="plantuml">
-<object data="../_images/plantuml-4a3212435d153214a739fbcccc075d9ecc0651a6.svg" type="image/svg+xml" style="width:3136px;height:1117px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-bd1730e13cacb2885e6de8729063b6642dcb6055.svg" type="image/svg+xml" style="width:1048px;height:474px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 6 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> startup: peer discovery and bridged-service bindings</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id6">
+<p class="plantuml">
+<object data="../_images/plantuml-322cef67bc00103eef121cdfd6606c9bdc33d81e.svg" type="image/svg+xml" style="width:2381px;height:869px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Shared creation flow for bridged-service bindings</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
 <section id="event-flow">
 <h3>Event flow<a class="headerlink" href="#event-flow" title="Link to this heading">#</a></h3>
-<figure class="align-center" id="id6">
+<p>The flow for one bridged service is split into availability, subscription lifecycle and event delivery.
+Availability precedes subscription; event delivery takes place between subscription and unsubscription.</p>
+<figure class="align-center" id="id7">
 <p class="plantuml">
-<object data="../_images/plantuml-010ff5de8013fbc97d11fa6af9200751aece3ebb.svg" type="image/svg+xml" style="width:3189px;height:1918px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-be0aaafda36822a25ea63ab8f55403f163554845.svg" type="image/svg+xml" style="width:1719px;height:685px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Subscription and event flow for one bridged service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 8 </span><span class="caption-text">Availability for one bridged service</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
+<figure class="align-center" id="id8">
+<p class="plantuml">
+<object data="../_images/plantuml-0918ff5e7dcad3801b1caa8128b1f3db359e705b.svg" type="image/svg+xml" style="width:1829px;height:733px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 9 </span><span class="caption-text">Subscription lifecycle for one bridged service</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id9">
+<p class="plantuml">
+<object data="../_images/plantuml-1b33d1ad9b794b2a8dfbfab068a314eb5580ff47.svg" type="image/svg+xml" style="width:2146px;height:824px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 10 </span><span class="caption-text">Event delivery for one bridged service</span><a class="headerlink" href="#id9" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p>Ownership markers in the event delivery diagram:</p>
+<ol class="arabic simple">
+<li><p><strong>Allocation ownership:</strong> Store the <code class="docutils literal notranslate"><span class="pre">SampleAllocateePtr</span></code> in the in-flight table keyed by the minted
+<code class="docutils literal notranslate"><span class="pre">slot_handle</span></code> and wrap the sample as <code class="docutils literal notranslate"><span class="pre">socom::Writable_payload</span></code> with <code class="docutils literal notranslate"><span class="pre">lead_offset</span> <span class="pre">=</span> <span class="pre">8</span></code> and
+<code class="docutils literal notranslate"><span class="pre">header_size</span> <span class="pre">=</span> <span class="pre">header_size</span></code>.</p></li>
+<li><p><strong>Received sample ownership:</strong> Read <code class="docutils literal notranslate"><span class="pre">payload_length</span></code>, build <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> over the sample and move
+the <code class="docutils literal notranslate"><span class="pre">SamplePtr</span></code> into its destruction callback.</p></li>
+</ol>
 </section>
 <section id="teardown">
 <h3>Teardown<a class="headerlink" href="#teardown" title="Link to this heading">#</a></h3>
