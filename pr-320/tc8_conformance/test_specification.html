@@ -503,6 +503,18 @@ SOME/IP Service Consumer role (the external test harness, which discovers servic
 subscribes to events). This usage mirrors TC8 OA Section 6.1.5 (“Test Cases SOME/IP
 Server”) and Section 6.1.6 (“Test Cases ETS”) directly.</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DUT scope</p>
+<p>The OA ETS cases assume the Enhanced Testability Service. The DUT here is
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> offering service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> with the instances <code class="docutils literal notranslate"><span class="pre">0x5678</span></code> and
+<code class="docutils literal notranslate"><span class="pre">0x5680</span></code>, eventgroups <code class="docutils literal notranslate"><span class="pre">0x0002</span></code>, <code class="docutils literal notranslate"><span class="pre">0x0005</span></code> and <code class="docutils literal notranslate"><span class="pre">0x0006</span></code>, the cyclic field
+<code class="docutils literal notranslate"><span class="pre">0x8001</span></code> (500 ms), the multicast event <code class="docutils literal notranslate"><span class="pre">0x800B</span></code> and the fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to
+<code class="docutils literal notranslate"><span class="pre">0x8007</span></code>, which have no update cycle and are sent only as initial fields. It has
+no trigger methods, so OA steps that call one are marked “Not verified”.
+The OA procedures take the instance ID from the received OfferService. The tests
+use the configured ID, which is the same.</p>
+</div>
 <section id="service-discovery-tests">
 <h2>Service Discovery Tests<a class="headerlink" href="#service-discovery-tests" title="Link to this heading">#</a></h2>
 <dl class="field-list simple">
@@ -514,7 +526,7 @@ Server”) and Section 6.1.6 (“Test Cases ETS”) directly.</p>
 <h3>TC8-SD-001: Multicast Offer on Startup<a class="headerlink" href="#tc8-sd-001-multicast-offer-on-startup" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08</p>
+<dd class="field-odd"><p>none (project specific)</p>
 </dd>
 <dt class="field-even">Test Module<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p>
@@ -541,7 +553,7 @@ configured multicast group (<code class="docutils literal notranslate"><span cla
 None, passive observation of DUT multicast traffic.</p>
 <p><strong>Expected Result:</strong>
 At least one SOME/IP-SD message containing an OfferService entry is
-received on the multicast group within 5 seconds of DUT startup.</p>
+received on the multicast group within 5 seconds of the start of the capture.</p>
 </section>
 <section id="tc8-sd-002-offer-entry-format">
 <h3>TC8-SD-002: Offer Entry Format<a class="headerlink" href="#tc8-sd-002-offer-entry-format" title="Link to this heading">#</a></h3>
@@ -570,10 +582,10 @@ instance ID, major/minor version, and TTL as configured.</p>
 <li><p>Same as TC8-SD-001.</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
-None, passive observation.</p>
+None, passive observation of the first OfferService of the capture.</p>
 <p><strong>Expected Result:</strong>
 OfferService entry has <code class="docutils literal notranslate"><span class="pre">service_id=0x1234</span></code>, <code class="docutils literal notranslate"><span class="pre">instance_id=0x5678</span></code>,
-<code class="docutils literal notranslate"><span class="pre">major_version=0x01</span></code>, <code class="docutils literal notranslate"><span class="pre">minor_version=0x00000000</span></code>, and <code class="docutils literal notranslate"><span class="pre">TTL</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">major_version=0x01</span></code>, <code class="docutils literal notranslate"><span class="pre">minor_version=0x00000000</span></code>, and <code class="docutils literal notranslate"><span class="pre">TTL</span> <span class="pre">=</span> <span class="pre">30</span></code> (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>).</p>
 </section>
 <section id="tc8-sd-003-cyclic-offer-timing">
 <h3>TC8-SD-003: Cyclic Offer Timing<a class="headerlink" href="#tc8-sd-003-cyclic-offer-timing" title="Link to this heading">#</a></h3>
@@ -599,12 +611,13 @@ Verify that OfferService entries repeat at the configured
 <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> (2000 ms ±20%) during the main phase.</p>
 <p><strong>Preconditions:</strong></p>
 <ul class="simple">
-<li><p>DUT in SD main phase (wait for repetition phase to complete).</p></li>
+<li><p>DUT in SD main phase (wait at least the total repetition period of 1400 ms).</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
 None, passive observation with timestamps.</p>
 <p><strong>Expected Result:</strong>
-Inter-offer gaps in main phase are within [1600 ms, 2400 ms].</p>
+Inter-offer gaps in main phase are within [1600 ms, 2400 ms]. The OA bound is
+CYCLE-INTV ± ToleranceTime (default 1 s). This test applies ±20%, which is stricter.</p>
 </section>
 <section id="tc8-sd-004-findservice-known-service">
 <h3>TC8-SD-004: FindService Known Service<a class="headerlink" href="#tc8-sd-004-findservice-known-service" title="Link to this heading">#</a></h3>
@@ -633,15 +646,16 @@ FindService is sent for a known service.</p>
 <li><p>DUT offering service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>.</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
-Send SD FindService entry for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> / instance <code class="docutils literal notranslate"><span class="pre">0x5678</span></code>.</p>
+Send SD FindService entry for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> / instance <code class="docutils literal notranslate"><span class="pre">0x5678</span></code> unicast to
+the DUT, repeated every 1.5 seconds for up to 5 seconds.</p>
 <p><strong>Expected Result:</strong>
-Unicast OfferService entry received for the requested service.</p>
+At least one unicast OfferService entry received for the requested service.</p>
 </section>
 <section id="tc8-sd-005-findservice-unknown-service">
 <h3>TC8-SD-005: FindService Unknown Service<a class="headerlink" href="#tc8-sd-005-findservice-unknown-service" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.4, implied by SD_BEHAVIOR_03/04</p>
+<dd class="field-odd"><p>none (project specific)</p>
 </dd>
 <dt class="field-even">Test Module<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p>
@@ -664,7 +678,7 @@ unknown service.</p>
 <li><p>DUT running, not offering service <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code>.</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
-Send SD FindService entry for service <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code>.</p>
+Send SD FindService entry for service <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code> to the SD multicast group.</p>
 <p><strong>Expected Result:</strong>
 No OfferService entry received for service <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code> within 2 seconds.</p>
 </section>
@@ -688,22 +702,24 @@ No OfferService entry received for service <code class="docutils literal notrans
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> sends SubscribeEventgroupAck (TTL &gt; 0) for a
-valid eventgroup subscription.</p>
+Verify that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> answers a valid eventgroup subscription with a
+SubscribeEventgroupAck that echoes the subscription.</p>
 <p><strong>Preconditions:</strong></p>
 <ul class="simple">
 <li><p>DUT offering eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code>.</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
-Send SD SubscribeEventgroup for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code>.</p>
+Send SD SubscribeEventgroup for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, instance <code class="docutils literal notranslate"><span class="pre">0x5678</span></code>, eventgroup
+<code class="docutils literal notranslate"><span class="pre">0x0002</span></code>, major version <code class="docutils literal notranslate"><span class="pre">0x01</span></code>, TTL <code class="docutils literal notranslate"><span class="pre">0xFFFFFF</span></code>, Reserved 0.</p>
 <p><strong>Expected Result:</strong>
-SubscribeEventgroupAck with TTL &gt; 0 received.</p>
+SubscribeEventgroupAck with the same service ID, instance ID, eventgroup ID and
+major version, TTL <code class="docutils literal notranslate"><span class="pre">0xFFFFFF</span></code> and Reserved 0.</p>
 </section>
 <section id="tc8-sd-007-subscribe-unknown-eventgroup-nack">
 <h3>TC8-SD-007: Subscribe Unknown Eventgroup Nack<a class="headerlink" href="#tc8-sd-007-subscribe-unknown-eventgroup-nack" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14; Section 6.1.6, SOMEIP_ETS_140</p>
+<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19; Section 6.1.6, SOMEIP_ETS_140</p>
 </dd>
 <dt class="field-even">Test Module<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p>
@@ -726,7 +742,7 @@ an unknown eventgroup.</p>
 <li><p>DUT running, eventgroup <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code> not configured.</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
-Send SD SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code>.</p>
+Send SD SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code>, TTL <code class="docutils literal notranslate"><span class="pre">0xFFFFFF</span></code>.</p>
 <p><strong>Expected Result:</strong>
 SubscribeEventgroupAck with TTL = 0 (Nack) received.</p>
 </section>
@@ -762,6 +778,8 @@ used; the cyclic event of the DUT is observed instead.</p>
 Send SD SubscribeEventgroup with TTL = 0 (StopSubscribe).</p>
 <p><strong>Expected Result:</strong>
 No further notifications received within 4 seconds.</p>
+<p>Not verified: the initial event and the TestEventUINT8 trigger (the DUT has no
+trigger method).</p>
 </section>
 <section id="tc8-sd-009-repetition-phase-intervals">
 <h3>TC8-SD-009: Repetition Phase Intervals<a class="headerlink" href="#tc8-sd-009-repetition-phase-intervals" title="Link to this heading">#</a></h3>
@@ -783,8 +801,8 @@ No further notifications received within 4 seconds.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that the first inter-offer gap after startup is a Repetition
-Phase gap (shorter than half the cyclic offer delay).</p>
+Verify that the first two inter-offer gaps after startup follow the Repetition
+Phase: about the base delay (200 ms), then about twice that (400 ms).</p>
 <p><strong>Preconditions:</strong></p>
 <ul class="simple">
 <li><p>Multicast socket opened before DUT startup to capture first offer.</p></li>
@@ -792,13 +810,14 @@ Phase gap (shorter than half the cyclic offer delay).</p>
 <p><strong>Stimuli:</strong>
 None, passive observation from DUT start.</p>
 <p><strong>Expected Result:</strong>
-First gap &lt; 1000 ms (half of <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> 2000 ms).</p>
+First gap &lt; 1000 ms (half of <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> 2000 ms). Second gap
+400 ms ±20% (2 x <code class="docutils literal notranslate"><span class="pre">repetitions_base_delay</span></code> 200 ms).</p>
 </section>
 <section id="tc8-sd-010-repetition-count">
 <h3>TC8-SD-010: Repetition Count<a class="headerlink" href="#tc8-sd-010-repetition-count" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01</p>
+<dd class="field-odd"><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01 (doubling of the delay only; the repetition count is a project check)</p>
 </dd>
 <dt class="field-even">Test Module<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_phases_timing.py</span></code></p>
@@ -823,13 +842,14 @@ transition to main phase.</p>
 <p><strong>Stimuli:</strong>
 None, passive observation from DUT start.</p>
 <p><strong>Expected Result:</strong>
-At least 2 short gaps (&lt; 1000 ms) observed before a long gap (main phase).</p>
+At least 2 short gaps (&lt; 1000 ms) observed before a long gap (main phase). Each
+repetition gap is at least 1.5 times the previous one.</p>
 </section>
 <section id="tc8-sd-011-ipv4-endpoint-option">
 <h3>TC8-SD-011: IPv4 Endpoint Option<a class="headerlink" href="#tc8-sd-011-ipv4-endpoint-option" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07</p>
+<dd class="field-odd"><p>Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07; Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08</p>
 </dd>
 <dt class="field-even">Test Module<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p>
@@ -854,8 +874,8 @@ with the correct address, port, and L4 protocol.</p>
 <p><strong>Stimuli:</strong>
 None, passive observation with option parsing.</p>
 <p><strong>Expected Result:</strong>
-IPv4EndpointOption present with address matching <code class="docutils literal notranslate"><span class="pre">host_ip</span></code>,
-port = 30509, protocol = UDP.</p>
+Exactly one IPv4EndpointOption with Length <code class="docutils literal notranslate"><span class="pre">0x0009</span></code>, both Reserved fields
+<code class="docutils literal notranslate"><span class="pre">0x00</span></code>, address <code class="docutils literal notranslate"><span class="pre">TC8_DUT_IP</span></code>, port = 30509, protocol = UDP (<code class="docutils literal notranslate"><span class="pre">0x11</span></code>).</p>
 </section>
 <section id="tc8-sd-013-multicast-eventgroup-option">
 <h3>TC8-SD-013: Multicast Eventgroup Option<a class="headerlink" href="#tc8-sd-013-multicast-eventgroup-option" title="Link to this heading">#</a></h3>
@@ -890,7 +910,12 @@ a multicast IPv4EndpointOption.</p>
 <p><strong>Stimuli:</strong>
 Send SD SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0006</span></code>.</p>
 <p><strong>Expected Result:</strong>
-SubscribeEventgroupAck contains a multicast IPv4EndpointOption.</p>
+SubscribeEventgroupAck contains a multicast IPv4EndpointOption with option type
+<code class="docutils literal notranslate"><span class="pre">0x14</span></code>, Length <code class="docutils literal notranslate"><span class="pre">0x0009</span></code>, both Reserved fields <code class="docutils literal notranslate"><span class="pre">0x00</span></code>, address <code class="docutils literal notranslate"><span class="pre">239.0.0.1</span></code>,
+protocol = UDP (<code class="docutils literal notranslate"><span class="pre">0x11</span></code>) and port = 40490.</p>
+<p>The OA Synopsis of SOMEIPSRV_OPTIONS_14 names the port of the multicast events,
+its Pass criteria name <code class="docutils literal notranslate"><span class="pre">&lt;SERVICE-ID-1-UDP-PORT&gt;</span></code>. This test asserts the
+multicast event port.</p>
 </section>
 <section id="tc8-sd-014-ttl-expiry-cleanup">
 <h3>TC8-SD-014: TTL Expiry Cleanup<a class="headerlink" href="#tc8-sd-014-ttl-expiry-cleanup" title="Link to this heading">#</a></h3>
@@ -922,6 +947,8 @@ Verify that notifications cease after the subscription TTL expires.</p>
 Wait for TTL to expire (3 s + 2 s margin).</p>
 <p><strong>Expected Result:</strong>
 No notifications received in a 3-second window after TTL expiry.</p>
+<p>Not verified: the reaction to an explicit TriggerEventUint8 call (the DUT has no
+trigger method).</p>
 </section>
 </section>
 <section id="sd-entry-semantics-tests">
@@ -934,8 +961,8 @@ No notifications received in a 3-second window after TTL expiry.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery</span></code></p>
 </dd>
 </dl>
-<section id="tc8-sdm-001-findservice-wildcard-instance">
-<h3>TC8-SDM-001: FindService Wildcard Instance<a class="headerlink" href="#tc8-sdm-001-findservice-wildcard-instance" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-001-findservice-any-instance-0xffff">
+<h3>TC8-SDM-001: FindService: Any Instance (0xFFFF)<a class="headerlink" href="#tc8-sdm-001-findservice-any-instance-0xffff" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_01</p>
@@ -944,19 +971,20 @@ No notifications received in a 3-second window after TTL expiry.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDVersionMatching::test_sd_message_01_instance_wildcard</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDVersionMatching::test_sd_message_01_any_instance</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a FindService with instance_id = 0xFFFF (wildcard) elicits an OfferService
-for the configured instance.</p>
+Verify that a FindService with instance_id = 0xFFFF (Any Instance) elicits an OfferService
+entry for every offered instance of the service.</p>
 <p><strong>Stimulus:</strong>
 Send FindService with instance_id = 0xFFFF.</p>
 <p><strong>Expected Result:</strong>
-OfferService received with <code class="docutils literal notranslate"><span class="pre">instance_id</span> <span class="pre">==</span> <span class="pre">0x5678</span></code>.</p>
+OfferService with two entries for service_id = 0x1234 and different instance IDs
+(0x5678 and 0x5680).</p>
 </section>
 <section id="tc8-sdm-002-findservice-specific-instance">
-<h3>TC8-SDM-002: FindService Specific Instance<a class="headerlink" href="#tc8-sdm-002-findservice-specific-instance" title="Link to this heading">#</a></h3>
+<h3>TC8-SDM-002: FindService: Specific Instance<a class="headerlink" href="#tc8-sdm-002-findservice-specific-instance" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_02</p>
@@ -969,14 +997,15 @@ OfferService received with <code class="docutils literal notranslate"><span clas
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a FindService with the exact instance_id = 0x5678 elicits an OfferService.</p>
+Verify that a FindService with an exact instance_id elicits exactly one OfferService entry
+for that instance.</p>
 <p><strong>Stimulus:</strong>
-Send FindService with instance_id = 0x5678.</p>
+Send FindService with instance_id = 0x5678, then with instance_id = 0x5680.</p>
 <p><strong>Expected Result:</strong>
-OfferService received for service_id = 0x1234, instance_id = 0x5678.</p>
+Each time one OfferService entry for service_id = 0x1234 and the requested instance_id.</p>
 </section>
-<section id="tc8-sdm-003-findservice-wildcard-major-version">
-<h3>TC8-SDM-003: FindService Wildcard Major Version<a class="headerlink" href="#tc8-sdm-003-findservice-wildcard-major-version" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-003-findservice-any-major-version-0xff">
+<h3>TC8-SDM-003: FindService: Any Major Version (0xFF)<a class="headerlink" href="#tc8-sdm-003-findservice-any-major-version-0xff" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_03</p>
@@ -985,18 +1014,19 @@ OfferService received for service_id = 0x1234, instance_id = 0x5678.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDVersionMatching::test_sd_message_03_major_version_wildcard</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDVersionMatching::test_sd_message_03_any_major_version</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a FindService with major_version = 0xFF (any) elicits an OfferService.</p>
+Verify that a FindService with major_version = 0xFF (Any Major Version) elicits an
+OfferService.</p>
 <p><strong>Stimulus:</strong>
-Send FindService with major_version = 0xFF.</p>
+Send FindService with major_version = 0xFF, TTL = 0xFFFFFF.</p>
 <p><strong>Expected Result:</strong>
-OfferService received for the configured service.</p>
+OfferService received for the configured service with major_version = 0x01.</p>
 </section>
 <section id="tc8-sdm-004-findservice-specific-major-version">
-<h3>TC8-SDM-004: FindService Specific Major Version<a class="headerlink" href="#tc8-sdm-004-findservice-specific-major-version" title="Link to this heading">#</a></h3>
+<h3>TC8-SDM-004: FindService: Specific Major Version<a class="headerlink" href="#tc8-sdm-004-findservice-specific-major-version" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_04</p>
@@ -1011,12 +1041,12 @@ OfferService received for the configured service.</p>
 <p><strong>Purpose:</strong>
 Verify that a FindService with the exact major_version = 0x01 elicits an OfferService.</p>
 <p><strong>Stimulus:</strong>
-Send FindService with major_version = 0x01.</p>
+Send FindService with major_version = 0x01, TTL = 0xFFFFFF.</p>
 <p><strong>Expected Result:</strong>
-OfferService received for the configured service.</p>
+OfferService received for the configured service with major_version = 0x01.</p>
 </section>
-<section id="tc8-sdm-005-findservice-wildcard-minor-version">
-<h3>TC8-SDM-005: FindService Wildcard Minor Version<a class="headerlink" href="#tc8-sdm-005-findservice-wildcard-minor-version" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-005-findservice-any-minor-version-0xffffffff">
+<h3>TC8-SDM-005: FindService: Any Minor Version (0xFFFFFFFF)<a class="headerlink" href="#tc8-sdm-005-findservice-any-minor-version-0xffffffff" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_05</p>
@@ -1025,19 +1055,19 @@ OfferService received for the configured service.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDVersionMatching::test_sd_message_05_minor_version_wildcard</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDVersionMatching::test_sd_message_05_any_minor_version</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a FindService with minor_version = 0xFFFFFFFF (wildcard) elicits an
+Verify that a FindService with minor_version = 0xFFFFFFFF (Any Minor Version) elicits an
 OfferService.</p>
 <p><strong>Stimulus:</strong>
 Send FindService with minor_version = 0xFFFFFFFF.</p>
 <p><strong>Expected Result:</strong>
-OfferService received for the configured service.</p>
+OfferService received for the configured service with minor_version = 0x00000000.</p>
 </section>
 <section id="tc8-sdm-006-findservice-specific-minor-version">
-<h3>TC8-SDM-006: FindService Specific Minor Version<a class="headerlink" href="#tc8-sdm-006-findservice-specific-minor-version" title="Link to this heading">#</a></h3>
+<h3>TC8-SDM-006: FindService: Specific Minor Version<a class="headerlink" href="#tc8-sdm-006-findservice-specific-minor-version" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_06</p>
@@ -1050,117 +1080,82 @@ OfferService received for the configured service.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a FindService with minor_version = 0x00000000 (exact) elicits an
+Verify that a FindService with the exact minor_version = 0x00000000 elicits an
 OfferService.</p>
 <p><strong>Stimulus:</strong>
 Send FindService with minor_version = 0x00000000.</p>
 <p><strong>Expected Result:</strong>
-OfferService received for the configured service.</p>
+OfferService received for the configured service with minor_version = 0x00000000.</p>
 </section>
-<section id="tc8-sdm-007-subscribeeventgroup-wrong-major-version-rejected">
-<h3>TC8-SDM-007: SubscribeEventgroup: Wrong Major Version Rejected<a class="headerlink" href="#tc8-sdm-007-subscribeeventgroup-wrong-major-version-rejected" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-007-subscribeeventgroup-wrong-major-version-nack">
+<h3>TC8-SDM-007: SubscribeEventgroup: Wrong Major Version NAck<a class="headerlink" href="#tc8-sdm-007-subscribeeventgroup-wrong-major-version-nack" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14</p>
+<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_18; Section 6.1.6, SOMEIP_ETS_142</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_14_wrong_major_version</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_18_wrong_major_version</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup with a non-matching major version is rejected with
-NAck (SubscribeEventgroupAck TTL = 0) or silently ignored.</p>
+Verify that a SubscribeEventgroup with a non-matching major version is answered with a
+NAck (SubscribeEventgroupAck with TTL = 0) that carries the requested major version.</p>
 <p><strong>Stimulus:</strong>
-Send SubscribeEventgroup with major_version = 0x7F (not 0x01).</p>
+Send SubscribeEventgroup for the configured service, instance and eventgroup with
+major_version = 0x02 (configured major version + 1), TTL = 0xFFFFFF, Reserved = 0.</p>
 <p><strong>Expected Result:</strong>
-No positive SubscribeAck (TTL &gt; 0) received; DUT remains functional.</p>
+SubscribeEventgroupAck with TTL = 0 and major_version = 0x02.</p>
 </section>
-<section id="tc8-sdm-008-subscribeeventgroup-wrong-service-id-rejected">
-<h3>TC8-SDM-008: SubscribeEventgroup: Wrong Service ID Rejected<a class="headerlink" href="#tc8-sdm-008-subscribeeventgroup-wrong-service-id-rejected" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-008-subscribeeventgroup-unknown-service-id-nack">
+<h3>TC8-SDM-008: SubscribeEventgroup: Unknown Service ID NAck<a class="headerlink" href="#tc8-sdm-008-subscribeeventgroup-unknown-service-id-nack" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_15</p>
+<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14-16; Section 6.1.6, SOMEIP_ETS_143</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_15_wrong_service_id</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_14_15_16_unknown_service_id</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup for an unknown service is rejected or ignored.</p>
+Verify that a SubscribeEventgroup for an unknown service is answered with a NAck that
+echoes the request.</p>
 <p><strong>Stimulus:</strong>
-Send SubscribeEventgroup with service_id = 0xBEEF.</p>
+Send SubscribeEventgroup with service_id = 0xBEEF and the configured instance, eventgroup
+and major version, TTL = 0xFFFFFF, Reserved = 0.</p>
 <p><strong>Expected Result:</strong>
-No positive SubscribeAck; DUT remains functional.</p>
+SubscribeEventgroupAck with TTL = 0, service_id = 0xBEEF and the instance ID, eventgroup
+ID and major version of the request, Reserved = 0.</p>
 </section>
-<section id="tc8-sdm-009-subscribeeventgroup-wrong-instance-id-rejected">
-<h3>TC8-SDM-009: SubscribeEventgroup: Wrong Instance ID Rejected<a class="headerlink" href="#tc8-sdm-009-subscribeeventgroup-wrong-instance-id-rejected" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-009-subscribeeventgroup-unknown-instance-id-nack">
+<h3>TC8-SDM-009: SubscribeEventgroup: Unknown Instance ID NAck<a class="headerlink" href="#tc8-sdm-009-subscribeeventgroup-unknown-instance-id-nack" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_16</p>
+<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_17; Section 6.1.6, SOMEIP_ETS_141</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_16_wrong_instance_id</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_17_wrong_instance_id</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup for an unknown instance is rejected or ignored.</p>
+Verify that a SubscribeEventgroup for an unknown instance is answered with a NAck that
+carries the requested instance ID.</p>
 <p><strong>Stimulus:</strong>
-Send SubscribeEventgroup with instance_id = 0xBEEF.</p>
+Send SubscribeEventgroup with instance_id = 0x5679 (configured instance + 1), TTL =
+0xFFFFFF, Reserved = 0.</p>
 <p><strong>Expected Result:</strong>
-No positive SubscribeAck; DUT remains functional.</p>
+SubscribeEventgroupAck with TTL = 0 and instance_id = 0x5679.</p>
 </section>
-<section id="tc8-sdm-010-subscribeeventgroup-unknown-eventgroup-rejected">
-<h3>TC8-SDM-010: SubscribeEventgroup: Unknown Eventgroup Rejected<a class="headerlink" href="#tc8-sdm-010-subscribeeventgroup-unknown-eventgroup-rejected" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_17</p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_17_unknown_eventgroup_id</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup for an unknown eventgroup ID is rejected with NAck.</p>
-<p><strong>Stimulus:</strong>
-Send SubscribeEventgroup with eventgroup_id = 0xBEEF.</p>
-<p><strong>Expected Result:</strong>
-SubscribeAck with TTL = 0 (NAck) received.</p>
-</section>
-<section id="tc8-sdm-011-subscribeeventgroup-ttl-0-is-stopsubscribe">
-<h3>TC8-SDM-011: SubscribeEventgroup: TTL = 0 is StopSubscribe<a class="headerlink" href="#tc8-sdm-011-subscribeeventgroup-ttl-0-is-stopsubscribe" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_18</p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_18_ttl_zero_stop_subscribe</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup with TTL = 0 is treated as StopSubscribeEventgroup
-and does not elicit a positive ACK.</p>
-<p><strong>Stimulus:</strong>
-Subscribe (TTL &gt; 0) then immediately send another SubscribeEventgroup with TTL = 0.</p>
-<p><strong>Expected Result:</strong>
-No positive ACK after the TTL = 0 message.</p>
-</section>
-<section id="tc8-sdm-012-subscribeeventgroup-reserved-bits-set-rejected">
-<h3>TC8-SDM-012: SubscribeEventgroup: Reserved Bits Set Rejected<a class="headerlink" href="#tc8-sdm-012-subscribeeventgroup-reserved-bits-set-rejected" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-010-subscribeeventgroup-unknown-eventgroup-nack">
+<h3>TC8-SDM-010: SubscribeEventgroup: Unknown Eventgroup NAck<a class="headerlink" href="#tc8-sdm-010-subscribeeventgroup-unknown-eventgroup-nack" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19</p>
@@ -1169,23 +1164,39 @@ No positive ACK after the TTL = 0 message.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_19_reserved_field_set</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_sd_message_19_unknown_eventgroup_id</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup with reserved flag bits set is rejected with NAck.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This test is expected to <strong>FAIL</strong> against vsomeip 3.6.1: the stack sends a
-positive ACK instead of NAck.</p>
-</div>
+Verify that a SubscribeEventgroup for an unknown eventgroup ID is answered with a NAck.</p>
 <p><strong>Stimulus:</strong>
-Send SubscribeEventgroup with reserved SD flags bits set to 1.</p>
+Send SubscribeEventgroup with eventgroup_id = 0xBEEF, TTL = 0xFFFFFF.</p>
 <p><strong>Expected Result:</strong>
-NAck (SubscribeAck TTL = 0) received; no positive ACK.</p>
+SubscribeEventgroupAck with eventgroup_id = 0xBEEF and TTL = 0 (NAck).</p>
 </section>
-<section id="tc8-sdm-013-findservice-response-timing-unicast">
-<h3>TC8-SDM-013: FindService Response Timing (Unicast)<a class="headerlink" href="#tc8-sdm-013-findservice-response-timing-unicast" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-012-subscribeeventgroup-reserved-fields-of-endpoint-option-set">
+<h3>TC8-SDM-012: SubscribeEventgroup: Reserved Fields of Endpoint Option Set<a class="headerlink" href="#tc8-sdm-012-subscribeeventgroup-reserved-fields-of-endpoint-option-set" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_144</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeNAck::test_ets_144_reserved_field_endpoint_option_set</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the DUT ignores set reserved fields of the IPv4 Endpoint Option in a
+SubscribeEventgroup and sends a SubscribeEventgroupAck.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup whose Endpoint Option has its reserved fields set.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupAck with TTL &gt; 0.</p>
+</section>
+<section id="tc8-sdm-013-findservice-after-half-cyclic-offer-delay-multicast-response">
+<h3>TC8-SDM-013: FindService After Half Cyclic Offer Delay: Multicast Response<a class="headerlink" href="#tc8-sdm-013-findservice-after-half-cyclic-offer-delay-multicast-response" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_03</p>
@@ -1198,15 +1209,17 @@ NAck (SubscribeAck TTL = 0) received; no positive ACK.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a unicast OfferService response to a FindService arrives within the
-configured request-response delay.</p>
+Verify that a FindService with the Unicast Flag set, received at least half a cyclic
+offer delay after the last OfferService, is answered with a multicast OfferService.</p>
 <p><strong>Stimulus:</strong>
-Send unicast FindService; measure time to first OfferService response.</p>
+Wait for the main phase and receive a cyclic OfferService. Wait
+<code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> / 2 (1 s), then send FindService with the Unicast Flag set.</p>
 <p><strong>Expected Result:</strong>
-OfferService received within the configured delay window.</p>
+OfferService with IP destination address equal to the SD multicast group, received
+within 1.5 times <code class="docutils literal notranslate"><span class="pre">request_response_delay</span></code> and before the next cyclic OfferService.</p>
 </section>
-<section id="tc8-sdm-014-findservice-response-timing-multicast">
-<h3>TC8-SDM-014: FindService Response Timing (Multicast)<a class="headerlink" href="#tc8-sdm-014-findservice-response-timing-multicast" title="Link to this heading">#</a></h3>
+<section id="tc8-sdm-014-findservice-with-unicast-flag-cleared-multicast-response">
+<h3>TC8-SDM-014: FindService With Unicast Flag Cleared: Multicast Response<a class="headerlink" href="#tc8-sdm-014-findservice-with-unicast-flag-cleared-multicast-response" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_04</p>
@@ -1219,12 +1232,13 @@ OfferService received within the configured delay window.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that an OfferService response to a multicast FindService arrives within the
-configured delay.</p>
+Verify that a FindService with the Unicast Flag cleared is answered with a multicast
+OfferService.</p>
 <p><strong>Stimulus:</strong>
-Send multicast FindService; measure time to OfferService response.</p>
+Wait for the main phase, then send FindService with the Unicast Flag = 0.</p>
 <p><strong>Expected Result:</strong>
-OfferService received within the allowed window.</p>
+OfferService with IP destination address equal to the SD multicast group, received
+within <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> (2 s).</p>
 </section>
 </section>
 <section id="sd-lifecycle-advanced-tests">
@@ -1237,8 +1251,8 @@ OfferService received within the allowed window.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery</span></code> (TestSDSubscribeLifecycleAdvanced, TestSDFindServiceAdvanced) and <code class="docutils literal notranslate"><span class="pre">test_sd_client</span></code></p>
 </dd>
 </dl>
-<section id="tc8-sdlc-001-two-simultaneous-subscribes">
-<h3>TC8-SDLC-001: Two Simultaneous Subscribes<a class="headerlink" href="#tc8-sdlc-001-two-simultaneous-subscribes" title="Link to this heading">#</a></h3>
+<section id="tc8-sdlc-001-multiple-subscribes-in-one-message">
+<h3>TC8-SDLC-001: Multiple Subscribes in One Message<a class="headerlink" href="#tc8-sdlc-001-multiple-subscribes-in-one-message" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_088</p>
@@ -1251,7 +1265,7 @@ OfferService received within the allowed window.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that three SubscribeEventgroup entries (eventgroups <code class="docutils literal notranslate"><span class="pre">0x0002</span></code>,
+Verify (OA SD_Answer_multiple_subscribes_together) that three SubscribeEventgroup entries (eventgroups <code class="docutils literal notranslate"><span class="pre">0x0002</span></code>,
 <code class="docutils literal notranslate"><span class="pre">0x0005</span></code>, <code class="docutils literal notranslate"><span class="pre">0x0006</span></code>) in one SD message each receive a positive ACK.</p>
 <p><strong>Stimulus:</strong>
 Send an SD message containing three SubscribeEventgroup entries.</p>
@@ -1272,31 +1286,32 @@ Three ACK entries received (one per subscription).</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup with TTL = 0 stops the subscription without
-triggering a NAck from the DUT.</p>
+Verify that a unicast SubscribeEventgroup with TTL = 0 gets no reaction from the DUT (no
+Ack, no NAck).</p>
 <p><strong>Stimulus:</strong>
-Subscribe then send SubscribeEventgroup TTL = 0.</p>
+Send a unicast SubscribeEventgroup with TTL = 0 (no prior subscription).</p>
 <p><strong>Expected Result:</strong>
-No NAck (SubscribeAck TTL = 0) received after the StopSubscribe.</p>
+No SubscribeEventgroupAck or SubscribeEventgroupNack received within 2 seconds.</p>
+<p>The OA procedure numbers its steps from 3.</p>
 </section>
-<section id="tc8-sdlc-003-subscribe-without-prior-rpc-call">
-<h3>TC8-SDLC-003: Subscribe Without Prior RPC Call<a class="headerlink" href="#tc8-sdlc-003-subscribe-without-prior-rpc-call" title="Link to this heading">#</a></h3>
+<section id="tc8-sdlc-003-subscribe-without-prior-method-call">
+<h3>TC8-SDLC-003: Subscribe Without Prior Method Call<a class="headerlink" href="#tc8-sdlc-003-subscribe-without-prior-method-call" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_098</p>
+<dd class="field-odd"><p>none (project specific)</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced::test_ets_098_subscribe_accepted_without_prior_rpc</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced::test_subscribe_accepted_without_prior_method_call</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that the DUT accepts a SubscribeEventgroup without any prior method call
-(no prerequisite RPC interaction required).</p>
+Verify that the DUT accepts a SubscribeEventgroup without any prior method call (no
+prerequisite RPC interaction required).</p>
 <p><strong>Stimulus:</strong>
-Send SubscribeEventgroup immediately after service discovery, without any RPC.</p>
+Send SubscribeEventgroup immediately after service discovery, without any method call.</p>
 <p><strong>Expected Result:</strong>
 Positive SubscribeAck received.</p>
 </section>
@@ -1317,11 +1332,12 @@ Positive SubscribeAck received.</p>
 Verify that the DUT handles the entries of one SD message in order
 (SOMEIP_ETS_107, SD_Consider_Entries_Order).</p>
 <p><strong>Stimulus:</strong>
-Subscribe, then send one SD message with a StopSubscribeEventgroup entry
-(TTL = 0) followed by a SubscribeEventgroup entry for the same eventgroup.</p>
+Subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x0005</span></code>, then send one SD message with a
+StopSubscribeEventgroup entry (TTL = 0) followed by a SubscribeEventgroup entry for the
+same eventgroup.</p>
 <p><strong>Expected Result:</strong>
-The entries are processed in order: a new SubscribeAck is received and events
-arrive after the re-subscribe.</p>
+The entries are processed in order: a new SubscribeAck is received and the initial
+fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>) arrive again after the re-subscribe.</p>
 </section>
 <section id="tc8-sdlc-005-events-sent-to-endpoint-option-port">
 <h3>TC8-SDLC-005: Events Sent to Endpoint Option Port<a class="headerlink" href="#tc8-sdlc-005-events-sent-to-endpoint-option-port" title="Link to this heading">#</a></h3>
@@ -1344,28 +1360,9 @@ the tester IP with a different port, so it only partially verifies the requireme
 Send SubscribeEventgroup from the SD socket with an endpoint option naming a
 different tester port.</p>
 <p><strong>Expected Result:</strong>
-The ACK arrives on the SD socket and events arrive on the endpoint option socket.</p>
-</section>
-<section id="tc8-sdlc-006-sd-interface-version-0x01">
-<h3>TC8-SDLC-006: SD Interface Version = 0x01<a class="headerlink" href="#tc8-sdlc-006-sd-interface-version-0x01" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_122</p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced::test_ets_122_sd_interface_version_is_one</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that the SD interface_version field in DUT OfferService messages is 0x01.</p>
-<p><strong>Stimulus:</strong>
-Passive capture of SD OfferService.</p>
-<p><strong>Expected Result:</strong>
-<code class="docutils literal notranslate"><span class="pre">sd_hdr.interface_version</span> <span class="pre">==</span> <span class="pre">0x01</span></code> (same as SOMEIPSRV_FORMAT_04, verified in context
-of the lifecycle sequence).</p>
+The ACK arrives on the SD socket and the initial fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>)
+arrive on the endpoint option socket. Not verified: an option IP address that differs
+from the tester IP address.</p>
 </section>
 <section id="tc8-sdlc-007-re-subscribe-after-stopsubscribe">
 <h3>TC8-SDLC-007: Re-subscribe After StopSubscribe<a class="headerlink" href="#tc8-sdlc-007-re-subscribe-after-stopsubscribe" title="Link to this heading">#</a></h3>
@@ -1382,13 +1379,13 @@ of the lifecycle sequence).</p>
 </dl>
 <p><strong>Purpose:</strong>
 Verify that a subscription can be re-established after a StopSubscribeEventgroup
-(TTL = 0), a new ACK is sent and notifications arrive. Initial events cannot be
-told apart from cyclic ones, so the test only partially verifies the requirement.</p>
+(TTL = 0), a new ACK is sent and the initial fields arrive. The OA procedure has no
+tester step for the re-subscribe, the OA synopsis says the tester subscribes again.</p>
 <p><strong>Stimulus:</strong>
 Subscribe, wait for the ACK, StopSubscribe, re-Subscribe.</p>
 <p><strong>Expected Result:</strong>
-A new SubscribeAck and at least one notification are received after the
-re-subscription.</p>
+A new SubscribeAck and the initial fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>) are received after
+the re-subscription.</p>
 </section>
 <section id="tc8-sdlc-008-session-id-increments-per-offerservice">
 <h3>TC8-SDLC-008: Session ID Increments per OfferService<a class="headerlink" href="#tc8-sdlc-008-session-id-increments-per-offerservice" title="Link to this heading">#</a></h3>
@@ -1425,19 +1422,19 @@ Capture two consecutive OfferService messages.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that the DUT sends at least one notification to a new subscriber after a
-successful SubscribeEventgroup ACK. The initial event cannot be told apart from
-a cyclic one, so the test only partially verifies the requirement.</p>
+Verify that the DUT sends the initial fields to a new subscriber after a successful
+SubscribeEventgroup ACK.</p>
 <p><strong>Stimulus:</strong>
-Subscribe to eventgroup; wait for the first notification.</p>
+Subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x0005</span></code>; wait for the ACK and the initial fields.</p>
 <p><strong>Expected Result:</strong>
-At least one NOTIFICATION received within 5 seconds after the ACK.</p>
+A SubscribeEventgroupAck and the initial fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>) received
+within 5 seconds after the ACK.</p>
 </section>
 <section id="tc8-sdlc-010-server-does-not-emit-findservice">
 <h3>TC8-SDLC-010: Server Does Not Emit FindService<a class="headerlink" href="#tc8-sdlc-010-server-does-not-emit-findservice" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>none (project-specific, OA ETS_100 is a client-mode scenario)</p>
+<dd class="field-odd"><p>none (project specific)</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
@@ -1450,12 +1447,12 @@ At least one NOTIFICATION received within 5 seconds after the ACK.</p>
 Verify that the DUT (acting as service provider) does not emit FindService entries
 in its SD messages during the main phase.</p>
 <p><strong>Stimulus:</strong>
-Observe SD traffic for 6 seconds; collect all SD entries from the DUT.</p>
+Observe SD traffic for 5 seconds; collect all SD entries from the DUT.</p>
 <p><strong>Expected Result:</strong>
 No FindService entries observed in DUT SD traffic.</p>
 </section>
-<section id="tc8-sdlc-011-stopofferservice-ceases-client-events">
-<h3>TC8-SDLC-011: StopOfferService Ceases Client Events<a class="headerlink" href="#tc8-sdlc-011-stopofferservice-ceases-client-events" title="Link to this heading">#</a></h3>
+<section id="tc8-sdlc-011-stopofferservice-stops-findservice">
+<h3>TC8-SDLC-011: StopOfferService Stops FindService<a class="headerlink" href="#tc8-sdlc-011-stopofferservice-stops-findservice" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_101</p>
@@ -1468,18 +1465,14 @@ No FindService entries observed in DUT SD traffic.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that receipt of a StopOfferService (OfferService TTL = 0) from a server causes
-the subscribed client to cease receiving events.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This test is currently implemented as <code class="docutils literal notranslate"><span class="pre">pytest.skip</span></code> because stopping the DUT’s
-OfferService from an external tester requires a reverse-direction SD client target.</p>
-</div>
+Verify that the DUT stops sending FindService for a service after a StopOfferService.</p>
 <p><strong>Stimulus:</strong>
 N/A (skipped).</p>
+<p><strong>Expected Result:</strong>
+Not applicable: the DUT has no ETS client mode (<code class="docutils literal notranslate"><span class="pre">clientServiceActivate</span></code>).</p>
 </section>
-<section id="tc8-sdlc-012-multicast-findservice-wildcard-versions">
-<h3>TC8-SDLC-012: Multicast FindService: Wildcard Versions<a class="headerlink" href="#tc8-sdlc-012-multicast-findservice-wildcard-versions" title="Link to this heading">#</a></h3>
+<section id="tc8-sdlc-012-multicast-findservice-any-major-and-any-minor-version">
+<h3>TC8-SDLC-012: Multicast FindService: Any Major and Any Minor Version<a class="headerlink" href="#tc8-sdlc-012-multicast-findservice-any-major-and-any-minor-version" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_128</p>
@@ -1488,16 +1481,18 @@ N/A (skipped).</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindServiceAdvanced::test_ets_128_multicast_findservice_version_wildcard</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindServiceAdvanced::test_ets_128_multicast_findservice_version_any</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a multicast FindService with wildcard major and minor versions elicits
-an OfferService response.</p>
+Verify that a multicast FindService with Any Major Version (0xFF) and with Any Minor
+Version (0xFFFFFFFF) is answered with a unicast OfferService.</p>
 <p><strong>Stimulus:</strong>
-Send multicast FindService with major_version = 0xFF, minor_version = 0xFFFFFFFF.</p>
+Send 10 multicast FindService messages at 100 ms intervals with major_version = 0xFF
+(other fields default), then 10 at 100 ms intervals with minor_version = 0xFFFFFFFF
+(other fields default).</p>
 <p><strong>Expected Result:</strong>
-OfferService received for the configured service.</p>
+At least one unicast OfferService received for the configured service in each phase.</p>
 </section>
 <section id="tc8-sdlc-013-multicast-findservice-unicast-flag-clear">
 <h3>TC8-SDLC-013: Multicast FindService: Unicast Flag Clear<a class="headerlink" href="#tc8-sdlc-013-multicast-findservice-unicast-flag-clear" title="Link to this heading">#</a></h3>
@@ -1513,44 +1508,18 @@ OfferService received for the configured service.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a multicast FindService with the unicast flag cleared (0x00) elicits a
-multicast OfferService response (not a unicast one).</p>
+Verify that a multicast FindService with the unicast flag cleared (0x00) is answered
+with a unicast OfferService (the flag is ignored).</p>
 <p><strong>Stimulus:</strong>
 Send multicast FindService with unicast flag = 0.</p>
 <p><strong>Expected Result:</strong>
-Multicast OfferService received.</p>
+Unicast OfferService received on the tester socket.</p>
 </section>
-<section id="tc8-sdlc-014-client-stopsubscribe-ceases-events">
-<h3>TC8-SDLC-014: Client StopSubscribe Ceases Events<a class="headerlink" href="#tc8-sdlc-014-client-stopsubscribe-ceases-events" title="Link to this heading">#</a></h3>
+<section id="tc8-sdlc-015-restart-reboot-flag-and-session-id-after-first-restart">
+<h3>TC8-SDLC-015: Restart: Reboot Flag and Session ID After First Restart<a class="headerlink" href="#tc8-sdlc-015-restart-reboot-flag-and-session-id-after-first-restart" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_084</p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
-</dd>
-<dt class="field-odd">Test Module<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_sd_client</span></code></p>
-</dd>
-<dt class="field-even">Test Function<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSDClientStopSubscribe::test_ets_084_stop_subscribe_ceases_events</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that after a client sends StopSubscribeEventgroup (TTL = 0) the DUT stops
-sending NOTIFICATION messages to that subscriber.</p>
-<p><strong>Preconditions:</strong>
-Active subscription to eventgroup 0x0002; at least one notification received.</p>
-<p><strong>Stimulus:</strong>
-Send SubscribeEventgroup with TTL = 0.</p>
-<p><strong>Expected Result:</strong>
-No notifications received within 4 seconds after StopSubscribe.</p>
-</section>
-<section id="tc8-sdlc-015-client-reboot-flag-set-after-first-restart">
-<h3>TC8-SDLC-015: Client Reboot: Flag Set After First Restart<a class="headerlink" href="#tc8-sdlc-015-client-reboot-flag-set-after-first-restart" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_081</p>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_07; Section 6.1.5.1, SOMEIPSRV_FORMAT_02</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_reboot</span></code></p>
@@ -1559,24 +1528,25 @@ No notifications received within 4 seconds after StopSubscribe.</p>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_sd_client</span></code></p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSDClientReboot::test_ets_081_reboot_flag_set_after_first_restart</span></code></p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSDClientReboot::test_format_07_reboot_flag_set_after_first_restart</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that after a DUT restart the first SD message has the reboot flag (bit 7
-of SD flags byte) set and the session_id resets to a small value.</p>
-<p><strong>Preconditions:</strong>
-DUT started, 3 SD messages drained, DUT terminated.</p>
+Verify that after a DUT restart the first SD message has the reboot flag (bit 7 of SD
+flags byte) set and the session_id restarts at 0x0001.</p>
 <p><strong>Stimulus:</strong>
-Restart DUT; capture first post-reboot SD message.</p>
+Start the DUT, drain 3 SD messages, terminate it, restart it and capture the first
+post-restart SD message.</p>
 <p><strong>Expected Result:</strong>
-<code class="docutils literal notranslate"><span class="pre">sd_hdr.flag_reboot</span> <span class="pre">==</span> <span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">outer.session_id</span> <span class="pre">&lt;=</span> <span class="pre">2</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sd_hdr.flag_reboot</span> <span class="pre">==</span> <span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">outer.session_id</span> <span class="pre">==</span> <span class="pre">1</span></code>.</p>
+<p>Not verified: the reboot flag changing to 0 after the Session ID wraps (needs 65535
+messages).</p>
 </section>
-<section id="tc8-sdlc-016-client-reboot-flag-set-after-second-restart">
-<h3>TC8-SDLC-016: Client Reboot: Flag Set After Second Restart<a class="headerlink" href="#tc8-sdlc-016-client-reboot-flag-set-after-second-restart" title="Link to this heading">#</a></h3>
+<section id="tc8-sdlc-016-restart-reboot-flag-and-session-id-after-second-restart">
+<h3>TC8-SDLC-016: Restart: Reboot Flag and Session ID After Second Restart<a class="headerlink" href="#tc8-sdlc-016-restart-reboot-flag-and-session-id-after-second-restart" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_082</p>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_07; Section 6.1.5.1, SOMEIPSRV_FORMAT_02</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_reboot</span></code></p>
@@ -1585,16 +1555,18 @@ Restart DUT; capture first post-reboot SD message.</p>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_sd_client</span></code></p>
 </dd>
 <dt class="field-even">Test Function<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSDClientReboot::test_ets_082_reboot_flag_set_after_second_restart</span></code></p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">TestSDClientReboot::test_format_07_reboot_flag_set_after_second_restart</span></code></p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that the reboot flag and session ID reset hold across a second consecutive
+Verify that the reboot flag and session ID restart hold across a second consecutive
 restart (not just the first).</p>
 <p><strong>Stimulus:</strong>
-Start then drain then stop then start then drain then stop then start then capture first message.</p>
+Start, drain, stop, start, drain, stop, start, then capture the first message.</p>
 <p><strong>Expected Result:</strong>
-<code class="docutils literal notranslate"><span class="pre">sd_hdr.flag_reboot</span> <span class="pre">==</span> <span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">outer.session_id</span> <span class="pre">&lt;=</span> <span class="pre">2</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sd_hdr.flag_reboot</span> <span class="pre">==</span> <span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">outer.session_id</span> <span class="pre">==</span> <span class="pre">1</span></code>.</p>
+<p>Not verified: the reboot flag changing to 0 after the Session ID wraps (needs 65535
+messages).</p>
 </section>
 <section id="tc8-sdlc-019-subscribe-ttl-expiry-stops-events">
 <h3>TC8-SDLC-019: Subscribe TTL Expiry Stops Events<a class="headerlink" href="#tc8-sdlc-019-subscribe-ttl-expiry-stops-events" title="Link to this heading">#</a></h3>
@@ -1613,9 +1585,12 @@ Start then drain then stop then start then drain then stop then start then captu
 Verify that when a subscription’s TTL expires without renewal the DUT ceases sending
 event notifications to that subscriber.</p>
 <p><strong>Stimulus:</strong>
-Subscribe with a short TTL; do not renew; wait for TTL to expire; observe events.</p>
+Subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 3 seconds, wait 5 seconds without
+renewal, observe events.</p>
 <p><strong>Expected Result:</strong>
 No NOTIFICATION messages received after TTL expiry window.</p>
+<p>Not verified: the reaction to an explicit TriggerEventUint8 call (the DUT has no
+trigger method).</p>
 </section>
 </section>
 </section>
@@ -1684,39 +1659,36 @@ No NOTIFICATION messages received after TTL expiry window.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-entry-semantics-tests">SD Entry Semantics Tests</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-001-findservice-wildcard-instance">TC8-SDM-001: FindService Wildcard Instance</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-002-findservice-specific-instance">TC8-SDM-002: FindService Specific Instance</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-003-findservice-wildcard-major-version">TC8-SDM-003: FindService Wildcard Major Version</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-004-findservice-specific-major-version">TC8-SDM-004: FindService Specific Major Version</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-005-findservice-wildcard-minor-version">TC8-SDM-005: FindService Wildcard Minor Version</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-006-findservice-specific-minor-version">TC8-SDM-006: FindService Specific Minor Version</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-007-subscribeeventgroup-wrong-major-version-rejected">TC8-SDM-007: SubscribeEventgroup: Wrong Major Version Rejected</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-008-subscribeeventgroup-wrong-service-id-rejected">TC8-SDM-008: SubscribeEventgroup: Wrong Service ID Rejected</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-009-subscribeeventgroup-wrong-instance-id-rejected">TC8-SDM-009: SubscribeEventgroup: Wrong Instance ID Rejected</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-010-subscribeeventgroup-unknown-eventgroup-rejected">TC8-SDM-010: SubscribeEventgroup: Unknown Eventgroup Rejected</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-011-subscribeeventgroup-ttl-0-is-stopsubscribe">TC8-SDM-011: SubscribeEventgroup: TTL = 0 is StopSubscribe</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-012-subscribeeventgroup-reserved-bits-set-rejected">TC8-SDM-012: SubscribeEventgroup: Reserved Bits Set Rejected</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-013-findservice-response-timing-unicast">TC8-SDM-013: FindService Response Timing (Unicast)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-014-findservice-response-timing-multicast">TC8-SDM-014: FindService Response Timing (Multicast)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-001-findservice-any-instance-0xffff">TC8-SDM-001: FindService: Any Instance (0xFFFF)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-002-findservice-specific-instance">TC8-SDM-002: FindService: Specific Instance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-003-findservice-any-major-version-0xff">TC8-SDM-003: FindService: Any Major Version (0xFF)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-004-findservice-specific-major-version">TC8-SDM-004: FindService: Specific Major Version</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-005-findservice-any-minor-version-0xffffffff">TC8-SDM-005: FindService: Any Minor Version (0xFFFFFFFF)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-006-findservice-specific-minor-version">TC8-SDM-006: FindService: Specific Minor Version</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-007-subscribeeventgroup-wrong-major-version-nack">TC8-SDM-007: SubscribeEventgroup: Wrong Major Version NAck</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-008-subscribeeventgroup-unknown-service-id-nack">TC8-SDM-008: SubscribeEventgroup: Unknown Service ID NAck</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-009-subscribeeventgroup-unknown-instance-id-nack">TC8-SDM-009: SubscribeEventgroup: Unknown Instance ID NAck</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-010-subscribeeventgroup-unknown-eventgroup-nack">TC8-SDM-010: SubscribeEventgroup: Unknown Eventgroup NAck</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-012-subscribeeventgroup-reserved-fields-of-endpoint-option-set">TC8-SDM-012: SubscribeEventgroup: Reserved Fields of Endpoint Option Set</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-013-findservice-after-half-cyclic-offer-delay-multicast-response">TC8-SDM-013: FindService After Half Cyclic Offer Delay: Multicast Response</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdm-014-findservice-with-unicast-flag-cleared-multicast-response">TC8-SDM-014: FindService With Unicast Flag Cleared: Multicast Response</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-lifecycle-advanced-tests">SD Lifecycle Advanced Tests</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-001-two-simultaneous-subscribes">TC8-SDLC-001: Two Simultaneous Subscribes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-001-multiple-subscribes-in-one-message">TC8-SDLC-001: Multiple Subscribes in One Message</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-002-ttl-0-as-stopsubscribe-no-nack">TC8-SDLC-002: TTL = 0 as StopSubscribe (No NAck)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-003-subscribe-without-prior-rpc-call">TC8-SDLC-003: Subscribe Without Prior RPC Call</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-003-subscribe-without-prior-method-call">TC8-SDLC-003: Subscribe Without Prior Method Call</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-004-entries-in-one-message-processed-in-order">TC8-SDLC-004: Entries In One Message Processed In Order</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-005-events-sent-to-endpoint-option-port">TC8-SDLC-005: Events Sent to Endpoint Option Port</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-006-sd-interface-version-0x01">TC8-SDLC-006: SD Interface Version = 0x01</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-007-re-subscribe-after-stopsubscribe">TC8-SDLC-007: Re-subscribe After StopSubscribe</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-008-session-id-increments-per-offerservice">TC8-SDLC-008: Session ID Increments per OfferService</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-009-events-sent-after-subscribe-ack">TC8-SDLC-009: Events Sent After Subscribe ACK</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-010-server-does-not-emit-findservice">TC8-SDLC-010: Server Does Not Emit FindService</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-011-stopofferservice-ceases-client-events">TC8-SDLC-011: StopOfferService Ceases Client Events</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-012-multicast-findservice-wildcard-versions">TC8-SDLC-012: Multicast FindService: Wildcard Versions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-011-stopofferservice-stops-findservice">TC8-SDLC-011: StopOfferService Stops FindService</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-012-multicast-findservice-any-major-and-any-minor-version">TC8-SDLC-012: Multicast FindService: Any Major and Any Minor Version</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-013-multicast-findservice-unicast-flag-clear">TC8-SDLC-013: Multicast FindService: Unicast Flag Clear</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-014-client-stopsubscribe-ceases-events">TC8-SDLC-014: Client StopSubscribe Ceases Events</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-015-client-reboot-flag-set-after-first-restart">TC8-SDLC-015: Client Reboot: Flag Set After First Restart</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-016-client-reboot-flag-set-after-second-restart">TC8-SDLC-016: Client Reboot: Flag Set After Second Restart</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-015-restart-reboot-flag-and-session-id-after-first-restart">TC8-SDLC-015: Restart: Reboot Flag and Session ID After First Restart</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-016-restart-reboot-flag-and-session-id-after-second-restart">TC8-SDLC-016: Restart: Reboot Flag and Session ID After Second Restart</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-019-subscribe-ttl-expiry-stops-events">TC8-SDLC-019: Subscribe TTL Expiry Stops Events</a></li>
 </ul>
 </li>
