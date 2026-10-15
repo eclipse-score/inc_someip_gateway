@@ -52,7 +52,7 @@ static void print_help() {
 
 int main(int argc, char* argv[]) {
     // Block before any thread starts so every thread inherits the mask.
-    // vsomeip's own SIGTERM/SIGINT handler never runs; sigwait below is the only receiver.
+    // sigwait below is the only receiver.
     sigset_t shutdown_signals;
     sigemptyset(&shutdown_signals);
     sigaddset(&shutdown_signals, SIGTERM);
