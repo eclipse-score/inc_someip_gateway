@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -20,7 +19,6 @@
 #include <vector>
 
 #include "score/socom/payload.hpp"
-#include "score/socom/utilities.hpp"
 #include "score/socom/vector_payload.hpp"
 
 namespace score::socom {
@@ -100,8 +98,7 @@ TEST(Payload, VectorPayloadGetSlotHandleReturnsNoSlotHandle) {
 TEST(Payload, DestructorCallsOnPayloadDestroyed) {
     std::size_t destroyed_count = 0;
     {
-        auto payload =
-            Payload{Payload::Writable_span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
+        auto payload = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
         EXPECT_EQ(0U, destroyed_count);
     }
     EXPECT_EQ(1U, destroyed_count);
@@ -110,10 +107,8 @@ TEST(Payload, DestructorCallsOnPayloadDestroyed) {
 TEST(Payload, DestructorCallsOnPayloadDestroyedForMoveAssignedAndAssignee) {
     std::size_t destroyed_count = 0;
     {
-        auto payload1 =
-            Payload{Payload::Writable_span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
-        auto payload2 =
-            Payload{Payload::Writable_span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
+        auto payload1 = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
+        auto payload2 = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
         EXPECT_EQ(0U, destroyed_count);
 
         payload1 = std::move(payload2);
@@ -128,8 +123,7 @@ TEST(Payload, DestructorCallsOnPayloadDestroyedForMoveAssignedAndAssignee) {
 TEST(Payload, DestructorDoesNotCallOnPayloadDestroyedForMoveConstructed) {
     std::size_t destroyed_count = 0;
     {
-        auto payload1 =
-            Payload{Payload::Writable_span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
+        auto payload1 = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
         EXPECT_EQ(0U, destroyed_count);
 
         auto payload = std::move(payload1);
@@ -197,6 +191,15 @@ TEST(Payload, WritablePayloadWdataAndDataShareTheBuffer) {
     EXPECT_TRUE(payload.shrink(50));
     EXPECT_EQ(payload.data().data(), payload.wdata().data());
     EXPECT_EQ(50U, payload.wdata().size());
+}
+
+TEST(Payload, WritablePayloadMoveAssignedFromWritablePayloadHasWritableData) {
+    auto payload = make_writable_vector_payload(32);
+
+    payload = make_writable_vector_payload(16);
+
+    EXPECT_EQ(payload.data().data(), payload.wdata().data());
+    EXPECT_EQ(16U, payload.wdata().size());
 }
 
 TEST(Payload, WritablePayloadMoveAssignedFromReadOnlyPayloadHasNoWritableData) {

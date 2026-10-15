@@ -62,7 +62,6 @@ TEST(Method_type_test, method_result_equality_and_inequality_operators) {
     // Set up test payloads for Application_return tests.
     auto const vector_payload1 = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U, 5U));
     auto const vector_payload1_copy = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U, 5U));
-    auto const vector_payload2 = make_vector_payload(make_vector_buffer(9U, 8U, 7U, 6U, 5U));
     auto const vector_payload3 = make_vector_payload(make_vector_buffer(1U, 2U, 7U, 6U, 5U));
     auto const vector_payload4 = make_vector_payload(make_vector_buffer(9U, 8U, 3U, 4U, 5U));
     auto const ar1 = Application_return{clone_payload(vector_payload1)};

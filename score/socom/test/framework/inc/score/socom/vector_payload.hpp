@@ -40,15 +40,6 @@ Vector_buffer make_vector_buffer(Ts... args) noexcept {
 /// \return A Payload object.
 Payload make_vector_payload(Vector_buffer buffer);
 
-/// \brief Creates vector payload from a container.
-/// \param container Reference container.
-/// \tparam C Container type.
-/// \return A Payload object.
-template <typename C>
-inline Payload make_vector_payload(C const& container) {
-    return make_vector_payload(Vector_buffer{std::begin(container), std::end(container)});
-}
-
 /// \brief Creates a test Writable_payload backed by a heap-allocated buffer.
 /// \param size Size of the payload buffer in bytes.
 /// \return A Writable_payload object.
