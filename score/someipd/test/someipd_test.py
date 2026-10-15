@@ -13,12 +13,13 @@
 
 from pathlib import Path
 import os
+import signal
 import subprocess
 import sys
 import time
 import unittest
 
-from quality.pytest.process import assert_process_creates_network_instance
+from quality.pytest.process import assert_process_creates_network_instance, stop_process, wait_for_output
 
 
 class SomeipdTest(unittest.TestCase):
@@ -37,6 +38,54 @@ class SomeipdTest(unittest.TestCase):
 
     def test_creates_remote_network_instance(self) -> None:
         self._assert_creates_network_instance("REQUEST(0100): [4321.5678")
+
+    def test_sigterm_exits_with_success(self) -> None:
+        process = subprocess.Popen(
+            [
+                self.binary,
+                "--configuration",
+                self.configuration,
+                "--ipc_channel",
+                f"someipd-test-{os.getpid()}-{time.monotonic_ns()}",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        try:
+            wait_for_output(process, "OFFER(0100): [0001.0001", failure_prefix="someipd did not offer")
+            process.send_signal(signal.SIGTERM)
+            try:
+                returncode = process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.fail("someipd still running 5 s after SIGTERM")
+            self.assertEqual(returncode, 0)
+        finally:
+            stop_process(process)
+
+    def test_sigint_exits_with_success(self) -> None:
+        process = subprocess.Popen(
+            [
+                self.binary,
+                "--configuration",
+                self.configuration,
+                "--ipc_channel",
+                f"someipd-test-{os.getpid()}-{time.monotonic_ns()}",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        try:
+            wait_for_output(process, "OFFER(0100): [0001.0001", failure_prefix="someipd did not offer")
+            process.send_signal(signal.SIGINT)
+            try:
+                returncode = process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.fail("someipd still running 5 s after SIGINT")
+            self.assertEqual(returncode, 0)
+        finally:
+            stop_process(process)
 
     def _assert_creates_network_instance(self, expected_output: str) -> None:
         assert_process_creates_network_instance(

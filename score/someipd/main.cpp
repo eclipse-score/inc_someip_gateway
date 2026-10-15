@@ -12,9 +12,9 @@
  ********************************************************************************/
 
 #include <getopt.h>
+#include <pthread.h>
+#include <signal.h>
 
-#include <atomic>
-#include <csignal>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -36,14 +36,6 @@
 using namespace score;
 using namespace score::someipd;
 
-// Global flag to control application shutdown
-static std::atomic<bool> shutdown_requested{false};
-
-static void termination_handler(int /*signal*/) {
-    score::mw::log::LogWarn() << "Received termination signal. Initiating graceful shutdown...";
-    shutdown_requested.store(true);
-}
-
 // Help text, showing usage syntax and available options
 static void print_help() {
     std::cout << "Syntax: someipd -h/--help\n"
@@ -59,9 +51,16 @@ static void print_help() {
 }
 
 int main(int argc, char* argv[]) {
-    // Register signal handlers for graceful shutdown
-    std::signal(SIGTERM, termination_handler);
-    std::signal(SIGINT, termination_handler);
+    // Block before any thread starts so every thread inherits the mask.
+    // vsomeip's own SIGTERM/SIGINT handler never runs; sigwait below is the only receiver.
+    sigset_t shutdown_signals;
+    sigemptyset(&shutdown_signals);
+    sigaddset(&shutdown_signals, SIGTERM);
+    sigaddset(&shutdown_signals, SIGINT);
+    if (pthread_sigmask(SIG_BLOCK, &shutdown_signals, nullptr) != 0) {
+        score::mw::log::LogFatal() << "[someipd] Failed to block SIGTERM and SIGINT";
+        return EXIT_FAILURE;
+    }
 
     const char* const short_opts = "hc:i:";
     const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
@@ -126,7 +125,7 @@ int main(int argc, char* argv[]) {
     }
 
     config_file.seekg(0, std::ios::beg);
-    auto config_buffer = std::shared_ptr<char>(new char[length]);
+    auto config_buffer = std::shared_ptr<char[]>(new char[length]);
     config_file.read(config_buffer.get(), length);
     config_file.close();
 
@@ -223,13 +222,26 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    bool clean_exit = true;
+
     score::mw::log::LogInfo() << "[someipd] Starting routing loop...";
-    routing.value().Run(shutdown_requested, [&remote_network_services]() {
-        for (auto& svc : remote_network_services) {
-            svc->setup_vsomeip();
-        }
-    });
+    routing.value().Run(
+        [&shutdown_signals, &clean_exit]() {
+            int signal_number = 0;
+            if (sigwait(&shutdown_signals, &signal_number) != 0) {
+                score::mw::log::LogError() << "[someipd] sigwait failed, shutting down";
+                clean_exit = false;
+                return;
+            }
+            score::mw::log::LogWarn()
+                << "[someipd] Received signal " << signal_number << ", shutting down...";
+        },
+        [&remote_network_services]() {
+            for (auto& svc : remote_network_services) {
+                svc->setup_vsomeip();
+            }
+        });
 
     score::mw::log::LogInfo() << "[someipd] Shutting down SOME/IP daemon...";
-    return EXIT_SUCCESS;
+    return clean_exit ? EXIT_SUCCESS : EXIT_FAILURE;
 }
