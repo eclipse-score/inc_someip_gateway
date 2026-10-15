@@ -29,7 +29,7 @@ from helpers.dut_lifecycle import (
     render_someip_config,
     terminate_dut,
 )
-from helpers.constants import SERVICE_ID
+from helpers.constants import INSTANCE_ID, SERVICE_ID
 from helpers.sd_helpers import open_multicast_socket
 from helpers.timing import collect_sd_offers_from_socket
 from helpers.someip_types import SOMEIPSDEntry
@@ -60,9 +60,9 @@ def sd_phase_capture(
     """
     target_init = request.getfixturevalue("target_init")
 
-    # Ensure guest vsomeip configs are rendered (sed on QEMU guest).
+    # Ensure the guest SOME/IP configs are rendered (sed on QEMU guest).
     # Without this the guest /tc8_sd.json is absent or has literal placeholders,
-    # causing vsomeip to bind loopback and SD multicast to never reach the host.
+    # causing the DUT to bind loopback and SD multicast to never reach the host.
     request.getfixturevalue("tc8_itf_config_setup")
 
     tmp_dir = tmp_path_factory.mktemp("tc8_phase_config")
@@ -87,6 +87,7 @@ def sd_phase_capture(
             capture_sock,
             count=5,  # initial offer + 3 reps + 1 cyclic
             timeout_secs=_PHASE_CAPTURE_TIMEOUT_SECS,
+            instance_id=INSTANCE_ID,
         )
     except TimeoutError:
         offers = []  # tests will handle empty capture with appropriate assertions
@@ -110,17 +111,22 @@ class TestSDPhasesTiming:
         self,
         sd_phase_capture: List[Tuple[float, SOMEIPSDEntry]],
     ) -> None:
-        """TC8-SD-009: Repetition Phase offer gaps are shorter than cyclic_offer_delay."""
+        """TC8-SD-009: The first gap is a Repetition Phase gap, the second is twice the base delay."""
         service_offers = [(ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID]
-        assert len(service_offers) >= 2, "TC8-SD-009: Not enough OfferService entries captured for timing analysis"
+        assert len(service_offers) >= 3, "TC8-SD-009: Not enough OfferService entries captured for timing analysis"
 
-        # The first gap must be a Repetition Phase gap (< half the cyclic period).
-        gap_ms = (service_offers[1][0] - service_offers[0][0]) * 1000.0
+        gaps_ms = [(service_offers[i + 1][0] - service_offers[i][0]) * 1000.0 for i in range(2)]
         cyclic_half_ms = _CYCLIC_OFFER_DELAY_MS * 0.5
-
-        assert gap_ms < cyclic_half_ms, (
-            f"TC8-SD-009: First inter-offer gap {gap_ms:.0f} ms >= {cyclic_half_ms:.0f} ms; "
+        assert gaps_ms[0] < cyclic_half_ms, (
+            f"TC8-SD-009: First inter-offer gap {gaps_ms[0]:.0f} ms >= {cyclic_half_ms:.0f} ms; "
             f"expected a Repetition Phase gap (< {cyclic_half_ms:.0f} ms)"
+        )
+
+        expected_ms = 2 * _REPETITIONS_BASE_DELAY_MS
+        assert 0.8 * expected_ms <= gaps_ms[1] <= 1.2 * expected_ms, (
+            f"TC8-SD-009: Second inter-offer gap {gaps_ms[1]:.0f} ms not in "
+            f"[{0.8 * expected_ms:.0f}, {1.2 * expected_ms:.0f}] ms "
+            f"(2 x repetitions_base_delay={_REPETITIONS_BASE_DELAY_MS:.0f} ms, +-20%)"
         )
 
     @add_test_properties(

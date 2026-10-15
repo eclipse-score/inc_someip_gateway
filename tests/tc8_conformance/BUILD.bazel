@@ -199,7 +199,7 @@ integration_test(
 # exclusive: timing sensitive capture
 integration_test(
     name = "test_tc8_sd_phases_timing",
-    timeout = "long",
+    timeout = "short",
     srcs = [
         "test_sd_phases_timing.py",
     ],
@@ -217,7 +217,7 @@ integration_test(
 # exclusive: manages DUT lifecycle directly
 integration_test(
     name = "test_tc8_sd_client",
-    timeout = "long",
+    timeout = "short",
     srcs = [
         "test_sd_client.py",
     ],

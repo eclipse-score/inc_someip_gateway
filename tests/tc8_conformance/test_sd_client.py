@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 SD Client lifecycle tests: ETS_081/082/084 and skipped ETS_096/097.
+"""TC8 SD restart tests: reboot flag and session ID after DUT restarts (FORMAT_07, FORMAT_02), and skipped ETS_097.
 
 This module manages its own someipd lifecycle (launch/terminate per test)
 and must NOT share the module-scoped ``dut`` fixture from conftest.py, to
@@ -32,26 +32,11 @@ from helpers.dut_lifecycle import (
     launch_dut,
     render_someip_config,
     terminate_dut,
-    wait_for_sd_readiness,
-)
-from helpers.constants import (
-    EVENTGROUP_UDP_UNICAST,
-    INSTANCE_ID,
-    MAJOR_VERSION,
-    SD_PORT,
-    SERVICE_ID,
 )
 from helpers.sd_helpers import open_multicast_socket
-from helpers.sd_sender import (
-    SOMEIPSDEntryType,
-    capture_some_ip_messages,
-    capture_unicast_sd_entries,
-    open_sender_socket,
-    send_subscribe_eventgroup,
-)
 from helpers.someip_types import SOMEIPHeader, SOMEIPSDHeader
 
-#: Uses the SD config (service 0x1234/0x5678, eventgroup 0x0002 UDP).
+#: Uses the SD config.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: Maximum wait time for SD messages, derived from TC8 spec Sec. 4 IUT parameters:
@@ -88,18 +73,6 @@ def _collect_sd_messages(
     return collected
 
 
-def _wait_port_free(port: int, retries: int = 20, delay: float = 0.1) -> None:
-    """Spin until *port* can be bound (i.e. previous someipd has released it)."""
-    for _ in range(retries):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
-                probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                probe.bind(("", port))
-            return
-        except OSError:
-            time.sleep(delay)
-
-
 @pytest.fixture(scope="module")
 def sd_client_config(
     tmp_path_factory: pytest.TempPathFactory,
@@ -109,7 +82,7 @@ def sd_client_config(
     """Render the DUT config template and return the path.
 
     Triggers ``tc8_itf_config_setup`` (session-scoped) first, since without
-    pre-rendered guest templates vsomeip binds loopback and SD multicast
+    pre-rendered guest templates the DUT binds loopback and SD multicast
     never reaches the TAP interface. ``launch_dut`` uses the path's filename
     to select the matching pre-rendered guest config.
     """
@@ -118,137 +91,29 @@ def sd_client_config(
     return render_someip_config(SOMEIP_CONFIG, host_ip, tmp_dir)
 
 
-@add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
-    test_type="requirements-based",
-    derivation_technique="requirements-analysis",
-)
-def test_ets_096_tcp_connection_before_subscribe() -> None:
-    """ETS_096: TCP connection established before SubscribeEventgroup for TCP eventgroup."""
-    pytest.skip(
-        "ETS_096 requires a TCP eventgroup config (tc8_someipd_service.json) and a "
-        "dedicated TC8_SVC_TCP_PORT.  The tc8_sd_client target allocates only "
-        "TC8_SD_PORT=30498 and TC8_SVC_PORT=30511 (no TCP port).  Implement once "
-        "a dedicated tc8_sd_client_tcp target with TC8_SVC_TCP_PORT is added."
-    )
-
-
-@add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
-    test_type="requirements-based",
-    derivation_technique="requirements-analysis",
-)
 def test_ets_097_tcp_reconnect() -> None:
-    """ETS_097: TCP reconnection after disconnect yields a new SubscribeAck."""
-    pytest.skip(
-        "ETS_097 requires a TCP eventgroup config (tc8_someipd_service.json) and a "
-        "dedicated TC8_SVC_TCP_PORT.  The tc8_sd_client target allocates only "
-        "TC8_SD_PORT=30498 and TC8_SVC_PORT=30511 (no TCP port).  Implement once "
-        "a dedicated tc8_sd_client_tcp target with TC8_SVC_TCP_PORT is added."
-    )
+    """ETS_097: not applicable, it needs the ETS client mode (clientServiceActivate).
 
-
-class TestSDClientStopSubscribe:
-    """ETS_084: Client-initiated StopSubscribeEventgroup stops event delivery."""
-
-    @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
-        test_type="requirements-based",
-        derivation_technique="requirements-analysis",
-    )
-    def test_ets_084_stop_subscribe_ceases_events(
-        self,
-        sd_client_config: Path,
-        host_ip: str,
-        dut_ip: str,
-        tester_ip: str,
-        request: pytest.FixtureRequest,
-    ) -> None:
-        """ETS_084: After StopSubscribeEventgroup (TTL=0) the DUT stops sending events."""
-        target_init = request.getfixturevalue("target_init")
-
-        proc = launch_dut(sd_client_config, target_init=target_init)
-        try:
-            # Wait for DUT to reach SD main phase (first OfferService multicast).
-            if not wait_for_sd_readiness(host_ip, timeout_secs=15.0):
-                terminate_dut(proc)
-                pytest.skip("someipd DUT did not reach SD main phase within timeout")
-
-            sd_sock = open_sender_socket(tester_ip)
-            notif_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            notif_sock.bind((tester_ip, 0))
-            notif_port: int = notif_sock.getsockname()[1]
-
-            try:
-
-                def _subscribe() -> None:
-                    send_subscribe_eventgroup(
-                        sd_sock,
-                        (dut_ip, SD_PORT),
-                        SERVICE_ID,
-                        INSTANCE_ID,
-                        EVENTGROUP_UDP_UNICAST,
-                        MAJOR_VERSION,
-                        subscriber_ip=tester_ip,
-                        subscriber_port=notif_port,
-                        ttl=30,
-                    )
-
-                _subscribe()
-                acks = capture_unicast_sd_entries(
-                    sd_sock,
-                    filter_types=(SOMEIPSDEntryType.SubscribeAck,),
-                    timeout_secs=5.0,
-                    resend=_subscribe,
-                    max_results=1,
-                )
-                assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
-                    "ETS_084: Prerequisite failed — no SubscribeAck received"
-                )
-
-                pre_notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
-                assert pre_notifs, "ETS_084: No notifications received after subscribe (prerequisite)"
-
-                send_subscribe_eventgroup(
-                    sd_sock,
-                    (dut_ip, SD_PORT),
-                    SERVICE_ID,
-                    INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
-                    MAJOR_VERSION,
-                    subscriber_ip=tester_ip,
-                    subscriber_port=notif_port,
-                    ttl=0,
-                )
-
-                post_notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
-                assert not post_notifs, (
-                    f"ETS_084: {len(post_notifs)} notification(s) received after "
-                    "StopSubscribeEventgroup (TTL=0). DUT must cease sending events."
-                )
-            finally:
-                sd_sock.close()
-                notif_sock.close()
-        finally:
-            terminate_dut(proc)
+    Follow-up: implement when the DUT supports the ETS client mode.
+    """
+    pytest.skip("The DUT has no ETS client mode (clientServiceActivate).")
 
 
 class TestSDClientReboot:
-    """ETS_081/082: DUT reboot flag and session reset across restarts."""
+    """FORMAT_07 and FORMAT_02: DUT reboot flag and session ID after restarts."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_reboot"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
-    def test_ets_081_reboot_flag_set_after_first_restart(
+    def test_format_07_reboot_flag_set_after_first_restart(
         self,
         sd_client_config: Path,
         host_ip: str,
         request: pytest.FixtureRequest,
     ) -> None:
-        """ETS_081: After restart the first SD message has the reboot flag (bit 7) set."""
+        """FORMAT_07/02: After restart the first SD message has the reboot flag (bit 7) set and session_id 1."""
         target_init = request.getfixturevalue("target_init")
 
         try:
@@ -287,7 +152,7 @@ class TestSDClientReboot:
             post_sock.close()
             terminate_dut(proc2)
 
-        assert post_messages, "ETS_081: No SD messages captured after restart"
+        assert post_messages, "FORMAT_07: No SD messages captured after restart"
 
         outer, sd_hdr = post_messages[0]
 
@@ -297,12 +162,11 @@ class TestSDClientReboot:
             reboot_flag = bool(raw_flags & 0x80)
 
         assert reboot_flag, (
-            "ETS_081: Reboot flag not set in first SD message after restart. "
-            "The DUT must reset the reboot flag when restarted (PRS_SOMEIPSD_00385)."
+            "FORMAT_07: Reboot flag not set in first SD message after restart. "
+            "The DUT must set the reboot flag when restarted (PRS_SOMEIPSD_00385)."
         )
-        assert outer.session_id <= 2, (
-            f"ETS_081: session_id after restart = {outer.session_id}; "
-            "expected ≤ 2 (session counter must reset on reboot)"
+        assert outer.session_id == 1, (
+            f"FORMAT_02: session_id of the first message after restart = {outer.session_id}, expected 1"
         )
 
     @add_test_properties(
@@ -310,13 +174,13 @@ class TestSDClientReboot:
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
-    def test_ets_082_reboot_flag_set_after_second_restart(
+    def test_format_07_reboot_flag_set_after_second_restart(
         self,
         sd_client_config: Path,
         host_ip: str,
         request: pytest.FixtureRequest,
     ) -> None:
-        """ETS_082: Reboot flag and session reset hold across a second consecutive restart."""
+        """FORMAT_07/02: Reboot flag and session_id 1 hold across a second consecutive restart."""
         target_init = request.getfixturevalue("target_init")
 
         def _drain_and_stop(pre_sock: socket.socket) -> None:
@@ -361,7 +225,7 @@ class TestSDClientReboot:
             post_sock.close()
             terminate_dut(proc3)
 
-        assert post_messages, "ETS_082: No SD messages captured after second restart"
+        assert post_messages, "FORMAT_07: No SD messages captured after second restart"
 
         outer, sd_hdr = post_messages[0]
 
@@ -371,10 +235,9 @@ class TestSDClientReboot:
             reboot_flag = bool(raw_flags & 0x80)
 
         assert reboot_flag, (
-            "ETS_082: Reboot flag not set after second consecutive restart. "
-            "The DUT must reset the reboot flag on every cold start (PRS_SOMEIPSD_00385)."
+            "FORMAT_07: Reboot flag not set after second consecutive restart. "
+            "The DUT must set the reboot flag on every cold start (PRS_SOMEIPSD_00385)."
         )
-        assert outer.session_id <= 2, (
-            f"ETS_082: session_id after second restart = {outer.session_id}; "
-            "expected ≤ 2 (session counter must reset on every reboot)"
+        assert outer.session_id == 1, (
+            f"FORMAT_02: session_id of the first message after second restart = {outer.session_id}, expected 1"
         )
