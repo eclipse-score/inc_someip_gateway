@@ -116,7 +116,7 @@ class Payload_impl final {
     Span m_data;
     /// Start of m_data if the buffer is writable, nullptr for a read-only payload.
     Byte* m_writable_data{nullptr};
-    std::size_t m_slot_handle;
+    std::size_t m_slot_handle{kNoSlotHandle};
     Payload_destroyed m_payload_destroyed;
 };
 }  // namespace detail

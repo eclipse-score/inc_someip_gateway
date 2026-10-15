@@ -53,6 +53,13 @@ TEST(Payload, EmptyPayloadGetSlotHandleReturnsNoSlotHandle) {
     EXPECT_EQ(kNoSlotHandle, empty_payload().get_slot_handle());
 }
 
+TEST(Payload, DefaultConstructedPayloadHasNoDataAndNoSlotHandle) {
+    Payload const payload{};
+
+    EXPECT_EQ(0U, payload.data().size());
+    EXPECT_EQ(kNoSlotHandle, payload.get_slot_handle());
+}
+
 TEST(Payload, VectorPayloadConstructInitializerList) {
     auto const payload =
         make_vector_payload({std::byte{1}, std::byte{2}, std::byte{3}, std::byte{4}, std::byte{5}});
