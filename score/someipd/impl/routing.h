@@ -14,7 +14,6 @@
 #ifndef IMPL_SOMEIPD_ROUTING
 #define IMPL_SOMEIPD_ROUTING
 
-#include <atomic>
 #include <functional>
 #include <memory>
 #include <thread>
@@ -60,15 +59,16 @@ class Routing {
     /// Returns the vsomeip application instance.
     std::shared_ptr<vsomeip::application> get_application() const noexcept { return application_; }
 
-    /// Runs the routing loop, blocking until @p shutdown_requested is set to true.
+    /// Starts the network stack, blocks in @p wait_for_shutdown, then stops the stack.
+    /// \param wait_for_shutdown Blocks until shutdown is requested.
     /// \param on_registered Optional callback invoked once vsomeip reaches ST_REGISTERED.
     ///        Use this to call setup_vsomeip() on RemoteNetworkService instances.
-    void Run(std::atomic<bool>& shutdown_requested, std::function<void()> on_registered = {});
+    void Run(const std::function<void()>& wait_for_shutdown,
+             std::function<void()> on_registered = {});
 
    private:
     explicit Routing(std::shared_ptr<const score::mw_someip_config::Root> config);
     void SetupOfferings();
-    void ProcessMessages(std::atomic<bool>& shutdown_requested);
     InstanceId LookupInstanceId(ServiceId service_id) const;
 
     std::shared_ptr<const score::mw_someip_config::Root> config_;

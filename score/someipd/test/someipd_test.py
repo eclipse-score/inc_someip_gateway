@@ -12,6 +12,7 @@
 # *******************************************************************************
 
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import unittest
@@ -75,6 +76,32 @@ class SomeipdTest(unittest.TestCase):
             )
         finally:
             stop_process(someipd_process)
+
+    def test_sigterm_and_sigint_exit_with_success(self) -> None:
+        for shutdown_signal in (signal.SIGTERM, signal.SIGINT):
+            with self.subTest(signal=shutdown_signal.name):
+                process = subprocess.Popen(
+                    [
+                        self.binary,
+                        "--configuration",
+                        self.configuration,
+                        "--service_instance_manifest",
+                        self.service_instance_manifest,
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                )
+                try:
+                    wait_for_output(process, "OFFER(0100): [0001.0001", failure_prefix="someipd did not offer")
+                    process.send_signal(shutdown_signal)
+                    try:
+                        returncode = process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        self.fail(f"someipd still running 5 s after {shutdown_signal.name}")
+                    self.assertEqual(returncode, 0)
+                finally:
+                    stop_process(process)
 
 
 if __name__ == "__main__":

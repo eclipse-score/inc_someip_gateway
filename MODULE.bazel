@@ -237,6 +237,11 @@ bazel_dep(name = "score_docs_as_code", version = "8.4.0")
 # Communication Framework
 # ============================================================================
 bazel_dep(name = "score_communication", version = "0.5.0")
+single_version_override(
+    module_name = "score_communication",
+    patch_strip = 1,
+    patches = ["//third_party/score_communication:proxy_usage_marker_order.patch"],
+)
 
 # ============================================================================
 # Base Libraries
