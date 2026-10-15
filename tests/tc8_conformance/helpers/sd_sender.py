@@ -125,6 +125,7 @@ def send_find_service(
     minor_version: int = 0xFFFFFFFF,
     session_id: int = 0,
     flag_unicast: bool = True,
+    ttl: int = 3,
 ) -> None:
     """Send a FindService SD message to *sd_dest*.
 
@@ -135,7 +136,7 @@ def send_find_service(
         service_id=service_id,
         instance_id=instance_id,
         major_version=major_version,
-        ttl=3,
+        ttl=ttl,
         minver_or_counter=minor_version,
     )
     sock.sendto(_build_sd_packet((entry,), session_id, flag_unicast), sd_dest)
@@ -342,12 +343,49 @@ def capture_unicast_sd_entries(
     return collected
 
 
+def capture_sd_payload(
+    sock: socket.socket,
+    entry_type: SOMEIPSDEntryType,
+    timeout_secs: float = 5.0,
+    resend: Optional[Callable[[], None]] = None,
+    resend_interval_secs: float = 1.5,
+) -> Optional[bytes]:
+    """Return the raw SD payload of the first SD message on *sock* holding an entry of *entry_type*.
+
+    *sock* may be a unicast sender socket or a multicast socket.
+
+    Use it when a check needs the entries of one message together or fields the
+    parsed entries drop, such as Reserved. *resend* is called every
+    *resend_interval_secs* until a message arrives. Returns ``None`` on timeout.
+    """
+    deadline = time.monotonic() + timeout_secs
+    next_resend = (time.monotonic() + resend_interval_secs) if resend else None
+
+    while (remaining := deadline - time.monotonic()) > 0:
+        if resend and next_resend and time.monotonic() >= next_resend:
+            resend()
+            next_resend = time.monotonic() + resend_interval_secs
+
+        sock.settimeout(min(remaining, 0.5))
+        try:
+            data, _ = sock.recvfrom(65535)
+        except socket.timeout:
+            continue
+
+        if any(e.sd_type == entry_type for e in _parse_sd_entries(data)):
+            return SOMEIPHeader.parse(data)[0].payload
+    return None
+
+
 def capture_some_ip_messages(
     sock: socket.socket,
     service_id: int,
     timeout_secs: float,
 ) -> List[SOMEIPHeader]:
-    """Receive SOME/IP messages for *service_id* on *sock* within *timeout_secs*."""
+    """Receive SOME/IP messages for *service_id* on *sock* within *timeout_secs*.
+
+    A datagram may carry several messages, all of them are returned.
+    """
     collected: List[SOMEIPHeader] = []
     deadline = time.monotonic() + timeout_secs
 
@@ -361,13 +399,13 @@ def capture_some_ip_messages(
         except socket.timeout:
             continue
 
-        try:
-            msg, _ = SOMEIPHeader.parse(data)
-        except Exception:
-            continue
-
-        if msg.service_id == service_id:
-            collected.append(msg)
+        while data:
+            try:
+                msg, data = SOMEIPHeader.parse(data)
+            except Exception:
+                break
+            if msg.service_id == service_id:
+                collected.append(msg)
 
     return collected
 

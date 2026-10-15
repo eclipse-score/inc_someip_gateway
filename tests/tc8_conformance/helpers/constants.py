@@ -37,8 +37,13 @@ DUT_RELIABLE_PORT: int = int(os.environ.get("TC8_SVC_TCP_PORT", "30510"))
 # ---------------------------------------------------------------------------
 SERVICE_ID: int = int(os.environ.get("TC8_SERVICE_ID", "0x1234"), 16)
 INSTANCE_ID: int = int(os.environ.get("TC8_INSTANCE_ID", "0x5678"), 16)
+#: Second instance of the service, configured in ``tc8_someipd_sd.json``.
+INSTANCE_ID_2: int = 0x5680
 MAJOR_VERSION: int = 1
 MINOR_VERSION: int = 0
+
+#: ``ttl`` (seconds) of the OfferService entries, from ``tc8_someipd_sd.json``.
+OFFER_TTL: int = 30
 
 # ---------------------------------------------------------------------------
 # ETS Sec. 6.1.4.2 event and field notification IDs
@@ -107,8 +112,10 @@ METHOD_FIELD_UINT8_RELIABLE_SET: int = 0x2B
 # ---------------------------------------------------------------------------
 # ETS Sec. 6.1.4.2 eventgroup IDs
 # ---------------------------------------------------------------------------
+# The names are historic. Per OA Table 2, 0x0002 holds all events and fields including the
+# reliable ones, 0x0005 only the unreliable ones and 0x0006 the multicast event.
 EVENTGROUP_UDP_UNICAST: int = 0x0002
-EVENTGROUP_TCP_RELIABLE: int = 0x0005  # mixed: UDP events + TestEventUINT8Reliable (TCP)
+EVENTGROUP_TCP_RELIABLE: int = 0x0005
 EVENTGROUP_UDP_MULTICAST: int = 0x0006
 
 # ---------------------------------------------------------------------------

@@ -12,10 +12,9 @@
 # *******************************************************************************
 """DUT lifecycle helpers shared by TC8 tests that manage the DUT stack directly.
 
-Used by ``test_sd_client.py``, ``test_sd_reboot.py``, and
-``test_sd_phases_timing.py``.  All functions operate in ITF (QEMU) mode:
-*target_init* is a ``QemuTarget`` provided by the ITF framework and
-commands execute on the QEMU guest via SSH.
+Used by ``test_sd_client.py`` and ``test_sd_phases_timing.py``.
+All functions operate in ITF (QEMU) mode: *target_init* is a ``QemuTarget`` provided by
+the ITF framework and commands execute on the QEMU guest via SSH.
 """
 
 import logging

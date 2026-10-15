@@ -16,6 +16,9 @@ SOME/IP assertion helpers for TC8 conformance tests.
 Reusable assertion functions for SD entry fields and SOME/IP message headers.
 """
 
+import ipaddress
+
+from helpers.sd_helpers import RawEventgroupEntry
 from helpers.someip_types import (
     IPv4EndpointOption,
     L4Protocols,
@@ -59,6 +62,59 @@ def assert_sd_offer_entry(
 
     # TTL=0 means StopOffer, so an OFFER entry's TTL must be > 0.
     assert entry.ttl > 0, f"TC8-SD-002: OFFER TTL must be > 0; got {entry.ttl}"
+
+
+def assert_eventgroup_ack_entry(
+    entry: RawEventgroupEntry,
+    label: str,
+    service_id: int,
+    instance_id: int,
+    major_version: int,
+    eventgroup_id: int,
+    ttl: int,
+) -> None:
+    """Assert a SubscribeAck entry (NAck when *ttl* is 0) echoes the subscription, with Reserved 0."""
+    assert entry.entry_type == SOMEIPSDEntryType.SubscribeAck, (
+        f"{label}: entry type 0x{entry.entry_type:02x}, expected SubscribeEventgroupAck (0x07)"
+    )
+    expected = (service_id, instance_id, major_version, eventgroup_id, ttl, 0)
+    actual = (
+        entry.service_id,
+        entry.instance_id,
+        entry.major_version,
+        entry.eventgroup_id,
+        entry.ttl,
+        entry.reserved,
+    )
+    assert actual == expected, (
+        f"{label}: Ack (service, instance, major, eventgroup, ttl, reserved) = "
+        f"{tuple(hex(v) for v in actual)}, expected {tuple(hex(v) for v in expected)}"
+    )
+
+
+def assert_raw_ipv4_option(
+    option: bytes,
+    label: str,
+    option_type: int,
+    address: str,
+    l4proto: int,
+    port: int,
+) -> None:
+    """Assert a raw IPv4 option has Length 0x0009, both Reserved fields 0x00 and the given content."""
+    assert len(option) == 12, f"{label}: option is {len(option)} bytes, expected 12"
+    actual = (
+        int.from_bytes(option[0:2], "big"),
+        option[2],
+        option[3],
+        str(ipaddress.IPv4Address(option[4:8])),
+        option[8],
+        option[9],
+        int.from_bytes(option[10:12], "big"),
+    )
+    expected = (0x0009, option_type, 0x00, address, 0x00, l4proto, port)
+    assert actual == expected, (
+        f"{label}: option (length, type, reserved, address, reserved, l4proto, port) = {actual}, expected {expected}"
+    )
 
 
 def assert_valid_response(resp: SOMEIPHeader, req_service_id: int, req_method_id: int) -> None:

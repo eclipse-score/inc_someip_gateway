@@ -212,21 +212,22 @@ def _endpoint_option_bytes(
     port: int,
     l4proto: int = 0x11,  # 0x11 = UDP, 0x06 = TCP
     length_override: Optional[int] = None,
+    reserved: int = 0x00,
 ) -> bytes:
     """Build a 12-byte IPv4 Endpoint Option.
 
     Wire layout:
       [0-1]  length = 0x0009
       [2]    type   = 0x04
-      [3]    reserved = 0x00
+      [3]    reserved (*reserved*, 0x00 by default)
       [4-7]  IPv4 address
-      [8]    reserved = 0x00
+      [8]    reserved (*reserved*, 0x00 by default)
       [9]    l4proto
       [10-11] port
     """
     length_field = length_override if length_override is not None else 0x0009
     addr_bytes = socket.inet_aton(ip)
-    return struct.pack(">HBB", length_field, 0x04, 0x00) + addr_bytes + struct.pack(">BBH", 0x00, l4proto, port)
+    return struct.pack(">HBB", length_field, 0x04, reserved) + addr_bytes + struct.pack(">BBH", reserved, l4proto, port)
 
 
 def _unknown_option_bytes(option_type: int = 0x77, content_len: int = 4) -> bytes:
@@ -628,7 +629,7 @@ def send_sd_subscribe_reserved_option(
     host_ip: str,
     subscriber_port: int,
 ) -> None:
-    """ETS_144: SubscribeEventgroup with a reserved option type (0x20).
+    """SubscribeEventgroup with a reserved option type (0x20).
 
     DUT must send NAck or silently discard.
     """
@@ -639,6 +640,37 @@ def send_sd_subscribe_reserved_option(
         num_opts=1,
     )
     opt_bytes = _unknown_option_bytes(option_type=0x20, content_len=8)
+    pkt = build_raw_sd_packet(
+        flags=_SD_FLAGS_REBOOT_UNICAST,
+        entries_bytes=entry_bytes,
+        options_bytes=opt_bytes,
+    )
+    sock.sendto(pkt, dest)
+
+
+def send_sd_subscribe_option_reserved_set(
+    sock: socket.socket,
+    dest: Tuple[str, int],
+    service_id: int,
+    instance_id: int,
+    eventgroup_id: int,
+    major_version: int,
+    host_ip: str,
+    subscriber_port: int,
+    reserved: int = 0xFF,
+) -> None:
+    """ETS_144: SubscribeEventgroup whose endpoint option has both Reserved fields set to *reserved*.
+
+    DUT must ignore the reserved fields and send a SubscribeEventgroupAck.
+    """
+    entry_bytes = _subscribe_entry_bytes(
+        service_id=service_id,
+        instance_id=instance_id,
+        eventgroup_id=eventgroup_id,
+        major_version=major_version,
+        num_opts=1,
+    )
+    opt_bytes = _endpoint_option_bytes(host_ip, subscriber_port, reserved=reserved)
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
         entries_bytes=entry_bytes,
