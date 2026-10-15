@@ -29,6 +29,18 @@
                     "update-cycle": 500
                 },
                 {
+                    "event": "0x8005",
+                    "is_field": "true"
+                },
+                {
+                    "event": "0x8006",
+                    "is_field": "true"
+                },
+                {
+                    "event": "0x8007",
+                    "is_field": "true"
+                },
+                {
                     "event": "0x800B",
                     "is_field": "false",
                     "is_reliable": "false",
@@ -39,13 +51,19 @@
                 {
                     "eventgroup": "0x0002",
                     "events": [
-                        "0x8001"
+                        "0x8001",
+                        "0x8005",
+                        "0x8006",
+                        "0x8007"
                     ]
                 },
                 {
                     "eventgroup": "0x0005",
                     "events": [
-                        "0x8001"
+                        "0x8001",
+                        "0x8005",
+                        "0x8006",
+                        "0x8007"
                     ]
                 },
                 {
@@ -60,6 +78,12 @@
                     "threshold": "1"
                 }
             ]
+        },
+        {
+            "service": "__TC8_SERVICE_ID__",
+            "instance": "0x5680",
+            "major_version": "0x01",
+            "unreliable": "__TC8_SVC_PORT__"
         }
     ],
     "routing": "someipd",
