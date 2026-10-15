@@ -47,6 +47,17 @@ For requirement definitions see :doc:`requirements`.
    subscribes to events). This usage mirrors TC8 OA Section 6.1.5 ("Test Cases SOME/IP
    Server") and Section 6.1.6 ("Test Cases ETS") directly.
 
+.. note:: DUT scope
+
+   The OA ETS cases assume the Enhanced Testability Service. The DUT here is
+   ``someipd`` offering service ``0x1234`` with the instances ``0x5678`` and
+   ``0x5680``, eventgroups ``0x0002``, ``0x0005`` and ``0x0006``, the cyclic field
+   ``0x8001`` (500 ms), the multicast event ``0x800B`` and the fields ``0x8005`` to
+   ``0x8007``, which have no update cycle and are sent only as initial fields. It has
+   no trigger methods, so OA steps that call one are marked "Not verified".
+   The OA procedures take the instance ID from the received OfferService. The tests
+   use the configured ID, which is the same.
+
 Service Discovery Tests
 -----------------------
 
@@ -55,7 +66,7 @@ Service Discovery Tests
 TC8-SD-001: Multicast Offer on Startup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08
+:OA Spec Reference: none (project specific)
 :Test Module: ``test_service_discovery.py``
 :Test Function: ``test_tc8_sd_001_multicast_offer_on_startup``
 :Requirement: ``comp_req__tc8_conformance__sd_offer_format``
@@ -75,7 +86,7 @@ None, passive observation of DUT multicast traffic.
 
 **Expected Result:**
 At least one SOME/IP-SD message containing an OfferService entry is
-received on the multicast group within 5 seconds of DUT startup.
+received on the multicast group within 5 seconds of the start of the capture.
 
 TC8-SD-002: Offer Entry Format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -95,11 +106,11 @@ instance ID, major/minor version, and TTL as configured.
 - Same as TC8-SD-001.
 
 **Stimuli:**
-None, passive observation.
+None, passive observation of the first OfferService of the capture.
 
 **Expected Result:**
 OfferService entry has ``service_id=0x1234``, ``instance_id=0x5678``,
-``major_version=0x01``, ``minor_version=0x00000000``, and ``TTL > 0``.
+``major_version=0x01``, ``minor_version=0x00000000``, and ``TTL = 30`` (configured ``ttl``).
 
 TC8-SD-003: Cyclic Offer Timing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -116,13 +127,14 @@ Verify that OfferService entries repeat at the configured
 
 **Preconditions:**
 
-- DUT in SD main phase (wait for repetition phase to complete).
+- DUT in SD main phase (wait at least the total repetition period of 1400 ms).
 
 **Stimuli:**
 None, passive observation with timestamps.
 
 **Expected Result:**
-Inter-offer gaps in main phase are within [1600 ms, 2400 ms].
+Inter-offer gaps in main phase are within [1600 ms, 2400 ms]. The OA bound is
+CYCLE-INTV ± ToleranceTime (default 1 s). This test applies ±20%, which is stricter.
 
 TC8-SD-004: FindService Known Service
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -142,15 +154,16 @@ FindService is sent for a known service.
 - DUT offering service ``0x1234``.
 
 **Stimuli:**
-Send SD FindService entry for service ``0x1234`` / instance ``0x5678``.
+Send SD FindService entry for service ``0x1234`` / instance ``0x5678`` unicast to
+the DUT, repeated every 1.5 seconds for up to 5 seconds.
 
 **Expected Result:**
-Unicast OfferService entry received for the requested service.
+At least one unicast OfferService entry received for the requested service.
 
 TC8-SD-005: FindService Unknown Service
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: Section 6.1.5.4, implied by SD_BEHAVIOR_03/04
+:OA Spec Reference: none (project specific)
 :Test Module: ``test_service_discovery.py``
 :Test Function: ``test_tc8_sd_005_find_unknown_service_no_response``
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
@@ -165,7 +178,7 @@ unknown service.
 - DUT running, not offering service ``0xBEEF``.
 
 **Stimuli:**
-Send SD FindService entry for service ``0xBEEF``.
+Send SD FindService entry for service ``0xBEEF`` to the SD multicast group.
 
 **Expected Result:**
 No OfferService entry received for service ``0xBEEF`` within 2 seconds.
@@ -180,23 +193,25 @@ TC8-SD-006: Subscribe Eventgroup Ack
 :DUT Config: ``tc8_someipd_sd.json``
 
 **Purpose:**
-Verify that ``someipd`` sends SubscribeEventgroupAck (TTL > 0) for a
-valid eventgroup subscription.
+Verify that ``someipd`` answers a valid eventgroup subscription with a
+SubscribeEventgroupAck that echoes the subscription.
 
 **Preconditions:**
 
 - DUT offering eventgroup ``0x0002``.
 
 **Stimuli:**
-Send SD SubscribeEventgroup for service ``0x1234``, eventgroup ``0x0002``.
+Send SD SubscribeEventgroup for service ``0x1234``, instance ``0x5678``, eventgroup
+``0x0002``, major version ``0x01``, TTL ``0xFFFFFF``, Reserved 0.
 
 **Expected Result:**
-SubscribeEventgroupAck with TTL > 0 received.
+SubscribeEventgroupAck with the same service ID, instance ID, eventgroup ID and
+major version, TTL ``0xFFFFFF`` and Reserved 0.
 
 TC8-SD-007: Subscribe Unknown Eventgroup Nack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14; Section 6.1.6, SOMEIP_ETS_140
+:OA Spec Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19; Section 6.1.6, SOMEIP_ETS_140
 :Test Module: ``test_service_discovery.py``
 :Test Function: ``test_tc8_sd_007_subscribe_unknown_eventgroup_nack``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
@@ -211,7 +226,7 @@ an unknown eventgroup.
 - DUT running, eventgroup ``0xBEEF`` not configured.
 
 **Stimuli:**
-Send SD SubscribeEventgroup for eventgroup ``0xBEEF``.
+Send SD SubscribeEventgroup for eventgroup ``0xBEEF``, TTL ``0xFFFFFF``.
 
 **Expected Result:**
 SubscribeEventgroupAck with TTL = 0 (Nack) received.
@@ -241,6 +256,9 @@ Send SD SubscribeEventgroup with TTL = 0 (StopSubscribe).
 **Expected Result:**
 No further notifications received within 4 seconds.
 
+Not verified: the initial event and the TestEventUINT8 trigger (the DUT has no
+trigger method).
+
 TC8-SD-009: Repetition Phase Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -251,8 +269,8 @@ TC8-SD-009: Repetition Phase Intervals
 :DUT Config: ``tc8_someipd_sd.json``
 
 **Purpose:**
-Verify that the first inter-offer gap after startup is a Repetition
-Phase gap (shorter than half the cyclic offer delay).
+Verify that the first two inter-offer gaps after startup follow the Repetition
+Phase: about the base delay (200 ms), then about twice that (400 ms).
 
 **Preconditions:**
 
@@ -262,12 +280,13 @@ Phase gap (shorter than half the cyclic offer delay).
 None, passive observation from DUT start.
 
 **Expected Result:**
-First gap < 1000 ms (half of ``cyclic_offer_delay`` 2000 ms).
+First gap < 1000 ms (half of ``cyclic_offer_delay`` 2000 ms). Second gap
+400 ms ±20% (2 x ``repetitions_base_delay`` 200 ms).
 
 TC8-SD-010: Repetition Count
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01
+:OA Spec Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01 (doubling of the delay only; the repetition count is a project check)
 :Test Module: ``test_sd_phases_timing.py``
 :Test Function: ``test_tc8_sd_010_repetition_count_before_main_phase``
 :Requirement: ``comp_req__tc8_conformance__sd_phases_timing``
@@ -285,12 +304,13 @@ transition to main phase.
 None, passive observation from DUT start.
 
 **Expected Result:**
-At least 2 short gaps (< 1000 ms) observed before a long gap (main phase).
+At least 2 short gaps (< 1000 ms) observed before a long gap (main phase). Each
+repetition gap is at least 1.5 times the previous one.
 
 TC8-SD-011: IPv4 Endpoint Option
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Spec Reference: Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07
+:OA Spec Reference: Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07; Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08
 :Test Module: ``test_service_discovery.py``
 :Test Function: ``test_tc8_sd_011_offer_ipv4_endpoint_option``
 :Requirement: ``comp_req__tc8_conformance__sd_endpoint_option``
@@ -308,8 +328,8 @@ with the correct address, port, and L4 protocol.
 None, passive observation with option parsing.
 
 **Expected Result:**
-IPv4EndpointOption present with address matching ``host_ip``,
-port = 30509, protocol = UDP.
+Exactly one IPv4EndpointOption with Length ``0x0009``, both Reserved fields
+``0x00``, address ``TC8_DUT_IP``, port = 30509, protocol = UDP (``0x11``).
 
 TC8-SD-013: Multicast Eventgroup Option
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -334,7 +354,13 @@ a multicast IPv4EndpointOption.
 Send SD SubscribeEventgroup for eventgroup ``0x0006``.
 
 **Expected Result:**
-SubscribeEventgroupAck contains a multicast IPv4EndpointOption.
+SubscribeEventgroupAck contains a multicast IPv4EndpointOption with option type
+``0x14``, Length ``0x0009``, both Reserved fields ``0x00``, address ``239.0.0.1``,
+protocol = UDP (``0x11``) and port = 40490.
+
+The OA Synopsis of SOMEIPSRV_OPTIONS_14 names the port of the multicast events,
+its Pass criteria name ``<SERVICE-ID-1-UDP-PORT>``. This test asserts the
+multicast event port.
 
 TC8-SD-014: TTL Expiry Cleanup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -359,63 +385,69 @@ Wait for TTL to expire (3 s + 2 s margin).
 **Expected Result:**
 No notifications received in a 3-second window after TTL expiry.
 
+Not verified: the reaction to an explicit TriggerEventUint8 call (the DUT has no
+trigger method).
+
 SD Entry Semantics Tests
 -------------------------
 
 :DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
 :Test Module: ``test_service_discovery``
 
-TC8-SDM-001: FindService Wildcard Instance
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-001: FindService: Any Instance (0xFFFF)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_01
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
-:Test Function: ``TestSDVersionMatching::test_sd_message_01_instance_wildcard``
+:Test Function: ``TestSDVersionMatching::test_sd_message_01_any_instance``
 
 **Purpose:**
-Verify that a FindService with instance_id = 0xFFFF (wildcard) elicits an OfferService
-for the configured instance.
+Verify that a FindService with instance_id = 0xFFFF (Any Instance) elicits an OfferService
+entry for every offered instance of the service.
 
 **Stimulus:**
 Send FindService with instance_id = 0xFFFF.
 
 **Expected Result:**
-OfferService received with ``instance_id == 0x5678``.
+OfferService with two entries for service_id = 0x1234 and different instance IDs
+(0x5678 and 0x5680).
 
-TC8-SDM-002: FindService Specific Instance
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-002: FindService: Specific Instance
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_02
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
 :Test Function: ``TestSDVersionMatching::test_sd_message_02_instance_specific``
 
 **Purpose:**
-Verify that a FindService with the exact instance_id = 0x5678 elicits an OfferService.
+Verify that a FindService with an exact instance_id elicits exactly one OfferService entry
+for that instance.
 
 **Stimulus:**
-Send FindService with instance_id = 0x5678.
+Send FindService with instance_id = 0x5678, then with instance_id = 0x5680.
 
 **Expected Result:**
-OfferService received for service_id = 0x1234, instance_id = 0x5678.
+Each time one OfferService entry for service_id = 0x1234 and the requested instance_id.
 
-TC8-SDM-003: FindService Wildcard Major Version
+TC8-SDM-003: FindService: Any Major Version (0xFF)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_03
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
-:Test Function: ``TestSDVersionMatching::test_sd_message_03_major_version_wildcard``
+:Test Function: ``TestSDVersionMatching::test_sd_message_03_any_major_version``
 
 **Purpose:**
-Verify that a FindService with major_version = 0xFF (any) elicits an OfferService.
+Verify that a FindService with major_version = 0xFF (Any Major Version) elicits an
+OfferService.
 
 **Stimulus:**
-Send FindService with major_version = 0xFF.
+Send FindService with major_version = 0xFF, TTL = 0xFFFFFF.
 
 **Expected Result:**
-OfferService received for the configured service.
+OfferService received for the configured service with major_version = 0x01.
 
-TC8-SDM-004: FindService Specific Major Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-004: FindService: Specific Major Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_04
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
@@ -425,181 +457,169 @@ TC8-SDM-004: FindService Specific Major Version
 Verify that a FindService with the exact major_version = 0x01 elicits an OfferService.
 
 **Stimulus:**
-Send FindService with major_version = 0x01.
+Send FindService with major_version = 0x01, TTL = 0xFFFFFF.
 
 **Expected Result:**
-OfferService received for the configured service.
+OfferService received for the configured service with major_version = 0x01.
 
-TC8-SDM-005: FindService Wildcard Minor Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-005: FindService: Any Minor Version (0xFFFFFFFF)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_05
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
-:Test Function: ``TestSDVersionMatching::test_sd_message_05_minor_version_wildcard``
+:Test Function: ``TestSDVersionMatching::test_sd_message_05_any_minor_version``
 
 **Purpose:**
-Verify that a FindService with minor_version = 0xFFFFFFFF (wildcard) elicits an
+Verify that a FindService with minor_version = 0xFFFFFFFF (Any Minor Version) elicits an
 OfferService.
 
 **Stimulus:**
 Send FindService with minor_version = 0xFFFFFFFF.
 
 **Expected Result:**
-OfferService received for the configured service.
+OfferService received for the configured service with minor_version = 0x00000000.
 
-TC8-SDM-006: FindService Specific Minor Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-006: FindService: Specific Minor Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_06
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
 :Test Function: ``TestSDVersionMatching::test_sd_message_06_minor_version_specific``
 
 **Purpose:**
-Verify that a FindService with minor_version = 0x00000000 (exact) elicits an
+Verify that a FindService with the exact minor_version = 0x00000000 elicits an
 OfferService.
 
 **Stimulus:**
 Send FindService with minor_version = 0x00000000.
 
 **Expected Result:**
-OfferService received for the configured service.
+OfferService received for the configured service with minor_version = 0x00000000.
 
-TC8-SDM-007: SubscribeEventgroup: Wrong Major Version Rejected
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-007: SubscribeEventgroup: Wrong Major Version NAck
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14
+:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_18; Section 6.1.6, SOMEIP_ETS_142
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeNAck::test_sd_message_14_wrong_major_version``
+:Test Function: ``TestSDSubscribeNAck::test_sd_message_18_wrong_major_version``
 
 **Purpose:**
-Verify that a SubscribeEventgroup with a non-matching major version is rejected with
-NAck (SubscribeEventgroupAck TTL = 0) or silently ignored.
+Verify that a SubscribeEventgroup with a non-matching major version is answered with a
+NAck (SubscribeEventgroupAck with TTL = 0) that carries the requested major version.
 
 **Stimulus:**
-Send SubscribeEventgroup with major_version = 0x7F (not 0x01).
+Send SubscribeEventgroup for the configured service, instance and eventgroup with
+major_version = 0x02 (configured major version + 1), TTL = 0xFFFFFF, Reserved = 0.
 
 **Expected Result:**
-No positive SubscribeAck (TTL > 0) received; DUT remains functional.
+SubscribeEventgroupAck with TTL = 0 and major_version = 0x02.
 
-TC8-SDM-008: SubscribeEventgroup: Wrong Service ID Rejected
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-008: SubscribeEventgroup: Unknown Service ID NAck
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_15
+:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14-16; Section 6.1.6, SOMEIP_ETS_143
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeNAck::test_sd_message_15_wrong_service_id``
+:Test Function: ``TestSDSubscribeNAck::test_sd_message_14_15_16_unknown_service_id``
 
 **Purpose:**
-Verify that a SubscribeEventgroup for an unknown service is rejected or ignored.
+Verify that a SubscribeEventgroup for an unknown service is answered with a NAck that
+echoes the request.
 
 **Stimulus:**
-Send SubscribeEventgroup with service_id = 0xBEEF.
+Send SubscribeEventgroup with service_id = 0xBEEF and the configured instance, eventgroup
+and major version, TTL = 0xFFFFFF, Reserved = 0.
 
 **Expected Result:**
-No positive SubscribeAck; DUT remains functional.
+SubscribeEventgroupAck with TTL = 0, service_id = 0xBEEF and the instance ID, eventgroup
+ID and major version of the request, Reserved = 0.
 
-TC8-SDM-009: SubscribeEventgroup: Wrong Instance ID Rejected
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-009: SubscribeEventgroup: Unknown Instance ID NAck
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_16
+:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_17; Section 6.1.6, SOMEIP_ETS_141
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeNAck::test_sd_message_16_wrong_instance_id``
+:Test Function: ``TestSDSubscribeNAck::test_sd_message_17_wrong_instance_id``
 
 **Purpose:**
-Verify that a SubscribeEventgroup for an unknown instance is rejected or ignored.
+Verify that a SubscribeEventgroup for an unknown instance is answered with a NAck that
+carries the requested instance ID.
 
 **Stimulus:**
-Send SubscribeEventgroup with instance_id = 0xBEEF.
+Send SubscribeEventgroup with instance_id = 0x5679 (configured instance + 1), TTL =
+0xFFFFFF, Reserved = 0.
 
 **Expected Result:**
-No positive SubscribeAck; DUT remains functional.
+SubscribeEventgroupAck with TTL = 0 and instance_id = 0x5679.
 
-TC8-SDM-010: SubscribeEventgroup: Unknown Eventgroup Rejected
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_17
-:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeNAck::test_sd_message_17_unknown_eventgroup_id``
-
-**Purpose:**
-Verify that a SubscribeEventgroup for an unknown eventgroup ID is rejected with NAck.
-
-**Stimulus:**
-Send SubscribeEventgroup with eventgroup_id = 0xBEEF.
-
-**Expected Result:**
-SubscribeAck with TTL = 0 (NAck) received.
-
-TC8-SDM-011: SubscribeEventgroup: TTL = 0 is StopSubscribe
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_18
-:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeNAck::test_sd_message_18_ttl_zero_stop_subscribe``
-
-**Purpose:**
-Verify that a SubscribeEventgroup with TTL = 0 is treated as StopSubscribeEventgroup
-and does not elicit a positive ACK.
-
-**Stimulus:**
-Subscribe (TTL > 0) then immediately send another SubscribeEventgroup with TTL = 0.
-
-**Expected Result:**
-No positive ACK after the TTL = 0 message.
-
-TC8-SDM-012: SubscribeEventgroup: Reserved Bits Set Rejected
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-010: SubscribeEventgroup: Unknown Eventgroup NAck
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeNAck::test_sd_message_19_reserved_field_set``
+:Test Function: ``TestSDSubscribeNAck::test_sd_message_19_unknown_eventgroup_id``
 
 **Purpose:**
-Verify that a SubscribeEventgroup with reserved flag bits set is rejected with NAck.
-
-.. note::
-
-   This test is expected to **FAIL** against vsomeip 3.6.1: the stack sends a
-   positive ACK instead of NAck.
+Verify that a SubscribeEventgroup for an unknown eventgroup ID is answered with a NAck.
 
 **Stimulus:**
-Send SubscribeEventgroup with reserved SD flags bits set to 1.
+Send SubscribeEventgroup with eventgroup_id = 0xBEEF, TTL = 0xFFFFFF.
 
 **Expected Result:**
-NAck (SubscribeAck TTL = 0) received; no positive ACK.
+SubscribeEventgroupAck with eventgroup_id = 0xBEEF and TTL = 0 (NAck).
 
-TC8-SDM-013: FindService Response Timing (Unicast)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-012: SubscribeEventgroup: Reserved Fields of Endpoint Option Set
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_144
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeNAck::test_ets_144_reserved_field_endpoint_option_set``
+
+**Purpose:**
+Verify that the DUT ignores set reserved fields of the IPv4 Endpoint Option in a
+SubscribeEventgroup and sends a SubscribeEventgroupAck.
+
+**Stimulus:**
+Send SubscribeEventgroup whose Endpoint Option has its reserved fields set.
+
+**Expected Result:**
+SubscribeEventgroupAck with TTL > 0.
+
+TC8-SDM-013: FindService After Half Cyclic Offer Delay: Multicast Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_03
 :Requirement: ``comp_req__tc8_conformance__sd_cyclic_timing``
 :Test Function: ``TestSDFindServiceTiming::test_sd_behavior_03_unicast_findservice_timing``
 
 **Purpose:**
-Verify that a unicast OfferService response to a FindService arrives within the
-configured request-response delay.
+Verify that a FindService with the Unicast Flag set, received at least half a cyclic
+offer delay after the last OfferService, is answered with a multicast OfferService.
 
 **Stimulus:**
-Send unicast FindService; measure time to first OfferService response.
+Wait for the main phase and receive a cyclic OfferService. Wait
+``cyclic_offer_delay`` / 2 (1 s), then send FindService with the Unicast Flag set.
 
 **Expected Result:**
-OfferService received within the configured delay window.
+OfferService with IP destination address equal to the SD multicast group, received
+within 1.5 times ``request_response_delay`` and before the next cyclic OfferService.
 
-TC8-SDM-014: FindService Response Timing (Multicast)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDM-014: FindService With Unicast Flag Cleared: Multicast Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_04
 :Requirement: ``comp_req__tc8_conformance__sd_cyclic_timing``
 :Test Function: ``TestSDFindServiceTiming::test_sd_behavior_04_multicast_findservice_timing``
 
 **Purpose:**
-Verify that an OfferService response to a multicast FindService arrives within the
-configured delay.
+Verify that a FindService with the Unicast Flag cleared is answered with a multicast
+OfferService.
 
 **Stimulus:**
-Send multicast FindService; measure time to OfferService response.
+Wait for the main phase, then send FindService with the Unicast Flag = 0.
 
 **Expected Result:**
-OfferService received within the allowed window.
+OfferService with IP destination address equal to the SD multicast group, received
+within ``cyclic_offer_delay`` (2 s).
 
 SD Lifecycle Advanced Tests
 ----------------------------
@@ -607,15 +627,15 @@ SD Lifecycle Advanced Tests
 :DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
 :Test Module: ``test_service_discovery`` (TestSDSubscribeLifecycleAdvanced, TestSDFindServiceAdvanced) and ``test_sd_client``
 
-TC8-SDLC-001: Two Simultaneous Subscribes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDLC-001: Multiple Subscribes in One Message
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.6, SOMEIP_ETS_088
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_088_two_subscribes_same_session``
 
 **Purpose:**
-Verify that three SubscribeEventgroup entries (eventgroups ``0x0002``,
+Verify (OA SD_Answer_multiple_subscribes_together) that three SubscribeEventgroup entries (eventgroups ``0x0002``,
 ``0x0005``, ``0x0006``) in one SD message each receive a positive ACK.
 
 **Stimulus:**
@@ -625,35 +645,37 @@ Send an SD message containing three SubscribeEventgroup entries.
 Three ACK entries received (one per subscription).
 
 TC8-SDLC-002: TTL = 0 as StopSubscribe (No NAck)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.6, SOMEIP_ETS_092
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_092_ttl_zero_stop_subscribe_no_nack``
 
 **Purpose:**
-Verify that a SubscribeEventgroup with TTL = 0 stops the subscription without
-triggering a NAck from the DUT.
+Verify that a unicast SubscribeEventgroup with TTL = 0 gets no reaction from the DUT (no
+Ack, no NAck).
 
 **Stimulus:**
-Subscribe then send SubscribeEventgroup TTL = 0.
+Send a unicast SubscribeEventgroup with TTL = 0 (no prior subscription).
 
 **Expected Result:**
-No NAck (SubscribeAck TTL = 0) received after the StopSubscribe.
+No SubscribeEventgroupAck or SubscribeEventgroupNack received within 2 seconds.
 
-TC8-SDLC-003: Subscribe Without Prior RPC Call
+The OA procedure numbers its steps from 3.
+
+TC8-SDLC-003: Subscribe Without Prior Method Call
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: Section 6.1.6, SOMEIP_ETS_098
+:OA Reference: none (project specific)
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_098_subscribe_accepted_without_prior_rpc``
+:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_subscribe_accepted_without_prior_method_call``
 
 **Purpose:**
-Verify that the DUT accepts a SubscribeEventgroup without any prior method call
-(no prerequisite RPC interaction required).
+Verify that the DUT accepts a SubscribeEventgroup without any prior method call (no
+prerequisite RPC interaction required).
 
 **Stimulus:**
-Send SubscribeEventgroup immediately after service discovery, without any RPC.
+Send SubscribeEventgroup immediately after service discovery, without any method call.
 
 **Expected Result:**
 Positive SubscribeAck received.
@@ -670,12 +692,13 @@ Verify that the DUT handles the entries of one SD message in order
 (SOMEIP_ETS_107, SD_Consider_Entries_Order).
 
 **Stimulus:**
-Subscribe, then send one SD message with a StopSubscribeEventgroup entry
-(TTL = 0) followed by a SubscribeEventgroup entry for the same eventgroup.
+Subscribe to eventgroup ``0x0005``, then send one SD message with a
+StopSubscribeEventgroup entry (TTL = 0) followed by a SubscribeEventgroup entry for the
+same eventgroup.
 
 **Expected Result:**
-The entries are processed in order: a new SubscribeAck is received and events
-arrive after the re-subscribe.
+The entries are processed in order: a new SubscribeAck is received and the initial
+fields (``0x8005`` to ``0x8007``) arrive again after the re-subscribe.
 
 TC8-SDLC-005: Events Sent to Endpoint Option Port
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -694,24 +717,9 @@ Send SubscribeEventgroup from the SD socket with an endpoint option naming a
 different tester port.
 
 **Expected Result:**
-The ACK arrives on the SD socket and events arrive on the endpoint option socket.
-
-TC8-SDLC-006: SD Interface Version = 0x01
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Reference: Section 6.1.6, SOMEIP_ETS_122
-:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
-:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_ets_122_sd_interface_version_is_one``
-
-**Purpose:**
-Verify that the SD interface_version field in DUT OfferService messages is 0x01.
-
-**Stimulus:**
-Passive capture of SD OfferService.
-
-**Expected Result:**
-``sd_hdr.interface_version == 0x01`` (same as SOMEIPSRV_FORMAT_04, verified in context
-of the lifecycle sequence).
+The ACK arrives on the SD socket and the initial fields (``0x8005`` to ``0x8007``)
+arrive on the endpoint option socket. Not verified: an option IP address that differs
+from the tester IP address.
 
 TC8-SDLC-007: Re-subscribe After StopSubscribe
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -722,15 +730,15 @@ TC8-SDLC-007: Re-subscribe After StopSubscribe
 
 **Purpose:**
 Verify that a subscription can be re-established after a StopSubscribeEventgroup
-(TTL = 0), a new ACK is sent and notifications arrive. Initial events cannot be
-told apart from cyclic ones, so the test only partially verifies the requirement.
+(TTL = 0), a new ACK is sent and the initial fields arrive. The OA procedure has no
+tester step for the re-subscribe, the OA synopsis says the tester subscribes again.
 
 **Stimulus:**
 Subscribe, wait for the ACK, StopSubscribe, re-Subscribe.
 
 **Expected Result:**
-A new SubscribeAck and at least one notification are received after the
-re-subscription.
+A new SubscribeAck and the initial fields (``0x8005`` to ``0x8007``) are received after
+the re-subscription.
 
 TC8-SDLC-008: Session ID Increments per OfferService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -757,20 +765,20 @@ TC8-SDLC-009: Events Sent After Subscribe ACK
 :Test Function: ``TestSDFindServiceAdvanced::test_ets_121_events_sent_after_subscribe_ack``
 
 **Purpose:**
-Verify that the DUT sends at least one notification to a new subscriber after a
-successful SubscribeEventgroup ACK. The initial event cannot be told apart from
-a cyclic one, so the test only partially verifies the requirement.
+Verify that the DUT sends the initial fields to a new subscriber after a successful
+SubscribeEventgroup ACK.
 
 **Stimulus:**
-Subscribe to eventgroup; wait for the first notification.
+Subscribe to eventgroup ``0x0005``; wait for the ACK and the initial fields.
 
 **Expected Result:**
-At least one NOTIFICATION received within 5 seconds after the ACK.
+A SubscribeEventgroupAck and the initial fields (``0x8005`` to ``0x8007``) received
+within 5 seconds after the ACK.
 
 TC8-SDLC-010: Server Does Not Emit FindService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: none (project-specific, OA ETS_100 is a client-mode scenario)
+:OA Reference: none (project specific)
 :Requirement: ``comp_req__tc8_conformance__sd_offer_format``
 :Test Function: ``TestSDFindServiceAdvanced::test_sd_server_no_findservice_in_main_phase``
 
@@ -779,46 +787,45 @@ Verify that the DUT (acting as service provider) does not emit FindService entri
 in its SD messages during the main phase.
 
 **Stimulus:**
-Observe SD traffic for 6 seconds; collect all SD entries from the DUT.
+Observe SD traffic for 5 seconds; collect all SD entries from the DUT.
 
 **Expected Result:**
 No FindService entries observed in DUT SD traffic.
 
-TC8-SDLC-011: StopOfferService Ceases Client Events
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDLC-011: StopOfferService Stops FindService
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.6, SOMEIP_ETS_101
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :Test Function: ``TestSDFindServiceAdvanced::test_ets_101_stop_offer_ceases_client_events``
 
 **Purpose:**
-Verify that receipt of a StopOfferService (OfferService TTL = 0) from a server causes
-the subscribed client to cease receiving events.
-
-.. note::
-
-   This test is currently implemented as ``pytest.skip`` because stopping the DUT's
-   OfferService from an external tester requires a reverse-direction SD client target.
+Verify that the DUT stops sending FindService for a service after a StopOfferService.
 
 **Stimulus:**
 N/A (skipped).
 
-TC8-SDLC-012: Multicast FindService: Wildcard Versions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Expected Result:**
+Not applicable: the DUT has no ETS client mode (``clientServiceActivate``).
+
+TC8-SDLC-012: Multicast FindService: Any Major and Any Minor Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.6, SOMEIP_ETS_128
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
-:Test Function: ``TestSDFindServiceAdvanced::test_ets_128_multicast_findservice_version_wildcard``
+:Test Function: ``TestSDFindServiceAdvanced::test_ets_128_multicast_findservice_version_any``
 
 **Purpose:**
-Verify that a multicast FindService with wildcard major and minor versions elicits
-an OfferService response.
+Verify that a multicast FindService with Any Major Version (0xFF) and with Any Minor
+Version (0xFFFFFFFF) is answered with a unicast OfferService.
 
 **Stimulus:**
-Send multicast FindService with major_version = 0xFF, minor_version = 0xFFFFFFFF.
+Send 10 multicast FindService messages at 100 ms intervals with major_version = 0xFF
+(other fields default), then 10 at 100 ms intervals with minor_version = 0xFFFFFFFF
+(other fields default).
 
 **Expected Result:**
-OfferService received for the configured service.
+At least one unicast OfferService received for the configured service in each phase.
 
 TC8-SDLC-013: Multicast FindService: Unicast Flag Clear
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -828,74 +835,57 @@ TC8-SDLC-013: Multicast FindService: Unicast Flag Clear
 :Test Function: ``TestSDFindServiceAdvanced::test_ets_130_multicast_findservice_unicast_flag_clear``
 
 **Purpose:**
-Verify that a multicast FindService with the unicast flag cleared (0x00) elicits a
-multicast OfferService response (not a unicast one).
+Verify that a multicast FindService with the unicast flag cleared (0x00) is answered
+with a unicast OfferService (the flag is ignored).
 
 **Stimulus:**
 Send multicast FindService with unicast flag = 0.
 
 **Expected Result:**
-Multicast OfferService received.
+Unicast OfferService received on the tester socket.
 
-TC8-SDLC-014: Client StopSubscribe Ceases Events
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDLC-015: Restart: Reboot Flag and Session ID After First Restart
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:OA Reference: Section 6.1.6, SOMEIP_ETS_084
-:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Module: ``test_sd_client``
-:Test Function: ``TestSDClientStopSubscribe::test_ets_084_stop_subscribe_ceases_events``
-
-**Purpose:**
-Verify that after a client sends StopSubscribeEventgroup (TTL = 0) the DUT stops
-sending NOTIFICATION messages to that subscriber.
-
-**Preconditions:**
-Active subscription to eventgroup 0x0002; at least one notification received.
-
-**Stimulus:**
-Send SubscribeEventgroup with TTL = 0.
-
-**Expected Result:**
-No notifications received within 4 seconds after StopSubscribe.
-
-TC8-SDLC-015: Client Reboot: Flag Set After First Restart
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Reference: Section 6.1.6, SOMEIP_ETS_081
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_07; Section 6.1.5.1, SOMEIPSRV_FORMAT_02
 :Requirement: ``comp_req__tc8_conformance__sd_reboot``
 :Test Module: ``test_sd_client``
-:Test Function: ``TestSDClientReboot::test_ets_081_reboot_flag_set_after_first_restart``
+:Test Function: ``TestSDClientReboot::test_format_07_reboot_flag_set_after_first_restart``
 
 **Purpose:**
-Verify that after a DUT restart the first SD message has the reboot flag (bit 7
-of SD flags byte) set and the session_id resets to a small value.
-
-**Preconditions:**
-DUT started, 3 SD messages drained, DUT terminated.
+Verify that after a DUT restart the first SD message has the reboot flag (bit 7 of SD
+flags byte) set and the session_id restarts at 0x0001.
 
 **Stimulus:**
-Restart DUT; capture first post-reboot SD message.
+Start the DUT, drain 3 SD messages, terminate it, restart it and capture the first
+post-restart SD message.
 
 **Expected Result:**
-``sd_hdr.flag_reboot == True`` and ``outer.session_id <= 2``.
+``sd_hdr.flag_reboot == True`` and ``outer.session_id == 1``.
 
-TC8-SDLC-016: Client Reboot: Flag Set After Second Restart
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Not verified: the reboot flag changing to 0 after the Session ID wraps (needs 65535
+messages).
 
-:OA Reference: Section 6.1.6, SOMEIP_ETS_082
+TC8-SDLC-016: Restart: Reboot Flag and Session ID After Second Restart
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_07; Section 6.1.5.1, SOMEIPSRV_FORMAT_02
 :Requirement: ``comp_req__tc8_conformance__sd_reboot``
 :Test Module: ``test_sd_client``
-:Test Function: ``TestSDClientReboot::test_ets_082_reboot_flag_set_after_second_restart``
+:Test Function: ``TestSDClientReboot::test_format_07_reboot_flag_set_after_second_restart``
 
 **Purpose:**
-Verify that the reboot flag and session ID reset hold across a second consecutive
+Verify that the reboot flag and session ID restart hold across a second consecutive
 restart (not just the first).
 
 **Stimulus:**
-Start then drain then stop then start then drain then stop then start then capture first message.
+Start, drain, stop, start, drain, stop, start, then capture the first message.
 
 **Expected Result:**
-``sd_hdr.flag_reboot == True`` and ``outer.session_id <= 2``.
+``sd_hdr.flag_reboot == True`` and ``outer.session_id == 1``.
+
+Not verified: the reboot flag changing to 0 after the Session ID wraps (needs 65535
+messages).
 
 TC8-SDLC-019: Subscribe TTL Expiry Stops Events
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -909,7 +899,11 @@ Verify that when a subscription's TTL expires without renewal the DUT ceases sen
 event notifications to that subscriber.
 
 **Stimulus:**
-Subscribe with a short TTL; do not renew; wait for TTL to expire; observe events.
+Subscribe to eventgroup ``0x0002`` with TTL = 3 seconds, wait 5 seconds without
+renewal, observe events.
 
 **Expected Result:**
 No NOTIFICATION messages received after TTL expiry window.
+
+Not verified: the reaction to an explicit TriggerEventUint8 call (the DUT has no
+trigger method).

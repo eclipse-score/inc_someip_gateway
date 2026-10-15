@@ -54,7 +54,7 @@ Service Discovery
    * - OA Spec Reference (Ch. 6)
      - Internal ID
      - Requirement
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08
+   * - none (project specific)
      - TC8-SD-001
      - ``sd_offer_format``
    * - Section 6.1.5.1, SOMEIPSRV_FORMAT_14-18
@@ -66,13 +66,13 @@ Service Discovery
    * - Section 6.1.6, SOMEIP_ETS_171
      - TC8-SD-004
      - ``sd_find_response``
-   * - Section 6.1.5.4, implied by SD_BEHAVIOR_03/04
+   * - none (project specific)
      - TC8-SD-005
      - ``sd_find_response``
    * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_13
      - TC8-SD-006
      - ``sd_sub_lifecycle``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14; Section 6.1.6, SOMEIP_ETS_140
+   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19; Section 6.1.6, SOMEIP_ETS_140
      - TC8-SD-007
      - ``sd_sub_lifecycle``
    * - Section 6.1.6, SOMEIP_ETS_108
@@ -81,10 +81,10 @@ Service Discovery
    * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01
      - TC8-SD-009
      - ``sd_phases_timing``
-   * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01
+   * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01 (doubling of the delay only; the repetition count is a project check)
      - TC8-SD-010
      - ``sd_phases_timing``
-   * - Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07
+   * - Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07; Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08
      - TC8-SD-011
      - ``sd_endpoint_option``
    * - Section 6.1.5.2, SOMEIPSRV_OPTIONS_08-14
@@ -122,22 +122,19 @@ SD Entry Semantics
    * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_06
      - TC8-SDM-006
      - ``sd_find_response``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14
+   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_18; Section 6.1.6, SOMEIP_ETS_142
      - TC8-SDM-007
      - ``sd_sub_lifecycle``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_15
+   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_14-16; Section 6.1.6, SOMEIP_ETS_143
      - TC8-SDM-008
      - ``sd_sub_lifecycle``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_16
+   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_17; Section 6.1.6, SOMEIP_ETS_141
      - TC8-SDM-009
      - ``sd_sub_lifecycle``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_17
+   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19
      - TC8-SDM-010
      - ``sd_sub_lifecycle``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_18
-     - TC8-SDM-011
-     - ``sd_sub_lifecycle``
-   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19
+   * - Section 6.1.6, SOMEIP_ETS_144
      - TC8-SDM-012
      - ``sd_sub_lifecycle``
    * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_03
@@ -146,12 +143,6 @@ SD Entry Semantics
    * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_04
      - TC8-SDM-014
      - ``sd_cyclic_timing``
-
-.. note::
-
-   TC8-SDM-012 (SOMEIPSRV_SD_MESSAGE_19) is expected to **FAIL** against
-   vsomeip 3.6.1: the stack sends a positive ACK instead of NAck for a
-   SubscribeEventgroup with reserved bits set.
 
 SD Lifecycle Advanced
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -169,7 +160,7 @@ SD Lifecycle Advanced
    * - Section 6.1.6, SOMEIP_ETS_092
      - TC8-SDLC-002
      - ``sd_sub_lifecycle``
-   * - Section 6.1.6, SOMEIP_ETS_098
+   * - none (project specific)
      - TC8-SDLC-003
      - ``sd_sub_lifecycle``
    * - Section 6.1.6, SOMEIP_ETS_107
@@ -178,9 +169,6 @@ SD Lifecycle Advanced
    * - Section 6.1.6, SOMEIP_ETS_120
      - TC8-SDLC-005
      - ``sd_sub_lifecycle``
-   * - Section 6.1.6, SOMEIP_ETS_122
-     - TC8-SDLC-006
-     - ``sd_offer_format``
    * - Section 6.1.6, SOMEIP_ETS_155
      - TC8-SDLC-007
      - ``sd_sub_lifecycle``
@@ -190,7 +178,7 @@ SD Lifecycle Advanced
    * - Section 6.1.6, SOMEIP_ETS_121
      - TC8-SDLC-009
      - ``sd_sub_lifecycle``
-   * - Project-specific (no OA scenario)
+   * - none (project specific)
      - TC8-SDLC-010
      - ``sd_offer_format``
    * - Section 6.1.6, SOMEIP_ETS_101
@@ -202,13 +190,10 @@ SD Lifecycle Advanced
    * - Section 6.1.6, SOMEIP_ETS_130
      - TC8-SDLC-013
      - ``sd_find_response``
-   * - Section 6.1.6, SOMEIP_ETS_084
-     - TC8-SDLC-014
-     - ``sd_sub_lifecycle``
-   * - Section 6.1.6, SOMEIP_ETS_081
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_07; Section 6.1.5.1, SOMEIPSRV_FORMAT_02
      - TC8-SDLC-015
      - ``sd_reboot``
-   * - Section 6.1.6, SOMEIP_ETS_082
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_07; Section 6.1.5.1, SOMEIPSRV_FORMAT_02
      - TC8-SDLC-016
      - ``sd_reboot``
    * - Section 6.1.6, SOMEIP_ETS_095
@@ -217,10 +202,8 @@ SD Lifecycle Advanced
 
 .. note::
 
-   TC8-SDLC-011 (SOMEIP_ETS_101) is implemented as ``pytest.skip`` because
-   stopping the DUT's own OfferService from an external tester requires a
-   dedicated reverse-direction SD client target; the current target does not
-   include that capability.
+   TC8-SDLC-011 (SOMEIP_ETS_101) is implemented as ``pytest.skip`` because the
+   DUT has no ETS client mode (``clientServiceActivate``).
 
 Test Results
 -------------
