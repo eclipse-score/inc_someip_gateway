@@ -55,8 +55,8 @@ consumer -> mwcom : GetNewSamples(receiver, max_sample_count)
 mwcom --> consumer : SamplePtr<void>
 note right of consumer
   Read payload_length, build socom::Payload over
-  the sample and move the SamplePtr into its
-  destruction callback.
+  the bytes after the 8-byte prefix and move the
+  SamplePtr into its destruction callback.
 end note
 consumer -> cons : Enabled_server_connector::update_event(event_id, payload)
 cons -> cons : payload destroyed, SamplePtr releases the slot

@@ -58,7 +58,7 @@ enum class Role : std::uint8_t {
 struct Event_config {
     /// \brief mw::com event name, must match mw_com_config.json.
     std::string name;
-    /// \brief Largest payload this event can carry.
+    /// \brief Largest payload this event can carry. For SOME/IP this includes the header.
     std::size_t max_payload_size;
 };
 
