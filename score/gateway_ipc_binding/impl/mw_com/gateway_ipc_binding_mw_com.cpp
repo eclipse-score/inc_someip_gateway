@@ -111,8 +111,7 @@ class Server_adapter final : public Gateway_ipc_binding_server {
                     return false;
                 }
 
-                return score::mw::com::runtime::InitializeRuntimeAddonConfiguration(
-                           std::move(json).value())
+                return score::mw::com::runtime::AddConfiguration(std::move(json).value())
                     .has_value();
             });
         if (!someipd_service.has_value()) {
