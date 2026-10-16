@@ -1,0 +1,49 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml mw_com_startup_someipd_gatewayd
+title Startup: SomeipdService first, bridged services after
+
+box "someipd process"
+participant "Server_adapter" as server
+participant "Someipd_service_provider" as sdsvc_provider
+end box
+participant "mw::com" as mwcom
+box "gatewayd process"
+participant "Someipd_service_consumer" as sdsvc_consumer
+participant "Client_adapter" as client
+end box
+
+== someipd offers SomeipdService ==
+[-> server : create_server(), start()
+server -> sdsvc_provider : create()
+server -> sdsvc_provider : offer()
+sdsvc_provider -> mwcom : OfferService(SomeipdService)
+server -> server : make_service_bindings()
+
+== gatewayd looks for SomeipdService ==
+client <-] : create_client(config_json)
+client -> sdsvc_consumer : create(config_json)
+sdsvc_consumer -> mwcom : StartFindService(handler)
+client -> client : make_service_bindings(), without waiting
+
+alt someipd offers SomeipdService
+  mwcom -> sdsvc_consumer : find-service handler(handle)
+  note right of sdsvc_consumer : Runs inside StartFindService()\nor later on an mw::com thread.
+  sdsvc_consumer -> mwcom : Create(handle)
+  sdsvc_consumer -> mwcom : AddServiceConfiguration()
+else someipd withdraws SomeipdService, or never offers it
+  mwcom -> sdsvc_consumer : find-service handler(none)
+end
+client <-] : is_connected(), true while the proxy exists
+@enduml

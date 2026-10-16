@@ -404,13 +404,9 @@ Behavioural views
 Startup
 ~~~~~~~
 
-.. uml:: models/mw_com_startup_someipd.puml
+.. uml:: models/mw_com_startup.puml
    :align: center
-   :caption: ``someipd`` startup: ``SomeipdService`` before bridged services
-
-.. uml:: models/mw_com_startup_gatewayd.puml
-   :align: center
-   :caption: ``gatewayd`` startup: peer discovery and bridged-service bindings
+   :caption: ``someipd`` and ``gatewayd`` startup: ``SomeipdService`` before bridged services
 
 .. uml:: models/mw_com_service_bindings.puml
   :align: center
