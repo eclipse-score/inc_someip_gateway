@@ -10,62 +10,43 @@
 '
 ' SPDX-License-Identifier: Apache-2.0
 ' *******************************************************************************
-
-@startuml
+@startuml component_diagram_gateway_ipc_binding_mw_com
 left to right direction
-skinparam componentStyle rectangle
 
-component "Client_adapter\nGateway_ipc_binding_client" as client
-component "Server_adapter\nGateway_ipc_binding_server" as server
-component "Provider_service_binding\nC++" as provider
-component "Consumer_service_binding\nC++" as consumer
-component "Someipd_service_binding\nC++" as sdsvc
-component "SOCom runtime\nC++" as runtime
-component "mw::com\nGeneric for bridged services,\ntyped for SomeipdService" as mwcom
+interface "Gateway_ipc_binding_server" as server_api
+interface "Gateway_ipc_binding_client" as client_api
 
-note bottom of client
-  create_client(): sets up all services eagerly
-  and consumes SomeipdService.
-  is_connected() follows the SomeipdService proxy.
-  Owns one Service_binding per configured service
-  instance plus one Someipd_service_binding.
-end note
+package "gateway_ipc_binding_mw_com" as binding <<component>> {
+  component "Server_adapter" as server
+  component "Client_adapter" as client
+  component "Someipd_service_provider" as sdsvc_provider
+  package "Service_binding" as service_binding {
+    component "Provider_service_binding" as provider
+    component "Consumer_service_binding" as consumer
+  }
+  component "Someipd_service_consumer" as sdsvc_consumer
+}
 
-note bottom of server
-  create_server(): setup deferred to start(),
-  which provides SomeipdService first.
-  Owns the same set of bindings as Client_adapter,
-  bridged services are symmetric.
-end note
+package "mw::com" as mwcom {
+  component "mw::com::GenericSkeleton" as skeleton
+  component "mw::com::GenericProxy" as proxy
+}
 
-note bottom of sdsvc
-  Typed skeleton / proxy, not generic, so it
-  can carry methods and fields later.
-  Provided by someipd, consumed by gatewayd.
-  Replaces the Connect / Connect_reply handshake.
-end note
+package "socom" as socom {
+  component "socom::Client_connector" as client_connector
+  component "socom::Enabled_server_connector" as server_connector
+}
 
-note bottom of provider
-  Owns GenericSkeleton, per-event in-flight
-  allocation table and a SOCom Client_connector.
-  Offers while the local service is available.
-end note
-
-note bottom of consumer
-  Owns FindServiceHandle, GenericProxy and a
-  SOCom server connector. Enables it while the
-  remote instance is found.
-end note
-
-client --> provider : Owns
-client --> consumer : Owns
-client --> sdsvc : Owns (consumer half)
-server --> provider : Owns
-server --> consumer : Owns
-server --> sdsvc : Owns (provider half)
-provider --> runtime : make_client_connector
-consumer --> runtime : make_server_connector
-provider --> mwcom : Create / OfferService / Allocate / Send
-consumer --> mwcom : StartFindService / Subscribe / GetNewSamples
-sdsvc --> mwcom : SomeipdServiceSkeleton::OfferService (someipd)\nSomeipdServiceProxy::StartFindService / Create (gatewayd)
+server_api -- server
+client_api -- client
+server --> sdsvc_provider
+server --> service_binding : one per Service_config
+client --> service_binding : one per Service_config
+client --> sdsvc_consumer
+sdsvc_provider --> mwcom : offers SomeipdService
+provider --> skeleton
+consumer --> proxy
+sdsvc_consumer --> mwcom : finds SomeipdService
+provider --> client_connector
+consumer --> server_connector
 @enduml

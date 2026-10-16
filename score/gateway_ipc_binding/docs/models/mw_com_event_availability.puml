@@ -1,0 +1,48 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml mw_com_event_availability
+title Bridged service: setup and availability
+
+box "providing daemon"
+participant "socom::Client_connector" as client_connector
+participant "Provider_service_binding" as provider
+end box
+participant "mw::com::GenericSkeleton" as skeleton
+participant "mw::com::GenericProxy" as proxy
+box "consuming daemon"
+participant "Consumer_service_binding" as consumer
+participant "socom::Enabled_server_connector" as server_connector
+end box
+
+== Setup, one binding per Service_config ==
+provider -> skeleton : Create()
+provider -> skeleton : SetReceiveHandlerRegistrationChangedHandler()
+provider -> client_connector : make_client_connector()
+consumer -> server_connector : make_server_connector(), starts disabled
+consumer -> proxy : StartFindService(handler)
+
+== The local service becomes available ==
+[-> client_connector : producer offers the service
+client_connector -> provider : on_service_state_change(available)
+provider -> skeleton : OfferService()
+skeleton ->> proxy : service offered
+proxy -> consumer : find-service handler(handle)
+consumer -> proxy : Create(handle)
+alt all configured events exist
+  consumer -> server_connector : enable()
+  server_connector ->] : subscribers see the service
+else an event is missing or its sample is too small
+  consumer -> proxy : ~GenericProxy(), connector stays disabled
+end
+@enduml
