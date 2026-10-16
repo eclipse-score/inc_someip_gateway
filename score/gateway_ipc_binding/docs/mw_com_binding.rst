@@ -407,10 +407,6 @@ Startup
    :align: center
    :caption: ``someipd`` and ``gatewayd`` startup: ``SomeipdService`` before bridged services
 
-.. uml:: models/mw_com_service_bindings.puml
-  :align: center
-  :caption: Shared creation flow for bridged-service bindings
-
 Event flow
 ~~~~~~~~~~
 

@@ -11,33 +11,38 @@
 ' SPDX-License-Identifier: Apache-2.0
 ' *******************************************************************************
 
-@startuml
-title Availability for one bridged service
+@startuml mw_com_event_availability
+title Bridged service: setup and availability
 
+box "providing daemon"
+participant "socom::Client_connector" as client_connector
 participant "Provider_service_binding" as provider
-participant "socom::Runtime" as socom_runtime
-participant "socom::Client_connector\n(provider binding)" as provider_connector
-participant "GenericSkeleton" as skeleton
-participant "GenericSkeletonEvent" as skeleton_event
-participant "GenericProxy" as proxy
+end box
+participant "mw::com::GenericSkeleton" as skeleton
+participant "mw::com::GenericProxy" as proxy
+box "consuming daemon"
 participant "Consumer_service_binding" as consumer
-participant "socom::Disabled_server_connector" as disabled_connector
+participant "socom::Enabled_server_connector" as server_connector
+end box
 
-== Availability ==
-provider -> skeleton : GenericSkeleton::Create(InstanceSpecifier,\nGenericSkeletonServiceElementInfo)
-provider -> skeleton : GetEvents()
-skeleton --> provider : GenericSkeletonEvent references
-provider -> skeleton_event : SetReceiveHandlerRegistrationChangedHandler(callback)
-skeleton_event --> provider : registration handler installed
-provider -> socom_runtime : make_client_connector(interface, instance, callbacks)
-socom_runtime --> provider : Client_connector
-provider_connector -> provider : on_service_state_change(available)
+== Setup, one binding per Service_config ==
+provider -> skeleton : Create()
+provider -> skeleton : SetReceiveHandlerRegistrationChangedHandler()
+provider -> client_connector : make_client_connector()
+consumer -> server_connector : make_server_connector(), starts disabled
+consumer -> proxy : StartFindService(handler)
+
+== The local service becomes available ==
+[-> client_connector : producer offers the service
+client_connector -> provider : on_service_state_change(available)
 provider -> skeleton : OfferService()
-provider -> consumer : find-service handler(handle)
-consumer -> proxy : GenericProxy::Create(handle)
-proxy -> consumer : GenericProxy
-consumer -> proxy : GetEvents()
-proxy --> consumer : GenericProxyEvent references
-consumer -> disabled_connector : enable()
-disabled_connector --> consumer : Enabled_server_connector
+skeleton ->> proxy : service offered
+proxy -> consumer : find-service handler(handle)
+consumer -> proxy : Create(handle)
+alt all configured events exist
+  consumer -> server_connector : enable()
+  server_connector ->] : subscribers see the service
+else an event is missing or its sample is too small
+  consumer -> proxy : ~GenericProxy(), connector stays disabled
+end
 @enduml
