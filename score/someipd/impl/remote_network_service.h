@@ -15,7 +15,6 @@
 #define IMPL_SOMEIPD_REMOTE_NETWORK_SERVICE
 
 #include <memory>
-#include <mutex>
 #include <vector>
 #include <vsomeip/vsomeip.hpp>
 
@@ -33,8 +32,6 @@ namespace score::someipd {
 /// \details Owns a SOCom server connector that pushes incoming SOME/IP event data to
 ///          gatewayd's client connectors. vsomeip message handlers are registered via
 ///          setup_vsomeip(), which must be called once vsomeip has reached ST_REGISTERED.
-///          The SOCom service mirrors the remote service's vsomeip availability: enabled while
-///          it is available, disabled otherwise (also from creation until the first report).
 class RemoteNetworkService {
    public:
     /// \brief Creates a RemoteNetworkService
@@ -65,23 +62,13 @@ class RemoteNetworkService {
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
         std::shared_ptr<vsomeip::application> vsomeip_app,
-        socom::Disabled_server_connector::Uptr disabled_server_connector);
-
-    /// \brief Enables the SOCom service when vsomeip reports the remote service available,
-    ///        disables it when vsomeip reports it not available.
-    void on_availability_change(bool is_available);
+        socom::Enabled_server_connector::Uptr server_connector);
 
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_;
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_;
     std::shared_ptr<vsomeip::application> vsomeip_app_;
-    /// Serializes switching the SOCom service on or off (availability handler) against event
-    /// forwarding (message handler); vsomeip may run the two on different threads.
-    std::mutex server_connector_mutex_;
-    /// The SOCom server connector while it is disabled, null while it is enabled.
-    score::socom::Disabled_server_connector::Uptr disabled_server_connector_;
-    /// SOCom server connector for pushing event data to gatewayd's client connectors, null while
-    /// disabled. Declared last so it is destroyed first, ensuring no allocations occur after other
-    /// members.
+    /// SOCom server connector for pushing event data to gatewayd's client connectors.
+    /// Declared last so it is destroyed first, ensuring no allocations occur after other members.
     score::socom::Enabled_server_connector::Uptr server_connector_;
 };
 

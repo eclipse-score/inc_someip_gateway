@@ -18,8 +18,6 @@
 #include <cstring>
 #include <iostream>
 #include <set>
-#include <string>
-#include <string_view>
 
 #include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
@@ -31,11 +29,11 @@ RemoteNetworkService::RemoteNetworkService(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     std::shared_ptr<vsomeip::application> vsomeip_app,
-    socom::Disabled_server_connector::Uptr disabled_server_connector)
+    socom::Enabled_server_connector::Uptr server_connector)
     : service_instance_config_(std::move(service_instance_config)),
       service_type_config_(std::move(service_type_config)),
       vsomeip_app_(std::move(vsomeip_app)),
-      disabled_server_connector_(std::move(disabled_server_connector)) {}
+      server_connector_(std::move(server_connector)) {}
 
 Result<std::unique_ptr<RemoteNetworkService>> RemoteNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
@@ -70,33 +68,12 @@ Result<std::unique_ptr<RemoteNetworkService>> RemoteNetworkService::Create(
             << service_type_config->service_type_name()->string_view() << "'";
         return MakeUnexpected(socom::Error::runtime_error_request_rejected);
     }
+    auto server_connector = socom::Disabled_server_connector::enable(std::move(disabled).value());
 
-    // Stays disabled until vsomeip reports the remote service available.
     auto instance = std::unique_ptr<RemoteNetworkService>(
         new RemoteNetworkService(std::move(service_instance_config), std::move(service_type_config),
-                                 std::move(vsomeip_app), std::move(disabled).value()));
+                                 std::move(vsomeip_app), std::move(server_connector)));
     return instance;
-}
-
-void RemoteNetworkService::on_availability_change(bool const is_available) {
-    std::lock_guard const lock{server_connector_mutex_};
-    std::string_view change{};
-    if (is_available && (disabled_server_connector_ != nullptr)) {
-        server_connector_ =
-            socom::Disabled_server_connector::enable(std::move(disabled_server_connector_));
-        change = " available: SOCom service switched on\n";
-    } else if (!is_available && (server_connector_ != nullptr)) {
-        disabled_server_connector_ =
-            socom::Enabled_server_connector::disable(std::move(server_connector_));
-        change = " not available: SOCom service switched off\n";
-    } else {
-        return;
-    }
-    // One insertion per line, so that vsomeip's log lines from other threads cannot split it.
-    std::cout << std::string{"[someipd] RemoteNetworkService - "}
-                     .append(service_type_config_->service_type_name()->string_view())
-                     .append(change)
-              << std::flush;
 }
 
 void RemoteNetworkService::setup_vsomeip() {
@@ -104,13 +81,6 @@ void RemoteNetworkService::setup_vsomeip() {
     auto const instance_id = service_instance_config_->instance_id();
 
     vsomeip_app_->request_service(service_id, instance_id);
-
-    // vsomeip reports the current availability once, then only its changes.
-    vsomeip_app_->register_availability_handler(
-        service_id, instance_id,
-        [this](vsomeip::service_t, vsomeip::instance_t, bool const is_available) {
-            on_availability_change(is_available);
-        });
 
     for (std::size_t i = 0; i < service_type_config_->events()->size(); ++i) {
         auto const* const event_config = (*service_type_config_->events())[i];
@@ -120,11 +90,6 @@ void RemoteNetworkService::setup_vsomeip() {
         vsomeip_app_->register_message_handler(
             service_id, instance_id, vsomeip_event_id,
             [this, socom_event_id, vsomeip_event_id](const std::shared_ptr<vsomeip::message>& msg) {
-                // Allocate and update as one step against switching the SOCom service on or off.
-                std::lock_guard const lock{server_connector_mutex_};
-                if (server_connector_ == nullptr) {
-                    return;  // Disabled: the remote service is not available.
-                }
                 auto maybe_payload = server_connector_->allocate_event_payload(socom_event_id);
                 if (!maybe_payload.has_value()) {
                     return;
