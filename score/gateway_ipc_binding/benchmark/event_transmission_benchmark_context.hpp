@@ -11,14 +11,12 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <benchmark/benchmark.h>
-#include <unistd.h>
-
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <mutex>
@@ -27,12 +25,10 @@
 #include <thread>
 
 #include "score/gateway_ipc_binding/error.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
-#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
-#include "score/message_passing/client_factory.h"
-#include "score/message_passing/server_factory.h"
+#include "score/mw/com/runtime.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/error.hpp"
 #include "score/socom/runtime.hpp"
@@ -42,21 +38,19 @@ namespace score::gateway_ipc_binding {
 
 using namespace std::chrono_literals;
 
-[[nodiscard]] inline std::string make_unique_name(char const* prefix) {
-    auto const now = std::chrono::steady_clock::now().time_since_epoch().count();
-    return std::string{prefix} + "_" + std::to_string(getpid()) + "_" + std::to_string(now);
-}
-
-[[nodiscard]] inline Shared_memory_metadata make_metadata(std::string const& path,
-                                                          std::size_t slot_size,
-                                                          std::size_t slot_count) {
-    Shared_memory_metadata metadata{};
-    auto result = fixed_string_from_string<Shared_memory_path>(path);
-    SCORE_LANGUAGE_FUTURECPP_ASSERT(result && "Path should fit into fixed-size metadata path");
-    metadata.slot_size = slot_size;
-    metadata.slot_count = slot_count;
-    metadata.path = *result;
-    return metadata;
+inline void initialize_benchmark_runtime() {
+    std::string manifest{"score/gateway_ipc_binding/benchmark/mw_com_config.json"};
+    auto const* runfiles = std::getenv("TEST_SRCDIR");
+    if (runfiles == nullptr) {
+        runfiles = std::getenv("RUNFILES_DIR");
+    }
+    if (runfiles != nullptr) {
+        auto const* workspace = std::getenv("TEST_WORKSPACE");
+        manifest = std::string{runfiles} + "/" + (workspace != nullptr ? workspace : "_main") +
+                   "/" + manifest;
+    }
+    score::mw::com::runtime::InitializeRuntime(
+        score::mw::com::runtime::RuntimeConfiguration{score::filesystem::Path{manifest}});
 }
 
 class Event_transmission_benchmark_context final {
@@ -64,13 +58,7 @@ class Event_transmission_benchmark_context final {
     explicit Event_transmission_benchmark_context(std::size_t payload_size)
         : runtime_server_{score::socom::create_runtime()},
           runtime_client_{score::socom::create_runtime()},
-          service_name_{make_unique_name("gw_ipc_event_bench")},
-          protocol_config_{service_name_, k_max_message_size, k_max_message_size,
-                           k_max_message_size},
-          server_shm_metadata_{
-              make_metadata(make_unique_name("/gw_server_bench"), payload_size, k_slot_count)},
-          client_shm_metadata_{
-              make_metadata(make_unique_name("/gw_client_bench"), payload_size, k_slot_count)} {
+          payload_size_{payload_size} {
         SCORE_LANGUAGE_FUTURECPP_ASSERT(runtime_server_);
         SCORE_LANGUAGE_FUTURECPP_ASSERT(runtime_client_);
 
@@ -80,6 +68,13 @@ class Event_transmission_benchmark_context final {
         wait_for_service_available();
         subscribe_event();
     }
+
+    Event_transmission_benchmark_context(Event_transmission_benchmark_context const&) = delete;
+    Event_transmission_benchmark_context& operator=(Event_transmission_benchmark_context const&) =
+        delete;
+    Event_transmission_benchmark_context(Event_transmission_benchmark_context&&) = delete;
+    Event_transmission_benchmark_context& operator=(Event_transmission_benchmark_context&&) =
+        delete;
 
     ~Event_transmission_benchmark_context() {
         // Disconnect callback sources before mutex/condition_variable members are destroyed.
@@ -93,8 +88,12 @@ class Event_transmission_benchmark_context final {
         auto const seq = ++sequence_;
         Result<socom::Writable_payload> payload_result = MakeUnexpected(
             socom::Server_connector_error::runtime_error_no_client_subscribed_for_event);
+        auto const deadline = std::chrono::steady_clock::now() + 10s;
         while (!payload_result) {
             payload_result = source_connector_->allocate_event_payload(event_id_);
+            if (!payload_result && std::chrono::steady_clock::now() >= deadline) {
+                return MakeUnexpected<std::chrono::nanoseconds>(payload_result.error());
+            }
             // yield() is especially important for valgrind / massif when the benchmark is run with
             // a high iteration count, as the event processing thread may not get scheduled often
             // enough otherwise, causing the benchmark to run way longer.
@@ -117,34 +116,29 @@ class Event_transmission_benchmark_context final {
         }
 
         std::unique_lock<std::mutex> lock{event_mutex_};
-        event_cv_.wait(lock, [this, seq]() noexcept { return last_received_sequence_ >= seq; });
+        if (!event_cv_.wait_for(
+                lock, 10s, [this, seq]() noexcept { return last_received_sequence_ >= seq; })) {
+            return MakeUnexpected<std::chrono::nanoseconds>(
+                socom::Error::runtime_error_request_rejected);
+        }
         return std::chrono::duration_cast<std::chrono::nanoseconds>(last_receive_time_ - start);
     }
 
    private:
-    static constexpr std::size_t k_max_message_size = 32768U;
     static constexpr std::uint32_t k_slot_count = 64U;
 
     score::socom::Runtime::Uptr runtime_server_;
     score::socom::Runtime::Uptr runtime_client_;
 
-    std::string service_name_;
-
-    score::message_passing::ServiceProtocolConfig protocol_config_;
-    score::message_passing::IServerFactory::ServerConfig const server_config_{10, 10, 10};
-    score::message_passing::IClientFactory::ClientConfig const client_config_{10, 10, false, false,
-                                                                              false};
+    std::size_t payload_size_;
 
     score::socom::Service_interface_identifier const interface_{
-        "com.test.gateway.benchmark", score::socom::Literal_tag{}, {1, 0}};
+        "bridged_com.test.gateway.benchmark", score::socom::Literal_tag{}, {1, 0}};
     score::socom::Service_instance const instance_{"instance1", score::socom::Literal_tag{}};
     score::socom::Server_service_interface_definition const server_interface_definition_{
         interface_, score::socom::to_num_of_methods(1), score::socom::to_num_of_events(1)};
 
     Event_id const event_id_{0};
-
-    Shared_memory_metadata server_shm_metadata_;
-    Shared_memory_metadata client_shm_metadata_;
 
     std::unique_ptr<Gateway_ipc_binding_server> gateway_server_;
     std::unique_ptr<Gateway_ipc_binding_client> gateway_client_;
@@ -164,25 +158,20 @@ class Event_transmission_benchmark_context final {
     std::condition_variable event_cv_;
 
     void create_gateway_pair() {
-        Shared_memory_manager_factory::Shared_memory_configuration const server_shm_config{
-            {interface_, {{instance_, server_shm_metadata_}}}};
-        Shared_memory_manager_factory::Shared_memory_configuration const client_shm_config{
-            {interface_, {{instance_, client_shm_metadata_}}}};
-
-        score::message_passing::ServerFactory server_factory;
-        auto ipc_server = server_factory.Create(protocol_config_, server_config_);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT(ipc_server);
-        gateway_server_ = Gateway_ipc_binding_server::create(
-            *runtime_server_, std::move(ipc_server), Shared_memory_manager_factory::create({}),
-            [](auto, auto const&, auto) {});
+        auto services = [this](mw_com::Role role) {
+            return mw_com::Service_configs{mw_com::Service_config{interface_,
+                                                                  instance_,
+                                                                  "bridged_benchmark/event",
+                                                                  role,
+                                                                  {{"event", 0U, payload_size_}},
+                                                                  k_slot_count}};
+        };
+        gateway_server_ = mw_com::create_server(*runtime_server_, "benchmark/someipd",
+                                                services(mw_com::Role::consumer));
         SCORE_LANGUAGE_FUTURECPP_ASSERT(gateway_server_);
 
-        score::message_passing::ClientFactory client_factory;
-        auto connection = client_factory.Create(protocol_config_, client_config_);
-        gateway_client_ = Gateway_ipc_binding_client::create(
-            *runtime_client_, std::move(connection),
-            Shared_memory_manager_factory::create(client_shm_config), {},
-            make_shared_memory_configs(server_shm_config));
+        gateway_client_ = mw_com::create_client(*runtime_client_, "benchmark/someipd",
+                                                services(mw_com::Role::provider));
         SCORE_LANGUAGE_FUTURECPP_ASSERT(gateway_client_);
 
         auto start_result = gateway_server_->start();
@@ -191,9 +180,11 @@ class Event_transmission_benchmark_context final {
     }
 
     void wait_for_gateway_connection() {
-        while (!gateway_client_->is_connected()) {
+        auto const deadline = std::chrono::steady_clock::now() + 10s;
+        while (!gateway_client_->is_connected() && std::chrono::steady_clock::now() < deadline) {
             std::this_thread::sleep_for(1ms);
         }
+        SCORE_LANGUAGE_FUTURECPP_ASSERT(gateway_client_->is_connected());
     }
 
     void create_connectors() {

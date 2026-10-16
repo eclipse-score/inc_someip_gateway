@@ -48,3 +48,14 @@ BENCHMARK(benchmark_event_transmission_client_to_server)
 
 }  // namespace
 }  // namespace score::gateway_ipc_binding
+
+int main(int argc, char** argv) {
+    score::gateway_ipc_binding::initialize_benchmark_runtime();
+    benchmark::Initialize(&argc, argv);
+    if (benchmark::ReportUnrecognizedArguments(argc, argv)) {
+        return 1;
+    }
+    benchmark::RunSpecifiedBenchmarks();
+    benchmark::Shutdown();
+    return 0;
+}
