@@ -529,12 +529,12 @@ runtime from deployment information instead of from generated IDL code. That is 
 needs: the gateway never interprets the payload of a bridged service, it only moves bytes. One bridged
 SOME/IP service instance therefore becomes one <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service instance.</p>
 </section>
-<section id="d2-every-event-sample-reserves-space-for-the-some-ip-header">
-<span id="d2-header"></span><h3>D2: every event sample reserves space for the SOME/IP header<a class="headerlink" href="#d2-every-event-sample-reserves-space-for-the-some-ip-header" title="Link to this heading">#</a></h3>
+<section id="d2-every-event-sample-carries-the-full-some-ip-message">
+<span id="d2-header"></span><h3>D2: every event sample carries the full SOME/IP message<a class="headerlink" href="#d2-every-event-sample-carries-the-full-some-ip-message" title="Link to this heading">#</a></h3>
 <p>E2E protection is computed over the SOME/IP header and the payload together and requires contiguous memory.
-The event samples exchanged between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> therefore carry the SOME/IP header directly
-in front of the payload bytes. <code class="docutils literal notranslate"><span class="pre">score::socom::Payload</span></code> already models this: it distinguishes <code class="docutils literal notranslate"><span class="pre">header()</span></code>
-from <code class="docutils literal notranslate"><span class="pre">data()</span></code> while both are backed by the same buffer. See <a class="reference internal" href="#sample-layout"><span class="std std-ref">Event sample layout</span></a>.</p>
+The event samples exchanged between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> therefore carry the full SOME/IP message,
+header included. <code class="docutils literal notranslate"><span class="pre">score::socom::Payload::data()</span></code> is a read-only view of it; the sender writes it through
+<code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code>. See <a class="reference internal" href="#sample-layout"><span class="std std-ref">Event sample layout</span></a>.</p>
 </section>
 <section id="d3-no-shared-memory-slot-manager">
 <span id="d3-no-slot-manager"></span><h3>D3: no <code class="docutils literal notranslate"><span class="pre">Shared_memory_slot_manager</span></code><a class="headerlink" href="#d3-no-shared-memory-slot-manager" title="Link to this heading">#</a></h3>
@@ -689,7 +689,7 @@ itself rather than any SOME/IP service:</p>
 false when the find-service handler reports the instance gone.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> calls <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> with JSON text when <code class="docutils literal notranslate"><span class="pre">someipd</span></code> must extend its
 <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> deployment. The server parses the text and passes the resulting <code class="docutils literal notranslate"><span class="pre">score::json::Any</span></code> to
-<code class="docutils literal notranslate"><span class="pre">InitializeRuntimeAddonConfiguration</span></code>. The client submits a configured add-on at most once, so
+<code class="docutils literal notranslate"><span class="pre">AddConfiguration</span></code>. The client submits a configured add-on at most once, so
 reconnecting cannot merge the same configuration twice.</p></li>
 </ul>
 <p>Properties of this design:</p>
@@ -714,25 +714,24 @@ asynchronously afterwards, each signalled through the normal SOCom service state
 <section id="event-sample-layout">
 <span id="sample-layout"></span><h3>Event sample layout<a class="headerlink" href="#event-sample-layout" title="Link to this heading">#</a></h3>
 <p>A <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> event sample is a fixed-size, type-erased buffer described by <code class="docutils literal notranslate"><span class="pre">DataTypeMetaInfo{size,</span> <span class="pre">alignment}</span></code>.
-SOME/IP payloads are variable length and, per <a class="reference internal" href="#d2-header"><span class="std std-ref">D2: every event sample reserves space for the SOME/IP header</span></a>, need reserved space in front. The binding
-therefore defines the following layout for every event sample it exchanges:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+----------------------+------------------------+-----------------------------+</span>
-<span class="o">|</span> <span class="n">binding</span> <span class="n">prefix</span> <span class="p">(</span><span class="mi">8</span> <span class="n">B</span><span class="p">)</span> <span class="o">|</span> <span class="n">reserved</span> <span class="n">header</span> <span class="n">space</span>  <span class="o">|</span> <span class="n">payload</span> <span class="nb">bytes</span>               <span class="o">|</span>
-<span class="o">|</span>  <span class="n">u32</span> <span class="n">payload_length</span>  <span class="o">|</span>  <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">SOME</span><span class="o">/</span><span class="n">IP</span> <span class="n">header</span><span class="p">,</span>  <span class="o">|</span>  <span class="n">up</span> <span class="n">to</span> <span class="n">max_payload_size</span>     <span class="o">|</span>
-<span class="o">|</span>  <span class="n">u32</span> <span class="n">reserved</span>        <span class="o">|</span>  <span class="mi">16</span> <span class="n">B</span>                  <span class="o">|</span>                             <span class="o">|</span>
-<span class="o">+----------------------+------------------------+-----------------------------+</span>
-<span class="o">^</span>                      <span class="o">^</span>                        <span class="o">^</span>
-<span class="n">sample</span> <span class="n">base</span>            <span class="n">Payload</span><span class="p">::</span><span class="n">header</span><span class="p">()</span>        <span class="n">Payload</span><span class="p">::</span><span class="n">data</span><span class="p">()</span>
+SOME/IP messages are variable length and, per <a class="reference internal" href="#d2-header"><span class="std std-ref">D2: every event sample carries the full SOME/IP message</span></a>, travel whole. The binding therefore defines
+the following layout for every event sample it exchanges:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+----------------------+-----------------------------+</span>
+<span class="o">|</span> <span class="n">binding</span> <span class="n">prefix</span> <span class="p">(</span><span class="mi">8</span> <span class="n">B</span><span class="p">)</span> <span class="o">|</span> <span class="n">payload</span> <span class="nb">bytes</span>               <span class="o">|</span>
+<span class="o">|</span>  <span class="n">u32</span> <span class="n">payload_length</span>  <span class="o">|</span>  <span class="n">up</span> <span class="n">to</span> <span class="n">max_payload_size</span><span class="p">,</span>    <span class="o">|</span>
+<span class="o">|</span>  <span class="n">u32</span> <span class="n">reserved</span>        <span class="o">|</span>  <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">a</span> <span class="n">SOME</span><span class="o">/</span><span class="n">IP</span> <span class="n">message</span>     <span class="o">|</span>
+<span class="o">+----------------------+-----------------------------+</span>
+<span class="o">^</span>                      <span class="o">^</span>
+<span class="n">sample</span> <span class="n">base</span>            <span class="n">Payload</span><span class="p">::</span><span class="n">data</span><span class="p">()</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> of the <code class="docutils literal notranslate"><span class="pre">DataTypeMetaInfo</span></code> is <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">+</span> <span class="pre">header_size</span> <span class="pre">+</span> <span class="pre">max_payload_size</span></code> rounded up to a multiple of
-8, <code class="docutils literal notranslate"><span class="pre">alignment</span></code> is 8. The 8-byte prefix keeps the reserved header space 8-byte aligned; the rounding is
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> of the <code class="docutils literal notranslate"><span class="pre">DataTypeMetaInfo</span></code> is <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">+</span> <span class="pre">max_payload_size</span></code> rounded up to a multiple of
+8, <code class="docutils literal notranslate"><span class="pre">alignment</span></code> is 8. The 8-byte prefix keeps the payload 8-byte aligned; the rounding is
 required because <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> rejects a size that is not an integer multiple of its alignment. The padding
 at the end is never addressed, so <code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code> is exactly <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code> long.</p></li>
-<li><p>the binding constructs <code class="docutils literal notranslate"><span class="pre">socom::Payload{span,</span> <span class="pre">slot_handle,</span> <span class="pre">destroyer,</span> <span class="pre">header_size,</span> <span class="pre">lead_offset</span> <span class="pre">=</span> <span class="pre">8}</span></code>, so
-the producing and consuming applications see exactly the <code class="docutils literal notranslate"><span class="pre">header()</span></code> / <code class="docutils literal notranslate"><span class="pre">data()</span></code> split they already use
-today, and E2E can run over <code class="docutils literal notranslate"><span class="pre">header()</span></code> immediately followed by <code class="docutils literal notranslate"><span class="pre">data()</span></code>.</p></li>
+<li><p>the binding builds <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">socom::Writable_payload</span></code> over the bytes after the prefix, so
+the producing and consuming applications see the whole message in <code class="docutils literal notranslate"><span class="pre">data()</span></code>, and E2E can run over it.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">payload_length</span></code> is the only piece of binding metadata on the link. It is required because LoLa samples
 are fixed size while SOME/IP payloads are not. The producer shrinks its <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>; the binding
 writes <code class="docutils literal notranslate"><span class="pre">payload.data().size()</span></code> into the prefix just before <code class="docutils literal notranslate"><span class="pre">Send()</span></code>; the consumer side reads it back
@@ -744,8 +743,8 @@ and sizes the <code class="docutils literal notranslate"><span class="pre">socom
 SOME/IP, which it deliberately does not do today, and the field is currently not filled in by <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p></li>
 <li><p>one <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> event per length class. That multiplies the deployment configuration and gains nothing.</p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">header_size</span></code> is a per-event configuration value and not hard-coded to <code class="docutils literal notranslate"><span class="pre">someip::kSomeipFullHeaderSize</span></code>.
-The daemons pass the SOME/IP value; the binding stays SOME/IP agnostic, exactly as it is today.</p>
+<p>The daemons size <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code> for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
+as it is today.</p>
 </section>
 <section id="availability-propagation">
 <h3>Availability propagation<a class="headerlink" href="#availability-propagation" title="Link to this heading">#</a></h3>
@@ -811,7 +810,7 @@ skeletons.</p></li>
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <figure class="align-center" id="id3">
 <p class="plantuml">
-<object data="../_images/plantuml-6e05035e96cd462dd7e7c598540ef284d4d67b4a.svg" type="image/svg+xml" style="width:1585px;height:529px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-df6d52bbb31093da4d5fc8e470e483c9bf10b6f9.svg" type="image/svg+xml" style="width:1434px;height:523px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 4 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
 </figcaption>
@@ -887,23 +886,9 @@ backed by an <code class="docutils literal notranslate"><span class="pre">std::a
 <h3>Startup<a class="headerlink" href="#startup" title="Link to this heading">#</a></h3>
 <figure class="align-center" id="id4">
 <p class="plantuml">
-<object data="../_images/plantuml-d2e83084e7de81638b8ed1cb625d766bb0aaf4d9.svg" type="image/svg+xml" style="width:941px;height:494px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-39fb5c571e7dd2a0a53dcb4cde86905777466db4.svg" type="image/svg+xml" style="width:1255px;height:770px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">someipd</span></code> startup: <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> before bridged services</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id5">
-<p class="plantuml">
-<object data="../_images/plantuml-bd1730e13cacb2885e6de8729063b6642dcb6055.svg" type="image/svg+xml" style="width:1048px;height:474px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 6 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> startup: peer discovery and bridged-service bindings</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id6">
-<p class="plantuml">
-<object data="../_images/plantuml-322cef67bc00103eef121cdfd6606c9bdc33d81e.svg" type="image/svg+xml" style="width:2381px;height:869px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Shared creation flow for bridged-service bindings</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> startup: <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> before bridged services</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
@@ -911,35 +896,27 @@ backed by an <code class="docutils literal notranslate"><span class="pre">std::a
 <h3>Event flow<a class="headerlink" href="#event-flow" title="Link to this heading">#</a></h3>
 <p>The flow for one bridged service is split into availability, subscription lifecycle and event delivery.
 Availability precedes subscription; event delivery takes place between subscription and unsubscription.</p>
+<figure class="align-center" id="id5">
+<p class="plantuml">
+<object data="../_images/plantuml-7786e446dd79ffb44dfde911535b0505b2fe6269.svg" type="image/svg+xml" style="width:1816px;height:694px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Availability for one bridged service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id6">
+<p class="plantuml">
+<object data="../_images/plantuml-4ca02e65658c9043895a8d7258f4dfc393a7367c.svg" type="image/svg+xml" style="width:1684px;height:664px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Subscription lifecycle for one bridged service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
 <figure class="align-center" id="id7">
 <p class="plantuml">
-<object data="../_images/plantuml-be0aaafda36822a25ea63ab8f55403f163554845.svg" type="image/svg+xml" style="width:1719px;height:685px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-f244917bf27e4ec2547aa1e40265111464f59054.svg" type="image/svg+xml" style="width:1396px;height:613px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 8 </span><span class="caption-text">Availability for one bridged service</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 8 </span><span class="caption-text">Event delivery for one bridged service</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
-<figure class="align-center" id="id8">
-<p class="plantuml">
-<object data="../_images/plantuml-0918ff5e7dcad3801b1caa8128b1f3db359e705b.svg" type="image/svg+xml" style="width:1829px;height:733px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 9 </span><span class="caption-text">Subscription lifecycle for one bridged service</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id9">
-<p class="plantuml">
-<object data="../_images/plantuml-1b33d1ad9b794b2a8dfbfab068a314eb5580ff47.svg" type="image/svg+xml" style="width:2146px;height:824px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 10 </span><span class="caption-text">Event delivery for one bridged service</span><a class="headerlink" href="#id9" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<p>Ownership markers in the event delivery diagram:</p>
-<ol class="arabic simple">
-<li><p><strong>Allocation ownership:</strong> Store the <code class="docutils literal notranslate"><span class="pre">SampleAllocateePtr</span></code> in the in-flight table keyed by the minted
-<code class="docutils literal notranslate"><span class="pre">slot_handle</span></code> and wrap the sample as <code class="docutils literal notranslate"><span class="pre">socom::Writable_payload</span></code> with <code class="docutils literal notranslate"><span class="pre">lead_offset</span> <span class="pre">=</span> <span class="pre">8</span></code> and
-<code class="docutils literal notranslate"><span class="pre">header_size</span> <span class="pre">=</span> <span class="pre">header_size</span></code>.</p></li>
-<li><p><strong>Received sample ownership:</strong> Read <code class="docutils literal notranslate"><span class="pre">payload_length</span></code>, build <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> over the sample and move
-the <code class="docutils literal notranslate"><span class="pre">SamplePtr</span></code> into its destruction callback.</p></li>
-</ol>
 </section>
 <section id="teardown">
 <h3>Teardown<a class="headerlink" href="#teardown" title="Link to this heading">#</a></h3>
@@ -1045,7 +1022,7 @@ add-on configurations retain the runtime API’s terminating behavior.</p>
 binding validates that the configured sample size matches <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::GetSizeInfo()</span></code> and fails
 setup on mismatch. On the consumer side the same check runs against <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::GetSampleSize()</span></code>
 once the peer’s instance is found; a mismatch there means the two deployments disagree, so the service is
-left unavailable instead of reading payloads at the wrong offset.</p>
+left unavailable instead of reading payloads past the end of a sample.</p>
 </section>
 <section id="known-gaps">
 <h2>Known gaps<a class="headerlink" href="#known-gaps" title="Link to this heading">#</a></h2>
@@ -1058,8 +1035,6 @@ methods, see <a class="reference internal" href="#someipd-service"><span class="
 <li><p><strong>requested event updates</strong>: SOCom <code class="docutils literal notranslate"><span class="pre">on_event_update_request</span></code> has no LoLa counterpart. LoLa has no pull
 API on the proxy side, so field-style initial values cannot be served on demand. The request is logged and
 ignored.</p></li>
-<li><p><strong>const-correctness</strong>: turning a <code class="docutils literal notranslate"><span class="pre">SamplePtr&lt;void&gt;</span></code> into a writable <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> needs a
-<code class="docutils literal notranslate"><span class="pre">const_cast</span></code>, the same wart the current shared-memory read path already carries.</p></li>
 <li><p><strong>re-offering a provider service</strong>: if the local SOCom service of a provider-role bridge goes away and
 comes back while a peer still holds an event subscription, <code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> keeps the
 <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> alive across <code class="docutils literal notranslate"><span class="pre">StopOfferService()</span></code>/<code class="docutils literal notranslate"><span class="pre">OfferService()</span></code>, as the LoLa gateway
@@ -1136,7 +1111,7 @@ upstream re-offer problem described under <a class="reference internal" href="#k
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#goals-and-non-goals">Goals and non-goals</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-decisions-taken-up-front">Design decisions taken up front</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d1-genericproxy-and-genericskeleton-represent-a-some-ip-service">D1: <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> represent a SOME/IP service</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d2-every-event-sample-reserves-space-for-the-some-ip-header">D2: every event sample reserves space for the SOME/IP header</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d2-every-event-sample-carries-the-full-some-ip-message">D2: every event sample carries the full SOME/IP message</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d3-no-shared-memory-slot-manager">D3: no <code class="docutils literal notranslate"><span class="pre">Shared_memory_slot_manager</span></code></a></li>
 </ul>
 </li>
