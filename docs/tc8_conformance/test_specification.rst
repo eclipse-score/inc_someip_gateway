@@ -63,31 +63,6 @@ Service Discovery Tests
 
 :DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
 
-TC8-SD-001: Multicast Offer on Startup
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Spec Reference: none (project specific)
-:Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_001_multicast_offer_on_startup``
-:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
-:DUT Config: ``tc8_someipd_sd.json``
-
-**Purpose:**
-Verify that ``someipd`` sends at least one SD OfferService entry on the
-configured multicast group (``224.244.224.245:30490``) after startup.
-
-**Preconditions:**
-
-- ``someipd`` started without ``gatewayd``
-- Multicast route available (``224.0.0.0/4``)
-
-**Stimuli:**
-None, passive observation of DUT multicast traffic.
-
-**Expected Result:**
-At least one SOME/IP-SD message containing an OfferService entry is
-received on the multicast group within 5 seconds of the start of the capture.
-
 TC8-SD-002: Offer Entry Format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -103,7 +78,8 @@ instance ID, major/minor version, and TTL as configured.
 
 **Preconditions:**
 
-- Same as TC8-SD-001.
+- ``someipd`` started without ``gatewayd``
+- Multicast route available (``224.0.0.0/4``)
 
 **Stimuli:**
 None, passive observation of the first OfferService of the capture.
@@ -159,29 +135,6 @@ the DUT, repeated every 1.5 seconds for up to 5 seconds.
 
 **Expected Result:**
 At least one unicast OfferService entry received for the requested service.
-
-TC8-SD-005: FindService Unknown Service
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Spec Reference: none (project specific)
-:Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_005_find_unknown_service_no_response``
-:Requirement: ``comp_req__tc8_conformance__sd_find_response``
-:DUT Config: ``tc8_someipd_sd.json``
-
-**Purpose:**
-Verify that ``someipd`` does not respond to a FindService for an
-unknown service.
-
-**Preconditions:**
-
-- DUT running, not offering service ``0xBEEF``.
-
-**Stimuli:**
-Send SD FindService entry for service ``0xBEEF`` to the SD multicast group.
-
-**Expected Result:**
-No OfferService entry received for service ``0xBEEF`` within 2 seconds.
 
 TC8-SD-006: Subscribe Eventgroup Ack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -601,7 +554,7 @@ Wait for the main phase and receive a cyclic OfferService. Wait
 
 **Expected Result:**
 OfferService with IP destination address equal to the SD multicast group, received
-within 1.5 times ``request_response_delay`` and before the next cyclic OfferService.
+within the listen time (``ParamListenTime``, default 10 s).
 
 TC8-SDM-014: FindService With Unicast Flag Cleared: Multicast Response
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -662,23 +615,6 @@ Send a unicast SubscribeEventgroup with TTL = 0 (no prior subscription).
 No SubscribeEventgroupAck or SubscribeEventgroupNack received within 2 seconds.
 
 The OA procedure numbers its steps from 3.
-
-TC8-SDLC-003: Subscribe Without Prior Method Call
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Reference: none (project specific)
-:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
-:Test Function: ``TestSDSubscribeLifecycleAdvanced::test_subscribe_accepted_without_prior_method_call``
-
-**Purpose:**
-Verify that the DUT accepts a SubscribeEventgroup without any prior method call (no
-prerequisite RPC interaction required).
-
-**Stimulus:**
-Send SubscribeEventgroup immediately after service discovery, without any method call.
-
-**Expected Result:**
-Positive SubscribeAck received.
 
 TC8-SDLC-004: Entries In One Message Processed In Order
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -774,23 +710,6 @@ Subscribe to eventgroup ``0x0005``; wait for the ACK and the initial fields.
 **Expected Result:**
 A SubscribeEventgroupAck and the initial fields (``0x8005`` to ``0x8007``) received
 within 5 seconds after the ACK.
-
-TC8-SDLC-010: Server Does Not Emit FindService
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Reference: none (project specific)
-:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
-:Test Function: ``TestSDFindServiceAdvanced::test_sd_server_no_findservice_in_main_phase``
-
-**Purpose:**
-Verify that the DUT (acting as service provider) does not emit FindService entries
-in its SD messages during the main phase.
-
-**Stimulus:**
-Observe SD traffic for 5 seconds; collect all SD entries from the DUT.
-
-**Expected Result:**
-No FindService entries observed in DUT SD traffic.
 
 TC8-SDLC-011: StopOfferService Stops FindService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

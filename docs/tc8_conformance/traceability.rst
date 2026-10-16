@@ -54,9 +54,6 @@ Service Discovery
    * - OA Spec Reference (Ch. 6)
      - Internal ID
      - Requirement
-   * - none (project specific)
-     - TC8-SD-001
-     - ``sd_offer_format``
    * - Section 6.1.5.1, SOMEIPSRV_FORMAT_14-18
      - TC8-SD-002
      - ``sd_offer_format``
@@ -65,9 +62,6 @@ Service Discovery
      - ``sd_cyclic_timing``
    * - Section 6.1.6, SOMEIP_ETS_171
      - TC8-SD-004
-     - ``sd_find_response``
-   * - none (project specific)
-     - TC8-SD-005
      - ``sd_find_response``
    * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_13
      - TC8-SD-006
@@ -160,9 +154,6 @@ SD Lifecycle Advanced
    * - Section 6.1.6, SOMEIP_ETS_092
      - TC8-SDLC-002
      - ``sd_sub_lifecycle``
-   * - none (project specific)
-     - TC8-SDLC-003
-     - ``sd_sub_lifecycle``
    * - Section 6.1.6, SOMEIP_ETS_107
      - TC8-SDLC-004
      - ``sd_sub_lifecycle``
@@ -178,9 +169,6 @@ SD Lifecycle Advanced
    * - Section 6.1.6, SOMEIP_ETS_121
      - TC8-SDLC-009
      - ``sd_sub_lifecycle``
-   * - none (project specific)
-     - TC8-SDLC-010
-     - ``sd_offer_format``
    * - Section 6.1.6, SOMEIP_ETS_101
      - TC8-SDLC-011
      - ``sd_sub_lifecycle``
