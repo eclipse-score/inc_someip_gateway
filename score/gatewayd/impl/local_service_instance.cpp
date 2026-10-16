@@ -42,18 +42,14 @@ LocalServiceInstance::LocalServiceInstance(
 Result<std::unique_ptr<LocalServiceInstance>> LocalServiceInstance::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    GenericProxy&& ipc_proxy, socom::Runtime& socom_runtime) {
-    socom::Service_interface_identifier const iface{
-        service_type_config->service_type_name()->string_view(),
-        {service_type_config->service_version_major(),
-         static_cast<uint16_t>(service_type_config->service_version_minor())}};
-
+    GenericProxy&& ipc_proxy, socom::Service_interface_identifier const& socom_interface,
+    socom::Runtime& socom_runtime) {
     // TODO: Handle multiple instances. Needs to be converted from integer ID to string.
     // For initial impl, just use service name again.
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
 
     socom::Server_service_interface_definition const server_config{
-        iface, socom::to_num_of_methods(0),
+        socom_interface, socom::to_num_of_methods(0),
         socom::to_num_of_events(service_type_config->events()->size())};
 
     auto disabled_server_connector = socom_runtime.make_server_connector(
@@ -232,15 +228,18 @@ namespace {
 struct FindServiceContext {
     std::shared_ptr<const mw_someip_config::ServiceInstance> config;
     std::shared_ptr<const mw_someip_config::ServiceType> service_config;
+    socom::Service_interface_identifier socom_interface;
     socom::Runtime* socom_runtime;
     std::vector<std::unique_ptr<LocalServiceInstance>>& instances;
 
     FindServiceContext(std::shared_ptr<const mw_someip_config::ServiceInstance> config_,
                        std::shared_ptr<const mw_someip_config::ServiceType> service_config_,
+                       socom::Service_interface_identifier socom_interface_,
                        socom::Runtime& socom_runtime_,
                        std::vector<std::unique_ptr<LocalServiceInstance>>& instances_)
         : config(std::move(config_)),
           service_config(std::move(service_config_)),
+          socom_interface(socom_interface_),
           socom_runtime(&socom_runtime_),
           instances(instances_) {}
 };
@@ -250,7 +249,8 @@ struct FindServiceContext {
 Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalServices(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    socom::Runtime& socom_runtime, std::vector<std::unique_ptr<LocalServiceInstance>>& instances) {
+    socom::Service_interface_identifier const& socom_interface, socom::Runtime& socom_runtime,
+    std::vector<std::unique_ptr<LocalServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
         score::mw::log::LogError() << "[gatewayd] ERROR: Service instance config is nullptr!";
         return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
@@ -264,7 +264,7 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
     // TODO: StartFindService should be modified to handle arbitrarily large lambdas
     // or we need to check whether it is OK to stick with dynamic allocation here.
     auto context = std::make_unique<FindServiceContext>(
-        service_instance_config, service_type_config, socom_runtime, instances);
+        service_instance_config, service_type_config, socom_interface, socom_runtime, instances);
 
     return GenericProxy::StartFindService(
         [context = std::move(context)](auto handles, auto find_handle) {
@@ -280,9 +280,9 @@ Result<mw::com::FindServiceHandle> LocalServiceInstance::CreateAsyncLocalService
                 return;
             }
 
-            auto create_result = LocalServiceInstance::Create(instance_config, service_config,
-                                                              std::move(proxy_result).value(),
-                                                              *context->socom_runtime);
+            auto create_result = LocalServiceInstance::Create(
+                instance_config, service_config, std::move(proxy_result).value(),
+                context->socom_interface, *context->socom_runtime);
             if (!create_result.has_value()) {
                 score::mw::log::LogError()
                     << "[gatewayd] Failed to create LocalServiceInstance for '"

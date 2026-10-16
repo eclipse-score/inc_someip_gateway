@@ -49,6 +49,7 @@ path = [
     "score/config/mw_someip_config.*",
     "score/gateway_ipc_binding/test/mw_com_config.json",
     "score/gatewayd/etc/mw_com_config.json",
+    "score/someipd/etc/mw_com_config.json",
     "tests/benchmarks/config/*/*.json",
     "tests/integration_test/vsomeip-local.json",
     "tests/integration_test/vsomeip.json",

@@ -38,16 +38,12 @@ RemoteNetworkService::RemoteNetworkService(
 Result<std::unique_ptr<RemoteNetworkService>> RemoteNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime) {
-    socom::Service_interface_identifier const iface{
-        service_type_config->service_type_name()->string_view(),
-        {service_type_config->service_version_major(),
-         static_cast<uint16_t>(service_type_config->service_version_minor())}};
-
+    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime,
+    socom::Service_interface_identifier const& socom_interface) {
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
 
     socom::Server_service_interface_definition const server_config{
-        iface, socom::to_num_of_methods(0),
+        socom_interface, socom::to_num_of_methods(0),
         socom::to_num_of_events(service_type_config->events()->size())};
 
     auto disabled = socom_runtime.make_server_connector(
@@ -105,45 +101,53 @@ void RemoteNetworkService::setup_vsomeip() {
                 // Build SOME/IP header (16 bytes) + payload
                 // This matches what gatewayd expects when receiving events from someipd.
                 // TODO: Check if this is actually required. E2E?
+                auto const message = payload.wdata();
+                if ((message.size() < someip::kSomeipFullHeaderSize) ||
+                    (size > message.size() - someip::kSomeipFullHeaderSize)) {
+                    score::mw::log::LogError()
+                        << "[someipd] RemoteNetworkService - Dropping event " << socom_event_id
+                        << ": payload of " << size << " bytes does not fit";
+                    return;
+                }
                 std::size_t pos = 0;
 
                 std::uint16_t service_id_val = msg->get_service();
-                payload.wdata()[pos++] = static_cast<std::byte>(service_id_val >> 8);
-                payload.wdata()[pos++] = static_cast<std::byte>(service_id_val & 0xFF);
+                message[pos++] = static_cast<std::byte>(service_id_val >> 8);
+                message[pos++] = static_cast<std::byte>(service_id_val & 0xFF);
 
                 std::uint16_t method_id = vsomeip_event_id;
-                payload.wdata()[pos++] = static_cast<std::byte>(method_id >> 8);
-                payload.wdata()[pos++] = static_cast<std::byte>(method_id & 0xFF);
+                message[pos++] = static_cast<std::byte>(method_id >> 8);
+                message[pos++] = static_cast<std::byte>(method_id & 0xFF);
 
                 // Length (4 bytes) - set to actual payload size + 8 (remaining header bytes)
                 auto length = static_cast<std::uint32_t>(size + 8);
-                payload.wdata()[pos++] = static_cast<std::byte>((length >> 24) & 0xFF);
-                payload.wdata()[pos++] = static_cast<std::byte>((length >> 16) & 0xFF);
-                payload.wdata()[pos++] = static_cast<std::byte>((length >> 8) & 0xFF);
-                payload.wdata()[pos++] = static_cast<std::byte>(length & 0xFF);
+                message[pos++] = static_cast<std::byte>((length >> 24) & 0xFF);
+                message[pos++] = static_cast<std::byte>((length >> 16) & 0xFF);
+                message[pos++] = static_cast<std::byte>((length >> 8) & 0xFF);
+                message[pos++] = static_cast<std::byte>(length & 0xFF);
 
                 std::uint16_t client_id = msg->get_client();
-                payload.wdata()[pos++] = static_cast<std::byte>(client_id >> 8);
-                payload.wdata()[pos++] = static_cast<std::byte>(client_id & 0xFF);
+                message[pos++] = static_cast<std::byte>(client_id >> 8);
+                message[pos++] = static_cast<std::byte>(client_id & 0xFF);
 
                 std::uint16_t session_id = msg->get_session();
-                payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
-                payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
+                message[pos++] = static_cast<std::byte>(session_id >> 8);
+                message[pos++] = static_cast<std::byte>(session_id & 0xFF);
 
                 auto protocol_version = msg->get_protocol_version();
-                payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
+                message[pos++] = static_cast<std::byte>(protocol_version);
 
                 auto interface_version = msg->get_interface_version();
-                payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
+                message[pos++] = static_cast<std::byte>(interface_version);
 
                 auto message_type = static_cast<std::uint8_t>(msg->get_message_type());
-                payload.wdata()[pos++] = static_cast<std::byte>(message_type);
+                message[pos++] = static_cast<std::byte>(message_type);
 
                 auto return_code = static_cast<std::uint8_t>(msg->get_return_code());
-                payload.wdata()[pos++] = static_cast<std::byte>(return_code);
+                message[pos++] = static_cast<std::byte>(return_code);
 
                 // Copy payload data after header
-                std::memcpy(payload.wdata().data() + pos, data, size);
+                std::memcpy(message.data() + pos, data, size);
                 pos += size;
 
                 // Shrink to actual size (header + payload)
