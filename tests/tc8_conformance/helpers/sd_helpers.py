@@ -10,23 +10,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""
-SD multicast capture and OFFER parsing for TC8 tests.
+"""SD multicast capture and OFFER parsing for TC8 tests.
 
-Single source of truth for SD parsing and multicast sockets.
-Other helpers (``timing.py``, ``sd_sender.py``) import from here.
+Single source of truth for SD parsing and multicast sockets; other helpers
+(``timing.py``, ``sd_sender.py``) import from here.
 
-Uses blocking sockets (no asyncio).
-
-Note: Loopback multicast needs ``bazel test --config=tc8`` (auto-configures
-a private network namespace).  Alternatively, set ``TC8_HOST_IP`` to a
-non-loopback interface address to avoid this.
+Note: loopback multicast needs ``bazel test --config=tc8-itf`` (auto-configures
+a private network namespace), or set ``TC8_HOST_IP`` to a non-loopback
+interface address instead.
 """
 
 import socket
 import struct
 import time
-from typing import List
+from typing import List, NamedTuple, Tuple
 
 from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
 from helpers.someip_types import (
@@ -90,6 +87,65 @@ def parse_sd_offers(data: bytes) -> List[SOMEIPSDEntry]:
     sd_header = sd_header.resolve_options()
 
     return [entry for entry in sd_header.entries if entry.sd_type == SOMEIPSDEntryType.OfferService]
+
+
+class RawEventgroupEntry(NamedTuple):
+    """Fields of a Subscribe or SubscribeAck entry, including the Reserved field."""
+
+    entry_type: int
+    service_id: int
+    instance_id: int
+    major_version: int
+    ttl: int
+    reserved: int
+    eventgroup_id: int
+
+
+def _sd_arrays(sd_payload: bytes) -> Tuple[bytes, bytes]:
+    """Return the raw entries array and options array of an SD payload."""
+    entries_len = struct.unpack_from(">I", sd_payload, 4)[0]
+    options_len = struct.unpack_from(">I", sd_payload, 8 + entries_len)[0]
+    options_start = 12 + entries_len
+    return sd_payload[8 : 8 + entries_len], sd_payload[options_start : options_start + options_len]
+
+
+def raw_sd_entries(sd_payload: bytes) -> List[bytes]:
+    """Split the entries array of an SD payload into its 16-byte entries."""
+    entries, _ = _sd_arrays(sd_payload)
+    return [entries[i : i + 16] for i in range(0, len(entries), 16)]
+
+
+def raw_sd_options(sd_payload: bytes) -> List[bytes]:
+    """Split the options array of an SD payload into raw options (Length and Type included)."""
+    _, options = _sd_arrays(sd_payload)
+    result: List[bytes] = []
+    pos = 0
+    while pos + 3 <= len(options):
+        end = pos + 3 + struct.unpack_from(">H", options, pos)[0]
+        result.append(options[pos:end])
+        pos = end
+    return result
+
+
+def raw_entry_options(sd_payload: bytes, entry: bytes) -> List[bytes]:
+    """Return the raw options referenced by both option runs of a raw 16-byte entry."""
+    options = raw_sd_options(sd_payload)
+    first_1, first_2, counts = entry[1], entry[2], entry[3]
+    return options[first_1 : first_1 + (counts >> 4)] + options[first_2 : first_2 + (counts & 0x0F)]
+
+
+def parse_raw_eventgroup_entry(entry: bytes) -> RawEventgroupEntry:
+    """Decode a raw 16-byte Subscribe or SubscribeAck entry."""
+    service_id, instance_id, major_and_ttl, reserved_and_counter, eventgroup_id = struct.unpack_from(">HHIHH", entry, 4)
+    return RawEventgroupEntry(
+        entry_type=entry[0],
+        service_id=service_id,
+        instance_id=instance_id,
+        major_version=major_and_ttl >> 24,
+        ttl=major_and_ttl & 0xFFFFFF,
+        reserved=reserved_and_counter >> 4,
+        eventgroup_id=eventgroup_id,
+    )
 
 
 def capture_sd_offers(

@@ -24,22 +24,8 @@ build --tool_java_language_version=17
 build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 
-# ============================================================================
-# Multi-Architecture Build Configuration
-# ============================================================================
-# These configs enable building for different target architectures.
-#
-# Usage:
-#   bazel build //... --config=x86_64-linux  # Build for x86_64 (native on x86_64 host)
-#   bazel build //... --config=aarch64-linux # Build for aarch64 (cross-compile)
-#   bazel build //... --config=x86_64-qnx    # Build for x86_64 (native on x86_64 QNX8)
-#   bazel build //... --config=aarch64-qnx   # Build for aarch64 (cross-compile QNX8)
-#
-# Platform Definitions:
-#   @score_bazel_platforms//:x86_64-linux  - x86_64 architecture (GNU/Linux)
-#   @score_bazel_platforms//:aarch64-linux - aarch64 architecture (GNU/Linux)
-#   @score_bazel_platforms//:x86_64-qnx    - x86_64 architecture (QNX8)
-#   @score_bazel_platforms//:aarch64-qnx   - aarch64 architecture (QNX8)
+# Target platform configs. Platforms come from score_bazel_platforms.
+# Usage: bazel build //... --config=<x86_64-linux|aarch64-linux|x86_64-qnx|aarch64-qnx>
 
 common --extra_toolchains=@score_linux_x86_64_ext4_toolchain//:ext4-x86_64-linux
 common:_toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux

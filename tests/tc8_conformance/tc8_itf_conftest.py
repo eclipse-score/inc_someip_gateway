@@ -67,12 +67,12 @@ def someip_pcap_capture() -> Generator[None, None, None]:
     sd_port = os.environ.get("TC8_SD_PORT", "30490")
     svc_tcp_port = os.environ.get("TC8_SVC_TCP_PORT", "30510")
 
-    # Multicast event group port (fixed in tc8_someipd_sd.json eventgroup 0x4465).
+    # Multicast event group port (fixed in tc8_someipd_sd.json eventgroup 0x0006).
     _multicast_event_port = "40490"
 
     # BPF filter breakdown:
     #   udp port <sd_port>:   SOME/IP-SD (multicast and unicast)
-    #   udp port 40490:       multicast event data (eventgroup 0x4465)
+    #   udp port 40490:       multicast event data (eventgroup 0x0006)
     #   host <dut_ip> udp:    all UDP to and from DUT (service and dynamic ports)
     #   host <dut_ip> tcp:    SOME/IP TCP only, excludes SSH port 22
     bpf = (

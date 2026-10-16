@@ -96,6 +96,50 @@
           ]
         }
       ]
+    },
+    {
+      "instanceSpecifier": "tc8/tc8_service_2",
+      "serviceTypeName": "tc8_service",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 22144,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "TestEventUINT8"
+            },
+            {
+              "eventName": "TestEventUINT8Array"
+            },
+            {
+              "eventName": "TestEventUINT8Reliable"
+            },
+            {
+              "eventName": "TestEventUINT8E2E"
+            },
+            {
+              "eventName": "InterfaceVersion"
+            },
+            {
+              "eventName": "TestFieldUINT8"
+            },
+            {
+              "eventName": "TestFieldUINT8Array"
+            },
+            {
+              "eventName": "TestFieldUINT8Reliable"
+            },
+            {
+              "eventName": "TestEventUINT8Multicast"
+            }
+          ]
+        }
+      ]
     }
   ],
   "global": {

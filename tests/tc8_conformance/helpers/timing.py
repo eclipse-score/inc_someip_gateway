@@ -20,7 +20,7 @@ Delegates parsing and socket setup to :mod:`helpers.sd_helpers`.
 
 import socket
 import time
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
 from helpers.sd_helpers import open_multicast_socket, parse_sd_offers
@@ -31,9 +31,11 @@ def collect_sd_offers_from_socket(
     sock: socket.socket,
     count: int,
     timeout_secs: float,
+    instance_id: Optional[int] = None,
 ) -> List[Tuple[float, SOMEIPSDEntry]]:
     """Collect *count* OfferService entries with timestamps from *sock*.
 
+    With *instance_id* only the entries of that instance are collected.
     Raises ``TimeoutError`` if fewer than *count* entries arrive in time.
     """
     deadline = time.monotonic() + timeout_secs
@@ -51,7 +53,8 @@ def collect_sd_offers_from_socket(
 
         recv_ts = time.monotonic()
         for entry in parse_sd_offers(data):
-            collected.append((recv_ts, entry))
+            if instance_id is None or entry.instance_id == instance_id:
+                collected.append((recv_ts, entry))
 
         if len(collected) >= count:
             return collected
@@ -69,10 +72,11 @@ def capture_sd_offers_with_timestamps(
     port: int = SD_PORT,
     count: int = 3,
     timeout_secs: float = 20.0,
+    instance_id: Optional[int] = None,
 ) -> List[Tuple[float, SOMEIPSDEntry]]:
     """Open a multicast socket and capture *count* OfferService entries with timestamps."""
     sock = open_multicast_socket(host_ip, multicast_group, port)
     try:
-        return collect_sd_offers_from_socket(sock, count, timeout_secs)
+        return collect_sd_offers_from_socket(sock, count, timeout_secs, instance_id)
     finally:
         sock.close()
