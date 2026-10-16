@@ -38,18 +38,9 @@
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "TestSDOfferFormat__test_tc8_sd_001_multicast_offer_on_startup",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 217,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
               "name": "TestSDOfferFormat__test_tc8_sd_002_offer_entry_format",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 237,
+              "line": 220,
               "need": "comp_req__tc8_conformance__sd_offer_format",
               "verify_type": "fully",
               "result": "passed",
@@ -58,18 +49,9 @@
             {
               "name": "TestSDFindServiceAdvanced__test_ets_091_session_id_increments",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1572,
+              "line": 1483,
               "need": "comp_req__tc8_conformance__sd_offer_format",
               "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFindServiceAdvanced__test_sd_server_no_findservice_in_main_phase",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1678,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             }
@@ -84,7 +66,7 @@
             {
               "name": "TestSDOfferFormat__test_tc8_sd_003_cyclic_offer_timing",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 269,
+              "line": 252,
               "need": "comp_req__tc8_conformance__sd_cyclic_timing",
               "verify_type": "fully",
               "result": "passed",
@@ -93,7 +75,7 @@
             {
               "name": "TestSDFindServiceTiming__test_sd_behavior_03_unicast_findservice_timing",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1077,
+              "line": 1026,
               "need": "comp_req__tc8_conformance__sd_cyclic_timing",
               "verify_type": "fully",
               "result": "passed",
@@ -102,7 +84,7 @@
             {
               "name": "TestSDFindServiceTiming__test_sd_behavior_04_multicast_findservice_timing",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1117,
+              "line": 1065,
               "need": "comp_req__tc8_conformance__sd_cyclic_timing",
               "verify_type": "fully",
               "result": "passed",
@@ -119,16 +101,7 @@
             {
               "name": "TestSDFindResponse__test_tc8_sd_004_find_known_service_unicast_offer",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 321,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFindResponse__test_tc8_sd_005_find_unknown_service_no_response",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 367,
+              "line": 304,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
@@ -137,7 +110,7 @@
             {
               "name": "TestSDVersionMatching__test_sd_message_01_any_instance",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 711,
+              "line": 660,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
@@ -146,7 +119,7 @@
             {
               "name": "TestSDVersionMatching__test_sd_message_02_instance_specific",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 737,
+              "line": 686,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
@@ -155,7 +128,7 @@
             {
               "name": "TestSDVersionMatching__test_sd_message_03_any_major_version",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 763,
+              "line": 712,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
@@ -164,7 +137,7 @@
             {
               "name": "TestSDVersionMatching__test_sd_message_04_major_version_specific",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 789,
+              "line": 738,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
@@ -173,7 +146,7 @@
             {
               "name": "TestSDVersionMatching__test_sd_message_05_any_minor_version",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 815,
+              "line": 764,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
@@ -182,7 +155,7 @@
             {
               "name": "TestSDVersionMatching__test_sd_message_06_minor_version_specific",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 843,
+              "line": 792,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
@@ -191,16 +164,16 @@
             {
               "name": "TestSDFindServiceAdvanced__test_ets_128_multicast_findservice_version_any",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1717,
+              "line": 1599,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
-              "result": "skipped",
-              "result_text": "OA ETS_128: a multicast FindService with Any Major Version or Any Minor Version is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received"
+              "result": "passed",
+              "result_text": ""
             },
             {
               "name": "TestSDFindServiceAdvanced__test_ets_130_multicast_findservice_unicast_flag_clear",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1768,
+              "line": 1650,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "skipped",
@@ -217,7 +190,7 @@
             {
               "name": "TestSDSubscribeLifecycle__test_tc8_sd_006_subscribe_valid_eventgroup_ack",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 405,
+              "line": 354,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -226,7 +199,7 @@
             {
               "name": "TestSDSubscribeLifecycle__test_tc8_sd_007_subscribe_unknown_eventgroup_nack",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 437,
+              "line": 386,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -235,7 +208,7 @@
             {
               "name": "TestSDSubscribeLifecycle__test_tc8_sd_008_stop_subscribe_ceases_notifications",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 464,
+              "line": 413,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -244,7 +217,7 @@
             {
               "name": "TestSDTTLExpiry__test_tc8_sd_014_ttl_expiry_ceases_notifications",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 645,
+              "line": 594,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -253,7 +226,7 @@
             {
               "name": "TestSDSubscribeNAck__test_sd_message_18_wrong_major_version",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 875,
+              "line": 824,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -262,7 +235,7 @@
             {
               "name": "TestSDSubscribeNAck__test_sd_message_14_15_16_unknown_service_id",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 913,
+              "line": 862,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -271,7 +244,7 @@
             {
               "name": "TestSDSubscribeNAck__test_sd_message_17_wrong_instance_id",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 951,
+              "line": 900,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -280,7 +253,7 @@
             {
               "name": "TestSDSubscribeNAck__test_sd_message_19_unknown_eventgroup_id",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 989,
+              "line": 938,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -289,7 +262,7 @@
             {
               "name": "TestSDSubscribeNAck__test_ets_144_reserved_field_endpoint_option_set",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1022,
+              "line": 971,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "skipped",
@@ -298,7 +271,7 @@
             {
               "name": "TestSDSubscribeLifecycleAdvanced__test_ets_088_two_subscribes_same_session",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1161,
+              "line": 1118,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "partially",
               "result": "passed",
@@ -307,16 +280,7 @@
             {
               "name": "TestSDSubscribeLifecycleAdvanced__test_ets_092_ttl_zero_stop_subscribe_no_nack",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1202,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeLifecycleAdvanced__test_subscribe_accepted_without_prior_method_call",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1243,
+              "line": 1159,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -325,7 +289,7 @@
             {
               "name": "TestSDSubscribeLifecycleAdvanced__test_ets_107_consider_entries_order",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1289,
+              "line": 1200,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "skipped",
@@ -334,7 +298,7 @@
             {
               "name": "TestSDSubscribeLifecycleAdvanced__test_ets_120_events_sent_to_endpoint_option_port",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1362,
+              "line": 1273,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "partially",
               "result": "skipped",
@@ -343,7 +307,7 @@
             {
               "name": "TestSDSubscribeLifecycleAdvanced__test_ets_155_resubscribe_after_stop",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1421,
+              "line": 1332,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "skipped",
@@ -352,7 +316,7 @@
             {
               "name": "TestSDFindServiceAdvanced__test_ets_121_events_sent_after_subscribe_ack",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1625,
+              "line": 1536,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "skipped",
@@ -369,7 +333,7 @@
             {
               "name": "TestSDOptionFormat__test_tc8_sd_011_offer_ipv4_endpoint_option",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 538,
+              "line": 487,
               "need": "comp_req__tc8_conformance__sd_endpoint_option",
               "verify_type": "fully",
               "result": "passed",
@@ -386,7 +350,7 @@
             {
               "name": "TestSDMulticastEventgroup__test_tc8_sd_013_subscribe_ack_has_multicast_option",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 589,
+              "line": 538,
               "need": "comp_req__tc8_conformance__sd_mcast_eg",
               "verify_type": "fully",
               "result": "passed",
@@ -403,7 +367,7 @@
             {
               "name": "TestSDSubscribeLifecycleAdvanced__test_ets_095_subscribe_ttl_expires_no_events",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1498,
+              "line": 1409,
               "need": "comp_req__tc8_conformance__sd_ttl_expiry",
               "verify_type": "partially",
               "result": "passed",

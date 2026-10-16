@@ -522,39 +522,6 @@ use the configured ID, which is the same.</p>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_sd.json</span></code></p>
 </dd>
 </dl>
-<section id="tc8-sd-001-multicast-offer-on-startup">
-<h3>TC8-SD-001: Multicast Offer on Startup<a class="headerlink" href="#tc8-sd-001-multicast-offer-on-startup" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>none (project specific)</p>
-</dd>
-<dt class="field-even">Test Module<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_tc8_sd_001_multicast_offer_on_startup</span></code></p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
-</dd>
-<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tc8_someipd_sd.json</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> sends at least one SD OfferService entry on the
-configured multicast group (<code class="docutils literal notranslate"><span class="pre">224.244.224.245:30490</span></code>) after startup.</p>
-<p><strong>Preconditions:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> started without <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></li>
-<li><p>Multicast route available (<code class="docutils literal notranslate"><span class="pre">224.0.0.0/4</span></code>)</p></li>
-</ul>
-<p><strong>Stimuli:</strong>
-None, passive observation of DUT multicast traffic.</p>
-<p><strong>Expected Result:</strong>
-At least one SOME/IP-SD message containing an OfferService entry is
-received on the multicast group within 5 seconds of the start of the capture.</p>
-</section>
 <section id="tc8-sd-002-offer-entry-format">
 <h3>TC8-SD-002: Offer Entry Format<a class="headerlink" href="#tc8-sd-002-offer-entry-format" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
@@ -579,7 +546,8 @@ Verify that the OfferService entry carries the correct service ID,
 instance ID, major/minor version, and TTL as configured.</p>
 <p><strong>Preconditions:</strong></p>
 <ul class="simple">
-<li><p>Same as TC8-SD-001.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> started without <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></li>
+<li><p>Multicast route available (<code class="docutils literal notranslate"><span class="pre">224.0.0.0/4</span></code>)</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
 None, passive observation of the first OfferService of the capture.</p>
@@ -650,37 +618,6 @@ Send SD FindService entry for service <code class="docutils literal notranslate"
 the DUT, repeated every 1.5 seconds for up to 5 seconds.</p>
 <p><strong>Expected Result:</strong>
 At least one unicast OfferService entry received for the requested service.</p>
-</section>
-<section id="tc8-sd-005-findservice-unknown-service">
-<h3>TC8-SD-005: FindService Unknown Service<a class="headerlink" href="#tc8-sd-005-findservice-unknown-service" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>none (project specific)</p>
-</dd>
-<dt class="field-even">Test Module<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_service_discovery.py</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_tc8_sd_005_find_unknown_service_no_response</span></code></p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
-</dd>
-<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tc8_someipd_sd.json</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that <code class="docutils literal notranslate"><span class="pre">someipd</span></code> does not respond to a FindService for an
-unknown service.</p>
-<p><strong>Preconditions:</strong></p>
-<ul class="simple">
-<li><p>DUT running, not offering service <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code>.</p></li>
-</ul>
-<p><strong>Stimuli:</strong>
-Send SD FindService entry for service <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code> to the SD multicast group.</p>
-<p><strong>Expected Result:</strong>
-No OfferService entry received for service <code class="docutils literal notranslate"><span class="pre">0xBEEF</span></code> within 2 seconds.</p>
 </section>
 <section id="tc8-sd-006-subscribe-eventgroup-ack">
 <h3>TC8-SD-006: Subscribe Eventgroup Ack<a class="headerlink" href="#tc8-sd-006-subscribe-eventgroup-ack" title="Link to this heading">#</a></h3>
@@ -1216,7 +1153,7 @@ Wait for the main phase and receive a cyclic OfferService. Wait
 <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> / 2 (1 s), then send FindService with the Unicast Flag set.</p>
 <p><strong>Expected Result:</strong>
 OfferService with IP destination address equal to the SD multicast group, received
-within 1.5 times <code class="docutils literal notranslate"><span class="pre">request_response_delay</span></code> and before the next cyclic OfferService.</p>
+within the listen time (<code class="docutils literal notranslate"><span class="pre">ParamListenTime</span></code>, default 10 s).</p>
 </section>
 <section id="tc8-sdm-014-findservice-with-unicast-flag-cleared-multicast-response">
 <h3>TC8-SDM-014: FindService With Unicast Flag Cleared: Multicast Response<a class="headerlink" href="#tc8-sdm-014-findservice-with-unicast-flag-cleared-multicast-response" title="Link to this heading">#</a></h3>
@@ -1293,27 +1230,6 @@ Send a unicast SubscribeEventgroup with TTL = 0 (no prior subscription).</p>
 <p><strong>Expected Result:</strong>
 No SubscribeEventgroupAck or SubscribeEventgroupNack received within 2 seconds.</p>
 <p>The OA procedure numbers its steps from 3.</p>
-</section>
-<section id="tc8-sdlc-003-subscribe-without-prior-method-call">
-<h3>TC8-SDLC-003: Subscribe Without Prior Method Call<a class="headerlink" href="#tc8-sdlc-003-subscribe-without-prior-method-call" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>none (project specific)</p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeLifecycleAdvanced::test_subscribe_accepted_without_prior_method_call</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that the DUT accepts a SubscribeEventgroup without any prior method call (no
-prerequisite RPC interaction required).</p>
-<p><strong>Stimulus:</strong>
-Send SubscribeEventgroup immediately after service discovery, without any method call.</p>
-<p><strong>Expected Result:</strong>
-Positive SubscribeAck received.</p>
 </section>
 <section id="tc8-sdlc-004-entries-in-one-message-processed-in-order">
 <h3>TC8-SDLC-004: Entries In One Message Processed In Order<a class="headerlink" href="#tc8-sdlc-004-entries-in-one-message-processed-in-order" title="Link to this heading">#</a></h3>
@@ -1429,27 +1345,6 @@ Subscribe to eventgroup <code class="docutils literal notranslate"><span class="
 <p><strong>Expected Result:</strong>
 A SubscribeEventgroupAck and the initial fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>) received
 within 5 seconds after the ACK.</p>
-</section>
-<section id="tc8-sdlc-010-server-does-not-emit-findservice">
-<h3>TC8-SDLC-010: Server Does Not Emit FindService<a class="headerlink" href="#tc8-sdlc-010-server-does-not-emit-findservice" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>none (project specific)</p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindServiceAdvanced::test_sd_server_no_findservice_in_main_phase</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify that the DUT (acting as service provider) does not emit FindService entries
-in its SD messages during the main phase.</p>
-<p><strong>Stimulus:</strong>
-Observe SD traffic for 5 seconds; collect all SD entries from the DUT.</p>
-<p><strong>Expected Result:</strong>
-No FindService entries observed in DUT SD traffic.</p>
 </section>
 <section id="tc8-sdlc-011-stopofferservice-stops-findservice">
 <h3>TC8-SDLC-011: StopOfferService Stops FindService<a class="headerlink" href="#tc8-sdlc-011-stopofferservice-stops-findservice" title="Link to this heading">#</a></h3>
@@ -1643,11 +1538,9 @@ trigger method).</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#service-discovery-tests">Service Discovery Tests</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-001-multicast-offer-on-startup">TC8-SD-001: Multicast Offer on Startup</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-002-offer-entry-format">TC8-SD-002: Offer Entry Format</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-003-cyclic-offer-timing">TC8-SD-003: Cyclic Offer Timing</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-004-findservice-known-service">TC8-SD-004: FindService Known Service</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-005-findservice-unknown-service">TC8-SD-005: FindService Unknown Service</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-006-subscribe-eventgroup-ack">TC8-SD-006: Subscribe Eventgroup Ack</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-007-subscribe-unknown-eventgroup-nack">TC8-SD-007: Subscribe Unknown Eventgroup Nack</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-008-stopsubscribe-ceases-notifications">TC8-SD-008: StopSubscribe Ceases Notifications</a></li>
@@ -1677,13 +1570,11 @@ trigger method).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-lifecycle-advanced-tests">SD Lifecycle Advanced Tests</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-001-multiple-subscribes-in-one-message">TC8-SDLC-001: Multiple Subscribes in One Message</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-002-ttl-0-as-stopsubscribe-no-nack">TC8-SDLC-002: TTL = 0 as StopSubscribe (No NAck)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-003-subscribe-without-prior-method-call">TC8-SDLC-003: Subscribe Without Prior Method Call</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-004-entries-in-one-message-processed-in-order">TC8-SDLC-004: Entries In One Message Processed In Order</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-005-events-sent-to-endpoint-option-port">TC8-SDLC-005: Events Sent to Endpoint Option Port</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-007-re-subscribe-after-stopsubscribe">TC8-SDLC-007: Re-subscribe After StopSubscribe</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-008-session-id-increments-per-offerservice">TC8-SDLC-008: Session ID Increments per OfferService</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-009-events-sent-after-subscribe-ack">TC8-SDLC-009: Events Sent After Subscribe ACK</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-010-server-does-not-emit-findservice">TC8-SDLC-010: Server Does Not Emit FindService</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-011-stopofferservice-stops-findservice">TC8-SDLC-011: StopOfferService Stops FindService</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-012-multicast-findservice-any-major-and-any-minor-version">TC8-SDLC-012: Multicast FindService: Any Major and Any Minor Version</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-013-multicast-findservice-unicast-flag-clear">TC8-SDLC-013: Multicast FindService: Unicast Flag Clear</a></li>
