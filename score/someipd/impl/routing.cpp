@@ -13,7 +13,6 @@
 
 #include "routing.h"
 
-#include <chrono>
 #include <functional>
 #include <score/assert.hpp>
 #include <thread>
@@ -101,15 +100,8 @@ InstanceId Routing::LookupInstanceId(ServiceId service_id) const {
     return kAnyInstance;
 }
 
-void Routing::ProcessMessages(std::atomic<bool>& shutdown_requested) {
-    // TODO: Replace sleep loop with SOCom client_connector callbacks
-    while (!shutdown_requested.load()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    score::mw::log::LogInfo() << "[someipd] Message loop exited, shutting down...";
-}
-
-void Routing::Run(std::atomic<bool>& shutdown_requested, std::function<void()> on_registered) {
+void Routing::Run(const std::function<void()>& wait_for_shutdown,
+                  std::function<void()> on_registered) {
     application_->register_state_handler([this, on_registered = std::move(on_registered)](
                                              vsomeip::state_type_e state) {
         if (state == vsomeip::state_type_e::ST_REGISTERED) {
@@ -123,8 +115,8 @@ void Routing::Run(std::atomic<bool>& shutdown_requested, std::function<void()> o
     });
     score::mw::log::LogInfo() << "[someipd] Starting network stack processing...";
     processing_thread_ = std::thread([this]() { application_->start(); });
-    score::mw::log::LogInfo() << "[someipd] Network stack started, entering message loop.";
-    ProcessMessages(shutdown_requested);
+    score::mw::log::LogInfo() << "[someipd] Network stack started, waiting for shutdown.";
+    wait_for_shutdown();
     score::mw::log::LogInfo() << "[someipd] Stopping network stack processing...";
     if (application_) {
         application_->stop();

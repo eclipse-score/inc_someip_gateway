@@ -42,12 +42,17 @@ class Payload_impl final {
 
     Payload_impl() = default;
 
-    /// \brief Construct new instance.
-    Payload_impl(Writable_span data, std::size_t slot_handle, Payload_destroyed payload_destroyed,
-                 std::size_t header_size = 0U, std::size_t lead_offset = 0U) noexcept
+    /// \brief Construct new read-only instance.
+    Payload_impl(Span data, std::size_t slot_handle, Payload_destroyed payload_destroyed) noexcept
         : m_data(data),
-          m_lead_offset(lead_offset),
-          m_header_size(header_size),
+          m_slot_handle(slot_handle),
+          m_payload_destroyed(std::move(payload_destroyed)) {}
+
+    /// \brief Construct new writable instance.
+    Payload_impl(Writable_span data, std::size_t slot_handle,
+                 Payload_destroyed payload_destroyed) noexcept
+        : m_data(data),
+          m_writable_data(data.data()),
           m_slot_handle(slot_handle),
           m_payload_destroyed(std::move(payload_destroyed)) {}
 
@@ -60,8 +65,7 @@ class Payload_impl final {
         if (this != &other) {
             call_payload_destroyed();
             m_data = std::move(other.m_data);
-            m_lead_offset = other.m_lead_offset;
-            m_header_size = other.m_header_size;
+            m_writable_data = other.m_writable_data;
             m_slot_handle = other.m_slot_handle;
             m_payload_destroyed = std::move(other.m_payload_destroyed);
         }
@@ -70,14 +74,15 @@ class Payload_impl final {
 
     /// \brief Retrieves the payload data.
     /// \return Span of payload data.
-    [[nodiscard]] Writable_span data() const noexcept {
-        return m_data.subspan(m_lead_offset + m_header_size);
-    }
+    [[nodiscard]] Span data() const noexcept { return m_data; }
 
-    /// \brief Retrieves the header data.
-    /// \return Writable span of header data.
-    [[nodiscard]] Writable_span header() const noexcept {
-        return m_data.subspan(m_lead_offset, m_header_size);
+    /// \brief Retrieves the writable payload data.
+    /// \return Writable span over data(), empty if this instance is read-only.
+    [[nodiscard]] Writable_span wdata() noexcept {
+        if (m_writable_data == nullptr) {
+            return {};
+        }
+        return Writable_span{m_writable_data, m_data.size()};
     }
 
     /// \brief Retrieves the slot handle associated with this payload.
@@ -88,19 +93,16 @@ class Payload_impl final {
     /// \param size The new data size. Must not exceed the current data size.
     /// \return True if successful, false if the new size exceeds the current size.
     bool shrink(std::size_t const size) noexcept {
-        auto const data_size = data().size();
-        if (size > data_size) {
+        if (size > m_data.size()) {
             return false;
         }
 
-        m_data = m_data.subspan(0, m_lead_offset + m_header_size + size);
+        m_data = m_data.subspan(0, size);
 
         return true;
     }
 
     bool operator==(Payload_impl const& other) const noexcept;
-
-    bool operator!=(Payload_impl const& other) const noexcept { return !(*this == other); }
 
    private:
     void call_payload_destroyed() noexcept {
@@ -109,10 +111,10 @@ class Payload_impl final {
         }
     }
 
-    Writable_span m_data;
-    std::size_t m_lead_offset;
-    std::size_t m_header_size;
-    std::size_t m_slot_handle;
+    Span m_data;
+    /// Start of m_data if the buffer is writable, nullptr for a read-only payload.
+    Byte* m_writable_data{nullptr};
+    std::size_t m_slot_handle{kNoSlotHandle};
     Payload_destroyed m_payload_destroyed;
 };
 }  // namespace detail
@@ -120,19 +122,8 @@ class Payload_impl final {
 /// \brief Interface representing the Payload transferable by SOCom.
 /// \details The payload itself must be representable by a continuous Span of bytes.
 ///
-/// The Payload has an optional header(), which is writable, but is not part of the data
-/// returned by data(). The optional header() is part of the same internal buffer, which also
-/// backs data().
-///
-/// The payload can internally look as follows:
-/// xxxxxxx SOME/IP_header | payload_data
-///
-/// Here | shows the position of the actual payload start in the buffer. Here "payload_data"
-/// will be returned with data().
-///
-/// This is needed for algorithms like the one for E2E, which require all data
-/// to be in contiguous memory and require an additional header for processing.
-/// \note When sending data over the wire, only data returned by data() shall be sent.
+/// data() is read-only; a sender writes it via Writable_payload::wdata(). In the SOME/IP gateway,
+/// data() holds the full SOME/IP message (header + payload).
 class Payload {
    public:
     /// \brief Alias for a data byte.
@@ -151,9 +142,8 @@ class Payload {
     Payload() = default;
 
     /// \brief Construct new instance.
-    Payload(Writable_span data, std::size_t slot_handle, Payload_destroyed payload_destroyed,
-            std::size_t header_size = 0U, std::size_t lead_offset = 0U) noexcept
-        : m_impl(data, slot_handle, std::move(payload_destroyed), header_size, lead_offset) {}
+    Payload(Span data, std::size_t slot_handle, Payload_destroyed payload_destroyed) noexcept
+        : m_impl(data, slot_handle, std::move(payload_destroyed)) {}
 
     ~Payload() = default;
     Payload(Payload const&) = delete;
@@ -164,14 +154,6 @@ class Payload {
     /// \brief Retrieves the payload data.
     /// \return Span of payload data.
     [[nodiscard]] Span data() const noexcept { return m_impl.data(); }
-
-    /// \brief Retrieves the header data.
-    /// \return Span of header data.
-    [[nodiscard]] Span header() const noexcept { return m_impl.header(); }
-
-    /// \brief Retrieves the header data.
-    /// \return Writable span of header data.
-    [[nodiscard]] Writable_span header() noexcept { return m_impl.header(); }
 
     /// \brief Retrieves the slot handle associated with this payload.
     /// \return The slot handle, or kNoSlotHandle if not associated with a slot.
@@ -196,6 +178,8 @@ class Payload {
     }
 
    protected:
+    explicit Payload(detail::Payload_impl impl) noexcept : m_impl(std::move(impl)) {}
+
     detail::Payload_impl m_impl;
 };
 
@@ -206,30 +190,18 @@ class Payload {
 /// After the data has been written to, the recipient can move the Writable_payload into a Payload
 /// and send it to the sender.
 ///
-/// The Payload has an optional header(), which is writable, but is not part of the data
-/// returned by data(). The optional header() is part of the same internal buffer, which also
-/// backs data().
-///
-/// The payload can internally look as follows:
-/// xxxxxxx SOME/IP_header | payload_data
-///
-/// Here | shows the position of the actual payload start in the buffer. Here "payload_data"
-/// will be returned with data().
-///
-/// This is needed for algorithms like the one for E2E, which require all data
-/// to be in contiguous memory and require an additional header for processing.
-/// \note When sending data over the wire, only data returned by data() shall be sent.
+/// In the SOME/IP gateway, the sender writes the full SOME/IP message (header + payload) via
+/// wdata(). This keeps both in contiguous memory, as needed by algorithms like the one for E2E.
 class Writable_payload : public Payload {
    public:
     /// \brief Construct new instance.
     Writable_payload(Writable_span data, std::size_t slot_handle,
-                     Payload_destroyed payload_destroyed, std::size_t header_size = 0U,
-                     std::size_t lead_offset = 0U) noexcept
-        : Payload(data, slot_handle, std::move(payload_destroyed), header_size, lead_offset) {}
+                     Payload_destroyed payload_destroyed) noexcept
+        : Payload(detail::Payload_impl{data, slot_handle, std::move(payload_destroyed)}) {}
 
     /// \brief Retrieves the writable payload data.
-    /// \return Span of payload data.
-    [[nodiscard]] Writable_span wdata() noexcept { return m_impl.data(); }
+    /// \return Span of payload data, empty if a read-only Payload was move-assigned into this.
+    [[nodiscard]] Writable_span wdata() noexcept { return m_impl.wdata(); }
 
     /// \brief Reduces the size of the payload data.
     /// \details Allows the payload to report a smaller size than its allocated capacity.

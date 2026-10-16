@@ -16,14 +16,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
-#include <random>
-#include <type_traits>
 
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/error.hpp"
 #include "score/socom/method.hpp"
-#include "score/socom/payload.hpp"
 
 namespace score::socom {
 
@@ -54,26 +51,6 @@ Destructor_printor::Destructor_printor(std::chrono::steady_clock::time_point sta
 
 Destructor_printor::~Destructor_printor() {
     std::cout << diff_s(m_start) << " " << m_message << std::endl;
-}
-
-void increase_and_fill(Vector_buffer& data, std::size_t const new_size) {
-    auto const old_size = data.size();
-    if (new_size <= old_size) {
-        return;
-    }
-    data.resize(new_size);
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-
-    using int_t = std::underlying_type_t<Payload::Byte>;
-
-    std::uniform_int_distribution<> distrib(std::numeric_limits<int_t>::min(),
-                                            std::numeric_limits<int_t>::max());
-    auto start = std::begin(data);
-    std::advance(start, old_size);
-
-    std::generate(start, std::end(data), [&gen, &distrib]() { return std::byte(distrib(gen)); });
 }
 
 static Service_interface_identifier create_service_interface(size_t const interface_id) {

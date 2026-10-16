@@ -147,7 +147,7 @@ class Server_adapter final : public Gateway_ipc_binding_server {
 }  // namespace
 
 std::size_t sample_size(Event_config const& event) noexcept {
-    auto const addressed = kSample_prefix_size + event.header_size + event.max_payload_size;
+    auto const addressed = kSample_prefix_size + event.max_payload_size;
     // Round up: a mw::com DataTypeMetaInfo::size must be an integer multiple of its alignment.
     return ((addressed + kSample_alignment) - 1U) / kSample_alignment * kSample_alignment;
 }

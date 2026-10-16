@@ -168,11 +168,8 @@ socom::Payload make_read_only_shared_memory_payload(
     using Byte = socom::Payload::Byte;
     auto const* data = static_cast<Byte const*>(base) + (slot_index * slot_size);
     auto const actual_size = std::min(used_bytes, slot_size);
-    // TODO get rid of const_cast
-    // const_cast is safe: Payload::data() returns Span (const), so the data is never modified
-    auto span = socom::Payload::Writable_span{
-        const_cast<Byte*>(data),
-        static_cast<socom::Payload::Writable_span::size_type>(actual_size)};
+    auto span =
+        socom::Payload::Span{data, static_cast<socom::Payload::Span::size_type>(actual_size)};
     return socom::Payload{span, slot_index, std::move(callback)};
 }
 }  // namespace

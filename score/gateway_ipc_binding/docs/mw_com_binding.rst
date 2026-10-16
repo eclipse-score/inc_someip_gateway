@@ -71,13 +71,13 @@ SOME/IP service instance therefore becomes one ``mw::com`` service instance.
 
 .. _d2-header:
 
-D2: every event sample reserves space for the SOME/IP header
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+D2: every event sample carries the full SOME/IP message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 E2E protection is computed over the SOME/IP header and the payload together and requires contiguous memory.
-The event samples exchanged between ``gatewayd`` and ``someipd`` therefore carry the SOME/IP header directly
-in front of the payload bytes. ``score::socom::Payload`` already models this: it distinguishes ``header()``
-from ``data()`` while both are backed by the same buffer. See :ref:`sample-layout`.
+The event samples exchanged between ``gatewayd`` and ``someipd`` therefore carry the full SOME/IP message,
+header included. ``score::socom::Payload::data()`` is a read-only view of it; the sender writes it through
+``Writable_payload::wdata()``. See :ref:`sample-layout`.
 
 .. _d3-no-slot-manager:
 
@@ -206,7 +206,7 @@ itself rather than any SOME/IP service:
   false when the find-service handler reports the instance gone.
 - ``gatewayd`` calls ``AddServiceConfiguration`` with JSON text when ``someipd`` must extend its
   ``mw::com`` deployment. The server parses the text and passes the resulting ``score::json::Any`` to
-  ``InitializeRuntimeAddonConfiguration``. The client submits a configured add-on at most once, so
+  ``AddConfiguration``. The client submits a configured add-on at most once, so
   reconnecting cannot merge the same configuration twice.
 
 Properties of this design:
@@ -236,24 +236,23 @@ Event sample layout
 ~~~~~~~~~~~~~~~~~~~
 
 A ``mw::com`` event sample is a fixed-size, type-erased buffer described by ``DataTypeMetaInfo{size, alignment}``.
-SOME/IP payloads are variable length and, per :ref:`d2-header`, need reserved space in front. The binding
-therefore defines the following layout for every event sample it exchanges::
+SOME/IP messages are variable length and, per :ref:`d2-header`, travel whole. The binding therefore defines
+the following layout for every event sample it exchanges::
 
-   +----------------------+------------------------+-----------------------------+
-   | binding prefix (8 B) | reserved header space  | payload bytes               |
-   |  u32 payload_length  |  e.g. SOME/IP header,  |  up to max_payload_size     |
-   |  u32 reserved        |  16 B                  |                             |
-   +----------------------+------------------------+-----------------------------+
-   ^                      ^                        ^
-   sample base            Payload::header()        Payload::data()
+   +----------------------+-----------------------------+
+   | binding prefix (8 B) | payload bytes               |
+   |  u32 payload_length  |  up to max_payload_size,    |
+   |  u32 reserved        |  e.g. a SOME/IP message     |
+   +----------------------+-----------------------------+
+   ^                      ^
+   sample base            Payload::data()
 
-- ``size`` of the ``DataTypeMetaInfo`` is ``8 + header_size + max_payload_size`` rounded up to a multiple of
-  8, ``alignment`` is 8. The 8-byte prefix keeps the reserved header space 8-byte aligned; the rounding is
+- ``size`` of the ``DataTypeMetaInfo`` is ``8 + max_payload_size`` rounded up to a multiple of
+  8, ``alignment`` is 8. The 8-byte prefix keeps the payload 8-byte aligned; the rounding is
   required because ``mw::com`` rejects a size that is not an integer multiple of its alignment. The padding
   at the end is never addressed, so ``Payload::data()`` is exactly ``max_payload_size`` long.
-- the binding constructs ``socom::Payload{span, slot_handle, destroyer, header_size, lead_offset = 8}``, so
-  the producing and consuming applications see exactly the ``header()`` / ``data()`` split they already use
-  today, and E2E can run over ``header()`` immediately followed by ``data()``.
+- the binding builds ``socom::Payload`` and ``socom::Writable_payload`` over the bytes after the prefix, so
+  the producing and consuming applications see the whole message in ``data()``, and E2E can run over it.
 - ``payload_length`` is the only piece of binding metadata on the link. It is required because LoLa samples
   are fixed size while SOME/IP payloads are not. The producer shrinks its ``Writable_payload``; the binding
   writes ``payload.data().size()`` into the prefix just before ``Send()``; the consumer side reads it back
@@ -265,8 +264,8 @@ Two alternatives were considered and rejected:
   SOME/IP, which it deliberately does not do today, and the field is currently not filled in by ``gatewayd``.
 - one ``mw::com`` event per length class. That multiplies the deployment configuration and gains nothing.
 
-``header_size`` is a per-event configuration value and not hard-coded to ``someip::kSomeipFullHeaderSize``.
-The daemons pass the SOME/IP value; the binding stays SOME/IP agnostic, exactly as it is today.
+The daemons size ``max_payload_size`` for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
+as it is today.
 
 Availability propagation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -545,7 +544,7 @@ Because both the sample size and the slot count now live in ``mw_com_config.json
 binding validates that the configured sample size matches ``GenericSkeletonEvent::GetSizeInfo()`` and fails
 setup on mismatch. On the consumer side the same check runs against ``GenericProxyEvent::GetSampleSize()``
 once the peer's instance is found; a mismatch there means the two deployments disagree, so the service is
-left unavailable instead of reading payloads at the wrong offset.
+left unavailable instead of reading payloads past the end of a sample.
 
 Known gaps
 ----------
@@ -558,8 +557,6 @@ Known gaps
 - **requested event updates**: SOCom ``on_event_update_request`` has no LoLa counterpart. LoLa has no pull
   API on the proxy side, so field-style initial values cannot be served on demand. The request is logged and
   ignored.
-- **const-correctness**: turning a ``SamplePtr<void>`` into a writable ``socom::Payload`` needs a
-  ``const_cast``, the same wart the current shared-memory read path already carries.
 - **re-offering a provider service**: if the local SOCom service of a provider-role bridge goes away and
   comes back while a peer still holds an event subscription, ``Provider_service_binding`` keeps the
   ``GenericSkeleton`` alive across ``StopOfferService()``/``OfferService()``, as the LoLa gateway
