@@ -144,12 +144,6 @@ void append(std::vector<T>& dst, std::vector<T>&& src) {
                std::make_move_iterator(std::end(src)));
 }
 
-/// \brief Increase the size of data and will with random bytes if new_size is bigger
-///
-/// \param[in] data vector with random data
-/// \param[in] new_size size to which the vector shall be increased
-void increase_and_fill(Vector_buffer& data, std::size_t new_size);
-
 /// \brief Create interfaces without events and methods but with unique names
 ///
 /// \param[in] num number of interfaces to create

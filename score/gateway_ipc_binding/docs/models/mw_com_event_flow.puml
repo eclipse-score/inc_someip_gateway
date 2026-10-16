@@ -41,8 +41,8 @@ mwcom --> provider : SampleAllocateePtr<void>
 note right of provider
   Store the SampleAllocateePtr in the in-flight
   table keyed by the minted slot_handle and wrap
-  the sample as socom::Writable_payload with
-  lead_offset = 8 and header_size = header_size.
+  the sample after the 8-byte prefix as
+  socom::Writable_payload.
 end note
 provider --> prod : Writable_payload
 prod -> prod : write SOME/IP header and payload, shrink()
@@ -55,8 +55,8 @@ consumer -> mwcom : GetNewSamples(receiver, max_sample_count)
 mwcom --> consumer : SamplePtr<void>
 note right of consumer
   Read payload_length, build socom::Payload over
-  the sample and move the SamplePtr into its
-  destruction callback.
+  the bytes after the 8-byte prefix and move the
+  SamplePtr into its destruction callback.
 end note
 consumer -> cons : Enabled_server_connector::update_event(event_id, payload)
 cons -> cons : payload destroyed, SamplePtr releases the slot

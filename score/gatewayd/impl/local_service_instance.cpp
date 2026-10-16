@@ -159,8 +159,7 @@ LocalServiceInstance::create_process_sample_callback(LocalServiceInstance* insta
                       << std::endl;
             return;
         }
-        // Writable_payload was constructed with header_size = 0.
-        // Therefore use .data()[0] to write the header first.
+        // The SOME/IP header goes first, the serialized event follows it.
         auto& payload = *maybe_payload;
         auto const message = payload.wdata();
         if (message.size() < someip::kSomeipFullHeaderSize) {

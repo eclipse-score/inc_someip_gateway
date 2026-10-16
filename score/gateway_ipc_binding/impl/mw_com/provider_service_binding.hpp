@@ -91,7 +91,6 @@ class Provider_service_binding final : public Service_binding {
     struct Event {
         /// \brief Owned by m_skeleton, invalidated whenever the skeleton is destroyed/recreated
         score::mw::com::GenericSkeletonEvent* skeleton_event;
-        std::size_t header_size;
         std::size_t addressed_sample_size;
         /// \brief The peer registered a receive handler, i.e. it wants this event
         bool wanted_by_peer{false};

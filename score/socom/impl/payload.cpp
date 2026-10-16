@@ -25,12 +25,12 @@ namespace score::socom {
 
 namespace detail {
 bool Payload_impl::operator==(Payload_impl const& other) const noexcept {
-    return header() == other.header() && data() == other.data();
+    return data() == other.data();
 }
 }  // namespace detail
 
 Payload empty_payload() {
-    return Payload{Payload::Writable_span{}, kNoSlotHandle, []() {}};
+    return Payload{Payload::Span{}, kNoSlotHandle, []() {}};
 }
 
 }  // namespace score::socom
