@@ -11,37 +11,34 @@
 ' SPDX-License-Identifier: Apache-2.0
 ' *******************************************************************************
 
-@startuml
-title Event delivery for one bridged service
+@startuml mw_com_event_flow
+title Bridged service: event delivery
 
-participant "socom::Server_connector\n(producer application)" as producer
+box "providing daemon"
+participant "socom::Client_connector" as client_connector
 participant "Provider_service_binding" as provider
-participant "socom::Client_connector\n(provider binding)" as provider_connector
-participant "GenericSkeletonEvent" as skeleton_event
-participant "GenericProxyEvent" as proxy_event
+end box
+participant "mw::com::GenericSkeleton" as skeleton
+participant "mw::com::GenericProxy" as proxy
+box "consuming daemon"
 participant "Consumer_service_binding" as consumer
-participant "socom::Enabled_server_connector" as enabled_connector
-participant "socom::Client_connector\n(consumer application)" as consumer_app
+participant "socom::Enabled_server_connector" as server_connector
+end box
 
-== Event update ==
-producer -> provider_connector : allocate_event_payload(event_id)
-provider_connector -> provider : on_event_payload_allocate(event_id)
-provider -> skeleton_event : Allocate()
-skeleton_event --> provider : SampleAllocateePtr<void>
-note right of provider : [1] Allocation ownership
-provider --> provider_connector : Writable_payload
-provider_connector --> producer : Writable_payload
-producer -> producer : write SOME/IP header and payload, shrink()
-producer -> provider_connector : update_event(event_id, payload)
-provider_connector -> provider : on_event_update(event_id, payload)
-provider -> provider : write payload_length prefix,\ntake sample out of the in-flight table
-provider -> skeleton_event : Send(sample)
-
-proxy_event -> consumer : receive handler
-consumer -> proxy_event : GetNewSamples(receiver, max_sample_count)
-proxy_event --> consumer : SamplePtr<void>
-note right of consumer : [2] Received sample ownership
-consumer -> enabled_connector : update_event(event_id, payload)
-enabled_connector -> consumer_app : event update
-consumer_app -> consumer_app : payload destroyed, SamplePtr releases the slot
+== A local producer allocates and sends an event ==
+client_connector -> provider : on_event_payload_allocate(event)
+provider -> skeleton : Allocate()
+alt a sample slot is free
+  provider --> client_connector : Writable_payload over the sample
+  client_connector -> provider : on_event_update(event, payload)
+  provider -> skeleton : Send(sample)
+  skeleton ->> proxy : new sample notification
+  proxy -> consumer : receive handler
+  consumer -> proxy : GetNewSamples()
+  proxy -> consumer : receiver(SamplePtr), per sample
+  consumer -> server_connector : update_event(event, payload)
+  note right of consumer : The payload owns the SamplePtr.\nDropping it returns the slot.
+else every slot is held by the peer or still in flight
+  provider --> client_connector : runtime_error_no_available_slots
+end
 @enduml

@@ -425,14 +425,6 @@ Availability precedes subscription; event delivery takes place between subscript
    :align: center
    :caption: Event delivery for one bridged service
 
-Ownership markers in the event delivery diagram:
-
-1. **Allocation ownership:** Store the ``SampleAllocateePtr`` in the in-flight table keyed by the minted
-   ``slot_handle`` and wrap the sample as ``socom::Writable_payload`` with ``lead_offset = 8`` and
-   ``header_size = header_size``.
-2. **Received sample ownership:** Read ``payload_length``, build ``socom::Payload`` over the sample and move
-   the ``SamplePtr`` into its destruction callback.
-
 Teardown
 ~~~~~~~~
 
