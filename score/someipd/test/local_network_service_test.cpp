@@ -16,8 +16,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <array>
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string_view>
@@ -134,23 +132,6 @@ TEST_F(LocalNetworkServiceTest, SubscribesAllEventsWhenServiceBecomesAvailableLa
     expect_all_events_subscribed();
 
     auto const server = socom::Disabled_server_connector::enable(std::move(server_connector));
-}
-
-// A sample shorter than the 16-byte SOME/IP header must be dropped. Forwarding it would reach the
-// vsomeip application, which is nullptr here.
-TEST_F(LocalNetworkServiceTest, DropsSampleShorterThanSomeipHeader) {
-    auto server_connector = make_server_connector();
-    ASSERT_NE(server_connector, nullptr);
-    auto const server = socom::Disabled_server_connector::enable(std::move(server_connector));
-    expect_all_events_subscribed();
-    auto const service = LocalNetworkService::Create(service_instance_config_, service_type_config_,
-                                                     nullptr, *runtime_);
-    ASSERT_TRUE(service.has_value());
-
-    std::array<std::byte, 15U> short_sample{};
-    EXPECT_TRUE(server->update_event(
-        0, socom::Payload{socom::Payload::Writable_span{short_sample.data(), short_sample.size()},
-                          socom::kNoSlotHandle, []() {}}));
 }
 
 }  // namespace

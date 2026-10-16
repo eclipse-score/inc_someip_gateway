@@ -125,13 +125,10 @@ void LocalNetworkService::forward_to_vsomeip(socom::Event_id event_id, socom::Pa
     }
     auto const* const event_config = (*events)[event_index];
 
+    auto const full_msg = payload.data();
     // Drop the SOME/IP header part, fields are set via config lookup
-    if (payload.data().size() < someip::kSomeipFullHeaderSize) {
-        score::mw::log::LogError()
-            << "[someipd] event_id " << event_index << " shorter than the SOME/IP header, dropping";
-        return;
-    }
-    auto const event_data = payload.data().subspan(someip::kSomeipFullHeaderSize);
+    auto const event_data = full_msg.subspan(someip::kSomeipFullHeaderSize,
+                                             full_msg.size() - someip::kSomeipFullHeaderSize);
 
     auto vsomeip_payload = vsomeip::runtime::get()->create_payload();
     vsomeip_payload->set_data(reinterpret_cast<const vsomeip_v3::byte_t*>(event_data.data()),

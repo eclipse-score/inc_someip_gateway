@@ -164,13 +164,7 @@ void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Paylo
     }
     auto& ipc_event = events_it->second;
 
-    // Drop the SOME/IP header, data() is the full SOME/IP message
-    if (payload.data().size() < someip::kSomeipFullHeaderSize) {
-        score::mw::log::LogError()
-            << "[gatewayd] Event '" << event_context.config->event_name()->string_view()
-            << "' shorter than the SOME/IP header, dropping";
-        return;
-    }
+    // Extract payload
     auto const message = payload.data().subspan(someip::kSomeipFullHeaderSize);
 
     auto maybe_sample = ipc_event.Allocate();

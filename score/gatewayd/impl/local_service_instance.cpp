@@ -161,13 +161,6 @@ LocalServiceInstance::create_process_sample_callback(LocalServiceInstance* insta
         }
         // The SOME/IP header goes first, the serialized event follows it.
         auto& payload = *maybe_payload;
-        auto const message = payload.wdata();
-        if (message.size() < someip::kSomeipFullHeaderSize) {
-            score::mw::log::LogError()
-                << "[gatewayd] LocalServiceInstance - Event payload of event "
-                << event_context.socom_event_id << " has no room for the SOME/IP header";
-            return;
-        }
 
         std::size_t pos = 0;
 
@@ -175,49 +168,51 @@ LocalServiceInstance::create_process_sample_callback(LocalServiceInstance* insta
         // message including the header in order to have the E2E protection in
         // the ASIL context.
         std::uint16_t service_id = instance_ptr->service_type_config_->service_id();
-        message[pos++] = static_cast<std::byte>(service_id >> 8);
-        message[pos++] = static_cast<std::byte>(service_id & 0xFF);
+        payload.wdata()[pos++] = static_cast<std::byte>(service_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(service_id & 0xFF);
 
         std::uint16_t method_id = event_context.config->event_id();
-        message[pos++] = static_cast<std::byte>(method_id >> 8);
-        message[pos++] = static_cast<std::byte>(method_id & 0xFF);
+        payload.wdata()[pos++] = static_cast<std::byte>(method_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(method_id & 0xFF);
 
         // Length set by someipd
         pos += 4;
 
         // TODO: get client ID during registration at the someipd
         std::uint16_t client_id = 0xFFFF;
-        message[pos++] = static_cast<std::byte>(client_id >> 8);
-        message[pos++] = static_cast<std::byte>(client_id & 0xFF);
+        payload.wdata()[pos++] = static_cast<std::byte>(client_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(client_id & 0xFF);
 
         std::uint16_t session_id = 0x0000;
-        message[pos++] = static_cast<std::byte>(session_id >> 8);
-        message[pos++] = static_cast<std::byte>(session_id & 0xFF);
+        payload.wdata()[pos++] = static_cast<std::byte>(session_id >> 8);
+        payload.wdata()[pos++] = static_cast<std::byte>(session_id & 0xFF);
 
         std::uint8_t protocol_version = 1;
-        message[pos++] = static_cast<std::byte>(protocol_version);
+        payload.wdata()[pos++] = static_cast<std::byte>(protocol_version);
 
         std::uint8_t interface_version =
             instance_ptr->service_type_config_->service_version_major();
-        message[pos++] = static_cast<std::byte>(interface_version);
+        payload.wdata()[pos++] = static_cast<std::byte>(interface_version);
 
         std::uint8_t message_type = 0x02;  // NOTIFICATION
-        message[pos++] = static_cast<std::byte>(message_type);
+        payload.wdata()[pos++] = static_cast<std::byte>(message_type);
 
         std::uint8_t return_code = 0x00;  // Unused
-        message[pos++] = static_cast<std::byte>(return_code);
+        payload.wdata()[pos++] = static_cast<std::byte>(return_code);
 
         std::size_t written_length = 0;
         auto serialize_result = score_com_serializer_serialize(
-            event_context.serializer, reinterpret_cast<uint8_t*>(message.data() + pos),
-            message.size() - pos, sample.get(), &written_length);
+            event_context.serializer, reinterpret_cast<uint8_t*>(payload.wdata().data() + pos),
+            payload.wdata().size() - pos, sample.get(), &written_length);
         if (serialize_result != score_com_serializer_result_ok) {
             score::mw::log::LogError() << "[gatewayd] Serialization failed for "
                                        << event_context.config->event_name()->string_view();
             return;
         }
-        // Shrink the payload to the actual written size (header + serialized data)
-        payload.shrink(pos + written_length);
+        pos += written_length;
+        // Shrink the payload to the actual written size (header + serialized
+        // data)
+        payload.shrink(pos);
 
         if (const auto result = instance_ptr->server_connector_->update_event(
                 event_context.socom_event_id, std::move(payload));
