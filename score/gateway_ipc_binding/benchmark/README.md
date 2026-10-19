@@ -270,3 +270,152 @@ under `.llm_tmp/gateway_ipc_binding_profile/`. That directory is ephemeral and i
 not committed; the commands above regenerate the artifacts. All collected runs
 completed successfully. The console logging fallback warning is expected when no
 logging configuration is supplied.
+
+## Per-Event Allocation Attribution: 2026-10-16
+
+Fresh release profiles used `-c opt --features=-tsan`, `score_communication`
+0.5.0, and `score_baselibs` 0.2.15 on the same x86-64 dev container. GNU memusage
+runs at 10,000 and 20,000 events established count scaling; Valgrind DHAT runs at
+both counts identified allocation stacks, including allocations too short-lived
+to dominate a Massif snapshot. All workloads ran sequentially and completed.
+
+### Reproduce the Allocation Stacks
+
+After building the memory application as above:
+
+```bash
+mkdir -p .llm_tmp/gateway_ipc_binding_allocations
+for count in 10000 20000; do
+  memusage -T \
+    ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
+    --iterations="${count}" \
+    > ".llm_tmp/gateway_ipc_binding_allocations/memusage_${count}.log" 2>&1
+  valgrind --tool=dhat --num-callers=40 \
+    --dhat-out-file=".llm_tmp/gateway_ipc_binding_allocations/dhat_${count}.json" \
+    ./bazel-bin/score/gateway_ipc_binding/benchmark/gateway_ipc_binding_memory \
+    --iterations="${count}" \
+    > ".llm_tmp/gateway_ipc_binding_allocations/dhat_${count}.log" 2>&1
+done
+```
+
+Load either JSON file in Valgrind's `dh_view.html` viewer (the path is printed
+in the log), and sort by total blocks, not peak bytes. With `jq`, recurring sites
+and their complete stacks can also be listed directly:
+
+```bash
+jq '. as $d | .pps[] | select(.tbk >= 625) |
+    {blocks: .tbk, bytes: .tb, stack: [.fs[] | $d.ftbl[.]]}' \
+  .llm_tmp/gateway_ipc_binding_allocations/dhat_10000.json
+```
+
+### Results by Stage
+
+| Stage | Allocation Stack / Owner | Requested Bytes per Allocation | Blocks at 10k / 20k Events |
+|-------|--------------------------|--------------------------------|---------------------------|
+| Allocate adapter | `Provider_service_binding::Allocations::insert` -> `unordered_map::emplace` node | 128 | 10,000 / 20,000 |
+| Send notification | `NotifyEvent` -> `Executor::Post` -> `SimpleTaskFactory::Make` -> `InterruptibleState<void>::Make` | 464 | 10,000 / 20,000 |
+| Send notification | Same promise construction -> `safecpp::Scope` -> shared `ScopeState` | 208 | 10,000 / 20,000 |
+| Send notification | `SimpleTaskFactory::InternalMake` -> PMR `make_unique<SimpleTask>` | 72 | 10,000 / 20,000 |
+| Send notification | `SimpleTaskBase` constructor -> `stop_source` -> shared stop state | 144 | 10,000 / 20,000 |
+| Receive adapter | `Consumer_service_binding::on_samples_available` callback -> `make_unique<SamplePtr<void>>` | 96 | 10,000 / 20,000 |
+| Notification worker cleanup | `ThreadPool::Work` -> assignment of a default-constructed `stop_source` | 144 | 10,000 / 20,000 |
+| Notification queue | `ThreadPool::Enqueue` -> `deque::emplace_back` -> deque node allocation | 512 | 625 / 1,250 |
+
+These sites account for **7 allocations plus 1/16 of a queue-block allocation,
+and 1,288 requested heap bytes per event**, averaged over these runs. Allocator
+metadata is additional. The queue keeps allocating even with one event in flight:
+a sliding `deque` releases old blocks and allocates new ones; it is not a reusable
+ring buffer. Other allocation sites are startup/teardown costs in these profiles.
+
+The allocation path is
+`allocate_event_payload` -> `Provider_service_binding::on_event_payload_allocate`
+-> `GenericSkeletonEvent::Allocate` -> LoLa `SkeletonEvent::Allocate`.
+LoLa claims an existing shared-memory slot with `AllocateNextSlot`; no recurring
+heap allocation was attributed to that operation. The subsequent gateway map
+insertion allocates the 128-byte node. Reserving hash buckets alone will not
+remove node allocations.
+
+Transmission follows `update_event` -> `Provider_service_binding::on_event_update`
+-> `GenericSkeletonEvent::Send` -> LoLa `SkeletonEvent::Send` ->
+`MessagePassingServiceInstance::NotifyEvent`. The local notification's
+`executor_.Post(...)` constructs a promise even though `Post` returns no future,
+and creates a task and its cancellation state. After executing the task, the
+worker constructs another stop state merely to clear its active-task entry.
+Together with queue blocks, notification infrastructure accounts for 1,064 of
+the 1,288 bytes per event, about 83% of recurring requested bytes.
+
+Reception follows `NotifyEventLocally` -> the receive handler ->
+`GenericProxyEvent::GetNewSamples` -> LoLa `ProxyEvent::GetNewSamples` -> the
+gateway callback. LoLa's slot collector is preallocated at subscription; neither
+slot collection nor sample-pointer construction appears as a recurring allocator
+in these profiles. The gateway explicitly boxes the received sample pointer
+because its 96-byte ownership object does not fit in SOCom's 48-byte
+`Payload_destroyed` inline callback. Capturing a `weak_ptr` on the provider side
+and locking it do not create new control blocks per event.
+
+These results describe the benchmark's **same-process local notification path**.
+Two separate gateway processes take the remote message-passing path; its
+steady-state allocation behavior must be measured separately. The five task and
+state allocations must not be assumed to occur in every remote deployment.
+There is no evidence here of a per-event 1 MiB payload-buffer allocation or copy.
+
+The fresh default 1,000,000-event memusage run reported 7,064,750 `malloc` calls,
+9 `calloc` calls, no failed allocations, 1,355,940,912 total allocated bytes,
+and a 67,371,705-byte peak heap. Its instrumented loop took 9.073 seconds.
+A fresh 10,000-event Massif run reported 67,370,725 useful peak bytes and
+9,403 allocator-overhead bytes. As in the earlier profile, roughly 64 MiB of the
+peak is startup shared-memory-layout simulation, not live per-event metadata.
+Heap peaks do not include the mapped LoLa data pool or prove absence of leaks.
+Raw profiles, logs, the memusage graph, and the Massif text report are under
+`.llm_tmp/gateway_ipc_binding_allocations/` and are ephemeral.
+
+### Recommended Changes
+
+1. **Replace provider map-node churn with bounded reusable storage.** Allocate
+   sample-holder entries and a free list when setting up the skeleton, sized from
+   the deployed provider slot limits across its events (64 for this benchmark),
+   not merely the consumer's subscription limit. Use index-plus-generation
+   handles so a late payload destructor cannot free a reused entry, including
+   after skeleton recreation. Keep the existing weak lifetime guard, teardown
+   ordering, and normal backpressure on exhaustion. This removes one allocation
+   and 128 requested bytes per event in this build. `unordered_map::reserve` is
+   insufficient; a bounded recyclable node allocator is another option.
+
+2. **Remove the receive-side sample-pointer box.** Either enlarge SOCom's inline
+   payload-destructor storage enough to own the sample pointer directly, with a
+   compile-time fit/alignment check for the actual callback, or use a preallocated
+   sample-holder pool. Enlarging inline storage increases every SOCom payload's
+   footprint; pooling avoids that shared API change but needs explicit capacity
+   and exhaustion handling. Hold each received sample until the final payload
+   owner releases it, not just until the receive callback returns. Preserve LoLa's
+   event/sample lifetime constraints during disconnect and teardown. This removes
+   one allocation and 96 requested bytes per event in this build.
+
+3. **Make local notifications allocation-free upstream.** In `score_communication`,
+   retain asynchronous dispatch but use preallocated notification work, for
+   example a bounded ready-event queue with per-event pending state and a
+   dedicated worker. Coalescing must recheck/drain samples without losing a
+   notification racing with pending-state clearing. Preserve receive-handler
+   unregistration synchronization and shutdown behavior. Calling handlers inline
+   changes latency, reentrancy, and lock-order semantics and is not an equivalent
+   optimization. In `score_baselibs`, a genuine fire-and-forget task should not
+   construct unused promise/Scope state; cancellation state and task storage also
+   need bounded reuse. Supplying a PMR resource only for `SimpleTask` and the
+   queue does not cover the `make_shared` state allocations in these stacks.
+
+4. **Remove worker stop-state and queue churn upstream.** Clear an idle worker's
+   active-task state without default-constructing a fresh allocating stop source,
+   preserving the shutdown/cancellation race protection. Replace the sliding
+   deque with bounded reusable queue storage or a bounded recycling allocator.
+   Queue saturation must have defined backpressure or coalescing behavior, not
+   silently drop notifications. Combined with the preceding task changes, this
+   targets the remaining five allocations and 32 amortized queue bytes per event.
+
+No runtime optimization is applied by this report. The adapter changes and the
+dependency changes need separate lifetime/concurrency tests. Verification should
+count allocations only after connection, subscription, and warmup, on both sending
+and receiving threads, then repeat the 10k/20k DHAT comparison. Cover dropped
+unsent payloads, retained received payloads, slot/queue exhaustion, concurrent
+events, disconnect/reconnect, and teardown. Finally profile separate provider
+and consumer processes; eliminating allocations in this local benchmark alone
+does not establish an allocation-free IPC deployment.
