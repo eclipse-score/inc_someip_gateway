@@ -605,7 +605,7 @@ each service. See <a class="reference internal" href="#public-interface"><span c
 </tr>
 <tr class="row-even"><td><p>Slot count and slot size</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Shared_memory_metadata</span></code> sent in <code class="docutils literal notranslate"><span class="pre">Connect</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">numberOfSampleSlots</span></code> and event sample size in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">numberOfSampleSlots</span></code> in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code>, sample size per event, see <a class="reference internal" href="#event-sizes"><span class="std std-ref">Event sizes</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Peer liveness</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Connect</span></code> / <code class="docutils literal notranslate"><span class="pre">Connect_reply</span></code> handshake</p></td>
@@ -663,11 +663,11 @@ pushes what it consumes into a <code class="docutils literal notranslate"><span 
 <li><p><strong>consumer role</strong>: the binding is a SOCom <code class="docutils literal notranslate"><span class="pre">Server_connector</span></code> for the same service and publishes what it
 receives from a <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code>.</p></li>
 </ul>
-<figure class="align-center" id="id2">
+<figure class="align-center" id="id3">
 <p class="plantuml">
 <object data="../_images/plantuml-e147dab5afafdcceb90d3eedc9fae59729b7379c.svg" type="image/svg+xml" style="width:1370px;height:467px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 3 </span><span class="caption-text">Role assignment for both data directions</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text">Role assignment for both data directions</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>Because both daemons hold both roles at the same time, for different services, the bridged-service part of the
@@ -685,12 +685,15 @@ itself rather than any SOME/IP service:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> provides one <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> instance. Its presence <em>is</em> the liveness signal.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> consumes it with <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code> and creates a <code class="docutils literal notranslate"><span class="pre">SomeipdServiceProxy</span></code> for it.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client::is_connected()</span></code> returns true once that proxy has been created, and returns to
-false when the find-service handler reports the instance gone.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client::is_connected()</span></code> returns true once that proxy has been created and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>
+accepted <code class="docutils literal notranslate"><span class="pre">SetBridgedEventSizes</span></code> on it. It returns to false when the find-service handler reports the
+instance gone.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> calls <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> with JSON text when <code class="docutils literal notranslate"><span class="pre">someipd</span></code> must extend its
 <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> deployment. The server parses the text and passes the resulting <code class="docutils literal notranslate"><span class="pre">score::json::Any</span></code> to
 <code class="docutils literal notranslate"><span class="pre">AddConfiguration</span></code>. The client submits a configured add-on at most once, so
 reconnecting cannot merge the same configuration twice.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> then calls <code class="docutils literal notranslate"><span class="pre">SetBridgedEventSizes</span></code> with the event sizes of its consumer-role services, on
+every new proxy, so a restarted <code class="docutils literal notranslate"><span class="pre">someipd</span></code> gets them again. See <a class="reference internal" href="#event-sizes"><span class="std std-ref">Event sizes</span></a>.</p></li>
 </ul>
 <p>Properties of this design:</p>
 <ul class="simple">
@@ -705,10 +708,12 @@ must agree on.</p></li>
 </ul>
 <section id="offering-order">
 <span id="someipd-service-ordering"></span><h4>Offering order<a class="headerlink" href="#offering-order" title="Link to this heading">#</a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> <strong>first</strong>, before it creates any bridged-service skeleton and before any
-service coming from the network is offered. <code class="docutils literal notranslate"><span class="pre">is_connected()</span> <span class="pre">==</span> <span class="pre">true</span></code> therefore means “the peer’s binding is
-up and accepting”, not “the peer has finished setting up its services”. Bridged services arrive
-asynchronously afterwards, each signalled through the normal SOCom service state.</p>
+<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> checks its provider-role services, offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> <strong>first</strong>, then creates its
+consumer-role services. Its provider-role services, the ones carrying network data, wait for
+<code class="docutils literal notranslate"><span class="pre">SetBridgedEventSizes</span></code>. <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> turns true only once <code class="docutils literal notranslate"><span class="pre">someipd</span></code> accepted the sizes, so
+<code class="docutils literal notranslate"><span class="pre">is_connected()</span> <span class="pre">==</span> <span class="pre">true</span></code> means “the peer’s binding is up, accepting, and has its sizes”, not “the peer has
+finished setting up its services”. Bridged services arrive asynchronously afterwards, each signalled through
+the normal SOCom service state.</p>
 </section>
 </section>
 <section id="event-sample-layout">
@@ -743,8 +748,22 @@ and sizes the <code class="docutils literal notranslate"><span class="pre">socom
 SOME/IP, which it deliberately does not do today, and the field is currently not filled in by <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p></li>
 <li><p>one <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> event per length class. That multiplies the deployment configuration and gains nothing.</p></li>
 </ul>
-<p>The daemons size <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code> for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sizes <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code> for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
 as it is today.</p>
+</section>
+<section id="event-sizes">
+<span id="id1"></span><h3>Event sizes<a class="headerlink" href="#event-sizes" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sizes every event. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> takes every size from <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and configures 0. The sizes
+reach it two ways:</p>
+<ul class="simple">
+<li><p><strong>consumer side</strong>: the binding adopts the peer’s <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::GetDataTypeSizeInfo().Size()</span></code> minus
+the prefix when it attaches. A peer below the configured size leaves the service unavailable.</p></li>
+<li><p><strong>provider side</strong> of <code class="docutils literal notranslate"><span class="pre">someipd</span></code>: <code class="docutils literal notranslate"><span class="pre">SetBridgedEventSizes</span></code> carries the size of every event of <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s
+consumer-role services, in configuration order, at most 1024. Both daemons build their services from the
+same <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code>, so the order matches <code class="docutils literal notranslate"><span class="pre">someipd</span></code>’s provider-role services. The first call with
+one size per event creates them. A repeated equal call returns true and changes nothing. Any other call
+returns false.</p></li>
+</ul>
 </section>
 <section id="availability-propagation">
 <h3>Availability propagation<a class="headerlink" href="#availability-propagation" title="Link to this heading">#</a></h3>
@@ -808,11 +827,11 @@ skeletons.</p></li>
 </section>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
-<figure class="align-center" id="id3">
+<figure class="align-center" id="id4">
 <p class="plantuml">
 <object data="../_images/plantuml-6e05035e96cd462dd7e7c598540ef284d4d67b4a.svg" type="image/svg+xml" style="width:1585px;height:529px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <ul class="simple">
@@ -830,7 +849,8 @@ the binding that touches a typed proxy or skeleton.</p></li>
 <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>.</p></li>
 <li><p>Setting a bridged service up is all-or-nothing: if any entry of <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> fails, the factory
 returns <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> respectively an error from <code class="docutils literal notranslate"><span class="pre">start()</span></code> instead of leaving a link that silently carries
-only part of the configured services.</p></li>
+only part of the configured services. <code class="docutils literal notranslate"><span class="pre">start()</span></code> also checks <code class="docutils literal notranslate"><span class="pre">someipd</span></code>’s provider-role services, which
+wait for their sizes. Should creating them still fail, <code class="docutils literal notranslate"><span class="pre">SetBridgedEventSizes</span></code> returns false.</p></li>
 </ul>
 <p>What is gone compared to <a class="reference internal" href="index.html"><span class="doc">Gateway IPC Binding</span></a>:</p>
 <ul class="simple">
@@ -844,7 +864,7 @@ flavour consumes it, the server flavour provides it.</p></li>
 </ul>
 </section>
 <section id="public-interface">
-<span id="id1"></span><h2>Public interface<a class="headerlink" href="#public-interface" title="Link to this heading">#</a></h2>
+<span id="id2"></span><h2>Public interface<a class="headerlink" href="#public-interface" title="Link to this heading">#</a></h2>
 <p>A new public header <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding_mw_com.hpp</span></code> adds the configuration types and two free factory
 functions. The existing headers are not modified.</p>
 <section id="interface-semantics-under-mw-com">
@@ -863,15 +883,16 @@ factory functions.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client::is_connected()</span></code></p></td>
-<td><p>True while the <code class="docutils literal notranslate"><span class="pre">SomeipdServiceProxy</span></code> exists, i.e. while the peer’s binding is up and accepting.
-See <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>. This keeps the meaning and the sequencing it has today, so
-<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s startup wait loop is unaffected. Unlike today it can also go back to false, when the
-peer stops.</p></td>
+<td><p>True while the <code class="docutils literal notranslate"><span class="pre">SomeipdServiceProxy</span></code> exists and the peer accepted <code class="docutils literal notranslate"><span class="pre">SetBridgedEventSizes</span></code>, i.e.
+while the peer’s binding is up and accepting. See <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>. This keeps the meaning and
+the sequencing it has today, so <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s startup wait loop is unaffected. Unlike today it can
+also go back to false, when the peer stops.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server::start()</span></code></p></td>
-<td><p>Offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> first, then sets up all bridged services, matching the order in which
-<code class="docutils literal notranslate"><span class="pre">someipd</span></code> starts its IPC server before its network services today. Returns the first error
-encountered. Calling it twice returns an error, as today.</p></td>
+<td><p>Checks the provider-role services, offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, then sets up the consumer-role
+services, matching the order in which <code class="docutils literal notranslate"><span class="pre">someipd</span></code> starts its IPC server before its network services
+today. Provider-role services follow <code class="docutils literal notranslate"><span class="pre">SetBridgedEventSizes</span></code>, see <a class="reference internal" href="#event-sizes"><span class="std std-ref">Event sizes</span></a>. Returns the
+first error encountered. Calling it twice returns an error, as today.</p></td>
 </tr>
 </tbody>
 </table>
@@ -884,21 +905,21 @@ backed by an <code class="docutils literal notranslate"><span class="pre">std::a
 <h2>Behavioural views<a class="headerlink" href="#behavioural-views" title="Link to this heading">#</a></h2>
 <section id="startup">
 <h3>Startup<a class="headerlink" href="#startup" title="Link to this heading">#</a></h3>
-<figure class="align-center" id="id4">
+<figure class="align-center" id="id5">
 <p class="plantuml">
-<object data="../_images/plantuml-d603eff698b0ffd2a045ba6584c72643aa030944.svg" type="image/svg+xml" style="width:1547px;height:1173px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-06f9068587c2ef5c5cfec694d05781907f4066b5.svg" type="image/svg+xml" style="width:1552px;height:1407px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Startup of one provider-role and one consumer-role service</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Startup of one provider-role and one consumer-role service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
 <section id="event-flow">
 <h3>Event flow<a class="headerlink" href="#event-flow" title="Link to this heading">#</a></h3>
-<figure class="align-center" id="id5">
+<figure class="align-center" id="id6">
 <p class="plantuml">
 <object data="../_images/plantuml-89ab559b7c00bbae2fef98c448a2842d98439a6b.svg" type="image/svg+xml" style="width:1898px;height:1320px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Subscription and event flow for one bridged service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Subscription and event flow for one bridged service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
@@ -977,7 +998,10 @@ spell identically, and it is the replacement for the shared <code class="docutil
 <span class="w">      </span><span class="nt">&quot;bindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;serviceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6400</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;methods&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AddServiceConfiguration&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;methodId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">        </span><span class="nt">&quot;methods&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">          </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AddServiceConfiguration&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;methodId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">          </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SetBridgedEventSizes&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;methodId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
 <span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">],</span>
@@ -990,23 +1014,23 @@ spell identically, and it is the replacement for the shared <code class="docutil
 <span class="w">        </span><span class="nt">&quot;instanceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;asil-level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;QM&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;binding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SHM&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;methods&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AddServiceConfiguration&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;queueSize&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+<span class="w">        </span><span class="nt">&quot;methods&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">          </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AddServiceConfiguration&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;queueSize&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">          </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;methodName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SetBridgedEventSizes&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;queueSize&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
 <span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> method must be present in both daemon configurations. Its argument is a
-fixed-capacity, trivially copyable text buffer because <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> transports method arguments through shared
-memory. The method returns <code class="docutils literal notranslate"><span class="pre">false</span></code> when the text is too large or cannot be parsed as JSON; incompatible
-add-on configurations retain the runtime API’s terminating behavior.</p>
-<p>Because both the sample size and the slot count now live in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code>, the size computation that
-<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> does today in <code class="docutils literal notranslate"><span class="pre">event_slot_size()</span></code> moves into config generation. On the provider side the
-binding validates that the configured sample size matches <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::GetSizeInfo()</span></code> and fails
-setup on mismatch. On the consumer side the same check runs against <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::GetSampleSize()</span></code>
-once the peer’s instance is found; a mismatch there means the two deployments disagree, so the service is
-left unavailable instead of reading payloads past the end of a sample.</p>
+<p>Both methods must be present in both daemon configurations. Their arguments are fixed-capacity, trivially
+copyable buffers because <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> transports method arguments through shared memory.
+<code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> returns <code class="docutils literal notranslate"><span class="pre">false</span></code> when the text is too large or cannot be parsed as JSON;
+incompatible add-on configurations retain the runtime API’s terminating behavior.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code> holds the slot count only. The sample size comes from the binding configuration, see
+<a class="reference internal" href="#event-sizes"><span class="std std-ref">Event sizes</span></a>. On the provider side the binding checks that <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::GetSizeInfo()</span></code>
+matches it and fails setup on mismatch.</p>
 </section>
 <section id="known-gaps">
 <h2>Known gaps<a class="headerlink" href="#known-gaps" title="Link to this heading">#</a></h2>
@@ -1030,6 +1054,8 @@ When no peer holds a subscription, the binding instead fully destroys and recrea
 <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> on the next offer, which LoLa’s own stale-shared-memory detection (an flock on a
 per-instance usage marker file) supports. A restart of the <em>providing application</em> while a peer is
 actively subscribed is therefore still not covered.</p></li>
+<li><p><strong>changing an event size</strong>: a size change needs both daemons restarted. LoLa reuses a provider’s shared
+memory on restart without checking the size.</p></li>
 </ul>
 </section>
 <section id="open-points">
@@ -1038,7 +1064,7 @@ actively subscribed is therefore still not covered.</p></li>
 <li><p>Where the per-bridged-service <code class="docutils literal notranslate"><span class="pre">InstanceSpecifier</span></code> is authored: extending <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> with an
 explicit field is the safer option, deriving it by convention from the service type name is the cheaper one.</p></li>
 <li><p>Whether <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code> for the bridged instances should be generated from <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> at
-build time. Hand-maintaining sample sizes in two places will drift.</p></li>
+build time. Hand-maintaining the instances and slot counts in two places will drift.</p></li>
 <li><p>Whether <code class="docutils literal notranslate"><span class="pre">someipd</span></code> should keep the <code class="docutils literal notranslate"><span class="pre">message_passing</span></code> implementation available behind a switch until the
 upstream re-offer problem described under <a class="reference internal" href="#known-gaps">Known gaps</a> is solved.</p></li>
 </ul>
@@ -1107,6 +1133,7 @@ upstream re-offer problem described under <a class="reference internal" href="#k
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-sample-layout">Event sample layout</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-sizes">Event sizes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#availability-propagation">Availability propagation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#subscription-propagation">Subscription propagation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#payload-lifetime-and-flow-control">Payload lifetime and flow control</a></li>
