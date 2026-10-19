@@ -41,9 +41,7 @@ namespace score::gateway_ipc_binding::mw_com {
 ///          across the link while nobody wants it.
 class Consumer_service_binding final : public Service_binding {
    public:
-    /// \brief Create the SOCom server connector and start mw::com service discovery.
-    /// \details Discovery runs until this object is destroyed. The find-service handler may
-    ///          already fire before this function returns.
+    /// \brief Create the SOCom server connector. start() starts the mw::com service discovery.
     /// \param runtime SOCom runtime used to create the server connector
     /// \param config Bridged service instance, must have `role == Role::consumer`
     /// \return The binding, or the first error encountered
@@ -56,6 +54,11 @@ class Consumer_service_binding final : public Service_binding {
     Consumer_service_binding& operator=(Consumer_service_binding const&) = delete;
     Consumer_service_binding(Consumer_service_binding&&) = delete;
     Consumer_service_binding& operator=(Consumer_service_binding&&) = delete;
+
+    /// \brief Start mw::com service discovery for the peer's GenericSkeleton
+    /// \details Discovery runs until this object is destroyed. The find-service handler may
+    ///          already fire before this function returns.
+    [[nodiscard]] Result<void> start() noexcept override;
 
    private:
     /// \brief Per-event state, indexed by socom::Event_id
@@ -79,10 +82,6 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Create the SOCom server connector, left disabled
     [[nodiscard]] Result<void> create_server_connector(score::socom::Runtime& runtime,
                                                        Service_config const& config) noexcept;
-
-    /// \brief Start mw::com service discovery for the peer's GenericSkeleton
-    [[nodiscard]] Result<void> start_find_service(
-        score::mw::com::InstanceSpecifier specifier) noexcept;
 
     void on_find_service(
         score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept;

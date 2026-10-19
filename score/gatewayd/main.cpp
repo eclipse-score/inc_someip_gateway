@@ -188,14 +188,16 @@ int main(int argc, char* argv[]) {
 
     auto binding_client = gateway_ipc_binding::mw_com::create_client(
         *socom_runtime, kSomeipd_service_specifier,
-        bridged_service_configs(*config, Daemon::gatewayd, event_slot_size), "gatewayd");
+        bridged_service_configs(*config, Daemon::gatewayd, event_slot_size), "gatewayd",
+        score::cpp::span<std::byte const>{reinterpret_cast<std::byte const*>(config_buffer.get()),
+                                          static_cast<std::size_t>(length)});
     if (binding_client == nullptr) {
         score::mw::log::LogFatal()
             << "[gatewayd] Failed to create the mw::com IPC binding to someipd";
         return 1;
     }
 
-    // Blocks until someipd runs and has accepted the sizes.
+    // Blocks until someipd runs and has accepted the configuration.
     while (!binding_client->is_connected() && !shutdown_requested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }

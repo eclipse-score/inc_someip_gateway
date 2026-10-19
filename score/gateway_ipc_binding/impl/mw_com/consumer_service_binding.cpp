@@ -88,12 +88,6 @@ Result<std::unique_ptr<Consumer_service_binding>> Consumer_service_binding::crea
             std::move(created).error());
     }
 
-    auto started = binding->start_find_service(std::move(specifier).value());
-    if (!started.has_value()) {
-        return MakeUnexpected<std::unique_ptr<Consumer_service_binding>>(
-            std::move(started).error());
-    }
-
     return binding;
 }
 
@@ -139,13 +133,17 @@ Result<void> Consumer_service_binding::create_server_connector(
     return {};
 }
 
-Result<void> Consumer_service_binding::start_find_service(
-    score::mw::com::InstanceSpecifier specifier) noexcept {
+Result<void> Consumer_service_binding::start() noexcept {
+    auto specifier = make_instance_specifier(m_instance_specifier);
+    if (!specifier.has_value()) {
+        return MakeUnexpected<void>(std::move(specifier).error());
+    }
+
     // The handler can already be invoked from within StartFindService, on this very thread. Every
     // member it touches is initialized at this point, so that is safe.
     auto find_handle = score::mw::com::GenericProxy::StartFindService(
         [this](auto handles, auto) noexcept { on_find_service(std::move(handles)); },
-        std::move(specifier));
+        std::move(specifier).value());
     if (!find_handle.has_value()) {
         score::mw::log::LogError() << kLog_tag << "Failed to start service discovery for"
                                    << m_instance_specifier << ":" << find_handle.error();

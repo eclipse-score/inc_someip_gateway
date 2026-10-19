@@ -34,11 +34,9 @@ cc_binary(
     srcs = ["main.cpp"],
     visibility = ["//visibility:public"],
     deps = [
-        ":local_network_service",
-        ":remote_network_service",
+        ":gatewayd_services",
         ":routing",
         "//score/bridged_services",
-        "//score/config:config_flatbuffers",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",
         "@score_baselibs//score/filesystem",
@@ -50,6 +48,24 @@ cc_binary(
 # ============================================================================
 # Libraries
 # ============================================================================
+cc_library(
+    name = "gatewayd_services",
+    srcs = ["impl/gatewayd_services.cpp"],
+    hdrs = ["impl/gatewayd_services.h"],
+    visibility = ["//score/someipd/test:__pkg__"],
+    deps = [
+        ":local_network_service",
+        ":remote_network_service",
+        ":routing",
+        "//score/bridged_services",
+        "//score/config:config_flatbuffers",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "//score/socom",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/mw/log",
+    ],
+)
+
 cc_library(
     name = "local_network_service",
     srcs = ["impl/local_network_service.cpp"],
@@ -81,10 +97,10 @@ cc_library(
     name = "routing",
     srcs = ["impl/routing.cpp"],
     hdrs = ["impl/routing.h"],
+    visibility = ["//score/someipd/test:__pkg__"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/someip",
-        "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
@@ -104,13 +120,10 @@ native_binary(
     name = "someipd_example",
     src = "//score/someipd",
     args = [
-        "--configuration",
-        "$(rootpath //score/config:config_file)",
         "--service_instance_manifest",
         "$(rootpath etc/mw_com_config.json)",
     ],
     data = [
         "etc/mw_com_config.json",
-        "//score/config:config_file",
     ],
 )

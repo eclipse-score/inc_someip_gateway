@@ -48,8 +48,6 @@ class GatewaydTest(unittest.TestCase):
         someipd_process = subprocess.Popen(
             [
                 self.someipd,
-                "--configuration",
-                self.configuration,
                 "--service_instance_manifest",
                 self.someipd_service_instance_manifest,
             ],

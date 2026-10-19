@@ -12,7 +12,7 @@
           "serviceId": 6400,
           "methods": [
             {
-              "methodName": "SetBridgedEventSizes",
+              "methodName": "AddServiceConfiguration",
               "methodId": 1
             }
           ]
@@ -35,7 +35,7 @@
           "binding": "SHM",
           "methods": [
             {
-              "methodName": "SetBridgedEventSizes",
+              "methodName": "AddServiceConfiguration",
               "queueSize": 1
             }
           ]

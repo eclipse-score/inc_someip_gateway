@@ -58,6 +58,11 @@ bool wait_for_connected(Gateway_ipc_binding_client const& client, bool const exp
     return client.is_connected();
 }
 
+/// \brief someipd handler that accepts every gatewayd and sets up no bridged service
+bool accept_without_services(score::cpp::span<std::byte const>, Add_bridged_services const&) {
+    return true;
+}
+
 class Gateway_ipc_binding_mw_com_test : public ::testing::Test {
    protected:
     socom::Runtime::Uptr m_client_runtime = score::socom::create_runtime();
@@ -86,13 +91,14 @@ TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_is_a_multiple_of_the_sample_
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_server_succeeds) {
-    auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair);
+    auto const server =
+        create_server(*m_server_runtime, kSomeipd_specifier_second_pair, accept_without_services);
 
     EXPECT_NE(server, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_server_without_instance_specifier_fails) {
-    auto const server = create_server(*m_server_runtime, "");
+    auto const server = create_server(*m_server_runtime, "", accept_without_services);
 
     EXPECT_EQ(server, nullptr);
 }
@@ -115,14 +121,16 @@ TEST_F(Gateway_ipc_binding_mw_com_test, create_client_with_invalid_instance_spec
 TEST_F(Gateway_ipc_binding_mw_com_test, start_on_an_unconfigured_instance_specifier_fails) {
     // create_server() only checks that a specifier was given; a specifier that mw::com cannot
     // resolve is reported by start().
-    auto const server = create_server(*m_server_runtime, "no/such/instance");
+    auto const server =
+        create_server(*m_server_runtime, "no/such/instance", accept_without_services);
     ASSERT_NE(server, nullptr);
 
     EXPECT_FALSE(server->start().has_value());
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, starting_the_server_twice_fails) {
-    auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair);
+    auto const server =
+        create_server(*m_server_runtime, kSomeipd_specifier_second_pair, accept_without_services);
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
 
@@ -130,7 +138,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, starting_the_server_twice_fails) {
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_once_the_server_is_started) {
-    auto const server = create_server(*m_server_runtime, kSomeipd_specifier);
+    auto const server =
+        create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
 
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier, {}, "test_client");
@@ -143,7 +152,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_once_the_server
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server_started_first) {
-    auto const server = create_server(*m_server_runtime, kSomeipd_specifier);
+    auto const server =
+        create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
 
@@ -154,7 +164,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_disconnected_when_the_server_goes_away) {
-    auto server = create_server(*m_server_runtime, kSomeipd_specifier);
+    auto server = create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
 
@@ -172,14 +182,16 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reconnects_when_the_server_comes_
     ASSERT_NE(client, nullptr);
 
     {
-        auto const server = create_server(*m_server_runtime, kSomeipd_specifier);
+        auto const server =
+            create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
         ASSERT_NE(server, nullptr);
         ASSERT_TRUE(server->start().has_value());
         ASSERT_TRUE(wait_for_connected(*client, true));
     }
     ASSERT_FALSE(wait_for_connected(*client, false));
 
-    auto const restarted_server = create_server(*m_server_runtime, kSomeipd_specifier);
+    auto const restarted_server =
+        create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(restarted_server, nullptr);
     ASSERT_TRUE(restarted_server->start().has_value());
 
@@ -209,15 +221,22 @@ bool is_deployed(std::string const& instance_specifier) {
     return identifiers.has_value() && !identifiers.value().empty();
 }
 
-TEST_F(Gateway_ipc_binding_mw_com_test, create_server_adds_its_bridged_services_to_mw_com) {
+TEST_F(Gateway_ipc_binding_mw_com_test, the_server_adds_the_bridged_services_of_a_call_to_mw_com) {
     ASSERT_FALSE(is_deployed("bridged_ipc/added_by_the_server"));
-
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
-        bridged_services("bridged_ipc/added_by_the_server", Role::provider,
-                         {Event_config{"event_a", Mw_com_event_id{1U}, 128U}}, 4U, 0x7001U));
-
+        [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
+            return add_bridged_services(bridged_services(
+                "bridged_ipc/added_by_the_server", Role::consumer,
+                {Event_config{"event_a", Mw_com_event_id{1U}, 128U}}, 4U, 0x7001U));
+        });
     ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+
+    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair);
+    ASSERT_NE(client, nullptr);
+
+    EXPECT_TRUE(wait_for_connected(*client, true));
     EXPECT_TRUE(is_deployed("bridged_ipc/added_by_the_server"));
 }
 
@@ -234,35 +253,35 @@ TEST_F(Gateway_ipc_binding_mw_com_test, create_client_adds_its_bridged_services_
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_bridged_service_without_events_is_rejected) {
-    auto const server = create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                                       bridged_services("bridged_ipc/bridged", Role::provider, {}));
 
-    EXPECT_EQ(server, nullptr);
+    EXPECT_EQ(client, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_name_is_rejected) {
-    auto const server =
-        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+    auto const client =
+        create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                       bridged_services("bridged_ipc/bridged", Role::provider,
                                        {Event_config{"event_a", Mw_com_event_id{1U}, 128U},
                                         Event_config{"event_a", Mw_com_event_id{2U}, 128U}}));
 
-    EXPECT_EQ(server, nullptr);
+    EXPECT_EQ(client, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_id_is_rejected) {
     // mw::com terminates the process on a duplicate event ID.
-    auto const server =
-        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+    auto const client =
+        create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                       bridged_services("bridged_ipc/bridged", Role::provider,
                                        {Event_config{"event_a", Mw_com_event_id{1U}, 128U},
                                         Event_config{"event_b", Mw_com_event_id{1U}, 128U}}));
 
-    EXPECT_EQ(server, nullptr);
+    EXPECT_EQ(client, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_service_id_used_twice_is_rejected) {
-    // SetBridgedEventSizes identifies the services by it.
+    // AddServiceConfiguration identifies the services by it.
     auto services = bridged_services("bridged_ipc/bridged", Role::consumer);
     services.push_back(bridged_services("bridged_ipc/shared_test", Role::consumer).front());
 
@@ -303,8 +322,11 @@ TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_a_listed_deploymen
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_service_is_offered_before_the_bridged_services) {
-    auto const server = create_server(*m_server_runtime, kSomeipd_specifier,
-                                      bridged_services("bridged_ipc/bridged", Role::provider));
+    auto const server = create_server(
+        *m_server_runtime, kSomeipd_specifier,
+        [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
+            return add_bridged_services(bridged_services("bridged_ipc/bridged", Role::provider));
+        });
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
 
@@ -319,7 +341,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_service_is_offered_before_the_br
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
-       the_client_rejects_more_events_than_set_bridged_event_sizes_carries) {
+       the_client_rejects_more_events_than_add_service_configuration_carries) {
     std::vector<Event_config> events{};
     for (std::size_t index = 0U; index <= Bridged_event_sizes::max_size; ++index) {
         events.push_back(Event_config{"event_" + std::to_string(index),
@@ -330,6 +352,20 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
         create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                       bridged_services("bridged_ipc/bridged", Role::consumer, std::move(events)));
 
+    EXPECT_EQ(client, nullptr);
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test,
+       the_client_rejects_a_gateway_config_larger_than_add_service_configuration_carries) {
+    std::vector<std::byte> const largest(kMax_service_configuration_size);
+    std::vector<std::byte> const too_large(kMax_service_configuration_size + 1U);
+
+    auto const fitting_client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair, {},
+                                              {}, {largest.data(), largest.size()});
+    auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair, {}, {},
+                                      {too_large.data(), too_large.size()});
+
+    EXPECT_NE(fitting_client, nullptr);
     EXPECT_EQ(client, nullptr);
 }
 
@@ -363,13 +399,19 @@ std::size_t offered_sample_size(std::string const& instance_specifier = "bridged
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
-       set_bridged_event_sizes_takes_exactly_one_size_per_event_once) {
+       add_service_configuration_takes_exactly_one_size_per_provider_event) {
     // The providers only offer while the network side's SOCom service is available.
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
+    std::atomic<int> handler_calls{0};
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
-        bridged_services("bridged_ipc/keyed_sizes", Role::provider, both_events(0U), 4U, 0x7003U));
+        [&handler_calls](score::cpp::span<std::byte const>,
+                         Add_bridged_services const& add_bridged_services) {
+            ++handler_calls;
+            return add_bridged_services(bridged_services("bridged_ipc/keyed_sizes", Role::provider,
+                                                         both_events(0U), 4U, 0x7003U));
+        });
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
 
@@ -384,7 +426,9 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 
     // Each reply holds the only call slot. Drop it before the next call.
     auto const call = [&proxy](Bridged_event_sizes const& sizes) -> std::optional<bool> {
-        auto const result = proxy.value().set_bridged_event_sizes(sizes);
+        auto configuration = std::make_unique<Service_configuration>();
+        configuration->event_sizes = sizes;
+        auto const result = proxy.value().add_service_configuration(*configuration);
         if (!result.has_value()) {
             return std::nullopt;
         }
@@ -397,27 +441,34 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
               std::optional<bool>{false});
     EXPECT_EQ(call(Bridged_event_sizes{{0x7003U, 1U, 100U}, {0x7003U, 1U, 5000U}}),
               std::optional<bool>{false});
+    EXPECT_EQ(
+        call(Bridged_event_sizes{{0x7003U, 1U, 100U}, {0x7003U, 2U, 5000U}, {0x7008U, 1U, 100U}}),
+        std::optional<bool>{false});
     EXPECT_EQ(call(Bridged_event_sizes{{0x7003U, 2U, 5000U}, {0x7003U, 1U, 100U}}),
               std::optional<bool>{true});
-    EXPECT_EQ(call(Bridged_event_sizes{{0x7003U, 1U, 100U}, {0x7003U, 2U, 5000U}}),
+    EXPECT_EQ(call(Bridged_event_sizes{{0x7003U, 2U, 5000U}, {0x7003U, 1U, 100U}}),
               std::optional<bool>{true});
-    EXPECT_EQ(call(Bridged_event_sizes{{0x7003U, 1U, 100U}, {0x7003U, 2U, 9000U}}),
-              std::optional<bool>{false});
 
+    // The repeated call doesn't reach the handler.
+    EXPECT_EQ(handler_calls.load(), 5);
     EXPECT_EQ(offered_sample_size("bridged_ipc/keyed_sizes", "event_a"),
               sample_size(Event_config{"event_a", Mw_com_event_id{1U}, 100U}));
     EXPECT_EQ(offered_sample_size("bridged_ipc/keyed_sizes", "event_b"),
               sample_size(Event_config{"event_b", Mw_com_event_id{2U}, 5000U}));
 }
 
-TEST_F(Gateway_ipc_binding_mw_com_test, gatewayd_sends_the_sizes_again_when_someipd_restarts) {
+TEST_F(Gateway_ipc_binding_mw_com_test,
+       gatewayd_sends_its_configuration_again_when_someipd_restarts) {
     // Belongs to the someipd runtime, which outlives both someipd instances.
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
     // Start someipd first. Otherwise gatewayd finds a stale SomeipdService of the previous test.
-    auto server =
-        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                      bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+    auto server = create_server(
+        *m_server_runtime, kSomeipd_specifier_second_pair,
+        [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
+            return add_bridged_services(
+                bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+        });
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
     auto client =
@@ -432,11 +483,14 @@ TEST_F(Gateway_ipc_binding_mw_com_test, gatewayd_sends_the_sizes_again_when_some
               std::future_status::ready);
     ASSERT_FALSE(wait_for_connected(*client, false));
 
-    // The restarted someipd only offers once gatewayd resends the sizes.
+    // The restarted someipd only offers once gatewayd sends its configuration again.
     application.expect_client_connected(kBridged_definition);
-    auto restarted_server =
-        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                      bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+    auto restarted_server = create_server(
+        *m_server_runtime, kSomeipd_specifier_second_pair,
+        [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
+            return add_bridged_services(
+                bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+        });
     ASSERT_NE(restarted_server, nullptr);
     ASSERT_TRUE(restarted_server->start().has_value());
     ASSERT_EQ(application.client_connected_promise.get_future().wait_for(kDiscovery_timeout),
@@ -462,10 +516,17 @@ TEST_F(Gateway_ipc_binding_mw_com_test, gatewayd_sends_the_sizes_again_when_some
     EXPECT_TRUE(score::mw::com::GenericProxy::StopFindService(find_handle.value()).has_value());
 }
 
-TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_its_sizes_when_gatewayd_restarts) {
+TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_the_services_when_gatewayd_restarts) {
+    std::atomic<int> handler_calls{0};
     auto server =
         create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
-                      bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+                      [&handler_calls](score::cpp::span<std::byte const>,
+                                       Add_bridged_services const& add_bridged_services) {
+                          // As someipd does, add the service only once.
+                          return (++handler_calls == 1) &&
+                                 add_bridged_services(bridged_services(
+                                     "bridged_ipc/bridged", Role::provider, both_events(0U)));
+                      });
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
@@ -491,9 +552,10 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_its_sizes_when_gatewayd_re
         specifier.value());
     ASSERT_TRUE(find_handle.has_value());
 
-    // SomeipdService is already offered. The sizes are sent before create_client() returns.
+    // SomeipdService is already offered. The configuration is sent before create_client()
+    // returns.
 
-    // Same sizes: accepted, providers kept.
+    // Same configuration: accepted without the handler, providers kept.
     {
         auto const client = create_client(
             *m_client_runtime, kSomeipd_specifier_second_pair,
@@ -503,6 +565,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_its_sizes_when_gatewayd_re
         Client_connector_with_callbacks application{*m_client_runtime, kBridged_definition,
                                                     kBridged_instance};
     }
+    EXPECT_EQ(handler_calls.load(), 1);
 
     // Larger event_a: rejected.
     auto client =
@@ -513,6 +576,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_its_sizes_when_gatewayd_re
     ASSERT_NE(client, nullptr);
     EXPECT_FALSE(client->is_connected());
 
+    EXPECT_EQ(handler_calls.load(), 2);
     EXPECT_EQ(offered_sample_size(), kSample_prefix_size + 8232U);
     EXPECT_EQ(gone_reports.load(), 0);
 
@@ -521,6 +585,84 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_its_sizes_when_gatewayd_re
     server.reset();
     EXPECT_EQ(gone.get_future().wait_for(kDiscovery_timeout), std::future_status::ready);
     EXPECT_TRUE(score::mw::com::GenericProxy::StopFindService(find_handle.value()).has_value());
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test, someipd_offers_the_services_of_two_gatewayds) {
+    // SOCom allows one client per service instance and runtime.
+    socom::Service_instance const second_instance{std::string_view{"2"}};
+    Server_connector_with_callbacks first_network{*m_server_runtime, kBridged_definition,
+                                                  kBridged_instance};
+    Server_connector_with_callbacks second_network{*m_server_runtime, kBridged_definition,
+                                                   second_instance};
+    std::vector<std::byte> const first_gateway_config{std::byte{1}};
+    std::vector<std::byte> const second_gateway_config{std::byte{2}};
+    auto const server = create_server(
+        *m_server_runtime, kSomeipd_specifier_second_pair,
+        [&second_instance](score::cpp::span<std::byte const> gateway_config,
+                           Add_bridged_services const& add_bridged_services) {
+            if ((gateway_config.size() == 1U) && (gateway_config[0] == std::byte{1})) {
+                return add_bridged_services(bridged_services(
+                    "bridged_ipc/of_first_gatewayd", Role::provider, both_events(0U), 4U, 0x7004U));
+            }
+            auto services = bridged_services("bridged_ipc/of_second_gatewayd", Role::provider,
+                                             both_events(0U), 4U, 0x7005U);
+            services.front().instance = second_instance;
+            return add_bridged_services(services);
+        });
+    ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+
+    auto const first_gatewayd =
+        create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/of_first_gatewayd", Role::consumer,
+                                       both_events(100U), 4U, 0x7004U),
+                      "first_gatewayd", {first_gateway_config.data(), first_gateway_config.size()});
+    ASSERT_NE(first_gatewayd, nullptr);
+    socom::Runtime::Uptr const second_gatewayd_runtime = score::socom::create_runtime();
+    auto second_gatewayd_services = bridged_services(
+        "bridged_ipc/of_second_gatewayd", Role::consumer, both_events(200U), 4U, 0x7005U);
+    second_gatewayd_services.front().instance = second_instance;
+    auto const second_gatewayd =
+        create_client(*second_gatewayd_runtime, kSomeipd_specifier_second_pair,
+                      std::move(second_gatewayd_services), "second_gatewayd",
+                      {second_gateway_config.data(), second_gateway_config.size()});
+    ASSERT_NE(second_gatewayd, nullptr);
+
+    EXPECT_TRUE(wait_for_connected(*first_gatewayd, true));
+    EXPECT_TRUE(wait_for_connected(*second_gatewayd, true));
+    EXPECT_EQ(offered_sample_size("bridged_ipc/of_first_gatewayd"),
+              sample_size(Event_config{"event_a", Mw_com_event_id{1U}, 100U}));
+    EXPECT_EQ(offered_sample_size("bridged_ipc/of_second_gatewayd"),
+              sample_size(Event_config{"event_a", Mw_com_event_id{1U}, 200U}));
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test, someipd_removes_the_bridged_services_of_a_rejected_call) {
+    Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
+                                            kBridged_instance};
+    std::atomic<int> handler_calls{0};
+    auto const server = create_server(
+        *m_server_runtime, kSomeipd_specifier_second_pair,
+        [&handler_calls](score::cpp::span<std::byte const>,
+                         Add_bridged_services const& add_bridged_services) {
+            ++handler_calls;
+            // As someipd does when a later step fails.
+            static_cast<void>(add_bridged_services(bridged_services(
+                "bridged_ipc/rejected", Role::provider, both_events(0U), 4U, 0x7006U)));
+            return false;
+        });
+    ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+
+    // SomeipdService is already offered. The configuration is sent before create_client()
+    // returns.
+    auto const client = create_client(
+        *m_client_runtime, kSomeipd_specifier_second_pair,
+        bridged_services("bridged_ipc/rejected", Role::consumer, both_events(100U), 4U, 0x7006U));
+    ASSERT_NE(client, nullptr);
+
+    EXPECT_EQ(handler_calls.load(), 1);
+    EXPECT_FALSE(client->is_connected());
+    EXPECT_EQ(offered_sample_size("bridged_ipc/rejected"), 0U);
 }
 
 }  // namespace

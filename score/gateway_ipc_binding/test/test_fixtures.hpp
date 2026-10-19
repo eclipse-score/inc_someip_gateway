@@ -99,10 +99,16 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                  mw_com_metadata.slot_count}};
     }
 
+    /// \brief Server that adds `services` for every gatewayd
     std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(
         socom::Runtime& runtime, std::string const& someipd_service_specifier,
         mw_com::Service_configs services) {
-        return mw_com::create_server(runtime, someipd_service_specifier, std::move(services));
+        return mw_com::create_server(runtime, someipd_service_specifier,
+                                     [services = std::move(services)](
+                                         score::cpp::span<std::byte const>,
+                                         mw_com::Add_bridged_services const& add_bridged_services) {
+                                         return add_bridged_services(services);
+                                     });
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_ipc_client(

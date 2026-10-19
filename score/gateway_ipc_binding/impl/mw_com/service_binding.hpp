@@ -38,6 +38,10 @@ class Service_binding {
     Service_binding& operator=(Service_binding const&) = delete;
     Service_binding(Service_binding&&) = delete;
     Service_binding& operator=(Service_binding&&) = delete;
+
+    /// \brief Start the mw::com service discovery of a consumer. A provider has none.
+    /// \details MUST be called once. MUST NOT run on an mw::com message passing thread.
+    [[nodiscard]] virtual Result<void> start() noexcept = 0;
 };
 
 /// \brief Reject a service configuration that cannot possibly work before anything is created.
@@ -73,9 +77,9 @@ class Service_binding {
 
 /// \brief Create the binding half this peer implements for one bridged service instance.
 /// \details Dispatches on `Service_config::role`, see `docs/mw_com_binding.rst`. Setup is eager:
-///          the `GenericSkeleton` respectively the service discovery and the SOCom connector are
-///          created here, so a configuration error is reported to the caller instead of leaving a
-///          bridge that never carries data.
+///          the `GenericSkeleton` respectively the SOCom connector are created here, so a
+///          configuration error is reported to the caller instead of leaving a bridge that never
+///          carries data. Service discovery waits for Service_binding::start().
 /// \param runtime SOCom runtime used to create the connector
 /// \param config Bridged service instance to set up
 /// \return The service binding, or the first error encountered

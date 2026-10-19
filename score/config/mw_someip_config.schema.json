@@ -15,7 +15,7 @@
               },
         "ipc_instance_id" : {
                 "type" : "integer", "minimum" : 0, "maximum" : 65535,
-                "description" : "mw::com instance ID of the services bridged between gatewayd and someipd.\nMUST be unique per gatewayd/someipd pair on a host. Local applications MUST NOT use it."
+                "description" : "mw::com instance ID of the services bridged between gatewayd and someipd.\nsomeipd takes it from the configuration each gatewayd sends.\nAll gatewayds of a someipd MUST use the same value. It MUST be unique per someipd on a host.\nLocal applications MUST NOT use it."
               }
       },
       "required" : ["service_types"],

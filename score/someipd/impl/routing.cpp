@@ -14,50 +14,31 @@
 #include "routing.h"
 
 #include <functional>
-#include <score/assert.hpp>
 #include <thread>
 #include <utility>
 
 #include "score/mw/log/logging.h"
-#include "score/someip/constants.h"
 #include "score/someip/someip_error.h"
 
 namespace score::someipd {
 
-using score::someip::kAnyInstance;
-
-Routing::Routing(std::shared_ptr<const score::mw_someip_config::Root> config)
-    : config_(std::move(config)) {}
-
-Routing::Routing(Routing&&) noexcept = default;
-
-Routing& Routing::operator=(Routing&& other) noexcept {
-    if (this != &other) {
-        SCORE_LANGUAGE_FUTURECPP_ASSERT(!processing_thread_.joinable());
-        config_ = std::move(other.config_);
-        application_ = std::move(other.application_);
-        payload_ = std::move(other.payload_);
-        processing_thread_ = std::move(other.processing_thread_);
-    }
-    return *this;
-}
-
-Result<Routing> Routing::Create(std::shared_ptr<const score::mw_someip_config::Root> config) {
-    Routing routing(std::move(config));
+Result<std::unique_ptr<Routing>> Routing::Create() {
+    // Not make_unique: the constructor is private.
+    std::unique_ptr<Routing> routing{new Routing{}};
     auto runtime = vsomeip::runtime::get();
-    routing.application_ = runtime->create_application("someipd");
-    if (!routing.application_->init()) {
+    routing->application_ = runtime->create_application("someipd");
+    if (!routing->application_->init()) {
         score::mw::log::LogFatal() << "[someipd] vsomeip application initialization failed";
         return MakeUnexpected(score::someip::Errc::kInitializationFailed);
     }
-    routing.payload_ = runtime->create_payload();
+    routing->payload_ = runtime->create_payload();
     score::mw::log::LogInfo() << "[someipd] vsomeip application initialized successfully";
 
-    return Result<Routing>{std::move(routing)};
+    return routing;
 }
 
-void Routing::SetupOfferings() {
-    for (const auto* const service_type : *config_->service_types()) {
+void Routing::SetupOfferings(score::mw_someip_config::Root const& config) {
+    for (const auto* const service_type : *config.service_types()) {
         const auto* service_instances = service_type->local_service_instances();
         if ((service_instances != nullptr) && !service_instances->empty()) {
             for (const auto* const local_service_instance :
@@ -90,27 +71,36 @@ void Routing::SetupOfferings() {
     }
 }
 
-InstanceId Routing::LookupInstanceId(ServiceId service_id) const {
-    for (const auto* const service_type : *config_->service_types()) {
-        if (service_type->service_id() != service_id) {
-            continue;
+void Routing::AddServices(std::shared_ptr<const score::mw_someip_config::Root> config,
+                          std::function<void()> on_registered) {
+    Services added{std::move(config), std::move(on_registered)};
+    {
+        std::lock_guard const lock{mutex_};
+        services_.push_back(added);
+        if (!registered_) {
+            return;
         }
-        return service_type->local_service_instances()->Get(0)->instance_id();
     }
-    return kAnyInstance;
+    SetupOfferings(*added.config);
+    added.on_registered();
 }
 
-void Routing::Run(const std::function<void()>& wait_for_shutdown,
-                  std::function<void()> on_registered) {
-    application_->register_state_handler([this, on_registered = std::move(on_registered)](
-                                             vsomeip::state_type_e state) {
-        if (state == vsomeip::state_type_e::ST_REGISTERED) {
-            score::mw::log::LogInfo() << "[someipd] Application registered with routing daemon.";
-            score::mw::log::LogInfo() << "[someipd] Setting up offerings...";
-            SetupOfferings();
-            if (on_registered) {
-                on_registered();
+void Routing::Run(const std::function<void()>& wait_for_shutdown) {
+    application_->register_state_handler([this](vsomeip::state_type_e state) {
+        std::vector<Services> services{};
+        {
+            std::lock_guard const lock{mutex_};
+            registered_ = (state == vsomeip::state_type_e::ST_REGISTERED);
+            if (!registered_) {
+                return;
             }
+            services = services_;
+        }
+        score::mw::log::LogInfo() << "[someipd] Application registered with routing daemon.";
+        score::mw::log::LogInfo() << "[someipd] Setting up offerings...";
+        for (auto const& added : services) {
+            SetupOfferings(*added.config);
+            added.on_registered();
         }
     });
     score::mw::log::LogInfo() << "[someipd] Starting network stack processing...";

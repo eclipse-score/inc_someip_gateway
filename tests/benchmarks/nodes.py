@@ -303,8 +303,6 @@ class Node:
             "someipd",
             [
                 str(SOMEIPD.absolute()),
-                "-c",
-                str(self._spec.someip_config.absolute()),
                 "-s",
                 str(self._spec.mw_com_config.absolute()),
             ],
