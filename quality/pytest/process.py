@@ -17,12 +17,33 @@ import select
 import signal
 import subprocess
 import time
+from collections.abc import Sequence
+from os import PathLike
 
 
 def _glob_to_regex(pattern: str) -> re.Pattern[str]:
     """Translate a glob pattern ('*' matches any text, including newlines) to a regex."""
     escaped = re.escape(pattern).replace(re.escape("*"), ".*")
     return re.compile(escaped, re.DOTALL)
+
+
+def assert_process_creates_network_instance(
+    command: Sequence[str | PathLike[str]],
+    expected_output: str,
+    *,
+    timeout_seconds: float = 10,
+    failure_prefix: str = "process did not produce expected output",
+) -> None:
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    try:
+        wait_for_output(process, expected_output, timeout_seconds=timeout_seconds, failure_prefix=failure_prefix)
+    finally:
+        stop_process(process)
 
 
 def wait_for_output(

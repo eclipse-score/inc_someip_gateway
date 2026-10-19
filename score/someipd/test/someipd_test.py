@@ -17,8 +17,7 @@ import subprocess
 import sys
 import unittest
 
-from quality.pytest.process import stop_process
-from quality.pytest.process import wait_for_output
+from quality.pytest.process import assert_process_creates_network_instance, stop_process, wait_for_output
 
 
 class SomeipdTest(unittest.TestCase):
@@ -34,48 +33,10 @@ class SomeipdTest(unittest.TestCase):
         self.assertIn("Syntax: someipd -h/--help", result.stdout)
 
     def test_creates_local_network_instance(self) -> None:
-        someipd_process = subprocess.Popen(
-            [
-                self.binary,
-                "--configuration",
-                self.configuration,
-                "--service_instance_manifest",
-                self.service_instance_manifest,
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
-        try:
-            wait_for_output(
-                someipd_process,
-                "OFFER(0100): [0001.0001",
-                failure_prefix="someipd did not create a network instance",
-            )
-        finally:
-            stop_process(someipd_process)
+        self._assert_creates_network_instance("OFFER(0100): [0001.0001")
 
     def test_creates_remote_network_instance(self) -> None:
-        someipd_process = subprocess.Popen(
-            [
-                self.binary,
-                "--configuration",
-                self.configuration,
-                "--service_instance_manifest",
-                self.service_instance_manifest,
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
-        try:
-            wait_for_output(
-                someipd_process,
-                "REQUEST(0100): [4321.5678",
-                failure_prefix="someipd did not create a network instance",
-            )
-        finally:
-            stop_process(someipd_process)
+        self._assert_creates_network_instance("REQUEST(0100): [4321.5678")
 
     def test_sigterm_and_sigint_exit_with_success(self) -> None:
         for shutdown_signal in (signal.SIGTERM, signal.SIGINT):
@@ -102,6 +63,19 @@ class SomeipdTest(unittest.TestCase):
                     self.assertEqual(returncode, 0)
                 finally:
                     stop_process(process)
+
+    def _assert_creates_network_instance(self, expected_output: str) -> None:
+        assert_process_creates_network_instance(
+            [
+                self.binary,
+                "--configuration",
+                self.configuration,
+                "--service_instance_manifest",
+                self.service_instance_manifest,
+            ],
+            expected_output,
+            failure_prefix="someipd did not create a network instance",
+        )
 
 
 if __name__ == "__main__":

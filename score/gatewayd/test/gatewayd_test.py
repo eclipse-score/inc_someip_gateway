@@ -16,8 +16,8 @@ import subprocess
 import sys
 import unittest
 
+from quality.pytest.process import assert_process_creates_network_instance
 from quality.pytest.process import stop_process
-from quality.pytest.process import wait_for_output
 
 
 class GatewaydTest(unittest.TestCase):
@@ -25,7 +25,7 @@ class GatewaydTest(unittest.TestCase):
         self.gatewayd = Path(sys.argv[1])
         self.someipd = Path(sys.argv[2])
         self.configuration = Path(sys.argv[3])
-        self.gatewayd_service_instance_manifest = Path(sys.argv[4])
+        self.service_instance_manifest = Path(sys.argv[4])
         self.someipd_service_instance_manifest = Path(sys.argv[5])
 
     def test_help_returns_success_and_prints_usage(self) -> None:
@@ -35,43 +35,16 @@ class GatewaydTest(unittest.TestCase):
         self.assertIn("Syntax: gatewayd -h/--help", result.stdout)
 
     def test_creates_local_network_instance(self) -> None:
-        someipd_process = subprocess.Popen(
-            [
-                self.someipd,
-                "--configuration",
-                self.configuration,
-                "--service_instance_manifest",
-                self.someipd_service_instance_manifest,
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
+        self._assert_creates_network_instance(
+            "Creating local service instance: window_control*Gateway started, waiting for shutdown signal..."
         )
-        try:
-            gatewayd_process = subprocess.Popen(
-                [
-                    self.gatewayd,
-                    "--configuration",
-                    self.configuration,
-                    "--service_instance_manifest",
-                    self.gatewayd_service_instance_manifest,
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
-            )
-            try:
-                wait_for_output(
-                    gatewayd_process,
-                    "Creating local service instance: window_control*Gateway started, waiting for shutdown signal...",
-                    failure_prefix="gatewayd did not initialize successfully",
-                )
-            finally:
-                stop_process(gatewayd_process)
-        finally:
-            stop_process(someipd_process)
 
     def test_creates_remote_network_instance(self) -> None:
+        self._assert_creates_network_instance(
+            "Creating remote service instance: echo_response*Gateway started, waiting for shutdown signal..."
+        )
+
+    def _assert_creates_network_instance(self, expected_output: str) -> None:
         someipd_process = subprocess.Popen(
             [
                 self.someipd,
@@ -85,26 +58,17 @@ class GatewaydTest(unittest.TestCase):
             start_new_session=True,
         )
         try:
-            gatewayd_process = subprocess.Popen(
+            assert_process_creates_network_instance(
                 [
                     self.gatewayd,
                     "--configuration",
                     self.configuration,
                     "--service_instance_manifest",
-                    self.gatewayd_service_instance_manifest,
+                    self.service_instance_manifest,
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
+                expected_output,
+                failure_prefix="gatewayd did not initialize successfully",
             )
-            try:
-                wait_for_output(
-                    gatewayd_process,
-                    "Creating remote service instance: echo_response*Gateway started, waiting for shutdown signal...",
-                    failure_prefix="gatewayd did not initialize successfully",
-                )
-            finally:
-                stop_process(gatewayd_process)
         finally:
             stop_process(someipd_process)
 
