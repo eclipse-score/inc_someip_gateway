@@ -23,14 +23,15 @@
 
 namespace score::socom::client_connector {
 
+using Final_action = score::utils::ScopeExit<score::cpp::callback<void(), 128U>>;
+
 Impl::Impl(Service_interface_definition configuration, Service_instance instance,
            Client_connector::Callbacks callbacks, Posix_credentials const& credentials)
     : m_configuration{std::move(configuration)},
       m_instance{instance},
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
-          std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
-              [this]() { m_stop_complete_promise.set_value(); })},
+          std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
       m_credentials{credentials} {}
 
 Impl::~Impl() noexcept {
@@ -58,7 +59,7 @@ Impl::~Impl() noexcept {
     m_deadlock_detector.check_deadlock(log_on_deadlock);
 #endif
     auto const wait_for_stop_complete = [this]() { m_stop_complete_promise.get_future().wait(); };
-    score::utils::ScopeExit const catch_promise_exceptions{wait_for_stop_complete};
+    Final_action const catch_promise_exceptions{wait_for_stop_complete};
 }
 
 message::Subscribe_event::Return_type Impl::subscribe_event(Event_id client_id,

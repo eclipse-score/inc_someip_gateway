@@ -31,6 +31,8 @@
 
 namespace score::socom {
 
+using Final_action = score::utils::ScopeExit<score::cpp::callback<void(), 128U>>;
+
 namespace {
 
 bool is_matching_instance(std::optional<Service_instance> const& filter,
@@ -111,11 +113,10 @@ void cleanup(
 }
 
 class Final_action_registration final : public IRegistration {
-    score::utils::ScopeExit<score::cpp::callback<void(), 128U>> m_final_action;
+    Final_action m_final_action;
 
    public:
-    explicit Final_action_registration(
-        score::utils::ScopeExit<score::cpp::callback<void(), 128U>> final_action)
+    explicit Final_action_registration(Final_action final_action)
         : m_final_action{std::move(final_action)} {}
 };
 
@@ -376,8 +377,7 @@ Service_record::Server_registration Service_record::register_server_connector(
     };
 
     return Server_registration{
-        std::make_unique<Final_action_registration>(
-            score::utils::ScopeExit<score::cpp::callback<void(), 128U>>{std::move(final_action)}),
+        std::make_unique<Final_action_registration>(Final_action{std::move(final_action)}),
         m_client};
 }
 
@@ -393,10 +393,9 @@ Result<Service_record::Client_registration> Service_record::register_client_conn
         m_client.reset();
     };
 
-    return Client_registration{std::make_unique<Final_action_registration>(
-                                   score::utils::ScopeExit<score::cpp::callback<void(), 128U>>{
-                                       std::move(remove_from_registry)}),
-                               m_server};
+    return Client_registration{
+        std::make_unique<Final_action_registration>(Final_action{std::move(remove_from_registry)}),
+        m_server};
 }
 
 Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
@@ -454,7 +453,7 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
         }
     }
 
-    score::utils::ScopeExit<score::cpp::callback<void(), 128U>> final_action{
+    Final_action final_action{
         [identifier, identifiers = std::weak_ptr<Service_identifiers>{m_service_identifiers}]() {
             auto const locked_identifiers = identifiers.lock();
             if (locked_identifiers) {
@@ -570,8 +569,7 @@ Registration Runtime_impl::bridge_service_requests(
     };
 
     Registration service_requests_handle = std::make_unique<Final_action_registration>(
-        score::utils::ScopeExit<score::cpp::callback<void(), 128U>>{
-            std::move(remove_service_requests)});
+        Final_action{std::move(remove_service_requests)});
 
     return service_requests_handle;
 }

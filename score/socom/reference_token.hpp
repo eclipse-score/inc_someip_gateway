@@ -21,12 +21,12 @@
 
 namespace score::socom {
 
+using Final_action = score::utils::ScopeExit<score::cpp::callback<void(), 128U>>;
+
 class Deadlock_detector;
 
-using Reference_token =
-    std::shared_ptr<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>;
-using Weak_reference_token =
-    std::weak_ptr<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>;
+using Reference_token = std::shared_ptr<Final_action>;
+using Weak_reference_token = std::weak_ptr<Final_action>;
 
 }  // namespace score::socom
 

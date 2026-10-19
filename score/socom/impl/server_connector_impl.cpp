@@ -35,8 +35,7 @@ Client_connection::Client_connection(Impl& impl, Client_connector_endpoint clien
 
 Impl::Impl(Runtime_impl& runtime, Server_service_interface_definition configuration,
            Service_instance instance, Disabled_server_connector::Callbacks callbacks,
-           score::utils::ScopeExit<score::cpp::callback<void(), 128U>> final_action,
-           Posix_credentials const& credentials)
+           Final_action final_action, Posix_credentials const& credentials)
     : m_runtime{runtime},
       m_configuration{std::move(configuration)},
       m_instance{instance},
@@ -67,11 +66,9 @@ Impl* Impl::enable() {
     m_stop_complete_promise = {};
     m_all_clients_disconnected_promise = {};
     m_stop_block_token =
-        std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
-            [this]() { m_stop_complete_promise.set_value(); });
-    m_all_clients_disconnected_block_token =
-        std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
-            [this]() { m_all_clients_disconnected_promise.set_value(); });
+        std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); });
+    m_all_clients_disconnected_block_token = std::make_shared<Final_action>(
+        [this]() { m_all_clients_disconnected_promise.set_value(); });
     m_registration = m_runtime.register_connector(m_configuration.get_interface(), m_instance,
                                                   Listen_endpoint{*this, m_stop_block_token});
 
@@ -240,11 +237,10 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
     auto stop_block_token_copy = m_all_clients_disconnected_block_token;
     lock.unlock();
 
-    auto reference_token =
-        std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
-            [this, stop_block_token_copy = std::move(stop_block_token_copy)]() {
-                this->remove_client();
-            });
+    auto reference_token = std::make_shared<Final_action>(
+        [this, stop_block_token_copy = std::move(stop_block_token_copy)]() {
+            this->remove_client();
+        });
 
     return message::Connect::Return_type{
         {Server_connector_endpoint{*m_client, std::move(reference_token)},
