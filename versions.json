@@ -38,5 +38,9 @@
   {
     "version": "pr-352",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-352/"
+  },
+  {
+    "version": "pr-354",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-354/"
   }
 ]
