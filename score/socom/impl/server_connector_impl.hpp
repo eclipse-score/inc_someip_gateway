@@ -22,7 +22,7 @@
 #include "endpoint.hpp"
 #include "messages.hpp"
 #include "runtime_registration.hpp"
-#include "score/socom/reference_token.hpp"
+#include "score/socom/final_action.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_definition.hpp"
 #include "score/socom/service_interface_identifier.hpp"
@@ -34,8 +34,6 @@ namespace socom {
 class Runtime_impl;
 
 namespace server_connector {
-
-using Final_action = score::utils::ScopeExit<score::cpp::callback<void(), 128U>>;
 
 class Impl;
 

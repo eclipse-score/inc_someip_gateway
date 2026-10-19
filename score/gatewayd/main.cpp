@@ -32,8 +32,8 @@
 #include "score/message_passing/service_protocol_config.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
-#include "score/scope_exit/scope_exit.h"
 #include "score/serializer/serializer.h"
+#include "score/socom/final_action.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
 
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    score::utils::ScopeExit const serializer_cleanup{[]() {
+    score::socom::Final_action const serializer_cleanup{[]() {
         if (score_com_serializer_deinit() != score_com_serializer_result_ok) {
             score::mw::log::LogError() << "Warning: Failed to deinitialize serializer plugin.";
         }

@@ -16,12 +16,9 @@
 
 #include <memory>
 
-#include "score/callback.hpp"
-#include "score/scope_exit/scope_exit.h"
+#include "score/socom/final_action.hpp"
 
 namespace score::socom {
-
-using Final_action = score::utils::ScopeExit<score::cpp::callback<void(), 128U>>;
 
 class Deadlock_detector;
 

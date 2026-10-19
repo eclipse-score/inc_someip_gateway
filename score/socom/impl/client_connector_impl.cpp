@@ -19,11 +19,10 @@
 #include "messages.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
+#include "score/socom/final_action.hpp"
 #include "server_connector_impl.hpp"
 
 namespace score::socom::client_connector {
-
-using Final_action = score::utils::ScopeExit<score::cpp::callback<void(), 128U>>;
 
 Impl::Impl(Service_interface_definition configuration, Service_instance instance,
            Client_connector::Callbacks callbacks, Posix_credentials const& credentials)

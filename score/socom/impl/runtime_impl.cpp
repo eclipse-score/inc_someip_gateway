@@ -24,14 +24,13 @@
 #include "client_connector_impl.hpp"
 #include "score/mw/log/logging.h"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/final_action.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 #include "server_connector_impl.hpp"
 
 namespace score::socom {
-
-using Final_action = score::utils::ScopeExit<score::cpp::callback<void(), 128U>>;
 
 namespace {
 
@@ -113,6 +112,7 @@ void cleanup(
 }
 
 class Final_action_registration final : public IRegistration {
+    // will be executed as a final action on destruction.
     Final_action m_final_action;
 
    public:

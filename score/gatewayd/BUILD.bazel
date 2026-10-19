@@ -39,7 +39,6 @@ cc_binary(
         "//score/socom",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
-        "@score_baselibs//score/scope_exit",
         "@score_communication//score/message_passing",
         "@score_communication//score/mw/com",
     ],
