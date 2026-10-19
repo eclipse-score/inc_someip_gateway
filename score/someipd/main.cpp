@@ -19,75 +19,24 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "impl/local_network_service.h"
 #include "impl/remote_network_service.h"
 #include "impl/routing.h"
+#include "score/bridged_services/bridged_service_configs.h"
 #include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 #include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
-#include "score/someip/constants.h"
 
 using namespace score;
 using namespace score::someipd;
-
-// mw::com instance specifier of the SomeipdService that someipd offers; gatewayd uses the same.
-static constexpr const char* kSomeipdServiceSpecifier = "someipd/daemon";
-
-/// SOCom interface of a service on the mw::com link to gatewayd: bridged_<service_type_name>.
-/// Allocates, so it is only called at startup.
-static socom::Service_interface_identifier bridged_interface(
-    const score::mw_someip_config::ServiceType& service_type_config) {
-    return socom::Service_interface_identifier{
-        std::string{"bridged_"}.append(service_type_config.service_type_name()->string_view()),
-        {service_type_config.service_version_major(),
-         static_cast<uint16_t>(service_type_config.service_version_minor())}};
-}
-
-/// Bridged service instances on the mw::com link to gatewayd, one per service type of the gateway
-/// configuration, mirroring gatewayd: someipd consumes what local applications offer and provides
-/// what the network offers. The event sizes come from gatewayd, so 0 accepts any size here.
-/// Called once at startup.
-static gateway_ipc_binding::mw_com::Service_configs bridged_service_configs(
-    const score::mw_someip_config::Root& config) {
-    gateway_ipc_binding::mw_com::Service_configs services;
-    for (const auto* service_type_config : *config.service_types()) {
-        gateway_ipc_binding::mw_com::Role role{};
-        if (service_type_config->local_service_instances() != nullptr &&
-            !service_type_config->local_service_instances()->empty()) {
-            role = gateway_ipc_binding::mw_com::Role::consumer;
-        } else if (service_type_config->remote_service_instances() != nullptr &&
-                   !service_type_config->remote_service_instances()->empty()) {
-            role = gateway_ipc_binding::mw_com::Role::provider;
-        } else {
-            continue;
-        }
-        // The binding needs at least one event per service.
-        if (service_type_config->events() == nullptr || service_type_config->events()->empty()) {
-            continue;
-        }
-
-        std::vector<gateway_ipc_binding::mw_com::Event_config> events;
-        for (const auto* event_config : *service_type_config->events()) {
-            events.push_back({.name = event_config->event_name()->str(), .max_payload_size = 0U});
-        }
-
-        auto const service_type_name = service_type_config->service_type_name()->string_view();
-        services.push_back(
-            {.interface = bridged_interface(*service_type_config),
-             .instance = socom::Service_instance{service_type_name},
-             .instance_specifier = std::string{"bridged_ipc/"}.append(service_type_name),
-             .role = role,
-             .events = std::move(events),
-             .max_sample_count = someip::kMaxSampleCount});
-    }
-    return services;
-}
+using score::bridged_services::bridged_service_configs;
+using score::bridged_services::Daemon;
+using score::bridged_services::kSomeipd_service_specifier;
 
 // Help text, showing usage syntax and available options
 static void print_help() {
@@ -151,7 +100,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Both configuration files are required, otherwise print help and exit
     if (configuration_path.Empty() || service_instance_manifest_path.Empty()) {
         print_help();
         return EXIT_FAILURE;
@@ -190,9 +138,10 @@ int main(int argc, char* argv[]) {
 
     auto socom_runtime = socom::create_runtime();
 
-    // Offers SomeipdService, then sets up the bridged services on the link to gatewayd.
+    // Create the IPC binding server.
     auto binding_server = gateway_ipc_binding::mw_com::create_server(
-        *socom_runtime, kSomeipdServiceSpecifier, bridged_service_configs(*config));
+        *socom_runtime, kSomeipd_service_specifier,
+        bridged_service_configs(*config, Daemon::someipd));
     if (binding_server == nullptr) {
         score::mw::log::LogFatal() << "[someipd] Failed to create the mw::com IPC binding";
         return 1;
@@ -232,8 +181,7 @@ int main(int argc, char* argv[]) {
                     config, service_instance_config),
                 std::shared_ptr<const score::mw_someip_config::ServiceType>(config,
                                                                             service_type_config),
-                routing.value().get_application(), *socom_runtime,
-                bridged_interface(*service_type_config));
+                routing.value().get_application(), *socom_runtime);
             if (!create_result.has_value()) {
                 score::mw::log::LogError()
                     << "[someipd] Failed to create LocalNetworkService for "
@@ -264,8 +212,7 @@ int main(int argc, char* argv[]) {
                     config, service_instance_config),
                 std::shared_ptr<const score::mw_someip_config::ServiceType>(config,
                                                                             service_type_config),
-                routing.value().get_application(), *socom_runtime,
-                bridged_interface(*service_type_config));
+                routing.value().get_application(), *socom_runtime);
             if (!create_result.has_value()) {
                 score::mw::log::LogError()
                     << "[someipd] Failed to create RemoteNetworkService for "

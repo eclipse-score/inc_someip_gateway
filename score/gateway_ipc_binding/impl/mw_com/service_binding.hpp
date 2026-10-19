@@ -42,9 +42,9 @@ class Service_binding {
 
 /// \brief Reject a service configuration that cannot possibly work before anything is created.
 /// \details Catches the mistakes that would otherwise only surface as a silently dead bridge:
-///          service type names and instance specifiers without the `bridged_` prefix, a missing
-///          or duplicated event name, a payload longer than the length prefix can express, and a
-///          consumer that would subscribe for zero samples.
+///          a missing or duplicated event name or ID, a payload longer than the length prefix can
+///          express, a consumer that would subscribe for zero samples, and a sample count above
+///          kNumber_of_sample_slots.
 /// \param config Bridged service instance to check
 /// \return Success, or Mw_com_binding_error::logic_error_invalid_service_configuration
 [[nodiscard]] Result<void> validate(Service_config const& config) noexcept;
@@ -66,6 +66,10 @@ class Service_binding {
 [[nodiscard]] Result<void> check_instance_is_deployed(
     score::mw::com::InstanceSpecifier const& specifier,
     std::string const& instance_specifier) noexcept;
+
+/// \brief Validates all services, then adds the ones missing from the mw::com configuration
+/// \return Success, or the first error, in which case nothing was added
+[[nodiscard]] Result<void> add_to_mw_com_runtime(Service_configs const& services) noexcept;
 
 /// \brief Create the binding half this peer implements for one bridged service instance.
 /// \details Dispatches on `Service_config::role`, see `docs/mw_com_binding.rst`. Setup is eager:

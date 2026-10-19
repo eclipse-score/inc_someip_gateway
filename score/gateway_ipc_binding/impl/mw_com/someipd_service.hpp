@@ -14,7 +14,7 @@
 #ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_HPP
 #define SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_HPP
 
-#include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 #include "score/gateway_ipc_binding/fixed_size_container.hpp"
@@ -22,14 +22,15 @@
 
 namespace score::gateway_ipc_binding::mw_com {
 
-/// \brief Maximum size of an add-on mw::com configuration sent as JSON text.
-inline constexpr std::size_t kMax_service_configuration_size = 64U * 1024U;
+/// \brief Payload size of one bridged event.
+struct Bridged_event_size {
+    std::uint16_t service_id;
+    std::uint16_t event_id;
+    std::uint32_t max_payload_size;
+};
 
-using Service_configuration_text = Fixed_string<kMax_service_configuration_size>;
-
-/// \brief Argument of SetBridgedEventSizes: the payload size of every consumer-role event of
-///        gatewayd, service by service in configuration order.
-using Bridged_event_sizes = Fixed_size_container<std::size_t, 1024U>;
+/// \brief SetBridgedEventSizes argument, one entry per consumer event of gatewayd.
+using Bridged_event_sizes = Fixed_size_container<Bridged_event_size, 1024U>;
 
 /// \brief `mw::com` service interface representing the `someipd` daemon itself.
 ///
@@ -38,17 +39,14 @@ using Bridged_event_sizes = Fixed_size_container<std::size_t, 1024U>;
 ///          not by a customer's SOME/IP deployment.
 ///
 ///          The presence of an offered instance is the peer-liveness signal. Its
-///          AddServiceConfiguration method extends the provider's mw::com configuration at
-///          runtime, SetBridgedEventSizes hands it the sizes of the events it provides. Every
-///          element declared here needs a matching entry in the `mw_com_config.json` of both
-///          daemons.
+///          SetBridgedEventSizes method tells someipd the sizes of the events it provides. Every
+///          element declared here MUST have a matching entry in the `mw_com_config.json` of
+///          both daemons.
 template <typename Trait>
 class Someipd_service_interface : public Trait::Base {
    public:
     using Trait::Base::Base;
 
-    typename Trait::template Method<bool(Service_configuration_text)> add_service_configuration{
-        *this, "AddServiceConfiguration"};
     typename Trait::template Method<bool(Bridged_event_sizes)> set_bridged_event_sizes{
         *this, "SetBridgedEventSizes"};
 };

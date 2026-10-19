@@ -19,13 +19,13 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <string>
 #include <string_view>
 #include <thread>
 #include <vector>
 
 #include "impl/local_service_instance.h"
 #include "impl/remote_service_instance.h"
+#include "score/bridged_services/bridged_service_configs.h"
 #include "score/config/mw_someip_config_generated.h"
 #include "score/filesystem/path.h"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
@@ -39,29 +39,15 @@
 // In the main file we are not in any namespace
 using namespace score;
 using namespace score::someip_gateway::gatewayd;
+using score::bridged_services::bridged_service_configs;
+using score::bridged_services::Daemon;
+using score::bridged_services::kSomeipd_service_specifier;
 
 // Global flag to control application shutdown
 static std::atomic<bool> shutdown_requested{false};
 
-// mw::com instance specifier of the SomeipdService that someipd offers; someipd uses the same.
-static constexpr const char* kSomeipdServiceSpecifier = "someipd/daemon";
-
-/// SOCom interface of a service on the mw::com link to someipd: bridged_<service_type_name>.
-/// Allocates, so it is only called at startup.
-static socom::Service_interface_identifier bridged_interface(
-    const score::mw_someip_config::ServiceType& service_type_config) {
-    return socom::Service_interface_identifier{
-        std::string{"bridged_"}.append(service_type_config.service_type_name()->string_view()),
-        {service_type_config.service_version_major(),
-         static_cast<uint16_t>(service_type_config.service_version_minor())}};
-}
-
-/// Calculates the required shared memory slot size for one event
-/// (Largest serialized event payload + SOME/IP header).
-///
-/// Since encoding affects the payload size, we query the serializer plugin
-/// directly. If the event size is unknown or the serializer is missing, we safely
-/// fall back to the max transport limit.
+/// Slot size of an event: the largest serialized payload plus the SOME/IP header.
+/// Falls back to the max transport limit if the size is unknown or there is no serializer.
 static std::size_t event_slot_size(std::string_view const service_type_name,
                                    std::string_view const event_name) {
     const score_com_serializer* serializer = nullptr;
@@ -83,48 +69,6 @@ static std::size_t event_slot_size(std::string_view const service_type_name,
     }
 
     return max_serialized_size + someip::kSomeipFullHeaderSize;
-}
-
-/// Bridged service instances on the mw::com link to someipd, one per service type of the gateway
-/// configuration: gatewayd provides what local applications offer and consumes what the network
-/// offers. Every event sample holds the event's largest SOME/IP message, header included. someipd
-/// gets these sizes from the binding. Called once at startup, after the serializer is initialized.
-static gateway_ipc_binding::mw_com::Service_configs bridged_service_configs(
-    const score::mw_someip_config::Root& config) {
-    gateway_ipc_binding::mw_com::Service_configs services;
-    for (const auto* service_type_config : *config.service_types()) {
-        gateway_ipc_binding::mw_com::Role role{};
-        if (service_type_config->local_service_instances() != nullptr &&
-            !service_type_config->local_service_instances()->empty()) {
-            role = gateway_ipc_binding::mw_com::Role::provider;
-        } else if (service_type_config->remote_service_instances() != nullptr &&
-                   !service_type_config->remote_service_instances()->empty()) {
-            role = gateway_ipc_binding::mw_com::Role::consumer;
-        } else {
-            continue;
-        }
-        // The binding needs at least one event per service.
-        if (service_type_config->events() == nullptr || service_type_config->events()->empty()) {
-            continue;
-        }
-
-        std::vector<gateway_ipc_binding::mw_com::Event_config> events;
-        auto const service_type_name = service_type_config->service_type_name()->string_view();
-        for (const auto* event_config : *service_type_config->events()) {
-            events.push_back({.name = event_config->event_name()->str(),
-                              .max_payload_size = event_slot_size(
-                                  service_type_name, event_config->event_name()->string_view())});
-        }
-
-        services.push_back(
-            {.interface = bridged_interface(*service_type_config),
-             .instance = socom::Service_instance{service_type_name},
-             .instance_specifier = std::string{"bridged_ipc/"}.append(service_type_name),
-             .role = role,
-             .events = std::move(events),
-             .max_sample_count = someip::kMaxSampleCount});
-    }
-    return services;
 }
 
 // Signal handler for graceful shutdown
@@ -242,16 +186,16 @@ int main(int argc, char* argv[]) {
     // Create the SOCom runtime
     auto socom_runtime = socom::create_runtime();
 
-    // Bridged services on the link to someipd, set up eagerly. Exits if any of them cannot be.
     auto binding_client = gateway_ipc_binding::mw_com::create_client(
-        *socom_runtime, kSomeipdServiceSpecifier, bridged_service_configs(*config), "gatewayd");
+        *socom_runtime, kSomeipd_service_specifier,
+        bridged_service_configs(*config, Daemon::gatewayd, event_slot_size), "gatewayd");
     if (binding_client == nullptr) {
         score::mw::log::LogFatal()
             << "[gatewayd] Failed to create the mw::com IPC binding to someipd";
         return 1;
     }
 
-    // Wait until someipd offers SomeipdService (requires someipd to be running).
+    // Blocks until someipd runs and has accepted the sizes.
     while (!binding_client->is_connected() && !shutdown_requested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
@@ -281,8 +225,7 @@ int main(int argc, char* argv[]) {
                             config, service_instance_config),
                         std::shared_ptr<const score::mw_someip_config::ServiceType>(
                             config, service_type_config),
-                        bridged_interface(*service_type_config), *socom_runtime,
-                        local_service_instances);
+                        *socom_runtime, local_service_instances);
                     !create_local_result) {
                     score::mw::log::LogError()
                         << "[gatewayd] Failed to start local service discovery for "
@@ -313,8 +256,7 @@ int main(int argc, char* argv[]) {
                                 config, service_instance_config),
                             std::shared_ptr<const score::mw_someip_config::ServiceType>(
                                 config, service_type_config),
-                            bridged_interface(*service_type_config), *socom_runtime,
-                            remote_service_instances);
+                            *socom_runtime, remote_service_instances);
                     !create_remote_result) {
                     score::mw::log::LogError()
                         << "[gatewayd] Failed to start remote service discovery for "

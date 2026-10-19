@@ -4,6 +4,10 @@ namespace score.mw_someip_config;
 table Root {
     /// The type definitions of existing services.
     service_types: [ServiceType] (required);
+
+    /// mw::com instance ID of the services bridged between gatewayd and someipd.
+    /// MUST be unique per gatewayd/someipd pair on a host. Local applications MUST NOT use it.
+    ipc_instance_id: uint16 = 65535;
 }
 
 /// Describes a SOME/IP service type: its network identity, versioning and service elements

@@ -12,12 +12,8 @@
           "serviceId": 6400,
           "methods": [
             {
-              "methodName": "AddServiceConfiguration",
-              "methodId": 1
-            },
-            {
               "methodName": "SetBridgedEventSizes",
-              "methodId": 2
+              "methodId": 1
             }
           ]
         }
@@ -150,10 +146,6 @@
           "binding": "SHM",
           "methods": [
             {
-              "methodName": "AddServiceConfiguration",
-              "queueSize": 1
-            },
-            {
               "methodName": "SetBridgedEventSizes",
               "queueSize": 1
             }
@@ -175,10 +167,6 @@
           "binding": "SHM",
           "methods": [
             {
-              "methodName": "AddServiceConfiguration",
-              "queueSize": 1
-            },
-            {
               "methodName": "SetBridgedEventSizes",
               "queueSize": 1
             }
@@ -199,10 +187,6 @@
           "asil-level": "QM",
           "binding": "SHM",
           "methods": [
-            {
-              "methodName": "AddServiceConfiguration",
-              "queueSize": 1
-            },
             {
               "methodName": "SetBridgedEventSizes",
               "queueSize": 1

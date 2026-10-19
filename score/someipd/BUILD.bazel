@@ -37,6 +37,7 @@ cc_binary(
         ":local_network_service",
         ":remote_network_service",
         ":routing",
+        "//score/bridged_services",
         "//score/config:config_flatbuffers",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",

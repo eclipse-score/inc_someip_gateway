@@ -25,15 +25,18 @@ participant "Client_adapter" as client
 end box
 
 == someipd offers SomeipdService ==
-[-> server : create_server(), start()
+[-> server : create_server(services)
+server -> mwcom : AddConfiguration(bridged services)
+[-> server : start()
 server -> sdsvc_provider : create()
 server -> sdsvc_provider : offer()
 sdsvc_provider -> mwcom : OfferService(SomeipdService)
-server -> server : make_service_bindings()
+server -> server : make_service_bindings(consumers)
 
 == gatewayd looks for SomeipdService ==
-client <-] : create_client(config_json)
-client -> sdsvc_consumer : create(config_json)
+client <-] : create_client(services, event sizes)
+client -> mwcom : AddConfiguration(bridged services)
+client -> sdsvc_consumer : create(event sizes)
 sdsvc_consumer -> mwcom : StartFindService(handler)
 client -> client : make_service_bindings(), without waiting
 
@@ -41,9 +44,11 @@ alt someipd offers SomeipdService
   mwcom -> sdsvc_consumer : find-service handler(handle)
   note right of sdsvc_consumer : Runs inside StartFindService()\nor later on an mw::com thread.
   sdsvc_consumer -> mwcom : Create(handle)
-  sdsvc_consumer -> mwcom : AddServiceConfiguration()
+  sdsvc_consumer -> mwcom : SetBridgedEventSizes(sizes)
+  mwcom -> server : SetBridgedEventSizes handler(sizes)
+  server -> server : make_service_bindings(providers)
 else someipd withdraws SomeipdService, or never offers it
   mwcom -> sdsvc_consumer : find-service handler(none)
 end
-client <-] : is_connected(), true while the proxy exists
+client <-] : is_connected(), true once someipd accepted the sizes
 @enduml

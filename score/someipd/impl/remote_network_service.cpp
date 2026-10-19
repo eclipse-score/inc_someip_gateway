@@ -38,12 +38,16 @@ RemoteNetworkService::RemoteNetworkService(
 Result<std::unique_ptr<RemoteNetworkService>> RemoteNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime,
-    socom::Service_interface_identifier const& socom_interface) {
+    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime) {
+    socom::Service_interface_identifier const iface{
+        service_type_config->service_type_name()->string_view(),
+        {service_type_config->service_version_major(),
+         static_cast<uint16_t>(service_type_config->service_version_minor())}};
+
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
 
     socom::Server_service_interface_definition const server_config{
-        socom_interface, socom::to_num_of_methods(0),
+        iface, socom::to_num_of_methods(0),
         socom::to_num_of_events(service_type_config->events()->size())};
 
     auto disabled = socom_runtime.make_server_connector(

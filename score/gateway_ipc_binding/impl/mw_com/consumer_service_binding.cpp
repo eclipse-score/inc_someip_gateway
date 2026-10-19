@@ -250,8 +250,7 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
             return false;
         }
 
-        // The peer laid the samples out for its own configuration, so its size is what this side
-        // can read. A configured size is a lower bound the peer has to meet.
+        // The peer's samples MUST be at least the configured size.
         auto const peer_sample_size = entry->second.GetDataTypeSizeInfo().Size();
         auto const expected = kSample_prefix_size + event.configured_max_payload_size;
         if (peer_sample_size < expected) {

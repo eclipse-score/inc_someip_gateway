@@ -13,9 +13,9 @@
 
 """Process orchestration for the two gatewayd/someipd nodes of the end-to-end performance test.
 
-Both nodes run on the same host. Because the vsomeip unix sockets and the LoLa service discovery
-and shared memory are global to the host, every node gets its own vsomeip network name and its own
-mw::com service ids, also for the mw::com link between its gatewayd and someipd; see README.md.
+Both nodes run on the same host. The vsomeip unix sockets, the LoLa service discovery and the shared
+memory are global to the host. So every node MUST have its own vsomeip network name and its own
+mw::com service IDs, also for the link between its gatewayd and someipd. See README.md.
 """
 
 from __future__ import annotations
@@ -128,8 +128,8 @@ def preflight(
             "--config=perf-tests."
         )
 
-    # Every process of a node (someipd, gatewayd and the benchmark application) gets the node's
-    # mw::com manifest on its command line, so the manifest path finds leftovers of a previous run.
+    # Every process of a node gets the node's mw::com manifest path as an argument.
+    # Matching that path finds the leftovers of a previous run.
     for spec in nodes or ():
         subprocess.run(["pkill", "-9", "-f", str(spec.mw_com_config)], check=False)
     time.sleep(0.5)

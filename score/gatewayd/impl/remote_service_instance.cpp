@@ -46,8 +46,7 @@ RemoteServiceInstance::RemoteServiceInstance(
 Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    score::mw::com::GenericSkeleton&& ipc_skeleton,
-    socom::Service_interface_identifier const& socom_interface, socom::Runtime& socom_runtime) {
+    score::mw::com::GenericSkeleton&& ipc_skeleton, socom::Runtime& socom_runtime) {
     auto offer_result = ipc_skeleton.OfferService();
     if (!offer_result.has_value()) {
         score::mw::log::LogError() << "[gatewayd] Failed to offer IPC skeleton for '"
@@ -87,10 +86,15 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
         ++socom_event_id;
     }
 
+    socom::Service_interface_identifier const iface{
+        service_type_config->service_type_name()->string_view(),
+        {service_type_config->service_version_major(),
+         static_cast<uint16_t>(service_type_config->service_version_minor())}};
+
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
 
     socom::Service_interface_definition const client_config{
-        socom_interface, socom::to_num_of_methods(0),
+        iface, socom::to_num_of_methods(0),
         socom::to_num_of_events(service_type_config->events()->size())};
 
     // Create the instance first so callbacks can capture a raw pointer to it.
@@ -195,8 +199,7 @@ void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Paylo
 Result<void> RemoteServiceInstance::CreateAsyncRemoteService(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    socom::Service_interface_identifier const& socom_interface, socom::Runtime& socom_runtime,
-    std::vector<std::unique_ptr<RemoteServiceInstance>>& instances) {
+    socom::Runtime& socom_runtime, std::vector<std::unique_ptr<RemoteServiceInstance>>& instances) {
     if (service_instance_config == nullptr) {
         score::mw::log::LogError() << "[gatewayd] ERROR: Service instance config is nullptr!";
         return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
@@ -250,9 +253,8 @@ Result<void> RemoteServiceInstance::CreateAsyncRemoteService(
     }
     auto ipc_skeleton = std::move(create_ipc_result).value();
 
-    auto create_result =
-        RemoteServiceInstance::Create(service_instance_config, service_type_config,
-                                      std::move(ipc_skeleton), socom_interface, socom_runtime);
+    auto create_result = RemoteServiceInstance::Create(service_instance_config, service_type_config,
+                                                       std::move(ipc_skeleton), socom_runtime);
     if (!create_result.has_value()) {
         score::mw::log::LogError()
             << "[gatewayd] Failed to create RemoteServiceInstance for '"

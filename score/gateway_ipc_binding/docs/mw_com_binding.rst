@@ -108,7 +108,7 @@ Concept mapping
      - one ``mw::com`` service instance, addressed by ``InstanceSpecifier``
    * - Service interface identity and version
      - ``Service_interface_identifier`` on the wire
-     - ``serviceTypes`` entry in ``mw_com_config.json``
+     - ``serviceTypes`` entry, generated, see :ref:`bridged-deployment`
    * - Event identity
      - ``socom::Event_id`` (index) on the wire
      - named ``mw::com`` event; the binding maps name to index
@@ -136,7 +136,7 @@ Concept mapping
      - ``SamplePtr`` / ``SampleAllocateePtr`` ownership, handled by LoLa
    * - Slot count and slot size
      - ``Shared_memory_metadata`` sent in ``Connect``
-     - ``numberOfSampleSlots`` in ``mw_com_config.json``, sample size per event, see :ref:`event-sizes`
+     - ``numberOfSampleSlots`` of the generated deployment, sample size per event, see :ref:`event-sizes`
    * - Peer liveness
      - ``Connect`` / ``Connect_reply`` handshake
      - dedicated typed ``SomeipdService``, see :ref:`someipd-service`
@@ -205,12 +205,8 @@ itself rather than any SOME/IP service:
 - ``Gateway_ipc_binding_client::is_connected()`` returns true once that proxy has been created and ``someipd``
   accepted ``SetBridgedEventSizes`` on it. It returns to false when the find-service handler reports the
   instance gone.
-- ``gatewayd`` calls ``AddServiceConfiguration`` with JSON text when ``someipd`` must extend its
-  ``mw::com`` deployment. The server parses the text and passes the resulting ``score::json::Any`` to
-  ``AddConfiguration``. The client submits a configured add-on at most once, so
-  reconnecting cannot merge the same configuration twice.
-- ``gatewayd`` then calls ``SetBridgedEventSizes`` with the event sizes of its consumer-role services, on
-  every new proxy, so a restarted ``someipd`` gets them again. See :ref:`event-sizes`.
+- ``gatewayd`` calls ``SetBridgedEventSizes`` with the event sizes of its consumer-role services, on every
+  new proxy, so a restarted ``someipd`` gets them again. See :ref:`event-sizes`.
 
 Properties of this design:
 
@@ -228,12 +224,11 @@ Properties of this design:
 Offering order
 ^^^^^^^^^^^^^^
 
-``someipd`` checks its provider-role services, offers ``SomeipdService`` **first**, then creates its
-consumer-role services. Its provider-role services, the ones carrying network data, wait for
-``SetBridgedEventSizes``. ``is_connected()`` turns true only once ``someipd`` accepted the sizes, so
-``is_connected() == true`` means "the peer's binding is up, accepting, and has its sizes", not "the peer has
-finished setting up its services". Bridged services arrive asynchronously afterwards, each signalled through
-the normal SOCom service state.
+``someipd`` offers ``SomeipdService`` **first**, then creates its consumer-role services. Its provider-role
+services, the ones carrying network data, wait for ``SetBridgedEventSizes``. ``is_connected()`` turns true
+only once ``someipd`` accepted the sizes, so ``is_connected() == true`` means "the peer's binding is up,
+accepting, and has its sizes", not "the peer has finished setting up its services". Bridged services arrive
+asynchronously afterwards, each signalled through the normal SOCom service state.
 
 .. _sample-layout:
 
@@ -282,11 +277,10 @@ reach it two ways:
 
 - **consumer side**: the binding adopts the peer's ``GenericProxyEvent::GetDataTypeSizeInfo().Size()`` minus
   the prefix when it attaches. A peer below the configured size leaves the service unavailable.
-- **provider side** of ``someipd``: ``SetBridgedEventSizes`` carries the size of every event of ``gatewayd``'s
-  consumer-role services, in configuration order, at most 1024. Both daemons build their services from the
-  same ``mw_someip_config``, so the order matches ``someipd``'s provider-role services. The first call with
-  one size per event creates them. A repeated equal call returns true and changes nothing. Any other call
-  returns false.
+- **provider side** of ``someipd``: ``SetBridgedEventSizes`` carries ``{service ID, event ID, size}`` for
+  every event of ``gatewayd``'s consumer-role services, at most 1024, in any order. The first call with
+  exactly one size per event of ``someipd``'s provider-role services creates them. A repeated equal call
+  returns true and changes nothing. Any other call returns false and is logged.
 
 Availability propagation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -371,8 +365,8 @@ Architecture
   ``Disabled_server_connector`` / ``Enabled_server_connector``.
 - Setting a bridged service up is all-or-nothing: if any entry of ``Service_configs`` fails, the factory
   returns ``nullptr`` respectively an error from ``start()`` instead of leaving a link that silently carries
-  only part of the configured services. ``start()`` also checks ``someipd``'s provider-role services, which
-  wait for their sizes. Should creating them still fail, ``SetBridgedEventSizes`` returns false.
+  only part of the configured services. Should creating ``someipd``'s provider-role services fail,
+  ``SetBridgedEventSizes`` returns false.
 
 What is gone compared to :doc:`index`:
 
@@ -412,10 +406,10 @@ factory functions.
        the sequencing it has today, so ``gatewayd``'s startup wait loop is unaffected. Unlike today it can
        also go back to false, when the peer stops.
    * - ``Gateway_ipc_binding_server::start()``
-     - Checks the provider-role services, offers ``SomeipdService``, then sets up the consumer-role
-       services, matching the order in which ``someipd`` starts its IPC server before its network services
-       today. Provider-role services follow ``SetBridgedEventSizes``, see :ref:`event-sizes`. Returns the
-       first error encountered. Calling it twice returns an error, as today.
+     - Offers ``SomeipdService``, then sets up the consumer-role services, matching the order in which
+       ``someipd`` starts its IPC server before its network services today. Provider-role services follow
+       ``SetBridgedEventSizes``, see :ref:`event-sizes`. Returns the first error encountered. Calling it twice
+       returns an error, as today.
 
 ``is_connected()`` is read from a different thread than the find-service handler that maintains it, so it is
 backed by an ``std::atomic<bool>``.
@@ -493,28 +487,10 @@ Threading and concurrency
 Configuration
 -------------
 
-Both daemons need a ``mw_com_config.json`` that describes the instances on the ``gatewayd`` / ``someipd``
-link. ``gatewayd`` already has one for its application-facing instances and gains additional entries;
-``someipd`` needs one for the first time, and has to call ``InitializeRuntime``.
-
-Per bridged service instance the deployment must provide:
-
-- a ``serviceTypes`` entry whose ``serviceTypeName`` and ``version`` match the SOCom
-  ``Service_interface_identifier``, with one event entry per bridged event
-- a ``serviceInstances`` entry with the ``instanceSpecifier`` used in ``Service_config``
-- ``numberOfSampleSlots`` per event, sized as described in :ref:`sample-layout`
-- ``maxSubscribers: 1``. There is exactly one peer daemon per instance.
-- ``asil-level: "QM"``. ``someipd`` is a QM component, so these instances are QM on both ends even though
-  ``gatewayd`` is ASIL-B. This is precisely why the SOME/IP header travels with the payload: E2E is what makes
-  the QM data usable in the ASIL-B context.
-
-These instances must not collide with the ``gatewayd`` to application instances. Both the service type name
-and instance specifier must start with ``bridged_``, for example
-``bridged_ipc/<service_type>_<instance_id>``, and should be derived in ``mw_someip_config`` rather than in
-code.
-
-In addition, both daemons need one entry for :ref:`someipd-service`. It is the only entry that both files must
-spell identically, and it is the replacement for the shared ``ipc_channel_name`` command line option:
+Both daemons need a ``mw_com_config.json``. ``someipd`` needs one for the first time, and has to call
+``InitializeRuntime``. Of the ``gatewayd`` / ``someipd`` link it holds only the entry for
+:ref:`someipd-service`. Both files must spell it identically. It replaces the shared ``ipc_channel_name``
+command line option:
 
 .. code-block:: json
 
@@ -526,10 +502,7 @@ spell identically, and it is the replacement for the shared ``ipc_channel_name``
          "bindings": [ {
            "binding": "SHM",
            "serviceId": 6400,
-           "methods": [
-             { "methodName": "AddServiceConfiguration", "methodId": 1 },
-             { "methodName": "SetBridgedEventSizes", "methodId": 2 }
-           ]
+           "methods": [ { "methodName": "SetBridgedEventSizes", "methodId": 1 } ]
          } ]
        }
      ],
@@ -542,23 +515,39 @@ spell identically, and it is the replacement for the shared ``ipc_channel_name``
            "instanceId": 1,
            "asil-level": "QM",
            "binding": "SHM",
-           "methods": [
-             { "methodName": "AddServiceConfiguration", "queueSize": 1 },
-             { "methodName": "SetBridgedEventSizes", "queueSize": 1 }
-           ]
+           "methods": [ { "methodName": "SetBridgedEventSizes", "queueSize": 1 } ]
          } ]
        }
      ]
    }
 
-Both methods must be present in both daemon configurations. Their arguments are fixed-capacity, trivially
-copyable buffers because ``mw::com`` transports method arguments through shared memory.
-``AddServiceConfiguration`` returns ``false`` when the text is too large or cannot be parsed as JSON;
-incompatible add-on configurations retain the runtime API's terminating behavior.
+Its argument is a fixed-capacity, trivially copyable list, because ``mw::com`` transports method arguments
+through shared memory.
 
-``mw_com_config.json`` holds the slot count only. The sample size comes from the binding configuration, see
-:ref:`event-sizes`. On the provider side the binding checks that ``GenericSkeletonEvent::GetSizeInfo()``
-matches it and fails setup on mismatch.
+.. _bridged-deployment:
+
+Bridged deployment
+~~~~~~~~~~~~~~~~~~
+
+Each daemon builds its bridged services from ``mw_someip_config`` with ``bridged_service_configs()`` of
+``score/bridged_services``, and the binding adds their deployment to its own ``mw::com`` runtime with
+``runtime::AddConfiguration``. Nothing of it goes over the link.
+
+- the service type and instance specifier are ``bridged_ipc/<service_type_name>``, so they cannot collide
+  with the ``gatewayd`` to application instances
+- the service ID is the SOME/IP service ID, the event IDs are the SOME/IP event IDs
+- the instance ID is ``ipc_instance_id`` of ``mw_someip_config``, by default 0xFFFF, the SOME/IP "any
+  instance" ID. A host with more than one ``gatewayd`` / ``someipd`` pair needs a different one per pair.
+- ``numberOfSampleSlots`` is ``kNumber_of_sample_slots``, see :ref:`sample-layout`, and ``maxSubscribers``
+  is 1. There is exactly one peer daemon per instance.
+- ``asil-level`` is ``QM``. ``someipd`` is a QM component, so these instances are QM on both ends even though
+  ``gatewayd`` is ASIL-B. This is precisely why the SOME/IP header travels with the payload: E2E is what makes
+  the QM data usable in the ASIL-B context.
+- an instance specifier that ``mw_com_config.json`` already lists keeps that deployment. ``mw::com``
+  terminates on a duplicate or malformed entry, so the binding validates every service first.
+
+The sample size comes from the binding configuration, see :ref:`event-sizes`. On the provider side the binding
+checks that ``GenericSkeletonEvent::GetSizeInfo()`` matches it and fails setup on mismatch.
 
 Known gaps
 ----------
@@ -588,9 +577,5 @@ Known gaps
 Open points
 -----------
 
-- Where the per-bridged-service ``InstanceSpecifier`` is authored: extending ``mw_someip_config`` with an
-  explicit field is the safer option, deriving it by convention from the service type name is the cheaper one.
-- Whether ``mw_com_config.json`` for the bridged instances should be generated from ``mw_someip_config`` at
-  build time. Hand-maintaining the instances and slot counts in two places will drift.
 - Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch until the
   upstream re-offer problem described under `Known gaps`_ is solved.

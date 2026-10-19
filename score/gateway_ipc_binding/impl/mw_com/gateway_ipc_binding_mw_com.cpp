@@ -14,17 +14,16 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
+#include <map>
 #include <mutex>
 #include <optional>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-#include "provider_service_binding.hpp"
 #include "score/gateway_ipc_binding/error.hpp"
-#include "score/json/json_parser.h"
-#include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
 #include "service_binding.hpp"
 #include "someipd_service_binding.hpp"
@@ -64,7 +63,6 @@ Result<Service_bindings> make_service_bindings(score::socom::Runtime& runtime,
     return bindings;
 }
 
-/// \brief The entries of `services` with the given role
 Service_configs with_role(Service_configs const& services, Role const role) noexcept {
     Service_configs selected{};
     std::copy_if(services.cbegin(), services.cend(), std::back_inserter(selected),
@@ -72,7 +70,8 @@ Service_configs with_role(Service_configs const& services, Role const role) noex
     return selected;
 }
 
-/// \brief SetBridgedEventSizes argument: the size of every consumer-role event, in order
+/// \brief Builds the SetBridgedEventSizes argument from the consumer events
+/// \pre validate() MUST have passed. Every size then fits std::uint32_t.
 std::optional<Bridged_event_sizes> consumer_event_sizes(Service_configs const& services) noexcept {
     Bridged_event_sizes sizes{};
     for (auto const& service : with_role(services, Role::consumer)) {
@@ -82,35 +81,54 @@ std::optional<Bridged_event_sizes> consumer_event_sizes(Service_configs const& s
                                            << sizes.max_size << "event sizes";
                 return std::nullopt;
             }
-            sizes.data[sizes.size] = event.max_payload_size;
+            sizes.data.at(sizes.size) = {service.service_id, static_cast<std::uint16_t>(event.id),
+                                         static_cast<std::uint32_t>(event.max_payload_size)};
             ++sizes.size;
         }
     }
     return sizes;
 }
 
-/// \brief `configs` with the sizes of a SetBridgedEventSizes call, one per event, in order
-/// \return std::nullopt, logged, if the number of sizes does not match the number of events
+/// \brief Copy of `configs` with the sizes from SetBridgedEventSizes filled in
+/// \return std::nullopt unless there is exactly one size per event
 std::optional<Service_configs> with_event_sizes(Service_configs configs,
                                                 Bridged_event_sizes const& sizes) noexcept {
-    std::size_t event_count{0U};
-    for (auto const& config : configs) {
-        event_count += config.events.size();
+    std::map<std::pair<std::uint16_t, Mw_com_event_id>, Event_config*> unsized{};
+    for (auto& config : configs) {
+        for (auto& event : config.events) {
+            unsized.emplace(std::make_pair(config.service_id, event.id), &event);
+        }
     }
-    if ((sizes.size != event_count) || (event_count > sizes.max_size)) {
+    if ((sizes.size != unsized.size()) || (sizes.size > sizes.max_size)) {
         score::mw::log::LogError() << kLog_tag << "SetBridgedEventSizes has" << sizes.size
-                                   << "sizes for" << event_count << "events";
+                                   << "sizes for" << unsized.size() << "events";
         return std::nullopt;
     }
 
-    auto size = sizes.data.cbegin();
-    for (auto& config : configs) {
-        for (auto& event : config.events) {
-            event.max_payload_size = *size;
-            ++size;
+    for (std::size_t index = 0U; index < sizes.size; ++index) {
+        auto const& size = sizes.data.at(index);
+        auto const event =
+            unsized.find(std::make_pair(size.service_id, Mw_com_event_id{size.event_id}));
+        if (event == unsized.end()) {
+            score::mw::log::LogError()
+                << kLog_tag << "SetBridgedEventSizes has an unknown or repeated event"
+                << size.event_id << "of service" << size.service_id;
+            return std::nullopt;
         }
+        event->second->max_payload_size = size.max_payload_size;
+        unsized.erase(event);
     }
     return configs;
+}
+
+std::vector<std::size_t> event_sizes(Service_configs const& configs) noexcept {
+    std::vector<std::size_t> sizes{};
+    for (auto const& config : configs) {
+        for (auto const& event : config.events) {
+            sizes.push_back(event.max_payload_size);
+        }
+    }
+    return sizes;
 }
 
 /// \brief Client flavour of the mw::com binding
@@ -134,8 +152,8 @@ class Client_adapter final : public Gateway_ipc_binding_client {
 
 /// \brief Server flavour of the mw::com binding
 /// \details Provides SomeipdService. It is offered in start(), before any bridged service is set
-///          up, so that a peer seeing it can rely on this side accepting further setup. The
-///          provider-role services follow once the peer sends their sizes.
+///          up, so that a peer seeing it can rely on this side accepting further setup.
+///          The providers are set up when the peer sends their sizes.
 class Server_adapter final : public Gateway_ipc_binding_server {
    public:
     Server_adapter(score::socom::Runtime& runtime, std::string someipd_service_specifier,
@@ -150,34 +168,8 @@ class Server_adapter final : public Gateway_ipc_binding_server {
             return MakeUnexpected(Mw_com_binding_error::logic_error_already_started);
         }
 
-        // The provider-role services wait for their sizes, but a configuration error fails here.
-        for (auto const& config : m_provider_configs) {
-            auto checked = Provider_service_binding::check(config);
-            if (!checked.has_value()) {
-                return checked;
-            }
-        }
-
         auto someipd_service = Someipd_service_provider::create(
             m_someipd_service_specifier,
-            [](Service_configuration_text const& configuration) noexcept {
-                if (configuration.size > configuration.max_size) {
-                    return false;
-                }
-
-                score::json::JsonParser const parser{};
-                auto json = parser.FromBuffer(
-                    std::string_view{configuration.data.data(), configuration.size});
-                if (!json.has_value()) {
-                    score::mw::log::LogError()
-                        << kLog_tag
-                        << "Failed to parse add-on mw::com configuration:" << json.error();
-                    return false;
-                }
-
-                return score::mw::com::runtime::AddConfiguration(std::move(json).value())
-                    .has_value();
-            },
             [this](Bridged_event_sizes const& sizes) noexcept { return on_event_sizes(sizes); });
         if (!someipd_service.has_value()) {
             return MakeUnexpected<void>(std::move(someipd_service).error());
@@ -192,7 +184,7 @@ class Server_adapter final : public Gateway_ipc_binding_server {
         // docs/mw_com_binding.rst, section "Offering order".
         auto services = make_service_bindings(m_runtime, m_consumer_configs);
         if (!services.has_value()) {
-            // Destroying the skeleton waits for a running handler, then its providers can go.
+            // The skeleton MUST be destroyed first. Its destructor waits for a running handler.
             someipd_service.value().reset();
             m_providers.clear();
             m_provider_sizes.reset();
@@ -206,28 +198,33 @@ class Server_adapter final : public Gateway_ipc_binding_server {
     }
 
    private:
-    /// \brief SetBridgedEventSizes handler: sets up the provider-role services with these sizes
-    /// \details Runs on the mw::com message passing thread. LoLa 0.5.0 only fails calls there that
-    ///          wait for a reply, which GenericSkeleton::Create() and OfferService() do not. A
-    ///          repeated equal call is accepted, a different one rejected.
+    /// \brief Handles SetBridgedEventSizes. Sets up the providers with the received sizes.
+    /// \details Runs on the mw::com message passing thread. MUST NOT call anything that waits
+    ///          for a reply.
     bool on_event_sizes(Bridged_event_sizes const& peer_sizes) noexcept {
-        // A copy, because the peer can still write to its shared memory.
+        // The peer can still write to this shared memory. Copy it first.
         Bridged_event_sizes const sizes = peer_sizes;
         std::lock_guard const lock{m_providers_mutex};
-        if (m_provider_sizes.has_value()) {
-            return m_provider_sizes.value() == sizes;
-        }
-
         auto configs = with_event_sizes(m_provider_configs, sizes);
         if (!configs.has_value()) {
             return false;
         }
+        auto received = event_sizes(configs.value());
+        if (m_provider_sizes.has_value()) {
+            if (m_provider_sizes.value() != received) {
+                score::mw::log::LogError()
+                    << kLog_tag << "SetBridgedEventSizes differs from the accepted call";
+                return false;
+            }
+            return true;
+        }
+
         auto providers = make_service_bindings(m_runtime, configs.value());
         if (!providers.has_value()) {
             return false;
         }
         m_providers = std::move(providers).value();
-        m_provider_sizes = sizes;
+        m_provider_sizes = std::move(received);
         return true;
     }
 
@@ -236,11 +233,11 @@ class Server_adapter final : public Gateway_ipc_binding_server {
     Service_configs m_consumer_configs;
     Service_configs m_provider_configs;
     Service_bindings m_services{};
-    /// \brief Guards the provider-role state, which the SetBridgedEventSizes handler sets
+    /// \brief Guards m_provider_sizes and m_providers
     std::mutex m_providers_mutex;
-    std::optional<Bridged_event_sizes> m_provider_sizes{};
+    std::optional<std::vector<std::size_t>> m_provider_sizes{};
     Service_bindings m_providers{};
-    /// \brief Declared last, so that it is destroyed first: its handler uses the members above
+    /// \brief Declared last, so it is destroyed first. Its handler uses the members above.
     std::unique_ptr<Someipd_service_provider> m_someipd_service{};
 };
 
@@ -252,16 +249,24 @@ std::size_t sample_size(Event_config const& event) noexcept {
     return ((addressed + kSample_alignment) - 1U) / kSample_alignment * kSample_alignment;
 }
 
-std::unique_ptr<Gateway_ipc_binding_client> create_client(
-    score::socom::Runtime& runtime, std::string someipd_service_specifier, Service_configs services,
-    std::string_view identifier, std::optional<std::string_view> mw_com_config_json) noexcept {
+std::unique_ptr<Gateway_ipc_binding_client> create_client(score::socom::Runtime& runtime,
+                                                          std::string someipd_service_specifier,
+                                                          Service_configs services,
+                                                          std::string_view identifier) noexcept {
+    auto const added = add_to_mw_com_runtime(services);
+    if (!added.has_value()) {
+        score::mw::log::LogError()
+            << kLog_tag << "Failed to create mw::com client binding:" << added.error();
+        return nullptr;
+    }
+
     auto const bridged_event_sizes = consumer_event_sizes(services);
     if (!bridged_event_sizes.has_value()) {
         return nullptr;
     }
 
-    auto someipd_service = Someipd_service_consumer::create(
-        someipd_service_specifier, bridged_event_sizes.value(), mw_com_config_json);
+    auto someipd_service =
+        Someipd_service_consumer::create(someipd_service_specifier, bridged_event_sizes.value());
     if (!someipd_service.has_value()) {
         score::mw::log::LogError()
             << kLog_tag << "Failed to create mw::com client binding:" << someipd_service.error();
@@ -287,6 +292,13 @@ std::unique_ptr<Gateway_ipc_binding_server> create_server(score::socom::Runtime&
         score::mw::log::LogError() << kLog_tag
                                    << "Failed to create mw::com server binding: empty "
                                       "SomeipdService instance specifier";
+        return nullptr;
+    }
+
+    auto const added = add_to_mw_com_runtime(services);
+    if (!added.has_value()) {
+        score::mw::log::LogError()
+            << kLog_tag << "Failed to create mw::com server binding:" << added.error();
         return nullptr;
     }
 

@@ -42,9 +42,10 @@ The `.perf.data` recordings and `.perf.svg` flamegraphs are written beside `benc
 
 The test starts and stops both daemon pairs and the echo server itself. The client and server use
 different mw::com service ids on the shared host, which prevents a LoLa shared-memory shortcut.
-`config/<node>/mw_com_config.json` is the manifest of all processes of a node. It also holds the
-mw::com link between the node's gatewayd and someipd (`someipd/daemon`, `bridged_ipc/*`), with
-service ids of its own per node, so that each gatewayd finds only the someipd of its node.
+`config/<node>/mw_com_config.json` is the manifest of all processes of a node. It also holds
+`someipd/daemon`, with service ids of its own per node, so that each gatewayd finds only the someipd
+of its node. The bridged services are added at runtime, and `ipc_instance_id` in
+`config/<node>/someip_config.json` keeps them apart per node.
 The benchmark result is written as `benchmarks.json` under
 `bazel-testlogs/tests/benchmarks/e2e_benchmarks/test.outputs/e2e_benchmarks/`.
 For the profiling target, results are written under

@@ -36,8 +36,7 @@ LocalNetworkService::LocalNetworkService(
 Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime,
-    std::optional<socom::Service_interface_identifier> const& socom_interface) {
+    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime) {
     // Create instance first with null connector - needed because callbacks capture the instance
     // pointer. SOCom may invoke on_service_state_change before client_connector_ is assigned:
     // from the IPC thread when the service becomes available, or synchronously inside
@@ -46,13 +45,10 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
     auto instance = std::unique_ptr<LocalNetworkService>(new LocalNetworkService(
         service_instance_config, service_type_config, std::move(vsomeip_app), nullptr));
 
-    socom::Service_interface_identifier const iface =
-        socom_interface.has_value()
-            ? *socom_interface
-            : socom::Service_interface_identifier{
-                  service_type_config->service_type_name()->string_view(),
-                  {service_type_config->service_version_major(),
-                   static_cast<uint16_t>(service_type_config->service_version_minor())}};
+    socom::Service_interface_identifier const iface{
+        service_type_config->service_type_name()->string_view(),
+        {service_type_config->service_version_major(),
+         static_cast<uint16_t>(service_type_config->service_version_minor())}};
 
     // TODO: handle multiple instances. For now just expect one instance per service.
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};

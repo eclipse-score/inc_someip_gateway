@@ -12,6 +12,10 @@
         "service_types" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_ServiceType"},
                 "description" : "The type definitions of existing services."
+              },
+        "ipc_instance_id" : {
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "description" : "mw::com instance ID of the services bridged between gatewayd and someipd.\nMUST be unique per gatewayd/someipd pair on a host. Local applications MUST NOT use it."
               }
       },
       "required" : ["service_types"],

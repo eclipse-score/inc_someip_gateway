@@ -110,15 +110,6 @@ Result<std::unique_ptr<Provider_service_binding>> Provider_service_binding::crea
     return binding;
 }
 
-Result<void> Provider_service_binding::check(Service_config const& config) noexcept {
-    auto valid = validate(config);
-    if (!valid.has_value()) {
-        return valid;
-    }
-    Provider_service_binding probe{config};
-    return probe.create_skeleton();
-}
-
 Result<void> Provider_service_binding::create_skeleton() noexcept {
     auto specifier = make_instance_specifier(m_config.instance_specifier);
     if (!specifier.has_value()) {

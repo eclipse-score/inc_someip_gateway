@@ -28,11 +28,9 @@ namespace score::gateway_ipc_binding::mw_com {
 
 /// \brief Provider half of the SomeipdService peer-liveness contract, owned by `someipd`.
 /// \details Owns the `Someipd_service_skeleton`. Its offered instance is what the consumer half
-///          observes. It also handles add-on mw::com configuration and event size requests.
+///          observes. It also handles SetBridgedEventSizes.
 class Someipd_service_provider {
    public:
-    using Add_service_configuration_handler =
-        std::function<bool(Service_configuration_text const&)>;
     using Set_bridged_event_sizes_handler = std::function<bool(Bridged_event_sizes const&)>;
 
     /// \brief Create the skeleton for the given instance specifier without offering it yet
@@ -42,7 +40,6 @@ class Someipd_service_provider {
     ///         created, e.g. because the instance is missing from mw_com_config.json
     static Result<std::unique_ptr<Someipd_service_provider>> create(
         std::string const& instance_specifier,
-        Add_service_configuration_handler add_service_configuration_handler,
         Set_bridged_event_sizes_handler set_bridged_event_sizes_handler) noexcept;
 
     ~Someipd_service_provider() noexcept;
@@ -64,20 +61,19 @@ class Someipd_service_provider {
 
 /// \brief Consumer half of the SomeipdService peer-liveness contract, owned by `gatewayd`.
 /// \details Runs `StartFindService` for the instance the peer provides and keeps a proxy for it
-///          while it is available. `is_connected()` reports that proxy once the peer accepted the
-///          event sizes on it.
+///          while it is available. `is_connected()` is true while that proxy exists and the peer
+///          has accepted the sizes.
 class Someipd_service_consumer {
    public:
     /// \brief Start service discovery for the given instance specifier
     /// \details Discovery runs until this object is destroyed. The find-service handler may already
     ///          fire before this function returns, so is_connected() can be true immediately.
     /// \param instance_specifier mw::com InstanceSpecifier of the SomeipdService instance
-    /// \param bridged_event_sizes Sent with SetBridgedEventSizes to every new proxy
-    /// \param mw_com_config_json Optional add-on configuration to submit when the proxy is created
+    /// \param bridged_event_sizes Sizes to submit with SetBridgedEventSizes when a proxy is created
     /// \return The consumer, or an error if the specifier is invalid or discovery failed to start
     static Result<std::unique_ptr<Someipd_service_consumer>> create(
-        std::string const& instance_specifier, Bridged_event_sizes const& bridged_event_sizes,
-        std::optional<std::string_view> mw_com_config_json = std::nullopt) noexcept;
+        std::string const& instance_specifier,
+        Bridged_event_sizes const& bridged_event_sizes) noexcept;
 
     ~Someipd_service_consumer() noexcept;
 
@@ -86,14 +82,12 @@ class Someipd_service_consumer {
     Someipd_service_consumer(Someipd_service_consumer&&) = delete;
     Someipd_service_consumer& operator=(Someipd_service_consumer&&) = delete;
 
-    /// \brief True while the peer's SomeipdService instance is available and accepted the sizes
+    /// \brief True while the peer's SomeipdService instance is available and has accepted the sizes
     /// \details Read from a different thread than the find-service handler that maintains it.
     [[nodiscard]] bool is_connected() const noexcept;
 
    private:
-    Someipd_service_consumer(
-        Bridged_event_sizes const& bridged_event_sizes,
-        std::optional<Service_configuration_text> service_configuration) noexcept;
+    explicit Someipd_service_consumer(Bridged_event_sizes const& bridged_event_sizes) noexcept;
 
     void on_find_service(
         score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept;
@@ -103,7 +97,6 @@ class Someipd_service_consumer {
     std::optional<Someipd_service_proxy> m_proxy;
     std::atomic<bool> m_connected{false};
     std::optional<score::mw::com::FindServiceHandle> m_find_handle;
-    std::optional<Service_configuration_text> m_service_configuration;
     Bridged_event_sizes m_bridged_event_sizes;
 };
 
