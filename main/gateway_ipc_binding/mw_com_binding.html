@@ -810,7 +810,7 @@ skeletons.</p></li>
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <figure class="align-center" id="id3">
 <p class="plantuml">
-<object data="../_images/plantuml-6e05035e96cd462dd7e7c598540ef284d4d67b4a.svg" type="image/svg+xml" style="width:1585px;height:529px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-df6d52bbb31093da4d5fc8e470e483c9bf10b6f9.svg" type="image/svg+xml" style="width:1434px;height:523px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 4 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
 </figcaption>
@@ -886,19 +886,35 @@ backed by an <code class="docutils literal notranslate"><span class="pre">std::a
 <h3>Startup<a class="headerlink" href="#startup" title="Link to this heading">#</a></h3>
 <figure class="align-center" id="id4">
 <p class="plantuml">
-<object data="../_images/plantuml-d603eff698b0ffd2a045ba6584c72643aa030944.svg" type="image/svg+xml" style="width:1547px;height:1173px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-39fb5c571e7dd2a0a53dcb4cde86905777466db4.svg" type="image/svg+xml" style="width:1255px;height:770px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Startup of one provider-role and one consumer-role service</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> startup: <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> before bridged services</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
 <section id="event-flow">
 <h3>Event flow<a class="headerlink" href="#event-flow" title="Link to this heading">#</a></h3>
+<p>The flow for one bridged service is split into availability, subscription lifecycle and event delivery.
+Availability precedes subscription; event delivery takes place between subscription and unsubscription.</p>
 <figure class="align-center" id="id5">
 <p class="plantuml">
-<object data="../_images/plantuml-89ab559b7c00bbae2fef98c448a2842d98439a6b.svg" type="image/svg+xml" style="width:1898px;height:1320px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-7786e446dd79ffb44dfde911535b0505b2fe6269.svg" type="image/svg+xml" style="width:1816px;height:694px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Subscription and event flow for one bridged service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Availability for one bridged service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id6">
+<p class="plantuml">
+<object data="../_images/plantuml-4ca02e65658c9043895a8d7258f4dfc393a7367c.svg" type="image/svg+xml" style="width:1684px;height:664px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Subscription lifecycle for one bridged service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id7">
+<p class="plantuml">
+<object data="../_images/plantuml-f244917bf27e4ec2547aa1e40265111464f59054.svg" type="image/svg+xml" style="width:1396px;height:613px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 8 </span><span class="caption-text">Event delivery for one bridged service</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
