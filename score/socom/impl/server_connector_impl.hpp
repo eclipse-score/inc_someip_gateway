@@ -22,7 +22,7 @@
 #include "endpoint.hpp"
 #include "messages.hpp"
 #include "runtime_registration.hpp"
-#include "score/socom/final_action.hpp"
+#include "score/socom/reference_token.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_definition.hpp"
 #include "score/socom/service_interface_identifier.hpp"
@@ -80,7 +80,8 @@ class Impl final : virtual public Disabled_server_connector,
 
     Impl(Runtime_impl& runtime, Server_service_interface_definition configuration,
          Service_instance instance, Disabled_server_connector::Callbacks callbacks,
-         Final_action final_action, Posix_credentials const& credentials);
+         score::utils::ScopeExit<score::cpp::callback<void(), 128U>> final_action,
+         Posix_credentials const& credentials);
     Impl(Impl const&) = delete;
     Impl(Impl&&) = delete;
     Impl& operator=(Impl const&) = delete;
@@ -160,7 +161,7 @@ class Impl final : virtual public Disabled_server_connector,
     Event_infos m_event_infos;                               // Entries protected by m_mutex
     std::optional<Client_connection> m_client;               // Protected by m_mutex
     Registration m_registration;
-    Final_action m_final_action;
+    score::utils::ScopeExit<score::cpp::callback<void(), 128U>> m_final_action;
     Posix_credentials m_credentials;
 };
 

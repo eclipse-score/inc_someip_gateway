@@ -14,15 +14,18 @@
 #ifndef SCORE_SOCOM_REFERENCE_TOKEN_HPP
 #define SCORE_SOCOM_REFERENCE_TOKEN_HPP
 
+#include "score/scope_exit/scope_exit.h"
+#include <score/callback.hpp>
 #include <memory>
 
 namespace score::socom {
 
-class Final_action;
 class Deadlock_detector;
 
-using Reference_token = std::shared_ptr<Final_action>;
-using Weak_reference_token = std::weak_ptr<Final_action>;
+using Reference_token =
+    std::shared_ptr<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>;
+using Weak_reference_token =
+    std::weak_ptr<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>;
 
 }  // namespace score::socom
 
