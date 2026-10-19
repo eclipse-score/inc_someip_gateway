@@ -48,7 +48,7 @@ case "$1" in
         echo "Starting gatewayd..."
         "${SCRIPT_DIR}/gatewayd" \
             --service_instance_manifest "${SCRIPT_DIR}/gatewayd_mw_com_config.json" \
-            --gatewayd_config "${SCRIPT_DIR}/gatewayd_config.bin"
+            --configuration "${SCRIPT_DIR}/gatewayd_config.bin"
         ;;
     someipd)
         echo "Starting someipd..."
@@ -63,7 +63,7 @@ case "$1" in
             # shellcheck disable=SC2154
             export LD_LIBRARY_PATH="${VSOMEIP_LIB_DIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
         fi
-        # someipd reads the same gateway configuration as gatewayd.
+        # someipd MUST get the same gateway configuration as gatewayd.
         "${SCRIPT_DIR}/someipd" \
             --configuration "${SCRIPT_DIR}/gatewayd_config.bin" \
             --service_instance_manifest "${SCRIPT_DIR}/someipd_mw_com_config.json"
