@@ -157,7 +157,7 @@ Result<void> Provider_service_binding::resolve_events(Service_config const& conf
         }
 
         // The size that LoLa actually laid out has to match what the deployment was sized for,
-        // otherwise the peer would read the payload at the wrong offset.
+        // otherwise a full-size payload would be written or read past the end of a sample.
         auto const size_info = entry->second.GetSizeInfo();
         if (size_info.size != sample_size(event)) {
             score::mw::log::LogError()
@@ -167,7 +167,7 @@ Result<void> Provider_service_binding::resolve_events(Service_config const& conf
             return MakeUnexpected(Mw_com_binding_error::runtime_error_sample_size_mismatch);
         }
 
-        m_events.push_back(Event{&entry->second, event.header_size, addressed_sample_size(event)});
+        m_events.push_back(Event{&entry->second, addressed_sample_size(event)});
     }
 
     return {};
@@ -380,7 +380,8 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
     auto const slot_handle = m_allocations->insert(std::move(sample).value());
 
     return score::socom::Writable_payload{
-        score::socom::Writable_payload::Writable_span{sample_base, event.addressed_sample_size},
+        score::socom::Writable_payload::Writable_span{sample_base, event.addressed_sample_size}
+            .subspan(kSample_prefix_size),
         slot_handle,
         [allocations = std::weak_ptr<Allocations>{m_allocations}, slot_handle]() noexcept {
             // Runs when the producer drops the payload without sending it, and again, as a no-op,
@@ -390,8 +391,7 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
             if (locked != nullptr) {
                 (void)locked->take(slot_handle);
             }
-        },
-        event.header_size, kSample_prefix_size};
+        }};
 }
 
 void Provider_service_binding::on_event_update(score::socom::Event_id const event_id,

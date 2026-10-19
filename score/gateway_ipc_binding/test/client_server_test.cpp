@@ -375,9 +375,9 @@ TEST_P(Gateway_ipc_binding_param_test, server_sends_event_update) {
         .WillOnce([&server_memory, &payload_destruction_callback](auto, auto callback) {
             payload_destruction_callback = std::move(callback);
 
-            auto span = socom::Payload::Writable_span{
-                const_cast<std::byte*>(server_memory.data()),
-                static_cast<socom::Payload::Writable_span::size_type>(server_memory.size())};
+            auto span = socom::Payload::Span{
+                server_memory.data(),
+                static_cast<socom::Payload::Span::size_type>(server_memory.size())};
             return std::optional<socom::Payload>{socom::Payload{span, 0, []() {}}};
         });
 

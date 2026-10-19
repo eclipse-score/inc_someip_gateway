@@ -58,7 +58,6 @@ cmake(
         "BOOST_ROOT": "$$EXT_BUILD_DEPS/boost",
         "Boost_NO_SYSTEM_PATHS": "ON",
         "Boost_USE_STATIC_LIBS": "ON",
-        "ENABLE_SIGNAL_HANDLING": "ON",
     } | select({
         # Workaround for bazel-contrib/rules_foreign_cc#869
         "@platforms//os:qnx": {"CMAKE_SYSTEM_NAME": "QNX"},

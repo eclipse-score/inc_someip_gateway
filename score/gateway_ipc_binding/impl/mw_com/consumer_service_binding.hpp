@@ -61,7 +61,6 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Per-event state, indexed by socom::Event_id
     struct Event {
         std::string name;
-        std::size_t header_size;
         std::size_t max_payload_size;
         std::size_t max_sample_count;
         /// \brief Owned by m_proxy, nullptr while the peer's service is not available

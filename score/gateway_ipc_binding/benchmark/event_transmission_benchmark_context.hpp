@@ -163,7 +163,7 @@ class Event_transmission_benchmark_context final {
                                                                   instance_,
                                                                   "bridged_benchmark/event",
                                                                   role,
-                                                                  {{"event", 0U, payload_size_}},
+                                                                  {{"event", payload_size_}},
                                                                   k_slot_count}};
         };
         gateway_server_ = mw_com::create_server(*runtime_server_, "benchmark/someipd",

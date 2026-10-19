@@ -19,7 +19,7 @@
 namespace score::gateway_ipc_binding::mw_com {
 
 std::size_t addressed_sample_size(Event_config const& event) noexcept {
-    return kSample_prefix_size + event.header_size + event.max_payload_size;
+    return kSample_prefix_size + event.max_payload_size;
 }
 
 score::mw::com::DataTypeMetaInfo sample_meta_info(Event_config const& event) noexcept {

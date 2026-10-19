@@ -11,59 +11,34 @@
 ' SPDX-License-Identifier: Apache-2.0
 ' *******************************************************************************
 
-@startuml
-title Subscription and event flow for one bridged service
+@startuml mw_com_event_flow
+title Bridged service: event delivery
 
-participant "Producer app\n(SOCom server)" as prod
+box "providing daemon"
+participant "socom::Client_connector" as client_connector
 participant "Provider_service_binding" as provider
-participant "mw::com\n(LoLa)" as mwcom
+end box
+participant "mw::com::GenericSkeleton" as skeleton
+participant "mw::com::GenericProxy" as proxy
+box "consuming daemon"
 participant "Consumer_service_binding" as consumer
-participant "Consumer app\n(SOCom client)" as cons
+participant "socom::Enabled_server_connector" as server_connector
+end box
 
-== Availability ==
-prod -> provider : on_service_state_change(available)
-provider -> mwcom : GenericSkeleton::OfferService()
-mwcom -> consumer : find-service handler(handle)
-consumer -> mwcom : GenericProxy::Create(handle)
-consumer -> cons : Disabled_server_connector::enable()
-
-== Subscription ==
-cons -> consumer : subscribe_event(event_id)
-consumer -> mwcom : GenericProxyEvent::Subscribe(max_sample_count)
-consumer -> mwcom : SetReceiveHandler(cb)
-mwcom -> provider : receive handler registration changed(registered)
-provider -> prod : Client_connector::subscribe_event(event_id, update)
-
-== Event update ==
-prod -> provider : allocate_event_payload(event_id)
-provider -> mwcom : GenericSkeletonEvent::Allocate()
-mwcom --> provider : SampleAllocateePtr<void>
-note right of provider
-  Store the SampleAllocateePtr in the in-flight
-  table keyed by the minted slot_handle and wrap
-  the sample as socom::Writable_payload with
-  lead_offset = 8 and header_size = header_size.
-end note
-provider --> prod : Writable_payload
-prod -> prod : write SOME/IP header and payload, shrink()
-prod -> provider : update_event(event_id, payload)
-provider -> provider : write payload_length prefix,\ntake sample out of the in-flight table
-provider -> mwcom : GenericSkeletonEvent::Send(sample)
-
-mwcom -> consumer : receive handler
-consumer -> mwcom : GetNewSamples(receiver, max_sample_count)
-mwcom --> consumer : SamplePtr<void>
-note right of consumer
-  Read payload_length, build socom::Payload over
-  the sample and move the SamplePtr into its
-  destruction callback.
-end note
-consumer -> cons : Enabled_server_connector::update_event(event_id, payload)
-cons -> cons : payload destroyed, SamplePtr releases the slot
-
-== Teardown ==
-cons -> consumer : unsubscribe_event(event_id)
-consumer -> mwcom : UnsetReceiveHandler / Unsubscribe
-mwcom -> provider : receive handler registration changed(unregistered)
-provider -> prod : Client_connector::unsubscribe_event(event_id)
+== A local producer allocates and sends an event ==
+client_connector -> provider : on_event_payload_allocate(event)
+provider -> skeleton : Allocate()
+alt a sample slot is free
+  provider --> client_connector : Writable_payload over the sample
+  client_connector -> provider : on_event_update(event, payload)
+  provider -> skeleton : Send(sample)
+  skeleton ->> proxy : new sample notification
+  proxy -> consumer : receive handler
+  consumer -> proxy : GetNewSamples()
+  proxy -> consumer : receiver(SamplePtr), per sample
+  consumer -> server_connector : update_event(event, payload)
+  note right of consumer : The payload owns the SamplePtr.\nDropping it returns the slot.
+else every slot is held by the peer or still in flight
+  provider --> client_connector : runtime_error_no_available_slots
+end
 @enduml
