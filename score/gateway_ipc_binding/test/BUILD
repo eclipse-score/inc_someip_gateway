@@ -27,6 +27,10 @@ cc_test(
         "*.cpp",
         "*.hpp",
     ]),
+    args = [
+        "--mw-com-config",
+        "$(rootpath mw_com_config.json)",
+    ],
     data = [
         "mw_com_config.json",
         "tsan.supp",

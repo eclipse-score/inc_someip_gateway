@@ -37,6 +37,7 @@ cc_library(
         "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
+        "@score_baselibs//score/scope_exit",
     ],
 )
 

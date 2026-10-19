@@ -16,9 +16,10 @@
 
 #include <memory>
 
+#include "score/socom/final_action.hpp"
+
 namespace score::socom {
 
-class Final_action;
 class Deadlock_detector;
 
 using Reference_token = std::shared_ptr<Final_action>;

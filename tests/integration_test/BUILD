@@ -62,9 +62,6 @@ pkg_files(
     attributes = pkg_attributes(
         mode = "0777",
     ),
-    renames = {
-        "//score/gateway_ipc_binding/test:mw_com_config.json": "gateway_ipc_binding_mw_com_config.json",
-    },
 )
 
 integration_test(

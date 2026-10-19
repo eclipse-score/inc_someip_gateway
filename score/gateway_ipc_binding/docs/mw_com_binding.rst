@@ -428,14 +428,25 @@ Startup
 
 .. uml:: models/mw_com_startup.puml
    :align: center
-   :caption: Startup of one provider-role and one consumer-role service
+   :caption: ``someipd`` and ``gatewayd`` startup: ``SomeipdService`` before bridged services
 
 Event flow
 ~~~~~~~~~~
 
+The flow for one bridged service is split into availability, subscription lifecycle and event delivery.
+Availability precedes subscription; event delivery takes place between subscription and unsubscription.
+
+.. uml:: models/mw_com_event_availability.puml
+   :align: center
+   :caption: Availability for one bridged service
+
+.. uml:: models/mw_com_event_subscription.puml
+   :align: center
+   :caption: Subscription lifecycle for one bridged service
+
 .. uml:: models/mw_com_event_flow.puml
    :align: center
-   :caption: Subscription and event flow for one bridged service
+   :caption: Event delivery for one bridged service
 
 Teardown
 ~~~~~~~~
