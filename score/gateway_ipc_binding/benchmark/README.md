@@ -317,7 +317,6 @@ jq '. as $d | .pps[] | select(.tbk >= 625) |
 | Send notification | Same promise construction -> `safecpp::Scope` -> shared `ScopeState` | 208 | 10,000 / 20,000 |
 | Send notification | `SimpleTaskFactory::InternalMake` -> PMR `make_unique<SimpleTask>` | 72 | 10,000 / 20,000 |
 | Send notification | `SimpleTaskBase` constructor -> `stop_source` -> shared stop state | 144 | 10,000 / 20,000 |
-| Receive adapter | `Consumer_service_binding::on_samples_available` callback -> `make_unique<SamplePtr<void>>` | 96 | 10,000 / 20,000 |
 | Notification worker cleanup | `ThreadPool::Work` -> assignment of a default-constructed `stop_source` | 144 | 10,000 / 20,000 |
 | Notification queue | `ThreadPool::Enqueue` -> `deque::emplace_back` -> deque node allocation | 512 | 625 / 1,250 |
 
@@ -343,15 +342,6 @@ and creates a task and its cancellation state. After executing the task, the
 worker constructs another stop state merely to clear its active-task entry.
 Together with queue blocks, notification infrastructure accounts for 1,064 of
 the 1,288 bytes per event, about 83% of recurring requested bytes.
-
-Reception follows `NotifyEventLocally` -> the receive handler ->
-`GenericProxyEvent::GetNewSamples` -> LoLa `ProxyEvent::GetNewSamples` -> the
-gateway callback. LoLa's slot collector is preallocated at subscription; neither
-slot collection nor sample-pointer construction appears as a recurring allocator
-in these profiles. The gateway explicitly boxes the received sample pointer
-because its 96-byte ownership object does not fit in SOCom's 48-byte
-`Payload_destroyed` inline callback. Capturing a `weak_ptr` on the provider side
-and locking it do not create new control blocks per event.
 
 These results describe the benchmark's **same-process local notification path**.
 Two separate gateway processes take the remote message-passing path; its
@@ -381,17 +371,7 @@ Raw profiles, logs, the memusage graph, and the Massif text report are under
    and 128 requested bytes per event in this build. `unordered_map::reserve` is
    insufficient; a bounded recyclable node allocator is another option.
 
-2. **Remove the receive-side sample-pointer box.** Either enlarge SOCom's inline
-   payload-destructor storage enough to own the sample pointer directly, with a
-   compile-time fit/alignment check for the actual callback, or use a preallocated
-   sample-holder pool. Enlarging inline storage increases every SOCom payload's
-   footprint; pooling avoids that shared API change but needs explicit capacity
-   and exhaustion handling. Hold each received sample until the final payload
-   owner releases it, not just until the receive callback returns. Preserve LoLa's
-   event/sample lifetime constraints during disconnect and teardown. This removes
-   one allocation and 96 requested bytes per event in this build.
-
-3. **Make local notifications allocation-free upstream.** In `score_communication`,
+2. **Make local notifications allocation-free upstream.** In `score_communication`,
    retain asynchronous dispatch but use preallocated notification work, for
    example a bounded ready-event queue with per-event pending state and a
    dedicated worker. Coalescing must recheck/drain samples without losing a
@@ -403,7 +383,7 @@ Raw profiles, logs, the memusage graph, and the Massif text report are under
    need bounded reuse. Supplying a PMR resource only for `SimpleTask` and the
    queue does not cover the `make_shared` state allocations in these stacks.
 
-4. **Remove worker stop-state and queue churn upstream.** Clear an idle worker's
+3. **Remove worker stop-state and queue churn upstream.** Clear an idle worker's
    active-task state without default-constructing a fresh allocating stop source,
    preserving the shutdown/cancellation race protection. Replace the sliding
    deque with bounded reusable queue storage or a bounded recycling allocator.
