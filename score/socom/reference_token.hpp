@@ -14,9 +14,10 @@
 #ifndef SCORE_SOCOM_REFERENCE_TOKEN_HPP
 #define SCORE_SOCOM_REFERENCE_TOKEN_HPP
 
-#include "score/scope_exit/scope_exit.h"
-#include <score/callback.hpp>
 #include <memory>
+
+#include "score/callback.hpp"
+#include "score/scope_exit/scope_exit.h"
 
 namespace score::socom {
 
