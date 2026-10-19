@@ -66,10 +66,12 @@ Impl* Impl::enable() {
 
     m_stop_complete_promise = {};
     m_all_clients_disconnected_promise = {};
-    m_stop_block_token = std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
-        [this]() { m_stop_complete_promise.set_value(); });
-    m_all_clients_disconnected_block_token = std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
-        [this]() { m_all_clients_disconnected_promise.set_value(); });
+    m_stop_block_token =
+        std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
+            [this]() { m_stop_complete_promise.set_value(); });
+    m_all_clients_disconnected_block_token =
+        std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
+            [this]() { m_all_clients_disconnected_promise.set_value(); });
     m_registration = m_runtime.register_connector(m_configuration.get_interface(), m_instance,
                                                   Listen_endpoint{*this, m_stop_block_token});
 
@@ -238,10 +240,11 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
     auto stop_block_token_copy = m_all_clients_disconnected_block_token;
     lock.unlock();
 
-    auto reference_token = std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
-        [this, stop_block_token_copy = std::move(stop_block_token_copy)]() {
-            this->remove_client();
-        });
+    auto reference_token =
+        std::make_shared<score::utils::ScopeExit<score::cpp::callback<void(), 128U>>>(
+            [this, stop_block_token_copy = std::move(stop_block_token_copy)]() {
+                this->remove_client();
+            });
 
     return message::Connect::Return_type{
         {Server_connector_endpoint{*m_client, std::move(reference_token)},

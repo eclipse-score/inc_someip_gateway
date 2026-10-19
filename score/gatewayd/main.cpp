@@ -32,8 +32,8 @@
 #include "score/message_passing/service_protocol_config.h"
 #include "score/mw/com/runtime.h"
 #include "score/mw/log/logging.h"
-#include "score/serializer/serializer.h"
 #include "score/scope_exit/scope_exit.h"
+#include "score/serializer/serializer.h"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
 
