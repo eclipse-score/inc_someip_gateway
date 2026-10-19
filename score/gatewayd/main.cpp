@@ -20,6 +20,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -55,10 +56,39 @@ static socom::Service_interface_identifier bridged_interface(
          static_cast<uint16_t>(service_type_config.service_version_minor())}};
 }
 
+/// Calculates the required shared memory slot size for one event
+/// (Largest serialized event payload + SOME/IP header).
+///
+/// Since encoding affects the payload size, we query the serializer plugin
+/// directly. If the event size is unknown or the serializer is missing, we safely
+/// fall back to the max transport limit.
+static std::size_t event_slot_size(std::string_view const service_type_name,
+                                   std::string_view const event_name) {
+    const score_com_serializer* serializer = nullptr;
+    if (score_com_serializer_get(service_type_name.data(), service_type_name.size(),
+                                 score_com_serializer_element_type_event, event_name.data(),
+                                 event_name.size(),
+                                 &serializer) != score_com_serializer_result_ok) {
+        score::mw::log::LogWarn() << "[gatewayd] No serializer for " << service_type_name
+                                  << "::" << event_name << ", using maximum slot size";
+        return someip::kMaxMessageSize;
+    }
+
+    auto const max_serialized_size = score_com_serializer_get_max_serialized_size(serializer);
+    if (max_serialized_size == 0) {
+        score::mw::log::LogWarn() << "[gatewayd] Serializer reports no maximum size for "
+                                  << service_type_name << "::" << event_name
+                                  << ", using maximum slot size";
+        return someip::kMaxMessageSize;
+    }
+
+    return max_serialized_size + someip::kSomeipFullHeaderSize;
+}
+
 /// Bridged service instances on the mw::com link to someipd, one per service type of the gateway
 /// configuration: gatewayd provides what local applications offer and consumes what the network
-/// offers. Every event sample holds the largest SOME/IP message, header included.
-/// Called once at startup.
+/// offers. Every event sample holds the event's largest SOME/IP message, header included. someipd
+/// gets these sizes from the binding. Called once at startup, after the serializer is initialized.
 static gateway_ipc_binding::mw_com::Service_configs bridged_service_configs(
     const score::mw_someip_config::Root& config) {
     gateway_ipc_binding::mw_com::Service_configs services;
@@ -79,12 +109,13 @@ static gateway_ipc_binding::mw_com::Service_configs bridged_service_configs(
         }
 
         std::vector<gateway_ipc_binding::mw_com::Event_config> events;
+        auto const service_type_name = service_type_config->service_type_name()->string_view();
         for (const auto* event_config : *service_type_config->events()) {
             events.push_back({.name = event_config->event_name()->str(),
-                              .max_payload_size = someip::kMaxMessageSize});
+                              .max_payload_size = event_slot_size(
+                                  service_type_name, event_config->event_name()->string_view())});
         }
 
-        auto const service_type_name = service_type_config->service_type_name()->string_view();
         services.push_back(
             {.interface = bridged_interface(*service_type_config),
              .instance = socom::Service_instance{service_type_name},

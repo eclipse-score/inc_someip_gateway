@@ -61,8 +61,11 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Per-event state, indexed by socom::Event_id
     struct Event {
         std::string name;
-        std::size_t max_payload_size;
+        /// \brief Lower bound for the peer's payload size, 0 to take any
+        std::size_t configured_max_payload_size;
         std::size_t max_sample_count;
+        /// \brief Payload size of the peer's samples, set when the proxy is bound
+        std::size_t max_payload_size{0U};
         /// \brief Owned by m_proxy, nullptr while the peer's service is not available
         score::mw::com::GenericProxyEvent* proxy_event{nullptr};
         /// \brief A local application is subscribed to this event
@@ -88,8 +91,8 @@ class Consumer_service_binding final : public Service_binding {
     void attach_to_peer(score::mw::com::HandleType handle) noexcept;
 
     /// \brief Point every configured event at the matching event of #m_proxy
-    /// \details On failure all event pointers are cleared again, so that none of them outlives
-    ///          the proxy the caller is about to drop.
+    /// \details Adopts the peer's payload size per event. On failure all event pointers are
+    ///          cleared again, so that none of them outlives the proxy the caller is about to drop.
     /// \pre m_subscription_mutex and m_mutex are held
     /// \return True if every configured event was found and is layout compatible
     [[nodiscard]] bool bind_proxy_events() noexcept;

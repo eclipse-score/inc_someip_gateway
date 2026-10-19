@@ -15,13 +15,20 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <chrono>
+#include <cstddef>
+#include <future>
 #include <memory>
+#include <optional>
 #include <string>
 #include <thread>
+#include <vector>
 
+#include "score/gateway_ipc_binding/impl/mw_com/someipd_service.hpp"
 #include "score/mw/com/runtime.h"
 #include "score/socom/runtime.hpp"
+#include "util.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 namespace {
@@ -322,6 +329,197 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
                                       bridged_services("ipc/bridged", Role::consumer));
 
     EXPECT_EQ(client, nullptr);
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test,
+       the_client_rejects_more_events_than_set_bridged_event_sizes_carries) {
+    std::vector<Event_config> events{};
+    for (std::size_t index = 0U; index <= Bridged_event_sizes::max_size; ++index) {
+        events.push_back(Event_config{"event_" + std::to_string(index), 128U});
+    }
+
+    auto const client =
+        create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/bridged", Role::consumer, std::move(events)));
+
+    EXPECT_EQ(client, nullptr);
+}
+
+/// \brief SOCom view of the bridged test service, as the applications on either side see it
+socom::Server_service_interface_definition const kBridged_definition{
+    socom::Service_interface_identifier{std::string_view{"bridged_/test/ipc/BridgedService"},
+                                        socom::Service_interface_identifier::Version{1U, 0U}},
+    socom::to_num_of_methods(0U), socom::to_num_of_events(2U)};
+socom::Service_instance const kBridged_instance{std::string_view{"1"}};
+
+/// \brief Both events of the bridged test service with the same size
+std::vector<Event_config> both_events(std::size_t const max_payload_size) {
+    return {Event_config{"event_a", max_payload_size}, Event_config{"event_b", max_payload_size}};
+}
+
+/// \brief Sample size of event_a of the offered bridged test service, 0 while it is not offered
+std::size_t offered_sample_size() {
+    auto specifier = score::mw::com::InstanceSpecifier::Create(std::string{"bridged_ipc/bridged"});
+    auto const handles = score::mw::com::GenericProxy::FindService(specifier.value());
+    if (!handles.has_value() || handles.value().empty()) {
+        return 0U;
+    }
+    auto const proxy = score::mw::com::GenericProxy::Create(handles.value().front());
+    if (!proxy.has_value()) {
+        return 0U;
+    }
+    auto const events = proxy.value().GetEvents();
+    auto const event = events.find("event_a");
+    return (event == events.cend()) ? 0U : event->second.GetDataTypeSizeInfo().Size();
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test,
+       set_bridged_event_sizes_accepts_only_the_first_valid_sizes) {
+    auto const server =
+        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+    ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+
+    // Called directly, as gatewayd would, to see what someipd answers.
+    auto specifier =
+        score::mw::com::InstanceSpecifier::Create(std::string{kSomeipd_specifier_second_pair});
+    auto const handles = Someipd_service_proxy::FindService(specifier.value());
+    ASSERT_TRUE(handles.has_value());
+    ASSERT_FALSE(handles.value().empty());
+    auto proxy = Someipd_service_proxy::Create(handles.value().front());
+    ASSERT_TRUE(proxy.has_value());
+
+    // The returned pointer holds the only call slot, so it is dropped before the next call.
+    auto const call = [&proxy](Bridged_event_sizes const& sizes) -> std::optional<bool> {
+        auto const result = proxy.value().set_bridged_event_sizes(sizes);
+        if (!result.has_value()) {
+            return std::nullopt;
+        }
+        return *result.value();
+    };
+
+    EXPECT_EQ(call(Bridged_event_sizes{}), std::optional<bool>{false});
+    EXPECT_EQ(call(Bridged_event_sizes{8232U}), std::optional<bool>{false});
+    EXPECT_EQ(call(Bridged_event_sizes{8232U, 8232U}), std::optional<bool>{true});
+    EXPECT_EQ(call(Bridged_event_sizes{8232U, 8232U}), std::optional<bool>{true});
+    EXPECT_EQ(call(Bridged_event_sizes{9000U, 8232U}), std::optional<bool>{false});
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test, gatewayd_sends_the_sizes_again_when_someipd_restarts) {
+    // Lives on the someipd runtime, which outlives both someipd instances.
+    Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
+                                            kBridged_instance};
+    // someipd starts first, so that gatewayd never finds a SomeipdService the previous test left
+    // behind in LoLa's service discovery.
+    auto server =
+        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+    ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+    auto client =
+        create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/bridged", Role::consumer, both_events(8232U)));
+    ASSERT_NE(client, nullptr);
+    Client_connector_with_callbacks application{*m_client_runtime, kBridged_definition,
+                                                kBridged_instance};
+
+    server.reset();
+    ASSERT_EQ(application.client_disconnected_promise.get_future().wait_for(kDiscovery_timeout),
+              std::future_status::ready);
+    ASSERT_FALSE(wait_for_connected(*client, false));
+
+    // The restarted someipd has no sizes of its own. It only offers if gatewayd sends them again.
+    application.expect_client_connected(kBridged_definition);
+    auto restarted_server =
+        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+    ASSERT_NE(restarted_server, nullptr);
+    ASSERT_TRUE(restarted_server->start().has_value());
+    ASSERT_EQ(application.client_connected_promise.get_future().wait_for(kDiscovery_timeout),
+              std::future_status::ready);
+
+    EXPECT_EQ(offered_sample_size(), kSample_prefix_size + 8232U);
+
+    // The consumer goes first, see the bidirectional fixture's TearDown(). Waiting until the
+    // bridged service is reported gone leaves LoLa's service discovery clean for the next test.
+    std::atomic<int> gone_reports{0};
+    std::promise<void> gone{};
+    auto specifier = score::mw::com::InstanceSpecifier::Create(std::string{"bridged_ipc/bridged"});
+    auto const find_handle = score::mw::com::GenericProxy::StartFindService(
+        [&gone_reports, &gone](auto handles, auto) noexcept {
+            if (handles.empty() && (++gone_reports == 1)) {
+                gone.set_value();
+            }
+        },
+        specifier.value());
+    ASSERT_TRUE(find_handle.has_value());
+    client.reset();
+    restarted_server.reset();
+    EXPECT_EQ(gone.get_future().wait_for(kDiscovery_timeout), std::future_status::ready);
+    EXPECT_TRUE(score::mw::com::GenericProxy::StopFindService(find_handle.value()).has_value());
+}
+
+TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_its_sizes_when_gatewayd_restarts) {
+    auto server =
+        create_server(*m_server_runtime, kSomeipd_specifier_second_pair,
+                      bridged_services("bridged_ipc/bridged", Role::provider, both_events(0U)));
+    ASSERT_NE(server, nullptr);
+    ASSERT_TRUE(server->start().has_value());
+    Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
+                                            kBridged_instance};
+    {
+        auto const client = create_client(
+            *m_client_runtime, kSomeipd_specifier_second_pair,
+            bridged_services("bridged_ipc/bridged", Role::consumer, both_events(8232U)));
+        ASSERT_NE(client, nullptr);
+        ASSERT_TRUE(wait_for_connected(*client, true));
+    }
+
+    // A stop and re-offer would show up here as an empty handle container.
+    std::atomic<int> gone_reports{0};
+    std::promise<void> gone{};
+    auto specifier = score::mw::com::InstanceSpecifier::Create(std::string{"bridged_ipc/bridged"});
+    auto const find_handle = score::mw::com::GenericProxy::StartFindService(
+        [&gone_reports, &gone](auto handles, auto) noexcept {
+            if (handles.empty() && (++gone_reports == 1)) {
+                gone.set_value();
+            }
+        },
+        specifier.value());
+    ASSERT_TRUE(find_handle.has_value());
+
+    // SomeipdService is offered already, so LoLa runs the find-service handler, and with it
+    // SetBridgedEventSizes, before create_client() returns. No need to wait.
+
+    // gatewayd restarts with the same sizes: someipd accepts them and keeps its providers.
+    {
+        auto const client = create_client(
+            *m_client_runtime, kSomeipd_specifier_second_pair,
+            bridged_services("bridged_ipc/bridged", Role::consumer, both_events(8232U)));
+        ASSERT_NE(client, nullptr);
+        ASSERT_TRUE(client->is_connected());
+        Client_connector_with_callbacks application{*m_client_runtime, kBridged_definition,
+                                                    kBridged_instance};
+    }
+
+    // gatewayd restarts with event_a larger than someipd provides it: someipd rejects the sizes.
+    auto client = create_client(
+        *m_client_runtime, kSomeipd_specifier_second_pair,
+        bridged_services("bridged_ipc/bridged", Role::consumer,
+                         {Event_config{"event_a", 9000U}, Event_config{"event_b", 8232U}}));
+    ASSERT_NE(client, nullptr);
+    EXPECT_FALSE(client->is_connected());
+
+    EXPECT_EQ(offered_sample_size(), kSample_prefix_size + 8232U);
+    EXPECT_EQ(gone_reports.load(), 0);
+
+    // The consumer goes first, see the bidirectional fixture's TearDown(). Waiting until the
+    // bridged service is reported gone leaves LoLa's service discovery clean for the next test.
+    client.reset();
+    server.reset();
+    EXPECT_EQ(gone.get_future().wait_for(kDiscovery_timeout), std::future_status::ready);
+    EXPECT_TRUE(score::mw::com::GenericProxy::StopFindService(find_handle.value()).has_value());
 }
 
 }  // namespace

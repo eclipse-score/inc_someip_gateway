@@ -29,7 +29,8 @@ Someipd_service_provider::~Someipd_service_provider() noexcept = default;
 
 Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::create(
     std::string const& instance_specifier,
-    Add_service_configuration_handler add_service_configuration_handler) noexcept {
+    Add_service_configuration_handler add_service_configuration_handler,
+    Set_bridged_event_sizes_handler set_bridged_event_sizes_handler) noexcept {
     auto specifier = make_instance_specifier(instance_specifier);
     if (!specifier.has_value()) {
         return MakeUnexpected<std::unique_ptr<Someipd_service_provider>>(
@@ -58,6 +59,16 @@ Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::crea
         return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
     }
 
+    auto const sizes_registered = provider->m_skeleton.set_bridged_event_sizes.RegisterHandler(
+        [handler = std::move(set_bridged_event_sizes_handler)](
+            bool& result, Bridged_event_sizes const& sizes) { result = handler(sizes); });
+    if (!sizes_registered.has_value()) {
+        score::mw::log::LogError()
+            << "[gateway_ipc_binding] Failed to register SetBridgedEventSizes handler:"
+            << sizes_registered.error();
+        return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
+    }
+
     return provider;
 }
 
@@ -72,11 +83,12 @@ Result<void> Someipd_service_provider::offer() noexcept {
 }
 
 Someipd_service_consumer::Someipd_service_consumer(
+    Bridged_event_sizes const& bridged_event_sizes,
     std::optional<Service_configuration_text> service_configuration) noexcept
-    : m_service_configuration{service_configuration} {}
+    : m_service_configuration{service_configuration}, m_bridged_event_sizes{bridged_event_sizes} {}
 
 Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::create(
-    std::string const& instance_specifier,
+    std::string const& instance_specifier, Bridged_event_sizes const& bridged_event_sizes,
     std::optional<std::string_view> mw_com_config_json) noexcept {
     auto specifier = make_instance_specifier(instance_specifier);
     if (!specifier.has_value()) {
@@ -103,7 +115,7 @@ Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::crea
 
     // Not make_unique: the constructor is private.
     std::unique_ptr<Someipd_service_consumer> consumer{
-        new Someipd_service_consumer{service_configuration}};
+        new Someipd_service_consumer{bridged_event_sizes, service_configuration}};
 
     // The handler can already be invoked from within StartFindService, on this very thread. The
     // consumer is fully constructed at this point, so that is safe.
@@ -186,7 +198,20 @@ void Someipd_service_consumer::on_find_service(
             }
         }
 
+        // On every new proxy, so that a restarted peer gets the sizes again. Scoped, so that the
+        // reply is released before the proxy is moved.
+        bool accepted{false};
+        {
+            auto const reply = proxy->set_bridged_event_sizes(m_bridged_event_sizes);
+            accepted = reply.has_value() && *reply.value();
+        }
+
         m_proxy.emplace(std::move(proxy).value());
+        if (!accepted) {
+            score::mw::log::LogError()
+                << "[gateway_ipc_binding] SetBridgedEventSizes failed or was rejected";
+            return;
+        }
         m_connected.store(true);
     }
 

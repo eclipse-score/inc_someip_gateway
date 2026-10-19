@@ -27,6 +27,10 @@ inline constexpr std::size_t kMax_service_configuration_size = 64U * 1024U;
 
 using Service_configuration_text = Fixed_string<kMax_service_configuration_size>;
 
+/// \brief Argument of SetBridgedEventSizes: the payload size of every consumer-role event of
+///        gatewayd, service by service in configuration order.
+using Bridged_event_sizes = Fixed_size_container<std::size_t, 1024U>;
+
 /// \brief `mw::com` service interface representing the `someipd` daemon itself.
 ///
 /// \details Unlike the bridged SOME/IP services, which are transported with `GenericSkeleton` and
@@ -35,8 +39,9 @@ using Service_configuration_text = Fixed_string<kMax_service_configuration_size>
 ///
 ///          The presence of an offered instance is the peer-liveness signal. Its
 ///          AddServiceConfiguration method extends the provider's mw::com configuration at
-///          runtime. Every element declared here needs a matching entry in the
-///          `mw_com_config.json` of both daemons.
+///          runtime, SetBridgedEventSizes hands it the sizes of the events it provides. Every
+///          element declared here needs a matching entry in the `mw_com_config.json` of both
+///          daemons.
 template <typename Trait>
 class Someipd_service_interface : public Trait::Base {
    public:
@@ -44,6 +49,8 @@ class Someipd_service_interface : public Trait::Base {
 
     typename Trait::template Method<bool(Service_configuration_text)> add_service_configuration{
         *this, "AddServiceConfiguration"};
+    typename Trait::template Method<bool(Bridged_event_sizes)> set_bridged_event_sizes{
+        *this, "SetBridgedEventSizes"};
 };
 
 /// \brief Consumer side of Someipd_service_interface, owned by `gatewayd`.

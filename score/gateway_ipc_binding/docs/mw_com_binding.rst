@@ -136,7 +136,7 @@ Concept mapping
      - ``SamplePtr`` / ``SampleAllocateePtr`` ownership, handled by LoLa
    * - Slot count and slot size
      - ``Shared_memory_metadata`` sent in ``Connect``
-     - ``numberOfSampleSlots`` and event sample size in ``mw_com_config.json``
+     - ``numberOfSampleSlots`` in ``mw_com_config.json``, sample size per event, see :ref:`event-sizes`
    * - Peer liveness
      - ``Connect`` / ``Connect_reply`` handshake
      - dedicated typed ``SomeipdService``, see :ref:`someipd-service`
@@ -202,12 +202,15 @@ itself rather than any SOME/IP service:
 
 - ``someipd`` provides one ``SomeipdService`` instance. Its presence *is* the liveness signal.
 - ``gatewayd`` consumes it with ``StartFindService`` and creates a ``SomeipdServiceProxy`` for it.
-- ``Gateway_ipc_binding_client::is_connected()`` returns true once that proxy has been created, and returns to
-  false when the find-service handler reports the instance gone.
+- ``Gateway_ipc_binding_client::is_connected()`` returns true once that proxy has been created and ``someipd``
+  accepted ``SetBridgedEventSizes`` on it. It returns to false when the find-service handler reports the
+  instance gone.
 - ``gatewayd`` calls ``AddServiceConfiguration`` with JSON text when ``someipd`` must extend its
   ``mw::com`` deployment. The server parses the text and passes the resulting ``score::json::Any`` to
   ``AddConfiguration``. The client submits a configured add-on at most once, so
   reconnecting cannot merge the same configuration twice.
+- ``gatewayd`` then calls ``SetBridgedEventSizes`` with the event sizes of its consumer-role services, on
+  every new proxy, so a restarted ``someipd`` gets them again. See :ref:`event-sizes`.
 
 Properties of this design:
 
@@ -225,10 +228,12 @@ Properties of this design:
 Offering order
 ^^^^^^^^^^^^^^
 
-``someipd`` offers ``SomeipdService`` **first**, before it creates any bridged-service skeleton and before any
-service coming from the network is offered. ``is_connected() == true`` therefore means "the peer's binding is
-up and accepting", not "the peer has finished setting up its services". Bridged services arrive
-asynchronously afterwards, each signalled through the normal SOCom service state.
+``someipd`` checks its provider-role services, offers ``SomeipdService`` **first**, then creates its
+consumer-role services. Its provider-role services, the ones carrying network data, wait for
+``SetBridgedEventSizes``. ``is_connected()`` turns true only once ``someipd`` accepted the sizes, so
+``is_connected() == true`` means "the peer's binding is up, accepting, and has its sizes", not "the peer has
+finished setting up its services". Bridged services arrive asynchronously afterwards, each signalled through
+the normal SOCom service state.
 
 .. _sample-layout:
 
@@ -264,8 +269,24 @@ Two alternatives were considered and rejected:
   SOME/IP, which it deliberately does not do today, and the field is currently not filled in by ``gatewayd``.
 - one ``mw::com`` event per length class. That multiplies the deployment configuration and gains nothing.
 
-The daemons size ``max_payload_size`` for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
+``gatewayd`` sizes ``max_payload_size`` for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
 as it is today.
+
+.. _event-sizes:
+
+Event sizes
+~~~~~~~~~~~
+
+``gatewayd`` sizes every event. ``someipd`` takes every size from ``gatewayd`` and configures 0. The sizes
+reach it two ways:
+
+- **consumer side**: the binding adopts the peer's ``GenericProxyEvent::GetDataTypeSizeInfo().Size()`` minus
+  the prefix when it attaches. A peer below the configured size leaves the service unavailable.
+- **provider side** of ``someipd``: ``SetBridgedEventSizes`` carries the size of every event of ``gatewayd``'s
+  consumer-role services, in configuration order, at most 1024. Both daemons build their services from the
+  same ``mw_someip_config``, so the order matches ``someipd``'s provider-role services. The first call with
+  one size per event creates them. A repeated equal call returns true and changes nothing. Any other call
+  returns false.
 
 Availability propagation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -350,7 +371,8 @@ Architecture
   ``Disabled_server_connector`` / ``Enabled_server_connector``.
 - Setting a bridged service up is all-or-nothing: if any entry of ``Service_configs`` fails, the factory
   returns ``nullptr`` respectively an error from ``start()`` instead of leaving a link that silently carries
-  only part of the configured services.
+  only part of the configured services. ``start()`` also checks ``someipd``'s provider-role services, which
+  wait for their sizes. Should creating them still fail, ``SetBridgedEventSizes`` returns false.
 
 What is gone compared to :doc:`index`:
 
@@ -385,14 +407,15 @@ factory functions.
    * - Member
      - Behaviour
    * - ``Gateway_ipc_binding_client::is_connected()``
-     - True while the ``SomeipdServiceProxy`` exists, i.e. while the peer's binding is up and accepting.
-       See :ref:`someipd-service`. This keeps the meaning and the sequencing it has today, so
-       ``gatewayd``'s startup wait loop is unaffected. Unlike today it can also go back to false, when the
-       peer stops.
+     - True while the ``SomeipdServiceProxy`` exists and the peer accepted ``SetBridgedEventSizes``, i.e.
+       while the peer's binding is up and accepting. See :ref:`someipd-service`. This keeps the meaning and
+       the sequencing it has today, so ``gatewayd``'s startup wait loop is unaffected. Unlike today it can
+       also go back to false, when the peer stops.
    * - ``Gateway_ipc_binding_server::start()``
-     - Offers ``SomeipdService`` first, then sets up all bridged services, matching the order in which
-       ``someipd`` starts its IPC server before its network services today. Returns the first error
-       encountered. Calling it twice returns an error, as today.
+     - Checks the provider-role services, offers ``SomeipdService``, then sets up the consumer-role
+       services, matching the order in which ``someipd`` starts its IPC server before its network services
+       today. Provider-role services follow ``SetBridgedEventSizes``, see :ref:`event-sizes`. Returns the
+       first error encountered. Calling it twice returns an error, as today.
 
 ``is_connected()`` is read from a different thread than the find-service handler that maintains it, so it is
 backed by an ``std::atomic<bool>``.
@@ -492,7 +515,10 @@ spell identically, and it is the replacement for the shared ``ipc_channel_name``
          "bindings": [ {
            "binding": "SHM",
            "serviceId": 6400,
-           "methods": [ { "methodName": "AddServiceConfiguration", "methodId": 1 } ]
+           "methods": [
+             { "methodName": "AddServiceConfiguration", "methodId": 1 },
+             { "methodName": "SetBridgedEventSizes", "methodId": 2 }
+           ]
          } ]
        }
      ],
@@ -505,23 +531,23 @@ spell identically, and it is the replacement for the shared ``ipc_channel_name``
            "instanceId": 1,
            "asil-level": "QM",
            "binding": "SHM",
-           "methods": [ { "methodName": "AddServiceConfiguration", "queueSize": 1 } ]
+           "methods": [
+             { "methodName": "AddServiceConfiguration", "queueSize": 1 },
+             { "methodName": "SetBridgedEventSizes", "queueSize": 1 }
+           ]
          } ]
        }
      ]
    }
 
-The ``AddServiceConfiguration`` method must be present in both daemon configurations. Its argument is a
-fixed-capacity, trivially copyable text buffer because ``mw::com`` transports method arguments through shared
-memory. The method returns ``false`` when the text is too large or cannot be parsed as JSON; incompatible
-add-on configurations retain the runtime API's terminating behavior.
+Both methods must be present in both daemon configurations. Their arguments are fixed-capacity, trivially
+copyable buffers because ``mw::com`` transports method arguments through shared memory.
+``AddServiceConfiguration`` returns ``false`` when the text is too large or cannot be parsed as JSON;
+incompatible add-on configurations retain the runtime API's terminating behavior.
 
-Because both the sample size and the slot count now live in ``mw_com_config.json``, the size computation that
-``gatewayd`` does today in ``event_slot_size()`` moves into config generation. On the provider side the
-binding validates that the configured sample size matches ``GenericSkeletonEvent::GetSizeInfo()`` and fails
-setup on mismatch. On the consumer side the same check runs against ``GenericProxyEvent::GetSampleSize()``
-once the peer's instance is found; a mismatch there means the two deployments disagree, so the service is
-left unavailable instead of reading payloads past the end of a sample.
+``mw_com_config.json`` holds the slot count only. The sample size comes from the binding configuration, see
+:ref:`event-sizes`. On the provider side the binding checks that ``GenericSkeletonEvent::GetSizeInfo()``
+matches it and fails setup on mismatch.
 
 Known gaps
 ----------
@@ -545,6 +571,8 @@ Known gaps
   ``GenericSkeleton`` on the next offer, which LoLa's own stale-shared-memory detection (an flock on a
   per-instance usage marker file) supports. A restart of the *providing application* while a peer is
   actively subscribed is therefore still not covered.
+- **changing an event size**: a size change needs both daemons restarted. LoLa reuses a provider's shared
+  memory on restart without checking the size.
 
 Open points
 -----------
@@ -552,6 +580,6 @@ Open points
 - Where the per-bridged-service ``InstanceSpecifier`` is authored: extending ``mw_someip_config`` with an
   explicit field is the safer option, deriving it by convention from the service type name is the cheaper one.
 - Whether ``mw_com_config.json`` for the bridged instances should be generated from ``mw_someip_config`` at
-  build time. Hand-maintaining sample sizes in two places will drift.
+  build time. Hand-maintaining the instances and slot counts in two places will drift.
 - Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch until the
   upstream re-offer problem described under `Known gaps`_ is solved.

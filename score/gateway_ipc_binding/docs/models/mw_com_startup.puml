@@ -26,6 +26,12 @@ main -> mwcom : InitializeRuntime(mw_com_config.json)
 main -> binding : create_client / create_server(runtime,\n  someipd_service_specifier, Service_configs)
 
 group SomeipdService, someipd (server flavour), always first
+  binding -> provider : per provider-role entry:\ncheck(Service_config)
+  note right of provider
+    Creates and drops the GenericSkeleton
+    unoffered, so that a configuration error
+    fails start().
+  end note
   binding -> sdsvc : construct
   sdsvc -> mwcom : SomeipdServiceSkeleton::Create(\n  someipd_service_specifier)
   sdsvc -> mwcom : OfferService()
@@ -42,10 +48,16 @@ group SomeipdService, gatewayd (client flavour)
   sdsvc -> mwcom : SomeipdServiceProxy::StartFindService(\n  handler, someipd_service_specifier)
   mwcom -> sdsvc : handler(handle)
   sdsvc -> mwcom : SomeipdServiceProxy::Create(handle)
-  sdsvc -> sdsvc : is_connected = true
+  sdsvc -> mwcom : SetBridgedEventSizes(sizes of the\n  consumer-role services)
+  sdsvc -> sdsvc : is_connected = true\n  if the sizes were accepted
 end
 
 group per Service_config with role == provider
+  note over binding
+    gatewayd: at construction.
+    someipd: in the SetBridgedEventSizes handler,
+    with the sizes it received.
+  end note
   binding -> provider : construct
   provider -> mwcom : GenericSkeleton::Create(\n  InstanceSpecifier,\n  GenericSkeletonServiceElementInfo)
   provider -> mwcom : per event:\nSetReceiveHandlerRegistrationChangedHandler
@@ -71,7 +83,7 @@ binding --> main : setup complete
 note over main
   start() returned success on the someipd side.
   is_connected() turns true on the gatewayd side
-  as soon as the SomeipdServiceProxy exists, i.e.
+  once someipd accepted the event sizes, i.e.
   before any bridged service is available, and
   back to false if someipd stops.
 end note

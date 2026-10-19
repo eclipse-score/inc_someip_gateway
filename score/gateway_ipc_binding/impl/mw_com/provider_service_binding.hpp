@@ -56,6 +56,10 @@ class Provider_service_binding final : public Service_binding {
     [[nodiscard]] static Result<std::unique_ptr<Provider_service_binding>> create(
         score::socom::Runtime& runtime, Service_config const& config) noexcept;
 
+    /// \brief validate() the config, then create the skeleton and drop it unoffered
+    /// \details Catches an instance or event missing from the deployment without offering it.
+    [[nodiscard]] static Result<void> check(Service_config const& config) noexcept;
+
     ~Provider_service_binding() noexcept override;
 
     Provider_service_binding(Provider_service_binding const&) = delete;

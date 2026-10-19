@@ -59,6 +59,8 @@ struct Event_config {
     /// \brief mw::com event name, must match mw_com_config.json.
     std::string name;
     /// \brief Largest payload this event can carry. For SOME/IP this includes the header.
+    /// \details A `Role::consumer` takes the peer's size, which must be at least this one.
+    ///          create_server() takes the size of its `Role::provider` events from the peer.
     std::size_t max_payload_size;
 };
 
@@ -98,6 +100,11 @@ std::size_t sample_size(Event_config const& event) noexcept;
 ///          the SOCom client connector, a `Role::consumer` entry creates the SOCom server
 ///          connector and starts service discovery. Their availability is independent of
 ///          is_connected() and is signalled through the normal SOCom service state.
+///
+///          Every new SomeipdService proxy gets the sizes of the `Role::consumer` events with
+///          SetBridgedEventSizes. is_connected() turns true once the peer accepted them.
+/// \pre     Both daemons build their Service_configs from the same mw_someip_config, in the same
+///          order, because SetBridgedEventSizes carries the sizes as a list in that order.
 /// \param runtime SOCom runtime used to create the connectors
 /// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance that
 ///        the peer provides. Must be unique per gatewayd/someipd pair on a host, and must be the
@@ -106,8 +113,9 @@ std::size_t sample_size(Event_config const& event) noexcept;
 /// \param identifier Optional string used for logging only
 /// \param mw_com_config_json Optional add-on mw::com configuration sent to SomeipdService as JSON
 ///        text once its proxy becomes available
-/// \return Nullptr if service discovery for SomeipdService could not be started or if any
-///         configured service could not be set up
+/// \return Nullptr if service discovery for SomeipdService could not be started, if any
+///         configured service could not be set up, or if SetBridgedEventSizes cannot carry all
+///         `Role::consumer` events
 std::unique_ptr<Gateway_ipc_binding_client> create_client(
     score::socom::Runtime& runtime, std::string someipd_service_specifier,
     Service_configs services = {}, std::string_view identifier = {},
@@ -115,8 +123,13 @@ std::unique_ptr<Gateway_ipc_binding_client> create_client(
 
 /// \brief Create the mw::com backed binding behind the server interface.
 /// \details Provides SomeipdService. Setup is deferred to Gateway_ipc_binding_server::start(),
-///          which offers SomeipdService first and only then sets up the bridged services, so that
-///          a peer that sees SomeipdService can rely on this side accepting further setup.
+///          which checks the `Role::provider` entries, offers SomeipdService first and only then
+///          sets up the `Role::consumer` entries, so that a peer that sees SomeipdService can rely
+///          on this side accepting further setup. The `Role::provider` entries are set up with the
+///          sizes of the first SetBridgedEventSizes call. A repeated equal call is accepted, a
+///          different one rejected.
+/// \pre     Both daemons build their Service_configs from the same mw_someip_config, in the same
+///          order, because SetBridgedEventSizes carries the sizes as a list in that order.
 /// \param runtime SOCom runtime used to create the connectors
 /// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance to
 ///        provide, see create_client()

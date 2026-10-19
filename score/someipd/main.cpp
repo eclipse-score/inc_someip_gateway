@@ -51,8 +51,8 @@ static socom::Service_interface_identifier bridged_interface(
 
 /// Bridged service instances on the mw::com link to gatewayd, one per service type of the gateway
 /// configuration, mirroring gatewayd: someipd consumes what local applications offer and provides
-/// what the network offers. Every event sample holds the largest SOME/IP message, header
-/// included. Called once at startup.
+/// what the network offers. The event sizes come from gatewayd, so 0 accepts any size here.
+/// Called once at startup.
 static gateway_ipc_binding::mw_com::Service_configs bridged_service_configs(
     const score::mw_someip_config::Root& config) {
     gateway_ipc_binding::mw_com::Service_configs services;
@@ -74,8 +74,7 @@ static gateway_ipc_binding::mw_com::Service_configs bridged_service_configs(
 
         std::vector<gateway_ipc_binding::mw_com::Event_config> events;
         for (const auto* event_config : *service_type_config->events()) {
-            events.push_back({.name = event_config->event_name()->str(),
-                              .max_payload_size = someip::kMaxMessageSize});
+            events.push_back({.name = event_config->event_name()->str(), .max_payload_size = 0U});
         }
 
         auto const service_type_name = service_type_config->service_type_name()->string_view();

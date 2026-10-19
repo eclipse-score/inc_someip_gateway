@@ -53,6 +53,9 @@ class Test_constants {
 
     Shared_memory_metadata const client_metadata = make_metadata("/gw_client_shm", 256, 8);
     Shared_memory_metadata const server_metadata = make_metadata("/gw_server_shm", 512, 4);
+    /// \brief mw::com flavour: no path, events larger than a 1500 byte SOME/IP message, and
+    ///        numberOfSampleSlots of mw_com_config.json
+    Shared_memory_metadata const mw_com_metadata{{}, 8232, 4};
 
     Shared_memory_manager_factory::Shared_memory_configuration const server_shm_config{
         {interface, {{instance, server_metadata}}}};

@@ -250,10 +250,10 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
             return false;
         }
 
-        // The peer laid the samples out for its own configuration. If its samples are smaller
-        // than configured here, reading a full-size payload would run past the end of a sample.
+        // The peer laid the samples out for its own configuration, so its size is what this side
+        // can read. A configured size is a lower bound the peer has to meet.
         auto const peer_sample_size = entry->second.GetDataTypeSizeInfo().Size();
-        auto const expected = kSample_prefix_size + event.max_payload_size;
+        auto const expected = kSample_prefix_size + event.configured_max_payload_size;
         if (peer_sample_size < expected) {
             score::mw::log::LogError()
                 << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
@@ -263,6 +263,7 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
             return false;
         }
 
+        event.max_payload_size = peer_sample_size - kSample_prefix_size;
         event.proxy_event = &entry->second;
     }
     return true;
@@ -411,7 +412,7 @@ void Consumer_service_binding::on_samples_available(
                 score::mw::log::LogError()
                     << kLog_tag << "Dropping a sample of event" << event.name << "of"
                     << m_instance_specifier << ": payload length" << length
-                    << "exceeds the configured maximum of" << event.max_payload_size;
+                    << "exceeds the peer's maximum of" << event.max_payload_size;
                 return;
             }
 

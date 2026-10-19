@@ -110,6 +110,10 @@
             {
               "methodName": "AddServiceConfiguration",
               "methodId": 1
+            },
+            {
+              "methodName": "SetBridgedEventSizes",
+              "methodId": 2
             }
           ]
         }
@@ -340,6 +344,10 @@
           "methods": [
             {
               "methodName": "AddServiceConfiguration",
+              "queueSize": 1
+            },
+            {
+              "methodName": "SetBridgedEventSizes",
               "queueSize": 1
             }
           ]
