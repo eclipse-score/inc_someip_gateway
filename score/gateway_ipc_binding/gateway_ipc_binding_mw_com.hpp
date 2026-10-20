@@ -16,8 +16,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -26,6 +26,7 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/socom/runtime.hpp"
 #include "score/socom/service_interface_identifier.hpp"
+#include "score/span.hpp"
 
 /// \brief `mw::com` (LoLa) based implementation of the Gateway IPC Binding.
 ///
@@ -45,6 +46,9 @@ inline constexpr std::size_t kSample_prefix_size = 8U;
 /// \brief Alignment requested for every event sample.
 inline constexpr std::size_t kSample_alignment = 8U;
 
+/// \brief numberOfSampleSlots of every bridged event.
+inline constexpr std::size_t kNumber_of_sample_slots = 20U;
+
 /// \brief Which side of a bridged service this peer implements.
 enum class Role : std::uint8_t {
     /// This peer consumes the service locally via SOCom and offers it via a GenericSkeleton.
@@ -53,22 +57,32 @@ enum class Role : std::uint8_t {
     consumer,
 };
 
+/// \brief mw::com event ID. A separate type, so it can't be confused with a size.
+enum class Mw_com_event_id : std::uint16_t {};
+
 /// \brief One event of a bridged service.
 /// \details The position in Service_config::events is the socom::Event_id.
 struct Event_config {
-    /// \brief mw::com event name, must match mw_com_config.json.
+    /// \brief mw::com event name.
     std::string name;
+    /// \brief MUST be unique within the service.
+    Mw_com_event_id id;
     /// \brief Largest payload this event can carry. For SOME/IP this includes the header.
+    /// \details A consumer uses the peer's sample size. This value is its minimum.
+    ///          someipd's providers ignore it. AddServiceConfiguration sets their size.
     std::size_t max_payload_size;
 };
 
 /// \brief One bridged service instance.
 struct Service_config {
-    /// \brief Bridged SOCom service type name, which must start with `bridged_`.
+    /// \brief Bridged SOCom service type name.
     socom::Service_interface_identifier interface;
     socom::Service_instance instance;
-    /// \brief mw::com InstanceSpecifier for this bridged service, which must start with `bridged_`.
+    /// \brief mw::com InstanceSpecifier for this bridged service.
     std::string instance_specifier;
+    /// \brief mw::com service ID. Together with instance_id it MUST be unique on the host.
+    std::uint16_t service_id;
+    std::uint16_t instance_id;
     Role role;
     /// \brief Events in socom::Event_id order.
     std::vector<Event_config> events;
@@ -78,6 +92,23 @@ struct Service_config {
 
 /// \brief Bridged service instances. Owning value type, unbounded in size.
 using Service_configs = std::vector<Service_config>;
+
+/// \brief Sets up the bridged services of one AddServiceConfiguration call in someipd
+/// \details The provider event sizes come from the call.
+/// \return False if a service is invalid or can't be set up. Then none of them is.
+using Add_bridged_services = std::function<bool(Service_configs const& services)>;
+
+/// \brief Handles the gateway configuration that one gatewayd sends with AddServiceConfiguration
+/// \details Runs on an mw::com message passing thread, one call at a time. MUST NOT call anything
+///          that waits for an mw::com reply. A call with the content of an accepted call is
+///          accepted without calling the handler.
+/// \param gateway_config Bytes that gatewayd passed to create_client()
+/// \param add_bridged_services MUST be called at most once, with all bridged services of the call
+/// \return True to accept the call. On false the bindings of the call are destroyed. The mw::com
+///         deployment of a rejected call stays until someipd restarts.
+using Gateway_config_handler =
+    std::function<bool(score::cpp::span<std::byte const> gateway_config,
+                       Add_bridged_services const& add_bridged_services)>;
 
 /// \brief Sample size derived from an Event_config, i.e. the DataTypeMetaInfo::size.
 /// \details The layout is `kSample_prefix_size` bytes of binding metadata, followed by up to
@@ -98,35 +129,44 @@ std::size_t sample_size(Event_config const& event) noexcept;
 ///          the SOCom client connector, a `Role::consumer` entry creates the SOCom server
 ///          connector and starts service discovery. Their availability is independent of
 ///          is_connected() and is signalled through the normal SOCom service state.
+///          Services that are not in the mw::com configuration are added to it first.
+///
+///          is_connected() is true once the peer has accepted `gateway_config` and the event
+///          sizes.
 /// \param runtime SOCom runtime used to create the connectors
 /// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance that
-///        the peer provides. Must be unique per gatewayd/someipd pair on a host, and must be the
+///        the peer provides. Must be unique per someipd on a host, and must be the
 ///        same value that the peer passes to create_server().
 /// \param services Bridged service instances, see D4: this set is fixed for the process lifetime
 /// \param identifier Optional string used for logging only
-/// \param mw_com_config_json Optional add-on mw::com configuration sent to SomeipdService as JSON
-///        text once its proxy becomes available
-/// \return Nullptr if service discovery for SomeipdService could not be started or if any
-///         configured service could not be set up
+/// \param gateway_config Sent to the peer with AddServiceConfiguration. The binding doesn't
+///        read it.
+/// \return Nullptr if service discovery for SomeipdService could not be started, if any
+///         configured service could not be set up, or if `gateway_config` or the event sizes
+///         don't fit into AddServiceConfiguration
 std::unique_ptr<Gateway_ipc_binding_client> create_client(
     score::socom::Runtime& runtime, std::string someipd_service_specifier,
     Service_configs services = {}, std::string_view identifier = {},
-    std::optional<std::string_view> mw_com_config_json = std::nullopt) noexcept;
+    score::cpp::span<std::byte const> gateway_config = {}) noexcept;
 
 /// \brief Create the mw::com backed binding behind the server interface.
-/// \details Provides SomeipdService. Setup is deferred to Gateway_ipc_binding_server::start(),
-///          which offers SomeipdService first and only then sets up the bridged services, so that
-///          a peer that sees SomeipdService can rely on this side accepting further setup.
+/// \details Provides SomeipdService from Gateway_ipc_binding_server::start() on. Each gatewayd
+///          sends its services with AddServiceConfiguration. `handler` sets them up. The services
+///          of an accepted call stay until the server is destroyed. A consumer starts its service
+///          discovery on a separate thread once the call is accepted. If that fails, it is logged
+///          and the service stays unavailable.
+///          Services that are not in the mw::com configuration are added to it, as in
+///          create_client().
 /// \param runtime SOCom runtime used to create the connectors
 /// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance to
 ///        provide, see create_client()
-/// \param services Bridged service instances
+/// \param handler MUST NOT be empty
 /// \return Nullptr if `someipd_service_specifier` is empty. Errors that can only be detected once
 ///         mw::com is asked to create the instances, such as a specifier missing from
 ///         mw_com_config.json, are reported by start().
 std::unique_ptr<Gateway_ipc_binding_server> create_server(score::socom::Runtime& runtime,
                                                           std::string someipd_service_specifier,
-                                                          Service_configs services = {}) noexcept;
+                                                          Gateway_config_handler handler) noexcept;
 
 }  // namespace score::gateway_ipc_binding::mw_com
 

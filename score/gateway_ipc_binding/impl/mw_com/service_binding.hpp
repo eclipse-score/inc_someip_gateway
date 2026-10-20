@@ -38,13 +38,17 @@ class Service_binding {
     Service_binding& operator=(Service_binding const&) = delete;
     Service_binding(Service_binding&&) = delete;
     Service_binding& operator=(Service_binding&&) = delete;
+
+    /// \brief Start the mw::com service discovery of a consumer. A provider has none.
+    /// \details MUST be called once. MUST NOT run on an mw::com message passing thread.
+    [[nodiscard]] virtual Result<void> start() noexcept = 0;
 };
 
 /// \brief Reject a service configuration that cannot possibly work before anything is created.
 /// \details Catches the mistakes that would otherwise only surface as a silently dead bridge:
-///          service type names and instance specifiers without the `bridged_` prefix, a missing
-///          or duplicated event name, a payload longer than the length prefix can express, and a
-///          consumer that would subscribe for zero samples.
+///          a missing or duplicated event name or ID, a payload longer than the length prefix can
+///          express, a consumer that would subscribe for zero samples, and a sample count above
+///          kNumber_of_sample_slots.
 /// \param config Bridged service instance to check
 /// \return Success, or Mw_com_binding_error::logic_error_invalid_service_configuration
 [[nodiscard]] Result<void> validate(Service_config const& config) noexcept;
@@ -67,11 +71,15 @@ class Service_binding {
     score::mw::com::InstanceSpecifier const& specifier,
     std::string const& instance_specifier) noexcept;
 
+/// \brief Validates all services, then adds the ones missing from the mw::com configuration
+/// \return Success, or the first error, in which case nothing was added
+[[nodiscard]] Result<void> add_to_mw_com_runtime(Service_configs const& services) noexcept;
+
 /// \brief Create the binding half this peer implements for one bridged service instance.
 /// \details Dispatches on `Service_config::role`, see `docs/mw_com_binding.rst`. Setup is eager:
-///          the `GenericSkeleton` respectively the service discovery and the SOCom connector are
-///          created here, so a configuration error is reported to the caller instead of leaving a
-///          bridge that never carries data.
+///          the `GenericSkeleton` respectively the SOCom connector are created here, so a
+///          configuration error is reported to the caller instead of leaving a bridge that never
+///          carries data. Service discovery waits for Service_binding::start().
 /// \param runtime SOCom runtime used to create the connector
 /// \param config Bridged service instance to set up
 /// \return The service binding, or the first error encountered

@@ -108,7 +108,7 @@ Concept mapping
      - one ``mw::com`` service instance, addressed by ``InstanceSpecifier``
    * - Service interface identity and version
      - ``Service_interface_identifier`` on the wire
-     - ``serviceTypes`` entry in ``mw_com_config.json``
+     - ``serviceTypes`` entry, generated, see :ref:`bridged-deployment`
    * - Event identity
      - ``socom::Event_id`` (index) on the wire
      - named ``mw::com`` event; the binding maps name to index
@@ -136,7 +136,7 @@ Concept mapping
      - ``SamplePtr`` / ``SampleAllocateePtr`` ownership, handled by LoLa
    * - Slot count and slot size
      - ``Shared_memory_metadata`` sent in ``Connect``
-     - ``numberOfSampleSlots`` and event sample size in ``mw_com_config.json``
+     - ``numberOfSampleSlots`` of the generated deployment, sample size per event, see :ref:`event-sizes`
    * - Peer liveness
      - ``Connect`` / ``Connect_reply`` handshake
      - dedicated typed ``SomeipdService``, see :ref:`someipd-service`
@@ -202,12 +202,11 @@ itself rather than any SOME/IP service:
 
 - ``someipd`` provides one ``SomeipdService`` instance. Its presence *is* the liveness signal.
 - ``gatewayd`` consumes it with ``StartFindService`` and creates a ``SomeipdServiceProxy`` for it.
-- ``Gateway_ipc_binding_client::is_connected()`` returns true once that proxy has been created, and returns to
-  false when the find-service handler reports the instance gone.
-- ``gatewayd`` calls ``AddServiceConfiguration`` with JSON text when ``someipd`` must extend its
-  ``mw::com`` deployment. The server parses the text and passes the resulting ``score::json::Any`` to
-  ``AddConfiguration``. The client submits a configured add-on at most once, so
-  reconnecting cannot merge the same configuration twice.
+- ``Gateway_ipc_binding_client::is_connected()`` returns true once that proxy has been created and ``someipd``
+  accepted ``AddServiceConfiguration`` on it. It returns to false when the find-service handler reports the
+  instance gone.
+- ``gatewayd`` calls ``AddServiceConfiguration`` with its services on every new proxy, so a restarted
+  ``someipd`` gets them again. See :ref:`gatewayd-services`.
 
 Properties of this design:
 
@@ -217,18 +216,21 @@ Properties of this design:
   with a handle, so ``is_connected()`` goes false and true again. The bridged services re-establish themselves
   independently and need no ordering guarantee relative to it.
 - the instance specifier plays the role that the ``message_passing`` channel name plays today: it must be
-  unique per ``gatewayd`` / ``someipd`` pair on a host, and it is the one piece of configuration both daemons
-  must agree on.
+  unique per ``someipd`` on a host, and it is the one piece of configuration ``someipd`` and all its
+  ``gatewayd`` instances must agree on.
+- every ``gatewayd`` of a ``someipd`` MUST have its own ``mw::com`` ``applicationID``, or its own UID if it
+  configures none. LoLa treats a second ``gatewayd`` with the same one as a restart of the first.
 
 .. _someipd-service-ordering:
 
 Offering order
 ^^^^^^^^^^^^^^
 
-``someipd`` offers ``SomeipdService`` **first**, before it creates any bridged-service skeleton and before any
-service coming from the network is offered. ``is_connected() == true`` therefore means "the peer's binding is
-up and accepting", not "the peer has finished setting up its services". Bridged services arrive
-asynchronously afterwards, each signalled through the normal SOCom service state.
+``someipd`` offers ``SomeipdService`` **first**. It has no bridged services until a ``gatewayd`` calls
+``AddServiceConfiguration``. ``is_connected()`` turns true only once ``someipd`` accepted the call, so
+``is_connected() == true`` means "the peer's binding is up, accepting, and has the services of this
+``gatewayd``", not "the peer has finished setting up its services". Bridged services arrive asynchronously
+afterwards, each signalled through the normal SOCom service state.
 
 .. _sample-layout:
 
@@ -264,8 +266,49 @@ Two alternatives were considered and rejected:
   SOME/IP, which it deliberately does not do today, and the field is currently not filled in by ``gatewayd``.
 - one ``mw::com`` event per length class. That multiplies the deployment configuration and gains nothing.
 
-The daemons size ``max_payload_size`` for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
+``gatewayd`` sizes ``max_payload_size`` for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
 as it is today.
+
+.. _event-sizes:
+
+Event sizes
+~~~~~~~~~~~
+
+``gatewayd`` sizes every event. ``someipd`` takes every size from ``gatewayd`` and configures 0. The sizes
+reach it two ways:
+
+- **consumer side**: the binding adopts the peer's ``GenericProxyEvent::GetDataTypeSizeInfo().Size()`` minus
+  the prefix when it attaches. A peer below the configured size leaves the service unavailable.
+- **provider side** of ``someipd``: ``AddServiceConfiguration`` carries ``{service ID, event ID, size}`` for
+  every event of the calling ``gatewayd``'s consumer-role services, at most 1024, in any order. A call MUST
+  have exactly one size per event of the provider-role services it adds to ``someipd``. Otherwise
+  ``someipd`` rejects it and logs it.
+
+.. _gatewayd-services:
+
+Services of a gatewayd
+~~~~~~~~~~~~~~~~~~~~~~
+
+``someipd`` has no service configuration of its own. Each ``gatewayd`` hands it its services:
+
+- ``gatewayd`` sends the flatbuffer bytes of its ``mw_someip_config`` and its event sizes in one
+  ``AddServiceConfiguration`` call. The argument is fixed in size. It carries at most 64 KiB of
+  configuration. ``gatewayd`` fails at startup if its configuration is larger.
+- the binding doesn't read the bytes. ``someipd`` checks them with the flatbuffers ``Verifier``. It builds
+  the bridged services with ``bridged_service_configs()`` and its network services from the same bytes,
+  which it keeps for as long as the services.
+- a call is set up completely or not at all. If a step fails, ``someipd`` destroys the bindings the call
+  created and returns false. The mw::com deployment of a rejected call stays until ``someipd`` restarts,
+  because mw::com can't remove one. That ``gatewayd`` logs it and stays disconnected.
+- a call with the same bytes and sizes as an accepted call is accepted and changes nothing. That is what a
+  restarted ``gatewayd`` sends.
+- any other call with a service ID of an accepted call is rejected. A service belongs to one ``gatewayd``,
+  and a ``gatewayd`` can't change its services while ``someipd`` runs.
+- ``someipd`` keeps the services of a ``gatewayd`` that stops.
+- the handler runs on the LoLa message passing thread. Consumer-role services start their service discovery
+  on a separate thread once the call is accepted. ``StartFindService`` can wait for the service discovery
+  lock, and the proxy it creates can send messages that only the message passing thread delivers. If that
+  start fails, it is logged and the service stays unavailable.
 
 Availability propagation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -348,9 +391,10 @@ Architecture
   ``Client_connector``.
 - ``Consumer_service_binding`` holds the ``FindServiceHandle``, the ``GenericProxy`` once found, and the SOCom
   ``Disabled_server_connector`` / ``Enabled_server_connector``.
-- Setting a bridged service up is all-or-nothing: if any entry of ``Service_configs`` fails, the factory
-  returns ``nullptr`` respectively an error from ``start()`` instead of leaving a link that silently carries
-  only part of the configured services.
+- Setting a bridged service up is all-or-nothing: if any entry of ``Service_configs`` fails,
+  ``create_client()`` returns ``nullptr`` instead of leaving a link that silently carries only part of the
+  configured services. On the ``someipd`` side ``AddServiceConfiguration`` returns false, see
+  :ref:`gatewayd-services`.
 
 What is gone compared to :doc:`index`:
 
@@ -385,14 +429,14 @@ factory functions.
    * - Member
      - Behaviour
    * - ``Gateway_ipc_binding_client::is_connected()``
-     - True while the ``SomeipdServiceProxy`` exists, i.e. while the peer's binding is up and accepting.
-       See :ref:`someipd-service`. This keeps the meaning and the sequencing it has today, so
-       ``gatewayd``'s startup wait loop is unaffected. Unlike today it can also go back to false, when the
-       peer stops.
+     - True while the ``SomeipdServiceProxy`` exists and the peer accepted ``AddServiceConfiguration``, i.e.
+       while the peer's binding is up and accepting. See :ref:`someipd-service`. This keeps the meaning and
+       the sequencing it has today, so ``gatewayd``'s startup wait loop is unaffected. Unlike today it can
+       also go back to false, when the peer stops.
    * - ``Gateway_ipc_binding_server::start()``
-     - Offers ``SomeipdService`` first, then sets up all bridged services, matching the order in which
-       ``someipd`` starts its IPC server before its network services today. Returns the first error
-       encountered. Calling it twice returns an error, as today.
+     - Offers ``SomeipdService``. Bridged services follow ``AddServiceConfiguration``, see
+       :ref:`gatewayd-services`. Returns the first error encountered. Calling it twice returns an error, as
+       today.
 
 ``is_connected()`` is read from a different thread than the find-service handler that maintains it, so it is
 backed by an ``std::atomic<bool>``.
@@ -458,7 +502,8 @@ Threading and concurrency
   The outer mutexes exist purely to keep those transitions serialized against each other while the inner
   ones are released.
 - Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O and no allocation
-  beyond the in-flight table inside them.
+  beyond the in-flight table inside them. The ``AddServiceConfiguration`` handler is the exception: it sets
+  up services, but never waits for a reply, see :ref:`gatewayd-services`.
 - ``GetNewSamples`` must not run concurrently for the same ``GenericProxyEvent``. Because the only caller is
   the receive handler registered for that event, and ``mw::com`` serialises those, this holds without extra
   locking; the mutex is still taken for the SOCom-visible state.
@@ -470,28 +515,10 @@ Threading and concurrency
 Configuration
 -------------
 
-Both daemons need a ``mw_com_config.json`` that describes the instances on the ``gatewayd`` / ``someipd``
-link. ``gatewayd`` already has one for its application-facing instances and gains additional entries;
-``someipd`` needs one for the first time, and has to call ``InitializeRuntime``.
-
-Per bridged service instance the deployment must provide:
-
-- a ``serviceTypes`` entry whose ``serviceTypeName`` and ``version`` match the SOCom
-  ``Service_interface_identifier``, with one event entry per bridged event
-- a ``serviceInstances`` entry with the ``instanceSpecifier`` used in ``Service_config``
-- ``numberOfSampleSlots`` per event, sized as described in :ref:`sample-layout`
-- ``maxSubscribers: 1``. There is exactly one peer daemon per instance.
-- ``asil-level: "QM"``. ``someipd`` is a QM component, so these instances are QM on both ends even though
-  ``gatewayd`` is ASIL-B. This is precisely why the SOME/IP header travels with the payload: E2E is what makes
-  the QM data usable in the ASIL-B context.
-
-These instances must not collide with the ``gatewayd`` to application instances. Both the service type name
-and instance specifier must start with ``bridged_``, for example
-``bridged_ipc/<service_type>_<instance_id>``, and should be derived in ``mw_someip_config`` rather than in
-code.
-
-In addition, both daemons need one entry for :ref:`someipd-service`. It is the only entry that both files must
-spell identically, and it is the replacement for the shared ``ipc_channel_name`` command line option:
+Both daemons need a ``mw_com_config.json``. ``someipd`` needs one for the first time, and has to call
+``InitializeRuntime``. Of the ``gatewayd`` / ``someipd`` link it holds only the entry for
+:ref:`someipd-service`. Both files must spell it identically. It replaces the shared ``ipc_channel_name``
+command line option:
 
 .. code-block:: json
 
@@ -522,17 +549,35 @@ spell identically, and it is the replacement for the shared ``ipc_channel_name``
      ]
    }
 
-The ``AddServiceConfiguration`` method must be present in both daemon configurations. Its argument is a
-fixed-capacity, trivially copyable text buffer because ``mw::com`` transports method arguments through shared
-memory. The method returns ``false`` when the text is too large or cannot be parsed as JSON; incompatible
-add-on configurations retain the runtime API's terminating behavior.
+Its argument is fixed in size and trivially copyable, because ``mw::com`` transports method arguments through
+shared memory.
 
-Because both the sample size and the slot count now live in ``mw_com_config.json``, the size computation that
-``gatewayd`` does today in ``event_slot_size()`` moves into config generation. On the provider side the
-binding validates that the configured sample size matches ``GenericSkeletonEvent::GetSizeInfo()`` and fails
-setup on mismatch. On the consumer side the same check runs against ``GenericProxyEvent::GetSampleSize()``
-once the peer's instance is found; a mismatch there means the two deployments disagree, so the service is
-left unavailable instead of reading payloads past the end of a sample.
+.. _bridged-deployment:
+
+Bridged deployment
+~~~~~~~~~~~~~~~~~~
+
+Each daemon builds its bridged services from ``mw_someip_config`` with ``bridged_service_configs()`` of
+``score/bridged_services``: ``gatewayd`` from its own file, ``someipd`` from what each ``gatewayd`` sends, see
+:ref:`gatewayd-services`. The binding adds their deployment to its own ``mw::com`` runtime with
+``runtime::AddConfiguration``.
+
+- the service type and instance specifier are ``bridged_ipc/<service_type_name>``, so they cannot collide
+  with the ``gatewayd`` to application instances
+- the service ID is the SOME/IP service ID, the event IDs are the SOME/IP event IDs
+- the instance ID is ``ipc_instance_id`` of ``mw_someip_config``, by default 0xFFFF, the SOME/IP "any
+  instance" ID. All ``gatewayd`` instances of a ``someipd`` MUST use the same value. A host with more than
+  one ``someipd`` needs a different one per ``someipd``.
+- ``numberOfSampleSlots`` is ``kNumber_of_sample_slots``, see :ref:`sample-layout`, and ``maxSubscribers``
+  is 1. There is exactly one peer daemon per instance.
+- ``asil-level`` is ``QM``. ``someipd`` is a QM component, so these instances are QM on both ends even though
+  ``gatewayd`` is ASIL-B. This is precisely why the SOME/IP header travels with the payload: E2E is what makes
+  the QM data usable in the ASIL-B context.
+- an instance specifier that ``mw_com_config.json`` already lists keeps that deployment. ``mw::com``
+  terminates on a duplicate or malformed entry, so the binding validates every service first.
+
+The sample size comes from the binding configuration, see :ref:`event-sizes`. On the provider side the binding
+checks that ``GenericSkeletonEvent::GetSizeInfo()`` matches it and fails setup on mismatch.
 
 Known gaps
 ----------
@@ -556,13 +601,11 @@ Known gaps
   ``GenericSkeleton`` on the next offer, which LoLa's own stale-shared-memory detection (an flock on a
   per-instance usage marker file) supports. A restart of the *providing application* while a peer is
   actively subscribed is therefore still not covered.
+- **changing an event size**: a size change needs both daemons restarted. LoLa reuses a provider's shared
+  memory on restart without checking the size.
 
 Open points
 -----------
 
-- Where the per-bridged-service ``InstanceSpecifier`` is authored: extending ``mw_someip_config`` with an
-  explicit field is the safer option, deriving it by convention from the service type name is the cheaper one.
-- Whether ``mw_com_config.json`` for the bridged instances should be generated from ``mw_someip_config`` at
-  build time. Hand-maintaining sample sizes in two places will drift.
 - Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch until the
   upstream re-offer problem described under `Known gaps`_ is solved.

@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -84,21 +85,30 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
         return server;
     }
 
-    std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(socom::Runtime& runtime) {
-        return create_mw_com_server(
-            runtime, "someipd/daemon",
-            {{interface,
-              instance,
-              "bridged_ipc/bridged",
-              mw_com::Role::provider,
-              {{"event_a", server_metadata.slot_size}, {"event_b", server_metadata.slot_size}},
-              server_metadata.slot_count}});
+    /// \brief The bridged test service, IDs as in mw_com_config.json
+    mw_com::Service_configs mw_com_services(mw_com::Role const role,
+                                            std::size_t const max_payload_size) const {
+        return {{interface,
+                 instance,
+                 "bridged_ipc/bridged",
+                 6401U,
+                 1U,
+                 role,
+                 {{"event_a", mw_com::Mw_com_event_id{1U}, max_payload_size},
+                  {"event_b", mw_com::Mw_com_event_id{2U}, max_payload_size}},
+                 mw_com_metadata.slot_count}};
     }
 
+    /// \brief Server that adds `services` for every gatewayd
     std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(
         socom::Runtime& runtime, std::string const& someipd_service_specifier,
         mw_com::Service_configs services) {
-        return mw_com::create_server(runtime, someipd_service_specifier, std::move(services));
+        return mw_com::create_server(runtime, someipd_service_specifier,
+                                     [services = std::move(services)](
+                                         score::cpp::span<std::byte const>,
+                                         mw_com::Add_bridged_services const& add_bridged_services) {
+                                         return add_bridged_services(services);
+                                     });
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_ipc_client(
@@ -114,17 +124,6 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
 
         SCORE_LANGUAGE_FUTURECPP_ASSERT(client && "Client creation failed");
         return client;
-    }
-
-    std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(socom::Runtime& runtime) {
-        return create_mw_com_client(
-            runtime, "someipd/daemon",
-            {{interface,
-              instance,
-              "bridged_ipc/bridged",
-              mw_com::Role::consumer,
-              {{"event_a", server_metadata.slot_size}, {"event_b", server_metadata.slot_size}},
-              server_metadata.slot_count}});
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(
@@ -180,13 +179,31 @@ class Gateway_ipc_binding_bidirectional_test
    protected:
     void SetUp() override {
         if (GetParam().implementation == Ipc_binding_implementation::Mw_com) {
-            this->server = this->create_mw_com_server(*this->runtime_server);
+            // The binding on the SOCom server's side provides the bridged service.
+            bool const server_provides = GetParam().direction == Direction::Client_to_server;
+            std::size_t const slot_size = this->mw_com_metadata.slot_size;
+            // A consumer server uses the provider's size, like someipd.
+            this->server = this->create_mw_com_server(
+                *this->runtime_server, "someipd/daemon",
+                this->mw_com_services(
+                    server_provides ? mw_com::Role::provider : mw_com::Role::consumer,
+                    server_provides ? slot_size : 0U));
             ASSERT_NE(this->server, nullptr);
-            this->client = this->create_mw_com_client(*this->runtime_client);
+            this->client = this->create_mw_com_client(
+                *this->runtime_client, "someipd/daemon",
+                this->mw_com_services(
+                    server_provides ? mw_com::Role::consumer : mw_com::Role::provider, slot_size));
             ASSERT_NE(this->client, nullptr);
             this->start_and_wait_for_client_connection();
         } else {
             BASE::SetUp();
+        }
+    }
+
+    void TearDown() override {
+        // Destroy the consumer first, or its proxy outlives the test and breaks the next one.
+        if (is_mw_com() && (GetParam().direction == Direction::Server_to_client)) {
+            this->server.reset();
         }
     }
 
@@ -204,6 +221,9 @@ class Gateway_ipc_binding_bidirectional_test
     }
 
     Shared_memory_metadata const& get_server_metadata() {
+        if (is_mw_com()) {
+            return this->mw_com_metadata;
+        }
         return GetParam().direction == Direction::Client_to_server ? this->server_metadata
                                                                    : this->client_metadata;
     }

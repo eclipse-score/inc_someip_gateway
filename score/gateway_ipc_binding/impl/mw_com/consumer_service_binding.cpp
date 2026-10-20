@@ -88,12 +88,6 @@ Result<std::unique_ptr<Consumer_service_binding>> Consumer_service_binding::crea
             std::move(created).error());
     }
 
-    auto started = binding->start_find_service(std::move(specifier).value());
-    if (!started.has_value()) {
-        return MakeUnexpected<std::unique_ptr<Consumer_service_binding>>(
-            std::move(started).error());
-    }
-
     return binding;
 }
 
@@ -139,13 +133,17 @@ Result<void> Consumer_service_binding::create_server_connector(
     return {};
 }
 
-Result<void> Consumer_service_binding::start_find_service(
-    score::mw::com::InstanceSpecifier specifier) noexcept {
+Result<void> Consumer_service_binding::start() noexcept {
+    auto specifier = make_instance_specifier(m_instance_specifier);
+    if (!specifier.has_value()) {
+        return MakeUnexpected<void>(std::move(specifier).error());
+    }
+
     // The handler can already be invoked from within StartFindService, on this very thread. Every
     // member it touches is initialized at this point, so that is safe.
     auto find_handle = score::mw::com::GenericProxy::StartFindService(
         [this](auto handles, auto) noexcept { on_find_service(std::move(handles)); },
-        std::move(specifier));
+        std::move(specifier).value());
     if (!find_handle.has_value()) {
         score::mw::log::LogError() << kLog_tag << "Failed to start service discovery for"
                                    << m_instance_specifier << ":" << find_handle.error();
@@ -250,10 +248,9 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
             return false;
         }
 
-        // The peer laid the samples out for its own configuration. If its samples are smaller
-        // than configured here, reading a full-size payload would run past the end of a sample.
+        // The peer's samples MUST be at least the configured size.
         auto const peer_sample_size = entry->second.GetDataTypeSizeInfo().Size();
-        auto const expected = kSample_prefix_size + event.max_payload_size;
+        auto const expected = kSample_prefix_size + event.configured_max_payload_size;
         if (peer_sample_size < expected) {
             score::mw::log::LogError()
                 << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
@@ -263,6 +260,7 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
             return false;
         }
 
+        event.max_payload_size = peer_sample_size - kSample_prefix_size;
         event.proxy_event = &entry->second;
     }
     return true;
@@ -411,7 +409,7 @@ void Consumer_service_binding::on_samples_available(
                 score::mw::log::LogError()
                     << kLog_tag << "Dropping a sample of event" << event.name << "of"
                     << m_instance_specifier << ": payload length" << length
-                    << "exceeds the configured maximum of" << event.max_payload_size;
+                    << "exceeds the peer's maximum of" << event.max_payload_size;
                 return;
             }
 

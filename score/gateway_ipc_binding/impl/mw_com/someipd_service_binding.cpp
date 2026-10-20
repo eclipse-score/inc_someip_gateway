@@ -48,7 +48,7 @@ Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::crea
         new Someipd_service_provider{std::move(skeleton).value()}};
     auto const registered = provider->m_skeleton.add_service_configuration.RegisterHandler(
         [handler = std::move(add_service_configuration_handler)](
-            bool& result, Service_configuration_text const& configuration) {
+            bool& result, Service_configuration const& configuration) {
             result = handler(configuration);
         });
     if (!registered.has_value()) {
@@ -72,12 +72,12 @@ Result<void> Someipd_service_provider::offer() noexcept {
 }
 
 Someipd_service_consumer::Someipd_service_consumer(
-    std::optional<Service_configuration_text> service_configuration) noexcept
+    Service_configuration const& service_configuration) noexcept
     : m_service_configuration{service_configuration} {}
 
 Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::create(
     std::string const& instance_specifier,
-    std::optional<std::string_view> mw_com_config_json) noexcept {
+    Service_configuration const& service_configuration) noexcept {
     auto specifier = make_instance_specifier(instance_specifier);
     if (!specifier.has_value()) {
         return MakeUnexpected<std::unique_ptr<Someipd_service_consumer>>(
@@ -88,17 +88,6 @@ Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::crea
     if (!deployed.has_value()) {
         return MakeUnexpected<std::unique_ptr<Someipd_service_consumer>>(
             std::move(deployed).error());
-    }
-
-    std::optional<Service_configuration_text> service_configuration{};
-    if (mw_com_config_json.has_value()) {
-        auto converted =
-            fixed_string_from_string<Service_configuration_text>(mw_com_config_json.value());
-        if (!converted.has_value()) {
-            return MakeUnexpected<std::unique_ptr<Someipd_service_consumer>>(
-                std::move(converted).error());
-        }
-        service_configuration.emplace(std::move(converted).value());
     }
 
     // Not make_unique: the constructor is private.
@@ -163,30 +152,31 @@ void Someipd_service_consumer::on_find_service(
             return;
         }
 
-        // maxSubscribers is 1 per instance, so there is exactly one peer daemon. Should the
-        // deployment ever offer more, the first handle is as good as any.
+        // Only one someipd offers the instance. Should the deployment ever offer more, the
+        // first handle is as good as any.
         auto proxy = Someipd_service_proxy::Create(handles.front());
+        // TODO: Retry Create. mw::com can report an offer that is already gone and then does not
+        // call this handler again for the same handle, so gatewayd stays disconnected.
         if (!proxy.has_value()) {
             score::mw::log::LogError()
                 << "[gateway_ipc_binding] Failed to create SomeipdService proxy:" << proxy.error();
             return;
         }
 
-        if (m_service_configuration.has_value()) {
-            auto configuration = std::move(m_service_configuration).value();
-            m_service_configuration.reset();
-            auto const added = proxy->add_service_configuration(configuration);
-            if (!added.has_value()) {
-                score::mw::log::LogError()
-                    << "[gateway_ipc_binding] AddServiceConfiguration call failed:"
-                    << added.error();
-            } else if (!*added.value()) {
-                score::mw::log::LogError()
-                    << "[gateway_ipc_binding] AddServiceConfiguration was rejected";
-            }
+        // A restarted someipd needs the configuration again. Send it to every new proxy.
+        // The reply MUST be released before the proxy is moved.
+        bool accepted{false};
+        {
+            auto const reply = proxy->add_service_configuration(m_service_configuration);
+            accepted = reply.has_value() && *reply.value();
         }
 
         m_proxy.emplace(std::move(proxy).value());
+        if (!accepted) {
+            score::mw::log::LogError()
+                << "[gateway_ipc_binding] AddServiceConfiguration failed or was rejected";
+            return;
+        }
         m_connected.store(true);
     }
 

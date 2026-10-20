@@ -14,6 +14,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <future>
 #include <string>
 #include <tuple>
@@ -159,22 +160,26 @@ class Gateway_ipc_binding_many_services_integration_test
         mw_com::Service_configs services;
         auto add_service = [this, &services, role](auto const& interface, auto const& metadata,
                                                    std::string instance_specifier,
-                                                   std::size_t event_count) {
+                                                   std::uint16_t service_id,
+                                                   std::uint16_t event_count) {
             std::vector<mw_com::Event_config> events;
             events.reserve(event_count);
-            for (std::size_t event_index = 0U; event_index < event_count; ++event_index) {
-                events.push_back({"event_" + std::to_string(event_index), metadata.slot_size});
+            for (std::uint16_t event_index = 0U; event_index < event_count; ++event_index) {
+                events.push_back({"event_" + std::to_string(event_index),
+                                  static_cast<mw_com::Mw_com_event_id>(event_index + 1U),
+                                  metadata.slot_size});
             }
-            services.push_back({interface, instance, std::move(instance_specifier), role,
-                                std::move(events), metadata.slot_count});
+            services.push_back({interface, instance, std::move(instance_specifier), service_id, 1U,
+                                role, std::move(events), metadata.slot_count});
         };
 
+        // IDs as in mw_com_config.json
         add_service(service_interface_alpha, server_metadata_alpha,
-                    "bridged_ipc/many_services_alpha", 1U);
+                    "bridged_ipc/many_services_alpha", 6403U, 1U);
         add_service(service_interface_beta, server_metadata_beta, "bridged_ipc/many_services_beta",
-                    2U);
+                    6404U, 2U);
         add_service(service_interface_gamma, server_metadata_gamma,
-                    "bridged_ipc/many_services_gamma", 3U);
+                    "bridged_ipc/many_services_gamma", 6405U, 3U);
         return services;
     }
 };
