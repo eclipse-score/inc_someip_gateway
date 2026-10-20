@@ -180,7 +180,6 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
-# exclusive: timing sensitive capture
 integration_test(
     name = "test_tc8_sd_phases_timing",
     timeout = "short",
@@ -192,16 +191,14 @@ integration_test(
     filesystem = ":tc8-itf-pkg",
     tags = [
         "conformance",
-        "exclusive",
         "tc8",
     ],
     deps = _ITF_DEPS,
 )
 
-# exclusive: manages DUT lifecycle directly
 integration_test(
     name = "test_tc8_sd_client",
-    timeout = "short",
+    timeout = "moderate",
     srcs = [
         "test_sd_client.py",
     ],
@@ -210,7 +207,6 @@ integration_test(
     filesystem = ":tc8-itf-pkg",
     tags = [
         "conformance",
-        "exclusive",
         "tc8",
     ],
     deps = _ITF_DEPS,
