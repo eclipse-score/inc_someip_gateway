@@ -12,19 +12,41 @@
 # *******************************************************************************
 """Timestamped SD capture for TC8 phase timing tests.
 
-Captures OfferService entries with monotonic timestamps to verify
+Captures OfferService entries with arrival timestamps to verify
 SD phase timing (initial wait, repetition, main phase).
 
 Delegates parsing and socket setup to :mod:`helpers.sd_helpers`.
 """
 
 import socket
+import struct
 import time
 from typing import List, Optional, Tuple
 
 from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
-from helpers.sd_helpers import open_multicast_socket, parse_sd_offers
+from helpers.sd_helpers import SO_TIMESTAMPNS, open_multicast_socket, parse_sd_offers
 from helpers.someip_types import SOMEIPSDEntry
+
+
+_TIMESPEC = struct.Struct("@ll")
+
+
+def _recv_with_timestamp(sock: socket.socket) -> Tuple[bytes, float]:
+    """Receive one datagram and return it with its arrival time in seconds.
+
+    The socket must come from ``open_multicast_socket`` so kernel timestamps
+    are enabled before the first packet arrives. Without them the time of
+    the read is used.
+    """
+    if SO_TIMESTAMPNS is None:
+        data, _ = sock.recvfrom(65535)
+        return data, time.time()
+    data, ancdata, _, _ = sock.recvmsg(65535, socket.CMSG_SPACE(_TIMESPEC.size))
+    for level, kind, payload in ancdata:
+        if level == socket.SOL_SOCKET and kind == SO_TIMESTAMPNS:
+            sec, nsec = _TIMESPEC.unpack(payload[: _TIMESPEC.size])
+            return data, sec + nsec * 1e-9
+    return data, time.time()
 
 
 def collect_sd_offers_from_socket(
@@ -47,11 +69,10 @@ def collect_sd_offers_from_socket(
             break
         sock.settimeout(min(remaining, 0.5))
         try:
-            data, _ = sock.recvfrom(65535)
+            data, recv_ts = _recv_with_timestamp(sock)
         except socket.timeout:
             continue
 
-        recv_ts = time.monotonic()
         for entry in parse_sd_offers(data):
             if instance_id is None or entry.instance_id == instance_id:
                 collected.append((recv_ts, entry))

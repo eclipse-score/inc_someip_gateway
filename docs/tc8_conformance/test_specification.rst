@@ -234,7 +234,8 @@ None, passive observation from DUT start.
 
 **Expected Result:**
 First gap < 1000 ms (half of ``cyclic_offer_delay`` 2000 ms). Second gap
-400 ms ±20% (2 x ``repetitions_base_delay`` 200 ms).
+400 ms (2 x ``repetitions_base_delay`` 200 ms) within ``ParamToleranceTimeMillisec``
+(default 100 ms), i.e. between 300 ms and 500 ms.
 
 TC8-SD-010: Repetition Count
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

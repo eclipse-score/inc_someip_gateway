@@ -41,6 +41,9 @@ _CYCLIC_OFFER_DELAY_MS: float = 2000.0
 _REPETITIONS_BASE_DELAY_MS: float = 200.0
 _REPETITIONS_MAX: int = 3
 
+#: OA ParamToleranceTimeMillisec (default 100 ms), applied to the second gap.
+_TOLERANCE_MILLISEC_MS: float = 100.0
+
 #: Capture timeout accounts for DUT startup, repetition phase, and one cyclic
 #: gap. Theoretical minimum ~3.5 s (100 ms initial + 1.4 s reps + 2 s cyclic),
 #: with generous margin for slow CI/container environments.
@@ -123,10 +126,13 @@ class TestSDPhasesTiming:
         )
 
         expected_ms = 2 * _REPETITIONS_BASE_DELAY_MS
-        assert 0.8 * expected_ms <= gaps_ms[1] <= 1.2 * expected_ms, (
+        lower_ms = expected_ms - _TOLERANCE_MILLISEC_MS
+        upper_ms = expected_ms + _TOLERANCE_MILLISEC_MS
+        assert lower_ms < gaps_ms[1] < upper_ms, (
             f"TC8-SD-009: Second inter-offer gap {gaps_ms[1]:.0f} ms not in "
-            f"[{0.8 * expected_ms:.0f}, {1.2 * expected_ms:.0f}] ms "
-            f"(2 x repetitions_base_delay={_REPETITIONS_BASE_DELAY_MS:.0f} ms, +-20%)"
+            f"({lower_ms:.0f}, {upper_ms:.0f}) ms; expected {expected_ms:.0f} ms "
+            f"(2 x repetitions_base_delay {_REPETITIONS_BASE_DELAY_MS:.0f} ms) "
+            f"+-{_TOLERANCE_MILLISEC_MS:.0f} ms. Measured gaps: {[round(g) for g in gaps_ms]} ms"
         )
 
     @add_test_properties(
