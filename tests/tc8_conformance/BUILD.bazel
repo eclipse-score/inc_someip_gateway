@@ -180,6 +180,7 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
+# exclusive: timing assertions are sensitive to host load from parallel QEMU runs
 integration_test(
     name = "test_tc8_sd_phases_timing",
     timeout = "short",
@@ -191,6 +192,7 @@ integration_test(
     filesystem = ":tc8-itf-pkg",
     tags = [
         "conformance",
+        "exclusive",
         "tc8",
     ],
     deps = _ITF_DEPS,
