@@ -20,6 +20,7 @@ config rendering on the QEMU guest.
 import logging
 import os
 import subprocess
+import time
 from typing import Generator
 
 import pytest
@@ -160,6 +161,17 @@ def tc8_itf_config_setup(target_init: object, dut_ip: str) -> None:
         svc_port,
         svc_tcp_port,
     )
+
+    # SSH readiness does not imply /opt (virtio disk) is mounted; wait for it.
+    probe = "test -f /opt/tc8_sd.json.tmpl"
+    deadline = time.monotonic() + 60
+    while target_init.execute(probe)[0] != 0 and time.monotonic() < deadline:
+        time.sleep(1)
+    if target_init.execute(probe)[0] != 0:
+        _logger.warning("/opt not ready after 60 s; trying mount /dev/vdb /opt")
+        target_init.execute("mount /dev/vdb /opt || sudo mount /dev/vdb /opt")
+        if target_init.execute(probe)[0] != 0:
+            pytest.fail("/opt/tc8_sd.json.tmpl missing on QEMU guest after 60 s wait and mount retry")
 
     for tmpl_name, out_name in [
         ("tc8_sd.json.tmpl", "tc8_sd.json"),
