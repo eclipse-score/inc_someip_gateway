@@ -575,17 +575,15 @@ OfferService entry has <code class="docutils literal notranslate"><span class="p
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that OfferService entries repeat at the configured
-<code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> (2000 ms ±20%) during the main phase.</p>
-<p><strong>Preconditions:</strong></p>
-<ul class="simple">
-<li><p>DUT in SD main phase (wait at least the total repetition period of 1400 ms).</p></li>
-</ul>
+Verify that in the main phase OfferService messages are sent cyclically.</p>
 <p><strong>Stimuli:</strong>
-None, passive observation with timestamps.</p>
+Receive an OfferService for the service. Wait TOTAL-REP-INTV (1.4 s) for the DUT
+to enter the main phase. Listen for two OfferService messages, up to
+CYCLE-INTV * 2 + ParamToleranceTime.</p>
 <p><strong>Expected Result:</strong>
-Inter-offer gaps in main phase are within [1600 ms, 2400 ms]. The OA bound is
-CYCLE-INTV ± ToleranceTime (default 1 s). This test applies ±20%, which is stricter.</p>
+The time between the first and the second OfferService is greater than
+CYCLE-INTV - ParamToleranceTime and less than CYCLE-INTV + ParamToleranceTime.
+CYCLE-INTV is <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> (2 s), ParamToleranceTime is 1 s by default.</p>
 </section>
 <section id="tc8-sd-004-findservice-known-service">
 <h3>TC8-SD-004: FindService Known Service<a class="headerlink" href="#tc8-sd-004-findservice-known-service" title="Link to this heading">#</a></h3>
@@ -748,39 +746,8 @@ Phase: about the base delay (200 ms), then about twice that (400 ms).</p>
 None, passive observation from DUT start.</p>
 <p><strong>Expected Result:</strong>
 First gap &lt; 1000 ms (half of <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> 2000 ms). Second gap
-400 ms ±20% (2 x <code class="docutils literal notranslate"><span class="pre">repetitions_base_delay</span></code> 200 ms).</p>
-</section>
-<section id="tc8-sd-010-repetition-count">
-<h3>TC8-SD-010: Repetition Count<a class="headerlink" href="#tc8-sd-010-repetition-count" title="Link to this heading">#</a></h3>
-<dl class="field-list simple">
-<dt class="field-odd">OA Spec Reference<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01 (doubling of the delay only; the repetition count is a project check)</p>
-</dd>
-<dt class="field-even">Test Module<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_phases_timing.py</span></code></p>
-</dd>
-<dt class="field-odd">Test Function<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">test_tc8_sd_010_repetition_count_before_main_phase</span></code></p>
-</dd>
-<dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_phases_timing</span></code></p>
-</dd>
-<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tc8_someipd_sd.json</span></code></p>
-</dd>
-</dl>
-<p><strong>Purpose:</strong>
-Verify at least <code class="docutils literal notranslate"><span class="pre">repetitions_max</span> <span class="pre">-</span> <span class="pre">1</span></code> short-gap offers before
-transition to main phase.</p>
-<p><strong>Preconditions:</strong></p>
-<ul class="simple">
-<li><p>Same as TC8-SD-009.</p></li>
-</ul>
-<p><strong>Stimuli:</strong>
-None, passive observation from DUT start.</p>
-<p><strong>Expected Result:</strong>
-At least 2 short gaps (&lt; 1000 ms) observed before a long gap (main phase). Each
-repetition gap is at least 1.5 times the previous one.</p>
+400 ms (2 x <code class="docutils literal notranslate"><span class="pre">repetitions_base_delay</span></code> 200 ms) within <code class="docutils literal notranslate"><span class="pre">ParamToleranceTimeMillisec</span></code>
+(default 100 ms), i.e. between 300 ms and 500 ms.</p>
 </section>
 <section id="tc8-sd-011-ipv4-endpoint-option">
 <h3>TC8-SD-011: IPv4 Endpoint Option<a class="headerlink" href="#tc8-sd-011-ipv4-endpoint-option" title="Link to this heading">#</a></h3>
@@ -1139,7 +1106,7 @@ SubscribeEventgroupAck with TTL &gt; 0.</p>
 <dd class="field-odd"><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_03</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_cyclic_timing</span></code></p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_mcast_rsp</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindServiceTiming::test_sd_behavior_03_unicast_findservice_timing</span></code></p>
@@ -1162,7 +1129,7 @@ within the listen time (<code class="docutils literal notranslate"><span class="
 <dd class="field-odd"><p>Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_04</p>
 </dd>
 <dt class="field-even">Requirement<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_cyclic_timing</span></code></p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_mcast_rsp</span></code></p>
 </dd>
 <dt class="field-odd">Test Function<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindServiceTiming::test_sd_behavior_04_multicast_findservice_timing</span></code></p>
@@ -1545,7 +1512,6 @@ trigger method).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-007-subscribe-unknown-eventgroup-nack">TC8-SD-007: Subscribe Unknown Eventgroup Nack</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-008-stopsubscribe-ceases-notifications">TC8-SD-008: StopSubscribe Ceases Notifications</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-009-repetition-phase-intervals">TC8-SD-009: Repetition Phase Intervals</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-010-repetition-count">TC8-SD-010: Repetition Count</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-011-ipv4-endpoint-option">TC8-SD-011: IPv4 Endpoint Option</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-013-multicast-eventgroup-option">TC8-SD-013: Multicast Eventgroup Option</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sd-014-ttl-expiry-cleanup">TC8-SD-014: TTL Expiry Cleanup</a></li>
