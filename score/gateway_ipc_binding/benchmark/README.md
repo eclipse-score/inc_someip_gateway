@@ -312,7 +312,6 @@ jq '. as $d | .pps[] | select(.tbk >= 625) |
 
 | Stage | Allocation Stack / Owner | Requested Bytes per Allocation | Blocks at 10k / 20k Events |
 |-------|--------------------------|--------------------------------|---------------------------|
-| Allocate adapter | `Provider_service_binding::Allocations::insert` -> `unordered_map::emplace` node | 128 | 10,000 / 20,000 |
 | Send notification | `NotifyEvent` -> `Executor::Post` -> `SimpleTaskFactory::Make` -> `InterruptibleState<void>::Make` | 464 | 10,000 / 20,000 |
 | Send notification | Same promise construction -> `safecpp::Scope` -> shared `ScopeState` | 208 | 10,000 / 20,000 |
 | Send notification | `SimpleTaskFactory::InternalMake` -> PMR `make_unique<SimpleTask>` | 72 | 10,000 / 20,000 |
@@ -320,19 +319,12 @@ jq '. as $d | .pps[] | select(.tbk >= 625) |
 | Notification worker cleanup | `ThreadPool::Work` -> assignment of a default-constructed `stop_source` | 144 | 10,000 / 20,000 |
 | Notification queue | `ThreadPool::Enqueue` -> `deque::emplace_back` -> deque node allocation | 512 | 625 / 1,250 |
 
-These sites account for **7 allocations plus 1/16 of a queue-block allocation,
+These sites account for **5 allocations plus 1/16 of a queue-block allocation,
 and 1,288 requested heap bytes per event**, averaged over these runs. Allocator
 metadata is additional. The queue keeps allocating even with one event in flight:
 a sliding `deque` releases old blocks and allocates new ones; it is not a reusable
 ring buffer. Other allocation sites are startup/teardown costs in these profiles.
 
-The allocation path is
-`allocate_event_payload` -> `Provider_service_binding::on_event_payload_allocate`
--> `GenericSkeletonEvent::Allocate` -> LoLa `SkeletonEvent::Allocate`.
-LoLa claims an existing shared-memory slot with `AllocateNextSlot`; no recurring
-heap allocation was attributed to that operation. The subsequent gateway map
-insertion allocates the 128-byte node. Reserving hash buckets alone will not
-remove node allocations.
 
 Transmission follows `update_event` -> `Provider_service_binding::on_event_update`
 -> `GenericSkeletonEvent::Send` -> LoLa `SkeletonEvent::Send` ->
@@ -361,17 +353,7 @@ Raw profiles, logs, the memusage graph, and the Massif text report are under
 
 ### Recommended Changes
 
-1. **Replace provider map-node churn with bounded reusable storage.** Allocate
-   sample-holder entries and a free list when setting up the skeleton, sized from
-   the deployed provider slot limits across its events (64 for this benchmark),
-   not merely the consumer's subscription limit. Use index-plus-generation
-   handles so a late payload destructor cannot free a reused entry, including
-   after skeleton recreation. Keep the existing weak lifetime guard, teardown
-   ordering, and normal backpressure on exhaustion. This removes one allocation
-   and 128 requested bytes per event in this build. `unordered_map::reserve` is
-   insufficient; a bounded recyclable node allocator is another option.
-
-2. **Make local notifications allocation-free upstream.** In `score_communication`,
+1. **Make local notifications allocation-free upstream.** In `score_communication`,
    retain asynchronous dispatch but use preallocated notification work, for
    example a bounded ready-event queue with per-event pending state and a
    dedicated worker. Coalescing must recheck/drain samples without losing a
@@ -383,7 +365,7 @@ Raw profiles, logs, the memusage graph, and the Massif text report are under
    need bounded reuse. Supplying a PMR resource only for `SimpleTask` and the
    queue does not cover the `make_shared` state allocations in these stacks.
 
-3. **Remove worker stop-state and queue churn upstream.** Clear an idle worker's
+2. **Remove worker stop-state and queue churn upstream.** Clear an idle worker's
    active-task state without default-constructing a fresh allocating stop source,
    preserving the shutdown/cancellation race protection. Replace the sliding
    deque with bounded reusable queue storage or a bounded recycling allocator.

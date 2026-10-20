@@ -14,11 +14,16 @@
 #include "provider_service_binding.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <string_view>
 #include <utility>
+#include <variant>
 
 #include "sample_layout.hpp"
 #include "score/gateway_ipc_binding/error.hpp"
+#include "score/mw/com/impl/configuration/lola_service_instance_deployment.h"
+#include "score/mw/com/impl/instance_identifier.h"
+#include "score/mw/com/impl/skeleton_base.h"
 #include "score/mw/log/logging.h"
 
 namespace score::gateway_ipc_binding::mw_com {
@@ -30,30 +35,63 @@ constexpr std::string_view kLog_tag{"[gateway_ipc_binding]"};
 
 }  // namespace
 
-std::size_t Provider_service_binding::Allocations::insert(
+void Provider_service_binding::Allocations::initialize(std::size_t const capacity) noexcept {
+    std::lock_guard const lock{m_mutex};
+    if (!m_entries.empty()) {
+        return;
+    }
+    m_entries.resize(capacity);
+    for (std::size_t index = 0U; index < capacity; ++index) {
+        m_entries[index].handle = index;
+        m_entries[index].next_free = index + 1U;
+    }
+}
+
+std::optional<std::size_t> Provider_service_binding::Allocations::insert(
     score::mw::com::SampleAllocateePtr<void> sample) noexcept {
     std::lock_guard const lock{m_mutex};
-    auto const slot_handle = m_next_slot_handle;
-    ++m_next_slot_handle;
-    m_in_flight.emplace(slot_handle, std::move(sample));
-    return slot_handle;
+    if (m_free_head == m_entries.size()) {
+        return std::nullopt;
+    }
+    auto& entry = m_entries[m_free_head];
+    m_free_head = entry.next_free;
+    entry.sample.emplace(std::move(sample));
+    return entry.handle;
 }
 
 std::optional<score::mw::com::SampleAllocateePtr<void>> Provider_service_binding::Allocations::take(
     std::size_t const slot_handle) noexcept {
     std::lock_guard const lock{m_mutex};
-    auto const entry = m_in_flight.find(slot_handle);
-    if (entry == m_in_flight.end()) {
+    if (m_entries.empty()) {
         return std::nullopt;
     }
-    auto sample = std::move(entry->second);
-    m_in_flight.erase(entry);
+    auto const index = slot_handle % m_entries.size();
+    auto& entry = m_entries[index];
+    if (!entry.sample.has_value() || entry.handle != slot_handle) {
+        return std::nullopt;
+    }
+    auto sample = std::move(entry.sample);
+    release(index);
     return sample;
+}
+
+void Provider_service_binding::Allocations::release(std::size_t const index) noexcept {
+    auto& entry = m_entries[index];
+    entry.sample.reset();
+    if (entry.handle <= std::numeric_limits<std::size_t>::max() - m_entries.size()) {
+        entry.handle += m_entries.size();
+        entry.next_free = m_free_head;
+        m_free_head = index;
+    }
 }
 
 void Provider_service_binding::Allocations::clear() noexcept {
     std::lock_guard const lock{m_mutex};
-    m_in_flight.clear();
+    for (std::size_t index = 0U; index < m_entries.size(); ++index) {
+        if (m_entries[index].sample.has_value()) {
+            release(index);
+        }
+    }
 }
 
 Provider_service_binding::Provider_service_binding(Service_config config) noexcept
@@ -138,6 +176,30 @@ Result<void> Provider_service_binding::create_skeleton() noexcept {
     if (!resolved.has_value()) {
         return resolved;
     }
+
+    auto const identifier =
+        score::mw::com::impl::SkeletonBaseView{*m_skeleton}.GetAssociatedInstanceIdentifier();
+    auto const& deployment =
+        score::mw::com::impl::InstanceIdentifierView{identifier}.GetServiceInstanceDeployment();
+    auto const* const lola =
+        std::get_if<score::mw::com::impl::LolaServiceInstanceDeployment>(&deployment.bindingInfo_);
+    if (lola == nullptr) {
+        return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
+    }
+    std::size_t capacity{0U};
+    for (auto const& event : m_config.events) {
+        auto const entry = lola->events_.find(event.name);
+        if (entry == lola->events_.end()) {
+            return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
+        }
+        auto const slots = entry->second.GetNumberOfSampleSlotsExcludingTracingSlot();
+        if (!slots.has_value() ||
+            slots.value() > std::numeric_limits<std::size_t>::max() - capacity) {
+            return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
+        }
+        capacity += slots.value();
+    }
+    m_allocations->initialize(capacity);
 
     return register_subscription_handlers();
 }
@@ -262,6 +324,7 @@ void Provider_service_binding::on_service_state_change(
     }
 
     if (!available) {
+        m_allocations->clear();
         m_skeleton->StopOfferService();
         // TODO this needs further inspection if the skeleton can delete shared memory while proxies
         // might still access it
@@ -282,7 +345,6 @@ void Provider_service_binding::on_service_state_change(
                                               << unset.error();
                 }
             }
-            m_allocations->clear();
             m_events.clear();
             m_skeleton.reset();
         } else {
@@ -377,7 +439,11 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
     }
 
     auto* const sample_base = static_cast<std::byte*>(sample.value().Get());
-    auto const slot_handle = m_allocations->insert(std::move(sample).value());
+    auto const inserted = m_allocations->insert(std::move(sample).value());
+    if (!inserted.has_value()) {
+        return MakeUnexpected(Shared_memory_manager_error::runtime_error_no_available_slots);
+    }
+    auto const slot_handle = inserted.value();
 
     return score::socom::Writable_payload{
         score::socom::Writable_payload::Writable_span{sample_base, event.addressed_sample_size}

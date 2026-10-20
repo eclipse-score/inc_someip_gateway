@@ -19,7 +19,6 @@
 #include <mutex>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "score/mw/com/types.h"
@@ -64,15 +63,22 @@ class Provider_service_binding final : public Service_binding {
     Provider_service_binding& operator=(Provider_service_binding&&) = delete;
 
    private:
-    /// \brief In-flight `Allocate()` results, keyed by the slot handle the binding mints.
+    friend class Provider_allocations_test;
+
+    /// \brief Bounded reusable `Allocate()` results, keyed by index-plus-generation handles.
     /// \details SOCom only hands a `Writable_payload` back to the binding, so the
     ///          `SampleAllocateePtr` has to be parked somewhere in between. It is held through a
     ///          `shared_ptr` and referenced weakly by the payload destructor, so that a payload
     ///          the producer drops after the binding is gone does not touch freed memory.
+    ///          Storage is sized once from provider deployment slots. Generations survive clear()
+    ///          and skeleton recreation; entries are retired rather than letting handles wrap.
     class Allocations {
        public:
+        void initialize(std::size_t capacity) noexcept;
+
         /// \brief Park a sample and mint the slot handle that identifies it
-        [[nodiscard]] std::size_t insert(score::mw::com::SampleAllocateePtr<void> sample) noexcept;
+        [[nodiscard]] std::optional<std::size_t> insert(
+            score::mw::com::SampleAllocateePtr<void> sample) noexcept;
 
         /// \brief Take a parked sample out, if it is still there
         [[nodiscard]] std::optional<score::mw::com::SampleAllocateePtr<void>> take(
@@ -82,9 +88,17 @@ class Provider_service_binding final : public Service_binding {
         void clear() noexcept;
 
        private:
+        struct Entry {
+            std::optional<score::mw::com::SampleAllocateePtr<void>> sample;
+            std::size_t handle{0U};
+            std::size_t next_free{0U};
+        };
+
+        void release(std::size_t index) noexcept;
+
         std::mutex m_mutex;
-        std::unordered_map<std::size_t, score::mw::com::SampleAllocateePtr<void>> m_in_flight;
-        std::size_t m_next_slot_handle{0U};
+        std::vector<Entry> m_entries;
+        std::size_t m_free_head{0U};
     };
 
     /// \brief Per-event state, indexed by socom::Event_id
