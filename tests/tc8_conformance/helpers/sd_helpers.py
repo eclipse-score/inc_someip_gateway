@@ -22,7 +22,6 @@ interface address instead.
 
 import socket
 import struct
-import sys
 import time
 from typing import List, NamedTuple, Optional, Tuple
 
@@ -47,10 +46,10 @@ def create_udp_socket(bind_addr: str = "", port: int = 0) -> socket.socket:
     return sock
 
 
-#: Linux kernel receive timestamps (SO_TIMESTAMPNS) give the packet arrival
-#: time, independent of when the test reads the socket. ``None`` elsewhere,
-#: where callers fall back to the time of the read.
-SO_TIMESTAMPNS: Optional[int] = getattr(socket, "SO_TIMESTAMPNS", 35) if sys.platform.startswith("linux") else None
+#: Kernel receive timestamps (SO_TIMESTAMPNS) give the packet arrival time,
+#: independent of when the test reads the socket. ``None`` where the platform
+#: does not expose it, in which case callers fall back to the time of the read.
+SO_TIMESTAMPNS: Optional[int] = getattr(socket, "SO_TIMESTAMPNS", None)
 
 
 def open_multicast_socket(
