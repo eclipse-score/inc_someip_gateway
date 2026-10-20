@@ -70,7 +70,7 @@ from helpers.constants import (
     SD_PORT,
     SERVICE_ID,
 )
-from helpers.timing import capture_sd_offers_with_timestamps
+from helpers.timing import collect_sd_offers_from_socket
 from helpers.someip_types import SOMEIPHeader, SOMEIPSDEntry, SOMEIPSDHeader
 
 #: SOME/IP stack config template used for all tests in this module.
@@ -89,6 +89,12 @@ _REQUEST_RESPONSE_DELAY_MS: float = 500.0
 
 #: ParamListenTime of the OA TC8 specification.
 _PARAM_LISTEN_TIME_SECS: float = 10.0
+
+#: ParamToleranceTime of the OA TC8 specification (default 1 s).
+_PARAM_TOLERANCE_TIME_SECS: float = 1.0
+
+#: TOTAL-REP-INTV: 200 + 400 + 800 ms from ``repetitions_base_delay`` and ``repetitions_max``.
+_TOTAL_REP_INTV_SECS: float = 1.4
 
 #: Minimum gap between two OfferService messages that marks the main phase.
 _MAIN_PHASE_MIN_GAP_SECS: float = _CYCLIC_OFFER_DELAY_MS * 0.75 / 1000.0
@@ -259,43 +265,34 @@ class TestSDOfferFormat:
         dut: subprocess.Popen[bytes],
         host_ip: str,
     ) -> None:
-        """TC8-SD-003: Offers repeat at cyclic_offer_delay ±20% in the main phase (stricter than the OA bound)."""
+        """SOMEIPSRV_SD_BEHAVIOR_02: In the main phase, two consecutive OfferService messages are
+        CYCLE-INTV apart, within ParamToleranceTime."""
         assert dut.poll() is None, "DUT is not running"
 
-        # Wait for main phase. Repetition phase ends ~1.5 s after first offer
-        # (200+400+800 ms doubling, repetitions_max=3).  Add one cyclic gap
-        # (2000 ms) to ensure we capture main-phase offers.
-        time.sleep(3.5)
-
-        # Capture enough offers to derive at least 2 inter-cycle gaps.
-        # The DUT may send multiple SD packets per cycle (service + eventgroup),
-        # so we capture extra and de-duplicate within a 500 ms window.
-        timed = capture_sd_offers_with_timestamps(host_ip, count=5, timeout_secs=15.0, instance_id=INSTANCE_ID)
-
-        service_offers = [(ts, e) for ts, e in timed if e.service_id == SERVICE_ID]
-        assert len(service_offers) >= 2, "TC8-SD-003: Not enough OfferService entries for timing analysis"
-
-        # De-duplicate: collapse offers within 500 ms into one cycle timestamp.
-        cycle_timestamps: list[float] = [service_offers[0][0]]
-        for ts, _ in service_offers[1:]:
-            if (ts - cycle_timestamps[-1]) * 1000.0 > 500:
-                cycle_timestamps.append(ts)
-
-        assert len(cycle_timestamps) >= 3, (
-            f"TC8-SD-003: Only {len(cycle_timestamps)} distinct cycles captured "
-            f"(need at least 3 for 2 gap measurements)"
-        )
-
-        lo_ms = _CYCLIC_OFFER_DELAY_MS * 0.80
-        hi_ms = _CYCLIC_OFFER_DELAY_MS * 1.20
-
-        for i in range(len(cycle_timestamps) - 1):
-            gap_ms = (cycle_timestamps[i + 1] - cycle_timestamps[i]) * 1000.0
-            assert lo_ms <= gap_ms <= hi_ms, (
-                f"TC8-SD-003: inter-offer gap {gap_ms:.0f} ms not in "
-                f"[{lo_ms:.0f}, {hi_ms:.0f}] ms "
-                f"(cyclic_offer_delay={_CYCLIC_OFFER_DELAY_MS:.0f} ms ±20%)"
+        cycle_secs = _CYCLIC_OFFER_DELAY_MS / 1000.0
+        mc_sock = open_multicast_socket(host_ip)
+        try:
+            collect_sd_offers_from_socket(
+                mc_sock, count=1, timeout_secs=_PARAM_LISTEN_TIME_SECS, instance_id=INSTANCE_ID
             )
+            time.sleep(_TOTAL_REP_INTV_SECS)
+            offers = collect_sd_offers_from_socket(
+                mc_sock,
+                count=2,
+                timeout_secs=cycle_secs * 2 + _PARAM_TOLERANCE_TIME_SECS,
+                instance_id=INSTANCE_ID,
+            )
+        finally:
+            mc_sock.close()
+
+        gap_secs = offers[1][0] - offers[0][0]
+        lower_secs = cycle_secs - _PARAM_TOLERANCE_TIME_SECS
+        upper_secs = cycle_secs + _PARAM_TOLERANCE_TIME_SECS
+        assert lower_secs < gap_secs < upper_secs, (
+            f"SOMEIPSRV_SD_BEHAVIOR_02: gap between two OfferService messages {gap_secs:.3f} s not in "
+            f"({lower_secs:.3f}, {upper_secs:.3f}) s (cyclic_offer_delay {cycle_secs:.3f} s "
+            f"+-{_PARAM_TOLERANCE_TIME_SECS:.1f} s)"
+        )
 
 
 class TestSDFindResponse:
@@ -1024,7 +1021,7 @@ class TestSDFindServiceTiming:
     """SOMEIPSRV_SD_BEHAVIOR_03-04: FindService answered with a multicast OfferService."""
 
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_cyclic_timing"],
+        fully_verifies=["comp_req__tc8_conformance__sd_find_mcast_rsp"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )
@@ -1063,7 +1060,7 @@ class TestSDFindServiceTiming:
         )
 
     @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_cyclic_timing"],
+        fully_verifies=["comp_req__tc8_conformance__sd_find_mcast_rsp"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
     )

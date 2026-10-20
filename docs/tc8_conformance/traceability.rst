@@ -75,9 +75,6 @@ Service Discovery
    * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01
      - TC8-SD-009
      - ``sd_phases_timing``
-   * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01 (doubling of the delay only; the repetition count is a project check)
-     - TC8-SD-010
-     - ``sd_phases_timing``
    * - Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07; Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08
      - TC8-SD-011
      - ``sd_endpoint_option``
@@ -133,10 +130,10 @@ SD Entry Semantics
      - ``sd_sub_lifecycle``
    * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_03
      - TC8-SDM-013
-     - ``sd_cyclic_timing``
+     - ``sd_find_mcast_rsp``
    * - Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_04
      - TC8-SDM-014
-     - ``sd_cyclic_timing``
+     - ``sd_find_mcast_rsp``
 
 SD Lifecycle Advanced
 ^^^^^^^^^^^^^^^^^^^^^^

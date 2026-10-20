@@ -98,19 +98,17 @@ TC8-SD-003: Cyclic Offer Timing
 :DUT Config: ``tc8_someipd_sd.json``
 
 **Purpose:**
-Verify that OfferService entries repeat at the configured
-``cyclic_offer_delay`` (2000 ms ±20%) during the main phase.
-
-**Preconditions:**
-
-- DUT in SD main phase (wait at least the total repetition period of 1400 ms).
+Verify that in the main phase OfferService messages are sent cyclically.
 
 **Stimuli:**
-None, passive observation with timestamps.
+Receive an OfferService for the service. Wait TOTAL-REP-INTV (1.4 s) for the DUT
+to enter the main phase. Listen for two OfferService messages, up to
+CYCLE-INTV * 2 + ParamToleranceTime.
 
 **Expected Result:**
-Inter-offer gaps in main phase are within [1600 ms, 2400 ms]. The OA bound is
-CYCLE-INTV ± ToleranceTime (default 1 s). This test applies ±20%, which is stricter.
+The time between the first and the second OfferService is greater than
+CYCLE-INTV - ParamToleranceTime and less than CYCLE-INTV + ParamToleranceTime.
+CYCLE-INTV is ``cyclic_offer_delay`` (2 s), ParamToleranceTime is 1 s by default.
 
 TC8-SD-004: FindService Known Service
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -236,30 +234,6 @@ None, passive observation from DUT start.
 First gap < 1000 ms (half of ``cyclic_offer_delay`` 2000 ms). Second gap
 400 ms (2 x ``repetitions_base_delay`` 200 ms) within ``ParamToleranceTimeMillisec``
 (default 100 ms), i.e. between 300 ms and 500 ms.
-
-TC8-SD-010: Repetition Count
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-:OA Spec Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01 (doubling of the delay only; the repetition count is a project check)
-:Test Module: ``test_sd_phases_timing.py``
-:Test Function: ``test_tc8_sd_010_repetition_count_before_main_phase``
-:Requirement: ``comp_req__tc8_conformance__sd_phases_timing``
-:DUT Config: ``tc8_someipd_sd.json``
-
-**Purpose:**
-Verify at least ``repetitions_max - 1`` short-gap offers before
-transition to main phase.
-
-**Preconditions:**
-
-- Same as TC8-SD-009.
-
-**Stimuli:**
-None, passive observation from DUT start.
-
-**Expected Result:**
-At least 2 short gaps (< 1000 ms) observed before a long gap (main phase). Each
-repetition gap is at least 1.5 times the previous one.
 
 TC8-SD-011: IPv4 Endpoint Option
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -542,7 +516,7 @@ TC8-SDM-013: FindService After Half Cyclic Offer Delay: Multicast Response
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_03
-:Requirement: ``comp_req__tc8_conformance__sd_cyclic_timing``
+:Requirement: ``comp_req__tc8_conformance__sd_find_mcast_rsp``
 :Test Function: ``TestSDFindServiceTiming::test_sd_behavior_03_unicast_findservice_timing``
 
 **Purpose:**
@@ -561,7 +535,7 @@ TC8-SDM-014: FindService With Unicast Flag Cleared: Multicast Response
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_04
-:Requirement: ``comp_req__tc8_conformance__sd_cyclic_timing``
+:Requirement: ``comp_req__tc8_conformance__sd_find_mcast_rsp``
 :Test Function: ``TestSDFindServiceTiming::test_sd_behavior_04_multicast_findservice_timing``
 
 **Purpose:**

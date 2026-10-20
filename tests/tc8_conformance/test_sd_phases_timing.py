@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-"""TC8 SD phase timing tests: TC8-SD-009 and TC8-SD-010.
+"""TC8 SD phase timing tests: TC8-SD-009.
 
 Verifies that ``someipd`` goes through the Repetition Phase (short intervals)
 before entering the Main Phase (long cyclic_offer_delay intervals).
@@ -39,7 +39,6 @@ SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 #: SD configuration values from ``tc8_someipd_sd.json``.
 _CYCLIC_OFFER_DELAY_MS: float = 2000.0
 _REPETITIONS_BASE_DELAY_MS: float = 200.0
-_REPETITIONS_MAX: int = 3
 
 #: OA ParamToleranceTimeMillisec (default 100 ms), applied to the second gap.
 _TOLERANCE_MILLISEC_MS: float = 100.0
@@ -103,7 +102,7 @@ def sd_phase_capture(
 
 
 class TestSDPhasesTiming:
-    """TC8-SD-009/010: Repetition Phase intervals and count."""
+    """TC8-SD-009: Repetition Phase intervals."""
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_phases_timing"],
@@ -134,40 +133,3 @@ class TestSDPhasesTiming:
             f"(2 x repetitions_base_delay {_REPETITIONS_BASE_DELAY_MS:.0f} ms) "
             f"+-{_TOLERANCE_MILLISEC_MS:.0f} ms. Measured gaps: {[round(g) for g in gaps_ms]} ms"
         )
-
-    @add_test_properties(
-        fully_verifies=["comp_req__tc8_conformance__sd_phases_timing"],
-        test_type="requirements-based",
-        derivation_technique="requirements-analysis",
-    )
-    def test_tc8_sd_010_repetition_count_before_main_phase(
-        self,
-        sd_phase_capture: List[Tuple[float, SOMEIPSDEntry]],
-    ) -> None:
-        """TC8-SD-010: Repetition Phase gaps grow, at least repetitions_max - 1 of them, before Main Phase.
-
-        The first offer may be missed due to a race between socket setup and
-        process startup, so ``repetitions_max - 1 = 2`` short gaps are required.
-        Short gaps must grow by at least 1.5x each (base delay doubles), and a
-        long gap must follow once five offers were captured.
-        """
-        service_offers = [(ts, e) for ts, e in sd_phase_capture if e.service_id == SERVICE_ID]
-        assert len(service_offers) >= 2, "TC8-SD-010: Not enough OfferService entries captured for phase counting"
-
-        gaps = [(service_offers[i + 1][0] - service_offers[i][0]) * 1000.0 for i in range(len(service_offers) - 1)]
-        cyclic_half_ms = _CYCLIC_OFFER_DELAY_MS * 0.5
-        short_gaps = [g for g in gaps if g < cyclic_half_ms]
-
-        # Allow repetitions_max - 1 to tolerate the first-offer capture race.
-        min_short_gaps = _REPETITIONS_MAX - 1
-        assert len(short_gaps) >= min_short_gaps, (
-            f"TC8-SD-010: Only {len(short_gaps)} Repetition Phase gap(s) observed; "
-            f"expected at least {min_short_gaps} "
-            f"(repetitions_max={_REPETITIONS_MAX}, tolerance: -1 for first-offer capture race)"
-        )
-        for prev, nxt in zip(short_gaps, short_gaps[1:]):
-            assert nxt >= prev * 1.5, f"TC8-SD-010: Repetition gaps do not grow: {[round(g) for g in short_gaps]} ms"
-        if len(gaps) >= _REPETITIONS_MAX + 1:
-            assert gaps[-1] >= cyclic_half_ms, (
-                f"TC8-SD-010: Last gap {gaps[-1]:.0f} ms is not a Main Phase gap (>= {cyclic_half_ms:.0f} ms)"
-            )

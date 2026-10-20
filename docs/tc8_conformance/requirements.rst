@@ -125,13 +125,30 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :security: NO
    :reqtype: Functional
 
-   The conformance test suite shall verify that ``someipd`` repeats
-   OfferService entries at the configured ``cyclic_offer_delay`` interval
-   (±20% tolerance) during the main phase of Service Discovery.
+   The conformance test suite shall verify that, in the main phase, two
+   consecutive OfferService messages of ``someipd`` are ``cyclic_offer_delay``
+   apart within the OA ParamToleranceTime.
 
-   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
-   Specification R24-11, section 5.1.4.1 (Startup Behavior, Main
-   Phase cyclic offer behavior).
+   Note: Traces to OA TC8 SOMEIPSRV_SD_BEHAVIOR_02.
+
+.. comp_req:: TC8 SD Multicast Response to FindService
+   :id: comp_req__tc8_conformance__sd_find_mcast_rsp
+   :status: valid
+   :version: 1
+   :tags: tc8, conformance, service_discovery, timing
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
+   :safety: QM
+   :security: NO
+   :reqtype: Functional
+
+   The conformance test suite shall verify that ``someipd`` answers a
+   FindService with a multicast OfferService, as defined by the OA tests
+   for a FindService received after half of ``cyclic_offer_delay`` and for
+   a FindService with the Unicast Flag cleared.
+
+   Note: Traces to OA TC8 SOMEIPSRV_SD_BEHAVIOR_03 and
+   SOMEIPSRV_SD_BEHAVIOR_04.
 
 .. comp_req:: TC8 SD FindService Response
    :id: comp_req__tc8_conformance__sd_find_response
@@ -202,14 +219,15 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    :security: NO
    :reqtype: Functional
 
-   The conformance test suite shall verify that ``someipd`` observes
-   the three SD phases: initial wait delay within ``[initial_delay_min,
-   initial_delay_max]``, repetition of offers ``repetitions_max`` times
-   at ``repetitions_base_delay`` intervals, and transition to main phase.
+   The conformance test suite shall verify that ``someipd`` doubles the
+   delay between offers in the Repetition Phase: the first gap is shorter
+   than half of ``cyclic_offer_delay`` and the second gap is twice
+   ``repetitions_base_delay`` within the OA tolerance.
 
-   Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
-   Specification R24-11, section 5.1.4.1 (Startup Behavior, Initial
-   Wait Phase, Repetition Phase, Main Phase).
+   Note: Traces to OA TC8 SOMEIPSRV_SD_BEHAVIOR_01 (Repetition Phase
+   delay doubling). The offer count (``repetitions_max``), the initial
+   wait delay and the main phase transition are not defined by this OA
+   test and are out of scope.
 
 .. comp_req:: TC8 SD IPv4 Endpoint Option Validation
    :id: comp_req__tc8_conformance__sd_endpoint_option
