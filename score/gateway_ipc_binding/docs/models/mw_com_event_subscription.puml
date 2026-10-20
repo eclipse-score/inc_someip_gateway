@@ -1,0 +1,47 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml mw_com_event_subscription
+title Bridged service: subscription
+
+box "providing daemon"
+participant "socom::Client_connector" as client_connector
+participant "Provider_service_binding" as provider
+end box
+participant "mw::com::GenericSkeleton" as skeleton
+participant "mw::com::GenericProxy" as proxy
+box "consuming daemon"
+participant "Consumer_service_binding" as consumer
+participant "socom::Enabled_server_connector" as server_connector
+end box
+
+== The first local application subscribes ==
+server_connector -> consumer : on_event_subscription_change(event, subscribed)
+consumer -> proxy : Subscribe(max_sample_count)
+consumer -> proxy : SetReceiveHandler(handler)
+alt both succeed
+  proxy ->> skeleton : receive handler registered
+  skeleton -> provider : registration-changed handler(true)
+  provider -> client_connector : subscribe_event(event), if available
+else Subscribe() or SetReceiveHandler() fails, only logged
+  consumer -> proxy : Unsubscribe(), if only SetReceiveHandler() failed
+end
+
+== The last local application unsubscribes ==
+server_connector -> consumer : on_event_subscription_change(event, not_subscribed)
+consumer -> proxy : UnsetReceiveHandler()
+consumer -> proxy : Unsubscribe()
+proxy ->> skeleton : receive handler removed
+skeleton -> provider : registration-changed handler(false)
+provider -> client_connector : unsubscribe_event(event)
+@enduml
