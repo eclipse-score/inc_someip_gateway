@@ -750,15 +750,22 @@ as it is today.</p>
 </section>
 <section id="event-sizes">
 <span id="id1"></span><h3>Event sizes<a class="headerlink" href="#event-sizes" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sizes every event. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> takes every size from <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and configures 0. The sizes
-reach it two ways:</p>
+<p>Only <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> knows the event sizes, from its generated serializers. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is type-agnostic and
+configures <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code> as 0. In <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>, the <code class="docutils literal notranslate"><span class="pre">Role::provider</span></code> side allocates the shared-memory
+sample slots when it creates the <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code>, so the provider needs the size up front. How <code class="docutils literal notranslate"><span class="pre">someipd</span></code>
+gets the size depends on which daemon provides the bridged service:</p>
 <ul class="simple">
-<li><p><strong>consumer side</strong>: the binding adopts the peer’s <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::GetDataTypeSizeInfo().Size()</span></code> minus
-the prefix when it attaches. A peer below the configured size leaves the service unavailable.</p></li>
-<li><p><strong>provider side</strong> of <code class="docutils literal notranslate"><span class="pre">someipd</span></code>: <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> carries <code class="docutils literal notranslate"><span class="pre">{service</span> <span class="pre">ID,</span> <span class="pre">event</span> <span class="pre">ID,</span> <span class="pre">size}</span></code> for
-every event of the calling <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s consumer-role services, at most 1024, in any order. A call MUST
-have exactly one size per event of the provider-role services it adds to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>. Otherwise
-<code class="docutils literal notranslate"><span class="pre">someipd</span></code> rejects it and logs it.</p></li>
+<li><p><strong>gatewayd provides, someipd consumes</strong>: <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> creates the <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> with its configured
+size. When <code class="docutils literal notranslate"><span class="pre">someipd</span></code>’s <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> attaches to the peer, it reads the sample size from
+<code class="docutils literal notranslate"><span class="pre">GenericProxyEvent::GetDataTypeSizeInfo().Size()</span></code> and subtracts <code class="docutils literal notranslate"><span class="pre">kSample_prefix_size</span></code>. On any consumer, if
+the peer’s sample size is smaller than the configured <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code>, the binding logs an error and
+leaves the service unavailable.</p></li>
+<li><p><strong>someipd provides, gatewayd consumes</strong>: <code class="docutils literal notranslate"><span class="pre">someipd</span></code> must size its <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> before <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>
+attaches to it. <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> therefore sends <code class="docutils literal notranslate"><span class="pre">{service_id,</span> <span class="pre">event_id,</span> <span class="pre">max_payload_size}</span></code> for every event of
+its <code class="docutils literal notranslate"><span class="pre">Role::consumer</span></code> services in <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> (at most 1024 events, in any order). Those
+services are <code class="docutils literal notranslate"><span class="pre">Role::provider</span></code> services in <code class="docutils literal notranslate"><span class="pre">someipd</span></code>. The call MUST supply one size for every provider
+event it adds to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, with no missing, unknown, or duplicate events. Otherwise <code class="docutils literal notranslate"><span class="pre">someipd</span></code> rejects
+the call and logs an error.</p></li>
 </ul>
 </section>
 <section id="services-of-a-gatewayd">
