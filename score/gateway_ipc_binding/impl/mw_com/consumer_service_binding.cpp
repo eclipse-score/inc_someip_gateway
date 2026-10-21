@@ -422,7 +422,8 @@ void Consumer_service_binding::on_samples_available(
                 // Owning the SamplePtr here is what returns the slot to LoLa once the receiving
                 // application is done with the payload. It is boxed because a SamplePtr does not
                 // fit into the inline storage of socom::Payload::Payload_destroyed.
-                [sample = std::move(sample)]() noexcept {}};
+                [sample = std::make_unique<score::mw::com::SamplePtr<void>>(
+                     std::move(sample))]() noexcept {}};
 
             auto const updated = m_enabled_connector->update_event(event_id, std::move(payload));
             if (!updated.has_value()) {
