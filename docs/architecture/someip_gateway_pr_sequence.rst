@@ -28,20 +28,20 @@ them, outside the ASIL-B ``gatewayd`` boundary.
 Incubator Work (Not Counted)
 ----------------------------
 
-* **#342, merged:** establishes the full-message read-only payload view and
+* **`#342 <https://github.com/eclipse-score/inc_someip_gateway/pull/342>`_, merged:** establishes the full-message read-only payload view and
   writable allocation API; it also changes the mw::com bridge sample layout.
-* **#322:** separates service identity, versioning, and discovery
+* **`#322 <https://github.com/eclipse-score/inc_someip_gateway/pull/322>`_:** separates service identity, versioning, and discovery
   filters, and updates callers. Port the accepted API and ``gatewayd``-relevant
   changes only; exclude ``someipd`` call sites.
-* **SOCom simplification refactor, still needed:** after resolving #322's API,
+* **SOCom simplification refactor (`#335 <https://github.com/eclipse-score/inc_someip_gateway/issues/335>`_), still needed:** after resolving `#322 <https://github.com/eclipse-score/inc_someip_gateway/pull/322>`_'s API,
   remove the competing public frontend and features the gateway does not need,
   while preserving and stabilizing the required communication-protocol
   behavior. This is an incubator prerequisite, not one of the seven
   Communication PRs.
-* **#291, merged / #348:** #291 introduced the mw::com bridge; #348
-  wires both daemons to it. Use the ``gatewayd`` wiring from #348 as migration
-  input; do not port its ``someipd`` changes in this sequence.
-* **#345/#346:** configurable IPC test setup and startup/event diagrams; useful
+* **`#291 <https://github.com/eclipse-score/inc_someip_gateway/pull/291>`_, merged / `#348 <https://github.com/eclipse-score/inc_someip_gateway/pull/348>`_:** `#291 <https://github.com/eclipse-score/inc_someip_gateway/pull/291>`_ introduced the mw::com bridge; `#348 <https://github.com/eclipse-score/inc_someip_gateway/pull/348>`_
+   wires both daemons to it. Use the ``gatewayd`` wiring from `#348 <https://github.com/eclipse-score/inc_someip_gateway/pull/348>`_ as migration
+   input; do not port its ``someipd`` changes in this sequence.
+* **`#345 <https://github.com/eclipse-score/inc_someip_gateway/pull/345>`_ / `#346 <https://github.com/eclipse-score/inc_someip_gateway/pull/346>`_:** configurable IPC test setup and startup/event diagrams; useful
   support, not code that needs a Communication port PR.
 
 Communication PRs
@@ -49,13 +49,13 @@ Communication PRs
 
 1. **``feat(socom): add payload records``**
 
-   Port #342's full-message read-only view and writable allocation contract as
+   Port `#342 <https://github.com/eclipse-score/inc_someip_gateway/pull/342>`_'s full-message read-only view and writable allocation contract as
    internal protocol types, with payload ownership tests; do not create a
    second application-facing API.
 
 2. **``feat(socom): add service identity and discovery``**
 
-   Port #322's service/version identity and discovery-filter semantics as
+   Port `#322 <https://github.com/eclipse-score/inc_someip_gateway/pull/322>`_'s service/version identity and discovery-filter semantics as
    internal protocol behavior, plus required ``gatewayd`` call-site changes;
    exclude ``someipd`` call sites.
 
@@ -73,7 +73,7 @@ Communication PRs
 
 5. **``feat(mw/com/gateway): add LoLa bridge backend``**
 
-   Port the mw::com provider/consumer event bridge from #291 and apply #342's
+   Port the mw::com provider/consumer event bridge from `#291 <https://github.com/eclipse-score/inc_someip_gateway/pull/291>`_ and apply `#342 <https://github.com/eclipse-score/inc_someip_gateway/pull/342>`_'s
    sample-layout changes; include focused backend tests.
 
 6. **``feat(mw/com/gateway): add gateway configuration and serializer``**
