@@ -11,12 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // *******************************************************************************
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <csignal>
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <string_view>
 #include <thread>
 
 #include "score/filesystem/path.h"
@@ -30,9 +32,19 @@
 namespace {
 using Payload =
     score::someip_gateway::serializer::PreSerializedData<tc8_ets_service::kMaxPayloadBytes>;
+
+bool IsInitialField(std::string_view name) {
+    const auto& fields = tc8_ets_service::kInitialFields;
+    return std::find(fields.cbegin(), fields.cend(), name) != fields.cend();
+}
 }  // namespace
 
 constexpr std::string_view kInstanceSpecifier{"tc8/tc8_service"};
+// Second instance of the service, offered without events being sent.
+constexpr std::string_view kInstanceSpecifier2{"tc8/tc8_service_2"};
+
+// Delay before the initial fields are published, so the gateway has subscribed by then.
+constexpr std::chrono::seconds kInitialFieldsDelay{2};
 
 static std::atomic<bool> g_shutdown_requested{false};
 
@@ -76,22 +88,49 @@ int main(int argc, char* argv[]) {
     }
     auto& skeleton = skeleton_result.value();
 
+    const auto specifier_2_result =
+        score::mw::com::InstanceSpecifier::Create(std::string{kInstanceSpecifier2});
+    if (!specifier_2_result.has_value()) {
+        score::mw::log::LogError()
+            << "[tc8_ets_stub] Failed to create InstanceSpecifier for tc8/tc8_service_2";
+        return 1;
+    }
+    auto skeleton_2_result =
+        score::mw::com::GenericSkeleton::Create(specifier_2_result.value(), create_params);
+    if (!skeleton_2_result.has_value()) {
+        score::mw::log::LogError()
+            << "[tc8_ets_stub] GenericSkeleton::Create failed for tc8/tc8_service_2";
+        return 1;
+    }
+    auto& skeleton_2 = skeleton_2_result.value();
+
     const auto offer_result = skeleton.OfferService();
     if (!offer_result.has_value()) {
         score::mw::log::LogError() << "[tc8_ets_stub] OfferService() failed";
+        return 1;
+    }
+    if (!skeleton_2.OfferService().has_value()) {
+        score::mw::log::LogError() << "[tc8_ets_stub] OfferService() failed for tc8/tc8_service_2";
         return 1;
     }
     score::mw::log::LogInfo()
         << "[tc8_ets_stub] tc8_service offered, sending periodic notifications";
 
     auto events_view = skeleton.GetEvents();
-    auto last_notify_time = std::chrono::steady_clock::now();
+    const auto start_time = std::chrono::steady_clock::now();
+    auto last_notify_time = start_time;
+    bool initial_fields_published = false;
 
     while (!g_shutdown_requested.load()) {
         auto now = std::chrono::steady_clock::now();
         if (now - last_notify_time >= std::chrono::milliseconds(500)) {
             last_notify_time = now;
+            const bool publish_initial_fields =
+                !initial_fields_published && (now - start_time >= kInitialFieldsDelay);
             for (const score::mw::com::EventInfo& ev_info : tc8_ets_service::kEvents) {
+                if (IsInitialField(ev_info.name) && !publish_initial_fields) {
+                    continue;
+                }
                 auto it = events_view.find(ev_info.name);
                 if (it == events_view.cend()) {
                     continue;
@@ -107,11 +146,13 @@ int main(int argc, char* argv[]) {
                 pre_data->data[0] = std::byte{0x01};
                 (void)event.Send(std::move(sample));
             }
-            score::mw::log::LogDebug() << "[tc8_ets_stub] notified all events";
+            initial_fields_published = initial_fields_published || publish_initial_fields;
+            score::mw::log::LogDebug() << "[tc8_ets_stub] notified events";
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
+    skeleton_2.StopOfferService();
     skeleton.StopOfferService();
     score::mw::log::LogInfo() << "[tc8_ets_stub] StopOfferService done; exiting";
     return 0;
