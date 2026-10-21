@@ -689,7 +689,7 @@ itself rather than any SOME/IP service:</p>
 accepted <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> on it. It returns to false when the find-service handler reports the
 instance gone.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> calls <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> with its services on every new proxy, so a restarted
-<code class="docutils literal notranslate"><span class="pre">someipd</span></code> gets them again. See <a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Services of a gatewayd</span></a>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> gets them again. See <a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Registering gatewayd services with someipd</span></a>.</p></li>
 </ul>
 <p>Properties of this design:</p>
 <ul class="simple">
@@ -768,28 +768,35 @@ event it adds to <code class="docutils literal notranslate"><span class="pre">so
 the call and logs an error.</p></li>
 </ul>
 </section>
-<section id="services-of-a-gatewayd">
-<span id="gatewayd-services"></span><h3>Services of a gatewayd<a class="headerlink" href="#services-of-a-gatewayd" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> has no service configuration of its own. Each <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> hands it its services:</p>
+<section id="registering-gatewayd-services-with-someipd">
+<span id="gatewayd-services"></span><h3>Registering gatewayd services with someipd<a class="headerlink" href="#registering-gatewayd-services-with-someipd" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> starts with no service configuration of its own. Instead, each <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> registers its services
+at runtime via <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sends the flatbuffer bytes of its <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> and its event sizes in one
-<code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> call. The argument is fixed in size. It carries at most 64 KiB of
-configuration. <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> fails at startup if its configuration is larger.</p></li>
-<li><p>the binding doesn’t read the bytes. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> checks them with the flatbuffers <code class="docutils literal notranslate"><span class="pre">Verifier</span></code>. It builds
-the bridged services with <code class="docutils literal notranslate"><span class="pre">bridged_service_configs()</span></code> and its network services from the same bytes,
-which it keeps for as long as the services.</p></li>
-<li><p>a call is set up completely or not at all. If a step fails, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> destroys the bindings the call
-created and returns false. The mw::com deployment of a rejected call stays until <code class="docutils literal notranslate"><span class="pre">someipd</span></code> restarts,
-because mw::com can’t remove one. That <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> logs it and stays disconnected.</p></li>
-<li><p>a call with the same bytes and sizes as an accepted call is accepted and changes nothing. That is what a
-restarted <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sends.</p></li>
-<li><p>any other call with a service ID of an accepted call is rejected. A service belongs to one <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>,
-and a <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> can’t change its services while <code class="docutils literal notranslate"><span class="pre">someipd</span></code> runs.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> keeps the services of a <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> that stops.</p></li>
-<li><p>the handler runs on the LoLa message passing thread. Consumer-role services start their service discovery
-on a separate thread once the call is accepted. <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code> can wait for the service discovery
-lock, and the proxy it creates can send messages that only the message passing thread delivers. If that
-start fails, it is logged and the service stays unavailable.</p></li>
+<li><p><strong>Payload</strong>: <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sends the raw FlatBuffers bytes of its <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> (up to 64 KiB) together
+with its consumer event sizes in a single fixed-size <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> call. <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> fails at
+startup if its configuration exceeds 64 KiB.</p></li>
+<li><p><strong>Setup in someipd</strong>: the IPC binding treats the configuration bytes as opaque and passes them to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>’s
+handler. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> validates the buffer with the FlatBuffers <code class="docutils literal notranslate"><span class="pre">Verifier</span></code>, builds the IPC bridged services
+via <code class="docutils literal notranslate"><span class="pre">bridged_service_configs()</span></code>, and creates its SOME/IP network services from the same buffer, keeping the
+buffer alive for as long as the services exist.</p></li>
+<li><p><strong>All-or-nothing rollback</strong>: if any step fails, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> destroys the service bindings created during the
+call and returns <code class="docutils literal notranslate"><span class="pre">false</span></code>. <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> logs the failure and stays disconnected. Any <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> deployment
+already registered with <code class="docutils literal notranslate"><span class="pre">runtime::AddConfiguration</span></code> stays in <code class="docutils literal notranslate"><span class="pre">someipd</span></code> until <code class="docutils literal notranslate"><span class="pre">someipd</span></code> restarts, because
+<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> cannot remove a configuration.</p></li>
+<li><p><strong>Restarts and ownership</strong>: <code class="docutils literal notranslate"><span class="pre">someipd</span></code> keeps a <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s services alive when that <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> stops.
+When a restarted <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> reconnects and sends the exact same configuration bytes and event sizes,
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> accepts the call immediately without recreating the services. Any <em>different</em> call that reuses a
+<code class="docutils literal notranslate"><span class="pre">service_id</span></code> from an already-accepted call is rejected: each service belongs to one <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and cannot
+change while <code class="docutils literal notranslate"><span class="pre">someipd</span></code> runs.</p></li>
+<li><p><strong>Starting service discovery for consumer services</strong>: every <code class="docutils literal notranslate"><span class="pre">Role::consumer</span></code> service
+(<code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code>) calls <code class="docutils literal notranslate"><span class="pre">GenericProxy::StartFindService</span></code> to discover when the peer daemon’s
+<code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> offers that service. In <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>, <code class="docutils literal notranslate"><span class="pre">create_client()</span></code> calls <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code>
+directly on the startup thread. In <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, services are created inside the <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code>
+handler on an <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> message-passing thread, which must not call <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code>. <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code>
+therefore posts <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code> for <code class="docutils literal notranslate"><span class="pre">someipd</span></code>’s <code class="docutils literal notranslate"><span class="pre">Role::consumer</span></code> services (services flowing from
+<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>) to a dedicated worker thread once the call is accepted. If that fails, the
+binding logs the error and leaves the service unavailable.</p></li>
 </ul>
 </section>
 <section id="availability-propagation">
@@ -877,7 +884,7 @@ the binding that touches a typed proxy or skeleton.</p></li>
 <li><p>Setting a bridged service up is all-or-nothing: if any entry of <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> fails,
 <code class="docutils literal notranslate"><span class="pre">create_client()</span></code> returns <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> instead of leaving a link that silently carries only part of the
 configured services. On the <code class="docutils literal notranslate"><span class="pre">someipd</span></code> side <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> returns false, see
-<a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Services of a gatewayd</span></a>.</p></li>
+<a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Registering gatewayd services with someipd</span></a>.</p></li>
 </ul>
 <p>What is gone compared to <a class="reference internal" href="index.html"><span class="doc">Gateway IPC Binding</span></a>:</p>
 <ul class="simple">
@@ -917,7 +924,7 @@ also go back to false, when the peer stops.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server::start()</span></code></p></td>
 <td><p>Offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>. Bridged services follow <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code>, see
-<a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Services of a gatewayd</span></a>. Returns the first error encountered. Calling it twice returns an error, as
+<a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Registering gatewayd services with someipd</span></a>. Returns the first error encountered. Calling it twice returns an error, as
 today.</p></td>
 </tr>
 </tbody>
@@ -1001,7 +1008,7 @@ ones are released.</p>
 </li>
 <li><p>Neither a SOCom callback nor a <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> handler may block. The binding does no I/O and no allocation
 beyond the in-flight table inside them. The <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> handler is the exception: it sets
-up services, but never waits for a reply, see <a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Services of a gatewayd</span></a>.</p></li>
+up services, but never waits for a reply, see <a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Registering gatewayd services with someipd</span></a>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GetNewSamples</span></code> must not run concurrently for the same <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent</span></code>. Because the only caller is
 the receive handler registered for that event, and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> serialises those, this holds without extra
 locking; the mutex is still taken for the SOCom-visible state.</p></li>
@@ -1049,27 +1056,32 @@ command line option:</p>
 shared memory.</p>
 <section id="bridged-deployment">
 <span id="id3"></span><h3>Bridged deployment<a class="headerlink" href="#bridged-deployment" title="Link to this heading">#</a></h3>
-<p>Each daemon builds its bridged services from <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> with <code class="docutils literal notranslate"><span class="pre">bridged_service_configs()</span></code> of
-<code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code>: <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> from its own file, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> from what each <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sends, see
-<a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Services of a gatewayd</span></a>. The binding adds their deployment to its own <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> runtime with
-<code class="docutils literal notranslate"><span class="pre">runtime::AddConfiguration</span></code>.</p>
+<p>Bridged services are not listed in <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code>. Instead, each daemon builds its <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code>
+from <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> using <code class="docutils literal notranslate"><span class="pre">bridged_service_configs()</span></code> in <code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code>: <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>
+builds them from its own file, and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> builds them from the bytes each <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> sends, see
+<a class="reference internal" href="#gatewayd-services"><span class="std std-ref">Registering gatewayd services with someipd</span></a>. The binding then synthesizes their <code class="docutils literal notranslate"><span class="pre">serviceTypes</span></code> and <code class="docutils literal notranslate"><span class="pre">serviceInstances</span></code> entries
+and registers them at runtime with <code class="docutils literal notranslate"><span class="pre">mw::com::runtime::AddConfiguration</span></code>:</p>
 <ul class="simple">
-<li><p>the service type and instance specifier are <code class="docutils literal notranslate"><span class="pre">bridged_ipc/&lt;service_type_name&gt;</span></code>, so they cannot collide
-with the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to application instances</p></li>
-<li><p>the service ID is the SOME/IP service ID, the event IDs are the SOME/IP event IDs</p></li>
-<li><p>the instance ID is <code class="docutils literal notranslate"><span class="pre">ipc_instance_id</span></code> of <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code>, by default 0xFFFF, the SOME/IP “any
-instance” ID. All <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> instances of a <code class="docutils literal notranslate"><span class="pre">someipd</span></code> MUST use the same value. A host with more than
-one <code class="docutils literal notranslate"><span class="pre">someipd</span></code> needs a different one per <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">numberOfSampleSlots</span></code> is <code class="docutils literal notranslate"><span class="pre">kNumber_of_sample_slots</span></code>, see <a class="reference internal" href="#sample-layout"><span class="std std-ref">Event sample layout</span></a>, and <code class="docutils literal notranslate"><span class="pre">maxSubscribers</span></code>
-is 1. There is exactly one peer daemon per instance.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">asil-level</span></code> is <code class="docutils literal notranslate"><span class="pre">QM</span></code>. <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is a QM component, so these instances are QM on both ends even though
-<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is ASIL-B. This is precisely why the SOME/IP header travels with the payload: E2E is what makes
-the QM data usable in the ASIL-B context.</p></li>
-<li><p>an instance specifier that <code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code> already lists keeps that deployment. <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>
-terminates on a duplicate or malformed entry, so the binding validates every service first.</p></li>
+<li><p><strong>Naming</strong>: both <code class="docutils literal notranslate"><span class="pre">serviceTypeName</span></code> and <code class="docutils literal notranslate"><span class="pre">instanceSpecifier</span></code> are <code class="docutils literal notranslate"><span class="pre">bridged_ipc/&lt;service_type_name&gt;</span></code> (with
+version <code class="docutils literal notranslate"><span class="pre">1.0</span></code>), so they cannot collide with the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>-to-application instances.</p></li>
+<li><p><strong>IDs</strong>: <code class="docutils literal notranslate"><span class="pre">serviceId</span></code> and <code class="docutils literal notranslate"><span class="pre">eventId</span></code> are taken directly from the SOME/IP <code class="docutils literal notranslate"><span class="pre">service_id</span></code> and <code class="docutils literal notranslate"><span class="pre">event_id</span></code> in
+<code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code>.</p></li>
+<li><p><strong>Instance ID</strong>: <code class="docutils literal notranslate"><span class="pre">instanceId</span></code> is <code class="docutils literal notranslate"><span class="pre">ipc_instance_id</span></code> from <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code>, which defaults to <code class="docutils literal notranslate"><span class="pre">0xFFFF</span></code>
+(the SOME/IP “any instance” ID) to avoid colliding with local application instance IDs. All <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>
+instances of the same <code class="docutils literal notranslate"><span class="pre">someipd</span></code> MUST use the same <code class="docutils literal notranslate"><span class="pre">ipc_instance_id</span></code>; a host running more than one
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code> needs a distinct value per <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></li>
+<li><p><strong>Sample slots and subscribers</strong>: <code class="docutils literal notranslate"><span class="pre">numberOfSampleSlots</span></code> is <code class="docutils literal notranslate"><span class="pre">kNumber_of_sample_slots</span></code> (20, see
+<a class="reference internal" href="#sample-layout"><span class="std std-ref">Event sample layout</span></a>) and <code class="docutils literal notranslate"><span class="pre">maxSubscribers</span></code> is <code class="docutils literal notranslate"><span class="pre">1</span></code>, because only the single peer daemon subscribes.</p></li>
+<li><p><strong>ASIL level</strong>: <code class="docutils literal notranslate"><span class="pre">asil-level</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;QM&quot;</span></code>, because <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is a QM process and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> requires both
+ends of a shared-memory instance to use <code class="docutils literal notranslate"><span class="pre">&quot;QM&quot;</span></code> when either peer is QM.</p></li>
+<li><p><strong>Validation and existing entries</strong>: <code class="docutils literal notranslate"><span class="pre">mw::com::runtime::AddConfiguration</span></code> terminates the process on a
+duplicate or malformed entry. <code class="docutils literal notranslate"><span class="pre">add_to_mw_com_runtime()</span></code> therefore validates every <code class="docutils literal notranslate"><span class="pre">Service_config</span></code> first,
+checks <code class="docutils literal notranslate"><span class="pre">runtime::ResolveInstanceIDs</span></code>, keeps any <code class="docutils literal notranslate"><span class="pre">instanceSpecifier</span></code> already present in
+<code class="docutils literal notranslate"><span class="pre">mw_com_config.json</span></code>, and adds only the missing ones.</p></li>
 </ul>
-<p>The sample size comes from the binding configuration, see <a class="reference internal" href="#event-sizes"><span class="std std-ref">Event sizes</span></a>. On the provider side the binding
-checks that <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::GetSizeInfo()</span></code> matches it and fails setup on mismatch.</p>
+<p>Event sample sizes are not part of the JSON deployment; they come from <code class="docutils literal notranslate"><span class="pre">Service_config</span></code> (see
+<a class="reference internal" href="#event-sizes"><span class="std std-ref">Event sizes</span></a>) and are passed to <code class="docutils literal notranslate"><span class="pre">GenericSkeleton::Create</span></code>. On the provider side, the binding checks
+that <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::GetSizeInfo().size</span></code> matches <code class="docutils literal notranslate"><span class="pre">sample_size(event)</span></code> and fails setup on mismatch.</p>
 </section>
 </section>
 <section id="known-gaps">
@@ -1170,7 +1182,7 @@ upstream re-offer problem described under <a class="reference internal" href="#k
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-sample-layout">Event sample layout</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-sizes">Event sizes</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#services-of-a-gatewayd">Services of a gatewayd</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#registering-gatewayd-services-with-someipd">Registering gatewayd services with someipd</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#availability-propagation">Availability propagation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#subscription-propagation">Subscription propagation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#payload-lifetime-and-flow-control">Payload lifetime and flow control</a></li>
