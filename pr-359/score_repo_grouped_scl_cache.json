@@ -33,23 +33,6 @@
         }
       },
       {
-        "need": "comp_req__tc8_conformance__sd_phases_timing",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
-              "file": "tests/tc8_conformance/test_sd_phases_timing.py",
-              "line": 107,
-              "need": "comp_req__tc8_conformance__sd_phases_timing",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
         "need": "comp_req__tc8_conformance__sd_offer_format",
         "links": {
           "CodeLinks": [],
@@ -395,6 +378,23 @@
               "line": 1406,
               "need": "comp_req__tc8_conformance__sd_ttl_expiry",
               "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "comp_req__tc8_conformance__sd_phases_timing",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
+              "file": "tests/tc8_conformance/test_sd_phases_timing.py",
+              "line": 107,
+              "need": "comp_req__tc8_conformance__sd_phases_timing",
+              "verify_type": "fully",
               "result": "passed",
               "result_text": ""
             }
