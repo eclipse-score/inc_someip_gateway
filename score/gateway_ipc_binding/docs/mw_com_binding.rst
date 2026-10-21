@@ -266,18 +266,16 @@ Two alternatives were considered and rejected:
   SOME/IP, which it deliberately does not do today, and the field is currently not filled in by ``gatewayd``.
 - one ``mw::com`` event per length class. That multiplies the deployment configuration and gains nothing.
 
-``gatewayd`` sizes ``max_payload_size`` for a full SOME/IP message; the binding stays SOME/IP agnostic, exactly
-as it is today.
-
 .. _event-sizes:
 
 Event sizes
 ~~~~~~~~~~~
 
-Only ``gatewayd`` knows the event sizes, from its generated serializers. ``someipd`` is type-agnostic and
-configures ``max_payload_size`` as 0. In ``mw::com``, the ``Role::provider`` side allocates the shared-memory
-sample slots when it creates the ``GenericSkeleton``, so the provider needs the size up front. How ``someipd``
-gets the size depends on which daemon provides the bridged service:
+Only ``gatewayd`` knows the event sizes (serialized payload plus SOME/IP header), from its generated
+serializers. ``someipd`` is type-agnostic and configures ``max_payload_size`` as 0. In ``mw::com``, the
+``Role::provider`` side allocates the shared-memory sample slots when it creates the ``GenericSkeleton``, so
+the provider needs the size up front. How ``someipd`` gets the size depends on which daemon provides the
+bridged service:
 
 - **gatewayd provides, someipd consumes**: ``gatewayd`` creates the ``GenericSkeleton`` with its configured
   size. When ``someipd``'s ``Consumer_service_binding`` attaches to the peer, it reads the sample size from
@@ -300,8 +298,8 @@ Registering gatewayd services with someipd
 at runtime via ``AddServiceConfiguration``:
 
 - **Payload**: ``gatewayd`` sends the raw FlatBuffers bytes of its ``mw_someip_config`` (up to 64 KiB) together
-  with its consumer event sizes in a single fixed-size ``AddServiceConfiguration`` call. ``gatewayd`` fails at
-  startup if its configuration exceeds 64 KiB.
+  with its consumer event sizes in a single fixed-size, trivially copyable ``AddServiceConfiguration`` call.
+  ``gatewayd`` fails at startup if its configuration exceeds 64 KiB.
 - **Setup in someipd**: the IPC binding treats the configuration bytes as opaque and passes them to ``someipd``'s
   handler. ``someipd`` validates the buffer with the FlatBuffers ``Verifier``, builds the IPC bridged services
   via ``bridged_service_configs()``, and creates its SOME/IP network services from the same buffer, keeping the
@@ -448,9 +446,8 @@ factory functions.
        the sequencing it has today, so ``gatewayd``'s startup wait loop is unaffected. Unlike today it can
        also go back to false, when the peer stops.
    * - ``Gateway_ipc_binding_server::start()``
-     - Offers ``SomeipdService``. Bridged services follow ``AddServiceConfiguration``, see
-       :ref:`gatewayd-services`. Returns the first error encountered. Calling it twice returns an error, as
-       today.
+     - Offers ``SomeipdService``. Bridged services are set up later via ``AddServiceConfiguration``, see
+       :ref:`gatewayd-services`. Calling ``start()`` twice returns an error, as today.
 
 ``is_connected()`` is read from a different thread than the find-service handler that maintains it, so it is
 backed by an ``std::atomic<bool>``.
@@ -563,9 +560,6 @@ command line option:
      ]
    }
 
-Its argument is fixed in size and trivially copyable, because ``mw::com`` transports method arguments through
-shared memory.
-
 .. _bridged-deployment:
 
 Bridged deployment
@@ -620,8 +614,9 @@ Known gaps
   ``GenericSkeleton`` on the next offer, which LoLa's own stale-shared-memory detection (an flock on a
   per-instance usage marker file) supports. A restart of the *providing application* while a peer is
   actively subscribed is therefore still not covered.
-- **changing an event size**: a size change needs both daemons restarted. LoLa reuses a provider's shared
-  memory on restart without checking the size.
+- **changing an event size**: requires restarting both daemons. ``someipd`` rejects a modified configuration
+  from a restarted ``gatewayd``, and LoLa reuses a provider's existing shared-memory segment while a consumer
+  still holds it open.
 
 Open points
 -----------
