@@ -85,10 +85,7 @@ def send_get_field_tcp(
     session_id: int = 0x0010,
     timeout_secs: float = 3.0,
 ) -> SOMEIPHeader:
-    """Send a GET field request over TCP and return the RESPONSE.
-
-    TCP variant of send_get_field() for SOMEIPSRV_RPC_17 testing.
-    """
+    """Send a GET field request over TCP and return the RESPONSE (SOMEIPSRV_RPC_17)."""
     return send_request(
         tcp_request_transport(host_ip, dut_port),
         service_id,
@@ -110,10 +107,7 @@ def send_set_field_tcp(
     session_id: int = 0x0011,
     timeout_secs: float = 3.0,
 ) -> SOMEIPHeader:
-    """Send a SET field request over TCP with *new_value* and return the RESPONSE.
-
-    TCP variant of send_set_field() for SOMEIPSRV_RPC_17 testing.
-    """
+    """Send a SET field request over TCP with *new_value* and return the RESPONSE (SOMEIPSRV_RPC_17)."""
     return send_request(
         tcp_request_transport(host_ip, dut_port),
         service_id,

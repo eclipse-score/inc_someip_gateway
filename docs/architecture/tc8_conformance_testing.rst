@@ -220,7 +220,7 @@ Planned Components
 The application level test design introduces four planned components.
 The **Enhanced Testability Service** (**ETS**) and **Enhanced Testability
 Client** (**ETC**) implement the TC8 service interface defined in OA TC8
-§6.1.4, while the **Test Orchestrator** and **Process Orchestrator** manage
+Section 6.1.4, while the **Test Orchestrator** and **Process Orchestrator** manage
 test and process lifecycle.
 
 .. uml::
