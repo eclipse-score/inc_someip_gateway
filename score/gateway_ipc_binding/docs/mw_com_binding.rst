@@ -274,15 +274,22 @@ as it is today.
 Event sizes
 ~~~~~~~~~~~
 
-``gatewayd`` sizes every event. ``someipd`` takes every size from ``gatewayd`` and configures 0. The sizes
-reach it two ways:
+Only ``gatewayd`` knows the event sizes, from its generated serializers. ``someipd`` is type-agnostic and
+configures ``max_payload_size`` as 0. In ``mw::com``, the ``Role::provider`` side allocates the shared-memory
+sample slots when it creates the ``GenericSkeleton``, so the provider needs the size up front. How ``someipd``
+gets the size depends on which daemon provides the bridged service:
 
-- **consumer side**: the binding adopts the peer's ``GenericProxyEvent::GetDataTypeSizeInfo().Size()`` minus
-  the prefix when it attaches. A peer below the configured size leaves the service unavailable.
-- **provider side** of ``someipd``: ``AddServiceConfiguration`` carries ``{service ID, event ID, size}`` for
-  every event of the calling ``gatewayd``'s consumer-role services, at most 1024, in any order. A call MUST
-  have exactly one size per event of the provider-role services it adds to ``someipd``. Otherwise
-  ``someipd`` rejects it and logs it.
+- **gatewayd provides, someipd consumes**: ``gatewayd`` creates the ``GenericSkeleton`` with its configured
+  size. When ``someipd``'s ``Consumer_service_binding`` attaches to the peer, it reads the sample size from
+  ``GenericProxyEvent::GetDataTypeSizeInfo().Size()`` and subtracts ``kSample_prefix_size``. On any consumer, if
+  the peer's sample size is smaller than the configured ``max_payload_size``, the binding logs an error and
+  leaves the service unavailable.
+- **someipd provides, gatewayd consumes**: ``someipd`` must size its ``GenericSkeleton`` before ``gatewayd``
+  attaches to it. ``gatewayd`` therefore sends ``{service_id, event_id, max_payload_size}`` for every event of
+  its ``Role::consumer`` services in ``AddServiceConfiguration`` (at most 1024 events, in any order). Those
+  services are ``Role::provider`` services in ``someipd``. The call MUST supply one size for every provider
+  event it adds to ``someipd``, with no missing, unknown, or duplicate events. Otherwise ``someipd`` rejects
+  the call and logs an error.
 
 .. _gatewayd-services:
 
