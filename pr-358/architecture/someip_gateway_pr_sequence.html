@@ -492,20 +492,23 @@ them, outside the ASIL-B <code class="docutils literal notranslate"><span class=
 <section id="incubator-work-not-counted">
 <h2>Incubator Work (Not Counted)<a class="headerlink" href="#incubator-work-not-counted" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><strong>#342, merged:</strong> establishes the full-message read-only payload view and
+<li><p><strong>`#342 &lt;https://github.com/eclipse-score/inc_someip_gateway/pull/342&gt;`_, merged:</strong> establishes the full-message read-only payload view and
 writable allocation API; it also changes the mw::com bridge sample layout.</p></li>
-<li><p><strong>#322:</strong> separates service identity, versioning, and discovery
+<li><p><strong>`#322 &lt;https://github.com/eclipse-score/inc_someip_gateway/pull/322&gt;`_:</strong> separates service identity, versioning, and discovery
 filters, and updates callers. Port the accepted API and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>-relevant
 changes only; exclude <code class="docutils literal notranslate"><span class="pre">someipd</span></code> call sites.</p></li>
-<li><p><strong>SOCom simplification refactor, still needed:</strong> after resolving #322’s API,
+<li><p><strong>SOCom simplification refactor (`#335 &lt;https://github.com/eclipse-score/inc_someip_gateway/issues/335&gt;`_), still needed:</strong> after resolving <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/322">#322</a>’s API,
 remove the competing public frontend and features the gateway does not need,
 while preserving and stabilizing the required communication-protocol
 behavior. This is an incubator prerequisite, not one of the seven
 Communication PRs.</p></li>
-<li><p><strong>#291, merged / #348:</strong> #291 introduced the mw::com bridge; #348
-wires both daemons to it. Use the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> wiring from #348 as migration
-input; do not port its <code class="docutils literal notranslate"><span class="pre">someipd</span></code> changes in this sequence.</p></li>
-<li><p><strong>#345/#346:</strong> configurable IPC test setup and startup/event diagrams; useful
+<li><dl class="simple">
+<dt><strong>`#291 &lt;https://github.com/eclipse-score/inc_someip_gateway/pull/291&gt;`_, merged / `#348 &lt;https://github.com/eclipse-score/inc_someip_gateway/pull/348&gt;`_:</strong> <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/291">#291</a> introduced the mw::com bridge; <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/348">#348</a></dt><dd><p>wires both daemons to it. Use the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> wiring from <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/348">#348</a> as migration
+input; do not port its <code class="docutils literal notranslate"><span class="pre">someipd</span></code> changes in this sequence.</p>
+</dd>
+</dl>
+</li>
+<li><p><strong>`#345 &lt;https://github.com/eclipse-score/inc_someip_gateway/pull/345&gt;`_ / `#346 &lt;https://github.com/eclipse-score/inc_someip_gateway/pull/346&gt;`_:</strong> configurable IPC test setup and startup/event diagrams; useful
 support, not code that needs a Communication port PR.</p></li>
 </ul>
 </section>
@@ -513,12 +516,12 @@ support, not code that needs a Communication port PR.</p></li>
 <h2>Communication PRs<a class="headerlink" href="#communication-prs" title="Link to this heading">#</a></h2>
 <ol class="arabic">
 <li><p><strong>``feat(socom): add payload records``</strong></p>
-<p>Port #342’s full-message read-only view and writable allocation contract as
+<p>Port <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/342">#342</a>’s full-message read-only view and writable allocation contract as
 internal protocol types, with payload ownership tests; do not create a
 second application-facing API.</p>
 </li>
 <li><p><strong>``feat(socom): add service identity and discovery``</strong></p>
-<p>Port #322’s service/version identity and discovery-filter semantics as
+<p>Port <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/322">#322</a>’s service/version identity and discovery-filter semantics as
 internal protocol behavior, plus required <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> call-site changes;
 exclude <code class="docutils literal notranslate"><span class="pre">someipd</span></code> call sites.</p>
 </li>
@@ -533,7 +536,7 @@ Keep it distinct from Communication’s existing cross-domain gateway
 <code class="docutils literal notranslate"><span class="pre">Transport</span></code> API.</p>
 </li>
 <li><p><strong>``feat(mw/com/gateway): add LoLa bridge backend``</strong></p>
-<p>Port the mw::com provider/consumer event bridge from #291 and apply #342’s
+<p>Port the mw::com provider/consumer event bridge from <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/291">#291</a> and apply <a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/pull/342">#342</a>’s
 sample-layout changes; include focused backend tests.</p>
 </li>
 <li><p><strong>``feat(mw/com/gateway): add gateway configuration and serializer``</strong></p>
