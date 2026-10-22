@@ -101,7 +101,8 @@ class TestSDSessionWrap:
             f"ETS_152: no Session ID wrap-around seen in {len(offers)} Offers after {sent} FindService messages "
             f"({elapsed:.0f} s); last Session ID {offers[-1] if offers else None}"
         )
-        assert offers[wrap_at] == 1, (
-            f"ETS_152: Session ID after the wrap-around is 0x{offers[wrap_at]:04x} "
-            f"(previous 0x{offers[wrap_at - 1]:04x}), expected 0x0001"
+        boundary = (offers[wrap_at - 1], offers[wrap_at])
+        assert boundary == (0xFFFF, 0x0001), (
+            f"ETS_152: Session IDs at the wrap-around are 0x{boundary[0]:04x}, 0x{boundary[1]:04x}, "
+            "expected 0xffff, 0x0001"
         )
