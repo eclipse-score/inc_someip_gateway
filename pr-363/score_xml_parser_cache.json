@@ -5,8 +5,8 @@
     "line": 51,
     "need": "comp_req__tc8_conformance__sd_endpoint_option",
     "verify_type": "fully",
-    "result": "skipped",
-    "result_text": "TC8-SDT-001 / OA OPTIONS_15 step 3: exactly one IPv4 Endpoint Option is expected in the Offer. Observed with the current DUT config: 2 IPv4 Endpoint Options, (l4proto, port) = [(0x11, 30509), (0x06, 30510)].",
+    "result": "passed",
+    "result_text": "",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -14,7 +14,7 @@
   {
     "name": "TestSDTcpBinding__test_ets_096_subscribe_tcp_option_without_connection",
     "file": "tests/tc8_conformance/test_sd_tcp.py",
-    "line": 97,
+    "line": 94,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -86,7 +86,7 @@
   {
     "name": "TestSDFormat__test_format_01_client_id",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 161,
+    "line": 169,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -98,7 +98,7 @@
   {
     "name": "TestSDFormat__test_format_03_protocol_version",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 171,
+    "line": 179,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -110,7 +110,7 @@
   {
     "name": "TestSDFormat__test_format_05_message_type",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 180,
+    "line": 188,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -122,7 +122,7 @@
   {
     "name": "TestSDFormat__test_format_06_return_code",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 189,
+    "line": 197,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -134,7 +134,7 @@
   {
     "name": "TestSDFormat__test_format_08_unicast_flag",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 198,
+    "line": 206,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -146,7 +146,7 @@
   {
     "name": "TestSDFormat__test_format_09_undefined_flag_bits",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 208,
+    "line": 216,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -158,7 +158,7 @@
   {
     "name": "TestSDFormat__test_format_10_reserved_bits",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 220,
+    "line": 228,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -170,7 +170,7 @@
   {
     "name": "TestSDOfferEntryFormat__test_format_11_type_1_entry_length",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 234,
+    "line": 242,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -182,7 +182,7 @@
   {
     "name": "TestSDOfferEntryFormat__test_format_12_type_1_index_first_option_run",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 247,
+    "line": 253,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -194,7 +194,7 @@
   {
     "name": "TestSDOfferEntryFormat__test_format_13_type_1_number_of_options_1",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 257,
+    "line": 263,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -206,7 +206,7 @@
   {
     "name": "TestSDOfferEntryFormat__test_sd_message_07_offer_ttl",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 268,
+    "line": 274,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "partially",
     "result": "passed",
@@ -218,7 +218,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_19_type_2_entry_type",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 283,
+    "line": 289,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -230,7 +230,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_20_type_2_entry_length",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 293,
+    "line": 299,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -242,7 +242,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_21_type_2_index_first_option_run",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 304,
+    "line": 308,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -254,7 +254,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_23_type_2_service_id",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 314,
+    "line": 318,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -266,7 +266,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_24_type_2_instance_id",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 324,
+    "line": 328,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -278,7 +278,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_25_type_2_major_version",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 334,
+    "line": 338,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -290,7 +290,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_26_type_2_ttl",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 344,
+    "line": 348,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -302,7 +302,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_27_type_2_reserved",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 354,
+    "line": 358,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -314,7 +314,7 @@
   {
     "name": "TestSDSubscribeAckFormat__test_format_28_type_2_eventgroup_id",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 365,
+    "line": 369,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -326,7 +326,7 @@
   {
     "name": "TestNotificationFormat__test_format_04_interface_version",
     "file": "tests/tc8_conformance/test_sd_format.py",
-    "line": 381,
+    "line": 385,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -434,7 +434,7 @@
   {
     "name": "TestSDSubscribeEndpointOptions__test_ets_154_unexisting_ipv4_address",
     "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
-    "line": 128,
+    "line": 135,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
@@ -446,7 +446,7 @@
   {
     "name": "TestSDSubscribeEndpointOptions__test_ets_162_unallowed_option_ip",
     "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
-    "line": 146,
+    "line": 153,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -458,7 +458,7 @@
   {
     "name": "TestSDSubscribeEndpointOptions__test_ets_164_unallowed_option_ip_2",
     "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
-    "line": 156,
+    "line": 163,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -470,7 +470,7 @@
   {
     "name": "TestSDSubscribeEndpointOptions__test_ets_172_unicast_subscribe_option_indexes",
     "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
-    "line": 166,
+    "line": 173,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
@@ -482,7 +482,7 @@
   {
     "name": "TestSDSubscribeEndpointOptions__test_ets_175_unreferenced_option",
     "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
-    "line": 220,
+    "line": 227,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -554,7 +554,7 @@
   {
     "name": "TestSDMalformedArrays__test_ets_116_entry_references_non_existing_option_type",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 207,
+    "line": 214,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -566,7 +566,7 @@
   {
     "name": "TestSDMalformedArrays__test_ets_117_entry_references_options_of_same_kind",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 226,
+    "line": 233,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -578,7 +578,7 @@
   {
     "name": "TestSDMalformedArrays__test_ets_123_length_of_entry_array_longer_than_message_allows",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 248,
+    "line": 255,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
@@ -590,7 +590,7 @@
   {
     "name": "TestSDMalformedArrays__test_ets_124_length_of_entry_array_too_long",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 275,
+    "line": 282,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
@@ -602,7 +602,7 @@
   {
     "name": "TestSDMalformedArrays__test_ets_125_length_of_entry_array_too_short",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 302,
+    "line": 309,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
@@ -614,7 +614,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_134_option_length_ends_past_options_array_var_a",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 336,
+    "line": 343,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -626,7 +626,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_135_option_length_ends_past_options_array_var_b",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 360,
+    "line": 367,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -638,7 +638,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_136_option_length_shorter_gt_0_as_specified_for_type",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 381,
+    "line": 388,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -650,7 +650,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_137_option_shorter_with_unaligned_next_option",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 401,
+    "line": 408,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -662,7 +662,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_138_options_array_longer_than_message_allows",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 419,
+    "line": 426,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -674,7 +674,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_139_options_array_too_short",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 440,
+    "line": 447,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -686,7 +686,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_153_someip_length_shorter_as_expected",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 459,
+    "line": 466,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -698,7 +698,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_174_unknown_option_type",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 479,
+    "line": 486,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -710,7 +710,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_176_unused_data_after_options_array",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 515,
+    "line": 522,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -722,7 +722,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_177_unused_data_after_options_array_wrong_length",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 533,
+    "line": 540,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -734,7 +734,7 @@
   {
     "name": "TestSDMalformedOptionsAndHeader__test_ets_178_subscribe_using_wrong_someip_messageid",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
-    "line": 550,
+    "line": 557,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
@@ -1121,8 +1121,8 @@
     "line": 1598,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
-    "result": "skipped",
-    "result_text": "OA ETS_128: a multicast FindService with Any Major Version or Any Minor Version is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received",
+    "result": "passed",
+    "result_text": "",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""

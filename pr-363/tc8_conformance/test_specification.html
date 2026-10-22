@@ -2006,15 +2006,14 @@ At least one unicast OfferService.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that an OfferService of a service with a reliable port carries exactly one IPv4
+Verify that an OfferService of a TCP-only service carries exactly one IPv4
 Endpoint Option and that its Layer 4 protocol is TCP.</p>
 <p><strong>Stimulus:</strong>
 Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> and take the OfferService.</p>
 <p><strong>Expected Result:</strong>
 Exactly one IPv4 Endpoint Option, with Layer 4 protocol <code class="docutils literal notranslate"><span class="pre">0x06</span></code> (TCP).</p>
-<p>Expected failure (strict xfail). OA expectation: exactly one IPv4 Endpoint Option in
-the OfferService (OA step 3). Observed: two IPv4 Endpoint Options, (l4proto, port) =
-(0x11, 30509) and (0x06, 30510).</p>
+<p>The module uses a TCP-only service configuration (reliable port, no unreliable port), so
+the OfferService carries a single Endpoint Option.</p>
 </section>
 <section id="tc8-sdt-002-subscribe-with-tcp-option-without-connection">
 <h3>TC8-SDT-002: Subscribe With TCP Option Without Connection<a class="headerlink" href="#tc8-sdt-002-subscribe-with-tcp-option-without-connection" title="Link to this heading">#</a></h3>
