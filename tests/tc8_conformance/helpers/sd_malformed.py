@@ -75,7 +75,6 @@ _SOMEIP_SD_HEADER_FMT = ">HHIHHBBBB"  # 16 bytes total
 _SOMEIP_SD_SERVICE_ID = 0xFFFF
 _SOMEIP_SD_METHOD_ID = 0x8100
 _SD_FLAGS_REBOOT_UNICAST = 0xC0
-_SD_FLAGS_NONE = 0x00
 
 
 def _build_someip_header(session_id: int, payload_len: int) -> bytes:
@@ -187,8 +186,8 @@ def _subscribe_entry_bytes(
     Wire layout (big-endian):
       byte 0:    type = 0x06
       byte 1:    index_first_option_run
-      byte 2:    (num_options_1 << 4) | num_options_2
-      byte 3:    0 (reserved/service_type)
+      byte 2:    index_second_option_run
+      byte 3:    (num_options_1 << 4) | num_options_2
       bytes 4-5: service_id
       bytes 6-7: instance_id
       byte 8:    major_version
@@ -198,7 +197,7 @@ def _subscribe_entry_bytes(
     """
     ttl_3b = struct.pack(">I", ttl)[1:]
     return (
-        bytes([0x06, idx_opt, (num_opts << 4), 0x00])
+        bytes([0x06, idx_opt, 0x00, (num_opts << 4)])
         + struct.pack(">HH", service_id, instance_id)
         + bytes([major_version])
         + ttl_3b
@@ -276,7 +275,7 @@ def send_sd_find_with_options(
     # Build FindService entry with num_options_1=1 so the DUT sees an option reference.
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
-        bytes([0x00, 0x00, 0x10, 0x00])  # type=Find, idx=0, num_1=1, num_2=0, service_type=0
+        bytes([0x00, 0x00, 0x00, 0x10])  # type=Find, idx_1=0, idx_2=0, num_1=1, num_2=0
         + struct.pack(">HH", service_id, 0xFFFF)
         + bytes([0xFF])
         + ttl_3b
@@ -325,7 +324,7 @@ def send_sd_entry_refs_more_options(
     # Build entry with num_options_1=3 (bits [7:4] of byte 2)
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
-        bytes([0x06, 0x00, 0x30, 0x00])  # type=Subscribe, idx=0, num_1=3, num_2=0
+        bytes([0x06, 0x00, 0x00, 0x30])  # type=Subscribe, idx_1=0, idx_2=0, num_1=3, num_2=0
         + struct.pack(">HH", service_id, instance_id)
         + bytes([0x00])
         + ttl_3b
@@ -354,7 +353,7 @@ def send_sd_entry_unknown_option_type(
     """
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
-        bytes([0x06, 0x00, 0x10, 0x00])  # num_1=1
+        bytes([0x06, 0x00, 0x00, 0x10])  # num_1=1
         + struct.pack(">HH", service_id, instance_id)
         + bytes([0x00])
         + ttl_3b
@@ -382,7 +381,7 @@ def send_sd_entry_same_option_twice(
     """ETS_117: Two SubscribeEventgroup entries both referencing endpoint option index 0."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry1 = (
-        bytes([0x06, 0x00, 0x10, 0x00])
+        bytes([0x06, 0x00, 0x00, 0x10])
         + struct.pack(">HH", service_id, instance_id)
         + bytes([0x00])
         + ttl_3b
@@ -390,7 +389,7 @@ def send_sd_entry_same_option_twice(
         + struct.pack(">H", eventgroup_id & 0xFFFF)
     )
     entry2 = (
-        bytes([0x06, 0x00, 0x10, 0x00])  # also references option index 0
+        bytes([0x06, 0x00, 0x00, 0x10])  # also references option index 0
         + struct.pack(">HH", service_id, instance_id)
         + bytes([0x00])
         + ttl_3b
@@ -419,7 +418,7 @@ def send_sd_option_length_too_long(
     """ETS_134/135: IPv4EndpointOption length field claims more bytes than the options array contains."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
-        bytes([0x06, 0x00, 0x10, 0x00])
+        bytes([0x06, 0x00, 0x00, 0x10])
         + struct.pack(">HH", service_id, instance_id)
         + bytes([0x00])
         + ttl_3b
@@ -492,7 +491,7 @@ def send_sd_options_array_length_too_long(
     """ETS_138: options_array_length claims more bytes than actually present."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
-        bytes([0x06, 0x00, 0x10, 0x00])
+        bytes([0x06, 0x00, 0x00, 0x10])
         + struct.pack(">HH", service_id, instance_id)
         + bytes([0x00])
         + ttl_3b
@@ -522,7 +521,7 @@ def send_sd_options_array_length_too_short(
     """ETS_139: options_array_length claims fewer bytes than actually present."""
     ttl_3b = struct.pack(">I", 3)[1:]
     entry_bytes = (
-        bytes([0x06, 0x00, 0x10, 0x00])
+        bytes([0x06, 0x00, 0x00, 0x10])
         + struct.pack(">HH", service_id, instance_id)
         + bytes([0x00])
         + ttl_3b
@@ -540,16 +539,16 @@ def send_sd_options_array_length_too_short(
     sock.sendto(pkt, dest)
 
 
-def send_sd_subscribe_no_endpoint(
+def send_sd_subscribe_empty_options(
     sock: socket.socket,
     dest: Tuple[str, int],
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
 ) -> None:
-    """ETS_109: SubscribeEventgroup with num_options_1=0 (no endpoint option).
+    """ETS_113: SubscribeEventgroup with an empty Options Array (Options Array length 0, num_options_1=0).
 
-    DUT must send NAck (SubscribeAck with TTL=0) or silently discard.
+    The OA expects a SubscribeEventgroupNAck.
     """
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
@@ -719,15 +718,28 @@ def send_sd_high_session_id(
 def send_sd_wrong_someip_message_id(
     sock: socket.socket,
     dest: Tuple[str, int],
-    service_id_override: int = 0x1234,
+    service_id: int,
+    instance_id: int,
+    eventgroup_id: int,
+    host_ip: str,
+    subscriber_port: int,
+    method_id_override: int = 0x8101,
 ) -> None:
-    """ETS_178: SD packet with wrong SOME/IP service_id (not 0xFFFF); DUT must treat it as non-SD traffic."""
-    entry_bytes = _find_service_entry_bytes(service_id=0x1234)
+    """ETS_178: SubscribeEventgroup whose SOME/IP header carries a wrong Message ID for Service Discovery.
+
+    The Method ID is replaced (default 0x8101 instead of 0x8100); the OA expects a SubscribeEventgroupNAck.
+    """
+    entry_bytes = _subscribe_entry_bytes(
+        service_id=service_id,
+        instance_id=instance_id,
+        eventgroup_id=eventgroup_id,
+        num_opts=1,
+    )
     pkt = build_raw_sd_packet(
         flags=_SD_FLAGS_REBOOT_UNICAST,
         entries_bytes=entry_bytes,
-        options_bytes=b"",
-        someip_service_id_override=service_id_override,
+        options_bytes=_endpoint_option_bytes(host_ip, subscriber_port),
+        someip_method_id_override=method_id_override,
     )
     sock.sendto(pkt, dest)
 
@@ -771,7 +783,7 @@ def send_sd_empty_option(
     instance_id: int,
     eventgroup_id: int,
 ) -> None:
-    """ETS_112/113: SubscribeEventgroup with an option length field < 2 (too small for the type byte to fit)."""
+    """ETS_112: SubscribeEventgroup with an option length field < 2 (too small for the type byte to fit)."""
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
         instance_id=instance_id,
