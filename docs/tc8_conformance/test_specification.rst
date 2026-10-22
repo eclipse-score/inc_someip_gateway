@@ -1165,3 +1165,62 @@ notifications of service ``0x1234`` for 10 s.
 
 **Expected Result:**
 Interface Version = ``0x01`` in every notification received.
+
+SD Find Response Tests
+----------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_sd_find``
+
+TC8-SDR-001: Discover Port and IP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_060
+:Requirement: ``comp_req__tc8_conformance__sd_find_response``
+:Test Function: ``TestSDFindResponse::test_ets_060_discover_port_and_ip``
+
+**Purpose:**
+Verify that a multicast FindService is answered with a unicast OfferService that states
+the IP addresses and ports needed to reach the service.
+
+**Stimulus:**
+Send a multicast FindService for service ``0x1234`` and instance ``0x5678``.
+
+**Expected Result:**
+Unicast OfferService with an IPv4 Endpoint Option for UDP (``TC8_DUT_IP``, port 30509).
+
+Not verified: a TCP Endpoint Option (the DUT configuration has no reliable port).
+
+TC8-SDR-002: Ignore Options in FindService
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_118
+:Requirement: ``comp_req__tc8_conformance__sd_find_response``
+:Test Function: ``TestSDFindResponse::test_ets_118_ignore_options_in_findservice``
+
+**Purpose:**
+Verify that the DUT ignores the options of a FindService.
+
+**Stimulus:**
+Send 10 FindService messages with an IPv4 Endpoint Option at 100 ms intervals.
+
+**Expected Result:**
+At least one unicast OfferService.
+
+TC8-SDR-003: Multicast FindService
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_127
+:Requirement: ``comp_req__tc8_conformance__sd_find_response``
+:Test Function: ``TestSDFindResponse::test_ets_127_multicast_findservice``
+
+**Purpose:**
+Verify that a multicast FindService for a valid service and instance is answered with a
+unicast OfferService.
+
+**Stimulus:**
+Send 10 multicast FindService messages at 100 ms intervals for service ``0x1234`` and
+instance ``0x5678``.
+
+**Expected Result:**
+At least one unicast OfferService.

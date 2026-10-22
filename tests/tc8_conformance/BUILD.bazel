@@ -197,6 +197,23 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
+# exclusive: the test is flaky on QNX when run in parallel and stable when run alone
+integration_test(
+    name = "test_tc8_sd_find",
+    timeout = "short",
+    srcs = [
+        "test_sd_find.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "exclusive",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
 # exclusive: timing assertions are sensitive to host load from parallel QEMU runs
 integration_test(
     name = "test_tc8_sd_phases_timing",

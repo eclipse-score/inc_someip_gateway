@@ -264,6 +264,26 @@ SD Message Format
      - TC8-SDF-021
      - ``sd_offer_format``
 
+SD Find Response
+^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_060
+     - TC8-SDR-001
+     - ``sd_find_response``
+   * - Section 6.1.6, SOMEIP_ETS_118
+     - TC8-SDR-002
+     - ``sd_find_response``
+   * - Section 6.1.6, SOMEIP_ETS_127
+     - TC8-SDR-003
+     - ``sd_find_response``
+
 Test Results
 -------------
 
