@@ -72,7 +72,7 @@ def _assert_nack_or_ignore(ets: str, answers: List[SOMEIPSDEntry], dut_ip: str, 
                 subscriber_port=port,
             )
 
-        probe = capture_subscribe_answers(sock, _subscribe)
+        probe = capture_subscribe_answers(sock, _subscribe, max_results=1)
     finally:
         sock.close()
     assert any(e.ttl > 0 for e in probe), f"{ets}: DUT does not acknowledge a valid Subscribe afterwards"
@@ -505,7 +505,7 @@ class TestSDMalformedOptionsAndHeader:
         length = _someip_length(base) + (len(_UNUSED_DATA) if counted else 0)
         pkt = bytearray(base + _UNUSED_DATA)
         struct.pack_into(">I", pkt, 4, length)
-        return capture_subscribe_answers(sock, lambda: sock.sendto(bytes(pkt), (dut_ip, SD_PORT)))
+        return capture_subscribe_answers(sock, lambda: sock.sendto(bytes(pkt), (dut_ip, SD_PORT)), max_results=1)
 
     def _stop_subscribe(self, dut_ip: str, tester_ip: str, sock: socket.socket) -> None:
         entry = _subscribe_entry_bytes(SERVICE_ID, INSTANCE_ID, EVENTGROUP_ALL_EVENTS_AND_FIELDS, MAJOR_VERSION, ttl=0)
