@@ -1269,3 +1269,109 @@ establishing the TCP connection.
 
 **Expected Result:**
 SubscribeEventgroupNAck.
+
+SD Initial Field and Reboot Detection Tests
+-------------------------------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_sd_initial_fields``
+
+TC8-SDI-001: Initial Fields, Eventgroup 0x0002
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_086
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestEts086::test_ets_086_events_and_fields_all_2``
+
+**Purpose:**
+Verify that the DUT acknowledges a subscription to eventgroup 0x0002 and sends all initial
+fields.
+
+**Stimulus:**
+Wait 6 s after the DUT is ready, so that the DUT application has published its field
+values. Then subscribe to eventgroup ``0x0002`` and receive events for 4 s after the Ack.
+
+**Expected Result:**
+SubscribeEventgroupAck, then the initial fields ``0x8005`` (Interface Version), ``0x8006``
+(TestfieldUINT8) and ``0x8007`` (TestfieldUINT8Array) to the tester endpoint.
+
+Not verified: field ``0x8008`` (TestFieldUINT8Reliable), the DUT configuration has no
+reliable port.
+
+Expected failure (strict xfail). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` after the Ack. Observed: the Ack is received, the initial fields are not.
+
+TC8-SDI-002: Initial Fields, Eventgroup 0x0005
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_087
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestEts087::test_ets_087_events_and_fields_unreliable_5``
+
+**Purpose:**
+Verify that the DUT acknowledges a subscription to eventgroup 0x0005 and sends all initial
+fields.
+
+**Stimulus:**
+Wait 6 s after the DUT is ready, so that the DUT application has published its field
+values. Then subscribe to eventgroup ``0x0005`` and receive events for 4 s after the Ack.
+
+**Expected Result:**
+SubscribeEventgroupAck, then the initial fields ``0x8005`` (Interface Version), ``0x8006``
+(TestfieldUINT8) and ``0x8007`` (TestfieldUINT8Array) to the tester endpoint.
+
+Expected failure (strict xfail). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` after the Ack. Observed: the Ack is received, the initial fields are not.
+
+TC8-SDI-003: Reboot Detection, Multicast and Unicast
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_093
+:Requirement: ``comp_req__tc8_conformance__sd_reboot``
+:Test Function: ``TestEts093::test_ets_093_reboot_detection_multicast_and_unicast``
+
+**Purpose:**
+Verify that the DUT detects a client reboot (lower Session ID) separately for multicast
+and unicast messages.
+
+**Stimulus:**
+All SD messages set the Reboot flag. Each step waits 2 s for the initial event.
+A: multicast FindService (Session ID 4, 5, 1), each followed by a unicast
+SubscribeEventgroup for eventgroup ``0x0005`` with the same Session ID.
+B: after a 4 s wait, so that the subscription of part A expires, unicast
+SubscribeEventgroup with Session ID 4, 5, 1.
+C: multicast FindService with Session ID 100, 101, 102, each followed by a unicast
+SubscribeEventgroup with Session ID 10, 11, 12. The OA gives no wait time before B and no
+Session IDs for C, these values are neutral choices.
+
+**Expected Result:**
+A, B: SubscribeEventgroupAck each time. Initial event of field ``0x8005`` after the first
+subscription, not after the second, again after the third (Session ID 1). C: no
+initial event, no reboot detected.
+
+Expected failure (strict xfail). OA expectation: the initial event ``0x8005`` again
+after the subscription with Session ID 1 in A and B. Observed: ``0x8005`` is received only
+after the first subscription of part A, not after Session ID 1 in A, nor after Session IDs
+4 and 1 in B. Part C shows no initial event.
+
+TC8-SDI-004: Reboot Detection, Server Side
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_094
+:Requirement: ``comp_req__tc8_conformance__sd_reboot``
+:Test Function: ``TestEts094::test_ets_094_reboot_detection_server_side``
+
+**Purpose:**
+Verify that the DUT detects a reboot of the tester and stops sending events.
+
+**Stimulus:**
+All SD messages set the Reboot flag. Subscribe to eventgroup ``0x0002`` with Session ID 1
+and TTL ``0xFFFFFF`` (a short TTL would end the events by itself). Send FindService with
+Session ID 5, then again with Session ID 5 (reboot simulation).
+
+**Expected Result:**
+SubscribeEventgroupAck, events continue after the first FindService and stop after the
+second.
+
+Not verified: the TriggerEventUint8 call (the DUT has no trigger method). The cyclic event
+``0x8001`` is observed instead.
