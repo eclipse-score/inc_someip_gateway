@@ -320,6 +320,14 @@ http_archive(
 # ============================================================================
 bazel_dep(name = "os_images", version = "1.0", dev_dependency = True)
 bazel_dep(name = "score_itf", version = "0.6.0", dev_dependency = True)
+
+# Increase the startup ping timeout to 30 seconds to avoid flaky QEMU startup.
+single_version_override(
+    module_name = "score_itf",
+    patch_strip = 1,
+    patches = ["//:third_party/score_itf-qemu-ping-timeout.patch"],
+)
+
 bazel_dep(name = "score_rules_imagefs", version = "0.1.0", dev_dependency = True)
 git_override(
     module_name = "score_rules_imagefs",
