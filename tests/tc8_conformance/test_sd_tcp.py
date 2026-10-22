@@ -18,8 +18,6 @@ See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 import struct
 import subprocess
 
-import pytest
-
 from attribute_plugin import add_test_properties
 
 from helpers.constants import (
@@ -52,14 +50,6 @@ class TestSDTcpBinding:
         fully_verifies=["comp_req__tc8_conformance__sd_endpoint_option"],
         test_type="requirements-based",
         derivation_technique="requirements-analysis",
-    )
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "TC8-SDT-001 / OA OPTIONS_15 step 3: exactly one IPv4 Endpoint Option is expected in the Offer. "
-            "Observed with the current DUT config: 2 IPv4 Endpoint Options, (l4proto, port) = "
-            "[(0x11, 30509), (0x06, 30510)]."
-        ),
     )
     def test_options_15_tcp_endpoint_l4_protocol(
         self, dut: subprocess.Popen[bytes], dut_ip: str, tester_ip: str
