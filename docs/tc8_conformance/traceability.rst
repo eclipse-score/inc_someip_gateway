@@ -301,6 +301,41 @@ SD TCP
      - TC8-SDT-002
      - ``sd_sub_lifecycle``
 
+SD Subscribe Option
+^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_109
+     - TC8-SDO-001
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_110
+     - TC8-SDO-002
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_119
+     - TC8-SDO-003
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_154
+     - TC8-SDO-004
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_162
+     - TC8-SDO-005
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_164
+     - TC8-SDO-006
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_172 (alias SOMEIP_ETS_173)
+     - TC8-SDO-007
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_175
+     - TC8-SDO-008
+     - ``sd_sub_lifecycle``
+
 SD Malformed Message
 ^^^^^^^^^^^^^^^^^^^^
 
