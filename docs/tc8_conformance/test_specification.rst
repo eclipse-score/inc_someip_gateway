@@ -801,3 +801,367 @@ No NOTIFICATION messages received after TTL expiry window.
 
 Not verified: the reaction to an explicit TriggerEventUint8 call (the DUT has no
 trigger method).
+
+SD Message Format Tests
+-----------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_sd_format``
+
+TC8-SDF-001: Client ID
+^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_01
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDFormat::test_format_01_client_id``
+
+**Purpose:**
+Verify that the Client ID of SD messages sent by the DUT is 0x0000.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Client ID = ``0x0000``.
+
+TC8-SDF-002: Protocol Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_03
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDFormat::test_format_03_protocol_version``
+
+**Purpose:**
+Verify that the Protocol Version of SD messages sent by the DUT is 0x01.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Protocol Version = ``0x01``.
+
+TC8-SDF-003: Message Type
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_05
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDFormat::test_format_05_message_type``
+
+**Purpose:**
+Verify that the Message Type of SD messages sent by the DUT is 0x02.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Message Type = ``0x02``.
+
+TC8-SDF-004: Return Code
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_06
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDFormat::test_format_06_return_code``
+
+**Purpose:**
+Verify that the Return Code of SD messages sent by the DUT is 0x00.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Return Code = ``0x00``.
+
+TC8-SDF-005: Unicast Flag
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_08
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDFormat::test_format_08_unicast_flag``
+
+**Purpose:**
+Verify that the Unicast Flag of SD messages sent by the DUT is set.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Unicast Flag bit = 1.
+
+TC8-SDF-006: Undefined Flag Bits
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_09
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDFormat::test_format_09_undefined_flag_bits``
+
+**Purpose:**
+Verify that the undefined bits of the SD Flags field are 0.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+The six Flag bits other than the Reboot and Unicast bits are 0.
+
+TC8-SDF-007: Reserved Bits
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_10
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDFormat::test_format_10_reserved_bits``
+
+**Purpose:**
+Verify that the Reserved field of SD messages sent by the DUT is 0.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Reserved = ``0x000000``.
+
+TC8-SDF-008: Type 1 Entry Length
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_11
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDOfferEntryFormat::test_format_11_type_1_entry_length``
+
+**Purpose:**
+Verify the Entry Type and the Entries Array length of OfferService messages.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Entry Type = ``0x01`` and Entries Array length = number of entries x 16.
+
+TC8-SDF-009: Type 1 Index First Option Run
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_12
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDOfferEntryFormat::test_format_12_type_1_index_first_option_run``
+
+**Purpose:**
+Verify the Index First Option Run of OfferService entries.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Index First Option Run = 0.
+
+TC8-SDF-010: Type 1 Number of Options 1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_13
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDOfferEntryFormat::test_format_13_type_1_number_of_options_1``
+
+**Purpose:**
+Verify the Number of Options 1 of OfferService entries.
+
+**Stimulus:**
+None, passive observation of DUT SD messages.
+
+**Expected Result:**
+Number of Options 1 >= 1.
+
+TC8-SDF-011: Offer TTL
+^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_07
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDOfferEntryFormat::test_sd_message_07_offer_ttl``
+
+**Purpose:**
+Verify that the TTL of an OfferService entry equals the lifetime of the service instance.
+
+**Stimulus:**
+Send FindService for service ``0x1234`` and take the OfferService.
+
+**Expected Result:**
+TTL = 30 (configured ``ttl``).
+
+Not verified: OA steps 6 to 9 (wait for the TTL timeout, send a Request, expect no
+Response). The DUT keeps offering the service cyclically.
+
+TC8-SDF-012: Type 2 Entry Type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_19
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_19_type_2_entry_type``
+
+**Purpose:**
+Verify the Entry Type of the SubscribeEventgroupAck.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Entry Type = ``0x07``.
+
+TC8-SDF-013: Type 2 Entry Length
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_20
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_20_type_2_entry_length``
+
+**Purpose:**
+Verify the Entries Array length of the SubscribeEventgroupAck.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Entries Array length = number of entries x 16.
+
+TC8-SDF-014: Type 2 Index First Option Run
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_21
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_21_type_2_index_first_option_run``
+
+**Purpose:**
+Verify the Index First Option Run of the SubscribeEventgroupAck entry.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Index First Option Run = 0.
+
+TC8-SDF-015: Type 2 Service ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_23
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_23_type_2_service_id``
+
+**Purpose:**
+Verify the Service ID of the SubscribeEventgroupAck entry.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Service ID = ``0x1234``.
+
+TC8-SDF-016: Type 2 Instance ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_24
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_24_type_2_instance_id``
+
+**Purpose:**
+Verify the Instance ID of the SubscribeEventgroupAck entry.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Instance ID = ``0x5678``.
+
+TC8-SDF-017: Type 2 Major Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_25
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_25_type_2_major_version``
+
+**Purpose:**
+Verify the Major Version of the SubscribeEventgroupAck entry.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Major Version = ``0x01``.
+
+TC8-SDF-018: Type 2 TTL
+^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_26
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_26_type_2_ttl``
+
+**Purpose:**
+Verify the TTL of the SubscribeEventgroupAck entry.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+TTL = 30 (configured ``ttl``).
+
+TC8-SDF-019: Type 2 Reserved
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_27
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_27_type_2_reserved``
+
+**Purpose:**
+Verify the Reserved field of the SubscribeEventgroupAck entry.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Reserved = ``0x0000``.
+
+TC8-SDF-020: Type 2 Eventgroup ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_28
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeAckFormat::test_format_28_type_2_eventgroup_id``
+
+**Purpose:**
+Verify the Eventgroup ID of the SubscribeEventgroupAck entry.
+
+**Stimulus:**
+Send FindService for service ``0x1234``, take the OfferService, send
+SubscribeEventgroup for eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and
+capture the SubscribeEventgroupAck.
+
+**Expected Result:**
+Eventgroup ID = ``0x0002``.
+
+TC8-SDF-021: Notification Interface Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_04
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestNotificationFormat::test_format_04_interface_version``
+
+**Purpose:**
+Verify that the Interface Version of a notification sent by the DUT is 0x01.
+
+**Stimulus:**
+Subscribe to eventgroup ``0x0002`` with TTL = 30 (configured ``ttl``) and receive the
+notifications of service ``0x1234`` for 10 s.
+
+**Expected Result:**
+Interface Version = ``0x01`` in every notification received.

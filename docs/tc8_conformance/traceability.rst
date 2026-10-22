@@ -190,6 +190,80 @@ SD Lifecycle Advanced
    TC8-SDLC-011 (SOMEIP_ETS_101) is implemented as ``pytest.skip`` because the
    DUT has no ETS client mode (``clientServiceActivate``).
 
+SD Message Format
+^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_01
+     - TC8-SDF-001
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_03
+     - TC8-SDF-002
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_05
+     - TC8-SDF-003
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_06
+     - TC8-SDF-004
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_08
+     - TC8-SDF-005
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_09
+     - TC8-SDF-006
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_10
+     - TC8-SDF-007
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_11
+     - TC8-SDF-008
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_12
+     - TC8-SDF-009
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_13
+     - TC8-SDF-010
+     - ``sd_offer_format``
+   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_07
+     - TC8-SDF-011
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_19
+     - TC8-SDF-012
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_20
+     - TC8-SDF-013
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_21
+     - TC8-SDF-014
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_23
+     - TC8-SDF-015
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_24
+     - TC8-SDF-016
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_25
+     - TC8-SDF-017
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_26
+     - TC8-SDF-018
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_27
+     - TC8-SDF-019
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_28
+     - TC8-SDF-020
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_04
+     - TC8-SDF-021
+     - ``sd_offer_format``
+
 Test Results
 -------------
 
