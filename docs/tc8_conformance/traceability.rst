@@ -301,6 +301,80 @@ SD TCP
      - TC8-SDT-002
      - ``sd_sub_lifecycle``
 
+SD Malformed Message
+^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_111
+     - TC8-SDX-001
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_112
+     - TC8-SDX-002
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_113
+     - TC8-SDX-003
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_114
+     - TC8-SDX-004
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_115
+     - TC8-SDX-005
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_116
+     - TC8-SDX-006
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_117
+     - TC8-SDX-007
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_123
+     - TC8-SDX-008
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_124
+     - TC8-SDX-009
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_125
+     - TC8-SDX-010
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_134
+     - TC8-SDX-011
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_135
+     - TC8-SDX-012
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_136
+     - TC8-SDX-013
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_137
+     - TC8-SDX-014
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_138
+     - TC8-SDX-015
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_139
+     - TC8-SDX-016
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_153
+     - TC8-SDX-017
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_174
+     - TC8-SDX-018
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_176
+     - TC8-SDX-019
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_177
+     - TC8-SDX-020
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_178
+     - TC8-SDX-021
+     - ``sd_sub_lifecycle``
+
 SD Initial Field and Reboot Detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

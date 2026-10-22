@@ -228,6 +228,21 @@ integration_test(
 )
 
 integration_test(
+    name = "test_tc8_sd_malformed",
+    timeout = "moderate",
+    srcs = [
+        "test_sd_malformed.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
     name = "test_tc8_sd_initial_fields",
     timeout = "moderate",
     srcs = [

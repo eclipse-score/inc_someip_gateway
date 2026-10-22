@@ -1270,6 +1270,434 @@ establishing the TCP connection.
 **Expected Result:**
 SubscribeEventgroupNAck.
 
+SD Malformed Message Tests
+--------------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_sd_malformed``
+
+Base message of all entries: one SubscribeEventgroup entry that references one UDP IPv4
+Endpoint Option (tester IP address, sender port). The OA gives no option content.
+
+TC8-SDX-001: Empty Entries Array
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_111
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_111_empty_entries_array``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with an empty Entries Array is ignored.
+
+**Stimulus:**
+Send a SubscribeEventgroup entry with the Entries Array length field set to 0.
+
+**Expected Result:**
+No SD entry of any type within 5 s.
+
+The OA synopsis says a total length of zero "should not be interpreted". The test sends a
+real entry with the length field set to 0.
+
+TC8-SDX-002: Empty Option
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_112
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_112_empty_option``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with IPv4 Option length 0 is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup for eventgroup ``0x0002`` with the length field of the IPv4
+Endpoint Option set to 0.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+ETS_112 and ETS_113 share the same synopsis text in the OA.
+
+TC8-SDX-003: Empty Options Array
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_113
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_113_empty_options_array``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with Options Array length 0 is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup for eventgroup ``0x0002`` with Options Array length 0 and an
+entry that references no option.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+The OA synopsis says "IPv4Option length = 0", the OA procedure says "options array length
+= 0". The test follows the procedure. The OA does not say whether the entry references
+options.
+
+TC8-SDX-004: Entries Length Wrong, Two Entries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_114
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_114_entries_length_wrong_combined``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with two correct entries but a shortened Entries Array
+length is rejected.
+
+**Stimulus:**
+Send two identical SubscribeEventgroup entries with the Entries Array length set to 16
+(one entry).
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDX-005: More Option References Than Options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_115
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_115_entry_references_more_options_than_exist``
+
+**Purpose:**
+Verify that a SubscribeEventgroup that references more options than exist is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with Number of Options 1 = 3 and one existing option. The OA
+gives no count.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDX-006: Unknown Option Type 0x77
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_116
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_116_entry_references_non_existing_option_type``
+
+**Purpose:**
+Verify that a SubscribeEventgroup that references an unknown option type (0x77) is
+rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup referencing an option of type ``0x77`` with length field 5, one
+reserved byte and four zero bytes.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDX-007: Two Options of the Same Kind
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_117
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_117_entry_references_options_of_same_kind``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with two options of the same type is rejected or
+ignored.
+
+**Stimulus:**
+Send one SubscribeEventgroup entry with Number of Options 1 = 2 and two identical IPv4
+Endpoint Options (tester IP address, sender port).
+
+**Expected Result:**
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).
+
+TC8-SDX-008: Entries Array Longer Than Message
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_123
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_123_length_of_entry_array_longer_than_message_allows``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Entries Array length exceeds the total length is
+rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with the Entries Array length set to the datagram length plus 1
+(the OA gives no value).
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+The OA synopsis says the message is "unrecognizable" or "too damaged to be answered with
+an Ack", the OA procedure and Pass criteria require a NAck. The test follows the
+procedure.
+
+Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.
+
+TC8-SDX-009: Entries Array Too Long
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_124
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_124_length_of_entry_array_too_long``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Entries Array length exceeds the total length by
+at least 20 bytes is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with the Entries Array length set to the datagram length plus
+20.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+The OA synopsis says the Entries Array length "does not exceed" the Message total length,
+the OA procedure says it exceeds it by at least 20 bytes. The test follows the
+procedure.
+
+Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.
+
+TC8-SDX-010: Entries Array Too Short
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_125
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedArrays::test_ets_125_length_of_entry_array_too_short``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Entries Array length is less than the sum of the
+lengths of its entries is rejected.
+
+**Stimulus:**
+Send one SubscribeEventgroup entry (16 bytes) with the Entries Array length set to 15.
+The OA gives no value.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.
+
+TC8-SDX-011: Option Ends Past Options Array, Variant A
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_134
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_134_option_length_ends_past_options_array_var_a``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose option length surpasses the Options Array length
+is rejected or ignored.
+
+**Stimulus:**
+Send SubscribeEventgroup with the SOME/IP length and the Options Array length both cut
+by 4 bytes, option length fields unchanged, one option. The OA cuts both by 12 bytes
+(60 to 48 and 24 to 12).
+
+**Expected Result:**
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).
+
+The OA synopsis implies two options of 12 bytes, the OA procedure only says "option
+length greater than the options array length". The test follows the synopsis shape with
+one option.
+
+TC8-SDX-012: Option Ends Past Options Array, Variant B
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_135
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_135_option_length_ends_past_options_array_var_b``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose option length surpasses the Options Array length
+is rejected or ignored.
+
+**Stimulus:**
+Send SubscribeEventgroup with Options Array length 8 and one option of 12 bytes. The OA
+gives no value.
+
+**Expected Result:**
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).
+
+The OA synopsis ends with a NAck only, the OA procedure and Pass criteria allow a NAck or
+no reaction. The test follows the procedure.
+
+TC8-SDX-013: UDP Option Length 4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_136
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_136_option_length_shorter_gt_0_as_specified_for_type``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with a UDP option length shorter than specified for the
+type is rejected or ignored.
+
+**Stimulus:**
+Send SubscribeEventgroup with the length field of the UDP IPv4 Endpoint Option set to 4
+instead of 9.
+
+**Expected Result:**
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).
+
+TC8-SDX-014: Shorter Option With Unaligned Next Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_137
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_137_option_shorter_with_unaligned_next_option``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with wrong sized options that keep the total Options
+Array length is rejected.
+
+**Stimulus:**
+Send one SubscribeEventgroup entry with Number of Options 1 = 2 and these options, in
+this order: a TCP IPv4 Endpoint Option with length field 14 followed by 5 dummy bytes,
+then a UDP IPv4 Endpoint Option with length field 4 followed by 7 bytes. The Options
+Array length is 24 and the SOME/IP length is consistent with the datagram.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+Known limitation: A NAck is also returned for a valid Subscribe that references two options, so this
+check cannot attribute the NAck to the injected fault alone.
+
+TC8-SDX-015: Options Array Longer Than Message
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_138
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_138_options_array_longer_than_message_allows``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Options Array length is longer than the message
+is acknowledged or ignored.
+
+**Stimulus:**
+Send SubscribeEventgroup with Options Array length 0x28 and one option of 12 bytes.
+
+**Expected Result:**
+SubscribeEventgroupAck or no reaction (no NAck).
+
+The OA synopsis says "0x28 instead of 0x18", which assumes a 24 byte array with two
+options. The test keeps 0x28 with one option.
+
+TC8-SDX-016: Options Array Too Short
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_139
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_139_options_array_too_short``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Options Array length is shorter than required is
+rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with Options Array length 2 and one option of 12 bytes.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDX-017: SOME/IP Length Shorter Than Actual
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_153
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_153_someip_length_shorter_as_expected``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose SOME/IP length is less than the actual length is
+rejected or ignored.
+
+**Stimulus:**
+Send SubscribeEventgroup with the SOME/IP length set to the actual length minus 1.
+
+**Expected Result:**
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).
+
+TC8-SDX-018: Unknown Option Type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_174
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_174_unknown_option_type``
+
+**Purpose:**
+Verify that a SubscribeEventgroup that references an unknown option type is rejected.
+
+**Stimulus:**
+Send one SubscribeEventgroup entry with Number of Options 1 = 2. Option 0 has the
+unknown type ``0x77`` (length field 9, zero content), option 1 is a UDP IPv4 Endpoint
+Option. The OA layout uses a TCP option instead of the unknown option.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+Known limitation: A NAck is also returned for a valid Subscribe that references two options, so this
+check cannot attribute the NAck to the injected fault alone.
+
+TC8-SDX-019: Unused Data After Options Array
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_176
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_176_unused_data_after_options_array``
+
+**Purpose:**
+Verify that unused payload data after the Options Array does not stop the DUT from
+acknowledging a unicast subscription.
+
+**Stimulus:**
+Send a unicast SubscribeEventgroup with the unused data ``0x30303a3031`` after the
+Options Array, counted in the SOME/IP length. Then send one with the same data, not
+counted in the SOME/IP length.
+
+**Expected Result:**
+A SubscribeEventgroupAck for each.
+
+TC8-SDX-020: Unused Data After Options Array, Wrong Length
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_177
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_177_unused_data_after_options_array_wrong_length``
+
+**Purpose:**
+Verify that unused payload data that is not included in the SOME/IP length does not stop
+the DUT from acknowledging a unicast subscription.
+
+**Stimulus:**
+Send a unicast SubscribeEventgroup with the unused data ``0x30303a3031`` at the end, not
+included in the SOME/IP length.
+
+**Expected Result:**
+SubscribeEventgroupAck.
+
+TC8-SDX-021: Wrong SOME/IP Message ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_178
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDMalformedOptionsAndHeader::test_ets_178_subscribe_using_wrong_someip_messageid``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose SOME/IP header has a wrong Message ID for Service
+Discovery is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with Method ID ``0x8101`` instead of ``0x8100`` in the SOME/IP
+header (the OA gives no value).
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.
+
 SD Initial Field and Reboot Detection Tests
 -------------------------------------------
 
