@@ -301,6 +301,29 @@ SD TCP
      - TC8-SDT-002
      - ``sd_sub_lifecycle``
 
+SD Initial Field and Reboot Detection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_086
+     - TC8-SDI-001
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_087
+     - TC8-SDI-002
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_093
+     - TC8-SDI-003
+     - ``sd_reboot``
+   * - Section 6.1.6, SOMEIP_ETS_094
+     - TC8-SDI-004
+     - ``sd_reboot``
+
 Test Results
 -------------
 
