@@ -31,7 +31,7 @@ from helpers.someip_types import SOMEIPSDEntryType
 _SESSION_ID_OFFSET: int = 10
 _BURST: int = 50
 _DRAIN_SECS: float = 3.0
-_DEADLINE_SECS: float = 800.0
+_DEADLINE_SECS: float = 240.0
 _RCVBUF_BYTES: int = 8 * 1024 * 1024
 
 
