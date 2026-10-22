@@ -1239,7 +1239,7 @@ TC8-SDT-001: Layer 4 Protocol of TCP Endpoint Option
 :Test Function: ``TestSDTcpBinding::test_options_15_tcp_endpoint_l4_protocol``
 
 **Purpose:**
-Verify that an OfferService of a service with a reliable port carries exactly one IPv4
+Verify that an OfferService of a TCP-only service carries exactly one IPv4
 Endpoint Option and that its Layer 4 protocol is TCP.
 
 **Stimulus:**
@@ -1248,9 +1248,8 @@ Send FindService for service ``0x1234`` and take the OfferService.
 **Expected Result:**
 Exactly one IPv4 Endpoint Option, with Layer 4 protocol ``0x06`` (TCP).
 
-Expected failure (strict xfail). OA expectation: exactly one IPv4 Endpoint Option in
-the OfferService (OA step 3). Observed: two IPv4 Endpoint Options, (l4proto, port) =
-(0x11, 30509) and (0x06, 30510).
+The module uses a TCP-only service configuration (reliable port, no unreliable port), so
+the OfferService carries a single Endpoint Option.
 
 TC8-SDT-002: Subscribe With TCP Option Without Connection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
