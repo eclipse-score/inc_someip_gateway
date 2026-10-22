@@ -17,6 +17,7 @@ See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 
 import struct
 import subprocess
+import time
 
 from attribute_plugin import add_test_properties
 
@@ -31,6 +32,7 @@ from helpers.sd_helpers import (
     IPV4_ENDPOINT_OPTION_TYPE,
     L4PROTO_OFFSET,
     PORT_OFFSET,
+    open_multicast_socket,
     parse_raw_eventgroup_entry,
     raw_entry_options,
     raw_sd_entries,
@@ -52,21 +54,26 @@ class TestSDTcpBinding:
         derivation_technique="requirements-analysis",
     )
     def test_options_15_tcp_endpoint_l4_protocol(
-        self, dut: subprocess.Popen[bytes], dut_ip: str, tester_ip: str
+        self, dut: subprocess.Popen[bytes], dut_ip: str, tester_ip: str, host_ip: str
     ) -> None:
         """TC8-SDT-001 (OPTIONS_15): the Offer holds one IPv4 Endpoint Option with Layer 4 protocol 0x06."""
         assert dut.poll() is None, "DUT is not running"
 
         sock = open_sender_socket(tester_ip)
+        mc_sock = open_multicast_socket(host_ip)
+        payload = None
         try:
-
-            def _send() -> None:
+            # The DUT may answer the Find with a unicast or a multicast Offer, so listen on both.
+            deadline = time.monotonic() + 10.0
+            while payload is None and time.monotonic() < deadline:
                 send_find_service(sock, (dut_ip, SD_PORT), service_id=SERVICE_ID)
-
-            _send()
-            payload = capture_sd_payload(sock, SOMEIPSDEntryType.OfferService, timeout_secs=10.0, resend=_send)
+                for listener in (sock, mc_sock):
+                    payload = capture_sd_payload(listener, SOMEIPSDEntryType.OfferService, timeout_secs=0.75)
+                    if payload is not None:
+                        break
         finally:
             sock.close()
+            mc_sock.close()
         assert payload is not None, "OPTIONS_15: No OfferService received within 10 s after FindService"
 
         offer = next(
