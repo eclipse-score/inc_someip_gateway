@@ -118,7 +118,14 @@ class TestSDSubscribeEndpointOptions:
 
             def _send() -> None:
                 send_sd_subscribe_wrong_l4proto(
-                    sock, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_ALL_EVENTS_AND_FIELDS, tester_ip, port
+                    sock,
+                    (dut_ip, SD_PORT),
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
+                    MAJOR_VERSION,
+                    tester_ip,
+                    port,
                 )
 
             assert_nack("ETS_119", capture_subscribe_answers(sock, _send))

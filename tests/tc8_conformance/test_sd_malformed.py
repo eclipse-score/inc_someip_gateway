@@ -153,7 +153,7 @@ class TestSDMalformedArrays:
 
             def _send() -> None:
                 send_sd_subscribe_empty_options(
-                    sock, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_ALL_EVENTS_AND_FIELDS
+                    sock, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_ALL_EVENTS_AND_FIELDS, MAJOR_VERSION
                 )
 
             assert_nack("ETS_113", capture_subscribe_answers(sock, _send))
@@ -197,7 +197,14 @@ class TestSDMalformedArrays:
 
             def _send() -> None:
                 send_sd_entry_refs_more_options(
-                    sock, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_ALL_EVENTS_AND_FIELDS, tester_ip, port
+                    sock,
+                    (dut_ip, SD_PORT),
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
+                    MAJOR_VERSION,
+                    tester_ip,
+                    port,
                 )
 
             assert_nack("ETS_115", capture_subscribe_answers(sock, _send))
@@ -570,7 +577,14 @@ class TestSDMalformedOptionsAndHeader:
 
             def _send() -> None:
                 send_sd_wrong_someip_message_id(
-                    sock, (dut_ip, SD_PORT), SERVICE_ID, INSTANCE_ID, EVENTGROUP_ALL_EVENTS_AND_FIELDS, tester_ip, port
+                    sock,
+                    (dut_ip, SD_PORT),
+                    SERVICE_ID,
+                    INSTANCE_ID,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
+                    MAJOR_VERSION,
+                    tester_ip,
+                    port,
                 )
 
             assert_nack("ETS_178", capture_subscribe_answers(sock, _send))
