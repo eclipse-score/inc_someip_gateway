@@ -330,16 +330,6 @@ git_override(
     remote = "https://github.com/eclipse-score/rules_imagefs.git",
 )
 
-# TODO: Switch back to a released version once `--qemu-disk` is part of a tagged release.
-git_override(
-    module_name = "score_itf",
-    commit = "38ae9a3dd98ccc7434e1f8b57ca4a3d2bac82e2f",
-    patch_strip = 1,
-    # if timeout is too low QEMU startup might be flaky
-    patches = ["//:third_party/score_itf-qemu-ping-timeout.patch"],
-    remote = "https://github.com/eclipse-score/itf.git",
-)
-
 # TODO: Switch back to a released version once the automatic /opt mount is released.
 git_override(
     module_name = "os_images",
