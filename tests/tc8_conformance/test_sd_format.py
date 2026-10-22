@@ -149,6 +149,14 @@ def _entries_length_from_datagram(payload: bytes) -> int:
     return len(payload) - _SD_ENTRIES_OFFSET - 4 - options_length
 
 
+def _assert_entries_length(ets: str, payload: bytes) -> None:
+    """Assert the Entries Array length is a whole number of 16-byte entries and matches the payload size."""
+    entries_length = struct.unpack_from(">I", payload, 4)[0]
+    assert entries_length % 16 == 0, f"{ets}: Entries Array length = {entries_length}, not a multiple of 16"
+    expected = _entries_length_from_datagram(payload)
+    assert entries_length == expected, f"{ets}: Entries Array length = {entries_length}, expected {expected}"
+
+
 def _ack_entry(payload: bytes) -> RawEventgroupEntry:
     """Return the first SubscribeEventgroupAck entry of an SD payload."""
     raw = next(e for e in raw_sd_entries(payload) if e[0] == SOMEIPSDEntryType.SubscribeAck)
@@ -239,9 +247,7 @@ class TestSDOfferEntryFormat:
     def test_format_11_type_1_entry_length(self, offer_datagram: bytes) -> None:
         """TC8-SDF-008 (FORMAT_11): Entry Type is 0x01 and the Entries Array length is entries x 16."""
         payload = offer_datagram[SOMEIP_HEADER_LEN:]
-        entries_length = struct.unpack_from(">I", payload, 4)[0]
-        expected = _entries_length_from_datagram(payload)
-        assert entries_length == expected, f"FORMAT_11: Entries Array length = {entries_length}, expected {expected}"
+        _assert_entries_length("FORMAT_11", payload)
         assert offers_for_service(payload), "FORMAT_11: no entry with Entry Type 0x01 for the service"
 
     @add_test_properties(
@@ -297,9 +303,7 @@ class TestSDSubscribeAckFormat:
     )
     def test_format_20_type_2_entry_length(self, ack_payload: bytes) -> None:
         """TC8-SDF-013 (FORMAT_20): Entries Array length is entries x 16."""
-        entries_length = struct.unpack_from(">I", ack_payload, 4)[0]
-        expected = _entries_length_from_datagram(ack_payload)
-        assert entries_length == expected, f"FORMAT_20: Entries Array length = {entries_length}, expected {expected}"
+        _assert_entries_length("FORMAT_20", ack_payload)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
