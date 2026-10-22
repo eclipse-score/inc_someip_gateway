@@ -547,9 +547,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The endpoint option address is 0.0.0.0, which is not a usable address.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_subscribe_zero_ip(sock, _DEST, 0x1234, 0x0001, 0x0010, 30510)
+        sd_malformed.send_sd_subscribe_zero_ip(sock, _DEST, 0x1234, 0x0001, 0x0010, 1, 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c00090400000000000011772e"
         )
 
@@ -569,9 +569,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The option type byte is 0x20, a reserved value the DUT should not see in practice.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_subscribe_reserved_option(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
+        sd_malformed.send_sd_subscribe_reserved_option(sock, _DEST, 0x1234, 0x0001, 0x0010, 1, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c000920000000000000000000"
         )
 
@@ -613,9 +613,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The option length field is set to 1, too short to be a valid option.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_empty_option(sock, _DEST, 0x1234, 0x0001, 0x0010)
+        sd_malformed.send_sd_empty_option(sock, _DEST, 0x1234, 0x0001, 0x0010, 1)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c000104000000000000000000"
         )
 

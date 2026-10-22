@@ -573,6 +573,7 @@ def send_sd_subscribe_zero_ip(
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
+    major_version: int,
     subscriber_port: int,
 ) -> None:
     """ETS_110: SubscribeEventgroup with endpoint IP = 0.0.0.0 (unspecified).
@@ -583,6 +584,7 @@ def send_sd_subscribe_zero_ip(
         service_id=service_id,
         instance_id=instance_id,
         eventgroup_id=eventgroup_id,
+        major_version=major_version,
         num_opts=1,
     )
     opt_bytes = _endpoint_option_bytes("0.0.0.0", subscriber_port)
@@ -630,6 +632,7 @@ def send_sd_subscribe_reserved_option(
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
+    major_version: int,
     host_ip: str,
     subscriber_port: int,
 ) -> None:
@@ -641,6 +644,7 @@ def send_sd_subscribe_reserved_option(
         service_id=service_id,
         instance_id=instance_id,
         eventgroup_id=eventgroup_id,
+        major_version=major_version,
         num_opts=1,
     )
     opt_bytes = _unknown_option_bytes(option_type=0x20, content_len=8)
@@ -789,12 +793,14 @@ def send_sd_empty_option(
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
+    major_version: int,
 ) -> None:
     """ETS_112: SubscribeEventgroup with an option length field < 2 (too small for the type byte to fit)."""
     entry_bytes = _subscribe_entry_bytes(
         service_id=service_id,
         instance_id=instance_id,
         eventgroup_id=eventgroup_id,
+        major_version=major_version,
         num_opts=1,
     )
     # Build an option with length=0x0001 (only 1 content byte after length field, invalid)
