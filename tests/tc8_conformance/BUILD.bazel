@@ -180,6 +180,21 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
+integration_test(
+    name = "test_tc8_sd_format",
+    timeout = "moderate",
+    srcs = [
+        "test_sd_format.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
 # exclusive: timing assertions are sensitive to host load from parallel QEMU runs
 integration_test(
     name = "test_tc8_sd_phases_timing",

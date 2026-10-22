@@ -24,9 +24,10 @@ import socket
 import struct
 import sys
 import time
-from typing import List, NamedTuple, Optional, Tuple
+from typing import Callable, List, NamedTuple, Optional, Tuple
 
-from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
+from helpers.constants import EVENTGROUP_ALL_EVENTS_AND_FIELDS, SD_MULTICAST_ADDR, SD_PORT, SERVICE_ID
+from helpers.sd_sender import capture_unicast_sd_entries
 from helpers.someip_types import (
     SOMEIPHeader,
     SOMEIPSDEntry,
@@ -36,6 +37,17 @@ from helpers.someip_types import (
 
 # SOME/IP SD messages are identified by service ID 0xFFFF.
 SD_SERVICE_ID: int = 0xFFFF
+
+#: Length of the SOME/IP header in front of the SD payload.
+SOMEIP_HEADER_LEN: int = 16
+
+#: IPv4 Endpoint Option type and the offsets of its L4 protocol and port fields.
+IPV4_ENDPOINT_OPTION_TYPE: int = 0x04
+L4PROTO_OFFSET: int = 9
+PORT_OFFSET: int = 10
+
+#: Time to wait for the answer to a SubscribeEventgroup.
+SUBSCRIBE_ANSWER_SECS: float = 5.0
 
 
 def create_udp_socket(bind_addr: str = "", port: int = 0) -> socket.socket:
@@ -50,6 +62,10 @@ def create_udp_socket(bind_addr: str = "", port: int = 0) -> socket.socket:
 #: Kernel receive timestamps (SO_TIMESTAMPNS) give the packet arrival time,
 #: independent of when the test reads the socket. ``None`` where the platform
 #: does not expose it, in which case callers fall back to the time of the read.
+#: Python's ``socket`` module does not define SO_TIMESTAMPNS, hence the Linux
+#: value (35, SO_TIMESTAMPNS_OLD in the C headers) as fallback. Only valid for
+#: 64-bit CPU architectures with a 64-bit ``time_t``; 32-bit ``time_t`` ABIs
+#: use SO_TIMESTAMPNS_NEW (64).
 _LINUX_SO_TIMESTAMPNS = 35 if sys.platform.startswith("linux") else None
 SO_TIMESTAMPNS: Optional[int] = getattr(socket, "SO_TIMESTAMPNS", _LINUX_SO_TIMESTAMPNS)
 
@@ -123,6 +139,17 @@ def raw_sd_entries(sd_payload: bytes) -> List[bytes]:
     """Split the entries array of an SD payload into its 16-byte entries."""
     entries, _ = _sd_arrays(sd_payload)
     return [entries[i : i + 16] for i in range(0, len(entries), 16)]
+
+
+def offers_for_service(sd_payload: bytes, instance_id: Optional[int] = None) -> List[bytes]:
+    """Return the raw OfferService entries for ``SERVICE_ID`` (and *instance_id* if given) in an SD payload."""
+    return [
+        e
+        for e in raw_sd_entries(sd_payload)
+        if e[0] == SOMEIPSDEntryType.OfferService
+        and struct.unpack_from(">H", e, 4)[0] == SERVICE_ID
+        and (instance_id is None or struct.unpack_from(">H", e, 6)[0] == instance_id)
+    ]
 
 
 def raw_sd_options(sd_payload: bytes) -> List[bytes]:
@@ -202,3 +229,26 @@ def capture_sd_offers(
         )
 
     return collected  # pragma: no cover, only reached if min_count == 0
+
+
+def capture_subscribe_answers(
+    sock: socket.socket, resend: Callable[[], None], max_results: int = 1
+) -> List[SOMEIPSDEntry]:
+    """Send with *resend* and return the Ack and NAck entries for ``EVENTGROUP_ALL_EVENTS_AND_FIELDS`` on *sock*."""
+    resend()
+    entries = capture_unicast_sd_entries(
+        sock,
+        filter_types=(SOMEIPSDEntryType.SubscribeAck,),
+        timeout_secs=SUBSCRIBE_ANSWER_SECS,
+        resend=resend,
+        max_results=max_results,
+    )
+    return [e for e in entries if e.eventgroup_id == EVENTGROUP_ALL_EVENTS_AND_FIELDS]
+
+
+def assert_nack(ets: str, answers: List[SOMEIPSDEntry]) -> None:
+    """Assert a SubscribeEventgroupNAck (TTL 0) and no SubscribeEventgroupAck (TTL > 0)."""
+    assert any(e.ttl == 0 for e in answers), (
+        f"{ets}: No SubscribeEventgroupNAck received within {SUBSCRIBE_ANSWER_SECS:.0f} s"
+    )
+    assert not any(e.ttl > 0 for e in answers), f"{ets}: SubscribeEventgroupAck received, expected NAck"
