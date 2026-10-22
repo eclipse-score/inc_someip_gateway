@@ -1270,6 +1270,167 @@ establishing the TCP connection.
 **Expected Result:**
 SubscribeEventgroupNAck.
 
+SD Subscribe Option Tests
+-------------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_sd_subscribe_options``
+
+TC8-SDO-001: No Port in Endpoint Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_109
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_109_no_port_in_endpoint_option``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Endpoint Option has port 0 is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with port 0 in the Endpoint Option.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDO-002: No IPv4 Address in Endpoint Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_110
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_110_no_ipv4_address_in_endpoint_option``
+
+**Purpose:**
+Verify that a SubscribeEventgroup without a valid IPv4 address in the Endpoint Option is
+rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with IP address 32.0.0.0 in the Endpoint Option.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDO-003: Wrong L4 Protocol in Endpoint Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_119
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_119_wrong_l4proto``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose IPv4 Endpoint Option has an l4proto that is
+neither UDP nor TCP is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup referencing an IPv4 Endpoint Option with l4proto ``0x00``.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+The OA Pass criteria say "at least one unicast OfferService", which contradicts the OA
+procedure and synopsis. The test follows the procedure and synopsis. The OA gives no
+l4proto value, ``0x00`` is a neutral choice.
+
+TC8-SDO-004: Unexisting IPv4 Address in Endpoint Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_154
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_154_unexisting_ipv4_address``
+
+**Purpose:**
+Verify that a SubscribeEventgroup with an invalid IPv4 address in the Endpoint Option is
+rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with IP address 169.254.200.200 in the Endpoint Option (the OA
+gives no address, this value is a neutral choice).
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received.
+
+TC8-SDO-005: Endpoint Option With DUT IP Address
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_162
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_162_unallowed_option_ip``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Endpoint Option carries the IP address of the DUT
+is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with the DUT IP address in the Endpoint Option.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDO-006: Endpoint Option With 111.111.111.111
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_164
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_164_unallowed_option_ip_2``
+
+**Purpose:**
+Verify that a SubscribeEventgroup whose Endpoint Option carries IP address
+111.111.111.111 is rejected.
+
+**Stimulus:**
+Send SubscribeEventgroup with IP address 111.111.111.111 in the Endpoint Option.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
+
+TC8-SDO-007: Unicast SubscribeEventgroup With Option Indexes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_172 (alias SOMEIP_ETS_173)
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_172_unicast_subscribe_option_indexes``
+
+**Purpose:**
+Verify that unicast subscriptions with different option index and run settings are
+acknowledged.
+
+**Stimulus:**
+Send a unicast SubscribeEventgroup with index1stOptions = 0, index2ndOptions = 1,
+numOfOptions1 = 1, numOfOptions2 = 1. Then send one with index1stOptions = 0,
+index2ndOptions = 0, numOfOptions1 = 2, numOfOptions2 = 0. The OA gives no option
+content: the test uses one UDP and one TCP IPv4 Endpoint Option, both with the tester IP
+address and the sender port.
+
+**Expected Result:**
+A unicast SubscribeEventgroupAck for each.
+
+The PDF heading prints SOMEIP_ETS_172 and SOMEIP_ETS_173 for this test.
+
+Expected failure (strict xfail). OA expectation: a unicast SubscribeEventgroupAck for
+each option layout. Observed: no Ack received for either layout.
+
+TC8-SDO-008: Unreferenced Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_175
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDSubscribeEndpointOptions::test_ets_175_unreferenced_option``
+
+**Purpose:**
+Verify that an unreferenced Configuration Option does not stop the DUT from acknowledging
+a subscription.
+
+**Stimulus:**
+Send SubscribeEventgroup with all needed Endpoint Options and an additional unreferenced
+Configuration Option. The OA gives no option content: the test appends the bytes
+``00 02 01 00 00`` (empty string) after the Endpoint Option, and the entry does not
+reference them.
+
+**Expected Result:**
+SubscribeEventgroupAck.
+
 SD Malformed Message Tests
 --------------------------
 
