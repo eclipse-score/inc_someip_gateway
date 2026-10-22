@@ -1964,3 +1964,30 @@ second.
 
 Not verified: the TriggerEventUint8 call (the DUT has no trigger method). The cyclic event
 ``0x8001`` is observed instead.
+
+SD Session ID Wrap Test
+-----------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_sd_session_wrap``
+
+TC8-SDW-001: Session ID Is One After Wrapping
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_152
+:Requirement: ``comp_req__tc8_conformance__sd_offer_format``
+:Test Function: ``TestSDSessionWrap::test_ets_152_session_id_one_after_wrap``
+
+**Purpose:**
+Verify that the Session ID of the OfferService responses restarts at 0x0001 after the
+wrap around.
+
+**Stimulus:**
+Send unicast FindService messages in bursts of 50 until the Session ID of the
+OfferService responses for instance ``0x5678`` wraps. The OA gives no message count.
+
+**Expected Result:**
+The first Session ID after ``0xFFFF`` is ``0x0001``.
+
+The OA Pass criteria also list a SubscribeEventgroupAck, which no step sends. It is not
+checked.

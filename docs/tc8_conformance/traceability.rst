@@ -433,6 +433,20 @@ SD Initial Field and Reboot Detection
      - TC8-SDI-004
      - ``sd_reboot``
 
+SD Session ID Wrap
+^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_152
+     - TC8-SDW-001
+     - ``sd_offer_format``
+
 Test Results
 -------------
 
