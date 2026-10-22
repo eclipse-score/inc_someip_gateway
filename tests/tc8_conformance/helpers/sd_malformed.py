@@ -314,6 +314,7 @@ def send_sd_entry_refs_more_options(
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
+    major_version: int,
     host_ip: str,
     subscriber_port: int,
 ) -> None:
@@ -326,7 +327,7 @@ def send_sd_entry_refs_more_options(
     entry_bytes = (
         bytes([0x06, 0x00, 0x00, 0x30])  # type=Subscribe, idx_1=0, idx_2=0, num_1=3, num_2=0
         + struct.pack(">HH", service_id, instance_id)
-        + bytes([0x00])
+        + bytes([major_version])
         + ttl_3b
         + b"\x00\x00"
         + struct.pack(">H", eventgroup_id & 0xFFFF)
@@ -545,6 +546,7 @@ def send_sd_subscribe_empty_options(
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
+    major_version: int,
 ) -> None:
     """ETS_113: SubscribeEventgroup with an empty Options Array (Options Array length 0, num_options_1=0).
 
@@ -554,6 +556,7 @@ def send_sd_subscribe_empty_options(
         service_id=service_id,
         instance_id=instance_id,
         eventgroup_id=eventgroup_id,
+        major_version=major_version,
         num_opts=0,
     )
     pkt = build_raw_sd_packet(
@@ -597,6 +600,7 @@ def send_sd_subscribe_wrong_l4proto(
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
+    major_version: int,
     host_ip: str,
     subscriber_port: int,
     l4proto: int = 0x00,
@@ -608,6 +612,7 @@ def send_sd_subscribe_wrong_l4proto(
         service_id=service_id,
         instance_id=instance_id,
         eventgroup_id=eventgroup_id,
+        major_version=major_version,
         num_opts=1,
     )
     opt_bytes = _endpoint_option_bytes(host_ip, subscriber_port, l4proto=l4proto)
@@ -721,6 +726,7 @@ def send_sd_wrong_someip_message_id(
     service_id: int,
     instance_id: int,
     eventgroup_id: int,
+    major_version: int,
     host_ip: str,
     subscriber_port: int,
     method_id_override: int = 0x8101,
@@ -733,6 +739,7 @@ def send_sd_wrong_someip_message_id(
         service_id=service_id,
         instance_id=instance_id,
         eventgroup_id=eventgroup_id,
+        major_version=major_version,
         num_opts=1,
     )
     pkt = build_raw_sd_packet(

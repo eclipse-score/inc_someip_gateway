@@ -457,9 +457,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The entry claims it has 3 options, but only 1 option is actually in the packet.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_entry_refs_more_options(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
+        sd_malformed.send_sd_entry_refs_more_options(sock, _DEST, 0x1234, 0x0001, 0x0010, 1, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060000301234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000301234000101000003"
             "000000100000000c00090400c0a801320011772e"
         )
 
@@ -538,9 +538,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The subscribe entry has empty Options Array.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_subscribe_empty_options(sock, _DEST, 0x1234, 0x0001, 0x0010)
+        sd_malformed.send_sd_subscribe_empty_options(sock, _DEST, 0x1234, 0x0001, 0x0010, 1)
         assert sock.sent[0].hex() == (
-            "ffff810000000024000000c801010200c0000000000000100600000012340001000000030000001000000000"
+            "ffff810000000024000000c801010200c0000000000000100600000012340001010000030000001000000000"
         )
 
     def test_send_sd_subscribe_zero_ip(self) -> None:
@@ -558,10 +558,10 @@ class TestSdMalformedSendersGoldenVectors:
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
         sd_malformed.send_sd_subscribe_wrong_l4proto(
-            sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510, l4proto=0x00
+            sock, _DEST, 0x1234, 0x0001, 0x0010, 1, "192.168.1.50", 30510, l4proto=0x00
         )
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c00090400c0a801320000772e"
         )
 
@@ -588,9 +588,9 @@ class TestSdMalformedSendersGoldenVectors:
         # A subscribe whose SOME/IP Method ID is changed from the SD value 0x8100 to 0x8101.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_wrong_someip_message_id(sock, _DEST, 0x1234, 0x5678, 0x0002, "192.168.1.10", 30000)
+        sd_malformed.send_sd_wrong_someip_message_id(sock, _DEST, 0x1234, 0x5678, 0x0002, 1, "192.168.1.10", 30000)
         assert sock.sent[0].hex() == (
-            "ffff810100000030000000c801010200c000000000000010060000101234567800000003000000020000000c00090400c0a8010a00117530"
+            "ffff810100000030000000c801010200c000000000000010060000101234567801000003000000020000000c00090400c0a8010a00117530"
         )
 
     def test_send_sd_truncated_entry(self) -> None:
