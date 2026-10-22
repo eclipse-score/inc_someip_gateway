@@ -275,7 +275,7 @@ integration_test(
 # exclusive: the test sends about 65k FindService messages at a high packet rate
 integration_test(
     name = "test_tc8_sd_session_wrap",
-    timeout = "long",
+    timeout = "moderate",
     srcs = [
         "test_sd_session_wrap.py",
     ],
