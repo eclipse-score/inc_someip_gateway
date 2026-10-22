@@ -284,6 +284,23 @@ SD Find Response
      - TC8-SDR-003
      - ``sd_find_response``
 
+SD TCP
+^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.5.2, SOMEIPSRV_OPTIONS_15
+     - TC8-SDT-001
+     - ``sd_endpoint_option``
+   * - Section 6.1.6, SOMEIP_ETS_096
+     - TC8-SDT-002
+     - ``sd_sub_lifecycle``
+
 Test Results
 -------------
 

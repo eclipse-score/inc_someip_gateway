@@ -1224,3 +1224,48 @@ instance ``0x5678``.
 
 **Expected Result:**
 At least one unicast OfferService.
+
+SD TCP Tests
+------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_service.json``
+:Test Module: ``test_sd_tcp``
+
+TC8-SDT-001: Layer 4 Protocol of TCP Endpoint Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.2, SOMEIPSRV_OPTIONS_15
+:Requirement: ``comp_req__tc8_conformance__sd_endpoint_option``
+:Test Function: ``TestSDTcpBinding::test_options_15_tcp_endpoint_l4_protocol``
+
+**Purpose:**
+Verify that an OfferService of a service with a reliable port carries exactly one IPv4
+Endpoint Option and that its Layer 4 protocol is TCP.
+
+**Stimulus:**
+Send FindService for service ``0x1234`` and take the OfferService.
+
+**Expected Result:**
+Exactly one IPv4 Endpoint Option, with Layer 4 protocol ``0x06`` (TCP).
+
+Expected failure (strict xfail). OA expectation: exactly one IPv4 Endpoint Option in
+the OfferService (OA step 3). Observed: two IPv4 Endpoint Options, (l4proto, port) =
+(0x11, 30509) and (0x06, 30510).
+
+TC8-SDT-002: Subscribe With TCP Option Without Connection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_096
+:Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
+:Test Function: ``TestSDTcpBinding::test_ets_096_subscribe_tcp_option_without_connection``
+
+**Purpose:**
+Verify that a SubscribeEventgroup for eventgroup 0x0002 with a TCP Endpoint Option is
+rejected when no TCP connection exists.
+
+**Stimulus:**
+Send SubscribeEventgroup for eventgroup ``0x0002`` with a TCP Endpoint Option, without
+establishing the TCP connection.
+
+**Expected Result:**
+SubscribeEventgroupNAck.
