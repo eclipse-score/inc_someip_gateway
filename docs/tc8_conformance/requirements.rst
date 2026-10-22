@@ -109,7 +109,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    The conformance test suite shall verify that ``someipd`` transmits
    SOME/IP-SD OfferService entries on the configured multicast group
    with correct service ID, instance ID, major/minor version, and TTL
-   fields upon startup.
+   fields upon startup. It shall also verify that the SD Session ID
+   increases with each message and restarts at 0x0001 after 0xFFFF.
 
    Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
    Specification R24-11, section 5.1.2.5.2 (Offer Service Entry).
