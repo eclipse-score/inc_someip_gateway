@@ -209,7 +209,7 @@ class TestSDSubscribeEndpointOptions:
             missing = []
             for label, entry in layouts:
                 answers = capture_subscribe_answers(
-                    sock, lambda e=entry: send_sd_entries(sock, (dut_ip, SD_PORT), (e,))
+                    sock, lambda e=entry: send_sd_entries(sock, (dut_ip, SD_PORT), (e,)), max_results=1
                 )
                 if not any(a.ttl > 0 for a in answers):
                     missing.append(label)
@@ -236,7 +236,7 @@ class TestSDSubscribeEndpointOptions:
             def _send() -> None:
                 sock.sendto(build_raw_sd_packet(entries_bytes=entry, options_bytes=options), (dut_ip, SD_PORT))
 
-            answers = capture_subscribe_answers(sock, _send)
+            answers = capture_subscribe_answers(sock, _send, max_results=1)
             assert any(a.ttl > 0 for a in answers), "ETS_175: No SubscribeEventgroupAck received"
         finally:
             sock.close()

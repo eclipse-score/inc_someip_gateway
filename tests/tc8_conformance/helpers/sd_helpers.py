@@ -232,9 +232,12 @@ def capture_sd_offers(
 
 
 def capture_subscribe_answers(
-    sock: socket.socket, resend: Callable[[], None], max_results: int = 1
+    sock: socket.socket, resend: Callable[[], None], max_results: Optional[int] = None
 ) -> List[SOMEIPSDEntry]:
-    """Send with *resend* and return the Ack and NAck entries for ``EVENTGROUP_ALL_EVENTS_AND_FIELDS`` on *sock*."""
+    """Send with *resend* and return the Ack and NAck entries for ``EVENTGROUP_ALL_EVENTS_AND_FIELDS`` on *sock*.
+
+    Collects for the whole answer window; pass *max_results* to return early when only a positive answer is needed.
+    """
     resend()
     entries = capture_unicast_sd_entries(
         sock,

@@ -229,7 +229,7 @@ integration_test(
 
 integration_test(
     name = "test_tc8_sd_subscribe_options",
-    timeout = "short",
+    timeout = "moderate",
     srcs = [
         "test_sd_subscribe_options.py",
     ],
