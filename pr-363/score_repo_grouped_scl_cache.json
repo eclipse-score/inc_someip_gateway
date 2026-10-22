@@ -7,25 +7,43 @@
     },
     "needs": [
       {
-        "need": "comp_req__tc8_conformance__sd_endpoint_option",
+        "need": "comp_req__tc8_conformance__sd_reboot",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "TestSDTcpBinding__test_options_15_tcp_endpoint_l4_protocol",
-              "file": "tests/tc8_conformance/test_sd_tcp.py",
-              "line": 51,
-              "need": "comp_req__tc8_conformance__sd_endpoint_option",
+              "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_first_restart",
+              "file": "tests/tc8_conformance/test_sd_client.py",
+              "line": 105,
+              "need": "comp_req__tc8_conformance__sd_reboot",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "TestSDOptionFormat__test_tc8_sd_011_offer_ipv4_endpoint_option",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 488,
-              "need": "comp_req__tc8_conformance__sd_endpoint_option",
+              "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
+              "file": "tests/tc8_conformance/test_sd_client.py",
+              "line": 172,
+              "need": "comp_req__tc8_conformance__sd_reboot",
               "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestEts093__test_ets_093_reboot_detection_multicast_and_unicast",
+              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
+              "line": 186,
+              "need": "comp_req__tc8_conformance__sd_reboot",
+              "verify_type": "fully",
+              "result": "skipped",
+              "result_text": "TC8-SDI-003 / OA ETS_093: the initial event 0x8005 is expected after a new subscription and again after the client reboot (Session ID 1). Observed: 0x8005 is received only after the first subscription of part A, not after Session ID 1 in part A, nor after Session IDs 4 and 1 in part B."
+            },
+            {
+              "name": "TestEts094__test_ets_094_reboot_detection_server_side",
+              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
+              "line": 243,
+              "need": "comp_req__tc8_conformance__sd_reboot",
+              "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             }
@@ -37,114 +55,6 @@
         "links": {
           "CodeLinks": [],
           "TestLinks": [
-            {
-              "name": "TestSDTcpBinding__test_ets_096_subscribe_tcp_option_without_connection",
-              "file": "tests/tc8_conformance/test_sd_tcp.py",
-              "line": 94,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_19_type_2_entry_type",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 289,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_20_type_2_entry_length",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 299,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_21_type_2_index_first_option_run",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 308,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_23_type_2_service_id",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 318,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_24_type_2_instance_id",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 328,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_25_type_2_major_version",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 338,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_26_type_2_ttl",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 348,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_27_type_2_reserved",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 358,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDSubscribeAckFormat__test_format_28_type_2_eventgroup_id",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 369,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestEts086__test_ets_086_events_and_fields_all_2",
-              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-              "line": 131,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "partially",
-              "result": "skipped",
-              "result_text": "TC8-SDI-001 / OA ETS_086: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application."
-            },
-            {
-              "name": "TestEts087__test_ets_087_events_and_fields_unreliable_5",
-              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-              "line": 157,
-              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-              "verify_type": "fully",
-              "result": "skipped",
-              "result_text": "TC8-SDI-002 / OA ETS_087: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application."
-            },
             {
               "name": "TestSDSubscribeEndpointOptions__test_ets_109_no_port_in_endpoint_option",
               "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
@@ -212,6 +122,15 @@
               "name": "TestSDSubscribeEndpointOptions__test_ets_175_unreferenced_option",
               "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
               "line": 227,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDTcpBinding__test_ets_096_subscribe_tcp_option_without_connection",
+              "file": "tests/tc8_conformance/test_sd_tcp.py",
+              "line": 94,
               "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
               "verify_type": "fully",
               "result": "passed",
@@ -407,6 +326,87 @@
               "result_text": "TC8-SDX-021 / OA ETS_178: a SubscribeEventgroup whose SOME/IP header carries a wrong Message ID for Service Discovery is expected to be answered with a SubscribeEventgroupNAck. Observed: no NAck is received"
             },
             {
+              "name": "TestSDSubscribeAckFormat__test_format_19_type_2_entry_type",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 289,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_20_type_2_entry_length",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 299,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_21_type_2_index_first_option_run",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 308,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_23_type_2_service_id",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 318,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_24_type_2_instance_id",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 328,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_25_type_2_major_version",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 338,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_26_type_2_ttl",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 348,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_27_type_2_reserved",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 358,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDSubscribeAckFormat__test_format_28_type_2_eventgroup_id",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 369,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "TestSDSubscribeLifecycle__test_tc8_sd_006_subscribe_valid_eventgroup_ack",
               "file": "tests/tc8_conformance/test_service_discovery.py",
               "line": 355,
@@ -540,164 +540,48 @@
               "verify_type": "fully",
               "result": "skipped",
               "result_text": "OA ETS_121: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed with the current DUT stack: they are not received after the subscription."
+            },
+            {
+              "name": "TestEts086__test_ets_086_events_and_fields_all_2",
+              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
+              "line": 131,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "partially",
+              "result": "skipped",
+              "result_text": "TC8-SDI-001 / OA ETS_086: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application."
+            },
+            {
+              "name": "TestEts087__test_ets_087_events_and_fields_unreliable_5",
+              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
+              "line": 157,
+              "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+              "verify_type": "fully",
+              "result": "skipped",
+              "result_text": "TC8-SDI-002 / OA ETS_087: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application."
             }
           ]
         }
       },
       {
-        "need": "comp_req__tc8_conformance__sd_find_response",
+        "need": "comp_req__tc8_conformance__sd_endpoint_option",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "TestSDFindResponse__test_ets_060_discover_port_and_ip",
-              "file": "tests/tc8_conformance/test_sd_find.py",
-              "line": 59,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFindResponse__test_ets_118_ignore_options_in_findservice",
-              "file": "tests/tc8_conformance/test_sd_find.py",
-              "line": 87,
-              "need": "comp_req__tc8_conformance__sd_find_response",
+              "name": "TestSDTcpBinding__test_options_15_tcp_endpoint_l4_protocol",
+              "file": "tests/tc8_conformance/test_sd_tcp.py",
+              "line": 51,
+              "need": "comp_req__tc8_conformance__sd_endpoint_option",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "TestSDFindResponse__test_ets_127_multicast_findservice",
-              "file": "tests/tc8_conformance/test_sd_find.py",
-              "line": 126,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFindResponse__test_tc8_sd_004_find_known_service_unicast_offer",
+              "name": "TestSDOptionFormat__test_tc8_sd_011_offer_ipv4_endpoint_option",
               "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 305,
-              "need": "comp_req__tc8_conformance__sd_find_response",
+              "line": 488,
+              "need": "comp_req__tc8_conformance__sd_endpoint_option",
               "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDVersionMatching__test_sd_message_01_any_instance",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 661,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDVersionMatching__test_sd_message_02_instance_specific",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 687,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDVersionMatching__test_sd_message_03_any_major_version",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 713,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDVersionMatching__test_sd_message_04_major_version_specific",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 739,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDVersionMatching__test_sd_message_05_any_minor_version",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 765,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDVersionMatching__test_sd_message_06_minor_version_specific",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 793,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFindServiceAdvanced__test_ets_128_multicast_findservice_version_any",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1598,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFindServiceAdvanced__test_ets_130_multicast_findservice_unicast_flag_clear",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1649,
-              "need": "comp_req__tc8_conformance__sd_find_response",
-              "verify_type": "fully",
-              "result": "skipped",
-              "result_text": "OA ETS_130: a multicast FindService with the Unicast Flag cleared is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received"
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__tc8_conformance__sd_reboot",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_first_restart",
-              "file": "tests/tc8_conformance/test_sd_client.py",
-              "line": 105,
-              "need": "comp_req__tc8_conformance__sd_reboot",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
-              "file": "tests/tc8_conformance/test_sd_client.py",
-              "line": 172,
-              "need": "comp_req__tc8_conformance__sd_reboot",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestEts093__test_ets_093_reboot_detection_multicast_and_unicast",
-              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-              "line": 186,
-              "need": "comp_req__tc8_conformance__sd_reboot",
-              "verify_type": "fully",
-              "result": "skipped",
-              "result_text": "TC8-SDI-003 / OA ETS_093: the initial event 0x8005 is expected after a new subscription and again after the client reboot (Session ID 1). Observed: 0x8005 is received only after the first subscription of part A, not after Session ID 1 in part A, nor after Session IDs 4 and 1 in part B."
-            },
-            {
-              "name": "TestEts094__test_ets_094_reboot_detection_server_side",
-              "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-              "line": 243,
-              "need": "comp_req__tc8_conformance__sd_reboot",
-              "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             }
@@ -818,15 +702,6 @@
               "result_text": ""
             },
             {
-              "name": "TestSDSessionWrap__test_ets_152_session_id_one_after_wrap",
-              "file": "tests/tc8_conformance/test_sd_session_wrap.py",
-              "line": 71,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
               "name": "TestSDOfferFormat__test_tc8_sd_002_offer_entry_format",
               "file": "tests/tc8_conformance/test_service_discovery.py",
               "line": 230,
@@ -843,20 +718,12 @@
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__tc8_conformance__sd_phases_timing",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
+            },
             {
-              "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
-              "file": "tests/tc8_conformance/test_sd_phases_timing.py",
-              "line": 107,
-              "need": "comp_req__tc8_conformance__sd_phases_timing",
+              "name": "TestSDSessionWrap__test_ets_152_session_id_one_after_wrap",
+              "file": "tests/tc8_conformance/test_sd_session_wrap.py",
+              "line": 71,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
@@ -874,6 +741,122 @@
               "file": "tests/tc8_conformance/test_service_discovery.py",
               "line": 262,
               "need": "comp_req__tc8_conformance__sd_cyclic_timing",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "comp_req__tc8_conformance__sd_find_response",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "TestSDFindResponse__test_tc8_sd_004_find_known_service_unicast_offer",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 305,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDVersionMatching__test_sd_message_01_any_instance",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 661,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDVersionMatching__test_sd_message_02_instance_specific",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 687,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDVersionMatching__test_sd_message_03_any_major_version",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 713,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDVersionMatching__test_sd_message_04_major_version_specific",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 739,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDVersionMatching__test_sd_message_05_any_minor_version",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 765,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDVersionMatching__test_sd_message_06_minor_version_specific",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 793,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFindServiceAdvanced__test_ets_128_multicast_findservice_version_any",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 1598,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFindServiceAdvanced__test_ets_130_multicast_findservice_unicast_flag_clear",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 1649,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "skipped",
+              "result_text": "OA ETS_130: a multicast FindService with the Unicast Flag cleared is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received"
+            },
+            {
+              "name": "TestSDFindResponse__test_ets_060_discover_port_and_ip",
+              "file": "tests/tc8_conformance/test_sd_find.py",
+              "line": 59,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFindResponse__test_ets_118_ignore_options_in_findservice",
+              "file": "tests/tc8_conformance/test_sd_find.py",
+              "line": 87,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFindResponse__test_ets_127_multicast_findservice",
+              "file": "tests/tc8_conformance/test_sd_find.py",
+              "line": 126,
+              "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
@@ -935,6 +918,23 @@
               "line": 1408,
               "need": "comp_req__tc8_conformance__sd_ttl_expiry",
               "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "comp_req__tc8_conformance__sd_phases_timing",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
+              "file": "tests/tc8_conformance/test_sd_phases_timing.py",
+              "line": 107,
+              "need": "comp_req__tc8_conformance__sd_phases_timing",
+              "verify_type": "fully",
               "result": "passed",
               "result_text": ""
             }
