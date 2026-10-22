@@ -240,7 +240,10 @@ bazel_dep(name = "score_communication", version = "0.5.0")
 single_version_override(
     module_name = "score_communication",
     patch_strip = 1,
-    patches = ["//third_party/score_communication:proxy_usage_marker_order.patch"],
+    patches = [
+        "//third_party/score_communication:proxy_usage_marker_order.patch",
+        "//third_party/score_communication:service_discovery_event_order.patch",
+    ],
 )
 
 # ============================================================================
