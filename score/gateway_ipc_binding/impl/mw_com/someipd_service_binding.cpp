@@ -13,6 +13,7 @@
 
 #include "someipd_service_binding.hpp"
 
+#include <string_view>
 #include <utility>
 
 #include "score/gateway_ipc_binding/error.hpp"
@@ -21,6 +22,13 @@
 #include "service_binding.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
+
+namespace {
+
+/// \brief Log prefix shared by the whole binding
+constexpr std::string_view kLog_tag{"[gateway_ipc_binding]"};
+
+}  // namespace
 
 Someipd_service_provider::Someipd_service_provider(Someipd_service_skeleton skeleton) noexcept
     : m_skeleton{std::move(skeleton)} {}
@@ -38,9 +46,8 @@ Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::crea
 
     auto skeleton = Someipd_service_skeleton::Create(specifier.value());
     if (!skeleton.has_value()) {
-        score::mw::log::LogError()
-            << "[gateway_ipc_binding] Failed to create SomeipdService skeleton for"
-            << instance_specifier << ":" << skeleton.error();
+        score::mw::log::LogError() << kLog_tag << "Failed to create SomeipdService skeleton for"
+                                   << instance_specifier << ":" << skeleton.error();
         return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
     }
 
@@ -53,8 +60,8 @@ Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::crea
         });
     if (!registered.has_value()) {
         score::mw::log::LogError()
-            << "[gateway_ipc_binding] Failed to register AddServiceConfiguration handler:"
-            << registered.error();
+            << kLog_tag
+            << "Failed to register AddServiceConfiguration handler:" << registered.error();
         return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
     }
 
@@ -65,7 +72,7 @@ Result<void> Someipd_service_provider::offer() noexcept {
     auto const offered = m_skeleton.OfferService();
     if (!offered.has_value()) {
         score::mw::log::LogError()
-            << "[gateway_ipc_binding] Failed to offer SomeipdService:" << offered.error();
+            << kLog_tag << "Failed to offer SomeipdService:" << offered.error();
         return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_offer_failed);
     }
     return {};
@@ -103,7 +110,7 @@ Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::crea
         std::move(specifier).value());
     if (!find_handle.has_value()) {
         score::mw::log::LogError()
-            << "[gateway_ipc_binding] Failed to start service discovery for SomeipdService"
+            << kLog_tag << "Failed to start service discovery for SomeipdService"
             << instance_specifier << ":" << find_handle.error();
         return MakeUnexpected(Mw_com_binding_error::runtime_error_someipd_service_find_failed);
     }
@@ -124,8 +131,8 @@ Someipd_service_consumer::~Someipd_service_consumer() noexcept {
         auto const stopped = Someipd_service_proxy::StopFindService(find_handle.value());
         if (!stopped.has_value()) {
             score::mw::log::LogError()
-                << "[gateway_ipc_binding] Failed to stop service discovery for SomeipdService:"
-                << stopped.error();
+                << kLog_tag
+                << "Failed to stop service discovery for SomeipdService:" << stopped.error();
         }
     }
     m_connected.store(false);
@@ -147,8 +154,8 @@ void Someipd_service_consumer::on_find_service(
         m_connected.store(false);
 
         if (handles.empty()) {
-            score::mw::log::LogInfo() << "[gateway_ipc_binding] SomeipdService is gone, peer is "
-                                         "not connected anymore";
+            score::mw::log::LogInfo()
+                << kLog_tag << "SomeipdService is gone, peer is not connected anymore";
             return;
         }
 
@@ -159,28 +166,29 @@ void Someipd_service_consumer::on_find_service(
         // call this handler again for the same handle, so gatewayd stays disconnected.
         if (!proxy.has_value()) {
             score::mw::log::LogError()
-                << "[gateway_ipc_binding] Failed to create SomeipdService proxy:" << proxy.error();
+                << kLog_tag << "Failed to create SomeipdService proxy:" << proxy.error();
             return;
         }
 
         // A restarted someipd needs the configuration again. Send it to every new proxy.
-        // The reply MUST be released before the proxy is moved.
+        // Destroy reply before moving proxy: reply's deleter references proxy's method instance.
         bool accepted{false};
         {
             auto const reply = proxy->add_service_configuration(m_service_configuration);
             accepted = reply.has_value() && *reply.value();
         }
 
+        // Move proxy into m_proxy so ~Someipd_service_proxy() does not run while m_mutex is held.
         m_proxy.emplace(std::move(proxy).value());
         if (!accepted) {
             score::mw::log::LogError()
-                << "[gateway_ipc_binding] AddServiceConfiguration failed or was rejected";
+                << kLog_tag << "AddServiceConfiguration failed or was rejected";
             return;
         }
         m_connected.store(true);
     }
 
-    score::mw::log::LogInfo() << "[gateway_ipc_binding] SomeipdService found, peer is connected";
+    score::mw::log::LogInfo() << kLog_tag << "SomeipdService found, peer is connected";
 }
 
 }  // namespace score::gateway_ipc_binding::mw_com

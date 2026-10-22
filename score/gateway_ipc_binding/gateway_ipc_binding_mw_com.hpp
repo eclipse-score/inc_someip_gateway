@@ -68,8 +68,9 @@ struct Event_config {
     /// \brief MUST be unique within the service.
     Mw_com_event_id id;
     /// \brief Largest payload this event can carry. For SOME/IP this includes the header.
-    /// \details A consumer uses the peer's sample size. This value is its minimum.
-    ///          someipd's providers ignore it. AddServiceConfiguration sets their size.
+    /// \details On a consumer, this sets the minimum accepted peer sample size (or 0 in someipd
+    ///          when any peer sample size is accepted). On a provider in someipd,
+    ///          AddServiceConfiguration overwrites this value with gatewayd's event size.
     std::size_t max_payload_size;
 };
 
@@ -80,8 +81,9 @@ struct Service_config {
     socom::Service_instance instance;
     /// \brief mw::com InstanceSpecifier for this bridged service.
     std::string instance_specifier;
-    /// \brief mw::com service ID. Together with instance_id it MUST be unique on the host.
+    /// \brief mw::com service ID. MUST be unique per bridged service on the host.
     std::uint16_t service_id;
+    /// \brief mw::com instance ID.
     std::uint16_t instance_id;
     Role role;
     /// \brief Events in socom::Event_id order.
@@ -94,14 +96,16 @@ struct Service_config {
 using Service_configs = std::vector<Service_config>;
 
 /// \brief Sets up the bridged services of one AddServiceConfiguration call in someipd
-/// \details The provider event sizes come from the call.
-/// \return False if a service is invalid or can't be set up. Then none of them is.
+/// \details Overwrites provider event sizes with the sizes received in AddServiceConfiguration.
+/// \return False if any service is invalid or cannot be set up. On failure, no services from the
+///         call are kept.
 using Add_bridged_services = std::function<bool(Service_configs const& services)>;
 
 /// \brief Handles the gateway configuration that one gatewayd sends with AddServiceConfiguration
 /// \details Runs on an mw::com message passing thread, one call at a time. MUST NOT call anything
-///          that waits for an mw::com reply. A call with the content of an accepted call is
-///          accepted without calling the handler.
+///          that synchronously waits for an mw::com reply. Duplicate calls with the exact same
+///          configuration and event sizes as a previously accepted call are accepted immediately
+///          without invoking the handler.
 /// \param gateway_config Bytes that gatewayd passed to create_client()
 /// \param add_bridged_services MUST be called at most once, with all bridged services of the call
 /// \return True to accept the call. On false the bindings of the call are destroyed. The mw::com
@@ -151,19 +155,18 @@ std::unique_ptr<Gateway_ipc_binding_client> create_client(
 
 /// \brief Create the mw::com backed binding behind the server interface.
 /// \details Provides SomeipdService from Gateway_ipc_binding_server::start() on. Each gatewayd
-///          sends its services with AddServiceConfiguration. `handler` sets them up. The services
-///          of an accepted call stay until the server is destroyed. A consumer starts its service
-///          discovery on a separate thread once the call is accepted. If that fails, it is logged
-///          and the service stays unavailable.
-///          Services that are not in the mw::com configuration are added to it, as in
-///          create_client().
+///          sends its `gateway_config` and consumer event sizes with AddServiceConfiguration, and
+///          `handler` sets up the bridged services via `add_bridged_services`. Accepted services
+///          stay until the server is destroyed. Consumer service discovery starts on a worker
+///          thread after the call is accepted; if that fails, it is logged and the service stays
+///          unavailable. Undeployed services are added to the mw::com configuration first.
 /// \param runtime SOCom runtime used to create the connectors
 /// \param someipd_service_specifier mw::com InstanceSpecifier of the SomeipdService instance to
 ///        provide, see create_client()
 /// \param handler MUST NOT be empty
-/// \return Nullptr if `someipd_service_specifier` is empty. Errors that can only be detected once
-///         mw::com is asked to create the instances, such as a specifier missing from
-///         mw_com_config.json, are reported by start().
+/// \return Nullptr if `someipd_service_specifier` is empty. Errors creating or offering the
+///         SomeipdService skeleton (e.g., if `someipd_service_specifier` is missing from
+///         mw_com_config.json) are reported by start().
 std::unique_ptr<Gateway_ipc_binding_server> create_server(score::socom::Runtime& runtime,
                                                           std::string someipd_service_specifier,
                                                           Gateway_config_handler handler) noexcept;

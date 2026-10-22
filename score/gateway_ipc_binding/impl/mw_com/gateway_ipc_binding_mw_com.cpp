@@ -64,7 +64,7 @@ Result<Service_bindings> make_service_bindings(score::socom::Runtime& runtime,
 }
 
 /// \brief Builds the AddServiceConfiguration argument
-/// \pre validate() MUST have passed. Every size then fits std::uint32_t.
+/// \pre validate() MUST have passed so every event.max_payload_size fits in std::uint32_t.
 std::unique_ptr<Service_configuration> service_configuration(
     Service_configs const& services, score::cpp::span<std::byte const> gateway_config) noexcept {
     if (gateway_config.size() > kMax_service_configuration_size) {
@@ -80,20 +80,21 @@ std::unique_ptr<Service_configuration> service_configuration(
               configuration->gateway_config.data.begin());
     configuration->gateway_config.size = gateway_config.size();
 
-    auto& sizes = configuration->event_sizes;
+    auto& event_sizes = configuration->event_sizes;
     for (auto const& service : services) {
         if (service.role != Role::consumer) {
             continue;
         }
         for (auto const& event : service.events) {
-            if (sizes.size == sizes.max_size) {
+            if (event_sizes.size == event_sizes.max_size) {
                 score::mw::log::LogError() << kLog_tag << "AddServiceConfiguration carries at most"
-                                           << sizes.max_size << "event sizes";
+                                           << event_sizes.max_size << "event sizes";
                 return nullptr;
             }
-            sizes.data.at(sizes.size) = {service.service_id, static_cast<std::uint16_t>(event.id),
-                                         static_cast<std::uint32_t>(event.max_payload_size)};
-            ++sizes.size;
+            event_sizes.data.at(event_sizes.size) = {
+                service.service_id, static_cast<std::uint16_t>(event.id),
+                static_cast<std::uint32_t>(event.max_payload_size)};
+            ++event_sizes.size;
         }
     }
     return configuration;
@@ -102,34 +103,34 @@ std::unique_ptr<Service_configuration> service_configuration(
 /// \brief Copy of `configs` with the provider sizes from AddServiceConfiguration filled in
 /// \return std::nullopt unless there is exactly one size per provider event
 std::optional<Service_configs> with_event_sizes(Service_configs configs,
-                                                Bridged_event_sizes const& sizes) noexcept {
-    std::map<std::pair<std::uint16_t, Mw_com_event_id>, Event_config*> unsized{};
+                                                Bridged_event_sizes const& event_sizes) noexcept {
+    std::map<std::pair<std::uint16_t, Mw_com_event_id>, Event_config*> unsized_events{};
     for (auto& config : configs) {
         if (config.role != Role::provider) {
             continue;
         }
         for (auto& event : config.events) {
-            unsized.emplace(std::make_pair(config.service_id, event.id), &event);
+            unsized_events.emplace(std::pair{config.service_id, event.id}, &event);
         }
     }
-    if ((sizes.size != unsized.size()) || (sizes.size > sizes.max_size)) {
-        score::mw::log::LogError() << kLog_tag << "AddServiceConfiguration has" << sizes.size
-                                   << "sizes for" << unsized.size() << "provider events";
+    if ((event_sizes.size != unsized_events.size()) || (event_sizes.size > event_sizes.max_size)) {
+        score::mw::log::LogError() << kLog_tag << "AddServiceConfiguration has" << event_sizes.size
+                                   << "sizes for" << unsized_events.size() << "provider events";
         return std::nullopt;
     }
 
-    for (std::size_t index = 0U; index < sizes.size; ++index) {
-        auto const& size = sizes.data.at(index);
-        auto const event =
-            unsized.find(std::make_pair(size.service_id, Mw_com_event_id{size.event_id}));
-        if (event == unsized.end()) {
+    for (auto const& event_size :
+         score::cpp::span<Bridged_event_size const>{event_sizes.data.data(), event_sizes.size}) {
+        auto const event_it =
+            unsized_events.find({event_size.service_id, Mw_com_event_id{event_size.event_id}});
+        if (event_it == unsized_events.end()) {
             score::mw::log::LogError()
                 << kLog_tag << "AddServiceConfiguration has an unknown or repeated event"
-                << size.event_id << "of service" << size.service_id;
+                << event_size.event_id << "of service" << event_size.service_id;
             return std::nullopt;
         }
-        event->second->max_payload_size = size.max_payload_size;
-        unsized.erase(event);
+        event_it->second->max_payload_size = event_size.max_payload_size;
+        unsized_events.erase(event_it);
     }
     return configs;
 }
@@ -192,7 +193,8 @@ class Server_adapter final : public Gateway_ipc_binding_server {
     /// \details Runs on an mw::com message passing thread. MUST NOT call anything that waits
     ///          for a reply.
     bool on_service_configuration(Service_configuration const& gatewayd_configuration) noexcept {
-        // gatewayd can still write to this shared memory. Copy it first. Too large for the stack.
+        // Copy out of shared memory before validating sizes so gatewayd cannot mutate them after
+        // the check. Too large for the stack.
         auto configuration = std::make_unique<Service_configuration const>(gatewayd_configuration);
         auto const& gateway_config = configuration->gateway_config;
         if ((gateway_config.size > gateway_config.max_size) ||
@@ -202,17 +204,17 @@ class Server_adapter final : public Gateway_ipc_binding_server {
         }
 
         std::lock_guard const lock{m_mutex};
-        bool const restarted = std::any_of(
-            m_accepted.cbegin(), m_accepted.cend(),
+        bool const already_accepted = std::any_of(
+            m_accepted_configs.cbegin(), m_accepted_configs.cend(),
             [&configuration](auto const& accepted) { return *accepted == *configuration; });
-        if (restarted) {
+        if (already_accepted) {
             // A restarted gatewayd sends the same configuration again.
             return true;
         }
 
-        Service_bindings added{};
+        Service_bindings new_bindings{};
         Add_bridged_services const add_bridged_services =
-            [this, &configuration, &added](Service_configs const& services) noexcept {
+            [this, &configuration, &new_bindings](Service_configs const& services) noexcept {
                 auto const sized = with_event_sizes(services, configuration->event_sizes);
                 if (!sized.has_value() || !add_to_mw_com_runtime(sized.value()).has_value()) {
                     return false;
@@ -221,7 +223,7 @@ class Server_adapter final : public Gateway_ipc_binding_server {
                 if (!bindings.has_value()) {
                     return false;
                 }
-                added = std::move(bindings).value();
+                new_bindings = std::move(bindings).value();
                 return true;
             };
         if (!m_handler(
@@ -230,14 +232,16 @@ class Server_adapter final : public Gateway_ipc_binding_server {
             return false;
         }
 
-        std::vector<Service_binding*> unstarted{};
-        for (auto& binding : added) {
-            unstarted.push_back(binding.get());
+        std::vector<Service_binding*> bindings_to_start{};
+        bindings_to_start.reserve(new_bindings.size());
+        for (auto& binding : new_bindings) {
+            bindings_to_start.push_back(binding.get());
             m_services.push_back(std::move(binding));
         }
-        m_accepted.push_back(std::move(configuration));
-        m_discovery.Post([unstarted](score::cpp::stop_token const&) noexcept {
-            for (auto* const binding : unstarted) {
+        m_accepted_configs.push_back(std::move(configuration));
+        m_discovery.Post([bindings_to_start = std::move(bindings_to_start)](
+                             score::cpp::stop_token const&) noexcept {
+            for (auto* const binding : bindings_to_start) {
                 // A failure is logged. The service then stays unavailable.
                 static_cast<void>(binding->start());
             }
@@ -248,13 +252,14 @@ class Server_adapter final : public Gateway_ipc_binding_server {
     score::socom::Runtime& m_runtime;
     std::string m_someipd_service_specifier;
     Gateway_config_handler m_handler;
-    /// \brief Guards m_accepted and m_services
+    /// \brief Guards m_accepted_configs and m_services
     std::mutex m_mutex;
     /// \brief Every accepted AddServiceConfiguration argument
-    std::vector<std::unique_ptr<Service_configuration const>> m_accepted{};
+    std::vector<std::unique_ptr<Service_configuration const>> m_accepted_configs{};
     Service_bindings m_services{};
-    /// \brief Starts the service discovery of the consumers. mw::com can't start it on the
-    ///        thread that runs the handler.
+    /// \brief Starts consumer service discovery off the AddServiceConfiguration handler thread.
+    ///        Declared after m_services so its destructor stops the worker thread before m_services
+    ///        is destroyed.
     score::concurrency::ThreadPool m_discovery{1U, "ipc_discovery"};
     /// \brief Declared last, so it is destroyed first. Its handler uses the members above.
     std::unique_ptr<Someipd_service_provider> m_someipd_service{};
@@ -263,9 +268,9 @@ class Server_adapter final : public Gateway_ipc_binding_server {
 }  // namespace
 
 std::size_t sample_size(Event_config const& event) noexcept {
-    auto const addressed = kSample_prefix_size + event.max_payload_size;
+    auto const unaligned_size = kSample_prefix_size + event.max_payload_size;
     // Round up: a mw::com DataTypeMetaInfo::size must be an integer multiple of its alignment.
-    return ((addressed + kSample_alignment) - 1U) / kSample_alignment * kSample_alignment;
+    return ((unaligned_size + kSample_alignment) - 1U) / kSample_alignment * kSample_alignment;
 }
 
 std::unique_ptr<Gateway_ipc_binding_client> create_client(

@@ -15,7 +15,7 @@
 title Startup: SomeipdService first, bridged services after
 
 box "someipd process"
-participant "someipd handler" as handler
+participant "Gateway_config_handler" as handler
 participant "Server_adapter" as server
 participant "Someipd_service_provider" as sdsvc_provider
 end box
@@ -26,35 +26,70 @@ participant "Client_adapter" as client
 end box
 
 == someipd offers SomeipdService ==
-[-> server : create_server(handler)
-[-> server : start()
-server -> sdsvc_provider : create()
+server -[hidden]-> server
+activate server
+server -> sdsvc_provider : create(handler)
+activate sdsvc_provider
+sdsvc_provider -> mwcom : Create(), RegisterHandler()
+deactivate sdsvc_provider
 server -> sdsvc_provider : offer()
+activate sdsvc_provider
 sdsvc_provider -> mwcom : OfferService(SomeipdService)
+deactivate sdsvc_provider
+deactivate server
 
 == gatewayd looks for SomeipdService ==
-client <-] : create_client(services, gateway config)
+client -[hidden]-> client
+activate client
 client -> mwcom : AddConfiguration(bridged services)
-client -> client : make_service_bindings(), without waiting
+client -> client : make_service_bindings(), start()
 client -> sdsvc_consumer : create(gateway config, event sizes)
+activate sdsvc_consumer
 sdsvc_consumer -> mwcom : StartFindService(handler)
+deactivate sdsvc_consumer
+deactivate client
 
 alt someipd offers SomeipdService
   mwcom -> sdsvc_consumer : find-service handler(handle)
+  activate sdsvc_consumer
   note right of sdsvc_consumer : Runs inside StartFindService()\nor later on an mw::com thread.
   sdsvc_consumer -> mwcom : Create(handle)
   sdsvc_consumer -> mwcom : AddServiceConfiguration(gateway config, event sizes)
-  mwcom -> server : AddServiceConfiguration handler
-  opt not accepted before
-    server -> handler : handler(gateway config)
-    handler -> server : add_bridged_services(services)
-    server -> mwcom : AddConfiguration(bridged services)
-    server -> server : make_service_bindings(services, event sizes)
-    handler -> handler : network services, SOME/IP offers
-    server ->> server : start consumer discovery on its own thread
-  end
+  activate mwcom
+  mwcom -> sdsvc_provider : AddServiceConfiguration handler
+  activate sdsvc_provider
+  note left of sdsvc_provider : Runs on an mw::com\nmessage-passing thread.
+  sdsvc_provider -> server : on_service_configuration(gateway config, event sizes)
+  activate server
+  server -> handler : handler(gateway config, add_bridged_services)
+  activate handler
+  handler -> server : add_bridged_services(services)
+  activate server
+  server -> mwcom : AddConfiguration(bridged services)
+  server -> server : make_service_bindings(services, event sizes)
+  server --> handler : true
+  deactivate server
+  handler --> server : true
+  deactivate handler
+  server ->> server : m_discovery.Post(start)
+  server --> sdsvc_provider : true (accepted)
+  deactivate server
+  sdsvc_provider --> mwcom : true (accepted)
+  deactivate sdsvc_provider
+  mwcom --> sdsvc_consumer : true (accepted)
+  deactivate mwcom
+  deactivate sdsvc_consumer
+  note over sdsvc_consumer, client : is_connected() is now true
+
+  server -[hidden]-> server
+  activate server
+  note left of server : Runs on m_discovery worker thread\n(StartFindService cannot run on the\nmw::com message-passing thread).
+  server -> mwcom : StartFindService(consumer services)
+  deactivate server
 else someipd withdraws SomeipdService, or never offers it
   mwcom -> sdsvc_consumer : find-service handler(none)
+  activate sdsvc_consumer
+  note over sdsvc_consumer, client : is_connected() is false
+  deactivate sdsvc_consumer
 end
-client <-] : is_connected(), true once someipd accepted the configuration
 @enduml
