@@ -10,4 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-exports_files(["proxy_usage_marker_order.patch"])
+exports_files([
+    "proxy_usage_marker_order.patch",
+    "service_discovery_event_order.patch",
+])

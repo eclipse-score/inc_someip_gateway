@@ -33,7 +33,7 @@ struct Bridged_event_size {
     std::uint32_t max_payload_size;
 };
 
-inline bool operator==(Bridged_event_size const& lhs, Bridged_event_size const& rhs) noexcept {
+constexpr bool operator==(Bridged_event_size const& lhs, Bridged_event_size const& rhs) noexcept {
     return (lhs.service_id == rhs.service_id) && (lhs.event_id == rhs.event_id) &&
            (lhs.max_payload_size == rhs.max_payload_size);
 }

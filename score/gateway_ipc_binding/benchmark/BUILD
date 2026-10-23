@@ -12,24 +12,28 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 cc_binary(
     name = "gateway_ipc_binding_benchmark",
     srcs = [
         "event_transmission_benchmark_context.hpp",
         "event_transmission_client_to_server_benchmark.cpp",
-        "read_only_memory_managers_benchmark.cpp",
     ],
-    data = ["tsan.supp"],
+    data = [
+        "mw_com_config.json",
+        "tsan.supp",
+    ],
     env = {
         "TSAN_OPTIONS": "halt_on_error=1 suppressions=$(location tsan.supp)",
     },
     features = COMPILER_WARNING_FEATURES,
     visibility = ["//visibility:public"],
     deps = [
-        "//score/gateway_ipc_binding",
-        "@google_benchmark//:benchmark_main",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "@google_benchmark//:benchmark",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
     ],
 )
@@ -40,15 +44,40 @@ cc_binary(
         "event_transmission_benchmark_context.hpp",
         "event_transmission_client_to_server_memory.cpp",
     ],
-    data = ["tsan.supp"],
+    data = [
+        "mw_com_config.json",
+        "tsan.supp",
+    ],
     env = {
         "TSAN_OPTIONS": "halt_on_error=1 suppressions=$(location tsan.supp)",
     },
     features = COMPILER_WARNING_FEATURES,
     visibility = ["//visibility:public"],
     deps = [
-        "//score/gateway_ipc_binding",
-        "@google_benchmark//:benchmark",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
     ],
+)
+
+cc_test(
+    name = "event_transmission_benchmark_context_test",
+    size = "small",
+    srcs = [
+        "event_transmission_benchmark_context.hpp",
+        "event_transmission_benchmark_context_test.cpp",
+    ],
+    data = ["mw_com_config.json"],
+    deps = [
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "@googletest//:gtest",
+        "@score_baselibs//score/mw/log:backend_stub_testutil",
+    ],
+)
+
+validate_json_schema_test(
+    name = "mw_com_config_schema_valid",
+    size = "small",
+    json = "mw_com_config.json",
+    schema = "@score_communication//score/mw/com:config_schema",
+    tags = ["lint"],
 )

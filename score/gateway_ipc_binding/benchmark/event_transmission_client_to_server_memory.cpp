@@ -13,35 +13,61 @@
 
 #include <unistd.h>
 
+#include <charconv>
 #include <chrono>
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <string_view>
 
 #include "event_transmission_benchmark_context.hpp"
+#include "score/span.hpp"
 
 using namespace std::chrono_literals;
 
-int main() {
+int main(int argc, char** argv) {
+    score::cpp::span<char*> const arguments{argv, static_cast<std::size_t>(argc)};
+    std::size_t total_iterations = 1000000U;
+    if (argc > 2) {
+        std::cerr << "Usage: " << arguments[0] << " [--iterations=N]" << std::endl;
+        return EXIT_FAILURE;
+    }
+    if (argc == 2) {
+        std::string_view const argument{arguments[1]};
+        constexpr std::string_view prefix{"--iterations="};
+        if (argument.substr(0U, prefix.size()) != prefix) {
+            std::cerr << "Expected --iterations=N" << std::endl;
+            return EXIT_FAILURE;
+        }
+        auto const value = argument.substr(prefix.size());
+        auto const parsed =
+            std::from_chars(value.data(), value.data() + value.size(), total_iterations);
+        if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size() ||
+            total_iterations == 0U) {
+            std::cerr << "Iterations must be a positive integer" << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+    score::gateway_ipc_binding::initialize_benchmark_runtime();
     score::gateway_ipc_binding::Event_transmission_benchmark_context context(1024 * 1024);
 
     auto const start = std::chrono::steady_clock::now();
     std::chrono::nanoseconds duration{};
 
-    std::size_t const total_iterations = 1000000;
+    std::size_t const progress_interval = total_iterations < 10U ? 1U : total_iterations / 10U;
 
-    for (std::size_t i = 0; i < total_iterations; ++i) {
-        if ((i + 1) % (total_iterations / 10) == 0) {
+    for (std::size_t iteration = 0; iteration < total_iterations; ++iteration) {
+        if ((iteration + 1) % progress_interval == 0) {
             std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(
                              std::chrono::steady_clock::now() - start)
                              .count()
-                      << " ms: Completed " << (i + 1) << " / " << total_iterations << " iterations."
-                      << std::endl;
+                      << " ms: Completed " << (iteration + 1) << " / " << total_iterations
+                      << " iterations." << std::endl;
         }
         auto const current_duration = context.send_and_measure_once();
         if (!current_duration) {
-            std::cerr << "Benchmark failed at iteration " << i << ": " << current_duration.error()
-                      << std::endl;
+            std::cerr << "Benchmark failed at iteration " << iteration << ": "
+                      << current_duration.error() << std::endl;
             return EXIT_FAILURE;
         }
         duration += current_duration.value();

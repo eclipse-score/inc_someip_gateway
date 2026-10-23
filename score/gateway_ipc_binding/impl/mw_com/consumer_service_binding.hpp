@@ -41,7 +41,9 @@ namespace score::gateway_ipc_binding::mw_com {
 ///          across the link while nobody wants it.
 class Consumer_service_binding final : public Service_binding {
    public:
-    /// \brief Create the SOCom server connector. start() starts the mw::com service discovery.
+    /// \brief Create the SOCom server connector without starting mw::com service discovery yet.
+    /// \details Separated from start() because someipd creates bindings on the mw::com handler
+    ///          thread inside AddServiceConfiguration, then runs start() on its worker thread.
     /// \param runtime SOCom runtime used to create the server connector
     /// \param config Bridged service instance, must have `role == Role::consumer`
     /// \return The binding, or the first error encountered
@@ -55,7 +57,8 @@ class Consumer_service_binding final : public Service_binding {
     Consumer_service_binding(Consumer_service_binding&&) = delete;
     Consumer_service_binding& operator=(Consumer_service_binding&&) = delete;
 
-    /// \brief Start mw::com service discovery for the peer's GenericSkeleton
+    /// \brief Start mw::com service discovery (GenericProxy::StartFindService) for the peer's
+    ///        GenericSkeleton
     /// \details Discovery runs until this object is destroyed. The find-service handler may
     ///          already fire before this function returns.
     [[nodiscard]] Result<void> start() noexcept override;
@@ -64,10 +67,12 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Per-event state, indexed by socom::Event_id
     struct Event {
         std::string name;
-        /// \brief Minimum payload size the peer MUST offer. 0 means any.
+        /// \brief Minimum payload size expected from config (set by gatewayd; 0 in someipd, which
+        ///        does not know sizes up front).
         std::size_t configured_max_payload_size;
         std::size_t max_sample_count;
-        /// \brief The peer's payload size, set when the proxy is bound
+        /// \brief Actual max payload size read from the provider's GenericProxyEvent when the
+        ///        proxy connects.
         std::size_t max_payload_size{0U};
         /// \brief Owned by m_proxy, nullptr while the peer's service is not available
         score::mw::com::GenericProxyEvent* proxy_event{nullptr};
@@ -89,8 +94,8 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Build the proxy for a discovered handle and enable the SOCom connector
     void attach_to_peer(score::mw::com::HandleType handle) noexcept;
 
-    /// \brief Point every configured event at the matching event of #m_proxy
-    /// \details Also stores the peer's payload size.
+    /// \brief Point every configured event at the matching event of #m_proxy and read its
+    ///        max_payload_size from the peer
     /// \details On failure all event pointers are cleared again, so that none of them outlives
     ///          the proxy the caller is about to drop.
     /// \pre m_subscription_mutex and m_mutex are held

@@ -248,7 +248,8 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
             return false;
         }
 
-        // The peer's samples MUST be at least the configured size.
+        // Check that the provider's sample size covers our configured minimum (0 in someipd), then
+        // adopt the provider's actual max payload size.
         auto const peer_sample_size = entry->second.GetDataTypeSizeInfo().Size();
         auto const expected = kSample_prefix_size + event.configured_max_payload_size;
         if (peer_sample_size < expected) {
