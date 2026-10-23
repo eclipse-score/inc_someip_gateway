@@ -190,6 +190,263 @@ SD Lifecycle Advanced
    TC8-SDLC-011 (SOMEIP_ETS_101) is implemented as ``pytest.skip`` because the
    DUT has no ETS client mode (``clientServiceActivate``).
 
+SD Message Format
+^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_01
+     - TC8-SDF-001
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_03
+     - TC8-SDF-002
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_05
+     - TC8-SDF-003
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_06
+     - TC8-SDF-004
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_08
+     - TC8-SDF-005
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_09
+     - TC8-SDF-006
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_10
+     - TC8-SDF-007
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_11
+     - TC8-SDF-008
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_12
+     - TC8-SDF-009
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_13
+     - TC8-SDF-010
+     - ``sd_offer_format``
+   * - Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_07
+     - TC8-SDF-011
+     - ``sd_offer_format``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_19
+     - TC8-SDF-012
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_20
+     - TC8-SDF-013
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_21
+     - TC8-SDF-014
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_23
+     - TC8-SDF-015
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_24
+     - TC8-SDF-016
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_25
+     - TC8-SDF-017
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_26
+     - TC8-SDF-018
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_27
+     - TC8-SDF-019
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_28
+     - TC8-SDF-020
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.5.1, SOMEIPSRV_FORMAT_04
+     - TC8-SDF-021
+     - ``sd_offer_format``
+
+SD Find Response
+^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_060
+     - TC8-SDR-001
+     - ``sd_find_response``
+   * - Section 6.1.6, SOMEIP_ETS_118
+     - TC8-SDR-002
+     - ``sd_find_response``
+   * - Section 6.1.6, SOMEIP_ETS_127
+     - TC8-SDR-003
+     - ``sd_find_response``
+
+SD TCP
+^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.5.2, SOMEIPSRV_OPTIONS_15
+     - TC8-SDT-001
+     - ``sd_endpoint_option``
+   * - Section 6.1.6, SOMEIP_ETS_096
+     - TC8-SDT-002
+     - ``sd_sub_lifecycle``
+
+SD Subscribe Option
+^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_109
+     - TC8-SDO-001
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_110
+     - TC8-SDO-002
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_119
+     - TC8-SDO-003
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_154
+     - TC8-SDO-004
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_162
+     - TC8-SDO-005
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_164
+     - TC8-SDO-006
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_172 (alias SOMEIP_ETS_173)
+     - TC8-SDO-007
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_175
+     - TC8-SDO-008
+     - ``sd_sub_lifecycle``
+
+SD Malformed Message
+^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_111
+     - TC8-SDX-001
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_112
+     - TC8-SDX-002
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_113
+     - TC8-SDX-003
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_114
+     - TC8-SDX-004
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_115
+     - TC8-SDX-005
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_116
+     - TC8-SDX-006
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_117
+     - TC8-SDX-007
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_123
+     - TC8-SDX-008
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_124
+     - TC8-SDX-009
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_125
+     - TC8-SDX-010
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_134
+     - TC8-SDX-011
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_135
+     - TC8-SDX-012
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_136
+     - TC8-SDX-013
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_137
+     - TC8-SDX-014
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_138
+     - TC8-SDX-015
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_139
+     - TC8-SDX-016
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_153
+     - TC8-SDX-017
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_174
+     - TC8-SDX-018
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_176
+     - TC8-SDX-019
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_177
+     - TC8-SDX-020
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_178
+     - TC8-SDX-021
+     - ``sd_sub_lifecycle``
+
+SD Initial Field and Reboot Detection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_086
+     - TC8-SDI-001
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_087
+     - TC8-SDI-002
+     - ``sd_sub_lifecycle``
+   * - Section 6.1.6, SOMEIP_ETS_093
+     - TC8-SDI-003
+     - ``sd_reboot``
+   * - Section 6.1.6, SOMEIP_ETS_094
+     - TC8-SDI-004
+     - ``sd_reboot``
+
+SD Session ID Wrap
+^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_152
+     - TC8-SDW-001
+     - ``sd_offer_format``
+
 Test Results
 -------------
 

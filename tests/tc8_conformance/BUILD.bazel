@@ -180,7 +180,118 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
-# exclusive: timing assertions are sensitive to host load from parallel QEMU runs
+integration_test(
+    name = "test_tc8_sd_format",
+    timeout = "moderate",
+    srcs = [
+        "test_sd_format.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# Timing-sensitive FindService response checks; use the serial timing config.
+integration_test(
+    name = "test_tc8_sd_find",
+    timeout = "short",
+    srcs = [
+        "test_sd_find.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "manual",
+        "tc8",
+        "timing_sensitive",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_tcp",
+    timeout = "short",
+    srcs = [
+        "test_sd_tcp.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_subscribe_options",
+    timeout = "moderate",
+    srcs = [
+        "test_sd_subscribe_options.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_malformed",
+    timeout = "moderate",
+    srcs = [
+        "test_sd_malformed.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_sd_initial_fields",
+    timeout = "moderate",
+    srcs = [
+        "test_sd_initial_fields.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# High-rate session-wrap traffic; use the serial timing config.
+integration_test(
+    name = "test_tc8_sd_session_wrap",
+    timeout = "moderate",
+    srcs = [
+        "test_sd_session_wrap.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "manual",
+        "tc8",
+        "timing_sensitive",
+    ],
+    deps = _ITF_DEPS,
+)
+
+# DUT startup phase timing checks; use the serial timing config.
 integration_test(
     name = "test_tc8_sd_phases_timing",
     timeout = "short",
@@ -192,8 +303,9 @@ integration_test(
     filesystem = ":tc8-itf-pkg",
     tags = [
         "conformance",
-        "exclusive",
+        "manual",
         "tc8",
+        "timing_sensitive",
     ],
     deps = _ITF_DEPS,
 )
@@ -212,4 +324,15 @@ integration_test(
         "tc8",
     ],
     deps = _ITF_DEPS,
+)
+
+# Explicitly selected in a separate serial run; excluded from wildcard test runs.
+test_suite(
+    name = "timing_sensitive_tests",
+    tags = ["manual"],
+    tests = [
+        ":test_tc8_sd_find",
+        ":test_tc8_sd_phases_timing",
+        ":test_tc8_sd_session_wrap",
+    ],
 )

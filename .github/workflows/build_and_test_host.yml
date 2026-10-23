@@ -98,10 +98,14 @@ jobs:
       - name: Run Linux QEMU integration tests
         run: |
           bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
-      - name: Run TC8 tests
+      - name: Run parallel TC8 tests
         if: matrix.name == 'default'
         run: |
           bazel test --config=tc8-itf --test_output=errors //tests/tc8_conformance/...
+      - name: Run timing-sensitive TC8 tests serially
+        if: ${{ !cancelled() && matrix.name == 'default' }}
+        run: |
+          bazel test --config=tc8-itf-timing --test_output=errors //tests/tc8_conformance:timing_sensitive_tests
       - name: Stage TC8 test reports
         if: always() && matrix.name == 'default'
         run: |

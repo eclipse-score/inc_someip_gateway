@@ -3,8 +3,8 @@ index e220cd4..ce98971 100644
 --- a/score/itf/plugins/qemu/checks.py
 +++ b/score/itf/plugins/qemu/checks.py
 @@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
- 
- 
+
+
  def pre_tests_phase(target):
 -    _check_ping(target, check_timeout=10)
 +    _check_ping(target, check_timeout=30)

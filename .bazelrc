@@ -117,8 +117,15 @@ test --sandbox_tmpfs_path=/tmp
 # ITF (QEMU) TC8 runs.
 # Usage: bazel test --config=tc8-itf //tests/tc8_conformance:test_tc8_<name>
 test:tc8-itf --config=qemu-integration
-test:tc8-itf --test_tag_filters=tc8
+test:tc8-itf --test_tag_filters=tc8,-timing_sensitive
 test:tc8-itf --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
+
+# Run the explicit timing_sensitive_tests suite separately, without parallel actions.
+# Usage: bazel test --config=tc8-itf-timing //tests/tc8_conformance:timing_sensitive_tests
+test:tc8-itf-timing --config=tc8-itf
+# Override the inherited normal-run filter; positive tag filters are ORed.
+test:tc8-itf-timing --test_tag_filters=timing_sensitive
+test:tc8-itf-timing --jobs=1
 
 # QNX8 QEMU ITF TC8 runs.
 # common: (not build:/test:) prevents "expanded more than once" warning.
@@ -126,8 +133,15 @@ test:tc8-itf --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
 common:tc8-itf-qnx --config=x86_64-qnx
 # precompile must be force_disabled: "disabled" still causes a NoneType crash via QNX TARGET toolchain lookup.
 common:tc8-itf-qnx --@rules_python//python/config_settings:precompile=force_disabled
-test:tc8-itf-qnx --test_tag_filters=tc8
+test:tc8-itf-qnx --test_tag_filters=tc8,-timing_sensitive
 test:tc8-itf-qnx --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
+
+# QNX counterpart of the separate serial timing-sensitive run.
+# Usage: bazel test --config=tc8-itf-qnx-timing //tests/tc8_conformance:timing_sensitive_tests
+common:tc8-itf-qnx-timing --config=tc8-itf-qnx
+# Override the inherited normal-run filter; positive tag filters are ORed.
+test:tc8-itf-qnx-timing --test_tag_filters=timing_sensitive
+test:tc8-itf-qnx-timing --jobs=1
 
 # Coverage settings
 import %workspace%/coverage.bazelrc

@@ -86,6 +86,7 @@ def _build_sd_packet(
     entries: Sequence[SOMEIPSDEntry],
     session_id: int = 0,
     flag_unicast: bool = True,
+    flag_reboot: bool = False,
 ) -> bytes:
     """Wrap SD entries into one SOME/IP-SD UDP datagram.
 
@@ -96,7 +97,7 @@ def _build_sd_packet(
         session_id = _next_session_id()
     options: List[SOMEIPSDOption] = []
     indexed = tuple(e.assign_option_index(options) for e in entries)
-    sd_hdr = SOMEIPSDHeader(entries=indexed, options=tuple(options), flag_unicast=flag_unicast)
+    sd_hdr = SOMEIPSDHeader(entries=indexed, options=tuple(options), flag_unicast=flag_unicast, flag_reboot=flag_reboot)
     return SOMEIPHeader(
         service_id=SD_SERVICE,
         method_id=SD_METHOD,
@@ -126,10 +127,12 @@ def send_find_service(
     session_id: int = 0,
     flag_unicast: bool = True,
     ttl: int = 3,
+    flag_reboot: bool = False,
 ) -> None:
     """Send a FindService SD message to *sd_dest*.
 
-    Pass ``flag_unicast=False`` to clear the SD header unicast flag.
+    Pass ``flag_unicast=False`` to clear the SD header unicast flag and
+    ``flag_reboot=True`` to set the reboot flag.
     """
     entry = SOMEIPSDEntry(
         sd_type=SOMEIPSDEntryType.FindService,
@@ -139,7 +142,7 @@ def send_find_service(
         ttl=ttl,
         minver_or_counter=minor_version,
     )
-    sock.sendto(_build_sd_packet((entry,), session_id, flag_unicast), sd_dest)
+    sock.sendto(_build_sd_packet((entry,), session_id, flag_unicast, flag_reboot), sd_dest)
 
 
 def build_subscribe_entry(
@@ -192,8 +195,11 @@ def send_subscribe_eventgroup(
     l4proto: L4Protocols = L4Protocols.UDP,
     tcp_port: Optional[int] = None,
     udp_port: Optional[int] = None,
+    flag_reboot: bool = False,
 ) -> None:
     """Send a SubscribeEventgroup (or StopSubscribe when ``ttl=0``).
+
+    ``flag_reboot=True`` sets the SD header reboot flag.
 
     For eventgroups mixing TCP and UDP events, strict SOME/IP implementations
     require both endpoints in the subscription request: pass `tcp_port`
@@ -238,7 +244,7 @@ def send_subscribe_eventgroup(
         minver_or_counter=eventgroup_id & 0xFFFF,
         options_1=tuple(endpoint_opt),
     )
-    sock.sendto(_build_sd_packet((entry,), session_id), sd_dest)
+    sock.sendto(_build_sd_packet((entry,), session_id, flag_reboot=flag_reboot), sd_dest)
 
 
 def send_subscribe_eventgroup_reserved_set(

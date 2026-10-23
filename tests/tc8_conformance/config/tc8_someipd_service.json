@@ -20,19 +20,18 @@
         {
             "service": "__TC8_SERVICE_ID__",
             "instance": "__TC8_INSTANCE_ID__",
-            "unreliable": "__TC8_SVC_PORT__",
             "reliable": "__TC8_SVC_TCP_PORT__",
             "events": [
                 {
                     "event": "0x8001",
                     "is_field": "true",
-                    "is_reliable": "false",
+                    "is_reliable": "true",
                     "update-cycle": "500"
                 },
                 {
                     "event": "0x8002",
                     "is_field": "false",
-                    "is_reliable": "false",
+                    "is_reliable": "true",
                     "update-cycle": "500"
                 },
                 {
@@ -44,25 +43,25 @@
                 {
                     "event": "0x8004",
                     "is_field": "false",
-                    "is_reliable": "false",
+                    "is_reliable": "true",
                     "update-cycle": "500"
                 },
                 {
                     "event": "0x8005",
                     "is_field": "true",
-                    "is_reliable": "false",
+                    "is_reliable": "true",
                     "update-cycle": "0"
                 },
                 {
                     "event": "0x8006",
                     "is_field": "true",
-                    "is_reliable": "false",
+                    "is_reliable": "true",
                     "update-cycle": "0"
                 },
                 {
                     "event": "0x8007",
                     "is_field": "true",
-                    "is_reliable": "false",
+                    "is_reliable": "true",
                     "update-cycle": "0"
                 },
                 {
@@ -74,7 +73,7 @@
                 {
                     "event": "0x800B",
                     "is_field": "false",
-                    "is_reliable": "false",
+                    "is_reliable": "true",
                     "update-cycle": "500"
                 }
             ],

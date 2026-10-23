@@ -112,10 +112,10 @@ METHOD_FIELD_UINT8_RELIABLE_SET: int = 0x2B
 # ---------------------------------------------------------------------------
 # ETS Sec. 6.1.4.2 eventgroup IDs
 # ---------------------------------------------------------------------------
-# The names are historic. Per OA Table 2, 0x0002 holds all events and fields including the
-# reliable ones, 0x0005 only the unreliable ones and 0x0006 the multicast event.
-EVENTGROUP_UDP_UNICAST: int = 0x0002
-EVENTGROUP_TCP_RELIABLE: int = 0x0005
+# Names follow the OA titles of ETS_086 (EventsAndFieldsAll_2) and ETS_087
+# (EventsAndFieldsUnreliable_5). 0x0006 holds the multicast event.
+EVENTGROUP_ALL_EVENTS_AND_FIELDS: int = 0x0002
+EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS: int = 0x0005
 EVENTGROUP_UDP_MULTICAST: int = 0x0006
 
 # ---------------------------------------------------------------------------
