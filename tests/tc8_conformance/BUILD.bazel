@@ -195,7 +195,7 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
-# exclusive: the test is flaky on QNX when run in parallel and stable when run alone
+# exclusive: the test sends to the DUT SD port and multicast group, which other tests on the same DUT also use
 integration_test(
     name = "test_tc8_sd_find",
     timeout = "short",
@@ -272,7 +272,7 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
-# exclusive: the test sends about 65k FindService messages at a high packet rate
+# exclusive: the test sends about 65k FindService messages to the DUT at a high packet rate
 integration_test(
     name = "test_tc8_sd_session_wrap",
     timeout = "moderate",
@@ -289,7 +289,7 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
-# exclusive: timing assertions are sensitive to host load from parallel QEMU runs
+# exclusive: the test starts its own DUT stack with fixed ports and the SD multicast group, so it cannot share the DUT with other tests
 integration_test(
     name = "test_tc8_sd_phases_timing",
     timeout = "short",
