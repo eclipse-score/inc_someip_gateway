@@ -49,6 +49,39 @@ index f5dde59ed..e24a1c3f1 100644
  
      mw::log::LogDebug("lola") << "LoLa SD: Starting service discovery for"
                                << GetSearchPathForIdentifier(enriched_instance_identifier) << "with FindServiceHandle"
+@@ -821,6 +838,16 @@ void ServiceDiscoveryClient::OnInstanceFlagFileCreated(const WatchesContainer::i
+ {
+     const auto& enriched_instance_identifier = watch_iterator->second.enriched_instance_identifier;
+ 
++#ifdef __QNXNTO__
++    // On QNX, libfsnotify batches filesystem events with a 20ms flush timer, so an IN_CREATE event from a previous
++    // offer can arrive after its flag file was already unlinked. Ignore stale creation events for unlinked files.
++    const auto flag_file_exists =
++        filesystem_.standard->Exists(GetSearchPathForIdentifier(enriched_instance_identifier) / std::string{name});
++    if ((!flag_file_exists.has_value()) || (!flag_file_exists.value()))
++    {
++        return;
++    }
++#endif
+     const auto event_quality_type = FlagFileCrawler::ParseQualityTypeFromString(name);
+ 
+     // Suppress "AUTOSAR C++14 M6-4-3" rule finding. This rule declares: "A switch statement shall be
+@@ -867,6 +894,15 @@ void ServiceDiscoveryClient::OnInstanceFlagFileRemoved(const WatchesContainer::i
+     const auto& enriched_instance_identifier = watch_iterator->second.enriched_instance_identifier;
+ 
+     const auto event_quality_type = FlagFileCrawler::ParseQualityTypeFromString(name);
++#ifdef __QNXNTO__
++    // On QNX, a 20ms-delayed IN_DELETE from a previous offer can arrive after a new offer has already created a new
++    // flag file and been crawled by StartFindService. Keep the instance while a matching flag file exists on disk.
++    if ((event_quality_type != QualityType::kInvalid) &&
++        FlagFile::Exists(EnrichedInstanceIdentifier{enriched_instance_identifier, event_quality_type}))
++    {
++        return;
++    }
++#endif
+     // Suppress "AUTOSAR C++14 M6-4-3" rule finding. This rule declares: "A switch statement shall be
+     // a well-formed switch statement".
+     // We don't need a break statement at the kInvalid case as we use fallthrough.
 diff --git a/score/mw/com/impl/bindings/lola/service_discovery/client/service_discovery_client_worker_thread_test.cpp b/score/mw/com/impl/bindings/lola/service_discovery/client/service_discovery_client_worker_thread_test.cpp
 index 8e3604169..a1b2c3d4e 100644
 --- a/score/mw/com/impl/bindings/lola/service_discovery/client/service_discovery_client_worker_thread_test.cpp
