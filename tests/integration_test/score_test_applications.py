@@ -34,7 +34,7 @@ TEST_APPLICATIONS = [
 # QNX fsevmgr lacks poll/select support for inotify descriptors, so LoLa discovery
 # can miss service changes and hang mw::com tests until the SDK component is fixed.
 # https://github.com/eclipse-score/bazel_cpp_toolchains/issues/68
-QNX_DISABLED_GTEST_FILTER = "Gateway_ipc_binding_mw_com_test.*:*Mw_com"
+QNX_DISABLED_GTEST_FILTER = "Gateway_ipc_binding_mw_com_test.*:*Mw_com*"
 
 # Emulated targets are slow, especially for the bigger test suites.
 # A test is expected to finish in well under 10s.
