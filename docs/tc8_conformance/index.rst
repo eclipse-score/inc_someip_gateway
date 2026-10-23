@@ -43,9 +43,24 @@ diagrams, and module structure, see
    Fixture defaults (DUT IP, tester IP, port numbers) are defined in
    ``tc8_itf_conftest.py``.  To run all protocol conformance tests::
 
+      # Normal tests (parallel)
       bazel test --config=tc8-itf //tests/tc8_conformance/...
+      # Timing-sensitive tests (serial, explicit manual suite)
+      bazel test --config=tc8-itf-timing //tests/tc8_conformance:timing_sensitive_tests
 
-   For QNX x86_64 use ``--config=tc8-itf-qnx``.
+   Run these commands sequentially. Both sets are required: wildcard runs skip
+   the manual timing-sensitive tests and their suite. Normal configs use
+   ``--test_tag_filters=tc8,-timing_sensitive``, excluding timing-sensitive tests
+   even when selected explicitly. Timing configs override that inherited filter
+   with ``--test_tag_filters=timing_sensitive`` and use ``--jobs=1`` instead of
+   ``exclusive`` tags. Positive tag filters are ORed, so the timing filter must
+   not also include ``tc8``. Use the timing config for individual timing-sensitive
+   targets as well.
+
+   For QNX x86_64 run the corresponding pair sequentially::
+
+      bazel test --config=tc8-itf-qnx //tests/tc8_conformance/...
+      bazel test --config=tc8-itf-qnx-timing //tests/tc8_conformance:timing_sensitive_tests
 
 .. toctree::
    :maxdepth: 2
