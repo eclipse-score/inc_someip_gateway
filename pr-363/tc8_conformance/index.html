@@ -492,10 +492,25 @@ diagrams, and module structure, see
 stub, and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>), though only <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is exercised directly.
 Fixture defaults (DUT IP, tester IP, port numbers) are defined in
 <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code>.  To run all protocol conformance tests:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="o">/...</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Normal tests (parallel)</span>
+<span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="o">/...</span>
+<span class="c1"># Timing-sensitive tests (serial, explicit manual suite)</span>
+<span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span><span class="o">-</span><span class="n">timing</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="p">:</span><span class="n">timing_sensitive_tests</span>
 </pre></div>
 </div>
-<p>For QNX x86_64 use <code class="docutils literal notranslate"><span class="pre">--config=tc8-itf-qnx</span></code>.</p>
+<p>Run these commands sequentially. Both sets are required: wildcard runs skip
+the manual timing-sensitive tests and their suite. Normal configs use
+<code class="docutils literal notranslate"><span class="pre">--test_tag_filters=tc8,-timing_sensitive</span></code>, excluding timing-sensitive tests
+even when selected explicitly. Timing configs override that inherited filter
+with <code class="docutils literal notranslate"><span class="pre">--test_tag_filters=timing_sensitive</span></code> and use <code class="docutils literal notranslate"><span class="pre">--jobs=1</span></code> instead of
+<code class="docutils literal notranslate"><span class="pre">exclusive</span></code> tags. Positive tag filters are ORed, so the timing filter must
+not also include <code class="docutils literal notranslate"><span class="pre">tc8</span></code>. Use the timing config for individual timing-sensitive
+targets as well.</p>
+<p>For QNX x86_64 run the corresponding pair sequentially:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span><span class="o">-</span><span class="n">qnx</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="o">/...</span>
+<span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span><span class="o">-</span><span class="n">qnx</span><span class="o">-</span><span class="n">timing</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="p">:</span><span class="n">timing_sensitive_tests</span>
+</pre></div>
+</div>
 </div>
 <div class="toctree-wrapper compound">
 <ul>
