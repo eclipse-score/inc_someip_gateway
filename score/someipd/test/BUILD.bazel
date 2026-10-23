@@ -19,13 +19,14 @@ py_test(
     srcs = ["someipd_test.py"],
     args = [
         "$(location //score/someipd:someipd)",
-        "$(location //score/config:config_file)",
+        "$(location //score/someipd:etc/mw_com_config.json)",
     ],
     data = [
-        "//score/config:config_file",
         "//score/someipd",
+        "//score/someipd:etc/mw_com_config.json",
     ],
     tags = [
+        "block-network",
         "unit",
     ],
     target_compatible_with = ["@platforms//os:linux"],
@@ -44,6 +45,26 @@ cc_test(
         "//score/socom",
         "//score/socom:mock",
         "//score/someipd:local_network_service",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "gatewayd_services_test",
+    size = "small",
+    srcs = ["gatewayd_services_test.cpp"],
+    tags = [
+        "block-network",
+        "unit",
+    ],
+    deps = [
+        "//score/config:config_flatbuffers",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "//score/socom",
+        "//score/socom:mock",
+        "//score/someipd:gatewayd_services",
+        "//score/someipd:routing",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
