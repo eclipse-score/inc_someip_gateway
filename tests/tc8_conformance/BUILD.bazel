@@ -197,7 +197,7 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
-# exclusive: the test sends to the DUT SD port and multicast group, which other tests on the same DUT also use
+# Timing-sensitive FindService response checks; use the serial timing config.
 integration_test(
     name = "test_tc8_sd_find",
     timeout = "short",
@@ -208,8 +208,9 @@ integration_test(
     filesystem = ":tc8-itf-pkg",
     tags = [
         "conformance",
-        "exclusive",
+        "manual",
         "tc8",
+        "timing_sensitive",
     ],
     deps = _ITF_DEPS,
 )
@@ -274,7 +275,7 @@ integration_test(
     deps = _ITF_DEPS,
 )
 
-# exclusive: the test sends about 65k FindService messages to the DUT at a high packet rate
+# High-rate session-wrap traffic; use the serial timing config.
 integration_test(
     name = "test_tc8_sd_session_wrap",
     timeout = "moderate",
@@ -285,13 +286,14 @@ integration_test(
     filesystem = ":tc8-itf-pkg",
     tags = [
         "conformance",
-        "exclusive",
+        "manual",
         "tc8",
+        "timing_sensitive",
     ],
     deps = _ITF_DEPS,
 )
 
-# exclusive: the test starts its own DUT stack with fixed ports and the SD multicast group, so it cannot share the DUT with other tests
+# DUT startup phase timing checks; use the serial timing config.
 integration_test(
     name = "test_tc8_sd_phases_timing",
     timeout = "short",
@@ -303,8 +305,9 @@ integration_test(
     filesystem = ":tc8-itf-pkg",
     tags = [
         "conformance",
-        "exclusive",
+        "manual",
         "tc8",
+        "timing_sensitive",
     ],
     deps = _ITF_DEPS,
 )
@@ -323,4 +326,15 @@ integration_test(
         "tc8",
     ],
     deps = _ITF_DEPS,
+)
+
+# Explicitly selected in a separate serial run; excluded from wildcard test runs.
+test_suite(
+    name = "timing_sensitive_tests",
+    tags = ["manual"],
+    tests = [
+        ":test_tc8_sd_find",
+        ":test_tc8_sd_phases_timing",
+        ":test_tc8_sd_session_wrap",
+    ],
 )

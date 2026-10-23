@@ -18,9 +18,6 @@ SPDX-License-Identifier: Apache-2.0
 Tests for the S-CORE SOME/IP Gateway based on
 [OPEN Alliance TC8](https://opensig.org/tech-committee/tc8-automotive-ethernet-ecu-test-specification/).
 
-For architecture diagrams and design rationale, see
-[docs/architecture/tc8_conformance_testing.rst](../../docs/architecture/tc8_conformance_testing.rst).
-
 ## Test Scopes
 
 | Scope | Description | DUT | Status |
@@ -34,6 +31,10 @@ and work with any SOME/IP binding.
 
 ## Quick Start
 
+Run both commands for your platform, one after the other, for complete coverage.
+
+### Linux
+
 ```bash
 # Run all TC8 conformance tests (Linux)
 bazel test --config=qemu-integration //tests/tc8_conformance/...
@@ -45,13 +46,25 @@ bazel test --config=qemu-integration //tests/tc8_conformance:test_tc8_service_di
 bazel test --config=x86_64-qnx //tests/tc8_conformance/...
 ```
 
+### QNX x86_64
+
+```bash
+# Normal tests (parallel)
+bazel test --config=tc8-itf-qnx //tests/tc8_conformance/...
+
+# Timing-sensitive tests (serial)
+bazel test --config=tc8-itf-qnx-timing //tests/tc8_conformance:timing_sensitive_tests
+```
+
+Timing-sensitive tests are tagged `manual`: wildcard runs (`/...`) skip them,
+even with a timing config. Always select the explicit suite shown above.
+For individual tests, use the matching normal or timing config.
+
 ## Further Reading
 
 - Architecture, diagrams, and design rationale:
   [docs/architecture/tc8_conformance_testing.rst](../../docs/architecture/tc8_conformance_testing.rst)
 - Application-level test scope and plan:
   [application/README.md](application/README.md)
-- Network setup, port assignment, and config template placeholders: see the
-  module docstrings in `tc8_itf_conftest.py` and `helpers/dut_lifecycle.py`
-- Purpose of each helper: see the module docstring at the top of each file
-  under `helpers/`
+- Network setup and helpers: see the module docstrings in
+  [tc8_itf_conftest.py](tc8_itf_conftest.py) and [helpers/](helpers/).
