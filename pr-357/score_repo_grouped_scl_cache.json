@@ -149,8 +149,8 @@
               "line": 1596,
               "need": "comp_req__tc8_conformance__sd_find_response",
               "verify_type": "fully",
-              "result": "skipped",
-              "result_text": "OA ETS_128: a multicast FindService with Any Major Version or Any Minor Version is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received"
+              "result": "passed",
+              "result_text": ""
             },
             {
               "name": "TestSDFindServiceAdvanced__test_ets_130_multicast_findservice_unicast_flag_clear",
