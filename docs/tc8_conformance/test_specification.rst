@@ -960,7 +960,8 @@ TC8-SDF-010: Type 1 Number of Options 1
 :Test Function: ``TestSDOfferEntryFormat::test_format_13_type_1_number_of_options_1``
 
 **Purpose:**
-Verify the Number of Options 1 of OfferService entries.
+Verify that the OfferService (Type 1) entry in the Service Discovery message correctly
+defines the number of options utilized in its first option run.
 
 **Stimulus:**
 None, passive observation of DUT SD messages.
@@ -1329,20 +1330,21 @@ The OA Pass criteria say "at least one unicast OfferService", which contradicts 
 procedure and synopsis. The test follows the procedure and synopsis. The OA gives no
 l4proto value, ``0x00`` is a neutral choice.
 
-TC8-SDO-004: Unexisting IPv4 Address in Endpoint Option
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TC8-SDO-004: Non-existent IPv4 Address in Endpoint Option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :OA Reference: Section 6.1.6, SOMEIP_ETS_154
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :Test Function: ``TestSDSubscribeEndpointOptions::test_ets_154_unexisting_ipv4_address``
 
 **Purpose:**
-Verify that a SubscribeEventgroup with an invalid IPv4 address in the Endpoint Option is
-rejected.
+Verify that a SubscribeEventgroup with a non-existent IPv4 address in the Endpoint Option
+is rejected.
 
 **Stimulus:**
-Send SubscribeEventgroup with IP address 169.254.200.200 in the Endpoint Option (the OA
-gives no address, this value is a neutral choice).
+Send SubscribeEventgroup with a non-existent IP address (169.254.200.200) in the Endpoint
+Option (the OA specification does not provide a specific address; this value is chosen as
+a neutral fallback).
 
 **Expected Result:**
 SubscribeEventgroupNAck.
