@@ -33,7 +33,7 @@ from helpers.sd_helpers import assert_nack, capture_subscribe_answers
 from helpers.sd_sender import open_sender_socket, send_sd_entries, send_subscribe_eventgroup
 from helpers.someip_types import IPv4EndpointOption, L4Protocols, SOMEIPSDEntry, SOMEIPSDEntryType
 
-_UNEXISTING_IP: str = "169.254.200.200"
+_NON_EXISTENT_IP: str = "169.254.200.200"
 _UNALLOWED_IP: str = "111.111.111.111"
 _NO_IPV4_ADDRESS: str = "32.0.0.0"
 _CONFIGURATION_OPTION: bytes = bytes([0x00, 0x02, 0x01, 0x00, 0x00])
@@ -140,15 +140,15 @@ class TestSDSubscribeEndpointOptions:
     @pytest.mark.xfail(
         strict=True,
         reason=(
-            "TC8-SDO-004 / OA ETS_154: a SubscribeEventgroup with an unexisting IPv4 address in the "
+            "TC8-SDO-004 / OA ETS_154: a SubscribeEventgroup with an non-existent IPv4 address in the "
             "Endpoint Option is expected to be answered with a SubscribeEventgroupNAck. "
             "Observed: no NAck is received"
         ),
     )
     def test_ets_154_unexisting_ipv4_address(self, dut: subprocess.Popen[bytes], dut_ip: str, tester_ip: str) -> None:
-        """TC8-SDO-004 (ETS_154): Subscribe with an unexisting IPv4 address in the Endpoint Option is answered with a NAck."""
+        """TC8-SDO-004 (ETS_154): Subscribe with an non-existent IPv4 address in the Endpoint Option is answered with a NAck."""
         assert dut.poll() is None, "DUT is not running"
-        self._nack_for_endpoint("ETS_154", dut_ip, tester_ip, _UNEXISTING_IP)
+        self._nack_for_endpoint("ETS_154", dut_ip, tester_ip, _NON_EXISTENT_IP)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_sub_lifecycle"],
