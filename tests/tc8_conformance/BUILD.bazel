@@ -95,6 +95,7 @@ pkg_files(
         ":tc8-vsomeip-runtime-pkg",
         ":tc8_someipd_config",
         "//score/serializer:null_serializer",
+        "//score/someipd:etc/mw_com_config.json",
         "//tests/tc8_conformance/application/ets_stub:config/tc8_ets_stub_mw_com_config.json",
         "//tests/tc8_conformance/application/ets_stub:tc8_ets_stub",
     ],
@@ -104,6 +105,7 @@ pkg_files(
     renames = {
         "//tests/tc8_conformance/application/ets_stub:config/tc8_ets_stub_mw_com_config.json": "tc8_ets_stub_mw_com_config.json",
         "config/tc8_gatewayd_mw_com_config.json": "tc8_gatewayd_mw_com_config.json",
+        "//score/someipd:etc/mw_com_config.json": "tc8_someipd_mw_com_config.json",
         "config/tc8_someipd_multi.json": "tc8_multi.json.tmpl",
         "config/tc8_someipd_sd.json": "tc8_sd.json.tmpl",
         "config/tc8_logging.json": "tc8_logging.json",

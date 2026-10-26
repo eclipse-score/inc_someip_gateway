@@ -13,9 +13,9 @@
 
 """Process orchestration for the two gatewayd/someipd nodes of the end-to-end performance test.
 
-Both nodes run on the same host. Because the gatewayd/someipd IPC socket name, the
-gateway_ipc_binding shared memory names, the vsomeip unix sockets and the LoLa shared memory are
-all global to the host, every one of them is given a per-node name; see README.md.
+Both nodes run on the same host. The vsomeip unix sockets, the LoLa service discovery and the shared
+memory are global to the host. So every node MUST have its own vsomeip network name and its own
+mw::com service IDs, also for the link between its gatewayd and someipd. See README.md.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ from typing import Sequence
 SOMEIPD = Path("score/someipd/someipd")
 GATEWAYD = Path("score/gatewayd/gatewayd")
 
-GATEWAYD_READY_MARKER = "[gatewayd] IPC connection to someipd established"
+GATEWAYD_READY_MARKER = "Gateway started, waiting for shutdown signal..."
 SD_MULTICAST_ADDRESS = "224.244.224.245"
 
 # Loopback addresses within the network namespace set up by setup_network.sh, so they cannot
@@ -46,9 +46,8 @@ VSOMEIP_LOG_LEVEL = os.environ.get("E2E_PERF_VSOMEIP_LOG_LEVEL", "warning")
 PERF_BIN = os.environ.get("E2E_PERF_PERF_BIN", "perf")
 
 STALE_PATH_PATTERNS = (
-    "/tmp/perf-node-*",
-    "/dev/shm*/perf_*",
-    "/dev/shm*/counterpart_perf_*",
+    # vsomeip unix sockets, named after the vsomeip network of the node
+    "/tmp/benchmark-node-*",
     # lola Linux
     "/dev/shm/lola-*",
     "/tmp/mw_com_lola/*",
@@ -65,7 +64,6 @@ class NodeSpec:
     """Everything that has to be unique per node so the two nodes do not collide."""
 
     name: str
-    ipc_channel: str
     vsomeip_network: str
     unicast_ip: str
     someip_config: Path
@@ -130,8 +128,10 @@ def preflight(
             "--config=perf-tests."
         )
 
+    # Every process of a node gets the node's mw::com manifest path as an argument.
+    # Matching that path finds the leftovers of a previous run.
     for spec in nodes or ():
-        subprocess.run(["pkill", "-9", "-f", spec.ipc_channel], check=False)
+        subprocess.run(["pkill", "-9", "-f", str(spec.mw_com_config)], check=False)
     time.sleep(0.5)
     _remove_stale_paths()
 
@@ -303,10 +303,8 @@ class Node:
             "someipd",
             [
                 str(SOMEIPD.absolute()),
-                "-c",
-                str(self._spec.someip_config.absolute()),
-                "-i",
-                self._spec.ipc_channel,
+                "-s",
+                str(self._spec.mw_com_config.absolute()),
             ],
             env={"VSOMEIP_CONFIGURATION": str(vsomeip_config.absolute())},
         )
@@ -318,8 +316,6 @@ class Node:
                 str(self._spec.someip_config.absolute()),
                 "-s",
                 str(self._spec.mw_com_config.absolute()),
-                "-i",
-                self._spec.ipc_channel,
             ],
         )
         self._wait_for_marker(gatewayd_log, GATEWAYD_READY_MARKER)

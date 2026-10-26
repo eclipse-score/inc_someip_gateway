@@ -59,8 +59,8 @@ def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
             clean_state,
             "/opt/someipd",
             args=[
-                "--configuration",
-                "/opt/mw_someip_config.bin",
+                "--service_instance_manifest",
+                "/opt/someipd_mw_com_config.json",
             ],
             env="VSOMEIP_CONFIGURATION=/opt/vsomeip.json",
         ) as someipd_process:
@@ -76,6 +76,7 @@ def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
                 ],
             ) as gatewayd_process:
                 assert gatewayd_process.is_running(), gatewayd_process.get_output()
+                yield clean_state
                 assert gatewayd_process.is_running(), (
                     gatewayd_process.get_output(),
                     "exit code: ",
@@ -86,7 +87,6 @@ def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
                     "exit code: ",
                     someipd_process.get_exit_code(),
                 )
-                yield clean_state
     finally:
         if tcpdump_host is not None:
             tcpdump_host.__exit__(None, None, None)

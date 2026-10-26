@@ -94,7 +94,7 @@ For current Bazel-based integration testing backends (Linux QEMU, and QNX QEMU) 
 
 ### Daemon Config Schema Validation
 
-Both the `gatewayd` and `someipd` daemons are configured using a single flatbuffer binary file generated from a JSON file. We provide a JSON schema which helps when editing the JSON file, and can also be used to validate it.
+`gatewayd` is configured using a flatbuffer binary file generated from a JSON file. It sends that configuration to `someipd` at runtime. We provide a JSON schema which helps when editing the JSON file, and can also be used to validate it.
 
 #### Configuration Schema
 

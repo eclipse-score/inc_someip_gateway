@@ -208,7 +208,7 @@ def launch_dut(
         f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
         f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
         f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
-        f"/opt/someipd -c /opt/tc8_someipd_config.bin"
+        f"/opt/someipd -s /opt/tc8_someipd_mw_com_config.json"
     )
 
     # 2. Start the ETS stub: provides the mw::com skeleton so gatewayd's
