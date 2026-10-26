@@ -66,7 +66,7 @@
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "TC8-SDO-004 / OA ETS_154: a SubscribeEventgroup with an unexisting IPv4 address in the Endpoint Option is expected to be answered with a SubscribeEventgroupNAck. Observed: no NAck is received",
+    "result_text": "TC8-SDO-004 / OA ETS_154: a SubscribeEventgroup with an non-existent IPv4 address in the Endpoint Option is expected to be answered with a SubscribeEventgroupNAck. Observed: no NAck is received",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
