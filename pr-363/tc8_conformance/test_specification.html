@@ -1659,7 +1659,8 @@ Index First Option Run = 0.</p>
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify the Number of Options 1 of OfferService entries.</p>
+Verify that the OfferService (Type 1) entry in the Service Discovery message correctly
+defines the number of options utilized in its first option run.</p>
 <p><strong>Stimulus:</strong>
 None, passive observation of DUT SD messages.</p>
 <p><strong>Expected Result:</strong>
@@ -2113,8 +2114,8 @@ SubscribeEventgroupNAck.</p>
 procedure and synopsis. The test follows the procedure and synopsis. The OA gives no
 l4proto value, <code class="docutils literal notranslate"><span class="pre">0x00</span></code> is a neutral choice.</p>
 </section>
-<section id="tc8-sdo-004-unexisting-ipv4-address-in-endpoint-option">
-<h3>TC8-SDO-004: Unexisting IPv4 Address in Endpoint Option<a class="headerlink" href="#tc8-sdo-004-unexisting-ipv4-address-in-endpoint-option" title="Link to this heading">#</a></h3>
+<section id="tc8-sdo-004-non-existent-ipv4-address-in-endpoint-option">
+<h3>TC8-SDO-004: Non-existent IPv4 Address in Endpoint Option<a class="headerlink" href="#tc8-sdo-004-non-existent-ipv4-address-in-endpoint-option" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">OA Reference<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_154</p>
@@ -2127,11 +2128,12 @@ l4proto value, <code class="docutils literal notranslate"><span class="pre">0x00
 </dd>
 </dl>
 <p><strong>Purpose:</strong>
-Verify that a SubscribeEventgroup with an invalid IPv4 address in the Endpoint Option is
-rejected.</p>
+Verify that a SubscribeEventgroup with a non-existent IPv4 address in the Endpoint Option
+is rejected.</p>
 <p><strong>Stimulus:</strong>
-Send SubscribeEventgroup with IP address 169.254.200.200 in the Endpoint Option (the OA
-gives no address, this value is a neutral choice).</p>
+Send SubscribeEventgroup with a non-existent IP address (169.254.200.200) in the Endpoint
+Option (the OA specification does not provide a specific address; this value is chosen as
+a neutral fallback).</p>
 <p><strong>Expected Result:</strong>
 SubscribeEventgroupNAck.</p>
 <p>Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
@@ -3024,7 +3026,7 @@ checked.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-001-no-port-in-endpoint-option">TC8-SDO-001: No Port in Endpoint Option</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-002-no-ipv4-address-in-endpoint-option">TC8-SDO-002: No IPv4 Address in Endpoint Option</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-003-wrong-l4-protocol-in-endpoint-option">TC8-SDO-003: Wrong L4 Protocol in Endpoint Option</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-004-unexisting-ipv4-address-in-endpoint-option">TC8-SDO-004: Unexisting IPv4 Address in Endpoint Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-004-non-existent-ipv4-address-in-endpoint-option">TC8-SDO-004: Non-existent IPv4 Address in Endpoint Option</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-005-endpoint-option-with-dut-ip-address">TC8-SDO-005: Endpoint Option With DUT IP Address</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-006-endpoint-option-with-111-111-111-111">TC8-SDO-006: Endpoint Option With 111.111.111.111</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-007-unicast-subscribeeventgroup-with-option-indexes">TC8-SDO-007: Unicast SubscribeEventgroup With Option Indexes</a></li>
