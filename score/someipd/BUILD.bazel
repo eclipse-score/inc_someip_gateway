@@ -34,13 +34,15 @@ cc_binary(
     srcs = ["main.cpp"],
     visibility = ["//visibility:public"],
     deps = [
-        ":gatewayd_services",
+        ":local_network_service",
+        ":remote_network_service",
         ":routing",
-        "//score/bridged_services",
-        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "//score/config:config_flatbuffers",
+        "//score/gateway_ipc_binding",
         "//score/socom",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
+        "@score_communication//score/message_passing",
         "@score_communication//score/mw/com",
     ],
 )
@@ -120,10 +122,10 @@ native_binary(
     name = "someipd_example",
     src = "//score/someipd",
     args = [
-        "--service_instance_manifest",
-        "$(rootpath etc/mw_com_config.json)",
+        "--configuration",
+        "$(rootpath //score/config:config_file)",
     ],
     data = [
-        "etc/mw_com_config.json",
+        "//score/config:config_file",
     ],
 )

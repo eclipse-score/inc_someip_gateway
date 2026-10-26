@@ -37,7 +37,6 @@ pkg_files(
         "//score/gatewayd:etc/mw_com_config.json",
         "//score/serializer:null_serializer",
         "//score/someipd",
-        "//score/someipd:etc/mw_com_config.json",
     ],
     attributes = pkg_attributes(
         mode = "0777",
@@ -45,7 +44,6 @@ pkg_files(
     renames = {
         "//score/config:config_file": "mw_someip_config.bin",
         "//score/gatewayd:etc/mw_com_config.json": "gatewayd_mw_com_config.json",
-        "//score/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
     },
 )
 

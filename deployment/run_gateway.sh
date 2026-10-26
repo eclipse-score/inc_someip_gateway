@@ -14,9 +14,9 @@
 #
 # Launch script for the S-CORE SOME/IP Gateway.
 #
-# Start each daemon in a separate terminal, in any order:
-#   ./run_gateway.sh gatewayd
-#   ./run_gateway.sh someipd
+# Start each daemon in a separate terminal, in this order:
+#   1. ./run_gateway.sh gatewayd
+#   2. ./run_gateway.sh someipd
 #
 # someipd requires VSOMEIP_CONFIGURATION to point to a vsomeip JSON config:
 #   export VSOMEIP_CONFIGURATION=/path/to/vsomeip.json
@@ -33,8 +33,8 @@ S-CORE SOME/IP Gateway
 
 Usage: $0 {gatewayd|someipd}
 
-  $0 gatewayd   -- ASIL-B bridge daemon
-  $0 someipd    -- SOME/IP stack daemon
+  $0 gatewayd   -- ASIL-B bridge daemon (must start first)
+  $0 someipd    -- SOME/IP stack daemon (start after gatewayd)
 
 Set VSOMEIP_CONFIGURATION to your vsomeip config before running someipd.
 EOF
@@ -48,7 +48,7 @@ case "$1" in
         echo "Starting gatewayd..."
         "${SCRIPT_DIR}/gatewayd" \
             --service_instance_manifest "${SCRIPT_DIR}/gatewayd_mw_com_config.json" \
-            --configuration "${SCRIPT_DIR}/gatewayd_config.bin"
+            --gatewayd_config "${SCRIPT_DIR}/gatewayd_config.bin"
         ;;
     someipd)
         echo "Starting someipd..."

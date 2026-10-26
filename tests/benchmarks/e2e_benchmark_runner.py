@@ -51,6 +51,7 @@ CONFIG_DIR = Path("tests/benchmarks/config")
 
 BENCH_NODE = NodeSpec(
     name="bench",
+    ipc_channel="benchmark_ipc_bench",
     vsomeip_network="benchmark-node-bench",
     unicast_ip="127.0.0.2",
     someip_config=Path("tests/benchmarks/bench_someip_config.bin"),
@@ -59,6 +60,7 @@ BENCH_NODE = NodeSpec(
 )
 ECHO_NODE = NodeSpec(
     name="echo",
+    ipc_channel="benchmark_ipc_echo",
     vsomeip_network="benchmark-node-echo",
     unicast_ip="127.0.0.3",
     someip_config=Path("tests/benchmarks/echo_someip_config.bin"),

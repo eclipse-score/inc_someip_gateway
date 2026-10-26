@@ -19,14 +19,13 @@ py_test(
     srcs = ["someipd_test.py"],
     args = [
         "$(location //score/someipd:someipd)",
-        "$(location //score/someipd:etc/mw_com_config.json)",
+        "$(location //score/config:config_file)",
     ],
     data = [
+        "//score/config:config_file",
         "//score/someipd",
-        "//score/someipd:etc/mw_com_config.json",
     ],
     tags = [
-        "block-network",
         "unit",
     ],
     target_compatible_with = ["@platforms//os:linux"],

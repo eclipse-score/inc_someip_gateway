@@ -12,8 +12,10 @@
 # *******************************************************************************
 
 from pathlib import Path
+import os
 import subprocess
 import sys
+import time
 import unittest
 
 from quality.pytest.process import assert_process_creates_network_instance
@@ -26,7 +28,6 @@ class GatewaydTest(unittest.TestCase):
         self.someipd = Path(sys.argv[2])
         self.configuration = Path(sys.argv[3])
         self.service_instance_manifest = Path(sys.argv[4])
-        self.someipd_service_instance_manifest = Path(sys.argv[5])
 
     def test_help_returns_success_and_prints_usage(self) -> None:
         result = subprocess.run([self.gatewayd, "--help"], capture_output=True, check=False, text=True)
@@ -45,11 +46,14 @@ class GatewaydTest(unittest.TestCase):
         )
 
     def _assert_creates_network_instance(self, expected_output: str) -> None:
+        ipc_channel = f"gatewayd-test-{os.getpid()}-{time.monotonic_ns()}"
         someipd_process = subprocess.Popen(
             [
                 self.someipd,
-                "--service_instance_manifest",
-                self.someipd_service_instance_manifest,
+                "--configuration",
+                self.configuration,
+                "--ipc_channel",
+                ipc_channel,
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -63,6 +67,8 @@ class GatewaydTest(unittest.TestCase):
                     self.configuration,
                     "--service_instance_manifest",
                     self.service_instance_manifest,
+                    "--ipc_channel",
+                    ipc_channel,
                 ],
                 expected_output,
                 failure_prefix="gatewayd did not initialize successfully",
