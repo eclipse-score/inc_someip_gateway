@@ -23,6 +23,8 @@ from typing import Generator
 from util import ShellProcess, tcpdump_capture, check_environment_and_mark
 from score.itf.plugins.core import Target
 
+pytest_plugins = ["score_pytest.attribute_plugin"]
+
 
 @pytest.fixture(scope="function")
 def clean_state(target: Target) -> Generator[Target, None, None]:

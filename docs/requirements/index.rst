@@ -63,6 +63,12 @@ The following component identifiers are used in requirement IDs and file names:
    * - ``gatewayd``
      - ASIL-B
      - Gateway daemon — bridges IPC and SOME/IP, E2E protection, ACL enforcement
+   * - ``gateway_ipc_binding``
+     - QM
+     - IPC bridge between ``gatewayd`` and ``someipd`` for service control and event payloads
+   * - ``socom``
+     - QM
+     - SOCom connector abstraction for service offers, discovery, and event transport
    * - ``someipd``
      - QM
      - SOME/IP stack daemon — wraps vsomeip, handles network I/O and SOME/IP-SD
@@ -116,7 +122,8 @@ Every requirement directive must include these attributes:
 - ``:safety:`` — ``QM`` or ``ASIL_B``
 - ``:security:`` — ``YES`` or ``NO``
 - ``:reqtype:`` — ``Functional``, ``Interface``, ``Process``, or ``Non-Functional``
-- ``:satisfies:`` — parent requirement ID (mandatory for feature and component levels)
+- ``:derived_from:`` — parent requirement ID (mandatory for feature and component levels, used for upward requirement links)
+- ``:satisfied_by:`` — component ID that implements a component requirement
 - ``:rationale:`` — justification text (mandatory for stakeholder level only)
 
 Cross-References

@@ -62,6 +62,9 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(Gateway_ipc_binding_bidirectional_integration_test,
        client_connects_to_server_with_client_connector) {
+    RecordProperty("FullyVerifies", "comp_req__gib__connects_service_connectors");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_connector_with_callbacks client;
     client.create_connector(get_client_runtime(), socom_server_config, instance);
     client.expect_client_connected(socom_server_config);
@@ -99,6 +102,10 @@ INSTANTIATE_TEST_SUITE_P(
     readable_test_names);
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subscribes_to_event) {
+    RecordProperty("FullyVerifies",
+                   "comp_req__gib__propagates_subscriptions");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     std::promise<void> event_subscription_change_promise;
     EXPECT_CALL(server->mock_event_subscription_change_cb,
                 Call(_, event_id, socom::Event_state::subscribed))
@@ -170,6 +177,9 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 }
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_sends_event_update) {
+    RecordProperty("FullyVerifies", "comp_req__gib__forwards_event_payloads");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
