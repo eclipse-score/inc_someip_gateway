@@ -18,10 +18,11 @@ on:
 
 jobs:
   build-docs:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v.0.0.3
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@3f61217cfa69b1d40b366049ace7fc63932e63c2 # main (2026-10-28)
     permissions:
       contents: read
 
     with:
       retention-days: 3
       tests-report-artifact: tc8-test-reports
+      coverage-report-artifact: coverage-report

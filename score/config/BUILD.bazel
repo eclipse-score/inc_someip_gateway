@@ -12,6 +12,7 @@
 # *******************************************************************************
 
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
 exports_files(
@@ -47,5 +48,17 @@ genrule(
     outs = ["mw_someip_config.generated.schema.json"],
     cmd = "$(location @flatbuffers//:flatc) --jsonschema -o $(@D) $(SRCS) && mv $(@D)/mw_someip_config.schema.json $@",
     tools = ["@flatbuffers//:flatc"],
+    visibility = ["//visibility:public"],
+)
+
+# Keep the bundle at the component package boundary so coverage includes local
+# implementation dependencies while excluding code owned by other components.
+docs_bundle(
+    name = "docs_bundle",
+    code_targets = [
+        ":config_flatbuffers",
+    ],
+    primary_need_id = "comp__config",
+    source_dir = "docs",
     visibility = ["//visibility:public"],
 )

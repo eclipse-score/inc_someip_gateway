@@ -13,6 +13,7 @@
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
 filegroup(
     name = "headers",
@@ -55,4 +56,16 @@ cc_library(
         ":socom",
         "@googletest//:gtest_for_library",
     ],
+)
+
+# Keep the bundle at the component package boundary so coverage includes local
+# implementation dependencies while excluding code owned by other components.
+docs_bundle(
+    name = "docs_bundle",
+    code_targets = [
+        ":socom",
+    ],
+    primary_need_id = "comp__socom",
+    source_dir = "docs",
+    visibility = ["//visibility:public"],
 )

@@ -36,7 +36,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/coverage.yml
   docs:
-    needs: [build_and_test_host]
+    needs: [build_and_test_host, coverage]
     if: ${{ !cancelled() }}
     secrets: inherit
     uses: ./.github/workflows/docs.yml

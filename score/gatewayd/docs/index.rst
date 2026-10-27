@@ -21,3 +21,14 @@ Abstract
 ========
 
 The gateway daemon. Bridges local IPC service instances with remote SOME/IP service instances across the ASIL boundary, handling service offers, requests, event subscriptions, and payload transfer.
+
+
+.. comp:: SOME/IP Gateway Daemon
+   :id: comp__gatewayd
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :belongs_to: feat__someip_gateway
+
+   Connects the :need:`comp__someipd` to the application via LoLa IPC (mw::com).
