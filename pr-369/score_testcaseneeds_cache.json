@@ -532,6 +532,20 @@
     "FullyVerifies": "comp_req__tc8_conformance__sd_find_response"
   },
   {
+    "name": "tests/tc8_conformance/test_golden_vectors",
+    "file": null,
+    "line": null,
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
     "file": "tests/tc8_conformance/test_sd_phases_timing.py",
     "line": "107",
@@ -544,6 +558,34 @@
     "result_text": "",
     "PartiallyVerifies": null,
     "FullyVerifies": "comp_req__tc8_conformance__sd_phases_timing"
+  },
+  {
+    "name": "tests/tc8_conformance/test_helper_regressions",
+    "file": null,
+    "line": null,
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "tests/tc8_conformance/tc8_someipd_config_test",
+    "file": null,
+    "line": null,
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
   },
   {
     "name": "tests/tc8_conformance/tc8_someipd_config_schema_valid",
