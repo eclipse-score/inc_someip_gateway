@@ -24,16 +24,14 @@
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
+#include "score/result/result.h"
 #include "score/socom/runtime.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 #include "score/span.hpp"
 
 /// \brief `mw::com` (LoLa) based implementation of the Gateway IPC Binding.
 ///
-/// \details See `docs/mw_com_binding.rst`. This implementation provides the same public interfaces
-///          `Gateway_ipc_binding_client` and `Gateway_ipc_binding_server` as the
-///          `score::message_passing` based one, but is constructed through the factory functions
-///          below instead of through the `create()` methods of those interfaces.
+/// \details See `docs/mw_com_binding.rst`.
 ///
 /// \note    Method calls on bridged services are not implemented: `GenericProxy` and
 ///          `GenericSkeleton` are event only. So are requested event updates, because LoLa has no
@@ -153,7 +151,7 @@ std::unique_ptr<Gateway_ipc_binding_client> create_client(
     Service_configs services = {}, std::string_view identifier = {},
     score::cpp::span<std::byte const> gateway_config = {}) noexcept;
 
-/// \brief Create the mw::com backed binding behind the server interface.
+/// \brief Create the mw::com backed server binding.
 /// \details Provides SomeipdService from Gateway_ipc_binding_server::start() on. Each gatewayd
 ///          sends its `gateway_config` and consumer event sizes with AddServiceConfiguration, and
 ///          `handler` sets up the bridged services via `add_bridged_services`. Accepted services
@@ -167,9 +165,9 @@ std::unique_ptr<Gateway_ipc_binding_client> create_client(
 /// \return Nullptr if `someipd_service_specifier` is empty. Errors creating or offering the
 ///         SomeipdService skeleton (e.g., if `someipd_service_specifier` is missing from
 ///         mw_com_config.json) are reported by start().
-std::unique_ptr<Gateway_ipc_binding_server> create_server(score::socom::Runtime& runtime,
-                                                          std::string someipd_service_specifier,
-                                                          Gateway_config_handler handler) noexcept;
+std::unique_ptr<Gateway_ipc_binding_server> create_server(
+    score::socom::Runtime& runtime, std::string someipd_service_specifier,
+    Gateway_config_handler handler) noexcept;
 
 }  // namespace score::gateway_ipc_binding::mw_com
 

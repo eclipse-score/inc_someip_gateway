@@ -14,22 +14,15 @@
 #ifndef SRC_GATEWAY_IPC_BINDING_TEST_TEST_FIXTURES
 #define SRC_GATEWAY_IPC_BINDING_TEST_TEST_FIXTURES
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstddef>
 #include <memory>
 #include <string>
-#include <string_view>
+#include <type_traits>
 #include <utility>
 
-#include "mocks.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
-#include "score/message_passing/client_factory.h"
-#include "score/message_passing/server_factory.h"
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/runtime.hpp"
 #include "test_constants.hpp"
@@ -37,11 +30,8 @@
 
 namespace score::gateway_ipc_binding {
 
-enum class Ipc_binding_implementation { Message_passing, Mw_com };
-
 struct Bidirectional_test_parameter {
     Direction direction;
-    Ipc_binding_implementation implementation;
 };
 
 class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
@@ -50,15 +40,9 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     socom::Runtime::Uptr runtime_server = score::socom::create_runtime();
     socom::Runtime::Uptr runtime_client = score::socom::create_runtime();
 
-    // Gateway_ipc_binding_server callbacks
-    On_find_service_change_mock mock_on_find_service_change_cb;
-
-    // Client_connector callbacks
     socom::Service_state_change_callback_mock mock_service_state_change_cb;
     socom::Event_update_callback_mock mock_event_update_cb;
     socom::Event_payload_allocate_callback_mock mock_event_payload_allocate_cb;
-
-    // Server_connector callbacks
     socom::Method_call_credentials_callback_mock mock_method_call_credentials_cb;
     socom::Event_subscription_change_callback_mock mock_event_subscription_change_cb;
     socom::Event_request_update_callback_mock mock_event_request_update_cb;
@@ -67,25 +51,11 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     std::unique_ptr<Gateway_ipc_binding_server> server;
     std::unique_ptr<Gateway_ipc_binding_client> client;
 
-    ~Gateway_ipc_binding_unconnected_integration_test() {
+    ~Gateway_ipc_binding_unconnected_integration_test() override {
         client.reset();
         server.reset();
     }
 
-    std::unique_ptr<Gateway_ipc_binding_server> create_ipc_server(socom::Runtime& runtime) {
-        score::message_passing::ServerFactory server_factory;
-        auto ipc_server = server_factory.Create(protocol_config, server_config);
-
-        // Create gateway IPC binding server with pre-created IPC server
-        auto server = Gateway_ipc_binding_server::create(
-            runtime, std::move(ipc_server), Shared_memory_manager_factory::create({}),
-            mock_on_find_service_change_cb.as_function());
-
-        SCORE_LANGUAGE_FUTURECPP_ASSERT(server && "Server creation failed");
-        return server;
-    }
-
-    /// \brief The bridged test service, IDs as in mw_com_config.json
     mw_com::Service_configs mw_com_services(mw_com::Role const role,
                                             std::size_t const max_payload_size) const {
         return {{interface,
@@ -96,34 +66,19 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                  role,
                  {{"event_a", mw_com::Mw_com_event_id{1U}, max_payload_size},
                   {"event_b", mw_com::Mw_com_event_id{2U}, max_payload_size}},
-                 mw_com_metadata.slot_count}};
+                 mw_com_sample_slots}};
     }
 
-    /// \brief Server that adds `services` for every gatewayd
     std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(
         socom::Runtime& runtime, std::string const& someipd_service_specifier,
         mw_com::Service_configs services) {
-        return mw_com::create_server(runtime, someipd_service_specifier,
-                                     [services = std::move(services)](
-                                         score::cpp::span<std::byte const>,
-                                         mw_com::Add_bridged_services const& add_bridged_services) {
-                                         return add_bridged_services(services);
-                                     });
-    }
-
-    std::unique_ptr<Gateway_ipc_binding_client> create_ipc_client(
-        socom::Runtime& runtime,
-        Shared_memory_manager_factory::Shared_memory_configuration const& shm_config,
-        Find_service_elements find_service_elements = {},
-        Shared_memory_configs server_shared_memory_configs = {}, std::string_view identifier = {}) {
-        score::message_passing::ClientFactory client_factory;
-        auto connection = client_factory.Create(protocol_config, client_config);
-        auto client = Gateway_ipc_binding_client::create(
-            runtime, std::move(connection), Shared_memory_manager_factory::create(shm_config),
-            find_service_elements, server_shared_memory_configs, identifier);
-
-        SCORE_LANGUAGE_FUTURECPP_ASSERT(client && "Client creation failed");
-        return client;
+        return mw_com::create_server(
+            runtime, someipd_service_specifier,
+            [services = std::move(services)](
+                score::cpp::span<std::byte const>,
+                mw_com::Add_bridged_services const& add_bridged_services) {
+                return add_bridged_services(services);
+            });
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(
@@ -132,22 +87,34 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
         return mw_com::create_client(runtime, someipd_service_specifier, std::move(services));
     }
 
-    void SetUp() override {
-        server = create_ipc_server(*runtime_server);
-        client =
-            create_ipc_client(*runtime_client, client_shm_config, {}, server_shared_memory_configs);
+    void create_mw_com_pair(Direction const direction, bool const start) {
+        bool const server_provides = direction == Direction::Client_to_server;
+        server = mw_com::create_server(
+            *runtime_server, "someipd/daemon",
+            [this, server_provides](score::cpp::span<std::byte const>,
+                                    mw_com::Add_bridged_services const& add_bridged_services) {
+                return add_bridged_services(mw_com_services(
+                    server_provides ? mw_com::Role::provider : mw_com::Role::consumer,
+                    server_provides ? 0U : mw_com_payload_size));
+            });
+        client = mw_com::create_client(
+            *runtime_client, "someipd/daemon",
+            mw_com_services(server_provides ? mw_com::Role::consumer : mw_com::Role::provider,
+                            mw_com_payload_size));
+        ASSERT_NE(server, nullptr);
+        ASSERT_NE(client, nullptr);
+        if (start) {
+            start_and_wait_for_client_connection();
+        }
     }
 
-    void start_and_wait_for_client_connection() {
-        // Start the server
-        auto start_result = server->start();
-        SCORE_LANGUAGE_FUTURECPP_ASSERT(start_result);
+    void SetUp() override { create_mw_com_pair(Direction::Client_to_server, false); }
 
-        // Wait for the client to connect and receive the reply. Bounded (rather than an
-        // unconditional busy-loop) so that a broken IPC connection fails the test instead of
-        // hanging it forever.
-        EXPECT_TRUE(
-            wait_on_connection_state(*client, Connection_state::Connected, very_long_timeout));
+    void start_and_wait_for_client_connection() {
+        auto start_result = server->start();
+        ASSERT_TRUE(start_result);
+        EXPECT_TRUE(wait_on_connection_state(*client, Connection_state::Connected,
+                                             very_long_timeout));
     }
 };
 
@@ -162,14 +129,8 @@ class Gateway_ipc_binding_integration_test
 
 inline std::string readable_test_names(
     testing::TestParamInfo<Bidirectional_test_parameter> const& param) {
-    const auto* const direction = param.param.direction == Direction::Client_to_server
-                                      ? "Client_to_server"
-                                      : "Server_to_client";
-    const auto* const implementation =
-        param.param.implementation == Ipc_binding_implementation::Message_passing
-            ? "Message_passing"
-            : "Mw_com";
-    return std::string{direction} + "_" + implementation;
+    return param.param.direction == Direction::Client_to_server ? "Client_to_server"
+                                                                : "Server_to_client";
 }
 
 template <typename BASE>
@@ -178,55 +139,27 @@ class Gateway_ipc_binding_bidirectional_test
       public ::testing::WithParamInterface<Bidirectional_test_parameter> {
    protected:
     void SetUp() override {
-        if (GetParam().implementation == Ipc_binding_implementation::Mw_com) {
-            // The binding on the SOCom server's side provides the bridged service.
-            bool const server_provides = GetParam().direction == Direction::Client_to_server;
-            std::size_t const slot_size = this->mw_com_metadata.slot_size;
-            // A consumer server uses the provider's size, like someipd.
-            this->server = this->create_mw_com_server(
-                *this->runtime_server, "someipd/daemon",
-                this->mw_com_services(
-                    server_provides ? mw_com::Role::provider : mw_com::Role::consumer,
-                    server_provides ? slot_size : 0U));
-            ASSERT_NE(this->server, nullptr);
-            this->client = this->create_mw_com_client(
-                *this->runtime_client, "someipd/daemon",
-                this->mw_com_services(
-                    server_provides ? mw_com::Role::consumer : mw_com::Role::provider, slot_size));
-            ASSERT_NE(this->client, nullptr);
-            this->start_and_wait_for_client_connection();
-        } else {
-            BASE::SetUp();
-        }
+        constexpr bool is_connected_fixture =
+            std::is_same_v<BASE, Gateway_ipc_binding_integration_test>;
+        this->create_mw_com_pair(this->GetParam().direction, is_connected_fixture);
     }
 
     void TearDown() override {
-        // Destroy the consumer first, or its proxy outlives the test and breaks the next one.
-        if (is_mw_com() && (GetParam().direction == Direction::Server_to_client)) {
+        if (this->GetParam().direction == Direction::Server_to_client) {
             this->server.reset();
         }
     }
 
-    bool is_mw_com() const noexcept {
-        return GetParam().implementation == Ipc_binding_implementation::Mw_com;
-    }
-
     socom::Runtime& get_client_runtime() {
-        return GetParam().direction == Direction::Client_to_server ? *this->runtime_client
-                                                                   : *this->runtime_server;
+        return this->GetParam().direction == Direction::Client_to_server ? *this->runtime_client
+                                                                         : *this->runtime_server;
     }
     socom::Runtime& get_server_runtime() {
-        return GetParam().direction == Direction::Client_to_server ? *this->runtime_server
-                                                                   : *this->runtime_client;
+        return this->GetParam().direction == Direction::Client_to_server ? *this->runtime_server
+                                                                         : *this->runtime_client;
     }
 
-    Shared_memory_metadata const& get_server_metadata() {
-        if (is_mw_com()) {
-            return this->mw_com_metadata;
-        }
-        return GetParam().direction == Direction::Client_to_server ? this->server_metadata
-                                                                   : this->client_metadata;
-    }
+    std::size_t get_server_payload_size() const { return this->mw_com_payload_size; }
 };
 
 }  // namespace score::gateway_ipc_binding

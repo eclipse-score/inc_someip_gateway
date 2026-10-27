@@ -17,15 +17,11 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <cstdint>
-#include <cstring>
 #include <initializer_list>
 #include <iterator>
-#include <string>
-#include <string_view>
+#include <type_traits>
 
-#include "score/gateway_ipc_binding/error.hpp"
-#include "score/result/result.h"
+#include <score/assert.hpp>
 
 namespace score::gateway_ipc_binding {
 
@@ -65,38 +61,6 @@ bool operator==(Fixed_size_container<T, Max_size> const& lhs,
     return lhs.size == rhs.size &&
            std::equal(std::begin(lhs.data), std::next(std::begin(lhs.data), lhs.size),
                       std::begin(rhs.data), std::next(std::begin(rhs.data), rhs.size));
-}
-
-struct Fixed_size_container_hash {
-    template <typename T, std::size_t Max_size>
-    std::size_t operator()(Fixed_size_container<T, Max_size> const& s) const noexcept {
-        std::size_t h1 = std::hash<std::uint16_t>{}(s.size);
-        std::size_t h2 = std::hash<std::string_view>{}(std::string_view{s.data.data(), s.size});
-        return h1 ^ (h2 << 1);
-    }
-};
-
-/// \brief Fixed-size string with explicit length for POD wire format
-/// \tparam Max_size Maximum number of bytes available in data
-template <std::size_t Max_size>
-using Fixed_string = Fixed_size_container<char, Max_size>;
-
-template <typename Target_type>
-Result<Fixed_string<Target_type::max_size>> fixed_string_from_string(
-    std::string_view value) noexcept {
-    if (value.size() > Target_type::max_size) {
-        return MakeUnexpected(Gateway_ipc_binding_error::fixed_size_container_too_small);
-    }
-
-    Fixed_string<Target_type::max_size> result{};
-    result.size = value.size();
-    std::memcpy(result.data.data(), value.data(), value.size());
-    return result;
-}
-
-template <std::size_t Max_size>
-std::string fixed_string_to_string(Fixed_string<Max_size> const& value) {
-    return std::string(value.data.data(), value.size);
 }
 
 }  // namespace score::gateway_ipc_binding

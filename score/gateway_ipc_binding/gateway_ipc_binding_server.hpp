@@ -14,52 +14,17 @@
 #ifndef SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING_SERVER
 #define SCORE_GATEWAY_IPC_BINDING_INCLUDE_SCORE_GATEWAY_IPC_BINDING_GATEWAY_IPC_BINDING_SERVER
 
-#include <cstddef>
-#include <memory>
-#include <score/callback.hpp>
-
-#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
-#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
-#include "score/message_passing/i_server.h"
 #include "score/result/result.h"
-#include "score/socom/runtime.hpp"
 
 namespace score::gateway_ipc_binding {
 
-/// \brief Client identifier type
-using Client_id = std::size_t;
-
-/// \brief Server-side transport endpoint for Gateway IPC Binding
-/// \details Owns a `score::message_passing` server that accepts multiple incoming IPC
-///          connections and forwards their protocol traffic into the shared binding base.
-///
-///          The concrete implementation assigns a `Client_id` to each accepted connection,
-///          keeps a reply channel for each client, and uses the shared binding logic to bridge
-///          service discovery, per-service connection establishment, and event forwarding.
+/// \brief Server-side endpoint for the Gateway IPC Binding.
 class Gateway_ipc_binding_server {
    public:
-    using On_find_service_change =
-        score::cpp::move_only_function<void(Client_id, Find_service_elements const&, bool)>;
-
-    /// \brief Create the server-side IPC binding endpoint
-    /// \param runtime SOCom runtime used to register the binding as a service bridge
-    /// \param server pre-created message_passing server
-    /// \param slot_manager factory for per-service writable and read-only shared memory managers.
-    ///        The factory may be constructed with an empty configuration; per-service shared memory
-    ///        configuration is registered dynamically when a client's Connect message is received.
-    /// \param on_find_service_change callback invoked on connect/disconnect find-service updates
-    /// \return Unique pointer to the created server
-    static std::unique_ptr<Gateway_ipc_binding_server> create(
-        score::socom::Runtime& runtime,
-        score::cpp::pmr::unique_ptr<score::message_passing::IServer> server,
-        score::gateway_ipc_binding::Shared_memory_manager_factory::Uptr slot_manager,
-        On_find_service_change on_find_service_change) noexcept;
-
-    /// \brief Virtual destructor
     virtual ~Gateway_ipc_binding_server() = default;
 
-    /// \brief Start listening for incoming IPC connections
-    /// \return Success or error if the transport could not start or is already listening
+    /// \brief Start accepting connections from gateway clients.
+    /// \return Success or an error if the endpoint cannot be started.
     virtual Result<void> start() noexcept = 0;
 
    protected:

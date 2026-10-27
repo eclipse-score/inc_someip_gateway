@@ -15,14 +15,8 @@
 Gateway IPC Binding on mw::com
 ==============================
 
-This document describes an **alternative implementation** of the Gateway IPC Binding that replaces the
-``score::message_passing`` control channel and the hand-rolled shared-memory transport with ``mw::com``
-(LoLa).
-
-It is developed side by side with the existing implementation described in :doc:`index`:
-
-- it implements the **same public interfaces** ``Gateway_ipc_binding_client`` and ``Gateway_ipc_binding_server``
-- it is constructed through **new factory functions**, not through the existing ``create()`` methods
+This is the Gateway IPC Binding implementation used by ``gatewayd`` and ``someipd``. It uses
+``mw::com`` (LoLa) for service discovery, event transport, and shared-memory lifetime management.
 
 Because ``mw::com`` already provides service discovery, subscription management, shared-memory transport and
 slot lifetime management, this implementation has **no IPC protocol of its own**. There are no message ids, no
@@ -41,14 +35,13 @@ Goals:
 - transport SOCom event updates between ``gatewayd`` and ``someipd`` over ``mw::com``
 - keep the SOME/IP header contiguously in front of every event payload so that E2E can be computed over
   header plus payload without an additional copy
-- keep the public interface of the component unchanged, including the meaning of ``is_connected()``, so that
-  the daemons can be switched over by exchanging a single factory call
+- provide a peer-liveness signal through ``is_connected()``
 - delete, not reimplement, everything that ``mw::com`` already provides
 
 Non-goals:
 
 - method calls. ``GenericProxy`` and ``GenericSkeleton`` are event-only, so methods stay unimplemented, as
-  they are today.
+  they are in the current implementation.
 - dynamic, runtime-driven service discovery between the two daemons.
 - ``mw::com`` interoperability for the ``gatewayd`` to application boundary. That boundary already uses
   ``mw::com`` and is not touched by this design.
@@ -81,14 +74,14 @@ header included. ``score::socom::Payload::data()`` is a read-only view of it; th
 
 .. _d3-no-slot-manager:
 
-D3: no ``Shared_memory_slot_manager``
+D3: no custom shared-memory slot manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The existing implementation gives every event of a service the same slot size and puts all events of a
+The former implementation gave every event of a service the same slot size and put all events of a
 service into one shared-memory segment. ``mw::com`` allocates per event, so the sizing is per event as well.
-The ``Shared_memory_slot_manager`` family of types is therefore **not** reused. Instead the factory functions
-receive a plain configuration structure that describes the ``GenericSkeletonServiceElementInfo`` required for
-each service. See :ref:`public-interface`.
+The binding relies on ``mw::com`` for sample allocation and lifetime management. Its factory functions
+receive a plain configuration structure that describes the ``GenericSkeletonServiceElementInfo`` required
+for each service. See :ref:`public-interface`.
 
 Mapping SOME/IP services to mw::com features
 --------------------------------------------
@@ -101,7 +94,7 @@ Concept mapping
    :widths: 34 33 33
 
    * - Gateway concept
-     - Today (message_passing + shm)
+     - Former binding
      - ``mw::com`` implementation
    * - Bridged service instance
      - ``Service`` + ``Instance_id`` key, ``Connect_service`` handshake
@@ -195,10 +188,11 @@ SomeipdService and peer liveness
 The bridged services alone cannot tell ``gatewayd`` whether ``someipd`` is running. A remote service instance
 only becomes available once the SOME/IP service behind it is available on the network, so its absence is
 ambiguous: it means either "``someipd`` is down" or "``someipd`` is up but the network service is not there".
-The ``Connect`` / ``Connect_reply`` handshake resolves exactly this ambiguity today and must be preserved.
+The former ``Connect`` / ``Connect_reply`` handshake resolved this ambiguity. The current binding
+preserves the peer-liveness signal with ``SomeipdService``.
 
-It is replaced by ``SomeipdService``, a dedicated ``mw::com`` service that represents the ``someipd`` daemon
-itself rather than any SOME/IP service:
+``SomeipdService`` is a dedicated ``mw::com`` service that represents the ``someipd`` daemon itself rather
+than any SOME/IP service:
 
 - ``someipd`` provides one ``SomeipdService`` instance. Its presence *is* the liveness signal.
 - ``gatewayd`` consumes it with ``StartFindService`` and creates a ``SomeipdServiceProxy`` for it.
@@ -211,11 +205,11 @@ itself rather than any SOME/IP service:
 Properties of this design:
 
 - it is a genuine peer-liveness signal, not a local self-check, so ``gatewayd``'s existing startup wait loop
-  keeps working unchanged, with the same meaning and the same point in the sequence as today
+  keeps working with the same meaning and point in the sequence
 - it recovers automatically. If ``someipd`` restarts, the handler fires with an empty container and then again
   with a handle, so ``is_connected()`` goes false and true again. The bridged services re-establish themselves
   independently and need no ordering guarantee relative to it.
-- the instance specifier plays the role that the ``message_passing`` channel name plays today: it must be
+- the instance specifier replaces the former ``message_passing`` channel name: it must be
   unique per ``someipd`` on a host, and it is the one piece of configuration ``someipd`` and all its
   ``gatewayd`` instances must agree on.
 - every ``gatewayd`` of a ``someipd`` MUST have its own ``mw::com`` ``applicationID``, or its own UID if it
@@ -377,7 +371,7 @@ Payload lifetime and flow control
 Consequences:
 
 - back pressure is expressed as ``Allocate()`` failing when all slots are held. The binding logs and drops the
-  event update, as it does today when the slot pool is exhausted.
+  event update when sample allocation fails.
 - ``numberOfSampleSlots`` must cover the samples in flight plus the samples the peer holds. The peer holds at
   most ``max_sample_count`` per event, which the binding passes to ``Subscribe``.
 - all ``SampleAllocateePtr`` and ``SamplePtr`` instances must be destroyed before the owning skeleton or proxy
@@ -423,16 +417,17 @@ What is gone compared to :doc:`index`:
 Public interface
 ----------------
 
-A new public header ``gateway_ipc_binding_mw_com.hpp`` adds the configuration types and two free factory
-functions. The existing headers are not modified.
+The public ``Gateway_ipc_binding_client`` and ``Gateway_ipc_binding_server`` interfaces are declared in
+``gateway_ipc_binding_client.hpp`` and ``gateway_ipc_binding_server.hpp``. They expose only
+implementation-independent lifecycle operations. The ``gateway_ipc_binding_mw_com.hpp`` header adds the
+mw::com configuration types and the mw::com-specific free factory functions.
 
 .. _interface-semantics:
 
 Interface semantics under mw::com
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The public interfaces are unchanged. Their behaviour is defined as follows and must be documented at the
-factory functions.
+The client and server interfaces expose the binding's lifecycle and connection state:
 
 .. list-table::
    :header-rows: 1
@@ -443,11 +438,11 @@ factory functions.
    * - ``Gateway_ipc_binding_client::is_connected()``
      - True while the ``SomeipdServiceProxy`` exists and the peer accepted ``AddServiceConfiguration``, i.e.
        while the peer's binding is up and accepting. See :ref:`someipd-service`. This keeps the meaning and
-       the sequencing it has today, so ``gatewayd``'s startup wait loop is unaffected. Unlike today it can
-       also go back to false, when the peer stops.
+       the sequencing, so ``gatewayd``'s startup wait loop is unaffected. It can also go back to false,
+       when the peer stops.
    * - ``Gateway_ipc_binding_server::start()``
      - Offers ``SomeipdService``. Bridged services are set up later via ``AddServiceConfiguration``, see
-       :ref:`gatewayd-services`. Calling ``start()`` twice returns an error, as today.
+       :ref:`gatewayd-services`. Calling ``start()`` twice returns an error.
 
 ``is_connected()`` is read from a different thread than the find-service handler that maintains it, so it is
 backed by an ``std::atomic<bool>``.
@@ -618,8 +613,5 @@ Known gaps
   from a restarted ``gatewayd``, and LoLa reuses a provider's existing shared-memory segment while a consumer
   still holds it open.
 
-Open points
------------
-
-- Whether ``someipd`` should keep the ``message_passing`` implementation available behind a switch until the
-  upstream re-offer problem described under `Known gaps`_ is solved.
+The former ``message_passing`` implementation is not retained behind a switch; the daemons use this
+``mw::com`` implementation directly.

@@ -35,16 +35,10 @@ using namespace std::chrono_literals;
 namespace score::gateway_ipc_binding {
 
 TEST_F(Gateway_ipc_binding_unconnected_integration_test, connect) {
-    // This test verifies that a client can connect to the server and receive a reply.
-
-    // Start the server
+    // This test verifies that a client connects to the server.
     auto start_result = server->start();
     ASSERT_TRUE(start_result);
-
-    // Wait for the client to connect and receive the reply
-    while (!client->is_connected()) {
-        std::this_thread::sleep_for(1ms);
-    }
+    EXPECT_TRUE(wait_on_connection_state(*client, Connection_state::Connected, very_long_timeout));
 }
 
 using Gateway_ipc_binding_bidirectional_integration_test =
@@ -52,14 +46,8 @@ using Gateway_ipc_binding_bidirectional_integration_test =
 
 INSTANTIATE_TEST_SUITE_P(
     , Gateway_ipc_binding_bidirectional_integration_test,
-    Values(Bidirectional_test_parameter{Direction::Client_to_server,
-                                        Ipc_binding_implementation::Message_passing},
-           Bidirectional_test_parameter{Direction::Server_to_client,
-                                        Ipc_binding_implementation::Message_passing},
-           Bidirectional_test_parameter{Direction::Client_to_server,
-                                        Ipc_binding_implementation::Mw_com},
-           Bidirectional_test_parameter{Direction::Server_to_client,
-                                        Ipc_binding_implementation::Mw_com}),
+    Values(Bidirectional_test_parameter{Direction::Client_to_server},
+           Bidirectional_test_parameter{Direction::Server_to_client}),
     readable_test_names);
 
 TEST_P(Gateway_ipc_binding_bidirectional_integration_test,
@@ -92,14 +80,8 @@ class Gateway_ipc_binding_connected_bidirectional_integration_test
 
 INSTANTIATE_TEST_SUITE_P(
     , Gateway_ipc_binding_connected_bidirectional_integration_test,
-    Values(Bidirectional_test_parameter{Direction::Client_to_server,
-                                        Ipc_binding_implementation::Message_passing},
-           Bidirectional_test_parameter{Direction::Server_to_client,
-                                        Ipc_binding_implementation::Message_passing},
-           Bidirectional_test_parameter{Direction::Client_to_server,
-                                        Ipc_binding_implementation::Mw_com},
-           Bidirectional_test_parameter{Direction::Server_to_client,
-                                        Ipc_binding_implementation::Mw_com}),
+    Values(Bidirectional_test_parameter{Direction::Client_to_server},
+           Bidirectional_test_parameter{Direction::Server_to_client}),
     readable_test_names);
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subscribes_to_event) {
@@ -137,7 +119,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
     auto payload_handle = server->connector->allocate_event_payload(event_id);
     ASSERT_TRUE(payload_handle);
-    EXPECT_EQ(payload_handle->data().size(), get_server_metadata().slot_size);
+    EXPECT_EQ(payload_handle->data().size(), get_server_payload_size());
     EXPECT_NE(payload_handle->data().data(), nullptr);
     // Test that the allocated slot is released when the payload is destroyed
 }
@@ -156,7 +138,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
     std::vector<std::optional<socom::Writable_payload>> payload_handles;
 
-    for (std::size_t i = 0; i < get_server_metadata().slot_count; ++i) {
+    for (std::size_t i = 0; i < mw_com_sample_slots; ++i) {
         auto payload_handle = server->connector->allocate_event_payload(event_id);
         ASSERT_TRUE(payload_handle);
         payload_handles.push_back(std::move(*payload_handle));
@@ -166,7 +148,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
     EXPECT_EQ(
         payload_handle,
         MakeUnexpected(
-            gateway_ipc_binding::Shared_memory_manager_error::runtime_error_no_available_slots));
+            Mw_com_binding_error::runtime_error_sample_allocation_failed));
 
     // destruction of payload handle should enable to allocate again
     payload_handles.erase(std::begin(payload_handles));
@@ -191,7 +173,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_send
     ASSERT_EQ(payload_future.wait_for(very_long_timeout), std::future_status::ready);
 
     auto received_payload = payload_future.get();
-    EXPECT_EQ(received_payload.data().size(), get_server_metadata().slot_size);
+    EXPECT_EQ(received_payload.data().size(), get_server_payload_size());
     EXPECT_EQ(received_payload.data()[0], expected_payload[0]);
     EXPECT_EQ(received_payload.data()[1], expected_payload[1]);
     EXPECT_EQ(received_payload.data()[2], expected_payload[2]);
@@ -237,7 +219,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
     std::vector<socom::Payload> payload_handles;
 
-    for (std::size_t i = 0; i < get_server_metadata().slot_count; ++i) {
+    for (std::size_t i = 0; i < mw_com_sample_slots; ++i) {
         auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
         ASSERT_NE(payload_handle.data().size(), 0);
         payload_handle.wdata()[0] =
@@ -256,7 +238,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
         ASSERT_EQ(payload_future.wait_for(very_long_timeout), std::future_status::ready);
 
         auto received_payload = payload_future.get();
-        EXPECT_EQ(received_payload.data().size(), get_server_metadata().slot_size);
+        EXPECT_EQ(received_payload.data().size(), get_server_payload_size());
         EXPECT_EQ(received_payload.data()[0], std::byte{static_cast<std::uint8_t>(i)});
 
         payload_handles.push_back(std::move(received_payload));
@@ -266,7 +248,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
     EXPECT_EQ(
         payload_handle,
         MakeUnexpected(
-            gateway_ipc_binding::Shared_memory_manager_error::runtime_error_no_available_slots));
+            Mw_com_binding_error::runtime_error_sample_allocation_failed));
 
     // destruction of payload handle should enable to allocate again
     payload_handles.erase(std::begin(payload_handles));
@@ -274,7 +256,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
     while (
         server->connector->allocate_event_payload(event_id) ==
         MakeUnexpected(
-            gateway_ipc_binding::Shared_memory_manager_error::runtime_error_no_available_slots)) {
+            Mw_com_binding_error::runtime_error_sample_allocation_failed)) {
         std::this_thread::sleep_for(10ms);
     }
 }

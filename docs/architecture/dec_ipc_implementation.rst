@@ -22,7 +22,7 @@ DR-002-Arch: IPC implementation
    :status: accepted
    :version: 1
    :context: SOME/IP Gateway
-   :decision: Option 2 (specific implementation using ``message_passing`` and ``shared_memory``)
+   :decision: Option 1 (``mw::com`` / LoLa with GenericSkeleton and GenericProxy)
 
 Context / Problem
 -----------------
@@ -106,21 +106,24 @@ The benefit is that it is already safety qualified, but the complexity is the hi
 
 Option 2 is singled out due to the lack of zero-copy support.
 
-Option 3 is chosen because it supports zero-copy while still keeping the complexity manageable.
+At the time this decision was recorded, Option 3 was preferred because it supports zero-copy while
+keeping the implementation complexity manageable.
 
 Decision
 --------
 
-Option 3 was selected: the IPC implementation is based on ``message_passing`` and ``shared_memory``.
+The original implementation selected Option 3 and was based on ``message_passing`` and
+``shared_memory``. That implementation has since been superseded: ``gatewayd`` and ``someipd`` now
+use Option 1, implemented with ``mw::com`` generic proxies and skeletons. The obsolete direct
+``message_passing`` and shared-memory binding has been removed.
 
 Consequences
 ------------
 
 * The integration between the ``gatewayd`` and ``someipd`` daemon is based on ``socom`` interfaces.
-* ``mw::com`` is not used as the primary abstraction layer for SOME/IP stack
-  integration in this module.
-* Future work should preserve a clear boundary between ``socom``-based
-  abstraction and any optional ``mw::com`` interoperability logic.
+* ``mw::com`` is the IPC transport between the daemons.
+* ``socom`` remains the service abstraction at the gateway boundary, bridged through the
+  ``mw::com`` binding.
 
 References
 ----------

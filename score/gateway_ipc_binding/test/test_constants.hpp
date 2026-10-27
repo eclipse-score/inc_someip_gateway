@@ -16,57 +16,34 @@
 
 #include <chrono>
 #include <cstddef>
-#include <string>
+#include <vector>
 
-#include "score/gateway_ipc_binding/gateway_ipc_binding.hpp"
-#include "score/message_passing/i_client_factory.h"
-#include "score/message_passing/i_server_factory.h"
+#include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 #include "score/socom/service_interface_definition.hpp"
 #include "util.hpp"
 
 namespace score::gateway_ipc_binding {
 
-// When everything works as expected we should never reach a fraction of this timeout
-std::chrono::seconds const very_long_timeout{500};
+inline constexpr std::chrono::seconds very_long_timeout{500};
 
-std::vector<std::byte> const expected_payload{std::byte{1}, std::byte{2}, std::byte{3},
-                                              std::byte{4}};
+inline const std::vector<std::byte> expected_payload{std::byte{1}, std::byte{2}, std::byte{3},
+                                                     std::byte{4}};
+
+using socom::Event_id;
+using socom::Method_id;
 
 class Test_constants {
    protected:
-    static constexpr std::size_t k_max_message_size = 32768;
-
-    std::string const service_name = make_service_name();
-
-    score::message_passing::ServiceProtocolConfig const protocol_config{
-        service_name, k_max_message_size, k_max_message_size, k_max_message_size};
-    score::message_passing::IServerFactory::ServerConfig const server_config{10, 10, 10};
-    score::message_passing::IClientFactory::ClientConfig const client_config{10, 10, false, false,
-                                                                             false};
-
-    score::socom::Service_interface_identifier const interface{
+    socom::Service_interface_identifier const interface{
         "bridged_/test/ipc/BridgedService", socom::Literal_tag{}, {1, 0}};
-    score::socom::Service_instance const instance{"1", socom::Literal_tag{}};
-    score::socom::Service_interface_definition const socom_client_config{interface};
-    score::socom::Server_service_interface_definition const socom_server_config{
-        interface, score::socom::to_num_of_methods(0), score::socom::to_num_of_events(2)};
+    socom::Service_instance const instance{"1", socom::Literal_tag{}};
+    socom::Server_service_interface_definition const socom_server_config{
+        interface, socom::to_num_of_methods(0), socom::to_num_of_events(2)};
 
-    Shared_memory_metadata const client_metadata = make_metadata("/gw_client_shm", 256, 8);
-    Shared_memory_metadata const server_metadata = make_metadata("/gw_server_shm", 512, 4);
-    /// \brief mw::com flavour: no path, events above 1500 bytes, slots as in mw_com_config.json
-    Shared_memory_metadata const mw_com_metadata{{}, 8232, 4};
-
-    Shared_memory_manager_factory::Shared_memory_configuration const server_shm_config{
-        {interface, {{instance, server_metadata}}}};
-
-    Shared_memory_manager_factory::Shared_memory_configuration const client_shm_config{
-        {interface, {{instance, client_metadata}}}};
-
-    Shared_memory_configs const server_shared_memory_configs{
-        make_shared_memory_configs(server_shm_config)};
+    std::size_t const mw_com_payload_size{8232U};
+    std::size_t const mw_com_sample_slots{4U};
 
     Event_id const event_id{0};
-    Method_id const method_id{0};
 };
 
 }  // namespace score::gateway_ipc_binding

@@ -15,15 +15,11 @@ SPDX-License-Identifier: Apache-2.0
 
 # Gateway IPC Binding
 
-Gateway IPC Binding bridges SOCom service discovery and event transport across a local IPC link.
-It combines:
-
-- a control channel built on ``score::message_passing``
-- per-service shared memory segments for payload transport
-- a ``score::socom::Runtime`` bridge registration on each side
-
-The implementation is intentionally symmetric after the control channel is established: both peers can request services, offer services, subscribe to events, and publish event updates. In the deployed topology, ``someipd`` typically hosts ``Gateway_ipc_binding_server`` and ``gatewayd`` typically hosts ``Gateway_ipc_binding_client``.
+Gateway IPC Binding bridges SOCom services between ``gatewayd`` and ``someipd`` over ``mw::com``
+(LoLa). The implementation uses generic proxies and skeletons for bridged service events and a
+typed ``SomeipdService`` for peer liveness and configuration exchange.
 
 ## Design
 
-[The design](doc/index.rst) describes the behavior and architecture of the Gateway IPC Binding.
+[The design](docs/mw_com_binding.rst) describes the behavior and architecture of the Gateway IPC
+Binding.

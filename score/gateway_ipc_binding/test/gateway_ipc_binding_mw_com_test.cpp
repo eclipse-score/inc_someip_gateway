@@ -14,6 +14,7 @@
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <atomic>
 #include <chrono>
@@ -28,13 +29,17 @@
 
 #include "score/gateway_ipc_binding/impl/mw_com/someipd_service.hpp"
 #include "score/mw/com/runtime.h"
+#include "score/socom/callback_mocks.hpp"
+#include "score/socom/client_connector.hpp"
 #include "score/socom/runtime.hpp"
-#include "util.hpp"
+#include "score/socom/server_connector.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 namespace {
 
 using namespace std::chrono_literals;
+using ::testing::_;
+using ::testing::AtMost;
 
 /// \brief Instance specifier used by most tests, present in the test mw_com_config.json
 constexpr char const* kSomeipd_specifier = "someipd/daemon";
@@ -44,6 +49,74 @@ constexpr char const* kSomeipd_specifier_second_pair = "someipd/daemon_second_pa
 /// \brief mw::com service discovery is asynchronous, so state changes have to be awaited
 constexpr auto kDiscovery_timeout = 10s;
 constexpr auto kPoll_interval = 5ms;
+
+struct Client_connector_with_callbacks {
+    std::promise<void> client_connected_promise;
+    std::promise<void> client_disconnected_promise;
+    socom::Service_state_change_callback_mock mock_service_state_change_cb;
+    socom::Event_update_callback_mock mock_event_update_cb;
+    socom::Event_payload_allocate_callback_mock mock_event_payload_allocate_cb;
+    socom::Client_connector::Uptr connector;
+
+    Client_connector_with_callbacks(socom::Runtime& runtime,
+                                    socom::Server_service_interface_definition const& interface,
+                                    socom::Service_instance const& instance) {
+        expect_client_connected(interface);
+        create_connector(runtime, interface, instance);
+        EXPECT_EQ(client_connected_promise.get_future().wait_for(kDiscovery_timeout),
+                  std::future_status::ready);
+    }
+
+    void expect_client_connected(socom::Server_service_interface_definition const& interface) {
+        client_connected_promise = std::promise<void>();
+        client_disconnected_promise = std::promise<void>();
+
+        EXPECT_CALL(mock_service_state_change_cb,
+                    Call(_, socom::Service_state::available, interface))
+            .Times(1)
+            .WillOnce([this](auto&, auto, auto) { client_connected_promise.set_value(); });
+        EXPECT_CALL(mock_service_state_change_cb,
+                    Call(_, socom::Service_state::not_available, interface))
+            .Times(AtMost(1))
+            .WillOnce([this](auto&, auto, auto) { client_disconnected_promise.set_value(); });
+    }
+
+    void create_connector(socom::Runtime& runtime,
+                          socom::Service_interface_definition const& interface,
+                          socom::Service_instance const& instance) {
+        socom::Client_connector::Callbacks callbacks{
+            mock_service_state_change_cb.as_function(), mock_event_update_cb.as_function(),
+            mock_event_update_cb.as_function(), mock_event_payload_allocate_cb.as_function()};
+        auto result = runtime.make_client_connector(interface, instance, std::move(callbacks));
+        ASSERT_TRUE(result);
+        connector = std::move(result).value();
+        ASSERT_NE(connector, nullptr);
+    }
+};
+
+struct Server_connector_with_callbacks {
+    socom::Method_call_credentials_callback_mock mock_method_call_credentials_cb;
+    socom::Event_subscription_change_callback_mock mock_event_subscription_change_cb;
+    socom::Event_request_update_callback_mock mock_event_request_update_cb;
+    socom::Method_call_payload_allocate_callback_mock mock_method_payload_allocate_cb;
+    socom::Enabled_server_connector::Uptr connector;
+
+    Server_connector_with_callbacks(socom::Runtime& runtime,
+                                    socom::Server_service_interface_definition const& interface,
+                                    socom::Service_instance const& instance) {
+        socom::Disabled_server_connector::Callbacks callbacks{
+            mock_method_call_credentials_cb.as_function(),
+            mock_event_subscription_change_cb.as_function(),
+            mock_event_request_update_cb.as_function(), mock_method_payload_allocate_cb.as_function()};
+        auto result = runtime.make_server_connector(interface, instance, std::move(callbacks));
+        EXPECT_TRUE(result);
+        if (!result) {
+            return;
+        }
+        connector = socom::Disabled_server_connector::enable(std::move(result).value());
+        EXPECT_NE(connector, nullptr);
+    }
+};
 
 /// \brief Wait until the client reports the expected connection state
 /// \return The observed state, so that the caller can assert on it with a useful message

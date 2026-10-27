@@ -316,9 +316,9 @@ std::unique_ptr<Gateway_ipc_binding_client> create_client(
                                             std::string{identifier});
 }
 
-std::unique_ptr<Gateway_ipc_binding_server> create_server(score::socom::Runtime& runtime,
-                                                          std::string someipd_service_specifier,
-                                                          Gateway_config_handler handler) noexcept {
+std::unique_ptr<Gateway_ipc_binding_server> create_server(
+    score::socom::Runtime& runtime, std::string someipd_service_specifier,
+    Gateway_config_handler handler) noexcept {
     if (someipd_service_specifier.empty()) {
         score::mw::log::LogError() << kLog_tag
                                    << "Failed to create mw::com server binding: empty "

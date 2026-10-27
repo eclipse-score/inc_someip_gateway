@@ -19,27 +19,16 @@
 #include <cstddef>
 #include <future>
 #include <memory>
-#include <string>
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
-#include "score/gateway_ipc_binding/shared_memory_slot_manager.hpp"
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/client_connector.hpp"
+#include "score/socom/event.hpp"
 #include "score/socom/runtime.hpp"
 
 namespace score::gateway_ipc_binding {
 
-Shared_memory_metadata make_metadata(std::string const& path, std::size_t slot_size,
-                                     std::size_t slot_count);
-
-std::string make_service_name();
-
-template <typename T>
-std::unique_ptr<T> create_mock_unique_ptr(T*& mock_ptr) {
-    auto mock = std::make_unique<T>();
-    mock_ptr = mock.get();
-    return mock;
-}
+using socom::Event_id;
 
 enum class Direction { Client_to_server, Server_to_client };
 
