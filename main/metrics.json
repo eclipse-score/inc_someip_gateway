@@ -46,58 +46,6 @@
     "broken_references": []
   },
   "verification_metrics": {
-    "comp__socom": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
-    "comp__null_serializer": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
     "comp__someipd": {
       "requirements": {
         "status": {
@@ -202,7 +150,7 @@
         }
       }
     },
-    "comp__config": {
+    "comp__null_serializer": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -229,6 +177,58 @@
       }
     },
     "comp__someip": {
+      "requirements": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      }
+    },
+    "comp__socom": {
+      "requirements": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      }
+    },
+    "comp__config": {
       "requirements": {
         "status": {
           "valid": 0,
