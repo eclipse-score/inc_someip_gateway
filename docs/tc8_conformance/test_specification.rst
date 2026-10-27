@@ -35,9 +35,9 @@ For requirement definitions see :doc:`requirements`.
    Both default values are defined in ``tc8_itf_conftest.py``.  To run a
    test::
 
-      bazel test --config=tc8-itf //tests/tc8_conformance:test_tc8_<name>
+      bazel test --config=qemu-integration //tests/tc8_conformance:test_tc8_<name>
 
-   For QNX x86_64 use ``--config=tc8-itf-qnx``.
+   For QNX x86_64 use ``--config=x86_64-qnx``.
 
 .. note:: Terminology
 

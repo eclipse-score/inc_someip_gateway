@@ -65,7 +65,7 @@ common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_he
 # QEMU-based integration tests must run in linux-sandbox because they modify
 # network interfaces and IP configuration. Use this config for those runs:
 #   bazel test --config=qemu-integration //...
-test:qemu-integration --strategy_regexp='^Testing .*integration_test.*=linux-sandbox'
+test:qemu-integration --strategy_regexp='^Testing .*(integration_test|tc8_conformance).*=linux-sandbox'
 test:qemu-integration --//quality/integration_testing/flags:linux_backend=qemu
 test:qemu-integration --run_under=@score_itf//scripts:run_under_qemu
 test:x86_64-qnx --strategy_regexp='^Testing .*(integration_test|tc8_conformance).*=linux-sandbox'
@@ -113,21 +113,6 @@ common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 # unshare /dev/shm and /tmp, gateway_ipc_binding tests create files in there and concurrent test runs would influence each other
 test --sandbox_tmpfs_path=/dev/shm
 test --sandbox_tmpfs_path=/tmp
-
-# ============================================================================
-# TC8 SOME/IP Conformance Test Configuration
-# ============================================================================
-# ITF (QEMU) TC8 runs.
-# Usage: bazel test --config=tc8-itf //tests/tc8_conformance:test_tc8_<name>
-test:tc8-itf --config=qemu-integration
-test:tc8-itf --test_tag_filters=tc8
-test:tc8-itf --strategy_regexp='^Testing .*tc8_conformance.*=linux-sandbox'
-
-# QNX8 QEMU ITF TC8 runs.
-# common: (not build:/test:) prevents "expanded more than once" warning.
-# Usage: bazel test --config=tc8-itf-qnx //tests/tc8_conformance:test_tc8_<name>
-common:tc8-itf-qnx --config=x86_64-qnx
-test:tc8-itf-qnx --test_tag_filters=tc8
 
 # Coverage settings
 import %workspace%/coverage.bazelrc

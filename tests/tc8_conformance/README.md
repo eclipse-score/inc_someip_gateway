@@ -36,13 +36,13 @@ and work with any SOME/IP binding.
 
 ```bash
 # Run all TC8 conformance tests (Linux)
-bazel test --config=tc8-itf //tests/tc8_conformance/...
+bazel test --config=qemu-integration //tests/tc8_conformance/...
 
 # Run a specific target
-bazel test --config=tc8-itf //tests/tc8_conformance:test_tc8_service_discovery
+bazel test --config=qemu-integration //tests/tc8_conformance:test_tc8_service_discovery
 
 # Run on QNX x86_64
-bazel test --config=tc8-itf-qnx //tests/tc8_conformance/...
+bazel test --config=x86_64-qnx //tests/tc8_conformance/...
 ```
 
 ## Further Reading
