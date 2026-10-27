@@ -57,6 +57,8 @@ INSTANTIATE_TEST_SUITE_P(
            Bidirectional_test_parameter{Direction::Server_to_client,
                                         Ipc_binding_implementation::Message_passing},
            Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Mw_com},
+           Bidirectional_test_parameter{Direction::Server_to_client,
                                         Ipc_binding_implementation::Mw_com}),
     readable_test_names);
 
@@ -98,6 +100,8 @@ INSTANTIATE_TEST_SUITE_P(
            Bidirectional_test_parameter{Direction::Server_to_client,
                                         Ipc_binding_implementation::Message_passing},
            Bidirectional_test_parameter{Direction::Client_to_server,
+                                        Ipc_binding_implementation::Mw_com},
+           Bidirectional_test_parameter{Direction::Server_to_client,
                                         Ipc_binding_implementation::Mw_com}),
     readable_test_names);
 

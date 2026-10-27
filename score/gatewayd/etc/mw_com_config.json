@@ -95,6 +95,25 @@
           ]
         }
       ]
+    },
+    {
+      "serviceTypeName": "/score/someip/SomeipdService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "bindings": [
+        {
+          "binding": "SHM",
+          "serviceId": 6400,
+          "methods": [
+            {
+              "methodName": "AddServiceConfiguration",
+              "methodId": 1
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceInstances": [
@@ -204,6 +223,27 @@
               "eventName": "echo_response_xxlarge",
               "numberOfSampleSlots": 10,
               "maxSubscribers": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instanceSpecifier": "someipd/daemon",
+      "serviceTypeName": "/score/someip/SomeipdService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      },
+      "instances": [
+        {
+          "instanceId": 1,
+          "asil-level": "QM",
+          "binding": "SHM",
+          "methods": [
+            {
+              "methodName": "AddServiceConfiguration",
+              "queueSize": 1
             }
           ]
         }

@@ -16,6 +16,7 @@
 
 #include <array>
 #include <cstdint>
+#include <string_view>
 
 #include "score/mw/com/types.h"
 #include "score/serializer/pre_serialized_data.h"
@@ -42,6 +43,11 @@ inline constexpr std::array<score::mw::com::EventInfo, 9> kEvents = {{
     {"TestFieldUINT8Reliable", kDataTypeMetaInfo},
     {"TestEventUINT8Multicast", kDataTypeMetaInfo},
 }};
+
+// Fields without an update cycle. The stub publishes each of them once, so a subscriber
+// sees them only as initial fields.
+inline constexpr std::array<std::string_view, 3> kInitialFields = {
+    "InterfaceVersion", "TestFieldUINT8", "TestFieldUINT8Array"};
 
 }  // namespace tc8_ets_service
 

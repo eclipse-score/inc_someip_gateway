@@ -17,62 +17,11 @@ on:
   workflow_call:
 
 jobs:
-  # Run the unit tests that carry `FullyVerifies` RecordProperty/attribute
-  # annotations before the docs build so their JUnit XMLs land in
-  # bazel-testlogs/. The `score_source_code_linker` extension scans that
-  # directory during `docs_check` and attaches each test to its requirement.
-  # Without this, the traceability report in the published docs reports zero
-  # test links even though the source-side annotations are in place.
   build-docs:
-    runs-on: ubuntu-24.04
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v.0.0.3
     permissions:
       contents: read
-    steps:
-      - uses: eclipse-score/more-disk-space@v1
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      - name: Create Bazel output base directory
-        run: |
-          sudo mkdir -p /mnt/.bazel
-          sudo chown -R $USER:$USER /mnt/.bazel
-      - name: Create config indicator file
-        run: echo "host" > .bazel_config
-      - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
-        with:
-          unique-cache-name: ${{ github.job }}
-      - name: Install tools needed for QEMU integration tests
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
-      - name: Allow linux-sandbox
-        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
-      - name: Enable KVM group permissions
-        run: |
-          sudo chmod 666 /dev/kvm
-      - name: Run requirement-annotated host tests
-        run: |
-          bazel test \
-            //score/socom/test/unit:socom_test \
-            //score/gateway_ipc_binding/test:gateway_ipc_binding_test
-      - name: Run requirement-annotated QEMU integration tests
-        run: |
-          bazel test --config=qemu-integration \
-            //tests/integration_test:test_gateway_startup
-      - name: Build and check docs
-        run: |
-          bazel run //:docs_check
-      - name: Upload traceability metrics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: traceability-metrics
-          path: _build/metrics.json
-          retention-days: 3
-      - name: Upload generated docs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs
-          path: _build/
-          retention-days: 3
+
+    with:
+      retention-days: 3
+      tests-report-artifact: tc8-test-reports

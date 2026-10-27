@@ -12,9 +12,9 @@
 # *******************************************************************************
 """Host-only regression tests for TC8 helper behavior fixed in PR-4 review round 2.
 
-Covers: SD session-id wraparound (item 7), the UDP-before-TCP endpoint option
-filter (item 9), and the multi-handle ``_TargetProcess.poll()`` fix (item 5).
-No DUT/QEMU is involved; everything here runs against fakes/pure functions.
+Covers SD session-id wraparound, the UDP-before-TCP endpoint option filter,
+and the multi-handle ``_TargetProcess.poll()`` fix. No DUT/QEMU is involved;
+everything here runs against fakes/pure functions.
 """
 
 import ipaddress

@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     }
     score::mw::log::LogInfo() << "[someipd] IPC server started, waiting for gatewayd connection...";
 
-    auto routing = Routing::Create(config);
+    auto routing = Routing::Create();
     if (!routing.has_value()) {
         score::mw::log::LogFatal() << "[someipd] Network stack initialization failed";
         return 1;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
                     config, service_instance_config),
                 std::shared_ptr<const score::mw_someip_config::ServiceType>(config,
                                                                             service_type_config),
-                routing.value().get_application(), *socom_runtime);
+                routing.value()->get_application(), *socom_runtime);
             if (!create_result.has_value()) {
                 score::mw::log::LogError()
                     << "[someipd] Failed to create LocalNetworkService for "
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
                     config, service_instance_config),
                 std::shared_ptr<const score::mw_someip_config::ServiceType>(config,
                                                                             service_type_config),
-                routing.value().get_application(), *socom_runtime);
+                routing.value()->get_application(), *socom_runtime);
             if (!create_result.has_value()) {
                 score::mw::log::LogError()
                     << "[someipd] Failed to create RemoteNetworkService for "
@@ -224,23 +224,23 @@ int main(int argc, char* argv[]) {
 
     bool clean_exit = true;
 
+    routing.value()->AddServices(config, [&remote_network_services]() {
+        for (auto& svc : remote_network_services) {
+            svc->setup_vsomeip();
+        }
+    });
+
     score::mw::log::LogInfo() << "[someipd] Starting routing loop...";
-    routing.value().Run(
-        [&shutdown_signals, &clean_exit]() {
-            int signal_number = 0;
-            if (sigwait(&shutdown_signals, &signal_number) != 0) {
-                score::mw::log::LogError() << "[someipd] sigwait failed, shutting down";
-                clean_exit = false;
-                return;
-            }
-            score::mw::log::LogWarn()
-                << "[someipd] Received signal " << signal_number << ", shutting down...";
-        },
-        [&remote_network_services]() {
-            for (auto& svc : remote_network_services) {
-                svc->setup_vsomeip();
-            }
-        });
+    routing.value()->Run([&shutdown_signals, &clean_exit]() {
+        int signal_number = 0;
+        if (sigwait(&shutdown_signals, &signal_number) != 0) {
+            score::mw::log::LogError() << "[someipd] sigwait failed, shutting down";
+            clean_exit = false;
+            return;
+        }
+        score::mw::log::LogWarn() << "[someipd] Received signal " << signal_number
+                                  << ", shutting down...";
+    });
 
     score::mw::log::LogInfo() << "[someipd] Shutting down SOME/IP daemon...";
     return clean_exit ? EXIT_SUCCESS : EXIT_FAILURE;

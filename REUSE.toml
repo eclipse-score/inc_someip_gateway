@@ -46,9 +46,12 @@ SPDX-License-Identifier = "Apache-2.0"
 [[annotations]]
 path = [
     "docs/architecture/score-someip-car-window-overview.drawio*",
+    "score/bridged_services/test/bridged_services_test_config.json",
     "score/config/mw_someip_config.*",
     "score/gateway_ipc_binding/test/mw_com_config.json",
+    "score/gateway_ipc_binding/benchmark/mw_com_config.json",
     "score/gatewayd/etc/mw_com_config.json",
+    "score/someipd/etc/mw_com_config.json",
     "tests/benchmarks/config/*/*.json",
     "tests/integration_test/vsomeip-local.json",
     "tests/integration_test/vsomeip.json",

@@ -377,7 +377,7 @@ Service_record::Server_registration Service_record::register_server_connector(
     };
 
     return Server_registration{
-        std::make_unique<Final_action_registration>(Final_action(std::move(final_action))),
+        std::make_unique<Final_action_registration>(Final_action{std::move(final_action)}),
         m_client};
 }
 
@@ -394,7 +394,7 @@ Result<Service_record::Client_registration> Service_record::register_client_conn
     };
 
     return Client_registration{
-        std::make_unique<Final_action_registration>(Final_action(std::move(remove_from_registry))),
+        std::make_unique<Final_action_registration>(Final_action{std::move(remove_from_registry)}),
         m_server};
 }
 
@@ -569,7 +569,7 @@ Registration Runtime_impl::bridge_service_requests(
     };
 
     Registration service_requests_handle = std::make_unique<Final_action_registration>(
-        Final_action(std::move(remove_service_requests)));
+        Final_action{std::move(remove_service_requests)});
 
     return service_requests_handle;
 }

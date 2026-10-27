@@ -63,6 +63,8 @@ class Provider_service_binding final : public Service_binding {
     Provider_service_binding(Provider_service_binding&&) = delete;
     Provider_service_binding& operator=(Provider_service_binding&&) = delete;
 
+    [[nodiscard]] Result<void> start() noexcept override { return {}; }
+
    private:
     /// \brief In-flight `Allocate()` results, keyed by the slot handle the binding mints.
     /// \details SOCom only hands a `Writable_payload` back to the binding, so the

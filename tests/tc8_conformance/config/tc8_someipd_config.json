@@ -45,7 +45,7 @@
                 {
                     "event_name": "InterfaceVersion",
                     "event_id": 32773,
-                    "eventgroup_ids": [2],
+                    "eventgroup_ids": [2, 5],
                     "serialization_config_type": "NullSerializerConfig",
                     "serialization_config": {
                         "max_message_size": 1
@@ -54,7 +54,7 @@
                 {
                     "event_name": "TestFieldUINT8",
                     "event_id": 32774,
-                    "eventgroup_ids": [2],
+                    "eventgroup_ids": [2, 5],
                     "serialization_config_type": "NullSerializerConfig",
                     "serialization_config": {
                         "max_message_size": 1
@@ -63,7 +63,7 @@
                 {
                     "event_name": "TestFieldUINT8Array",
                     "event_id": 32775,
-                    "eventgroup_ids": [2],
+                    "eventgroup_ids": [2, 5],
                     "serialization_config_type": "NullSerializerConfig",
                     "serialization_config": {
                         "max_message_size": 1
@@ -92,6 +92,10 @@
                 {
                     "instance_specifier": "tc8/tc8_service",
                     "instance_id": 22136
+                },
+                {
+                    "instance_specifier": "tc8/tc8_service_2",
+                    "instance_id": 22144
                 }
             ]
         }

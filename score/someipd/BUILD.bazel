@@ -18,6 +18,13 @@ This daemon contains the SOME/IP communication stack and is QM
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+
+exports_files(
+    [
+        "etc/mw_com_config.json",
+    ],
+)
 
 # ============================================================================
 # Main Binary
@@ -43,6 +50,24 @@ cc_binary(
 # ============================================================================
 # Libraries
 # ============================================================================
+cc_library(
+    name = "gatewayd_services",
+    srcs = ["impl/gatewayd_services.cpp"],
+    hdrs = ["impl/gatewayd_services.h"],
+    visibility = ["//score/someipd/test:__pkg__"],
+    deps = [
+        ":local_network_service",
+        ":remote_network_service",
+        ":routing",
+        "//score/bridged_services",
+        "//score/config:config_flatbuffers",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "//score/socom",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/mw/log",
+    ],
+)
+
 cc_library(
     name = "local_network_service",
     srcs = ["impl/local_network_service.cpp"],
@@ -74,15 +99,23 @@ cc_library(
     name = "routing",
     srcs = ["impl/routing.cpp"],
     hdrs = ["impl/routing.h"],
+    visibility = ["//score/someipd/test:__pkg__"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/someip",
-        "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
         "@vsomeip",
     ],
+)
+
+validate_json_schema_test(
+    name = "mw_com_config_schema_valid",
+    size = "small",
+    json = "etc/mw_com_config.json",
+    schema = "@score_communication//score/mw/com:config_schema",
+    tags = ["lint"],
 )
 
 native_binary(
