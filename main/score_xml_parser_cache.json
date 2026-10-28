@@ -377,8 +377,8 @@
     "line": 1533,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
-    "result": "skipped",
-    "result_text": "OA ETS_121: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed with the current DUT stack: they are not received after the subscription.",
+    "result": "passed",
+    "result_text": "",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""

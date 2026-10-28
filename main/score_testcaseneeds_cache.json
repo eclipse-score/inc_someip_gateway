@@ -479,13 +479,13 @@
     "name": "TestSDFindServiceAdvanced__test_ets_121_events_sent_after_subscribe_ack",
     "file": "tests/tc8_conformance/test_service_discovery.py",
     "line": "1533",
-    "result": "skipped",
+    "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
     "url": "",
     "TestType": "requirements-based",
     "DerivationTechnique": "requirements-analysis",
-    "result_text": "OA ETS_121: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed with the current DUT stack: they are not received after the subscription.",
+    "result_text": "",
     "PartiallyVerifies": null,
     "FullyVerifies": "comp_req__tc8_conformance__sd_sub_lifecycle"
   },
@@ -532,6 +532,20 @@
     "FullyVerifies": "comp_req__tc8_conformance__sd_find_response"
   },
   {
+    "name": "tests/tc8_conformance/test_golden_vectors",
+    "file": null,
+    "line": null,
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
     "file": "tests/tc8_conformance/test_sd_phases_timing.py",
     "line": "107",
@@ -544,6 +558,34 @@
     "result_text": "",
     "PartiallyVerifies": null,
     "FullyVerifies": "comp_req__tc8_conformance__sd_phases_timing"
+  },
+  {
+    "name": "tests/tc8_conformance/test_helper_regressions",
+    "file": null,
+    "line": null,
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "tests/tc8_conformance/tc8_someipd_config_test",
+    "file": null,
+    "line": null,
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
   },
   {
     "name": "tests/tc8_conformance/tc8_someipd_config_schema_valid",
