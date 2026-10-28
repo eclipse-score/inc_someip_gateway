@@ -29,7 +29,6 @@
 #include "score/socom/socom_mocks.hpp"
 #include "score/socom/utilities.hpp"
 
-using score::Blank;
 using score::Result;
 using ::testing::_;
 using ::testing::StaticAssertTypeEq;

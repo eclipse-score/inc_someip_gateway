@@ -16,65 +16,71 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <thread>
+#include <vector>
 #include <vsomeip/vsomeip.hpp>
 
 #include "score/config/mw_someip_config_generated.h"
 #include "score/result/result.h"
-#include "score/someip/types.h"
 
 namespace score::someipd {
 
-using score::someip::EventId;
-using score::someip::InstanceId;
-using score::someip::ServiceId;
-
 /// Manages the vsomeip application lifecycle and SOME/IP service registrations.
 ///
-/// Owns a vsomeip application instance, registers event subscriptions and
-/// service offerings from configuration, and dispatches incoming SOME/IP
-/// messages. IPC forwarding to/from gatewayd is handled via SOCom connectors
-/// that are wired in externally (see main.cpp).
+/// Owns a vsomeip application instance, offers the services that gatewayds add at runtime,
+/// and dispatches incoming SOME/IP messages. IPC forwarding to/from gatewayd is handled via
+/// SOCom connectors that are wired in externally (see GatewaydServices).
 class Routing {
    public:
-    /// @brief Creates a Routing instance from the given configuration.
+    /// @brief Creates a Routing instance.
     ///
     /// Initialises a vsomeip application and registers it with the vsomeip runtime.
-    /// Subscriptions and service offerings are applied once Run() is called and the
-    /// application has registered with the vsomeip routing daemon.
+    /// Nothing is offered until AddServices() is called and the application has registered
+    /// with the vsomeip routing daemon.
     ///
-    /// @param config SOME/IP gateway configuration describing the services, instances,
-    ///               events, and methods to subscribe to or offer on the network.
     /// @return A fully initialised Routing instance, or an error if the vsomeip application
     ///         could not be created or initialised.
-    static Result<Routing> Create(std::shared_ptr<const score::mw_someip_config::Root> config);
+    static Result<std::unique_ptr<Routing>> Create();
 
     ~Routing() = default;
 
     Routing(const Routing&) = delete;
     Routing& operator=(const Routing&) = delete;
-    Routing(Routing&&) noexcept;
-    Routing& operator=(Routing&&) noexcept;
+    Routing(Routing&&) = delete;
+    Routing& operator=(Routing&&) = delete;
 
     /// Returns the vsomeip application instance.
     std::shared_ptr<vsomeip::application> get_application() const noexcept { return application_; }
 
+    /// \brief Offers the local service instances of @p config, then calls @p on_registered
+    /// \details Both run now if vsomeip is registered, and again on every ST_REGISTERED.
+    ///          Thread safe.
+    /// \param on_registered MUST NOT be empty. Use it to call setup_vsomeip() on
+    ///        RemoteNetworkService instances.
+    void AddServices(std::shared_ptr<const score::mw_someip_config::Root> config,
+                     std::function<void()> on_registered);
+
     /// Starts the network stack, blocks in @p wait_for_shutdown, then stops the stack.
     /// \param wait_for_shutdown Blocks until shutdown is requested.
-    /// \param on_registered Optional callback invoked once vsomeip reaches ST_REGISTERED.
-    ///        Use this to call setup_vsomeip() on RemoteNetworkService instances.
-    void Run(const std::function<void()>& wait_for_shutdown,
-             std::function<void()> on_registered = {});
+    void Run(const std::function<void()>& wait_for_shutdown);
 
    private:
-    explicit Routing(std::shared_ptr<const score::mw_someip_config::Root> config);
-    void SetupOfferings();
-    InstanceId LookupInstanceId(ServiceId service_id) const;
+    struct Services {
+        std::shared_ptr<const score::mw_someip_config::Root> config;
+        std::function<void()> on_registered;
+    };
 
-    std::shared_ptr<const score::mw_someip_config::Root> config_;
+    Routing() = default;
+    void SetupOfferings(score::mw_someip_config::Root const& config);
+
     std::shared_ptr<vsomeip::application> application_{};
     std::shared_ptr<vsomeip::payload> payload_{};
     std::thread processing_thread_{};
+    /// Guards registered_ and services_. The vsomeip state handler and AddServices() use them.
+    std::mutex mutex_{};
+    bool registered_{false};
+    std::vector<Services> services_{};
 };
 
 }  // namespace score::someipd

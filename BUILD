@@ -52,8 +52,10 @@ use_format_targets(
 test_suite(
     name = "unit_tests",
     tests = [
+        "//score/bridged_services/test:bridged_service_configs_test",
         "//score/serializer:null_serializer_test",
         "//score/socom/test/unit:socom_test",
+        "//score/someipd/test:gatewayd_services_test",
         "//score/someipd/test:local_network_service_test",
     ],
     visibility = ["//visibility:public"],

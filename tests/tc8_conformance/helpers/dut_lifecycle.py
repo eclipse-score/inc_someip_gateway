@@ -208,7 +208,7 @@ def launch_dut(
         f"LD_LIBRARY_PATH=/opt:/opt/usr/lib "
         f"VSOMEIP_CONFIGURATION=/tmp/{guest_config} "
         f"MW_LOG_CONFIG_FILE=/opt/tc8_logging.json "
-        f"/opt/someipd -c /opt/tc8_someipd_config.bin"
+        f"/opt/someipd -s /opt/tc8_someipd_mw_com_config.json"
     )
 
     # 2. Start the ETS stub: provides the mw::com skeleton so gatewayd's
@@ -257,8 +257,8 @@ def cleanup_vsomeip_sockets(
     leftovers on the QEMU guest before each DUT (re)start.
 
     Covers both Linux (``/tmp/vsomeip-*``, ``/dev/shm/lola-*``,
-    ``/tmp/mw_com_lola/partial_restart/*``) and QNX8 (``/var/run/vsomeip-*``,
-    ``/dev/shmem/lola-*``, ``/tmp_discovery/mw_com_lola/partial_restart/*``)
+    ``/tmp/mw_com_lola/*``) and QNX8 (``/var/run/vsomeip-*``,
+    ``/dev/shmem/lola-*``, ``/tmp_discovery/mw_com_lola/*``)
     layouts. Cleanup is broad (not scoped to one service/instance) since the
     target only ever runs one test session at a time.
     """
@@ -271,7 +271,9 @@ def cleanup_vsomeip_sockets(
         "/dev/shm/lola-*",
         "/dev/shmem/lola-*",
         "/tmp/mw_com_lola/partial_restart/*",
+        "/tmp/mw_com_lola/service_discovery/*",
         "/tmp_discovery/mw_com_lola/partial_restart/*",
+        "/tmp_discovery/mw_com_lola/service_discovery/*",
     )
     exit_code, output = target_init.execute("rm -rf " + " ".join(stale_globs))  # type: ignore[attr-defined]
     if exit_code != 0:

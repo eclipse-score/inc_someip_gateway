@@ -36,7 +36,6 @@
 
 using namespace std::literals::chrono_literals;
 
-using score::Blank;
 using ::testing::_;
 using ::testing::Assign;
 using ::testing::ByMove;

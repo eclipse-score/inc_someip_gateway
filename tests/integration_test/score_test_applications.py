@@ -31,11 +31,6 @@ TEST_APPLICATIONS = [
     "socom_test",
 ]
 
-# QNX fsevmgr lacks poll/select support for inotify descriptors, so LoLa discovery
-# can miss service changes and hang mw::com tests until the SDK component is fixed.
-# https://github.com/eclipse-score/bazel_cpp_toolchains/issues/68
-QNX_DISABLED_GTEST_FILTER = "Gateway_ipc_binding_mw_com_test.*:*Mw_com*"
-
 # Emulated targets are slow, especially for the bigger test suites.
 # A test is expected to finish in well under 10s.
 TEST_APPLICATION_TIMEOUT_S = 30
@@ -81,9 +76,7 @@ def test_gateway_ipc_binding_succeeds_on_target(target: Target) -> None:
 
     failures = []
     for suite in _list_gtest_suites(target, GATEWAY_IPC_BINDING_TEST_COMMAND):
-        process = target.execute_async(
-            f"/opt/{GATEWAY_IPC_BINDING_TEST_COMMAND} --gtest_filter='{suite}*-{QNX_DISABLED_GTEST_FILTER}'"
-        )
+        process = target.execute_async(f"/opt/{GATEWAY_IPC_BINDING_TEST_COMMAND} --gtest_filter='{suite}*'")
         exit_code = process.wait(timeout_s=TEST_APPLICATION_TIMEOUT_S)
         if exit_code != 0:
             failures.append(f"{suite} failed with {exit_code}:\n{process.get_output()}")

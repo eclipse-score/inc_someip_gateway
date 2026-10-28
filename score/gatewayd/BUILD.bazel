@@ -33,13 +33,13 @@ cc_binary(
     deps = [
         ":local_service_instance",
         ":remote_service_instance",
+        "//score/bridged_services",
         "//score/config:config_flatbuffers",
-        "//score/gateway_ipc_binding",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/serializer",
         "//score/socom",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
-        "@score_communication//score/message_passing",
         "@score_communication//score/mw/com",
     ],
 )
