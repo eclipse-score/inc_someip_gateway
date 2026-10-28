@@ -32,6 +32,11 @@ inline const std::vector<std::byte> expected_payload{std::byte{1}, std::byte{2},
 using socom::Event_id;
 using socom::Method_id;
 
+struct Shared_memory_metadata {
+    std::size_t slot_size;
+    std::size_t slot_count;
+};
+
 class Test_constants {
    protected:
     socom::Service_interface_identifier const interface{
@@ -40,8 +45,7 @@ class Test_constants {
     socom::Server_service_interface_definition const socom_server_config{
         interface, socom::to_num_of_methods(0), socom::to_num_of_events(2)};
 
-    std::size_t const mw_com_payload_size{8232U};
-    std::size_t const mw_com_sample_slots{4U};
+    Shared_memory_metadata const mw_com_metadata{8232U, 4U};
 
     Event_id const event_id{0};
 };

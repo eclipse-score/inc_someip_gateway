@@ -119,6 +119,10 @@ class Gateway_ipc_binding_many_services_integration_test
     socom::Server_service_interface_definition const server_config_gamma{
         service_interface_gamma, socom::to_num_of_methods(0), socom::to_num_of_events(3)};
 
+    Shared_memory_metadata const server_metadata_alpha{512, 4};
+    Shared_memory_metadata const server_metadata_beta{640, 4};
+    Shared_memory_metadata const server_metadata_gamma{768, 4};
+
     mw_com::Service_configs const mw_com_consumer_services =
         make_mw_com_services(mw_com::Role::consumer);
     mw_com::Service_configs const mw_com_provider_services =
@@ -128,7 +132,7 @@ class Gateway_ipc_binding_many_services_integration_test
 
     mw_com::Service_configs make_mw_com_services(mw_com::Role const role) const {
         mw_com::Service_configs services;
-        auto add_service = [this, &services, role](auto const& interface, std::size_t payload_size,
+        auto add_service = [this, &services, role](auto const& interface, auto const& metadata,
                                                    std::string instance_specifier,
                                                    std::uint16_t service_id,
                                                    std::uint16_t event_count) {
@@ -137,15 +141,18 @@ class Gateway_ipc_binding_many_services_integration_test
             for (std::uint16_t event_index = 0U; event_index < event_count; ++event_index) {
                 events.push_back({"event_" + std::to_string(event_index),
                                   static_cast<mw_com::Mw_com_event_id>(event_index + 1U),
-                                  payload_size});
+                                  metadata.slot_size});
             }
             services.push_back({interface, instance, std::move(instance_specifier), service_id, 1U,
-                                role, std::move(events), mw_com_sample_slots});
+                                role, std::move(events), metadata.slot_count});
         };
 
-        add_service(service_interface_alpha, 512U, "bridged_ipc/many_services_alpha", 6403U, 1U);
-        add_service(service_interface_beta, 640U, "bridged_ipc/many_services_beta", 6404U, 2U);
-        add_service(service_interface_gamma, 768U, "bridged_ipc/many_services_gamma", 6405U, 3U);
+        add_service(service_interface_alpha, server_metadata_alpha,
+                    "bridged_ipc/many_services_alpha", 6403U, 1U);
+        add_service(service_interface_beta, server_metadata_beta, "bridged_ipc/many_services_beta",
+                    6404U, 2U);
+        add_service(service_interface_gamma, server_metadata_gamma,
+                    "bridged_ipc/many_services_gamma", 6405U, 3U);
         return services;
     }
 };

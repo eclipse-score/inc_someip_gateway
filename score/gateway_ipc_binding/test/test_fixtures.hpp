@@ -66,7 +66,7 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                  role,
                  {{"event_a", mw_com::Mw_com_event_id{1U}, max_payload_size},
                   {"event_b", mw_com::Mw_com_event_id{2U}, max_payload_size}},
-                 mw_com_sample_slots}};
+                 mw_com_metadata.slot_count}};
     }
 
     std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(
@@ -94,12 +94,12 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
                                     mw_com::Add_bridged_services const& add_bridged_services) {
                 return add_bridged_services(mw_com_services(
                     server_provides ? mw_com::Role::provider : mw_com::Role::consumer,
-                    server_provides ? 0U : mw_com_payload_size));
+                    server_provides ? 0U : mw_com_metadata.slot_size));
             });
         client = mw_com::create_client(
             *runtime_client, "someipd/daemon",
             mw_com_services(server_provides ? mw_com::Role::consumer : mw_com::Role::provider,
-                            mw_com_payload_size));
+                            mw_com_metadata.slot_size));
         ASSERT_NE(server, nullptr);
         ASSERT_NE(client, nullptr);
         if (start) {
@@ -158,7 +158,7 @@ class Gateway_ipc_binding_bidirectional_test
                                                                          : *this->runtime_client;
     }
 
-    std::size_t get_server_payload_size() const { return this->mw_com_payload_size; }
+    Shared_memory_metadata const& get_server_metadata() const { return this->mw_com_metadata; }
 };
 
 }  // namespace score::gateway_ipc_binding
