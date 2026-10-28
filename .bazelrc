@@ -59,7 +59,7 @@ common:aarch64-qnx --@rules_python//python/config_settings:precompile=force_disa
 
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 
-# Force linux-sandbox for QEMU integration tests.
+# Force linux-sandbox to integration test execution only.
 # All integration tests have to have "integration_test" in their rule name,
 # otherwise they will be executed without sandboxing, which is not desired.
 # QEMU-based integration tests must run in linux-sandbox because they modify
@@ -110,8 +110,7 @@ common --features=external_include_paths
 common --@score_baselibs//score/json:base_library=nlohmann
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 
-# Require Linux sandboxing so IPC tests get fresh /dev/shm and /tmp, without a fallback to processwrapper-sandbox.
-test --strategy_regexp='^Testing //score/gateway_ipc_binding/.*=linux-sandbox'
+# unshare /dev/shm and /tmp, gateway_ipc_binding tests create files in there and concurrent test runs would influence each other
 test --sandbox_tmpfs_path=/dev/shm
 test --sandbox_tmpfs_path=/tmp
 
