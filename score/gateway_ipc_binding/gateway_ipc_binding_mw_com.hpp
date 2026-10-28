@@ -24,7 +24,6 @@
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
-#include "score/result/result.h"
 #include "score/socom/runtime.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 #include "score/span.hpp"
