@@ -1,26 +1,14 @@
 [
   {
-    "need": "comp_req__tc8_conformance__sd_reboot",
+    "need": "comp_req__tc8_conformance__sd_phases_timing",
     "links": {
       "CodeLinks": [],
       "TestLinks": [
         {
-          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_first_restart",
-          "file": "tests/tc8_conformance/test_sd_client.py",
-          "line": 105,
-          "need": "comp_req__tc8_conformance__sd_reboot",
-          "verify_type": "fully",
-          "result": "passed",
-          "result_text": "",
-          "repo_name": "local_repo",
-          "hash": "",
-          "url": ""
-        },
-        {
-          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
-          "file": "tests/tc8_conformance/test_sd_client.py",
-          "line": 172,
-          "need": "comp_req__tc8_conformance__sd_reboot",
+          "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
+          "file": "tests/tc8_conformance/test_sd_phases_timing.py",
+          "line": 107,
+          "need": "comp_req__tc8_conformance__sd_phases_timing",
           "verify_type": "fully",
           "result": "passed",
           "result_text": "",
@@ -378,8 +366,8 @@
           "line": 1533,
           "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
           "verify_type": "fully",
-          "result": "skipped",
-          "result_text": "OA ETS_121: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed with the current DUT stack: they are not received after the subscription.",
+          "result": "passed",
+          "result_text": "",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -480,15 +468,27 @@
     }
   },
   {
-    "need": "comp_req__tc8_conformance__sd_phases_timing",
+    "need": "comp_req__tc8_conformance__sd_reboot",
     "links": {
       "CodeLinks": [],
       "TestLinks": [
         {
-          "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
-          "file": "tests/tc8_conformance/test_sd_phases_timing.py",
-          "line": 107,
-          "need": "comp_req__tc8_conformance__sd_phases_timing",
+          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_first_restart",
+          "file": "tests/tc8_conformance/test_sd_client.py",
+          "line": 105,
+          "need": "comp_req__tc8_conformance__sd_reboot",
+          "verify_type": "fully",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
+          "file": "tests/tc8_conformance/test_sd_client.py",
+          "line": 172,
+          "need": "comp_req__tc8_conformance__sd_reboot",
           "verify_type": "fully",
           "result": "passed",
           "result_text": "",
