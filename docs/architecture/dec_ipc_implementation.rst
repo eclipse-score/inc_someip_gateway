@@ -37,6 +37,7 @@ Option 1: ``mw::com`` / LoLa with GenericSkeleton and GenericProxy as IPC implem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This option would use ``mw::com`` / LoLa as the IPC implementation for transporting the semantics of the SOME/IP stack abstraction to each process.
+Gateway specific RPC calls are done via a dedicated `mw::com` service.
 
 Pros:
 
@@ -45,15 +46,7 @@ Pros:
 
 Cons:
 
-* LoLa is optimized for 1:n communication, but the gateway needs 1:1 communication.
 * Event-driven use cases not so well supported.
-* Needs an additional control channel next to LoLa for getting event subscription state and FindService.
-
-  * Or add SOME/IP specific extensions to LoLa.
-
-* Needs config and config can't be just injected via API.
-
-  * The ``mw::com`` configuration needs to be present up front at both ``someipd`` and ``gatewayd`` processes.
 
 * Configuring ``mw::com`` could become complex.
 
@@ -62,7 +55,6 @@ Cons:
 
 * Overall complexity is high.
 
-  * For the SOME/IP Gateway features needed to be added, which are not needed for IPC.
   * The SOME/IP Gateway does not need the full ``mw::com`` feature set.
 
 Option 2: Use pure ``message_passing``
@@ -100,22 +92,17 @@ Cons:
 Evaluation
 ----------
 
-Option 1 would require extending ``mw::com`` and Lola before it can transport the intended SOME/IP gateway semantics cleanly.
-The benefit is that it is already safety qualified, but the complexity is the highest of all options.
-
+Option 1 would build on top of ``mw::com`` with code reuse and inheriting its safety qualification.
 
 Option 2 is singled out due to the lack of zero-copy support.
 
-At the time this decision was recorded, Option 3 was preferred because it supports zero-copy while
-keeping the implementation complexity manageable.
+Option 3 leads to writing lots of IPC handling code for both message passing and shared memory.
+It then must also be safety qualified, which adds additional effort and complexity.
 
 Decision
 --------
 
-The original implementation selected Option 3 and was based on ``message_passing`` and
-``shared_memory``. That implementation has since been superseded: ``gatewayd`` and ``someipd`` now
-use Option 1, implemented with ``mw::com`` generic proxies and skeletons. The obsolete direct
-``message_passing`` and shared-memory binding has been removed.
+Option 1 was selected: the IPC implementation is based on ``mw::com``.
 
 Consequences
 ------------
