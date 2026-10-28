@@ -67,6 +67,8 @@ cc_test(
         "event_transmission_benchmark_context_test.cpp",
     ],
     data = ["mw_com_config.json"],
+    # Isolate LoLa's abstract Unix sockets between parallel test processes.
+    tags = ["block-network"],
     deps = [
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "@googletest//:gtest",
