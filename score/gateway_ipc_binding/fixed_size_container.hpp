@@ -19,9 +19,8 @@
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
-#include <type_traits>
-
 #include <score/assert.hpp>
+#include <type_traits>
 
 namespace score::gateway_ipc_binding {
 

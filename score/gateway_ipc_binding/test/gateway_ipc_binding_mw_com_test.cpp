@@ -13,8 +13,8 @@
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <atomic>
 #include <chrono>
@@ -107,7 +107,8 @@ struct Server_connector_with_callbacks {
         socom::Disabled_server_connector::Callbacks callbacks{
             mock_method_call_credentials_cb.as_function(),
             mock_event_subscription_change_cb.as_function(),
-            mock_event_request_update_cb.as_function(), mock_method_payload_allocate_cb.as_function()};
+            mock_event_request_update_cb.as_function(),
+            mock_method_payload_allocate_cb.as_function()};
         auto result = runtime.make_server_connector(interface, instance, std::move(callbacks));
         EXPECT_TRUE(result);
         if (!result) {

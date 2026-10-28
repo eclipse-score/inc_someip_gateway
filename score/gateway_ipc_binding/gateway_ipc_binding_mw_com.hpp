@@ -165,9 +165,9 @@ std::unique_ptr<Gateway_ipc_binding_client> create_client(
 /// \return Nullptr if `someipd_service_specifier` is empty. Errors creating or offering the
 ///         SomeipdService skeleton (e.g., if `someipd_service_specifier` is missing from
 ///         mw_com_config.json) are reported by start().
-std::unique_ptr<Gateway_ipc_binding_server> create_server(
-    score::socom::Runtime& runtime, std::string someipd_service_specifier,
-    Gateway_config_handler handler) noexcept;
+std::unique_ptr<Gateway_ipc_binding_server> create_server(score::socom::Runtime& runtime,
+                                                          std::string someipd_service_specifier,
+                                                          Gateway_config_handler handler) noexcept;
 
 }  // namespace score::gateway_ipc_binding::mw_com
 

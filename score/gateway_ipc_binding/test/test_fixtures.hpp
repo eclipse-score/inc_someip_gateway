@@ -72,13 +72,12 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     std::unique_ptr<Gateway_ipc_binding_server> create_mw_com_server(
         socom::Runtime& runtime, std::string const& someipd_service_specifier,
         mw_com::Service_configs services) {
-        return mw_com::create_server(
-            runtime, someipd_service_specifier,
-            [services = std::move(services)](
-                score::cpp::span<std::byte const>,
-                mw_com::Add_bridged_services const& add_bridged_services) {
-                return add_bridged_services(services);
-            });
+        return mw_com::create_server(runtime, someipd_service_specifier,
+                                     [services = std::move(services)](
+                                         score::cpp::span<std::byte const>,
+                                         mw_com::Add_bridged_services const& add_bridged_services) {
+                                         return add_bridged_services(services);
+                                     });
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> create_mw_com_client(
@@ -113,8 +112,8 @@ class Gateway_ipc_binding_unconnected_integration_test : public ::testing::Test,
     void start_and_wait_for_client_connection() {
         auto start_result = server->start();
         ASSERT_TRUE(start_result);
-        EXPECT_TRUE(wait_on_connection_state(*client, Connection_state::Connected,
-                                             very_long_timeout));
+        EXPECT_TRUE(
+            wait_on_connection_state(*client, Connection_state::Connected, very_long_timeout));
     }
 };
 

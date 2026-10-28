@@ -46,7 +46,7 @@ std::string many_services_test_name(testing::TestParamInfo<Service_variant> cons
 
 class Gateway_ipc_binding_many_services_integration_test
     : public Gateway_ipc_binding_unconnected_integration_test {
-    protected:
+   protected:
     socom::Service_interface_identifier const service_interface_alpha{
         std::string{"bridged_com.test.service.alpha"}, {1, 0}};
     socom::Service_interface_identifier const service_interface_beta{
@@ -87,12 +87,12 @@ class Gateway_ipc_binding_many_services_integration_test
 };
 
 class Gateway_ipc_binding_many_services_integration_test_fixture
-      : public Gateway_ipc_binding_many_services_integration_test,
-        public testing::WithParamInterface<Service_variant> {
-    protected:
-      void SetUp() override {
-          client = create_mw_com_client(*runtime_client, "someipd/daemon_many_services",
-                                        make_mw_com_services(mw_com::Role::consumer));
+    : public Gateway_ipc_binding_many_services_integration_test,
+      public testing::WithParamInterface<Service_variant> {
+   protected:
+    void SetUp() override {
+        client = create_mw_com_client(*runtime_client, "someipd/daemon_many_services",
+                                      make_mw_com_services(mw_com::Role::consumer));
         server = create_mw_com_server(*runtime_server, "someipd/daemon_many_services",
                                       make_mw_com_services(mw_com::Role::provider));
 
@@ -105,14 +105,15 @@ class Gateway_ipc_binding_many_services_integration_test_fixture
     }
 };
 
-INSTANTIATE_TEST_SUITE_P(
-    , Gateway_ipc_binding_many_services_integration_test_fixture,
-    Values(Service_variant::alpha, Service_variant::beta, Service_variant::gamma,
-           Service_variant::alpha | Service_variant::beta,
-           Service_variant::alpha | Service_variant::gamma,
-           Service_variant::beta | Service_variant::gamma,
-           Service_variant::alpha | Service_variant::beta | Service_variant::gamma),
-    many_services_test_name);
+INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_many_services_integration_test_fixture,
+                         Values(Service_variant::alpha, Service_variant::beta,
+                                Service_variant::gamma,
+                                Service_variant::alpha | Service_variant::beta,
+                                Service_variant::alpha | Service_variant::gamma,
+                                Service_variant::beta | Service_variant::gamma,
+                                Service_variant::alpha | Service_variant::beta |
+                                    Service_variant::gamma),
+                         many_services_test_name);
 
 TEST_P(Gateway_ipc_binding_many_services_integration_test_fixture,
        clients_connect_to_selected_services) {
@@ -123,14 +124,14 @@ TEST_P(Gateway_ipc_binding_many_services_integration_test_fixture,
     auto connect_selected_service =
         [this](Client_connector_with_callbacks& observer, Service_variant const service,
                socom::Server_service_interface_definition const& config) {
-        if (!includes_service(GetParam(), service)) {
-            return;
-        }
-        observer.expect_client_connected(config);
-        observer.create_connector(*runtime_client, config, instance);
-        EXPECT_EQ(observer.client_connected_promise.get_future().wait_for(very_long_timeout),
-                  std::future_status::ready);
-    };
+            if (!includes_service(GetParam(), service)) {
+                return;
+            }
+            observer.expect_client_connected(config);
+            observer.create_connector(*runtime_client, config, instance);
+            EXPECT_EQ(observer.client_connected_promise.get_future().wait_for(very_long_timeout),
+                      std::future_status::ready);
+        };
 
     connect_selected_service(alpha_observer, Service_variant::alpha, server_config_alpha);
     connect_selected_service(beta_observer, Service_variant::beta, server_config_beta);
