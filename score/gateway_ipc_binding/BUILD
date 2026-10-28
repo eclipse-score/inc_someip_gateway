@@ -14,18 +14,18 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
 
+filegroup(
+    name = "headers",
+    srcs = glob(
+        include = ["*.hpp"],
+    ),
+)
+
 cc_library(
     name = "gateway_ipc_binding_mw_com",
-    srcs = glob(include = ["impl/mw_com/**"]) + ["impl/error.cpp"],
-    hdrs = [
-        "error.hpp",
-        "fixed_size_container.hpp",
-        "gateway_ipc_binding_client.hpp",
-        "gateway_ipc_binding_mw_com.hpp",
-        "gateway_ipc_binding_server.hpp",
-    ],
+    srcs = glob(include = ["impl/**"]),
+    hdrs = [":headers"],
     features = COMPILER_WARNING_FEATURES,
-    linkopts = ["-latomic"],
     visibility = ["//visibility:public"],
     deps = [
         "//score/socom",

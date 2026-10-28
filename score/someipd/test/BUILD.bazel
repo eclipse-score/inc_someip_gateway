@@ -27,7 +27,6 @@ py_test(
     ],
     tags = [
         "block-network",
-        "exclusive",
         "unit",
     ],
     target_compatible_with = ["@platforms//os:linux"],
