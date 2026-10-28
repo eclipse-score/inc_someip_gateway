@@ -75,7 +75,7 @@ header included. ``score::socom::Payload::data()`` is a read-only view of it; th
 .. _d3-no-slot-manager:
 
 D3: no custom shared-memory slot manager
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The former implementation gave every event of a service the same slot size and put all events of a
 service into one shared-memory segment. ``mw::com`` allocates per event, so the sizing is per event as well.
