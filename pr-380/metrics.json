@@ -98,17 +98,17 @@
         }
       }
     },
-    "comp__someipd": {
+    "comp__config": {
       "requirements": {
         "status": {
-          "valid": 13,
+          "valid": 0,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
-          "fully_covered": 9,
-          "partially_covered": 1,
-          "not_covered": 3
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
         }
       },
       "architecture": {
@@ -150,17 +150,17 @@
         }
       }
     },
-    "comp__gateway_ipc_binding": {
+    "comp__someipd": {
       "requirements": {
         "status": {
-          "valid": 0,
+          "valid": 13,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
+          "fully_covered": 9,
+          "partially_covered": 1,
+          "not_covered": 3
         }
       },
       "architecture": {
@@ -228,7 +228,7 @@
         }
       }
     },
-    "comp__config": {
+    "comp__gateway_ipc_binding": {
       "requirements": {
         "status": {
           "valid": 0,
