@@ -14,17 +14,18 @@
 @startuml
 hide empty description
 
-state Not_available
-state Available
-state Event_subscribed
+state "Service_state::not_available" as Not_available
+state "Service_state::available" as Available {
+    state "Event_state::unsubscribed" as unsubscribed
+    state "Event_state::subscribed" as subscribed
+
+    [*] --> unsubscribed
+    unsubscribed --> subscribed : Client_connector::subscribe_event()
+    subscribed --> unsubscribed : Client_connector::unsubscribe_event()
+}
 
 [*] --> Not_available
-Not_available --> Available: Client_connector::Callbacks::\non_service_state_change\n(Service_state::available)
-
-Available --> Not_available: Client_connector::Callbacks::\non_service_state_change\n(!Service_state::available)
-Available --> Event_subscribed: Client_connector::\nsubscribe_event()
-
-Event_subscribed --> Available: Client_connector::\nunsubscribe_event()
-Event_subscribed --> Not_available: Client_connector::Callbacks::\non_service_state_change\n(!Service_state::available)
+Not_available --> Available : Client_connector::Callbacks::\non_service_state_change\n(Service_state::available)
+Available --> Not_available : Client_connector::Callbacks::\non_service_state_change\n(Service_state::not_available)
 
 @enduml

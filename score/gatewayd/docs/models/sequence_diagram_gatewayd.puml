@@ -1,0 +1,110 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml sequence_diagram_gatewayd
+autonumber
+
+participant "Local Application\n(mw::com)" as app
+participant "main\n(gatewayd)" as main_orchestrator <<unit>>
+participant "LocalServiceInstance\n(gatewayd)" as local_service_instance <<unit>>
+participant "RemoteServiceInstance\n(gatewayd)" as remote_service_instance <<unit>>
+participant "score_com_serializer\n(C ABI)" as serializer <<component>>
+participant "socom::Runtime &\nConnectors" as socom <<component>>
+participant "gateway_ipc_binding\n(mw::com client)" as gateway_ipc_binding <<component>>
+participant "someipd\n(QM Daemon)" as someipd
+
+== 1. Startup & Configuration Registration ==
+
+main_orchestrator -> main_orchestrator : Load FlatBuffers config (mw_someip_config::GetRoot)
+main_orchestrator -> serializer : score_com_serializer_init(config_path)
+serializer --> main_orchestrator : score_com_serializer_result_ok
+main_orchestrator -> app : mw::com::runtime::InitializeRuntime(manifest)
+main_orchestrator -> socom : socom::create_runtime()
+socom --> main_orchestrator : socom_runtime
+
+main_orchestrator -> main_orchestrator : bridged_service_configs(*config, Daemon::gatewayd, event_slot_size)
+loop per bridged event
+    main_orchestrator -> serializer : score_com_serializer_get() & get_max_serialized_size()
+    serializer --> main_orchestrator : max_serialized_size (+ 16B SOME/IP header)
+end
+
+main_orchestrator -> gateway_ipc_binding : mw_com::create_client(*socom_runtime, "someipd/daemon",\nservice_configs, "gatewayd", config_bytes)
+gateway_ipc_binding -> someipd : SomeipdService::AddServiceConfiguration(config_bytes, consumer_event_sizes)
+someipd --> gateway_ipc_binding : accepted (true)
+gateway_ipc_binding --> main_orchestrator : binding_client
+
+loop until binding_client->is_connected()
+    main_orchestrator -> gateway_ipc_binding : is_connected()
+    gateway_ipc_binding --> main_orchestrator : true
+end
+
+loop per configured local_service_instances
+    main_orchestrator -> local_service_instance : CreateAsyncLocalServices(instance_cfg, type_cfg, *socom_runtime, instances)
+end
+
+loop per configured remote_service_instances
+    main_orchestrator -> remote_service_instance : CreateAsyncRemoteService(instance_cfg, type_cfg, *socom_runtime, instances)
+end
+
+== 2. Local Service Event Flow (Application -> gatewayd -> someipd) ==
+
+local_service_instance -> app : GenericProxy::StartFindService(instance_specifier)
+app --> local_service_instance : FindServiceCallback(handles)
+local_service_instance -> app : GenericProxy::Create(handle)
+local_service_instance -> socom : make_server_connector(server_config, instance, callbacks)
+socom --> local_service_instance : disabled_server_connector
+local_service_instance -> socom : Disabled_server_connector::enable(disabled_server_connector)
+socom --> gateway_ipc_binding : Offer bridged service (GenericSkeleton::OfferService to someipd)
+local_service_instance -> serializer : score_com_serializer_get(service_type, event_name)
+local_service_instance -> app : GenericProxyEvent::SetReceiveHandler() & Subscribe(kMaxSampleCount)
+
+app -> local_service_instance : ReceiveHandler notification
+local_service_instance -> app : GenericProxyEvent::GetNewSamples(process_sample_callback)
+app -> local_service_instance : process_sample_callback(SamplePtr<void> sample)
+local_service_instance -> socom : server_connector_->allocate_event_payload(socom_event_id)
+socom -> gateway_ipc_binding : GenericSkeletonEvent::Allocate() in SHM
+gateway_ipc_binding --> socom : Writable_payload (SHM slot after 8B prefix)
+socom --> local_service_instance : Writable_payload
+
+local_service_instance -> local_service_instance : Write 16-byte SOME/IP header\n(service_id, event_id, client_id, session_id, versions, message_type=0x02)
+local_service_instance -> serializer : score_com_serializer_serialize(serializer, payload.wdata() + 16, sample.get(), &written_length)
+serializer --> local_service_instance : score_com_serializer_result_ok
+local_service_instance -> local_service_instance : payload.shrink(16 + written_length)
+local_service_instance -> socom : server_connector_->update_event(socom_event_id, std::move(payload))
+socom -> gateway_ipc_binding : on_event_update(socom_event_id, payload)
+gateway_ipc_binding -> someipd : GenericSkeletonEvent::Send(sample)
+
+== 3. Remote Service Event Flow (someipd -> gatewayd -> Application) ==
+
+remote_service_instance -> serializer : score_com_serializer_get(), get_sizeof_type(), get_alignof_type()
+remote_service_instance -> app : GenericSkeleton::Create(instance_specifier, service_element_info)
+remote_service_instance -> app : ipc_skeleton.OfferService()
+remote_service_instance -> socom : make_client_connector(client_config, instance, callbacks)
+socom --> remote_service_instance : on_service_state_change(Service_state::available)
+
+loop per configured event
+    remote_service_instance -> socom : connector.subscribe_event(event_id, Event_mode::update)
+    socom -> gateway_ipc_binding : Subscribe GenericProxyEvent to someipd
+end
+
+someipd -> gateway_ipc_binding : Publish SOME/IP event sample (8B prefix + 16B SOME/IP header + payload)
+gateway_ipc_binding -> socom : server_connector_->update_event(event_id, payload)
+socom -> remote_service_instance : on_event_update(event_id, payload) -> forward_event()
+remote_service_instance -> remote_service_instance : Strip 16-byte SOME/IP header\nmessage = payload.data().subspan(kSomeipFullHeaderSize)
+remote_service_instance -> app : ipc_event.Allocate()
+app --> remote_service_instance : SampleAllocateePtr<void> sample
+remote_service_instance -> serializer : score_com_serializer_deserialize(serializer, message.data(), message.size(), sample.Get())
+serializer --> remote_service_instance : score_com_serializer_result_ok
+remote_service_instance -> app : ipc_event.Send(std::move(sample))
+
+@enduml

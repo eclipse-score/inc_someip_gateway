@@ -1,0 +1,60 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml component_diagram_gatewayd
+left to right direction
+skinparam componentStyle rectangle
+
+package "gatewayd (ASIL_B)" as gatewayd <<component>> {
+    component "Main Startup Orchestrator\n(main.cpp)" as main_orchestrator <<unit>>
+    component "LocalServiceInstance\n(local_service_instance)" as local_service_instance <<unit>>
+    component "RemoteServiceInstance\n(remote_service_instance)" as remote_service_instance <<unit>>
+}
+
+component "SOCom Runtime & Connectors\n(score/socom)" as socom <<component>>
+component "Gateway IPC Binding (mw::com)\n(score/gateway_ipc_binding)" as gateway_ipc_binding <<component>>
+component "Bridged Services Configuration\n(score/bridged_services)" as bridged_services <<component>>
+component "FlatBuffers Configuration\n(score/config)" as config <<component>>
+component "Serializer Plugin ABI\n(score/serializer)" as serializer <<component>>
+component "LoLa IPC Middleware\n(score::mw::com)" as mw_com <<component>>
+
+interface "LocalServiceInstance::CreateAsyncLocalServices / Create" as i_local_svc
+interface "RemoteServiceInstance::CreateAsyncRemoteService / Create" as i_remote_svc
+
+local_service_instance -u- i_local_svc
+remote_service_instance -u- i_remote_svc
+
+main_orchestrator --> i_local_svc : instantiates per local_service_instances
+main_orchestrator --> i_remote_svc : instantiates per remote_service_instances
+
+main_orchestrator --> config : reads mw_someip_config::Root
+main_orchestrator --> serializer : score_com_serializer_init / deinit &\nevent_slot_size (get_max_serialized_size)
+main_orchestrator --> bridged_services : bridged_service_configs(Daemon::gatewayd)
+main_orchestrator --> socom : socom::create_runtime()
+main_orchestrator --> gateway_ipc_binding : mw_com::create_client() &\nis_connected()
+main_orchestrator --> mw_com : runtime::InitializeRuntime()
+
+local_service_instance --> mw_com : GenericProxy::StartFindService &\nGenericProxyEvent::GetNewSamples
+local_service_instance --> serializer : score_com_serializer_get &\nscore_com_serializer_serialize
+local_service_instance --> socom : make_server_connector,\nallocate_event_payload, update_event
+local_service_instance --> config : reads ServiceType / ServiceInstance / Event
+
+remote_service_instance --> mw_com : GenericSkeleton::Create, OfferService &\nGenericSkeletonEvent::Allocate, Send
+remote_service_instance --> serializer : score_com_serializer_get, get_sizeof_type,\nget_alignof_type, score_com_serializer_deserialize
+remote_service_instance --> socom : make_client_connector,\nsubscribe_event, on_event_update
+remote_service_instance --> config : reads ServiceType / ServiceInstance / Event
+
+gateway_ipc_binding --> socom : bridges local SOCom connectors
+gateway_ipc_binding --> mw_com : SomeipdServiceProxy &\nbridged_ipc GenericSkeleton / GenericProxy
+
+@enduml

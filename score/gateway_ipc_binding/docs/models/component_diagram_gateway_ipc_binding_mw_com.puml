@@ -17,36 +17,39 @@ interface "Gateway_ipc_binding_server" as server_api
 interface "Gateway_ipc_binding_client" as client_api
 
 package "gateway_ipc_binding_mw_com" as binding <<component>> {
-  component "Server_adapter" as server
-  component "Client_adapter" as client
-  component "Someipd_service_provider" as sdsvc_provider
+  component "Server_adapter" as Server_adapter <<unit>>
+  component "Client_adapter" as Client_adapter <<unit>>
+  component "Someipd_service_provider" as Someipd_service_provider <<unit>>
   package "Service_binding" as service_binding {
-    component "Provider_service_binding" as provider
-    component "Consumer_service_binding" as consumer
+    component "Provider_service_binding" as Provider_service_binding <<unit>>
+    component "Consumer_service_binding" as Consumer_service_binding <<unit>>
   }
-  component "Someipd_service_consumer" as sdsvc_consumer
+  component "Someipd_service_consumer" as Someipd_service_consumer <<unit>>
+  component "sample_layout" as sample_layout <<unit>>
 }
 
-package "mw::com" as mwcom {
-  component "mw::com::GenericSkeleton" as skeleton
-  component "mw::com::GenericProxy" as proxy
+package "mw::com" as mwcom <<component>> {
+  component "mw::com::GenericSkeleton" as skeleton <<unit>>
+  component "mw::com::GenericProxy" as proxy <<unit>>
 }
 
-package "socom" as socom {
-  component "socom::Client_connector" as client_connector
-  component "socom::Enabled_server_connector" as server_connector
+package "socom" as socom <<component>> {
+  component "socom::Client_connector" as client_connector <<unit>>
+  component "socom::Enabled_server_connector" as server_connector <<unit>>
 }
 
-server_api -- server
-client_api -- client
-server --> sdsvc_provider
-server --> service_binding : one per Service_config
-client --> service_binding : one per Service_config
-client --> sdsvc_consumer
-sdsvc_provider --> mwcom : offers SomeipdService
-provider --> skeleton
-consumer --> proxy
-sdsvc_consumer --> mwcom : finds SomeipdService
-provider --> client_connector
-consumer --> server_connector
+server_api -- Server_adapter
+client_api -- Client_adapter
+Server_adapter --> Someipd_service_provider
+Server_adapter --> service_binding : one per Service_config
+Client_adapter --> service_binding : one per Service_config
+Client_adapter --> Someipd_service_consumer
+Someipd_service_provider --> mwcom : offers SomeipdService
+Provider_service_binding --> skeleton
+Provider_service_binding --> sample_layout
+Consumer_service_binding --> proxy
+Consumer_service_binding --> sample_layout
+Someipd_service_consumer --> mwcom : finds SomeipdService
+Provider_service_binding --> client_connector
+Consumer_service_binding --> server_connector
 @enduml

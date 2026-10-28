@@ -13,24 +13,31 @@
 
 @startuml
 left to right direction
-package SOCom {
-    Component Client_connector
-    Component Server_connector
-    Component Runtime
-    Component Service_interface_definition
+component "SOCom" as socom <<component>> {
+    component "Runtime" as runtime <<unit>>
+    component "Client_connector" as client_connector <<unit>>
+    component "Server_connector" as server_connector <<unit>>
+    component "Payload" as payload <<unit>>
+    component "Service_interface_definition" as service_interface_definition <<unit>>
 }
 
 () "Client_connector" as Client_connector_if
 () "Disabled_server_connector" as Disabled_server_connector_if
 () "Enabled_server_connector" as Enabled_server_connector_if
 () "Runtime" as Runtime_if
+() "Payload / Writable_payload" as Payload_if
 
-Client_connector_if -- Client_connector
-Disabled_server_connector_if -- Server_connector
-Enabled_server_connector_if -- Server_connector
-Runtime_if -- Runtime
+Client_connector_if -- client_connector
+Disabled_server_connector_if -- server_connector
+Enabled_server_connector_if -- server_connector
+Runtime_if -- runtime
+Payload_if -- payload
 
-Client_connector --> Service_interface_definition : depends
-Server_connector --> Service_interface_definition : depends
-Runtime --> Service_interface_definition : depends
+runtime --> client_connector : creates & connects
+runtime --> server_connector : creates & connects
+client_connector --> payload : uses
+server_connector --> payload : uses
+client_connector --> service_interface_definition : depends
+server_connector --> service_interface_definition : depends
+runtime --> service_interface_definition : depends
 @enduml
