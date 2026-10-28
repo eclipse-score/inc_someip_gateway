@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SAMPLE_LAYOUT_HPP
-#define SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SAMPLE_LAYOUT_HPP
+#ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_SAMPLE_LAYOUT_HPP
+#define SCORE_GATEWAY_IPC_BINDING_IMPL_SAMPLE_LAYOUT_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -70,4 +70,4 @@ void write_payload_length(std::byte* sample_base, std::size_t length) noexcept;
 
 }  // namespace score::gateway_ipc_binding::mw_com
 
-#endif  // SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SAMPLE_LAYOUT_HPP
+#endif  // SCORE_GATEWAY_IPC_BINDING_IMPL_SAMPLE_LAYOUT_HPP

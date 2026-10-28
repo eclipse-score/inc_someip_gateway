@@ -26,7 +26,7 @@
 #include <thread>
 #include <vector>
 
-#include "score/gateway_ipc_binding/impl/mw_com/someipd_service.hpp"
+#include "score/gateway_ipc_binding/impl/someipd_service.hpp"
 #include "score/mw/com/runtime.h"
 #include "score/socom/runtime.hpp"
 #include "util.hpp"
