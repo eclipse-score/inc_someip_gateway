@@ -43,9 +43,9 @@ diagrams, and module structure, see
    Fixture defaults (DUT IP, tester IP, port numbers) are defined in
    ``tc8_itf_conftest.py``.  To run all protocol conformance tests::
 
-      bazel test --config=tc8-itf //tests/tc8_conformance/...
+      bazel test --config=qemu-integration //tests/tc8_conformance/...
 
-   For QNX x86_64 use ``--config=tc8-itf-qnx``.
+   For QNX x86_64 use ``--config=x86_64-qnx``.
 
 .. toctree::
    :maxdepth: 2

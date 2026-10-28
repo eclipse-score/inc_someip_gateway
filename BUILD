@@ -75,37 +75,37 @@ test_suite(
 docs(
     bundles = [
         {
-            "bundle": "//score/config/docs:docs_bundle",
+            "bundle": "//score/config:docs_bundle",
             "mount_at": "config",
             "attach_to": "components",
         },
         {
-            "bundle": "//score/gateway_ipc_binding/docs:docs_bundle",
+            "bundle": "//score/gateway_ipc_binding:docs_bundle",
             "mount_at": "gateway_ipc_binding",
             "attach_to": "components",
         },
         {
-            "bundle": "//score/gatewayd/docs:docs_bundle",
+            "bundle": "//score/gatewayd:docs_bundle",
             "mount_at": "gatewayd",
             "attach_to": "components",
         },
         {
-            "bundle": "//score/serializer/docs:docs_bundle",
+            "bundle": "//score/serializer:docs_bundle",
             "mount_at": "serializer",
             "attach_to": "components",
         },
         {
-            "bundle": "//score/socom/docs:docs_bundle",
+            "bundle": "//score/socom:docs_bundle",
             "mount_at": "socom",
             "attach_to": "components",
         },
         {
-            "bundle": "//score/someip/docs:docs_bundle",
+            "bundle": "//score/someip:docs_bundle",
             "mount_at": "someip",
             "attach_to": "components",
         },
         {
-            "bundle": "//score/someipd/docs:docs_bundle",
+            "bundle": "//score/someipd:docs_bundle",
             "mount_at": "someipd",
             "attach_to": "components",
         },

@@ -18,6 +18,7 @@ This daemon contains the SOME/IP communication stack and is QM
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 exports_files(
@@ -126,4 +127,16 @@ native_binary(
     data = [
         "etc/mw_com_config.json",
     ],
+)
+
+# Keep the bundle at the component package boundary so coverage includes local
+# implementation dependencies while excluding code owned by other components.
+docs_bundle(
+    name = "docs_bundle",
+    code_targets = [
+        ":someipd",
+    ],
+    primary_need_id = "comp__someipd",
+    source_dir = "docs",
+    visibility = ["//visibility:public"],
 )

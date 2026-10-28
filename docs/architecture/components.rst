@@ -15,15 +15,10 @@
 Components
 ==========
 
-.. comp:: SOME/IP Gateway Daemon
-   :id: comp__gatewayd
-   :status: valid
-   :version: 1
-   :safety: ASIL_B
-   :security: NO
-   :belongs_to: feat__someip_gateway
-
-   Connects the :need:`comp__someipd` to the application via LoLa IPC (mw::com).
+- :need:`comp__gatewayd`
+- :need:`comp__serializer`
+- :need:`comp__null_serializer`
+- :need:`comp__someipd`
 
 
 ..
@@ -36,37 +31,3 @@ Components
 
       The interface between the :need:`comp__gatewayd` and the serializer component.
       The gateway daemon uses this interface to serialize and deserialize SOME/IP messages.
-
-
-.. comp:: SOME/IP Serializer
-   :id: comp__serializer
-   :status: valid
-   :version: 1
-   :safety: ASIL_B
-   :security: NO
-   :belongs_to: feat__someip_gateway
-
-   Serializer and deserializer for SOME/IP messages. Used by the :need:`comp__gatewayd`.
-   The serializer is built or configured especially for the application data types that it handles.
-
-
-.. comp:: Null Serializer
-   :id: comp__null_serializer
-   :status: valid
-   :version: 1
-   :safety: ASIL_B
-   :security: NO
-   :belongs_to: feat__someip_gateway
-
-   A serializer that does not actually serialize or deserialize data, but only handles messages that are already serialized by the application.
-
-
-.. comp:: SOME/IP Network Daemon
-   :id: comp__someipd
-   :status: valid
-   :version: 1
-   :safety: QM
-   :security: NO
-   :belongs_to: feat__someip_gateway
-
-   Handles the SOME/IP communication with the network.

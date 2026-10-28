@@ -15,7 +15,7 @@
 Single source of truth for SD parsing and multicast sockets; other helpers
 (``timing.py``, ``sd_sender.py``) import from here.
 
-Note: loopback multicast needs ``bazel test --config=tc8-itf`` (auto-configures
+Note: loopback multicast needs ``bazel test --config=qemu-integration`` (auto-configures
 a private network namespace), or set ``TC8_HOST_IP`` to a non-loopback
 interface address instead.
 """
