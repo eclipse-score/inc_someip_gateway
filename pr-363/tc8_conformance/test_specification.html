@@ -489,10 +489,10 @@ See <a class="reference internal" href="traceability.html"><span class="doc">TC8
 <p>The host address is <code class="docutils literal notranslate"><span class="pre">TC8_TESTER_IP</span></code>; the DUT address is <code class="docutils literal notranslate"><span class="pre">TC8_DUT_IP</span></code>.
 Both default values are defined in <code class="docutils literal notranslate"><span class="pre">tc8_itf_conftest.py</span></code>.  To run a
 test:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">tc8</span><span class="o">-</span><span class="n">itf</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="p">:</span><span class="n">test_tc8_</span><span class="o">&lt;</span><span class="n">name</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bazel</span> <span class="n">test</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">qemu</span><span class="o">-</span><span class="n">integration</span> <span class="o">//</span><span class="n">tests</span><span class="o">/</span><span class="n">tc8_conformance</span><span class="p">:</span><span class="n">test_tc8_</span><span class="o">&lt;</span><span class="n">name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>For QNX x86_64 use <code class="docutils literal notranslate"><span class="pre">--config=tc8-itf-qnx</span></code>.</p>
+<p>For QNX x86_64 use <code class="docutils literal notranslate"><span class="pre">--config=x86_64-qnx</span></code>.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
