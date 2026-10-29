@@ -31,17 +31,15 @@ The following model describes the state-behavior of an event subscription from a
 
    * - Name
      - Description
-   * - Not_available
+   * - Service_state::not_available
      - The client and server are not connected.
        No event subscription or transmission is possible.
-   * - Available
-     - The client and server are connected and the event is not subscribed.
-       No event update will be received in this state.
-   * - Event_subscribed
-     - The user is subscribed to the event.
-       Event updates will be received in this state.
-       However, the server has not acknowledged the subscription yet.
-       Thus clients do not know if the server will send event updates.
+   * - Event_state::unsubscribed
+     - The client and server are connected (``Service_state::available``) and the event is not subscribed.
+       No event update is received in this state.
+   * - Event_state::subscribed
+     - The client is subscribed to the event while ``Service_state::available`` holds.
+       The server connector is notified via ``on_event_subscription_change(Event_state::subscribed)`` on the first subscriber, and event updates published by the server are delivered immediately without a separate subscription-pending or acknowledgement state.
 
 .. list-table:: Triggers
    :header-rows: 1
@@ -49,13 +47,13 @@ The following model describes the state-behavior of an event subscription from a
    * - Name
      - Description
    * - Client_connector::subscribe_event()
-     - The user calls Client_connector::subscribe_event() in order to subscribe to an event.
+     - The user calls ``Client_connector::subscribe_event()`` to transition from ``Event_state::unsubscribed`` to ``Event_state::subscribed``.
    * - Client_connector::unsubscribe_event()
-     - The user calls Client_connector::unsubscribe_event() in order to unsubscribe from an event.
+     - The user calls ``Client_connector::unsubscribe_event()`` to transition from ``Event_state::subscribed`` to ``Event_state::unsubscribed``.
    * - Client_connector::Callbacks::on_service_state_change(Service_state::available)
-     - SOCom calls the user callback Client_connector::Callbacks::on_service_state_change(Service_state::available).
-   * - Client_connector::Callbacks::on_service_state_change(!Service_state::available)
-     - SOCom calls the user callback Client_connector::Callbacks::on_service_state_change() with a state different from Service_state::available.
+     - SOCom calls the user callback ``on_service_state_change(Service_state::available)``, entering ``Event_state::unsubscribed``.
+   * - Client_connector::Callbacks::on_service_state_change(Service_state::not_available)
+     - SOCom calls the user callback ``on_service_state_change(Service_state::not_available)``, dropping any active subscription.
 
 .. _service_state_machine:
 
@@ -89,6 +87,8 @@ The following model describes the state-behavior of a service instance as report
    * - Runtime::make_server_connector()
      - Construction of Disabled_server_connector by API function Runtime::make_server_connector().
    * - Disabled_server_connector::enable()
+     - Enabling of Disabled_server_connector by API function Disabled_server_connector::enable().
+   * - Enabled_server_connector::disable()
      - Disabling of Enabled_server_connector by API function Enabled_server_connector::disable().
    * - ~Disabled_server_connector()
      - Destruction of Disabled_server_connector().

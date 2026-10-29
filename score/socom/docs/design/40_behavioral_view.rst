@@ -43,37 +43,56 @@ The server connector API provides the following features:
 
 - event update request indication
 - event mode getter (event with/without initial update)
+- allocate event payload
 - update event
 - update requested event
-- acknowledge event subscription
+
+Event and Method Communication
+------------------------------
+
+.. comp_arc_dyn:: SOCom Event and Method Communication
+   :id: comp_arc_dyn__socom_design__event_flow
+   :version: 1
+   :security: NO
+   :safety: QM
+   :status: valid
+   :belongs_to: comp__socom
+
+   Dynamic interaction for SOCom method invocation, event subscription and publication, field notification, and zero-copy event transport across ``gateway_ipc_binding`` over LoLa shared memory.
+
+   .. uml:: models/interaction_diagram_event_communication.puml
+      :align: center
+      :caption: Interaction diagram: Event communication
+
+   .. uml:: models/zero_copy_event_update.puml
+      :align: center
+      :caption: Interaction diagram: Zero-copy event update across someipd and gatewayd
+
+   .. uml:: models/interaction_diagram_method_communication.puml
+      :align: center
+      :caption: Interaction diagram: Method communication
 
 Method Communication
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 Methods calls are routed 1:1 from client to server application.
 If a method reply is requested, the calling client is served with the related reply.
 Independent method calls share no state.
 
-.. uml:: models/interaction_diagram_method_communication.puml
-   :align: center
-   :caption: Interaction diagram: Method communication
-
 Event Communication
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The client subscribes to an event.
-On the subscription, SOCom informs the server using the request for events.
-If no client is subscribed to an event, the server will not send any event updates.
+On the subscription, SOCom informs the server using the event subscription change callback (``Event_state::subscribed``).
+If no client is subscribed to an event, the server does not send any event updates.
 
-After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
+For zero-copy event updates, the server allocates a ``Writable_payload`` via ``allocate_event_payload()`` (which delegates to the client's ``on_event_payload_allocate`` callback), writes the contiguous full SOME/IP message (header + payload) into ``Writable_payload::wdata()``, and publishes it via ``update_event()``.
+
+After unsubscription of the last subscriber, SOCom informs the server that the event is not subscribed anymore (``Event_state::unsubscribed``).
 SOCom keeps track of subscription states and related clients.
 
-.. uml:: models/interaction_diagram_event_communication.puml
-   :align: center
-   :caption: Interaction diagram: Event communication
-
 Field Notification Communication
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A field notification is implemented as an event with event update on subscription.
 
@@ -92,27 +111,40 @@ Consequently, update_event() satisfies the event update request implicitly.
    :align: center
    :caption: Interaction diagram: Field notification communication
 
+Service Discovery and Bridging
+------------------------------
+
+.. comp_arc_dyn:: SOCom Service Discovery and Bridging
+   :id: comp_arc_dyn__socom_design__discovery
+   :version: 1
+   :security: NO
+   :safety: QM
+   :status: valid
+   :belongs_to: comp__socom
+
+   Dynamic interaction for in-process service discovery and cross-process service bridge registration (``request_service`` and ``on_service_state_change``).
+
+   .. uml:: models/interaction_diagram_service_gateway_require_service.puml
+      :align: center
+      :caption: Interaction diagram: Service Gateway - require service
+
+   .. uml:: models/interaction_diagram_service_gateway_provide_service.puml
+      :align: center
+      :caption: Interaction diagram: Service Gateway - provide service
+
 Service Gateway - require service
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The creation of client connectors is forwarded to bridges as request_service() calls.
 Service bridges look up the required service instance within their domain.
 If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).
 
-.. uml:: models/interaction_diagram_service_gateway_require_service.puml
-   :align: center
-   :caption: Interaction diagram: Service Gateway - require service
-
 Service Gateway - provide service
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
 Service bridges provide this information within their domain.
 If any domain partner requests the service instance, the service bridge forwards all communication using this proxy client connector.
-
-.. uml:: models/interaction_diagram_service_gateway_provide_service.puml
-   :align: center
-   :caption: Interaction diagram: Service Gateway - provide service
 
 Deadlock detection
 ------------------

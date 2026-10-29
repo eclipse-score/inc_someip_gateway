@@ -17,12 +17,12 @@ Architectural Design Decision: Dynamic Registration for SOME/IP Gateway
 
 .. dec_rec:: Dynamic Registration for SOME/IP Gateway
    :id: dec_rec__component__someip_gw_registration
-   :status: proposed
+   :status: accepted
    :version: 1
    :decision:
-      Gateway processes will dynamically register their communication requirements (e.g., required services and events) with the central SOME/IP Communication Stack process. This will be achieved via a dedicated, message-based IPC interface.
+      Gateway processes dynamically register their communication requirements (FlatBuffers ``mw_someip_config`` service/event configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process (``someipd``) at runtime via the ``AddServiceConfiguration`` method on the dedicated typed ``SomeipdService`` ``mw::com`` IPC interface.
    :context:
-      The SOME/IP Gateway architecture separates the core communication stack from multiple gateway processes. This is necessary for safety separation (ASIL vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gateway "client" processes to inform the central "server" stack of their routing needs at runtime.
+      The SOME/IP Gateway architecture separates the core communication stack (``someipd``) from one or more gateway processes (``gatewayd``). This is necessary for safety separation (``ASIL_B`` vs. ``QM``) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the ``gatewayd`` client processes to inform the central ``someipd`` server process of their routing and service bridging needs at runtime.
 
 
 Alternatives Considered
@@ -105,19 +105,14 @@ Disadvantages
 Justification for the Decision
 ------------------------------
 
-The **Dynamic Registration via IPC** approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity.
+The **Dynamic Registration via ``SomeipdService::AddServiceConfiguration`` over ``mw::com``** approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:
 
-*  **Flexibility and Scalability:**
-   This is the primary advantage.
-   New gateway processes can be introduced, and existing ones can be updated and restarted independently without affecting the central SOME/IP stack or any other gateway.
-   This is essential for a dynamic, resilient system.
-*  **Robust State Management:**
-   The registration protocol provides explicit control over the system's state.
-   The central stack knows exactly which gateways are active and what their requirements are.
-   The IPC connection's liveness provides a reliable and immediate mechanism to detect client failures and clean up associated routes, preventing data loss to dead processes.
+*  **Flexibility and Independent Startup:**
+   ``someipd`` starts without any static service configuration of its own and offers ``SomeipdService`` (``/score/someip/SomeipdService``).
+   Each ``gatewayd`` discovers ``SomeipdService`` via ``StartFindService`` and invokes ``AddServiceConfiguration`` to pass its raw FlatBuffers ``mw_someip_config`` bytes (up to 64 KiB) and its consumer event sizes (``Bridged_event_sizes``).
+   If ``someipd`` restarts, ``gatewayd`` automatically re-discovers ``SomeipdService`` and re-registers its configuration; if ``gatewayd`` restarts with the identical configuration, ``someipd`` accepts the call idempotently without recreating existing service bindings.
+*  **Robust State Management and All-or-Nothing Registration:**
+   ``someipd`` validates the FlatBuffers configuration buffer and consumer event sizes, synthesizes the ``mw::com`` bridged service deployments via ``mw::com::runtime::AddConfiguration``, and sets up its IPC and SOME/IP network bindings atomically.
+   If any service fails validation or setup, ``someipd`` rolls back the bindings from that call and returns ``false``, leaving ``gatewayd``'s ``is_connected()`` false.
 *  **Clear Separation of Concerns:**
-   It enforces the client-server model cleanly.
-   The IPC protocol becomes a well-defined API contract between the components, allowing them to be developed, tested, and maintained independently.
-
-While this approach introduces the overhead of defining and managing an IPC protocol, this complexity is justified by the significant gains in flexibility and resilience when compared to the static alternatives.
-It is far less complex and risky than implementing a custom shared memory solution, and it is the only viable option that respects the fundamental networking constraints of the operating system.
+   ``SomeipdService`` provides a typed ``mw::com`` control contract between ``gatewayd`` and ``someipd`` while keeping ``someipd`` decoupled from static application-specific deployment files and serialization sizes.
