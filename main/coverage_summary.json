@@ -17,16 +17,16 @@
     },
     {
       "branches": {
-        "percent": 70,
-        "total": 956
+        "percent": 76,
+        "total": 372
       },
       "files": {
-        "measured": 29,
-        "total": 38
+        "measured": 13,
+        "total": 19
       },
       "lines": {
-        "percent": 82,
-        "total": 2899
+        "percent": 80,
+        "total": 1183
       },
       "primary_need_id": "comp__gateway_ipc_binding"
     },
@@ -71,7 +71,7 @@
       },
       "lines": {
         "percent": 93,
-        "total": 1148
+        "total": 1146
       },
       "primary_need_id": "comp__socom"
     },
