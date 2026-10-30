@@ -4,20 +4,20 @@
   "overall_metrics": {
     "total": 15,
     "with_code_link": 0,
-    "with_test_link": 10,
+    "with_test_link": 9,
     "fully_linked": 0,
     "with_code_link_pct": 0.0,
-    "with_test_link_pct": 66.66666666666666,
+    "with_test_link_pct": 60.0,
     "fully_linked_pct": 0.0
   },
   "metrics_by_type": {
     "comp_req": {
       "total": 13,
       "with_code_link": 0,
-      "with_test_link": 10,
+      "with_test_link": 9,
       "fully_linked": 0,
       "with_code_link_pct": 0.0,
-      "with_test_link_pct": 76.92307692307693,
+      "with_test_link_pct": 69.23076923076923,
       "fully_linked_pct": 0.0
     },
     "feat_req": {
@@ -40,13 +40,39 @@
     }
   },
   "tests": {
-    "total": 101,
-    "linked_to_requirements": 95,
-    "linked_to_requirements_pct": 94.05940594059405,
+    "total": 99,
+    "linked_to_requirements": 90,
+    "linked_to_requirements_pct": 90.9090909090909,
     "broken_references": []
   },
   "verification_metrics": {
-    "comp__config": {
+    "comp__someipd": {
+      "requirements": {
+        "status": {
+          "valid": 13,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 8,
+          "partially_covered": 1,
+          "not_covered": 4
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      }
+    },
+    "comp__socom": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -72,7 +98,7 @@
         }
       }
     },
-    "comp__null_serializer": {
+    "comp__config": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -124,33 +150,7 @@
         }
       }
     },
-    "comp__serializer": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
-    "comp__someip": {
+    "comp__null_serializer": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -202,17 +202,17 @@
         }
       }
     },
-    "comp__someipd": {
+    "comp__someip": {
       "requirements": {
         "status": {
-          "valid": 13,
+          "valid": 0,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
-          "fully_covered": 9,
-          "partially_covered": 1,
-          "not_covered": 3
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
         }
       },
       "architecture": {
@@ -228,7 +228,7 @@
         }
       }
     },
-    "comp__socom": {
+    "comp__serializer": {
       "requirements": {
         "status": {
           "valid": 0,

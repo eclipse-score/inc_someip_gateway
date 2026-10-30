@@ -1,19 +1,5 @@
 [
   {
-    "name": "TestSDSessionWrap__test_ets_152_session_id_one_after_wrap",
-    "file": "tests/tc8_conformance/test_sd_session_wrap.py",
-    "line": "71",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "requirements-based",
-    "DerivationTechnique": "requirements-analysis",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": "comp_req__tc8_conformance__sd_offer_format"
-  },
-  {
     "name": "TestSDMalformedArrays__test_ets_111_empty_entries_array",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
     "line": "105",
@@ -434,18 +420,18 @@
     "FullyVerifies": null
   },
   {
-    "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
-    "file": "tests/tc8_conformance/test_sd_phases_timing.py",
-    "line": "107",
+    "name": "tests/tc8_conformance/tc8_someipd_config_test",
+    "file": null,
+    "line": null,
     "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "requirements-based",
-    "DerivationTechnique": "requirements-analysis",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
     "result_text": "",
     "PartiallyVerifies": null,
-    "FullyVerifies": "comp_req__tc8_conformance__sd_phases_timing"
+    "FullyVerifies": null
   },
   {
     "name": "TestSDOfferFormat__test_tc8_sd_002_offer_entry_format",
@@ -910,46 +896,18 @@
     "FullyVerifies": "comp_req__tc8_conformance__sd_find_response"
   },
   {
-    "name": "TestSDFindResponse__test_ets_060_discover_port_and_ip",
-    "file": "tests/tc8_conformance/test_sd_find.py",
-    "line": "59",
+    "name": "tests/tc8_conformance/test_golden_vectors",
+    "file": null,
+    "line": null,
     "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "requirements-based",
-    "DerivationTechnique": "requirements-analysis",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__sd_find_response",
+    "PartiallyVerifies": null,
     "FullyVerifies": null
-  },
-  {
-    "name": "TestSDFindResponse__test_ets_118_ignore_options_in_findservice",
-    "file": "tests/tc8_conformance/test_sd_find.py",
-    "line": "87",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "requirements-based",
-    "DerivationTechnique": "requirements-analysis",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": "comp_req__tc8_conformance__sd_find_response"
-  },
-  {
-    "name": "TestSDFindResponse__test_ets_127_multicast_findservice",
-    "file": "tests/tc8_conformance/test_sd_find.py",
-    "line": "126",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "requirements-based",
-    "DerivationTechnique": "requirements-analysis",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": "comp_req__tc8_conformance__sd_find_response"
   },
   {
     "name": "tests/tc8_conformance/tc8_someipd_config_schema_valid",
@@ -1412,5 +1370,19 @@
     "result_text": "",
     "PartiallyVerifies": null,
     "FullyVerifies": "comp_req__tc8_conformance__sd_reboot"
+  },
+  {
+    "name": "tests/tc8_conformance/test_helper_regressions",
+    "file": null,
+    "line": null,
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
   }
 ]
