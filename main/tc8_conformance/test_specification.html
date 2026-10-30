@@ -1455,6 +1455,1444 @@ No NOTIFICATION messages received after TTL expiry window.</p>
 trigger method).</p>
 </section>
 </section>
+<section id="sd-message-format-tests">
+<h2>SD Message Format Tests<a class="headerlink" href="#sd-message-format-tests" title="Link to this heading">#</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_sd.json</span></code></p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_format</span></code></p>
+</dd>
+</dl>
+<section id="tc8-sdf-001-client-id">
+<h3>TC8-SDF-001: Client ID<a class="headerlink" href="#tc8-sdf-001-client-id" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_01</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFormat::test_format_01_client_id</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Client ID of SD messages sent by the DUT is 0x0000.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Client ID = <code class="docutils literal notranslate"><span class="pre">0x0000</span></code>.</p>
+</section>
+<section id="tc8-sdf-002-protocol-version">
+<h3>TC8-SDF-002: Protocol Version<a class="headerlink" href="#tc8-sdf-002-protocol-version" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_03</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFormat::test_format_03_protocol_version</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Protocol Version of SD messages sent by the DUT is 0x01.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Protocol Version = <code class="docutils literal notranslate"><span class="pre">0x01</span></code>.</p>
+</section>
+<section id="tc8-sdf-003-message-type">
+<h3>TC8-SDF-003: Message Type<a class="headerlink" href="#tc8-sdf-003-message-type" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_05</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFormat::test_format_05_message_type</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Message Type of SD messages sent by the DUT is 0x02.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Message Type = <code class="docutils literal notranslate"><span class="pre">0x02</span></code>.</p>
+</section>
+<section id="tc8-sdf-004-return-code">
+<h3>TC8-SDF-004: Return Code<a class="headerlink" href="#tc8-sdf-004-return-code" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_06</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFormat::test_format_06_return_code</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Return Code of SD messages sent by the DUT is 0x00.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Return Code = <code class="docutils literal notranslate"><span class="pre">0x00</span></code>.</p>
+</section>
+<section id="tc8-sdf-005-unicast-flag">
+<h3>TC8-SDF-005: Unicast Flag<a class="headerlink" href="#tc8-sdf-005-unicast-flag" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_08</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFormat::test_format_08_unicast_flag</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Unicast Flag of SD messages sent by the DUT is set.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Unicast Flag bit = 1.</p>
+</section>
+<section id="tc8-sdf-006-undefined-flag-bits">
+<h3>TC8-SDF-006: Undefined Flag Bits<a class="headerlink" href="#tc8-sdf-006-undefined-flag-bits" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_09</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFormat::test_format_09_undefined_flag_bits</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the undefined bits of the SD Flags field are 0.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+The six Flag bits other than the Reboot and Unicast bits are 0.</p>
+</section>
+<section id="tc8-sdf-007-reserved-bits">
+<h3>TC8-SDF-007: Reserved Bits<a class="headerlink" href="#tc8-sdf-007-reserved-bits" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_10</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFormat::test_format_10_reserved_bits</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Reserved field of SD messages sent by the DUT is 0.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Reserved = <code class="docutils literal notranslate"><span class="pre">0x000000</span></code>.</p>
+</section>
+<section id="tc8-sdf-008-type-1-entry-length">
+<h3>TC8-SDF-008: Type 1 Entry Length<a class="headerlink" href="#tc8-sdf-008-type-1-entry-length" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_11</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDOfferEntryFormat::test_format_11_type_1_entry_length</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Entry Type and the Entries Array length of OfferService messages.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Entry Type = <code class="docutils literal notranslate"><span class="pre">0x01</span></code> and Entries Array length = number of entries x 16.</p>
+</section>
+<section id="tc8-sdf-009-type-1-index-first-option-run">
+<h3>TC8-SDF-009: Type 1 Index First Option Run<a class="headerlink" href="#tc8-sdf-009-type-1-index-first-option-run" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_12</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDOfferEntryFormat::test_format_12_type_1_index_first_option_run</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Index First Option Run of OfferService entries.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Index First Option Run = 0.</p>
+</section>
+<section id="tc8-sdf-010-type-1-number-of-options-1">
+<h3>TC8-SDF-010: Type 1 Number of Options 1<a class="headerlink" href="#tc8-sdf-010-type-1-number-of-options-1" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_13</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDOfferEntryFormat::test_format_13_type_1_number_of_options_1</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the OfferService (Type 1) entry in the Service Discovery message correctly
+defines the number of options utilized in its first option run.</p>
+<p><strong>Stimulus:</strong>
+None, passive observation of DUT SD messages.</p>
+<p><strong>Expected Result:</strong>
+Number of Options 1 &gt;= 1.</p>
+</section>
+<section id="tc8-sdf-011-offer-ttl">
+<h3>TC8-SDF-011: Offer TTL<a class="headerlink" href="#tc8-sdf-011-offer-ttl" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_07</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDOfferEntryFormat::test_sd_message_07_offer_ttl</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the TTL of an OfferService entry equals the lifetime of the service instance.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> and take the OfferService.</p>
+<p><strong>Expected Result:</strong>
+TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>).</p>
+<p>Not verified: OA steps 6 to 9 (wait for the TTL timeout, send a Request, expect no
+Response). The DUT keeps offering the service cyclically.</p>
+</section>
+<section id="tc8-sdf-012-type-2-entry-type">
+<h3>TC8-SDF-012: Type 2 Entry Type<a class="headerlink" href="#tc8-sdf-012-type-2-entry-type" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_19</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_19_type_2_entry_type</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Entry Type of the SubscribeEventgroupAck.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Entry Type = <code class="docutils literal notranslate"><span class="pre">0x07</span></code>.</p>
+</section>
+<section id="tc8-sdf-013-type-2-entry-length">
+<h3>TC8-SDF-013: Type 2 Entry Length<a class="headerlink" href="#tc8-sdf-013-type-2-entry-length" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_20</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_20_type_2_entry_length</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Entries Array length of the SubscribeEventgroupAck.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Entries Array length = number of entries x 16.</p>
+</section>
+<section id="tc8-sdf-014-type-2-index-first-option-run">
+<h3>TC8-SDF-014: Type 2 Index First Option Run<a class="headerlink" href="#tc8-sdf-014-type-2-index-first-option-run" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_21</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_21_type_2_index_first_option_run</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Index First Option Run of the SubscribeEventgroupAck entry.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Index First Option Run = 0.</p>
+</section>
+<section id="tc8-sdf-015-type-2-service-id">
+<h3>TC8-SDF-015: Type 2 Service ID<a class="headerlink" href="#tc8-sdf-015-type-2-service-id" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_23</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_23_type_2_service_id</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Service ID of the SubscribeEventgroupAck entry.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Service ID = <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>.</p>
+</section>
+<section id="tc8-sdf-016-type-2-instance-id">
+<h3>TC8-SDF-016: Type 2 Instance ID<a class="headerlink" href="#tc8-sdf-016-type-2-instance-id" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_24</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_24_type_2_instance_id</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Instance ID of the SubscribeEventgroupAck entry.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Instance ID = <code class="docutils literal notranslate"><span class="pre">0x5678</span></code>.</p>
+</section>
+<section id="tc8-sdf-017-type-2-major-version">
+<h3>TC8-SDF-017: Type 2 Major Version<a class="headerlink" href="#tc8-sdf-017-type-2-major-version" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_25</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_25_type_2_major_version</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Major Version of the SubscribeEventgroupAck entry.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Major Version = <code class="docutils literal notranslate"><span class="pre">0x01</span></code>.</p>
+</section>
+<section id="tc8-sdf-018-type-2-ttl">
+<h3>TC8-SDF-018: Type 2 TTL<a class="headerlink" href="#tc8-sdf-018-type-2-ttl" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_26</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_26_type_2_ttl</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the TTL of the SubscribeEventgroupAck entry.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>).</p>
+</section>
+<section id="tc8-sdf-019-type-2-reserved">
+<h3>TC8-SDF-019: Type 2 Reserved<a class="headerlink" href="#tc8-sdf-019-type-2-reserved" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_27</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_27_type_2_reserved</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Reserved field of the SubscribeEventgroupAck entry.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Reserved = <code class="docutils literal notranslate"><span class="pre">0x0000</span></code>.</p>
+</section>
+<section id="tc8-sdf-020-type-2-eventgroup-id">
+<h3>TC8-SDF-020: Type 2 Eventgroup ID<a class="headerlink" href="#tc8-sdf-020-type-2-eventgroup-id" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_28</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeAckFormat::test_format_28_type_2_eventgroup_id</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify the Eventgroup ID of the SubscribeEventgroupAck entry.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code>, take the OfferService, send
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and
+capture the SubscribeEventgroupAck.</p>
+<p><strong>Expected Result:</strong>
+Eventgroup ID = <code class="docutils literal notranslate"><span class="pre">0x0002</span></code>.</p>
+</section>
+<section id="tc8-sdf-021-notification-interface-version">
+<h3>TC8-SDF-021: Notification Interface Version<a class="headerlink" href="#tc8-sdf-021-notification-interface-version" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.1, SOMEIPSRV_FORMAT_04</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestNotificationFormat::test_format_04_interface_version</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Interface Version of a notification sent by the DUT is 0x01.</p>
+<p><strong>Stimulus:</strong>
+Subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with TTL = 30 (configured <code class="docutils literal notranslate"><span class="pre">ttl</span></code>) and receive the
+notifications of service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> for 10 s.</p>
+<p><strong>Expected Result:</strong>
+Interface Version = <code class="docutils literal notranslate"><span class="pre">0x01</span></code> in every notification received.</p>
+</section>
+</section>
+<section id="sd-find-response-tests">
+<h2>SD Find Response Tests<a class="headerlink" href="#sd-find-response-tests" title="Link to this heading">#</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_sd.json</span></code></p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_find</span></code></p>
+</dd>
+</dl>
+<section id="tc8-sdr-001-discover-port-and-ip">
+<h3>TC8-SDR-001: Discover Port and IP<a class="headerlink" href="#tc8-sdr-001-discover-port-and-ip" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_060</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindResponse::test_ets_060_discover_port_and_ip</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a multicast FindService is answered with a unicast OfferService that states
+the IP addresses and ports needed to reach the service.</p>
+<p><strong>Stimulus:</strong>
+Send a multicast FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> and instance <code class="docutils literal notranslate"><span class="pre">0x5678</span></code>.</p>
+<p><strong>Expected Result:</strong>
+Unicast OfferService with an IPv4 Endpoint Option for UDP (<code class="docutils literal notranslate"><span class="pre">TC8_DUT_IP</span></code>, port 30509).</p>
+<p>Not verified: a TCP Endpoint Option (the DUT configuration has no reliable port).</p>
+</section>
+<section id="tc8-sdr-002-ignore-options-in-findservice">
+<h3>TC8-SDR-002: Ignore Options in FindService<a class="headerlink" href="#tc8-sdr-002-ignore-options-in-findservice" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_118</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindResponse::test_ets_118_ignore_options_in_findservice</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the DUT ignores the options of a FindService.</p>
+<p><strong>Stimulus:</strong>
+Send 10 FindService messages with an IPv4 Endpoint Option at 100 ms intervals.</p>
+<p><strong>Expected Result:</strong>
+At least one unicast OfferService.</p>
+</section>
+<section id="tc8-sdr-003-multicast-findservice">
+<h3>TC8-SDR-003: Multicast FindService<a class="headerlink" href="#tc8-sdr-003-multicast-findservice" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_127</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_find_response</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDFindResponse::test_ets_127_multicast_findservice</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a multicast FindService for a valid service and instance is answered with a
+unicast OfferService.</p>
+<p><strong>Stimulus:</strong>
+Send 10 multicast FindService messages at 100 ms intervals for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> and
+instance <code class="docutils literal notranslate"><span class="pre">0x5678</span></code>.</p>
+<p><strong>Expected Result:</strong>
+At least one unicast OfferService.</p>
+</section>
+</section>
+<section id="sd-tcp-tests">
+<h2>SD TCP Tests<a class="headerlink" href="#sd-tcp-tests" title="Link to this heading">#</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_service.json</span></code></p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_tcp</span></code></p>
+</dd>
+</dl>
+<section id="tc8-sdt-001-layer-4-protocol-of-tcp-endpoint-option">
+<h3>TC8-SDT-001: Layer 4 Protocol of TCP Endpoint Option<a class="headerlink" href="#tc8-sdt-001-layer-4-protocol-of-tcp-endpoint-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.5.2, SOMEIPSRV_OPTIONS_15</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_endpoint_option</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDTcpBinding::test_options_15_tcp_endpoint_l4_protocol</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that an OfferService of a TCP-only service carries exactly one IPv4
+Endpoint Option and that its Layer 4 protocol is TCP.</p>
+<p><strong>Stimulus:</strong>
+Send FindService for service <code class="docutils literal notranslate"><span class="pre">0x1234</span></code> and take the OfferService.</p>
+<p><strong>Expected Result:</strong>
+Exactly one IPv4 Endpoint Option, with Layer 4 protocol <code class="docutils literal notranslate"><span class="pre">0x06</span></code> (TCP).</p>
+<p>The module uses a TCP-only service configuration (reliable port, no unreliable port), so
+the OfferService carries a single Endpoint Option.</p>
+</section>
+<section id="tc8-sdt-002-subscribe-with-tcp-option-without-connection">
+<h3>TC8-SDT-002: Subscribe With TCP Option Without Connection<a class="headerlink" href="#tc8-sdt-002-subscribe-with-tcp-option-without-connection" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_096</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDTcpBinding::test_ets_096_subscribe_tcp_option_without_connection</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup for eventgroup 0x0002 with a TCP Endpoint Option is
+rejected when no TCP connection exists.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with a TCP Endpoint Option, without
+establishing the TCP connection.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+</section>
+<section id="sd-subscribe-option-tests">
+<h2>SD Subscribe Option Tests<a class="headerlink" href="#sd-subscribe-option-tests" title="Link to this heading">#</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_sd.json</span></code></p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_subscribe_options</span></code></p>
+</dd>
+</dl>
+<section id="tc8-sdo-001-no-port-in-endpoint-option">
+<h3>TC8-SDO-001: No Port in Endpoint Option<a class="headerlink" href="#tc8-sdo-001-no-port-in-endpoint-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_109</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_109_no_port_in_endpoint_option</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Endpoint Option has port 0 is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with port 0 in the Endpoint Option.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdo-002-no-ipv4-address-in-endpoint-option">
+<h3>TC8-SDO-002: No IPv4 Address in Endpoint Option<a class="headerlink" href="#tc8-sdo-002-no-ipv4-address-in-endpoint-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_110</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_110_no_ipv4_address_in_endpoint_option</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup without a valid IPv4 address in the Endpoint Option is
+rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with IP address 32.0.0.0 in the Endpoint Option.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdo-003-wrong-l4-protocol-in-endpoint-option">
+<h3>TC8-SDO-003: Wrong L4 Protocol in Endpoint Option<a class="headerlink" href="#tc8-sdo-003-wrong-l4-protocol-in-endpoint-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_119</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_119_wrong_l4proto</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose IPv4 Endpoint Option has an l4proto that is
+neither UDP nor TCP is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup referencing an IPv4 Endpoint Option with l4proto <code class="docutils literal notranslate"><span class="pre">0x00</span></code>.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>The OA Pass criteria say “at least one unicast OfferService”, which contradicts the OA
+procedure and synopsis. The test follows the procedure and synopsis. The OA gives no
+l4proto value, <code class="docutils literal notranslate"><span class="pre">0x00</span></code> is a neutral choice.</p>
+</section>
+<section id="tc8-sdo-004-non-existent-ipv4-address-in-endpoint-option">
+<h3>TC8-SDO-004: Non-existent IPv4 Address in Endpoint Option<a class="headerlink" href="#tc8-sdo-004-non-existent-ipv4-address-in-endpoint-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_154</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_154_unexisting_ipv4_address</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with a non-existent IPv4 address in the Endpoint Option
+is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with a non-existent IP address (169.254.200.200) in the Endpoint
+Option (the OA specification does not provide a specific address; this value is chosen as
+a neutral fallback).</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received.</p>
+</section>
+<section id="tc8-sdo-005-endpoint-option-with-dut-ip-address">
+<h3>TC8-SDO-005: Endpoint Option With DUT IP Address<a class="headerlink" href="#tc8-sdo-005-endpoint-option-with-dut-ip-address" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_162</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_162_unallowed_option_ip</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Endpoint Option carries the IP address of the DUT
+is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with the DUT IP address in the Endpoint Option.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdo-006-endpoint-option-with-111-111-111-111">
+<h3>TC8-SDO-006: Endpoint Option With 111.111.111.111<a class="headerlink" href="#tc8-sdo-006-endpoint-option-with-111-111-111-111" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_164</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_164_unallowed_option_ip_2</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Endpoint Option carries IP address
+111.111.111.111 is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with IP address 111.111.111.111 in the Endpoint Option.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdo-007-unicast-subscribeeventgroup-with-option-indexes">
+<h3>TC8-SDO-007: Unicast SubscribeEventgroup With Option Indexes<a class="headerlink" href="#tc8-sdo-007-unicast-subscribeeventgroup-with-option-indexes" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_172 (alias SOMEIP_ETS_173)</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_172_unicast_subscribe_option_indexes</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that unicast subscriptions with different option index and run settings are
+acknowledged.</p>
+<p><strong>Stimulus:</strong>
+Send a unicast SubscribeEventgroup with index1stOptions = 0, index2ndOptions = 1,
+numOfOptions1 = 1, numOfOptions2 = 1. Then send one with index1stOptions = 0,
+index2ndOptions = 0, numOfOptions1 = 2, numOfOptions2 = 0. The OA gives no option
+content: the test uses one UDP and one TCP IPv4 Endpoint Option, both with the tester IP
+address and the sender port.</p>
+<p><strong>Expected Result:</strong>
+A unicast SubscribeEventgroupAck for each.</p>
+<p>The PDF heading prints SOMEIP_ETS_172 and SOMEIP_ETS_173 for this test.</p>
+<p>Expected failure (strict xfail). OA expectation: a unicast SubscribeEventgroupAck for
+each option layout. Observed: no Ack received for either layout.</p>
+</section>
+<section id="tc8-sdo-008-unreferenced-option">
+<h3>TC8-SDO-008: Unreferenced Option<a class="headerlink" href="#tc8-sdo-008-unreferenced-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_175</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSubscribeEndpointOptions::test_ets_175_unreferenced_option</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that an unreferenced Configuration Option does not stop the DUT from acknowledging
+a subscription.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with all needed Endpoint Options and an additional unreferenced
+Configuration Option. The OA gives no option content: the test appends the bytes
+<code class="docutils literal notranslate"><span class="pre">00</span> <span class="pre">02</span> <span class="pre">01</span> <span class="pre">00</span> <span class="pre">00</span></code> (empty string) after the Endpoint Option, and the entry does not
+reference them.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupAck.</p>
+</section>
+</section>
+<section id="sd-malformed-message-tests">
+<h2>SD Malformed Message Tests<a class="headerlink" href="#sd-malformed-message-tests" title="Link to this heading">#</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_sd.json</span></code></p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_malformed</span></code></p>
+</dd>
+</dl>
+<p>Base message of all entries: one SubscribeEventgroup entry that references one UDP IPv4
+Endpoint Option (tester IP address, sender port). The OA gives no option content.</p>
+<section id="tc8-sdx-001-empty-entries-array">
+<h3>TC8-SDX-001: Empty Entries Array<a class="headerlink" href="#tc8-sdx-001-empty-entries-array" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_111</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_111_empty_entries_array</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with an empty Entries Array is ignored.</p>
+<p><strong>Stimulus:</strong>
+Send a SubscribeEventgroup entry with the Entries Array length field set to 0.</p>
+<p><strong>Expected Result:</strong>
+No SD entry of any type within 5 s.</p>
+<p>The OA synopsis says a total length of zero “should not be interpreted”. The test sends a
+real entry with the length field set to 0.</p>
+</section>
+<section id="tc8-sdx-002-empty-option">
+<h3>TC8-SDX-002: Empty Option<a class="headerlink" href="#tc8-sdx-002-empty-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_112</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_112_empty_option</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with IPv4 Option length 0 is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with the length field of the IPv4
+Endpoint Option set to 0.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>ETS_112 and ETS_113 share the same synopsis text in the OA.</p>
+</section>
+<section id="tc8-sdx-003-empty-options-array">
+<h3>TC8-SDX-003: Empty Options Array<a class="headerlink" href="#tc8-sdx-003-empty-options-array" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_113</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_113_empty_options_array</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with Options Array length 0 is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with Options Array length 0 and an
+entry that references no option.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>The OA synopsis says “IPv4Option length = 0”, the OA procedure says “options array length
+= 0”. The test follows the procedure. The OA does not say whether the entry references
+options.</p>
+</section>
+<section id="tc8-sdx-004-entries-length-wrong-two-entries">
+<h3>TC8-SDX-004: Entries Length Wrong, Two Entries<a class="headerlink" href="#tc8-sdx-004-entries-length-wrong-two-entries" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_114</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_114_entries_length_wrong_combined</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with two correct entries but a shortened Entries Array
+length is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send two identical SubscribeEventgroup entries with the Entries Array length set to 16
+(one entry).</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdx-005-more-option-references-than-options">
+<h3>TC8-SDX-005: More Option References Than Options<a class="headerlink" href="#tc8-sdx-005-more-option-references-than-options" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_115</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_115_entry_references_more_options_than_exist</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup that references more options than exist is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with Number of Options 1 = 3 and one existing option. The OA
+gives no count.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdx-006-unknown-option-type-0x77">
+<h3>TC8-SDX-006: Unknown Option Type 0x77<a class="headerlink" href="#tc8-sdx-006-unknown-option-type-0x77" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_116</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_116_entry_references_non_existing_option_type</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup that references an unknown option type (0x77) is
+rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup referencing an option of type <code class="docutils literal notranslate"><span class="pre">0x77</span></code> with length field 5, one
+reserved byte and four zero bytes.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdx-007-two-options-of-the-same-kind">
+<h3>TC8-SDX-007: Two Options of the Same Kind<a class="headerlink" href="#tc8-sdx-007-two-options-of-the-same-kind" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_117</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_117_entry_references_options_of_same_kind</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with two options of the same type is rejected or
+ignored.</p>
+<p><strong>Stimulus:</strong>
+Send one SubscribeEventgroup entry with Number of Options 1 = 2 and two identical IPv4
+Endpoint Options (tester IP address, sender port).</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).</p>
+</section>
+<section id="tc8-sdx-008-entries-array-longer-than-message">
+<h3>TC8-SDX-008: Entries Array Longer Than Message<a class="headerlink" href="#tc8-sdx-008-entries-array-longer-than-message" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_123</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_123_length_of_entry_array_longer_than_message_allows</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Entries Array length exceeds the total length is
+rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with the Entries Array length set to the datagram length plus 1
+(the OA gives no value).</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>The OA synopsis says the message is “unrecognizable” or “too damaged to be answered with
+an Ack”, the OA procedure and Pass criteria require a NAck. The test follows the
+procedure.</p>
+<p>Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.</p>
+</section>
+<section id="tc8-sdx-009-entries-array-too-long">
+<h3>TC8-SDX-009: Entries Array Too Long<a class="headerlink" href="#tc8-sdx-009-entries-array-too-long" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_124</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_124_length_of_entry_array_too_long</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Entries Array length exceeds the total length by
+at least 20 bytes is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with the Entries Array length set to the datagram length plus
+20.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>The OA synopsis says the Entries Array length “does not exceed” the Message total length,
+the OA procedure says it exceeds it by at least 20 bytes. The test follows the
+procedure.</p>
+<p>Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.</p>
+</section>
+<section id="tc8-sdx-010-entries-array-too-short">
+<h3>TC8-SDX-010: Entries Array Too Short<a class="headerlink" href="#tc8-sdx-010-entries-array-too-short" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_125</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedArrays::test_ets_125_length_of_entry_array_too_short</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Entries Array length is less than the sum of the
+lengths of its entries is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send one SubscribeEventgroup entry (16 bytes) with the Entries Array length set to 15.
+The OA gives no value.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.</p>
+</section>
+<section id="tc8-sdx-011-option-ends-past-options-array-variant-a">
+<h3>TC8-SDX-011: Option Ends Past Options Array, Variant A<a class="headerlink" href="#tc8-sdx-011-option-ends-past-options-array-variant-a" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_134</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_134_option_length_ends_past_options_array_var_a</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose option length surpasses the Options Array length
+is rejected or ignored.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with the SOME/IP length and the Options Array length both cut
+by 4 bytes, option length fields unchanged, one option. The OA cuts both by 12 bytes
+(60 to 48 and 24 to 12).</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).</p>
+<p>The OA synopsis implies two options of 12 bytes, the OA procedure only says “option
+length greater than the options array length”. The test follows the synopsis shape with
+one option.</p>
+</section>
+<section id="tc8-sdx-012-option-ends-past-options-array-variant-b">
+<h3>TC8-SDX-012: Option Ends Past Options Array, Variant B<a class="headerlink" href="#tc8-sdx-012-option-ends-past-options-array-variant-b" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_135</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_135_option_length_ends_past_options_array_var_b</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose option length surpasses the Options Array length
+is rejected or ignored.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with Options Array length 8 and one option of 12 bytes. The OA
+gives no value.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).</p>
+<p>The OA synopsis ends with a NAck only, the OA procedure and Pass criteria allow a NAck or
+no reaction. The test follows the procedure.</p>
+</section>
+<section id="tc8-sdx-013-udp-option-length-4">
+<h3>TC8-SDX-013: UDP Option Length 4<a class="headerlink" href="#tc8-sdx-013-udp-option-length-4" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_136</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_136_option_length_shorter_gt_0_as_specified_for_type</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with a UDP option length shorter than specified for the
+type is rejected or ignored.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with the length field of the UDP IPv4 Endpoint Option set to 4
+instead of 9.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).</p>
+</section>
+<section id="tc8-sdx-014-shorter-option-with-unaligned-next-option">
+<h3>TC8-SDX-014: Shorter Option With Unaligned Next Option<a class="headerlink" href="#tc8-sdx-014-shorter-option-with-unaligned-next-option" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_137</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_137_option_shorter_with_unaligned_next_option</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup with wrong sized options that keep the total Options
+Array length is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send one SubscribeEventgroup entry with Number of Options 1 = 2 and these options, in
+this order: a TCP IPv4 Endpoint Option with length field 14 followed by 5 dummy bytes,
+then a UDP IPv4 Endpoint Option with length field 4 followed by 7 bytes. The Options
+Array length is 24 and the SOME/IP length is consistent with the datagram.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>Known limitation: A NAck is also returned for a valid Subscribe that references two options, so this
+check cannot attribute the NAck to the injected fault alone.</p>
+</section>
+<section id="tc8-sdx-015-options-array-longer-than-message">
+<h3>TC8-SDX-015: Options Array Longer Than Message<a class="headerlink" href="#tc8-sdx-015-options-array-longer-than-message" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_138</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_138_options_array_longer_than_message_allows</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Options Array length is longer than the message
+is acknowledged or ignored.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with Options Array length 0x28 and one option of 12 bytes.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupAck or no reaction (no NAck).</p>
+<p>The OA synopsis says “0x28 instead of 0x18”, which assumes a 24 byte array with two
+options. The test keeps 0x28 with one option.</p>
+</section>
+<section id="tc8-sdx-016-options-array-too-short">
+<h3>TC8-SDX-016: Options Array Too Short<a class="headerlink" href="#tc8-sdx-016-options-array-too-short" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_139</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_139_options_array_too_short</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose Options Array length is shorter than required is
+rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with Options Array length 2 and one option of 12 bytes.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+</section>
+<section id="tc8-sdx-017-some-ip-length-shorter-than-actual">
+<h3>TC8-SDX-017: SOME/IP Length Shorter Than Actual<a class="headerlink" href="#tc8-sdx-017-some-ip-length-shorter-than-actual" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_153</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_153_someip_length_shorter_as_expected</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose SOME/IP length is less than the actual length is
+rejected or ignored.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with the SOME/IP length set to the actual length minus 1.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck or no reaction (no Ack with TTL above 0).</p>
+</section>
+<section id="tc8-sdx-018-unknown-option-type">
+<h3>TC8-SDX-018: Unknown Option Type<a class="headerlink" href="#tc8-sdx-018-unknown-option-type" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_174</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_174_unknown_option_type</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup that references an unknown option type is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send one SubscribeEventgroup entry with Number of Options 1 = 2. Option 0 has the
+unknown type <code class="docutils literal notranslate"><span class="pre">0x77</span></code> (length field 9, zero content), option 1 is a UDP IPv4 Endpoint
+Option. The OA layout uses a TCP option instead of the unknown option.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>Known limitation: A NAck is also returned for a valid Subscribe that references two options, so this
+check cannot attribute the NAck to the injected fault alone.</p>
+</section>
+<section id="tc8-sdx-019-unused-data-after-options-array">
+<h3>TC8-SDX-019: Unused Data After Options Array<a class="headerlink" href="#tc8-sdx-019-unused-data-after-options-array" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_176</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_176_unused_data_after_options_array</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that unused payload data after the Options Array does not stop the DUT from
+acknowledging a unicast subscription.</p>
+<p><strong>Stimulus:</strong>
+Send a unicast SubscribeEventgroup with the unused data <code class="docutils literal notranslate"><span class="pre">0x30303a3031</span></code> after the
+Options Array, counted in the SOME/IP length. Then send one with the same data, not
+counted in the SOME/IP length.</p>
+<p><strong>Expected Result:</strong>
+A SubscribeEventgroupAck for each.</p>
+</section>
+<section id="tc8-sdx-020-unused-data-after-options-array-wrong-length">
+<h3>TC8-SDX-020: Unused Data After Options Array, Wrong Length<a class="headerlink" href="#tc8-sdx-020-unused-data-after-options-array-wrong-length" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_177</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_177_unused_data_after_options_array_wrong_length</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that unused payload data that is not included in the SOME/IP length does not stop
+the DUT from acknowledging a unicast subscription.</p>
+<p><strong>Stimulus:</strong>
+Send a unicast SubscribeEventgroup with the unused data <code class="docutils literal notranslate"><span class="pre">0x30303a3031</span></code> at the end, not
+included in the SOME/IP length.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupAck.</p>
+</section>
+<section id="tc8-sdx-021-wrong-some-ip-message-id">
+<h3>TC8-SDX-021: Wrong SOME/IP Message ID<a class="headerlink" href="#tc8-sdx-021-wrong-some-ip-message-id" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_178</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDMalformedOptionsAndHeader::test_ets_178_subscribe_using_wrong_someip_messageid</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that a SubscribeEventgroup whose SOME/IP header has a wrong Message ID for Service
+Discovery is rejected.</p>
+<p><strong>Stimulus:</strong>
+Send SubscribeEventgroup with Method ID <code class="docutils literal notranslate"><span class="pre">0x8101</span></code> instead of <code class="docutils literal notranslate"><span class="pre">0x8100</span></code> in the SOME/IP
+header (the OA gives no value).</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupNAck.</p>
+<p>Expected failure (strict xfail). OA expectation: SubscribeEventgroupNAck. Observed: no
+NAck received within 5 s.</p>
+</section>
+</section>
+<section id="sd-initial-field-and-reboot-detection-tests">
+<h2>SD Initial Field and Reboot Detection Tests<a class="headerlink" href="#sd-initial-field-and-reboot-detection-tests" title="Link to this heading">#</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_sd.json</span></code></p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_initial_fields</span></code></p>
+</dd>
+</dl>
+<section id="tc8-sdi-001-initial-fields-eventgroup-0x0002">
+<h3>TC8-SDI-001: Initial Fields, Eventgroup 0x0002<a class="headerlink" href="#tc8-sdi-001-initial-fields-eventgroup-0x0002" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_086</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestEts086::test_ets_086_events_and_fields_all_2</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the DUT acknowledges a subscription to eventgroup 0x0002 and sends all initial
+fields.</p>
+<p><strong>Stimulus:</strong>
+Wait 6 s after the DUT is ready, so that the DUT application has published its field
+values. Then subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> and receive events for 4 s after the Ack.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupAck, then the initial fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> (Interface Version), <code class="docutils literal notranslate"><span class="pre">0x8006</span></code>
+(TestfieldUINT8) and <code class="docutils literal notranslate"><span class="pre">0x8007</span></code> (TestfieldUINT8Array) to the tester endpoint.</p>
+<p>Not verified: field <code class="docutils literal notranslate"><span class="pre">0x8008</span></code> (TestFieldUINT8Reliable), the DUT configuration has no
+reliable port.</p>
+<p>Expected failure (strict xfail). OA expectation: the initial fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to
+<code class="docutils literal notranslate"><span class="pre">0x8007</span></code> after the Ack. Observed: the Ack is received, the initial fields are not.</p>
+</section>
+<section id="tc8-sdi-002-initial-fields-eventgroup-0x0005">
+<h3>TC8-SDI-002: Initial Fields, Eventgroup 0x0005<a class="headerlink" href="#tc8-sdi-002-initial-fields-eventgroup-0x0005" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_087</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_sub_lifecycle</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestEts087::test_ets_087_events_and_fields_unreliable_5</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the DUT acknowledges a subscription to eventgroup 0x0005 and sends all initial
+fields.</p>
+<p><strong>Stimulus:</strong>
+Wait 6 s after the DUT is ready, so that the DUT application has published its field
+values. Then subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x0005</span></code> and receive events for 4 s after the Ack.</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupAck, then the initial fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> (Interface Version), <code class="docutils literal notranslate"><span class="pre">0x8006</span></code>
+(TestfieldUINT8) and <code class="docutils literal notranslate"><span class="pre">0x8007</span></code> (TestfieldUINT8Array) to the tester endpoint.</p>
+<p>Expected failure (strict xfail). OA expectation: the initial fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to
+<code class="docutils literal notranslate"><span class="pre">0x8007</span></code> after the Ack. Observed: the Ack is received, the initial fields are not.</p>
+</section>
+<section id="tc8-sdi-003-reboot-detection-multicast-and-unicast">
+<h3>TC8-SDI-003: Reboot Detection, Multicast and Unicast<a class="headerlink" href="#tc8-sdi-003-reboot-detection-multicast-and-unicast" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_093</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_reboot</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestEts093::test_ets_093_reboot_detection_multicast_and_unicast</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the DUT detects a client reboot (lower Session ID) separately for multicast
+and unicast messages.</p>
+<p><strong>Stimulus:</strong>
+All SD messages set the Reboot flag. Each step waits 2 s for the initial event.
+A: multicast FindService (Session ID 4, 5, 1), each followed by a unicast
+SubscribeEventgroup for eventgroup <code class="docutils literal notranslate"><span class="pre">0x0005</span></code> with the same Session ID.
+B: after a 4 s wait, so that the subscription of part A expires, unicast
+SubscribeEventgroup with Session ID 4, 5, 1.
+C: multicast FindService with Session ID 100, 101, 102, each followed by a unicast
+SubscribeEventgroup with Session ID 10, 11, 12. The OA gives no wait time before B and no
+Session IDs for C, these values are neutral choices.</p>
+<p><strong>Expected Result:</strong>
+A, B: SubscribeEventgroupAck each time. Initial event of field <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> after the first
+subscription, not after the second, again after the third (Session ID 1). C: no
+initial event, no reboot detected.</p>
+<p>Expected failure (strict xfail). OA expectation: the initial event <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> again
+after the subscription with Session ID 1 in A and B. Observed: <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> is received only
+after the first subscription of part A, not after Session ID 1 in A, nor after Session IDs
+4 and 1 in B. Part C shows no initial event.</p>
+</section>
+<section id="tc8-sdi-004-reboot-detection-server-side">
+<h3>TC8-SDI-004: Reboot Detection, Server Side<a class="headerlink" href="#tc8-sdi-004-reboot-detection-server-side" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_094</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_reboot</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestEts094::test_ets_094_reboot_detection_server_side</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the DUT detects a reboot of the tester and stops sending events.</p>
+<p><strong>Stimulus:</strong>
+All SD messages set the Reboot flag. Subscribe to eventgroup <code class="docutils literal notranslate"><span class="pre">0x0002</span></code> with Session ID 1
+and TTL <code class="docutils literal notranslate"><span class="pre">0xFFFFFF</span></code> (a short TTL would end the events by itself). Send FindService with
+Session ID 5, then again with Session ID 5 (reboot simulation).</p>
+<p><strong>Expected Result:</strong>
+SubscribeEventgroupAck, events continue after the first FindService and stop after the
+second.</p>
+<p>Not verified: the TriggerEventUint8 call (the DUT has no trigger method). The cyclic event
+<code class="docutils literal notranslate"><span class="pre">0x8001</span></code> is observed instead.</p>
+</section>
+</section>
+<section id="sd-session-id-wrap-test">
+<h2>SD Session ID Wrap Test<a class="headerlink" href="#sd-session-id-wrap-test" title="Link to this heading">#</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">DUT Config<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tests/tc8_conformance/config/tc8_someipd_sd.json</span></code></p>
+</dd>
+<dt class="field-even">Test Module<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_sd_session_wrap</span></code></p>
+</dd>
+</dl>
+<section id="tc8-sdw-001-session-id-is-one-after-wrapping">
+<h3>TC8-SDW-001: Session ID Is One After Wrapping<a class="headerlink" href="#tc8-sdw-001-session-id-is-one-after-wrapping" title="Link to this heading">#</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">OA Reference<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Section 6.1.6, SOMEIP_ETS_152</p>
+</dd>
+<dt class="field-even">Requirement<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">comp_req__tc8_conformance__sd_offer_format</span></code></p>
+</dd>
+<dt class="field-odd">Test Function<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">TestSDSessionWrap::test_ets_152_session_id_one_after_wrap</span></code></p>
+</dd>
+</dl>
+<p><strong>Purpose:</strong>
+Verify that the Session ID of the OfferService responses restarts at 0x0001 after the
+wrap around.</p>
+<p><strong>Stimulus:</strong>
+Send unicast FindService messages in bursts of 50 until the Session ID of the
+OfferService responses for instance <code class="docutils literal notranslate"><span class="pre">0x5678</span></code> wraps. The OA gives no message count.</p>
+<p><strong>Expected Result:</strong>
+The first Session ID after <code class="docutils literal notranslate"><span class="pre">0xFFFF</span></code> is <code class="docutils literal notranslate"><span class="pre">0x0001</span></code>.</p>
+<p>The OA Pass criteria also list a SubscribeEventgroupAck, which no step sends. It is not
+checked.</p>
+</section>
+</section>
 </section>
 
 
@@ -1547,6 +2985,87 @@ trigger method).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-015-restart-reboot-flag-and-session-id-after-first-restart">TC8-SDLC-015: Restart: Reboot Flag and Session ID After First Restart</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-016-restart-reboot-flag-and-session-id-after-second-restart">TC8-SDLC-016: Restart: Reboot Flag and Session ID After Second Restart</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdlc-019-subscribe-ttl-expiry-stops-events">TC8-SDLC-019: Subscribe TTL Expiry Stops Events</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-message-format-tests">SD Message Format Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-001-client-id">TC8-SDF-001: Client ID</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-002-protocol-version">TC8-SDF-002: Protocol Version</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-003-message-type">TC8-SDF-003: Message Type</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-004-return-code">TC8-SDF-004: Return Code</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-005-unicast-flag">TC8-SDF-005: Unicast Flag</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-006-undefined-flag-bits">TC8-SDF-006: Undefined Flag Bits</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-007-reserved-bits">TC8-SDF-007: Reserved Bits</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-008-type-1-entry-length">TC8-SDF-008: Type 1 Entry Length</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-009-type-1-index-first-option-run">TC8-SDF-009: Type 1 Index First Option Run</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-010-type-1-number-of-options-1">TC8-SDF-010: Type 1 Number of Options 1</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-011-offer-ttl">TC8-SDF-011: Offer TTL</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-012-type-2-entry-type">TC8-SDF-012: Type 2 Entry Type</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-013-type-2-entry-length">TC8-SDF-013: Type 2 Entry Length</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-014-type-2-index-first-option-run">TC8-SDF-014: Type 2 Index First Option Run</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-015-type-2-service-id">TC8-SDF-015: Type 2 Service ID</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-016-type-2-instance-id">TC8-SDF-016: Type 2 Instance ID</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-017-type-2-major-version">TC8-SDF-017: Type 2 Major Version</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-018-type-2-ttl">TC8-SDF-018: Type 2 TTL</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-019-type-2-reserved">TC8-SDF-019: Type 2 Reserved</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-020-type-2-eventgroup-id">TC8-SDF-020: Type 2 Eventgroup ID</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdf-021-notification-interface-version">TC8-SDF-021: Notification Interface Version</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-find-response-tests">SD Find Response Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdr-001-discover-port-and-ip">TC8-SDR-001: Discover Port and IP</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdr-002-ignore-options-in-findservice">TC8-SDR-002: Ignore Options in FindService</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdr-003-multicast-findservice">TC8-SDR-003: Multicast FindService</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-tcp-tests">SD TCP Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdt-001-layer-4-protocol-of-tcp-endpoint-option">TC8-SDT-001: Layer 4 Protocol of TCP Endpoint Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdt-002-subscribe-with-tcp-option-without-connection">TC8-SDT-002: Subscribe With TCP Option Without Connection</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-subscribe-option-tests">SD Subscribe Option Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-001-no-port-in-endpoint-option">TC8-SDO-001: No Port in Endpoint Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-002-no-ipv4-address-in-endpoint-option">TC8-SDO-002: No IPv4 Address in Endpoint Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-003-wrong-l4-protocol-in-endpoint-option">TC8-SDO-003: Wrong L4 Protocol in Endpoint Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-004-non-existent-ipv4-address-in-endpoint-option">TC8-SDO-004: Non-existent IPv4 Address in Endpoint Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-005-endpoint-option-with-dut-ip-address">TC8-SDO-005: Endpoint Option With DUT IP Address</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-006-endpoint-option-with-111-111-111-111">TC8-SDO-006: Endpoint Option With 111.111.111.111</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-007-unicast-subscribeeventgroup-with-option-indexes">TC8-SDO-007: Unicast SubscribeEventgroup With Option Indexes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdo-008-unreferenced-option">TC8-SDO-008: Unreferenced Option</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-malformed-message-tests">SD Malformed Message Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-001-empty-entries-array">TC8-SDX-001: Empty Entries Array</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-002-empty-option">TC8-SDX-002: Empty Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-003-empty-options-array">TC8-SDX-003: Empty Options Array</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-004-entries-length-wrong-two-entries">TC8-SDX-004: Entries Length Wrong, Two Entries</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-005-more-option-references-than-options">TC8-SDX-005: More Option References Than Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-006-unknown-option-type-0x77">TC8-SDX-006: Unknown Option Type 0x77</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-007-two-options-of-the-same-kind">TC8-SDX-007: Two Options of the Same Kind</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-008-entries-array-longer-than-message">TC8-SDX-008: Entries Array Longer Than Message</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-009-entries-array-too-long">TC8-SDX-009: Entries Array Too Long</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-010-entries-array-too-short">TC8-SDX-010: Entries Array Too Short</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-011-option-ends-past-options-array-variant-a">TC8-SDX-011: Option Ends Past Options Array, Variant A</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-012-option-ends-past-options-array-variant-b">TC8-SDX-012: Option Ends Past Options Array, Variant B</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-013-udp-option-length-4">TC8-SDX-013: UDP Option Length 4</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-014-shorter-option-with-unaligned-next-option">TC8-SDX-014: Shorter Option With Unaligned Next Option</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-015-options-array-longer-than-message">TC8-SDX-015: Options Array Longer Than Message</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-016-options-array-too-short">TC8-SDX-016: Options Array Too Short</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-017-some-ip-length-shorter-than-actual">TC8-SDX-017: SOME/IP Length Shorter Than Actual</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-018-unknown-option-type">TC8-SDX-018: Unknown Option Type</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-019-unused-data-after-options-array">TC8-SDX-019: Unused Data After Options Array</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-020-unused-data-after-options-array-wrong-length">TC8-SDX-020: Unused Data After Options Array, Wrong Length</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdx-021-wrong-some-ip-message-id">TC8-SDX-021: Wrong SOME/IP Message ID</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-initial-field-and-reboot-detection-tests">SD Initial Field and Reboot Detection Tests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdi-001-initial-fields-eventgroup-0x0002">TC8-SDI-001: Initial Fields, Eventgroup 0x0002</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdi-002-initial-fields-eventgroup-0x0005">TC8-SDI-002: Initial Fields, Eventgroup 0x0005</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdi-003-reboot-detection-multicast-and-unicast">TC8-SDI-003: Reboot Detection, Multicast and Unicast</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdi-004-reboot-detection-server-side">TC8-SDI-004: Reboot Detection, Server Side</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sd-session-id-wrap-test">SD Session ID Wrap Test</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tc8-sdw-001-session-id-is-one-after-wrapping">TC8-SDW-001: Session ID Is One After Wrapping</a></li>
 </ul>
 </li>
 </ul>

@@ -40,9 +40,9 @@
     }
   },
   "tests": {
-    "total": 44,
-    "linked_to_requirements": 35,
-    "linked_to_requirements_pct": 79.54545454545455,
+    "total": 104,
+    "linked_to_requirements": 95,
+    "linked_to_requirements_pct": 91.34615384615384,
     "broken_references": []
   },
   "verification_metrics": {
@@ -98,32 +98,6 @@
         }
       }
     },
-    "comp__someip": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
     "comp__gateway_ipc_binding": {
       "requirements": {
         "status": {
@@ -150,7 +124,7 @@
         }
       }
     },
-    "comp__serializer": {
+    "comp__someip": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -161,6 +135,32 @@
           "fully_covered": 0,
           "partially_covered": 0,
           "not_covered": 0
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      }
+    },
+    "comp__someipd": {
+      "requirements": {
+        "status": {
+          "valid": 13,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 9,
+          "partially_covered": 1,
+          "not_covered": 3
         }
       },
       "architecture": {
@@ -202,17 +202,17 @@
         }
       }
     },
-    "comp__someipd": {
+    "comp__serializer": {
       "requirements": {
         "status": {
-          "valid": 13,
+          "valid": 0,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
-          "fully_covered": 9,
-          "partially_covered": 1,
-          "not_covered": 3
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
         }
       },
       "architecture": {
