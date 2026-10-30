@@ -31,7 +31,8 @@ and work with any SOME/IP binding.
 
 ## Quick Start
 
-Run both commands for your platform, one after the other, for complete coverage.
+Run the wildcard command for your platform for complete coverage. Bazel runs
+tests tagged `exclusive` without other tests running concurrently.
 
 ### Linux
 
@@ -42,23 +43,30 @@ bazel test --config=qemu-integration //tests/tc8_conformance/...
 # Run a specific target
 bazel test --config=qemu-integration //tests/tc8_conformance:test_tc8_service_discovery
 
-# Run on QNX x86_64
-bazel test --config=x86_64-qnx //tests/tc8_conformance/...
+# Run only the timing-sensitive tests
+bazel test --config=qemu-integration \
+  //tests/tc8_conformance:test_tc8_sd_find \
+  //tests/tc8_conformance:test_tc8_sd_phases_timing \
+  //tests/tc8_conformance:test_tc8_sd_session_wrap
 ```
 
 ### QNX x86_64
 
 ```bash
-# Normal tests (parallel)
-bazel test --config=tc8-itf-qnx //tests/tc8_conformance/...
+# Run all TC8 conformance tests
+bazel test --config=x86_64-qnx //tests/tc8_conformance/...
 
-# Timing-sensitive tests (serial)
-bazel test --config=tc8-itf-qnx-timing //tests/tc8_conformance:timing_sensitive_tests
+# Run only the timing-sensitive tests
+bazel test --config=x86_64-qnx \
+  //tests/tc8_conformance:test_tc8_sd_find \
+  //tests/tc8_conformance:test_tc8_sd_phases_timing \
+  //tests/tc8_conformance:test_tc8_sd_session_wrap
 ```
 
-Timing-sensitive tests are tagged `manual`: wildcard runs (`/...`) skip them,
-even with a timing config. Always select the explicit suite shown above.
-For individual tests, use the matching normal or timing config.
+Timing-sensitive tests are selected by wildcard runs (`/...`) like the other
+conformance tests. Their `exclusive` tag makes Bazel run them without other
+tests running concurrently. To run only these tests, select the three targets
+explicitly as shown above.
 
 ## Further Reading
 
