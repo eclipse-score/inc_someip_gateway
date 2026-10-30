@@ -72,7 +72,7 @@
         }
       }
     },
-    "comp__someip": {
+    "comp__config": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -150,7 +150,7 @@
         }
       }
     },
-    "comp__gateway_ipc_binding": {
+    "comp__someip": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -202,7 +202,7 @@
         }
       }
     },
-    "comp__config": {
+    "comp__gatewayd": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -228,7 +228,7 @@
         }
       }
     },
-    "comp__gatewayd": {
+    "comp__gateway_ipc_binding": {
       "requirements": {
         "status": {
           "valid": 0,
