@@ -13,13 +13,20 @@
 
 import logging
 import time
+from score_pytest.attribute_plugin import add_test_properties
 from util import (
     ShellProcess,
     get_running_processes_on_target,
 )
 
 
+@add_test_properties(
+    fully_verifies=["comp_req__gatewayd__starts_from_config"],
+    test_type="requirements-based",
+    derivation_technique="requirements-analysis",
+)
 def test_start_gatewayd(clean_state):
+    """Gatewayd starts with runtime configuration and stays active until shutdown."""
     with ShellProcess(
         clean_state,
         "/opt/gatewayd",

@@ -16,3 +16,12 @@ project_url = "https://eclipse-score.github.io/inc_someip_gateway/"
 version = "0.1"
 
 extensions = ["score_sphinx_bundle"]
+
+required_in_id = ["gatewayd", "socom", "gib"]
+
+# Component requirements link upward to communication-module feature
+# requirements (``feat_req__com__*``) owned by eclipse-score/communication.
+# Those needs are not currently imported via ``needs_external_needs`` in this
+# project, so sphinx-needs reports the links as unresolved. Suppress until the
+# external-needs source is wired in.
+suppress_warnings = ["needs.link_outgoing"]
