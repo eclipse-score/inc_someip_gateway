@@ -7,6 +7,149 @@
     },
     "needs": [
       {
+        "need": "comp_req__tc8_conformance__sd_offer_format",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "TestSDSessionWrap__test_ets_152_session_id_one_after_wrap",
+              "file": "tests/tc8_conformance/test_sd_session_wrap.py",
+              "line": 71,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDOfferFormat__test_tc8_sd_002_offer_entry_format",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 230,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFindServiceAdvanced__test_ets_091_session_id_increments",
+              "file": "tests/tc8_conformance/test_service_discovery.py",
+              "line": 1482,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFormat__test_format_01_client_id",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 169,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFormat__test_format_03_protocol_version",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 179,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFormat__test_format_05_message_type",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 188,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFormat__test_format_06_return_code",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 197,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFormat__test_format_08_unicast_flag",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 206,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFormat__test_format_09_undefined_flag_bits",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 216,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFormat__test_format_10_reserved_bits",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 228,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDOfferEntryFormat__test_format_11_type_1_entry_length",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 242,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDOfferEntryFormat__test_format_12_type_1_index_first_option_run",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 253,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDOfferEntryFormat__test_format_13_type_1_number_of_options_1",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 263,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDOfferEntryFormat__test_sd_message_07_offer_ttl",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 274,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestNotificationFormat__test_format_04_interface_version",
+              "file": "tests/tc8_conformance/test_sd_format.py",
+              "line": 385,
+              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
         "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
         "links": {
           "CodeLinks": [],
@@ -519,132 +662,15 @@
         }
       },
       {
-        "need": "comp_req__tc8_conformance__sd_offer_format",
+        "need": "comp_req__tc8_conformance__sd_phases_timing",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "TestSDOfferFormat__test_tc8_sd_002_offer_entry_format",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 230,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFindServiceAdvanced__test_ets_091_session_id_increments",
-              "file": "tests/tc8_conformance/test_service_discovery.py",
-              "line": 1482,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFormat__test_format_01_client_id",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 169,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFormat__test_format_03_protocol_version",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 179,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFormat__test_format_05_message_type",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 188,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFormat__test_format_06_return_code",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 197,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFormat__test_format_08_unicast_flag",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 206,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFormat__test_format_09_undefined_flag_bits",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 216,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDFormat__test_format_10_reserved_bits",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 228,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDOfferEntryFormat__test_format_11_type_1_entry_length",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 242,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDOfferEntryFormat__test_format_12_type_1_index_first_option_run",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 253,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDOfferEntryFormat__test_format_13_type_1_number_of_options_1",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 263,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestSDOfferEntryFormat__test_sd_message_07_offer_ttl",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 274,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "TestNotificationFormat__test_format_04_interface_version",
-              "file": "tests/tc8_conformance/test_sd_format.py",
-              "line": 385,
-              "need": "comp_req__tc8_conformance__sd_offer_format",
+              "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
+              "file": "tests/tc8_conformance/test_sd_phases_timing.py",
+              "line": 107,
+              "need": "comp_req__tc8_conformance__sd_phases_timing",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
@@ -754,6 +780,33 @@
               "verify_type": "fully",
               "result": "skipped",
               "result_text": "OA ETS_130: a multicast FindService with the Unicast Flag cleared is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received"
+            },
+            {
+              "name": "TestSDFindResponse__test_ets_060_discover_port_and_ip",
+              "file": "tests/tc8_conformance/test_sd_find.py",
+              "line": 59,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFindResponse__test_ets_118_ignore_options_in_findservice",
+              "file": "tests/tc8_conformance/test_sd_find.py",
+              "line": 87,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "TestSDFindResponse__test_ets_127_multicast_findservice",
+              "file": "tests/tc8_conformance/test_sd_find.py",
+              "line": 126,
+              "need": "comp_req__tc8_conformance__sd_find_response",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
             }
           ]
         }

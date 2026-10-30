@@ -1,5 +1,17 @@
 [
   {
+    "name": "TestSDSessionWrap__test_ets_152_session_id_one_after_wrap",
+    "file": "tests/tc8_conformance/test_sd_session_wrap.py",
+    "line": 71,
+    "need": "comp_req__tc8_conformance__sd_offer_format",
+    "verify_type": "fully",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
     "name": "TestSDMalformedArrays__test_ets_111_empty_entries_array",
     "file": "tests/tc8_conformance/test_sd_malformed.py",
     "line": 105,
@@ -340,6 +352,18 @@
     "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
     "line": 227,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+    "verify_type": "fully",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
+    "name": "TestSDPhasesTiming__test_tc8_sd_009_repetition_phase_intervals",
+    "file": "tests/tc8_conformance/test_sd_phases_timing.py",
+    "line": 107,
+    "need": "comp_req__tc8_conformance__sd_phases_timing",
     "verify_type": "fully",
     "result": "passed",
     "result_text": "",
@@ -727,6 +751,42 @@
     "verify_type": "fully",
     "result": "skipped",
     "result_text": "OA ETS_130: a multicast FindService with the Unicast Flag cleared is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
+    "name": "TestSDFindResponse__test_ets_060_discover_port_and_ip",
+    "file": "tests/tc8_conformance/test_sd_find.py",
+    "line": 59,
+    "need": "comp_req__tc8_conformance__sd_find_response",
+    "verify_type": "partially",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
+    "name": "TestSDFindResponse__test_ets_118_ignore_options_in_findservice",
+    "file": "tests/tc8_conformance/test_sd_find.py",
+    "line": 87,
+    "need": "comp_req__tc8_conformance__sd_find_response",
+    "verify_type": "fully",
+    "result": "passed",
+    "result_text": "",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": ""
+  },
+  {
+    "name": "TestSDFindResponse__test_ets_127_multicast_findservice",
+    "file": "tests/tc8_conformance/test_sd_find.py",
+    "line": 126,
+    "need": "comp_req__tc8_conformance__sd_find_response",
+    "verify_type": "fully",
+    "result": "passed",
+    "result_text": "",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
