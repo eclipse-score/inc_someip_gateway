@@ -447,6 +447,134 @@ SD Session ID Wrap
      - TC8-SDW-001
      - ``sd_offer_format``
 
+SOME/IP Message Format
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.5.5, SOMEIPSRV_BASIC_01
+     - TC8-MSG-001
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_01
+     - TC8-MSG-002
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_02
+     - TC8-MSG-003
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_03
+     - TC8-MSG-004
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_04
+     - TC8-MSG-005
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_05
+     - TC8-MSG-006
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_06
+     - TC8-MSG-007
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_07
+     - TC8-MSG-008
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_10
+     - TC8-MSG-009
+     - ``msg_error_codes``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_11
+     - TC8-MSG-010
+     - ``msg_resp_header``
+   * - Section 6.1.5.6, SOMEIPSRV_ONWIRE_12
+     - TC8-MSG-011
+     - ``msg_error_codes``
+
+SOME/IP Message Protocol Compliance
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_04
+     - TC8-MSG-012
+     - ``msg_resp_header``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_05
+     - TC8-MSG-013
+     - ``msg_resp_header``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_06
+     - TC8-MSG-014
+     - ``msg_resp_header``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_07
+     - TC8-MSG-015
+     - ``msg_resp_header``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_08
+     - TC8-MSG-016
+     - ``msg_resp_header``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_09
+     - TC8-MSG-017
+     - ``msg_error_codes``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_18
+     - TC8-MSG-018
+     - ``msg_resp_header``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_19
+     - TC8-MSG-019
+     - ``msg_resp_header``
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_20
+     - TC8-MSG-020
+     - ``msg_resp_header``
+   * - Section 6.1.6, SOMEIP_ETS_004
+     - TC8-MSG-021
+     - ``msg_resp_header``
+   * - Section 6.1.6, SOMEIP_ETS_058
+     - TC8-MSG-022
+     - ``msg_malformed``
+   * - Section 6.1.6, SOMEIP_ETS_075
+     - TC8-MSG-023
+     - ``msg_malformed``
+   * - Section 6.1.6, SOMEIP_ETS_077
+     - TC8-MSG-024
+     - ``msg_error_codes``
+   * - Section 6.1.6, SOMEIP_ETS_078
+     - TC8-MSG-025
+     - ``msg_malformed``
+
+TCP Transport Binding
+^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.5.7, SOMEIPSRV_RPC_01
+     - TC8-TCP-001
+     - ``tcp_transport``
+   * - Section 6.1.6, SOMEIP_ETS_068
+     - TC8-TCP-002
+     - ``tcp_transport``
+
+UDP Transport Binding
+^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 20 35
+
+   * - OA Spec Reference (Ch. 6)
+     - Internal ID
+     - Requirement
+   * - Section 6.1.6, SOMEIP_ETS_069
+     - TC8-UDP-001
+     - ``udp_transport``
+
 Test Results
 -------------
 
