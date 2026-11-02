@@ -47,16 +47,6 @@ The one thing ``mw::com`` does not give away for free is peer liveness, because 
 cannot distinguish "the peer is down" from "the peer is up but the service is not there". That is solved with
 a dedicated, typed ``SomeipdService``, see :ref:`someipd-service`.
 
-Safety boundary
----------------
-
-``comp__gateway_ipc_binding`` is classified as ``QM`` and runs in both ``someipd`` (``QM``) and ``gatewayd``
-(``ASIL_B``). Because ``someipd`` is a ``QM`` process, all inter-daemon ``mw::com`` shared-memory instances
-use ``"asil-level": "QM"``. On the ``gatewayd`` (``ASIL_B``) side, freedom from interference and data integrity
-across the ``QM`` IPC channel are preserved by bounds-checking ``sample_layout`` payload lengths against the
-configured ``max_payload_size`` and performing End-to-End (E2E) validation over the contiguous SOME/IP header
-and payload before forwarding samples to safety-relevant applications.
-
 Goals and non-goals
 -------------------
 

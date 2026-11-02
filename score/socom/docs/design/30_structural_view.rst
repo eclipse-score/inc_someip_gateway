@@ -31,7 +31,7 @@ SOCom decomposes in-process service-oriented communication into four orthogonal 
 
 - ``Runtime`` isolates service discovery, compatibility matching, and bridge registration from steady-state data transfer so connected endpoints communicate directly without central broker contention.
 - ``Client_connector`` and ``Server_connector`` (split into ``Disabled_server_connector`` and ``Enabled_server_connector``) encode endpoint role and lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.
-- ``Payload`` and ``Writable_payload`` separate zero-copy memory ownership and contiguous full SOME/IP message span management (header + payload + ``slot_handle``) from connector routing logic, allowing ``gatewayd`` to run E2E protection/verification in place and ``gateway_ipc_binding`` to map shared-memory LoLa slots without copying.
+- ``Payload`` and ``Writable_payload`` separate zero-copy memory ownership and contiguous full SOME/IP message span management (``Payload::data()``, ``Writable_payload::wdata()``, ``shrink()``, and ``get_slot_handle()``) from connector routing logic, placing the 16-byte SOME/IP header and payload contiguously in memory (to enable future in-place E2E protection in ``gatewayd``) and allowing ``gateway_ipc_binding`` to map shared-memory LoLa slots without copying.
 
 .. comp_arc_sta:: SOCom Static Architecture
    :id: comp_arc_sta__socom_design__static_view
@@ -190,7 +190,7 @@ It can send event updates and respond to method calls.
    :status: valid
    :included_by: real_arc_int__socom_design__server_conn
 
-   Publishes a ``Payload`` containing the full SOME/IP message to all subscribed ``Client_connector`` instances via ``update_event`` or to update-requesting clients via ``update_requested_event``.
+   Publishes a ``Payload`` containing the full SOME/IP message to the subscribed ``Client_connector`` via ``update_event`` or to an update-requesting client via ``update_requested_event``.
 
 .. _payload_component:
 
@@ -198,7 +198,7 @@ Payload
 -------
 
 ``Payload`` and ``Writable_payload`` represent the contiguous message buffer transferred across SOCom connectors.
-In the SOME/IP gateway, ``Payload::data()`` holds the full SOME/IP message (header + payload) in contiguous memory so E2E protection and verification operate directly on the span without copying, while ``get_slot_handle()`` tracks the underlying shared-memory slot across the IPC binding.
+In the SOME/IP gateway, ``Payload::data()`` and ``Writable_payload::wdata()`` hold the full SOME/IP message (16-byte header + payload) in contiguous memory (to enable future in-place E2E protection in ``gatewayd`` without copying), while ``get_slot_handle()`` tracks the underlying shared-memory slot across the IPC binding.
 
 .. real_arc_int:: SOCom Payload Interface
    :id: real_arc_int__socom_design__payload
@@ -227,4 +227,4 @@ SOCom depends exclusively on ``score_baselibs``:
 
 - ``score::Result`` (``@score_baselibs//score/result``) for error-code-based return values across connector and runtime operations.
 - ``score::cpp::span`` and ``score::cpp::move_only_function`` (``@score_baselibs//score/language/futurecpp``) for contiguous byte views in ``Payload`` / ``Writable_payload`` and non-copyable callbacks.
-- ``score::mw::log`` (``@score_baselibs//score/mw/log``) for diagnostic and deadlock-detection logging.
+- ``score::mw::log`` (``@score_baselibs//score/mw/log``) used in ``runtime_impl.cpp`` for version-incompatibility error logging (while connector callback deadlock detection writes to ``std::cerr`` and calls ``std::abort()``).

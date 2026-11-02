@@ -60,7 +60,7 @@ The following model describes the state-behavior of an event subscription from a
 Service state
 -------------
 
-The following model describes the state-behavior of a service instance as reported to an instance of type Client_connector by callback on_state_change().
+The following model describes the state-behavior of a service instance as reported to an instance of type Client_connector by callback on_service_state_change().
 
 .. uml:: models/state_diagram_service_state.puml
    :align: center

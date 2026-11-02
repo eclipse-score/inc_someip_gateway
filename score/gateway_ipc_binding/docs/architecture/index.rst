@@ -29,7 +29,8 @@ Rationale for Architecture Decomposition
   - ``Provider_service_binding`` acts as a local ``socom::Client_connector`` and forwards availability, subscriptions, and allocated event samples to a ``mw::com::GenericSkeleton``.
   - ``Consumer_service_binding`` discovers the peer's ``GenericSkeleton`` via ``mw::com::GenericProxy::StartFindService`` and exposes it locally via a ``socom::Disabled_server_connector`` / ``socom::Enabled_server_connector`` pair.
 - ``sample_layout`` encapsulates the 8-byte binding metadata prefix (``payload_length`` + reserved bytes) and 8-byte alignment rounding required to transport variable-length contiguous SOME/IP messages inside fixed-size ``mw::com`` LoLa event slots.
-- ``bridged_service_configs`` (in ``score/bridged_services``) translates the FlatBuffers ``mw_someip_config::Root`` configuration and optional ``Event_size_strategy`` into ``Service_configs`` for either ``Daemon::gatewayd`` or ``Daemon::someipd``, keeping FlatBuffers schema parsing decoupled from the ``mw::com`` transport units.
+
+FlatBuffers gateway configuration parsing is kept out of ``comp__gateway_ipc_binding``; callers (``gatewayd`` and ``someipd``) use the separate ``score/bridged_services`` helper library (``bridged_service_configs()``) to construct the ``Service_configs`` passed to ``mw_com::create_client()`` and ``Gateway_config_handler``.
 
 Static View
 -----------
@@ -80,9 +81,9 @@ Provided Interfaces
    :status: valid
    :language: cpp
 
-   Client-side lifecycle and configuration interface exposed to ``gatewayd`` via ``score/gateway_ipc_binding/gateway_ipc_binding_client.hpp``, ``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp``, and ``score/bridged_services/bridged_service_configs.h``.
+   Client-side lifecycle and configuration interface exposed to ``gatewayd`` via ``score/gateway_ipc_binding/gateway_ipc_binding_client.hpp`` and ``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp``.
 
-.. real_arc_int_op:: mw_com::create_client and bridged_service_configs
+.. real_arc_int_op:: mw_com::create_client
    :id: real_arc_int_op__gib_arch__create_client
    :version: 1
    :security: NO
@@ -90,7 +91,7 @@ Provided Interfaces
    :status: valid
    :included_by: real_arc_int__gib_arch__client
 
-   ``score::bridged_services::bridged_service_configs()`` builds ``Service_configs`` from ``mw_someip_config::Root`` and an ``Event_size_strategy``. ``score::gateway_ipc_binding::mw_com::create_client()`` validates the ``Service_configs``, synthesizes and registers missing ``mw::com`` deployment entries via ``mw::com::runtime::AddConfiguration``, creates and starts all ``Provider_service_binding`` and ``Consumer_service_binding`` instances in the local ``socom::Runtime``, and starts ``Someipd_service_consumer`` discovery to send ``AddServiceConfiguration`` to ``someipd``.
+   ``score::gateway_ipc_binding::mw_com::create_client()`` accepts ``Service_configs`` (constructed by callers using the separate ``score/bridged_services`` helper library), validates them, synthesizes and registers missing ``mw::com`` deployment entries via ``mw::com::runtime::AddConfiguration``, creates and starts all ``Provider_service_binding`` and ``Consumer_service_binding`` instances in the local ``socom::Runtime``, and starts ``Someipd_service_consumer`` discovery to send ``AddServiceConfiguration`` to ``someipd``.
 
 .. real_arc_int_op:: Gateway_ipc_binding_client::is_connected
    :id: real_arc_int_op__gib_arch__is_connected

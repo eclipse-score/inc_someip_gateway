@@ -22,7 +22,7 @@ The SOME/IP Gateway architecture separates safety-qualified processing from the 
 
 - **ASIL_B Side (Gateway and Serialization)**:
 
-  - :need:`comp__gatewayd` (``ASIL_B``): Bridges safety-relevant application ``mw::com`` services with the inter-daemon IPC link, enforcing End-to-End (E2E) protection over contiguous SOME/IP headers and payloads as well as bounds checks on incoming IPC samples. See :ref:`gatewayd_architecture` (:need:`comp_arc_sta__gatewayd_arch__static_view`, :need:`comp_arc_dyn__gatewayd_arch__event_flow`).
+  - :need:`comp__gatewayd` (``ASIL_B``): Bridges local ``mw::com`` application services with ``someipd`` over ``gateway_ipc_binding``, framing or stripping the 16-byte SOME/IP header contiguously with the payload in shared memory (to enable future E2E protection in the ``ASIL_B`` context) and invoking ``score_com_serializer`` for sample serialization and deserialization. See :ref:`gatewayd_architecture` (:need:`comp_arc_sta__gatewayd_arch__static_view`, :need:`comp_arc_dyn__gatewayd_arch__event_flow`).
   - :need:`comp__serializer` (``ASIL_B``): Serializes and deserializes application data types to and from SOME/IP wire format within ``gatewayd``.
   - :need:`comp__null_serializer` (``ASIL_B``): Passthrough serializer used by ``gatewayd`` when payloads are pre-serialized by the application.
 

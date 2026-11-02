@@ -15,7 +15,7 @@
 autonumber
 
 participant "Local Application\n(mw::com)" as app
-participant "main\n(gatewayd)" as main_orchestrator <<unit>>
+participant "gatewayd\n(main.cpp)" as gatewayd_main <<unit>>
 participant "LocalServiceInstance\n(gatewayd)" as local_service_instance <<unit>>
 participant "RemoteServiceInstance\n(gatewayd)" as remote_service_instance <<unit>>
 participant "score_com_serializer\n(C ABI)" as serializer <<component>>
@@ -25,51 +25,56 @@ participant "someipd\n(QM Daemon)" as someipd
 
 == 1. Startup & Configuration Registration ==
 
-main_orchestrator -> main_orchestrator : Load FlatBuffers config (mw_someip_config::GetRoot)
-main_orchestrator -> serializer : score_com_serializer_init(config_path)
-serializer --> main_orchestrator : score_com_serializer_result_ok
-main_orchestrator -> app : mw::com::runtime::InitializeRuntime(manifest)
-main_orchestrator -> socom : socom::create_runtime()
-socom --> main_orchestrator : socom_runtime
+gatewayd_main -> gatewayd_main : Load FlatBuffers config (mw_someip_config::GetRoot)
+gatewayd_main -> serializer : score_com_serializer_init(config_path)
+serializer --> gatewayd_main : score_com_serializer_result_ok
+gatewayd_main -> gatewayd_main : mw::com::runtime::InitializeRuntime(manifest)
+gatewayd_main -> socom : socom::create_runtime()
+socom --> gatewayd_main : socom_runtime
 
-main_orchestrator -> main_orchestrator : bridged_service_configs(*config, Daemon::gatewayd, event_slot_size)
+gatewayd_main -> gatewayd_main : bridged_service_configs(*config, Daemon::gatewayd, event_slot_size)
 loop per bridged event
-    main_orchestrator -> serializer : score_com_serializer_get() & get_max_serialized_size()
-    serializer --> main_orchestrator : max_serialized_size (+ 16B SOME/IP header)
+    gatewayd_main -> serializer : score_com_serializer_get() &\nscore_com_serializer_get_max_serialized_size()
+    serializer --> gatewayd_main : max_serialized_size (+ kSomeipFullHeaderSize)
 end
 
-main_orchestrator -> gateway_ipc_binding : mw_com::create_client(*socom_runtime, "someipd/daemon",\nservice_configs, "gatewayd", config_bytes)
-gateway_ipc_binding -> someipd : SomeipdService::AddServiceConfiguration(config_bytes, consumer_event_sizes)
-someipd --> gateway_ipc_binding : accepted (true)
-gateway_ipc_binding --> main_orchestrator : binding_client
+gatewayd_main -> gateway_ipc_binding : mw_com::create_client(*socom_runtime, "someipd/daemon",\nservice_configs, "gatewayd", config_bytes)
+gateway_ipc_binding -> gateway_ipc_binding : StartFindService(SomeipdService) (async)
+gateway_ipc_binding --> gatewayd_main : binding_client
 
-loop until binding_client->is_connected()
-    main_orchestrator -> gateway_ipc_binding : is_connected()
-    gateway_ipc_binding --> main_orchestrator : true
+loop while !binding_client->is_connected()
+    gatewayd_main -> gateway_ipc_binding : is_connected()
+    gateway_ipc_binding ->> someipd : SomeipdService::AddServiceConfiguration(config_bytes, consumer_event_sizes)
+    someipd --> gateway_ipc_binding : accepted (true) -> sets connected = true
+    gateway_ipc_binding --> gatewayd_main : true
 end
 
 loop per configured local_service_instances
-    main_orchestrator -> local_service_instance : CreateAsyncLocalServices(instance_cfg, type_cfg, *socom_runtime, instances)
+    gatewayd_main -> local_service_instance : CreateAsyncLocalServices(instance_cfg, type_cfg, *socom_runtime, instances)
 end
 
 loop per configured remote_service_instances
-    main_orchestrator -> remote_service_instance : CreateAsyncRemoteService(instance_cfg, type_cfg, *socom_runtime, instances)
+    gatewayd_main -> remote_service_instance : CreateAsyncRemoteService(instance_cfg, type_cfg, *socom_runtime, instances)
 end
 
 == 2. Local Service Event Flow (Application -> gatewayd -> someipd) ==
 
 local_service_instance -> app : GenericProxy::StartFindService(instance_specifier)
-app --> local_service_instance : FindServiceCallback(handles)
-local_service_instance -> app : GenericProxy::Create(handle)
+app --> local_service_instance : FindServiceCallback(handles, find_handle)
+local_service_instance -> app : GenericProxy::Create(handles.front())
 local_service_instance -> socom : make_server_connector(server_config, instance, callbacks)
 socom --> local_service_instance : disabled_server_connector
 local_service_instance -> socom : Disabled_server_connector::enable(disabled_server_connector)
 socom --> gateway_ipc_binding : Offer bridged service (GenericSkeleton::OfferService to someipd)
-local_service_instance -> serializer : score_com_serializer_get(service_type, event_name)
-local_service_instance -> app : GenericProxyEvent::SetReceiveHandler() & Subscribe(kMaxSampleCount)
+loop per configured event
+    local_service_instance -> serializer : score_com_serializer_get(service_type, event_name)
+    local_service_instance -> app : GenericProxyEvent::SetReceiveHandler()
+    local_service_instance -> app : GenericProxyEvent::Subscribe(kMaxSampleCount)
+end
+local_service_instance -> app : GenericProxy::StopFindService(find_handle)
 
 app -> local_service_instance : ReceiveHandler notification
-local_service_instance -> app : GenericProxyEvent::GetNewSamples(process_sample_callback)
+local_service_instance -> app : GenericProxyEvent::GetNewSamples(process_sample_callback, kMaxSampleCount)
 app -> local_service_instance : process_sample_callback(SamplePtr<void> sample)
 local_service_instance -> socom : server_connector_->allocate_event_payload(socom_event_id)
 socom -> gateway_ipc_binding : GenericSkeletonEvent::Allocate() in SHM
@@ -77,7 +82,7 @@ gateway_ipc_binding --> socom : Writable_payload (SHM slot after 8B prefix)
 socom --> local_service_instance : Writable_payload
 
 local_service_instance -> local_service_instance : Write 16-byte SOME/IP header\n(service_id, event_id, client_id, session_id, versions, message_type=0x02)
-local_service_instance -> serializer : score_com_serializer_serialize(serializer, payload.wdata() + 16, sample.get(), &written_length)
+local_service_instance -> serializer : score_com_serializer_serialize(serializer, payload.wdata().data() + 16,\npayload.wdata().size() - 16, sample.get(), &written_length)
 serializer --> local_service_instance : score_com_serializer_result_ok
 local_service_instance -> local_service_instance : payload.shrink(16 + written_length)
 local_service_instance -> socom : server_connector_->update_event(socom_event_id, std::move(payload))
@@ -86,9 +91,14 @@ gateway_ipc_binding -> someipd : GenericSkeletonEvent::Send(sample)
 
 == 3. Remote Service Event Flow (someipd -> gatewayd -> Application) ==
 
-remote_service_instance -> serializer : score_com_serializer_get(), get_sizeof_type(), get_alignof_type()
-remote_service_instance -> app : GenericSkeleton::Create(instance_specifier, service_element_info)
+loop per configured event
+    remote_service_instance -> serializer : score_com_serializer_get(), score_com_serializer_get_sizeof_type(),\nscore_com_serializer_get_alignof_type()
+end
+remote_service_instance -> app : GenericSkeleton::Create(ipc_instance_specifier, service_element_info)
 remote_service_instance -> app : ipc_skeleton.OfferService()
+loop per configured event
+    remote_service_instance -> serializer : score_com_serializer_get(service_type, event_name)
+end
 remote_service_instance -> socom : make_client_connector(client_config, instance, callbacks)
 socom --> remote_service_instance : on_service_state_change(Service_state::available)
 

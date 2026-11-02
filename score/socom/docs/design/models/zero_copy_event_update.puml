@@ -28,7 +28,7 @@ box "gatewayd (Gateway Daemon, ASIL_B)"
 participant ipc_consumer as "gateway_ipc_binding::\nConsumer_service_binding"
 participant socom_server_gd as "socom::Enabled_server_connector"
 participant socom_client_gd as "socom::Client_connector"
-participant gateway as "Gateway Logic\n(E2E & Forwarding)"
+participant gateway as "Gateway Logic\n(Header Stripping & Deserialization)"
 participant app_mwcom as "Application mw::com"
 end box
 
@@ -57,7 +57,7 @@ return Writable_payload(wdata, slot_handle)
 return Writable_payload(wdata, slot_handle)
 return Writable_payload(wdata, slot_handle)
 
-someip_network_impl -> network : Read full SOME/IP message (header + payload)\ninto Writable_payload::wdata() and shrink(size)
+someip_network_impl -> someip_network_impl : Write 16-byte SOME/IP header and copy payload\nfrom vsomeip::message into Writable_payload::wdata(), then shrink(pos)
 
 == Publish event update via gateway_ipc_binding over LoLa shared memory ==
 
@@ -76,7 +76,7 @@ return
 return
 deactivate someip_network_impl
 
-== Receive event in gatewayd, verify E2E over contiguous Payload::data(), and forward ==
+== Receive event in gatewayd, strip SOME/IP header, deserialize, and forward ==
 
 lola_shm ->> ipc_consumer : Receive handler notification
 activate ipc_consumer
@@ -90,8 +90,8 @@ socom_server_gd -> socom_client_gd : on_event_update(event_id, Payload)
 activate socom_client_gd
 socom_client_gd -> gateway : on_event_update(event_id, Payload)
 activate gateway
-gateway -> gateway : E2E check over contiguous full SOME/IP message\nin Payload::data() (header + payload)
-gateway -> app_mwcom : Allocate, serialize/copy payload, and Send(event_id)
+gateway -> gateway : Strip 16-byte SOME/IP header (payload.data().subspan(16))
+gateway -> app_mwcom : Allocate(), score_com_serializer_deserialize(), and Send(sample)
 activate app_mwcom
 return
 return

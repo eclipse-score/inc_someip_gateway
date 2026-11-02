@@ -153,7 +153,7 @@ In order to facilitate deadlock detection, before a callback is called by a Clie
 Server_connector the thread id of the caller is saved.
 After the callback returns, the previously saved thread id is removed.
 If the calling object is destructed prematurely the deadlock is detected by checking if the thread
-id is still present, issuing a warning log and terminating the application.
+id is still present, printing an error message to ``std::cerr`` and terminating the application via ``std::abort()``.
 
 Client_connector deadlocks
 ---------------------------

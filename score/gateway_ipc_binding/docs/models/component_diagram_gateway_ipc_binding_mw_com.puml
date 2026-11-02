@@ -35,7 +35,8 @@ package "mw::com" as mwcom <<component>> {
 
 package "socom" as socom <<component>> {
   component "socom::Client_connector" as client_connector <<unit>>
-  component "socom::Enabled_server_connector" as server_connector <<unit>>
+  component "socom::Disabled_server_connector" as disabled_server_connector <<unit>>
+  component "socom::Enabled_server_connector" as enabled_server_connector <<unit>>
 }
 
 server_api -- Server_adapter
@@ -51,5 +52,6 @@ Consumer_service_binding --> proxy
 Consumer_service_binding --> sample_layout
 Someipd_service_consumer --> mwcom : finds SomeipdService
 Provider_service_binding --> client_connector
-Consumer_service_binding --> server_connector
+Consumer_service_binding --> disabled_server_connector
+Consumer_service_binding --> enabled_server_connector
 @enduml

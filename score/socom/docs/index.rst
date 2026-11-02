@@ -46,7 +46,7 @@ Safety Role
 
 ``socom`` is classified as a ``QM`` component and is instantiated in-process inside both:
 
-- ``gatewayd`` (``ASIL_B``), which protects outgoing messages and checks incoming messages end-to-end (E2E) directly over the contiguous full SOME/IP message in ``Payload::data()``.
+- ``gatewayd`` (``ASIL_B``), which frames or strips the 16-byte SOME/IP header contiguously with the payload in ``Payload::data()`` / ``Writable_payload::wdata()`` (enabling future in-place E2E protection in the ``ASIL_B`` context) and serializes/deserializes application samples.
 - ``someipd`` (``QM``), which bridges ``socom`` connectors between the SOME/IP network stack and the IPC binding to ``gatewayd``.
 
 .. toctree::
