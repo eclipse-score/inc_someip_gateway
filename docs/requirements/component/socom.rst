@@ -22,7 +22,7 @@ They do not restate the general ``mw::com`` public API contract.
    :id: comp_req__socom__identity_and_version
    :status: valid
    :version: 1
-   :safety: QM
+   :safety: ASIL_B
    :security: NO
    :reqtype: Functional
    :derived_from: feat_req__com__service_instance, feat_req__com__service_discovery, feat_req__com__versioning
@@ -37,7 +37,7 @@ They do not restate the general ``mw::com`` public API contract.
    :id: comp_req__socom__event_delivery
    :status: valid
    :version: 1
-   :safety: QM
+   :safety: ASIL_B
    :security: NO
    :reqtype: Functional
    :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer

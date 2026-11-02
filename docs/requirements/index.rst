@@ -64,10 +64,10 @@ The following component identifiers are used in requirement IDs and file names:
      - ASIL-B
      - Gateway daemon — bridges IPC and SOME/IP, E2E protection, ACL enforcement
    * - ``gateway_ipc_binding``
-     - QM
+     - ASIL-B
      - IPC bridge between ``gatewayd`` and ``someipd`` for service control and event payloads
    * - ``socom``
-     - QM
+     - ASIL-B
      - SOCom connector abstraction for service offers, discovery, and event transport
    * - ``someipd``
      - QM

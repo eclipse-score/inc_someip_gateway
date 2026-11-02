@@ -22,7 +22,7 @@ transport. They do not claim method-call transport, which is not implemented.
    :id: comp_req__gib__connects_service_connectors
    :status: valid
    :version: 1
-   :safety: QM
+   :safety: ASIL_B
    :security: NO
    :reqtype: Functional
    :derived_from: feat_req__com__service_discovery, feat_req__com__service_instance_names
@@ -38,7 +38,7 @@ transport. They do not claim method-call transport, which is not implemented.
    :id: comp_req__gib__propagates_subscriptions
    :status: valid
    :version: 1
-   :safety: QM
+   :safety: ASIL_B
    :security: NO
    :reqtype: Functional
    :derived_from: feat_req__com__producer_consumer
@@ -51,7 +51,7 @@ transport. They do not claim method-call transport, which is not implemented.
    :id: comp_req__gib__forwards_event_payloads
    :status: valid
    :version: 1
-   :safety: QM
+   :safety: ASIL_B
    :security: NO
    :reqtype: Functional
    :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer
