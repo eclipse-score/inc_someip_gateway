@@ -17,6 +17,16 @@
 SOCom
 #####
 
+Abstract
+========
+
+The SOCom (Service-Oriented Communication) library (``score::socom``) provides the in-process
+service-oriented runtime and connector abstraction for SOME/IP communication in the S-CORE
+framework. It decouples service consumers and providers from concrete SOME/IP network stack and
+IPC bridge implementations through its ``Runtime``, ``Client_connector``,
+``Disabled_server_connector`` / ``Enabled_server_connector``, and zero-copy ``Payload`` /
+``Writable_payload`` abstractions.
+
 .. comp:: SOCom
    :id: comp__socom
    :security: NO
@@ -28,28 +38,7 @@ SOCom
 
    In-process SOME/IP service-oriented runtime and connector abstraction library.
 
-Overview
-========
-
-The SOCom (Service-Oriented Communication) library (``score::socom``) provides the in-process
-service-oriented runtime and connector abstraction for SOME/IP communication in the S-CORE
-framework. It decouples service consumers and providers from concrete SOME/IP network stack and
-IPC bridge implementations through four primary abstractions:
-
-- ``Runtime``: In-process service instance registry, connector factory, and service bridge registration point.
-- ``Client_connector``: Consumer-side endpoint for service availability notifications, event subscriptions, and method invocations.
-- ``Disabled_server_connector`` / ``Enabled_server_connector``: Provider-side state-typed endpoints for offering services, allocating and publishing event updates, and handling method calls.
-- ``Payload`` / ``Writable_payload``: Move-only buffer handles exposing a contiguous byte span for the full SOME/IP message (16-byte SOME/IP header followed by payload bytes) and an optional shared-memory slot handle for zero-copy transport.
-
-Safety Role
------------
-
-``socom`` is classified as a ``QM`` component and is instantiated in-process inside both:
-
-- ``gatewayd`` (``ASIL_B``), which frames or strips the 16-byte SOME/IP header contiguously with the payload in the buffer span (enabling future in-place E2E protection in the ``ASIL_B`` context) and serializes or deserializes application samples.
-- ``someipd`` (``QM``), which bridges ``socom`` connectors between the SOME/IP network stack and the IPC binding to ``gatewayd``.
-
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    design/index

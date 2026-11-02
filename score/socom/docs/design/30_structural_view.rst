@@ -15,6 +15,9 @@
 Structural View
 ===============
 
+Overview
+--------
+
 The bundle service oriented communication (SOCom) implements components for client/server pattern based communication for the following communication paradigms:
 
 - remote procedure call
@@ -23,6 +26,11 @@ The bundle service oriented communication (SOCom) implements components for clie
 SOCom provides interfaces which enable the implementation of service gateways (bridges).
 This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
 SOCom provides intra-process client/server communication only.
+
+``socom`` is classified as a ``QM`` component and is instantiated in-process inside both:
+
+- ``gatewayd`` (``ASIL_B``), which frames or strips the 16-byte SOME/IP header contiguously with the payload in the buffer span (enabling future in-place E2E protection in the ``ASIL_B`` context) and serializes or deserializes application samples.
+- ``someipd`` (``QM``), which bridges ``socom`` connectors between the SOME/IP network stack and the IPC binding to ``gatewayd``.
 
 Rationale Behind Architecture Decomposition
 -------------------------------------------
@@ -226,12 +234,3 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
    :included_by: real_arc_int__socom_design__payload
 
    Provides read-only and writable byte-span access to the contiguous SOME/IP message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.
-
-Required Interfaces
-~~~~~~~~~~~~~~~~~~~
-
-SOCom has no external network or IPC dependencies and relies only on ``score_baselibs`` utilities:
-
-- ``score::Result`` for explicit error propagation across runtime and connector operations.
-- ``score::cpp::span``, ``score::cpp::move_only_function``, and ``score::utils::ScopeExit`` for contiguous byte views, move-only callbacks, and RAII cleanup actions.
-- ``score::mw::log`` for runtime diagnostic logging (such as interface minor-version mismatches).

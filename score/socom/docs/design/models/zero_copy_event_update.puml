@@ -12,95 +12,49 @@
 ' *******************************************************************************
 
 @startuml Zero Copy Event Update from Network
+title Zero-copy event update across someipd and gatewayd
 
-actor network as "Network"
-
-box "someipd (Network Daemon, QM)"
-participant someip_network_impl as "SOME/IP Network Stack"
-participant socom_server_nd as "socom::Enabled_server_connector"
-participant socom_client_nd as "socom::Client_connector"
-participant ipc_provider as "gateway_ipc_binding::\nProvider_service_binding"
+actor "Network" as network
+box "someipd process"
+participant "SOME/IP Stack" as someip_stack
+participant "socom::Enabled_server_connector" as socom_srv_nd
+participant "socom::Client_connector" as socom_cli_nd
+participant "Provider_service_binding" as ipc_provider
 end box
-
-participant lola_shm as "mw::com (LoLa Shared Memory)\nGenericSkeleton / GenericProxy"
-
-box "gatewayd (Gateway Daemon, ASIL_B)"
-participant ipc_consumer as "gateway_ipc_binding::\nConsumer_service_binding"
-participant socom_server_gd as "socom::Enabled_server_connector"
-participant socom_client_gd as "socom::Client_connector"
-participant gateway as "Gateway Logic\n(Header Stripping & Deserialization)"
-participant app_mwcom as "Application mw::com"
+participant "mw::com\n(LoLa SHM)" as lola_shm
+box "gatewayd process"
+participant "Consumer_service_binding" as ipc_consumer
+participant "socom::Enabled_server_connector" as socom_srv_gd
+participant "socom::Client_connector" as socom_cli_gd
+participant "RemoteServiceInstance" as remote_svc
 end box
+participant "mw::com\n(Application)" as app_mwcom
 
-note right of network
-For zero-copy event transport, each bridged event sample in LoLa shared memory
-stores an 8-byte length prefix followed contiguously by the full SOME/IP message
-(16-byte SOME/IP header + payload). Writable_payload::wdata() and Payload::data()
-reference this contiguous full SOME/IP message span.
-end note
+== Allocate shared-memory slot and write SOME/IP frame ==
+network -> someip_stack : event notification
+someip_stack -> socom_srv_nd : allocate_event_payload(event)
+socom_srv_nd -> socom_cli_nd : on_event_payload_allocate(event)
+socom_cli_nd -> ipc_provider : on_event_payload_allocate(event)
+ipc_provider -> lola_shm : Allocate()
+lola_shm --> ipc_provider : SampleAllocateePtr
+ipc_provider --> socom_cli_nd : Writable_payload
+socom_cli_nd --> socom_srv_nd : Writable_payload
+socom_srv_nd --> someip_stack : Writable_payload
+someip_stack -> someip_stack : write SOME/IP header & payload
 
-== Allocate LoLa shared-memory slot and read full SOME/IP message from network ==
+== Publish event over LoLa shared memory ==
+someip_stack -> socom_srv_nd : update_event(event, payload)
+socom_srv_nd -> socom_cli_nd : on_event_update(event, payload)
+socom_cli_nd -> ipc_provider : on_event_update(event, payload)
+ipc_provider -> lola_shm : Send(sample)
 
-network -> someip_network_impl : Receive event update notification
-activate someip_network_impl
-
-someip_network_impl -> socom_server_nd : allocate_event_payload(event_id)
-activate socom_server_nd
-socom_server_nd -> socom_client_nd : on_event_payload_allocate(event_id)
-activate socom_client_nd
-socom_client_nd -> ipc_provider : on_event_payload_allocate(event_id)
-activate ipc_provider
-ipc_provider -> lola_shm : GenericSkeletonEvent::Allocate()
-activate lola_shm
-return SampleAllocateePtr
-return Writable_payload(wdata, slot_handle)
-return Writable_payload(wdata, slot_handle)
-return Writable_payload(wdata, slot_handle)
-
-someip_network_impl -> someip_network_impl : Write 16-byte SOME/IP header and copy payload\nfrom vsomeip::message into Writable_payload::wdata(), then shrink(pos)
-
-== Publish event update via gateway_ipc_binding over LoLa shared memory ==
-
-someip_network_impl -> socom_server_nd : update_event(event_id, Payload)
-activate socom_server_nd
-socom_server_nd -> socom_client_nd : on_event_update(event_id, Payload)
-activate socom_client_nd
-socom_client_nd -> ipc_provider : on_event_update(event_id, Payload)
-activate ipc_provider
-ipc_provider -> ipc_provider : Lookup SampleAllocateePtr by payload.get_slot_handle()\nand write payload.data().size() into sample prefix
-ipc_provider -> lola_shm : GenericSkeletonEvent::Send(sample)
-activate lola_shm
-return
-return
-return
-return
-deactivate someip_network_impl
-
-== Receive event in gatewayd, strip SOME/IP header, deserialize, and forward ==
-
-lola_shm ->> ipc_consumer : Receive handler notification
-activate ipc_consumer
-ipc_consumer -> lola_shm : GenericProxyEvent::GetNewSamples()
-activate lola_shm
-return SamplePtr (contiguous SOME/IP header + payload)
-
-ipc_consumer -> socom_server_gd : update_event(event_id, Payload(data, slot_handle, release_cb))
-activate socom_server_gd
-socom_server_gd -> socom_client_gd : on_event_update(event_id, Payload)
-activate socom_client_gd
-socom_client_gd -> gateway : on_event_update(event_id, Payload)
-activate gateway
-gateway -> gateway : Strip 16-byte SOME/IP header (payload.data().subspan(16))
-gateway -> app_mwcom : Allocate(), score_com_serializer_deserialize(), and Send(sample)
-activate app_mwcom
-return
-return
-return
-return
-note right of ipc_consumer
-Destroying Payload invokes release_cb,
-dropping SamplePtr and returning the LoLa slot.
-end note
-deactivate ipc_consumer
-
+== Receive event in gatewayd and forward to application ==
+lola_shm ->> ipc_consumer : receive handler
+ipc_consumer -> lola_shm : GetNewSamples()
+lola_shm -> ipc_consumer : receiver(SamplePtr), per sample
+ipc_consumer -> socom_srv_gd : update_event(event, payload)
+socom_srv_gd -> socom_cli_gd : on_event_update(event, payload)
+socom_cli_gd -> remote_svc : on_event_update(event, payload)
+remote_svc -> app_mwcom : strip header, deserialize, Send(sample)
+note right of ipc_consumer : The payload owns the SamplePtr.\nDropping it returns the slot.
 @enduml

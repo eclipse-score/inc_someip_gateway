@@ -10,55 +10,42 @@
 '
 ' SPDX-License-Identifier: Apache-2.0
 ' *******************************************************************************
-
 @startuml component_diagram_gatewayd
 left to right direction
-skinparam componentStyle rectangle
+
+interface "LocalServiceInstance" as i_local_svc
+interface "RemoteServiceInstance" as i_remote_svc
 
 package "gatewayd (ASIL_B)" as gatewayd <<component>> #line:red;line.bold {
-    component "gatewayd\n(main.cpp)" as gatewayd_main <<unit>>
-    component "LocalServiceInstance\n(local_service_instance)" as local_service_instance <<unit>>
-    component "RemoteServiceInstance\n(remote_service_instance)" as remote_service_instance <<unit>>
+  component "gatewayd (main.cpp)" as gatewayd_main <<unit>>
+  component "LocalServiceInstance" as local_service_instance <<unit>>
+  component "RemoteServiceInstance" as remote_service_instance <<unit>>
 }
 
-component "SOCom Runtime & Connectors\n(score/socom)" as socom <<component>>
-component "Gateway IPC Binding (mw::com)\n(score/gateway_ipc_binding)" as gateway_ipc_binding <<component>>
-component "Bridged Services Configuration\n(score/bridged_services)" as bridged_services <<component>>
-component "FlatBuffers Configuration\n(score/config)" as config <<component>>
-component "SOME/IP Constants\n(score/someip)" as someip <<component>>
-component "Serializer Plugin ABI\n(score/serializer)" as serializer <<component>> #line:red;line.bold
-component "LoLa IPC Middleware\n(score::mw::com)" as mw_com <<component>>
+component "serializer (ASIL_B)" as serializer <<component>> #line:red;line.bold
 
-interface "LocalServiceInstance::CreateAsyncLocalServices / Create" as i_local_svc
-interface "RemoteServiceInstance::CreateAsyncRemoteService / Create" as i_remote_svc
+package "mw::com" as mw_com <<component>> {
+  component "mw::com::GenericProxy" as proxy <<unit>>
+  component "mw::com::GenericSkeleton" as skeleton <<unit>>
+}
 
-local_service_instance -u- i_local_svc
-remote_service_instance -u- i_remote_svc
+package "socom" as socom <<component>> {
+  component "socom::Server_connector" as server_connector <<unit>>
+  component "socom::Client_connector" as client_connector <<unit>>
+}
 
-gatewayd_main --> i_local_svc : instantiates per local_service_instances
-gatewayd_main --> i_remote_svc : instantiates per remote_service_instances
+component "gateway_ipc_binding" as gateway_ipc_binding <<component>>
 
-gatewayd_main --> config : reads mw_someip_config::Root
-gatewayd_main --> serializer : score_com_serializer_init / deinit &\nscore_com_serializer_get_max_serialized_size
-gatewayd_main --> someip : kSomeipFullHeaderSize, kMaxMessageSize
-gatewayd_main --> bridged_services : bridged_service_configs(Daemon::gatewayd)
-gatewayd_main --> socom : socom::create_runtime()
-gatewayd_main --> gateway_ipc_binding : mw_com::create_client() &\nis_connected()
-gatewayd_main --> mw_com : runtime::InitializeRuntime()
-
-local_service_instance --> mw_com : GenericProxy::StartFindService / StopFindService &\nGenericProxyEvent::SetReceiveHandler, Subscribe, GetNewSamples
-local_service_instance --> serializer : score_com_serializer_get &\nscore_com_serializer_serialize
-local_service_instance --> socom : make_server_connector, enable,\nallocate_event_payload, update_event
-local_service_instance --> someip : kMaxSampleCount
-local_service_instance --> config : reads ServiceType / ServiceInstance / Event
-
-remote_service_instance --> mw_com : GenericSkeleton::Create, OfferService &\nGenericSkeletonEvent::Allocate, Send
-remote_service_instance --> serializer : score_com_serializer_get,\nscore_com_serializer_get_sizeof_type,\nscore_com_serializer_get_alignof_type,\nscore_com_serializer_deserialize
-remote_service_instance --> socom : make_client_connector,\nsubscribe_event, on_event_update
-remote_service_instance --> someip : kSomeipFullHeaderSize
-remote_service_instance --> config : reads ServiceType / ServiceInstance / Event
-
-gateway_ipc_binding --> socom : bridges local SOCom connectors
-gateway_ipc_binding --> mw_com : Someipd_service_proxy &\nbridged_ipc GenericSkeleton / GenericProxy
-
+i_local_svc -- local_service_instance
+i_remote_svc -- remote_service_instance
+gatewayd_main --> local_service_instance : creates
+gatewayd_main --> remote_service_instance : creates
+gatewayd_main --> gateway_ipc_binding : creates client
+local_service_instance --> proxy
+local_service_instance --> serializer : serializes
+local_service_instance --> server_connector
+remote_service_instance --> client_connector
+remote_service_instance --> serializer : deserializes
+remote_service_instance --> skeleton
+gateway_ipc_binding --> socom : bridges
 @enduml

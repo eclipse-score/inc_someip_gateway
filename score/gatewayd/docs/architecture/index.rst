@@ -55,7 +55,7 @@ Static Architecture
    :status: valid
    :belongs_to: comp__gatewayd
 
-   Static decomposition of ``gatewayd`` into ``gatewayd`` (``main.cpp``), ``local_service_instance``, and ``remote_service_instance`` units and their dependencies on ``socom``, ``gateway_ipc_binding``, ``bridged_services``, ``config``, ``someip``, ``serializer``, and ``mw::com``.
+   Static decomposition of ``gatewayd`` into ``gatewayd`` (``main.cpp``), ``LocalServiceInstance``, and ``RemoteServiceInstance`` units and their dependencies on ``mw::com``, ``socom``, ``gateway_ipc_binding``, and ``serializer``.
 
    .. uml:: ../models/component_diagram_gatewayd.puml
       :align: center
@@ -64,7 +64,7 @@ Static Architecture
 Dynamic Architecture
 --------------------
 
-.. comp_arc_dyn:: Gateway Daemon Startup and Event Forwarding
+.. comp_arc_dyn:: Gateway Daemon Event Forwarding
    :id: comp_arc_dyn__gatewayd_arch__event_flow
    :version: 1
    :security: NO
@@ -72,17 +72,14 @@ Dynamic Architecture
    :status: valid
    :belongs_to: comp__gatewayd
 
-   Runtime sequence covering ``gatewayd`` startup and configuration registration with ``someipd``, local service discovery and event forwarding (Application to ``gatewayd`` to ``someipd``), and remote service offering and event forwarding (``someipd`` to ``gatewayd`` to Application).
+   Runtime sequence for local service event forwarding (Application to ``gatewayd`` to ``someipd``) and remote service event forwarding (``someipd`` to ``gatewayd`` to Application).
 
    .. uml:: ../models/sequence_diagram_gatewayd.puml
       :align: center
-      :caption: Gateway Daemon Startup and Event Forwarding Sequence Diagram
+      :caption: Gateway Daemon Event Forwarding Sequence Diagram
 
 Interfaces
 ----------
-
-Provided and Internal Component Interfaces
-******************************************
 
 ``gatewayd`` is an executable daemon process and does not expose a C++ library header to external applications. Internally, the startup orchestrator interacts with two adapter interfaces implemented by ``LocalServiceInstance`` and ``RemoteServiceInstance``.
 
@@ -127,34 +124,3 @@ Provided and Internal Component Interfaces
 
    - ``RemoteServiceInstance::CreateAsyncRemoteService``: Queries event type size and alignment from ``score_com_serializer``, creates the local ``mw::com::GenericSkeleton``, and delegates to ``RemoteServiceInstance::Create``.
    - ``RemoteServiceInstance::Create``: Offers the ``mw::com::GenericSkeleton`` to local applications and registers a ``socom`` client connector that subscribes to remote SOME/IP events, strips the 16-byte header, and publishes deserialized LoLa samples.
-
-Required Interfaces
-*******************
-
-``gatewayd`` consumes the following internal and external interfaces (referenced via ``:uses:`` on :need:`comp__gatewayd`):
-
-- **Gateway IPC Binding** (``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp``):
-
-  - ``score::gateway_ipc_binding::mw_com::create_client`` (:need:`real_arc_int_op__gib_arch__create_client`) and ``Gateway_ipc_binding_client::is_connected`` (:need:`real_arc_int_op__gib_arch__is_connected`): Establishes the ``mw::com`` IPC bridge to ``someipd``, registers the gateway configuration and event slot sizes, and reports when the connection handshake completes.
-
-- **SOCom In-Process Runtime and Connectors** (``score/socom/``):
-
-  - ``score::socom::Runtime::make_client_connector`` (:need:`real_arc_int_op__socom_design__make_client`) and ``make_server_connector`` (:need:`real_arc_int_op__socom_design__make_server`): Create in-process client and server connectors bridged to ``someipd`` via ``gateway_ipc_binding``.
-  - ``score::socom::Disabled_server_connector::enable`` (:need:`real_arc_int_op__socom_design__enable_srv`), ``Enabled_server_connector::allocate_event_payload`` (:need:`real_arc_int_op__socom_design__alloc_payload`), and ``update_event`` (:need:`real_arc_int_op__socom_design__update_event`): Enable the local service bridge, allocate shared-memory event slots, and publish framed SOME/IP events.
-  - ``score::socom::Client_connector::subscribe_event`` (:need:`real_arc_int_op__socom_design__sub_event`) and ``Payload`` byte-span accessors (:need:`real_arc_int_op__socom_design__payload_span`): Subscribe to remote SOME/IP events and access shared-memory payload buffers for header framing and stripping.
-
-- **Bridged Services Configuration Helper** (``score/bridged_services/bridged_service_configs.h``):
-
-  - ``score::bridged_services::bridged_service_configs``: Maps configured local and remote services to provider and consumer bridge descriptors with per-event slot sizes.
-
-- **Serializer Plugin C ABI** (``score/serializer/serializer.h``):
-
-  - ``score_com_serializer`` C ABI: Initializes the serializer plugin, queries event wire size and C++ type layout, and serializes or deserializes event samples.
-
-- **LoLa IPC Middleware** (``@score_communication//score/mw/com``):
-
-  - ``score::mw::com`` Runtime, ``GenericProxy``, and ``GenericSkeleton``: Initializes LoLa IPC, discovers and subscribes to local application services, and offers remote services to local consumers.
-
-- **FlatBuffers Configuration and SOME/IP Constants** (``score/config/``, ``score/someip/``, :need:`comp__someip`):
-
-  - ``score::mw_someip_config::GetRoot`` and ``score::someip`` constants: Provide service/event configuration metadata and SOME/IP protocol constants (16-byte header size, fallback message size, and subscription sample count).

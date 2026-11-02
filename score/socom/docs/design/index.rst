@@ -12,13 +12,10 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-Software design SOCom library
-==============================
-
 .. _software_element_socom:
 
-SOCom library
--------------
+SOCom Architecture
+==================
 
 .. toctree::
    :maxdepth: 5
