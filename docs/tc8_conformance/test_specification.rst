@@ -68,7 +68,7 @@ TC8-SD-002: Offer Entry Format
 
 :OA Spec Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_14-18
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_002_offer_entry_format``
+:Test Function: ``TestSDOfferFormat::test_tc8_sd_002_offer_entry_format``
 :Requirement: ``comp_req__tc8_conformance__sd_offer_format``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -93,7 +93,7 @@ TC8-SD-003: Cyclic Offer Timing
 
 :OA Spec Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_02
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_003_cyclic_offer_timing``
+:Test Function: ``TestSDOfferFormat::test_tc8_sd_003_cyclic_offer_timing``
 :Requirement: ``comp_req__tc8_conformance__sd_cyclic_timing``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -115,7 +115,7 @@ TC8-SD-004: FindService Known Service
 
 :OA Spec Reference: Section 6.1.6, SOMEIP_ETS_171
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_004_find_known_service_unicast_offer``
+:Test Function: ``TestSDFindResponse::test_tc8_sd_004_find_known_service_unicast_offer``
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -139,7 +139,7 @@ TC8-SD-006: Subscribe Eventgroup Ack
 
 :OA Spec Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_13
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_006_subscribe_valid_eventgroup_ack``
+:Test Function: ``TestSDSubscribeLifecycle::test_tc8_sd_006_subscribe_valid_eventgroup_ack``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -164,7 +164,7 @@ TC8-SD-007: Subscribe Unknown Eventgroup Nack
 
 :OA Spec Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19; Section 6.1.6, SOMEIP_ETS_140
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_007_subscribe_unknown_eventgroup_nack``
+:Test Function: ``TestSDSubscribeLifecycle::test_tc8_sd_007_subscribe_unknown_eventgroup_nack``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -187,7 +187,7 @@ TC8-SD-008: StopSubscribe Ceases Notifications
 
 :OA Spec Reference: Section 6.1.6, SOMEIP_ETS_108
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_008_stop_subscribe_ceases_notifications``
+:Test Function: ``TestSDSubscribeLifecycle::test_tc8_sd_008_stop_subscribe_ceases_notifications``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -215,7 +215,7 @@ TC8-SD-009: Repetition Phase Intervals
 
 :OA Spec Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01
 :Test Module: ``test_sd_phases_timing.py``
-:Test Function: ``test_tc8_sd_009_repetition_phase_intervals``
+:Test Function: ``TestSDPhasesTiming::test_tc8_sd_009_repetition_phase_intervals``
 :Requirement: ``comp_req__tc8_conformance__sd_phases_timing``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -240,7 +240,7 @@ TC8-SD-011: IPv4 Endpoint Option
 
 :OA Spec Reference: Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07; Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_011_offer_ipv4_endpoint_option``
+:Test Function: ``TestSDOptionFormat::test_tc8_sd_011_offer_ipv4_endpoint_option``
 :Requirement: ``comp_req__tc8_conformance__sd_endpoint_option``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -264,7 +264,7 @@ TC8-SD-013: Multicast Eventgroup Option
 
 :OA Spec Reference: Section 6.1.5.2, SOMEIPSRV_OPTIONS_08-14
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_013_subscribe_ack_has_multicast_option``
+:Test Function: ``TestSDMulticastEventgroup::test_tc8_sd_013_subscribe_ack_has_multicast_option``
 :Requirement: ``comp_req__tc8_conformance__sd_mcast_eg``
 :DUT Config: ``tc8_someipd_sd.json``
 :Marker: ``@pytest.mark.network`` (requires non-loopback interface)
@@ -295,7 +295,7 @@ TC8-SD-014: TTL Expiry Cleanup
 
 :OA Spec Reference: Section 6.1.6, SOMEIP_ETS_095
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_014_ttl_expiry_ceases_notifications``
+:Test Function: ``TestSDTTLExpiry::test_tc8_sd_014_ttl_expiry_ceases_notifications``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
