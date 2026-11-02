@@ -188,7 +188,7 @@ SD Lifecycle Advanced
 .. note::
 
    TC8-SDLC-011 (SOMEIP_ETS_101) is implemented as ``pytest.skip`` because the
-   DUT has no ETS client mode (``clientServiceActivate``).
+   OA procedure requires the DUT to handle ``clientServiceActivate`` (method 0x2F) to start its client, and the ETS application in this project has no handler for method 0x2F.
 
 SD Message Format
 ^^^^^^^^^^^^^^^^^

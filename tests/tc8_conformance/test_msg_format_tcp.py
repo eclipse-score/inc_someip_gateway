@@ -34,7 +34,7 @@ SOMEIP_CONFIG: str = "tc8_someipd_service.json"
 #: Expected failure for tests that need a SOME/IP method reply from the DUT.
 NO_ECHO_METHODS = pytest.mark.xfail(
     strict=True,
-    reason="DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+    reason="OA SOMEIPSRV_RPC_01: a REQUEST over TCP is expected to get a RESPONSE. Observed: no reply is received",
 )
 
 _CLIENT_ID: int = 0x0010

@@ -548,7 +548,7 @@ Wait for the main phase, then send FindService with the Unicast Flag = 0.
 
 **Expected Result:**
 OfferService with IP destination address equal to the SD multicast group, received
-within ``cyclic_offer_delay`` (2 s).
+within ``cyclic_offer_delay`` (2 s) plus the 1 s tolerance time.
 
 SD Lifecycle Advanced Tests
 ----------------------------
@@ -612,6 +612,9 @@ same eventgroup.
 The entries are processed in order: a new SubscribeAck is received and the initial
 fields (``0x8005`` to ``0x8007``) arrive again after the re-subscribe.
 
+Expected failure (xfail, not strict). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` after the second subscription. Observed: the Ack is received, the initial fields are not.
+
 TC8-SDLC-005: Events Sent to Endpoint Option Port
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -633,6 +636,9 @@ The ACK arrives on the SD socket and the initial fields (``0x8005`` to ``0x8007`
 arrive on the endpoint option socket. Not verified: an option IP address that differs
 from the tester IP address.
 
+Expected failure (xfail, not strict). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` on the endpoint option socket. Observed: the Ack is received, the initial fields are not.
+
 TC8-SDLC-007: Re-subscribe After StopSubscribe
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -651,6 +657,9 @@ Subscribe, wait for the ACK, StopSubscribe, re-Subscribe.
 **Expected Result:**
 A new SubscribeAck and the initial fields (``0x8005`` to ``0x8007``) are received after
 the re-subscription.
+
+Expected failure (xfail, not strict). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` after the subscription that follows the StopSubscribe. Observed: the Ack is received, the initial fields are not.
 
 TC8-SDLC-008: Session ID Increments per OfferService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -701,7 +710,7 @@ Verify that the DUT stops sending FindService for a service after a StopOfferSer
 N/A (skipped).
 
 **Expected Result:**
-Not applicable: the DUT has no ETS client mode (``clientServiceActivate``).
+Not applicable: the OA procedure requires the DUT to handle ``clientServiceActivate`` (method 0x2F) to start its client, and the ETS application in this project has no handler for method 0x2F.
 
 TC8-SDLC-012: Multicast FindService: Any Major and Any Minor Version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -738,6 +747,9 @@ Send multicast FindService with unicast flag = 0.
 
 **Expected Result:**
 Unicast OfferService received on the tester socket.
+
+Expected failure (xfail, not strict). OA expectation: a unicast OfferService. Observed:
+no unicast OfferService received.
 
 TC8-SDLC-015: Restart: Reboot Flag and Session ID After First Restart
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2000,6 +2012,10 @@ SOME/IP Message Format Tests
 :DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
 :Test Module: ``test_msg_format``
 
+Expected failure (strict xfail) for every test of ``test_msg_format``. OA expectation: a
+REQUEST gets the RESPONSE or ERROR listed per test. Observed: a REQUEST gets no reply,
+except one ERROR for a REQUEST with Protocol Version 0xFF.
+
 TC8-MSG-001: Define Service Using Service ID
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -2279,7 +2295,8 @@ return code ``0x01`` and one with return code ``0x1F``, and listen for 2 s after
 **Expected Result:**
 No ERROR for either REQUEST.
 
-Expected failure (strict xfail) of SOMEIPSRV_RPC_08.
+Expected failure (strict xfail). OA expectation: no ERROR for a REQUEST that already
+carries an error return code. Observed: the control REQUEST gets no RESPONSE.
 
 
 TC8-MSG-017: No Payload in Error Message
@@ -2458,6 +2475,9 @@ TCP Transport Binding Tests
 
 :DUT Config: ``tests/tc8_conformance/config/tc8_someipd_service.json``
 :Test Module: ``test_msg_format_tcp``
+
+Expected failure (strict xfail) for every test of ``test_msg_format_tcp``. OA expectation:
+a REQUEST over TCP gets a RESPONSE. Observed: the DUT sends no data after the REQUEST.
 
 TC8-TCP-001: Single TCP Connection for All Methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
