@@ -483,23 +483,23 @@
 <span id="id1"></span><h1>Gateway IPC Binding Architecture<a class="headerlink" href="#gateway-ipc-binding-architecture" title="Link to this heading">#</a></h1>
 <section id="rationale-for-architecture-decomposition">
 <h2>Rationale for Architecture Decomposition<a class="headerlink" href="#rationale-for-architecture-decomposition" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">comp__gateway_ipc_binding</span></code> is decomposed into units that separate daemon-role asymmetry from symmetric per-service bridging and sample framing:</p>
+<p><code class="docutils literal notranslate"><span class="pre">comp__gateway_ipc_binding</span></code> separates the asymmetric daemon-level control channel from symmetric per-service event bridging:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Client_adapter</span></code> and <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code> implement the public <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_client</span></code> and <code class="docutils literal notranslate"><span class="pre">Gateway_ipc_binding_server</span></code> interfaces for <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, respectively. Both adapters own a collection of <code class="docutils literal notranslate"><span class="pre">Service_binding</span></code> instances created via <code class="docutils literal notranslate"><span class="pre">make_service_binding()</span></code> and register undeployed bridged service instances with the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> runtime via <code class="docutils literal notranslate"><span class="pre">add_to_mw_com_runtime()</span></code>. <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code> additionally owns a single-thread <code class="docutils literal notranslate"><span class="pre">ThreadPool</span></code> (<code class="docutils literal notranslate"><span class="pre">ipc_discovery</span></code>) to start consumer service discovery off the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> message-passing callback thread after accepting <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code> and <code class="docutils literal notranslate"><span class="pre">Someipd_service_provider</span></code> isolate the only asymmetric and typed <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> contract in the binding (<code class="docutils literal notranslate"><span class="pre">Someipd_service_interface</span></code>). <code class="docutils literal notranslate"><span class="pre">Someipd_service_provider</span></code> (in <code class="docutils literal notranslate"><span class="pre">someipd</span></code>) offers the <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> skeleton and dispatches incoming <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> method calls; <code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code> (in <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) discovers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> via <code class="docutils literal notranslate"><span class="pre">StartFindService</span></code>, sends <code class="docutils literal notranslate"><span class="pre">Service_configuration</span></code> on every discovered proxy, and maintains the atomic <code class="docutils literal notranslate"><span class="pre">is_connected()</span></code> state.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> and <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> implement the <code class="docutils literal notranslate"><span class="pre">Service_binding</span></code> abstraction for one bridged SOME/IP service instance. Because both <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> simultaneously provide some services and consume others over IPC, separating the per-service role (<code class="docutils literal notranslate"><span class="pre">Role::provider</span></code> vs <code class="docutils literal notranslate"><span class="pre">Role::consumer</span></code>) from the daemon role (client vs server) eliminates duplication:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">Client_adapter</span></code> and <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code> implement the public client (<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) and server (<code class="docutils literal notranslate"><span class="pre">someipd</span></code>) endpoints. Both own the active <code class="docutils literal notranslate"><span class="pre">Service_binding</span></code> instances and register synthesized bridged-service deployments with the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> runtime. <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code> also offloads consumer service discovery onto a dedicated worker thread so discovery never runs inside an <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> method-call handler.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code> and <code class="docutils literal notranslate"><span class="pre">Someipd_service_provider</span></code> isolate the typed <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> control channel. The provider (in <code class="docutils literal notranslate"><span class="pre">someipd</span></code>) offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> and receives runtime service registrations; the consumer (in <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) discovers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, registers <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s configuration and consumer event sizes, and tracks peer connection state.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> and <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> implement per-service event bridging. Because both <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> simultaneously provide some services and consume others over IPC, separating per-service data direction from the client/server daemon role avoids duplicating bridging logic:</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> acts as a local <code class="docutils literal notranslate"><span class="pre">socom::Client_connector</span></code> and forwards availability, subscriptions, and allocated event samples to a <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> discovers the peer’s <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> via <code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxy::StartFindService</span></code> and exposes it locally via a <code class="docutils literal notranslate"><span class="pre">socom::Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">socom::Enabled_server_connector</span></code> pair.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> consumes a local <code class="docutils literal notranslate"><span class="pre">socom</span></code> service and publishes its events through a <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> subscribes to a remote <code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxy</span></code> and exposes the service locally through <code class="docutils literal notranslate"><span class="pre">socom</span></code> server connectors.</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sample_layout</span></code> encapsulates the 8-byte binding metadata prefix (<code class="docutils literal notranslate"><span class="pre">payload_length</span></code> + reserved bytes) and 8-byte alignment rounding required to transport variable-length contiguous SOME/IP messages inside fixed-size <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> LoLa event slots.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample_layout</span></code> encapsulates the 8-byte payload-length prefix and alignment calculation needed to carry variable-length SOME/IP messages inside fixed-size <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> shared-memory slots.</p></li>
 </ul>
-<p>FlatBuffers gateway configuration parsing is kept out of <code class="docutils literal notranslate"><span class="pre">comp__gateway_ipc_binding</span></code>; callers (<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>) use the separate <code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code> helper library (<code class="docutils literal notranslate"><span class="pre">bridged_service_configs()</span></code>) to construct the <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> passed to <code class="docutils literal notranslate"><span class="pre">mw_com::create_client()</span></code> and <code class="docutils literal notranslate"><span class="pre">Gateway_config_handler</span></code>.</p>
+<p>FlatBuffers configuration parsing is kept outside <code class="docutils literal notranslate"><span class="pre">comp__gateway_ipc_binding</span></code> in the separate <code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code> helper library, keeping the IPC binding independent of the gateway configuration schema.</p>
 </section>
 <section id="static-view">
 <h2>Static View<a class="headerlink" href="#static-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-5ac4ce03">
+<div class="need_container docutils container" id="SNCB-a4609a9e">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__gib_arch__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -526,7 +526,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Static decomposition of the Gateway IPC Binding into <code class="docutils literal notranslate"><span class="pre">Client_adapter</span></code>, <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code>, <code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code>, <code class="docutils literal notranslate"><span class="pre">Someipd_service_provider</span></code>, <code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code>, <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code>, and <code class="docutils literal notranslate"><span class="pre">sample_layout</span></code>, and their dependencies on <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> and <code class="docutils literal notranslate"><span class="pre">score::socom</span></code>.</p>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Static decomposition of the Gateway IPC Binding into client/server adapters, the <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> control endpoints, provider/consumer service bindings, and sample framing, showing their relationships with <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> and <code class="docutils literal notranslate"><span class="pre">socom</span></code>.</p>
 <figure class="align-center" id="id2">
 <p class="plantuml">
 <object data="../../_images/plantuml-ad77b0965df1e7d78ecc34df9936f0749164e6aa.svg" type="image/svg+xml" style="width:1414px;height:1179px;background:#FFFFFF;"></object></p>
@@ -553,7 +553,7 @@
 </section>
 <section id="dynamic-view">
 <h2>Dynamic View<a class="headerlink" href="#dynamic-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-38bcc3ad">
+<div class="need_container docutils container" id="SNCB-47de6b90">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__gib_arch__startup_and_events">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -580,7 +580,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Dynamic interactions of the Gateway IPC Binding during daemon startup (offering and discovering <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, registering <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> service configurations and consumer event sizes via <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code>, and starting consumer service discovery on the <code class="docutils literal notranslate"><span class="pre">ipc_discovery</span></code> worker thread) and during zero-copy event sample allocation, transmission, and reception across <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> (LoLa) and <code class="docutils literal notranslate"><span class="pre">score::socom</span></code>.</p>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Startup sequence for <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> discovery and runtime service registration, followed by zero-copy event sample allocation, transmission, and reception between <code class="docutils literal notranslate"><span class="pre">socom</span></code> and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>.</p>
 <figure class="align-center" id="id3">
 <p class="plantuml">
 <object data="../../_images/plantuml-a444f77395e3b79de771e2872afd9ab3c5cc4239.svg" type="image/svg+xml" style="width:1970px;height:1400px;background:#FFFFFF;"></object></p>
@@ -614,7 +614,7 @@
 </section>
 <section id="provided-interfaces">
 <h2>Provided Interfaces<a class="headerlink" href="#provided-interfaces" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-2fbdd79b">
+<div class="need_container docutils container" id="SNCB-304eb38c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gib_arch__client">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -642,7 +642,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Client-side lifecycle and configuration interface exposed to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> via <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_client.hpp</span></code> and <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Client-side lifecycle and configuration interface used by <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to connect its bridged services to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__gib_arch__client" title="real_arc_int__gib_arch__client">real_arc_int__gib_arch__client</a></span></span></div>
@@ -658,7 +658,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-68ab4480">
+<div class="need_container docutils container" id="SNCB-ccccc670">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__create_client">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -687,7 +687,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p><code class="docutils literal notranslate"><span class="pre">score::gateway_ipc_binding::mw_com::create_client()</span></code> accepts <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> (constructed by callers using the separate <code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code> helper library), validates them, synthesizes and registers missing <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> deployment entries via <code class="docutils literal notranslate"><span class="pre">mw::com::runtime::AddConfiguration</span></code>, creates and starts all <code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> and <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> instances in the local <code class="docutils literal notranslate"><span class="pre">socom::Runtime</span></code>, and starts <code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code> discovery to send <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Creates the client-side IPC binding for <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>, sets up the configured bridged service bindings in the local <code class="docutils literal notranslate"><span class="pre">socom</span></code> runtime, and starts <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> discovery to register <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s configuration with <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__gib_arch__create_client" title="real_arc_int_op__gib_arch__create_client">real_arc_int_op__gib_arch__create_client</a></span></span></div>
@@ -703,7 +703,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e028e32b">
+<div class="need_container docutils container" id="SNCB-d5435b96">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__is_connected">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -732,7 +732,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> while the peer <code class="docutils literal notranslate"><span class="pre">someipd</span></code> daemon’s <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> instance is available and has accepted this <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> call, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> while the peer <code class="docutils literal notranslate"><span class="pre">someipd</span></code> daemon is available and has accepted this <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s service configuration.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__gib_arch__is_connected" title="real_arc_int_op__gib_arch__is_connected">real_arc_int_op__gib_arch__is_connected</a></span></span></div>
@@ -748,7 +748,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3220087c">
+<div class="need_container docutils container" id="SNCB-82de7baa">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gib_arch__server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -776,7 +776,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Server-side lifecycle and configuration handler interface exposed to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> via <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_server.hpp</span></code> and <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Server-side lifecycle and configuration handler interface used by <code class="docutils literal notranslate"><span class="pre">someipd</span></code> to accept registrations from <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> peers.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__gib_arch__server" title="real_arc_int__gib_arch__server">real_arc_int__gib_arch__server</a></span></span></div>
@@ -792,7 +792,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-8aa3df83">
+<div class="need_container docutils container" id="SNCB-72ca9e89">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__create_server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -820,7 +820,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Creates a <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code> bound to the local <code class="docutils literal notranslate"><span class="pre">socom::Runtime</span></code>, the <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> <code class="docutils literal notranslate"><span class="pre">InstanceSpecifier</span></code>, and the <code class="docutils literal notranslate"><span class="pre">Gateway_config_handler</span></code> callback invoked when a <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> peer registers its configuration.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Creates the server-side IPC binding for <code class="docutils literal notranslate"><span class="pre">someipd</span></code> with the handler invoked when a <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> peer registers its configuration.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__gib_arch__create_server" title="real_arc_int_op__gib_arch__create_server">real_arc_int_op__gib_arch__create_server</a></span></span></div>
@@ -836,7 +836,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-22646041">
+<div class="need_container docutils container" id="SNCB-7fe31521">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__start_server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -864,7 +864,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Creates the <code class="docutils literal notranslate"><span class="pre">Someipd_service_provider</span></code> skeleton, registers the <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> method handler, and offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> over <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> so <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> peers can discover <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and register their bridged services.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> over <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> so <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> peers can discover <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and register their bridged services.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__gib_arch__start_server" title="real_arc_int_op__gib_arch__start_server">real_arc_int_op__gib_arch__start_server</a></span></span></div>
@@ -880,7 +880,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-18c28f3a">
+<div class="need_container docutils container" id="SNCB-fd8b6d87">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gib_arch__someipd_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -908,7 +908,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Typed <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> service interface (<code class="docutils literal notranslate"><span class="pre">Someipd_service_interface</span></code> with service type <code class="docutils literal notranslate"><span class="pre">/score/someip/SomeipdService</span></code>) used between <code class="docutils literal notranslate"><span class="pre">Client_adapter</span></code> (<code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code>) and <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code> (<code class="docutils literal notranslate"><span class="pre">Someipd_service_provider</span></code>) for peer liveness detection and runtime service configuration registration.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Typed <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> control service (<code class="docutils literal notranslate"><span class="pre">/score/someip/SomeipdService</span></code>) used between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> for peer liveness detection and runtime configuration registration.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__gib_arch__someipd_svc" title="real_arc_int__gib_arch__someipd_svc">real_arc_int__gib_arch__someipd_svc</a></span></span></div>
@@ -924,7 +924,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-10eb3439">
+<div class="need_container docutils container" id="SNCB-a9682870">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__add_svc_cfg">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -952,7 +952,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Transfers a <code class="docutils literal notranslate"><span class="pre">Service_configuration</span></code> struct containing the raw FlatBuffers bytes of <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s <code class="docutils literal notranslate"><span class="pre">mw_someip_config</span></code> (up to 64 KiB) and the <code class="docutils literal notranslate"><span class="pre">Bridged_event_sizes</span></code> (up to 1024 <code class="docutils literal notranslate"><span class="pre">{service_id,</span> <span class="pre">event_id,</span> <span class="pre">max_payload_size}</span></code> entries) from <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, triggering all-or-nothing creation of the corresponding bridged services in <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Transfers <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>’s gateway configuration bytes and consumer event payload sizes to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> for all-or-nothing creation of the corresponding bridged services.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__gib_arch__add_svc_cfg" title="real_arc_int_op__gib_arch__add_svc_cfg">real_arc_int_op__gib_arch__add_svc_cfg</a></span></span></div>
@@ -971,22 +971,18 @@
 </section>
 <section id="required-interfaces">
 <h2>Required Interfaces<a class="headerlink" href="#required-interfaces" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">comp__gateway_ipc_binding</span></code> depends on the following internal and external interfaces:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">score::socom</span></code> (tracked via <code class="docutils literal notranslate"><span class="pre">:uses:</span></code> on <a class="reference internal" href="../index.html#comp__gateway_ipc_binding" title="comp__gateway_ipc_binding"><em class="xref need">Gateway IPC Binding (comp__gateway_ipc_binding)</em></a>):</p>
+<li><p><a class="reference internal" href="../../socom/index.html#comp__socom" title="comp__socom"><em class="xref need">SOCom (comp__socom)</em></a>:</p>
 <ul>
-<li><p><a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_client" title="real_arc_int_op__socom_design__make_client"><em class="xref need">make_client_connector (real_arc_int_op__socom_design__make_client)</em></a> and <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_server" title="real_arc_int_op__socom_design__make_server"><em class="xref need">make_server_connector (real_arc_int_op__socom_design__make_server)</em></a> on <code class="docutils literal notranslate"><span class="pre">socom::Runtime</span></code> to create intra-process <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> endpoints for each bridged service instance.</p></li>
-<li><p><a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__sub_event" title="real_arc_int_op__socom_design__sub_event"><em class="xref need">subscribe_event and unsubsc... (real_arc_int_op__socom_design__sub_event)</em></a> on <code class="docutils literal notranslate"><span class="pre">socom::Client_connector</span></code> to subscribe and unsubscribe to local events when remote <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> receive-handler registrations change.</p></li>
-<li><p><a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__enable_srv" title="real_arc_int_op__socom_design__enable_srv"><em class="xref need">enable and disable (real_arc_int_op__socom_design__enable_srv)</em></a>, <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__alloc_payload" title="real_arc_int_op__socom_design__alloc_payload"><em class="xref need">allocate_event_payload (real_arc_int_op__socom_design__alloc_payload)</em></a>, and <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__update_event" title="real_arc_int_op__socom_design__update_event"><em class="xref need">update_event and update_req... (real_arc_int_op__socom_design__update_event)</em></a> on <code class="docutils literal notranslate"><span class="pre">socom::Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">socom::Enabled_server_connector</span></code> to propagate service availability, allocate sample buffers, and publish incoming <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> event samples.</p></li>
-<li><p><a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__payload_span" title="real_arc_int_op__socom_design__payload_span"><em class="xref need">data, wdata, shrink, and ge... (real_arc_int_op__socom_design__payload_span)</em></a> on <code class="docutils literal notranslate"><span class="pre">socom::Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">socom::Writable_payload</span></code> to wrap LoLa shared-memory sample buffers behind the 8-byte <code class="docutils literal notranslate"><span class="pre">sample_layout</span></code> prefix.</p></li>
+<li><p>Connector creation (<a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_client" title="real_arc_int_op__socom_design__make_client"><em class="xref need">make_client_connector (real_arc_int_op__socom_design__make_client)</em></a>, <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_server" title="real_arc_int_op__socom_design__make_server"><em class="xref need">make_server_connector (real_arc_int_op__socom_design__make_server)</em></a>) to attach local client and server endpoints for each bridged service instance.</p></li>
+<li><p>Event subscription and forwarding (<a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__sub_event" title="real_arc_int_op__socom_design__sub_event"><em class="xref need">subscribe_event and unsubsc... (real_arc_int_op__socom_design__sub_event)</em></a>, <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__enable_srv" title="real_arc_int_op__socom_design__enable_srv"><em class="xref need">enable and disable (real_arc_int_op__socom_design__enable_srv)</em></a>, <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__alloc_payload" title="real_arc_int_op__socom_design__alloc_payload"><em class="xref need">allocate_event_payload (real_arc_int_op__socom_design__alloc_payload)</em></a>, <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__update_event" title="real_arc_int_op__socom_design__update_event"><em class="xref need">update_event and update_req... (real_arc_int_op__socom_design__update_event)</em></a>, <a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__payload_span" title="real_arc_int_op__socom_design__payload_span"><em class="xref need">data, wdata, shrink, and ge... (real_arc_int_op__socom_design__payload_span)</em></a>) to propagate availability and subscriptions and to wrap shared-memory event samples as zero-copy <code class="docutils literal notranslate"><span class="pre">socom</span></code> payloads.</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> (external <code class="docutils literal notranslate"><span class="pre">&#64;score_communication//score/mw/com</span></code> library):</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> (LoLa):</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code> and <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeletonEvent</span></code> (<code class="docutils literal notranslate"><span class="pre">Create</span></code>, <code class="docutils literal notranslate"><span class="pre">OfferService</span></code>, <code class="docutils literal notranslate"><span class="pre">StopOfferService</span></code>, <code class="docutils literal notranslate"><span class="pre">Allocate</span></code>, <code class="docutils literal notranslate"><span class="pre">Send</span></code>, <code class="docutils literal notranslate"><span class="pre">SetReceiveHandlerRegistrationChangedHandler</span></code>) for provider-role bridged service transport.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxyEvent</span></code> (<code class="docutils literal notranslate"><span class="pre">StartFindService</span></code>, <code class="docutils literal notranslate"><span class="pre">StopFindService</span></code>, <code class="docutils literal notranslate"><span class="pre">Create</span></code>, <code class="docutils literal notranslate"><span class="pre">Subscribe</span></code>, <code class="docutils literal notranslate"><span class="pre">Unsubscribe</span></code>, <code class="docutils literal notranslate"><span class="pre">SetReceiveHandler</span></code>, <code class="docutils literal notranslate"><span class="pre">UnsetReceiveHandler</span></code>, <code class="docutils literal notranslate"><span class="pre">GetNewSamples</span></code>) for consumer-role bridged service discovery and reception.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mw::com::AsSkeleton&lt;Someipd_service_interface&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">mw::com::AsProxy&lt;Someipd_service_interface&gt;</span></code> for offering, discovering, and invoking <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> on <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mw::com::runtime::AddConfiguration</span></code> and <code class="docutils literal notranslate"><span class="pre">mw::com::runtime::ResolveInstanceIDs</span></code> for registering synthesized <code class="docutils literal notranslate"><span class="pre">bridged_ipc/&lt;service_type_name&gt;</span></code> deployment configurations at runtime.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> for type-erased shared-memory event transport, service discovery, and subscription notification across bridged services.</p></li>
+<li><p>Typed skeleton and proxy for <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> peer liveness and runtime configuration registration.</p></li>
+<li><p>Runtime configuration registration to synthesize and add bridged service deployments at startup or registration time.</p></li>
 </ul>
 </li>
 </ul>

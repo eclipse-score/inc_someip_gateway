@@ -499,7 +499,7 @@
 <p>The runtime is a (process internal) service instance broker.
 Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
 Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service instance find interface.</p>
+Additionally, it provides a service bridge registration interface to forward service requests across process or network boundaries.</p>
 </section>
 <section id="server-connector">
 <h2><span class="section-number">2.2. </span>Server connector<a class="headerlink" href="#server-connector" title="Link to this heading">#</a></h2>
@@ -523,7 +523,7 @@ The server connector API provides the following features:</p>
 </section>
 <section id="event-and-method-communication">
 <h2><span class="section-number">2.3. </span>Event and Method Communication<a class="headerlink" href="#event-and-method-communication" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-ba45f88a">
+<div class="need_container docutils container" id="SNCB-dea4d95a">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__event_flow">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -599,7 +599,7 @@ Independent method calls share no state.</p>
 <p>The client subscribes to an event.
 On the subscription, SOCom informs the server using the event subscription change callback (<code class="docutils literal notranslate"><span class="pre">Event_state::subscribed</span></code>).
 If no client is subscribed to an event, the server does not send any event updates.</p>
-<p>For zero-copy event updates, the server allocates a <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> via <code class="docutils literal notranslate"><span class="pre">allocate_event_payload()</span></code> (which delegates to the client’s <code class="docutils literal notranslate"><span class="pre">on_event_payload_allocate</span></code> callback), writes the contiguous full SOME/IP message (header + payload) into <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code>, and publishes it via <code class="docutils literal notranslate"><span class="pre">update_event()</span></code>.</p>
+<p>For zero-copy event updates, the server requests a <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> from the subscribed client before writing the contiguous SOME/IP message (header + payload) and publishing the update.</p>
 <p>After unsubscription of the last subscriber, SOCom informs the server that the event is not subscribed anymore (<code class="docutils literal notranslate"><span class="pre">Event_state::unsubscribed</span></code>).
 SOCom keeps track of subscription states and related clients.</p>
 </section>
@@ -626,7 +626,7 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 </section>
 <section id="service-discovery-and-bridging">
 <h2><span class="section-number">2.4. </span>Service Discovery and Bridging<a class="headerlink" href="#service-discovery-and-bridging" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-795687aa">
+<div class="need_container docutils container" id="SNCB-f37e0443">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__discovery">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">

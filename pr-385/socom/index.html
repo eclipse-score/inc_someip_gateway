@@ -478,7 +478,7 @@
                   
   <section id="socom">
 <span id="id1"></span><h1>SOCom<a class="headerlink" href="#socom" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-6a849b7a">
+<div class="need_container docutils container" id="SNCB-e63015b3">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__socom">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -536,13 +536,13 @@ IPC bridge implementations through four primary abstractions:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">Runtime</span></code>: In-process service instance registry, connector factory, and service bridge registration point.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Client_connector</span></code>: Consumer-side endpoint for service availability notifications, event subscriptions, and method invocations.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>: Provider-side state-typed endpoints for offering services, allocating and publishing event updates, and handling method calls.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>: Move-only buffer handle exposing a contiguous byte span (<code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code>) holding the full SOME/IP message (SOME/IP header followed contiguously by payload bytes) and an optional shared-memory <code class="docutils literal notranslate"><span class="pre">slot_handle</span></code> for zero-copy transport.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>: Move-only buffer handles exposing a contiguous byte span for the full SOME/IP message (16-byte SOME/IP header followed by payload bytes) and an optional shared-memory slot handle for zero-copy transport.</p></li>
 </ul>
 <section id="safety-role">
 <h3>Safety Role<a class="headerlink" href="#safety-role" title="Link to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">socom</span></code> is classified as a <code class="docutils literal notranslate"><span class="pre">QM</span></code> component and is instantiated in-process inside both:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>), which frames or strips the 16-byte SOME/IP header contiguously with the payload in <code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code> (enabling future in-place E2E protection in the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> context) and serializes/deserializes application samples.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>), which frames or strips the 16-byte SOME/IP header contiguously with the payload in the buffer span (enabling future in-place E2E protection in the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> context) and serializes or deserializes application samples.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> (<code class="docutils literal notranslate"><span class="pre">QM</span></code>), which bridges <code class="docutils literal notranslate"><span class="pre">socom</span></code> connectors between the SOME/IP network stack and the IPC binding to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p></li>
 </ul>
 <div class="toctree-wrapper compound">

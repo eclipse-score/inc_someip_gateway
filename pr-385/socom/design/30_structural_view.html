@@ -501,11 +501,12 @@ SOCom provides intra-process client/server communication only.</p>
 <h2><span class="section-number">1.1. </span>Rationale for Architecture Decomposition<a class="headerlink" href="#rationale-for-architecture-decomposition" title="Link to this heading">#</a></h2>
 <p>SOCom decomposes in-process service-oriented communication into four orthogonal units:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Runtime</span></code> isolates service discovery, compatibility matching, and bridge registration from steady-state data transfer so connected endpoints communicate directly without central broker contention.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Server_connector</span></code> (split into <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>) encode endpoint role and lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> separate zero-copy memory ownership and contiguous full SOME/IP message span management (<code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code>, <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code>, <code class="docutils literal notranslate"><span class="pre">shrink()</span></code>, and <code class="docutils literal notranslate"><span class="pre">get_slot_handle()</span></code>) from connector routing logic, placing the 16-byte SOME/IP header and payload contiguously in memory (to enable future in-place E2E protection in <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) and allowing <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> to map shared-memory LoLa slots without copying.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Runtime</span></code> isolates service discovery, version-compatibility matching, and bridge registration from steady-state data transfer so connected endpoints communicate directly without central broker contention.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> encapsulates the consumer endpoint for service availability notifications, event subscriptions, and method calls.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Server_connector</span></code> (split into <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>) encodes provider lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> decouple zero-copy buffer ownership and contiguous message span management from connector routing, keeping the 16-byte SOME/IP header and payload contiguous in memory (to support future in-place E2E protection in <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) and allowing <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> to pass shared-memory LoLa slots without copying.</p></li>
 </ul>
-<div class="need_container docutils container" id="SNCB-54754bdb">
+<div class="need_container docutils container" id="SNCB-067e97d7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__socom_design__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -568,7 +569,7 @@ SOCom provides intra-process client/server communication only.</p>
 <p>The Runtime creates and connects Client_connectors and Server_connectors.
 In addition to that it has a plugin interface for adding bridges to cross IPC or network boundaries.
 The Runtime outlives all created Client_connectors and Server_connectors.</p>
-<div class="need_container docutils container" id="SNCB-26e35ffb">
+<div class="need_container docutils container" id="SNCB-e0fda67d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__runtime">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -596,7 +597,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Factory and registry interface (<code class="docutils literal notranslate"><span class="pre">score::socom::Runtime</span></code> and <code class="docutils literal notranslate"><span class="pre">score::socom::create_runtime()</span></code>) for creating client/server connectors and registering service bridges.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>In-process service registry and factory interface (<code class="docutils literal notranslate"><span class="pre">score::socom::Runtime</span></code>) for creating client and server connectors and registering cross-domain service bridges.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__socom_design__runtime" title="real_arc_int__socom_design__runtime">real_arc_int__socom_design__runtime</a></span></span></div>
@@ -612,7 +613,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-924cccc8">
+<div class="need_container docutils container" id="SNCB-db9297e6">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__make_client">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -641,7 +642,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Creates a <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> instance registered for a <code class="docutils literal notranslate"><span class="pre">Service_interface_definition</span></code> and <code class="docutils literal notranslate"><span class="pre">Service_instance</span></code> with user <code class="docutils literal notranslate"><span class="pre">Client_connector::Callbacks</span></code> (and optional <code class="docutils literal notranslate"><span class="pre">Posix_credentials</span></code>).</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Creates and registers a <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> for a target service interface and instance.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__make_client" title="real_arc_int_op__socom_design__make_client">real_arc_int_op__socom_design__make_client</a></span></span></div>
@@ -657,7 +658,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ef649d9e">
+<div class="need_container docutils container" id="SNCB-694fa8cc">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__make_server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -686,7 +687,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Creates a <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> instance registered for a <code class="docutils literal notranslate"><span class="pre">Server_service_interface_definition</span></code> and <code class="docutils literal notranslate"><span class="pre">Service_instance</span></code> with user <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector::Callbacks</span></code> (and optional <code class="docutils literal notranslate"><span class="pre">Posix_credentials</span></code>), and supports registering service bridges via <code class="docutils literal notranslate"><span class="pre">register_service_bridge</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Creates and registers a <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> for a provided service interface and instance, and supports registering service bridges with the runtime.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__make_server" title="real_arc_int_op__socom_design__make_server">real_arc_int_op__socom_design__make_server</a></span></span></div>
@@ -725,7 +726,7 @@ The client connector API provides the following features:</p>
 <li><p>requested event update indication</p></li>
 <li><p>event payload allocation callback for zero-copy reception</p></li>
 </ul>
-<div class="need_container docutils container" id="SNCB-ab5e9da0">
+<div class="need_container docutils container" id="SNCB-42a1691c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__client_conn">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -753,7 +754,7 @@ The client connector API provides the following features:</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Consumer-side service interface (<code class="docutils literal notranslate"><span class="pre">score::socom::Client_connector</span></code>) for subscribing to events, requesting event updates, allocating method call payloads, and invoking methods.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Consumer-side connector interface (<code class="docutils literal notranslate"><span class="pre">score::socom::Client_connector</span></code>) for receiving service state updates, subscribing to events, and invoking methods.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__socom_design__client_conn" title="real_arc_int__socom_design__client_conn">real_arc_int__socom_design__client_conn</a></span></span></div>
@@ -769,7 +770,7 @@ The client connector API provides the following features:</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-48d641b3">
+<div class="need_container docutils container" id="SNCB-ed41e41d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__sub_event">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -798,7 +799,7 @@ The client connector API provides the following features:</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Subscribes to or unsubscribes from an <code class="docutils literal notranslate"><span class="pre">Event_id</span></code> (with <code class="docutils literal notranslate"><span class="pre">Event_mode::update</span></code> or <code class="docutils literal notranslate"><span class="pre">Event_mode::update_and_initial_value</span></code>) and requests on-demand updates via <code class="docutils literal notranslate"><span class="pre">request_event_update</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Subscribes to or unsubscribes from service events (with optional initial-value request for fields) and requests on-demand event updates.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__sub_event" title="real_arc_int_op__socom_design__sub_event">real_arc_int_op__socom_design__sub_event</a></span></span></div>
@@ -814,7 +815,7 @@ The client connector API provides the following features:</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-69a6f99a">
+<div class="need_container docutils container" id="SNCB-39ac9ea7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__call_method">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -842,7 +843,7 @@ The client connector API provides the following features:</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Allocates a <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> for a method call via <code class="docutils literal notranslate"><span class="pre">allocate_method_call_payload</span></code> and invokes <code class="docutils literal notranslate"><span class="pre">call_method</span></code> with a <code class="docutils literal notranslate"><span class="pre">Payload</span></code> and optional <code class="docutils literal notranslate"><span class="pre">Method_call_reply_data</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Allocates method-call request buffers and invokes asynchronous RPC methods (with optional reply handling or fire-and-forget).</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__call_method" title="real_arc_int_op__socom_design__call_method">real_arc_int_op__socom_design__call_method</a></span></span></div>
@@ -863,7 +864,7 @@ The client connector API provides the following features:</p>
 <span id="server-connector-component"></span><h2><span class="section-number">1.4. </span>Server connector<a class="headerlink" href="#server-connector" title="Link to this heading">#</a></h2>
 <p>The Server_connector represents a service, which is used by a Client_connector.
 It can send event updates and respond to method calls.</p>
-<div class="need_container docutils container" id="SNCB-fc95cabe">
+<div class="need_container docutils container" id="SNCB-89976f7c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__server_conn">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -891,7 +892,7 @@ It can send event updates and respond to method calls.</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Provider-side service interfaces (<code class="docutils literal notranslate"><span class="pre">score::socom::Disabled_server_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">score::socom::Enabled_server_connector</span></code>) for enabling/disabling service availability, allocating event payloads, and publishing event updates.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Provider-side connector interfaces (<code class="docutils literal notranslate"><span class="pre">score::socom::Disabled_server_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">score::socom::Enabled_server_connector</span></code>) for controlling service availability, publishing events, and handling method calls.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__socom_design__server_conn" title="real_arc_int__socom_design__server_conn">real_arc_int__socom_design__server_conn</a></span></span></div>
@@ -907,7 +908,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-10fa2c38">
+<div class="need_container docutils container" id="SNCB-4c9d56db">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__enable_srv">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -936,7 +937,7 @@ It can send event updates and respond to method calls.</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Transitions a server connector between <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code> via <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector::enable</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector::disable</span></code>, notifying matching <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> instances of <code class="docutils literal notranslate"><span class="pre">Service_state</span></code> changes.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Transitions a server connector between disabled and enabled states and notifies matching clients of service availability changes.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__enable_srv" title="real_arc_int_op__socom_design__enable_srv">real_arc_int_op__socom_design__enable_srv</a></span></span></div>
@@ -952,7 +953,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-c007cfc5">
+<div class="need_container docutils container" id="SNCB-bfaa7bd0">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__alloc_payload">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -981,7 +982,7 @@ It can send event updates and respond to method calls.</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Allocates a zero-copy <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> for a given <code class="docutils literal notranslate"><span class="pre">Event_id</span></code> by delegating to the subscribed <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> callback <code class="docutils literal notranslate"><span class="pre">on_event_payload_allocate</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Allocates a writable event buffer from the subscribed client endpoint for zero-copy event transmission.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__alloc_payload" title="real_arc_int_op__socom_design__alloc_payload">real_arc_int_op__socom_design__alloc_payload</a></span></span></div>
@@ -997,7 +998,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3655d825">
+<div class="need_container docutils container" id="SNCB-d458e5e4">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__update_event">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1026,7 +1027,7 @@ It can send event updates and respond to method calls.</p>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Publishes a <code class="docutils literal notranslate"><span class="pre">Payload</span></code> containing the full SOME/IP message to the subscribed <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> via <code class="docutils literal notranslate"><span class="pre">update_event</span></code> or to an update-requesting client via <code class="docutils literal notranslate"><span class="pre">update_requested_event</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Publishes an event payload to the subscribed client or responds to a pending on-demand event update request.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__update_event" title="real_arc_int_op__socom_design__update_event">real_arc_int_op__socom_design__update_event</a></span></span></div>
@@ -1045,9 +1046,9 @@ It can send event updates and respond to method calls.</p>
 </section>
 <section id="payload">
 <span id="payload-component"></span><h2><span class="section-number">1.5. </span>Payload<a class="headerlink" href="#payload" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> represent the contiguous message buffer transferred across SOCom connectors.
-In the SOME/IP gateway, <code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code> hold the full SOME/IP message (16-byte header + payload) in contiguous memory (to enable future in-place E2E protection in <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> without copying), while <code class="docutils literal notranslate"><span class="pre">get_slot_handle()</span></code> tracks the underlying shared-memory slot across the IPC binding.</p>
-<div class="need_container docutils container" id="SNCB-0c621537">
+<p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> represent the move-only message buffer transferred across SOCom connectors.
+In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte header followed contiguously by payload bytes) so <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> can frame or strip headers and support future in-place E2E protection without copying, while an optional slot handle identifies the underlying LoLa shared-memory slot across <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code>.</p>
+<div class="need_container docutils container" id="SNCB-e6ef8adb">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__payload">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1075,7 +1076,7 @@ In the SOME/IP gateway, <code class="docutils literal notranslate"><span class="
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Contiguous byte-span buffer interfaces (<code class="docutils literal notranslate"><span class="pre">score::socom::Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">score::socom::Writable_payload</span></code>) with RAII release callback and shared-memory slot handle tracking.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Move-only message buffer interfaces (<code class="docutils literal notranslate"><span class="pre">score::socom::Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">score::socom::Writable_payload</span></code>) providing contiguous byte-span access, RAII memory release, and shared-memory slot identification.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__socom_design__payload" title="real_arc_int__socom_design__payload">real_arc_int__socom_design__payload</a></span></span></div>
@@ -1091,7 +1092,7 @@ In the SOME/IP gateway, <code class="docutils literal notranslate"><span class="
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3ee76168">
+<div class="need_container docutils container" id="SNCB-a4d94182">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__payload_span">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1120,7 +1121,7 @@ In the SOME/IP gateway, <code class="docutils literal notranslate"><span class="
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Provides read-only access to the contiguous full SOME/IP message via <code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code>, writable access via <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code>, payload size reduction via <code class="docutils literal notranslate"><span class="pre">Writable_payload::shrink()</span></code>, and shared-memory slot identification via <code class="docutils literal notranslate"><span class="pre">Payload::get_slot_handle()</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Provides read-only and writable byte-span access to the contiguous SOME/IP message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__payload_span" title="real_arc_int_op__socom_design__payload_span">real_arc_int_op__socom_design__payload_span</a></span></span></div>
@@ -1139,11 +1140,11 @@ In the SOME/IP gateway, <code class="docutils literal notranslate"><span class="
 </section>
 <section id="required-interfaces">
 <h2><span class="section-number">1.6. </span>Required Interfaces<a class="headerlink" href="#required-interfaces" title="Link to this heading">#</a></h2>
-<p>SOCom depends exclusively on <code class="docutils literal notranslate"><span class="pre">score_baselibs</span></code>:</p>
+<p>SOCom has no external network or IPC dependencies and relies only on <code class="docutils literal notranslate"><span class="pre">score_baselibs</span></code> utilities:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">score::Result</span></code> (<code class="docutils literal notranslate"><span class="pre">&#64;score_baselibs//score/result</span></code>) for error-code-based return values across connector and runtime operations.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">score::cpp::span</span></code> and <code class="docutils literal notranslate"><span class="pre">score::cpp::move_only_function</span></code> (<code class="docutils literal notranslate"><span class="pre">&#64;score_baselibs//score/language/futurecpp</span></code>) for contiguous byte views in <code class="docutils literal notranslate"><span class="pre">Payload</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> and non-copyable callbacks.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">score::mw::log</span></code> (<code class="docutils literal notranslate"><span class="pre">&#64;score_baselibs//score/mw/log</span></code>) used in <code class="docutils literal notranslate"><span class="pre">runtime_impl.cpp</span></code> for version-incompatibility error logging (while connector callback deadlock detection writes to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> and calls <code class="docutils literal notranslate"><span class="pre">std::abort()</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score::Result</span></code> for explicit error propagation across runtime and connector operations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score::cpp::span</span></code>, <code class="docutils literal notranslate"><span class="pre">score::cpp::move_only_function</span></code>, and <code class="docutils literal notranslate"><span class="pre">score::utils::ScopeExit</span></code> for contiguous byte views, move-only callbacks, and RAII cleanup actions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">score::mw::log</span></code> for runtime diagnostic logging (such as interface minor-version mismatches).</p></li>
 </ul>
 </section>
 </section>

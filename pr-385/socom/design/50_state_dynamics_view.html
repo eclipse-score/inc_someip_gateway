@@ -516,8 +516,8 @@ No event subscription or transmission is possible.</p></td>
 No event update is received in this state.</p></td>
 </tr>
 <tr class="row-even"><td><p>Event_state::subscribed</p></td>
-<td><p>The client is subscribed to the event while <code class="docutils literal notranslate"><span class="pre">Service_state::available</span></code> holds.
-The server connector is notified via <code class="docutils literal notranslate"><span class="pre">on_event_subscription_change(Event_state::subscribed)</span></code> on the first subscriber, and event updates published by the server are delivered immediately without a separate subscription-pending or acknowledgement state.</p></td>
+<td><p>The client is subscribed to the event while the service is available.
+Event updates published by the server are delivered to the client without a separate subscription-pending or acknowledgement state.</p></td>
 </tr>
 </tbody>
 </table>
@@ -531,16 +531,16 @@ The server connector is notified via <code class="docutils literal notranslate">
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Client_connector::subscribe_event()</p></td>
-<td><p>The user calls <code class="docutils literal notranslate"><span class="pre">Client_connector::subscribe_event()</span></code> to transition from <code class="docutils literal notranslate"><span class="pre">Event_state::unsubscribed</span></code> to <code class="docutils literal notranslate"><span class="pre">Event_state::subscribed</span></code>.</p></td>
+<td><p>Subscribes the client to an event.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Client_connector::unsubscribe_event()</p></td>
-<td><p>The user calls <code class="docutils literal notranslate"><span class="pre">Client_connector::unsubscribe_event()</span></code> to transition from <code class="docutils literal notranslate"><span class="pre">Event_state::subscribed</span></code> to <code class="docutils literal notranslate"><span class="pre">Event_state::unsubscribed</span></code>.</p></td>
+<td><p>Unsubscribes the client from an event.</p></td>
 </tr>
 <tr class="row-even"><td><p>Client_connector::Callbacks::on_service_state_change(Service_state::available)</p></td>
-<td><p>SOCom calls the user callback <code class="docutils literal notranslate"><span class="pre">on_service_state_change(Service_state::available)</span></code>, entering <code class="docutils literal notranslate"><span class="pre">Event_state::unsubscribed</span></code>.</p></td>
+<td><p>Notifies the client that the service is available; events start unsubscribed.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Client_connector::Callbacks::on_service_state_change(Service_state::not_available)</p></td>
-<td><p>SOCom calls the user callback <code class="docutils literal notranslate"><span class="pre">on_service_state_change(Service_state::not_available)</span></code>, dropping any active subscription.</p></td>
+<td><p>Notifies the client that the service is no longer available, dropping any active subscriptions.</p></td>
 </tr>
 </tbody>
 </table>
