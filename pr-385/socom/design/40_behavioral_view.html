@@ -521,9 +521,11 @@ The server connector API provides the following features:</p>
 <li><p>update requested event</p></li>
 </ul>
 </section>
+<section id="dynamic-architecture">
+<h2><span class="section-number">2.3. </span>Dynamic Architecture<a class="headerlink" href="#dynamic-architecture" title="Link to this heading">#</a></h2>
 <section id="event-and-method-communication">
-<h2><span class="section-number">2.3. </span>Event and Method Communication<a class="headerlink" href="#event-and-method-communication" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-2f7c4dc5">
+<h3><span class="section-number">2.3.1. </span>Event and Method Communication<a class="headerlink" href="#event-and-method-communication" title="Link to this heading">#</a></h3>
+<div class="need_container docutils container" id="SNCB-5b4ecca7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__event_flow">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -589,13 +591,13 @@ The server connector API provides the following features:</p>
 </div>
 </div>
 <section id="method-communication">
-<h3><span class="section-number">2.3.1. </span>Method Communication<a class="headerlink" href="#method-communication" title="Link to this heading">#</a></h3>
+<h4><span class="section-number">2.3.1.1. </span>Method Communication<a class="headerlink" href="#method-communication" title="Link to this heading">#</a></h4>
 <p>Methods calls are routed 1:1 from client to server application.
 If a method reply is requested, the calling client is served with the related reply.
 Independent method calls share no state.</p>
 </section>
 <section id="event-communication">
-<h3><span class="section-number">2.3.2. </span>Event Communication<a class="headerlink" href="#event-communication" title="Link to this heading">#</a></h3>
+<h4><span class="section-number">2.3.1.2. </span>Event Communication<a class="headerlink" href="#event-communication" title="Link to this heading">#</a></h4>
 <p>The client subscribes to an event.
 On the subscription, SOCom informs the server using the event subscription change callback (<code class="docutils literal notranslate"><span class="pre">Event_state::subscribed</span></code>).
 If no client is subscribed to an event, the server does not send any event updates.</p>
@@ -604,7 +606,7 @@ If no client is subscribed to an event, the server does not send any event updat
 SOCom keeps track of subscription states and related clients.</p>
 </section>
 <section id="field-notification-communication">
-<h3><span class="section-number">2.3.3. </span>Field Notification Communication<a class="headerlink" href="#field-notification-communication" title="Link to this heading">#</a></h3>
+<h4><span class="section-number">2.3.1.3. </span>Field Notification Communication<a class="headerlink" href="#field-notification-communication" title="Link to this heading">#</a></h4>
 <p>A field notification is implemented as an event with event update on subscription.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -625,8 +627,8 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 </section>
 </section>
 <section id="service-discovery-and-bridging">
-<h2><span class="section-number">2.4. </span>Service Discovery and Bridging<a class="headerlink" href="#service-discovery-and-bridging" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-dffeb38d">
+<h3><span class="section-number">2.3.2. </span>Service Discovery and Bridging<a class="headerlink" href="#service-discovery-and-bridging" title="Link to this heading">#</a></h3>
+<div class="need_container docutils container" id="SNCB-0faf60de">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__discovery">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -685,20 +687,21 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 </div>
 </div>
 <section id="service-gateway-require-service">
-<h3><span class="section-number">2.4.1. </span>Service Gateway - require service<a class="headerlink" href="#service-gateway-require-service" title="Link to this heading">#</a></h3>
+<h4><span class="section-number">2.3.2.1. </span>Service Gateway - require service<a class="headerlink" href="#service-gateway-require-service" title="Link to this heading">#</a></h4>
 <p>The creation of client connectors is forwarded to bridges as request_service() calls.
 Service bridges look up the required service instance within their domain.
 If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).</p>
 </section>
 <section id="service-gateway-provide-service">
-<h3><span class="section-number">2.4.2. </span>Service Gateway - provide service<a class="headerlink" href="#service-gateway-provide-service" title="Link to this heading">#</a></h3>
+<h4><span class="section-number">2.3.2.2. </span>Service Gateway - provide service<a class="headerlink" href="#service-gateway-provide-service" title="Link to this heading">#</a></h4>
 <p>The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
 Service bridges provide this information within their domain.
 If any domain partner requests the service instance, the service bridge forwards all communication using this proxy client connector.</p>
 </section>
 </section>
+</section>
 <section id="deadlock-detection">
-<h2><span class="section-number">2.5. </span>Deadlock detection<a class="headerlink" href="#deadlock-detection" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.4. </span>Deadlock detection<a class="headerlink" href="#deadlock-detection" title="Link to this heading">#</a></h2>
 <p>In order to facilitate deadlock detection, before a callback is called by a Client_connector or
 Server_connector the thread id of the caller is saved.
 After the callback returns, the previously saved thread id is removed.
@@ -706,7 +709,7 @@ If the calling object is destructed prematurely the deadlock is detected by chec
 id is still present, printing an error message to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> and terminating the application via <code class="docutils literal notranslate"><span class="pre">std::abort()</span></code>.</p>
 </section>
 <section id="client-connector-deadlocks">
-<h2><span class="section-number">2.6. </span>Client_connector deadlocks<a class="headerlink" href="#client-connector-deadlocks" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.5. </span>Client_connector deadlocks<a class="headerlink" href="#client-connector-deadlocks" title="Link to this heading">#</a></h2>
 <p>When a running callback destroys the calling Client_connector a deadlock will happen, which will cause the application to be terminated.</p>
 <p>The deadlock is caused because the Client_connector destructor waits for the callback to return.
 The callback on the other hand waits for the destructor to return.</p>
@@ -719,7 +722,7 @@ The callback on the other hand waits for the destructor to return.</p>
 </figure>
 </section>
 <section id="server-connector-deadlocks">
-<h2><span class="section-number">2.7. </span>Server_connector deadlocks<a class="headerlink" href="#server-connector-deadlocks" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.6. </span>Server_connector deadlocks<a class="headerlink" href="#server-connector-deadlocks" title="Link to this heading">#</a></h2>
 <p>When a running callback destroys the calling Server_connector a deadlock will happen, which will cause the application to be terminated.</p>
 <p>The deadlock is caused because the Server_connector destructor waits for the callback to return.
 The callback on the other hand waits for the destructor to return.</p>
@@ -782,20 +785,23 @@ The callback on the other hand waits for the destructor to return.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">2.1. Runtime</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector">2.2. Server connector</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#event-and-method-communication">2.3. Event and Method Communication</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3.1. Method Communication</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.3.2. Event Communication</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.3.3. Field Notification Communication</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamic-architecture">2.3. Dynamic Architecture</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-and-method-communication">2.3.1. Event and Method Communication</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3.1.1. Method Communication</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.3.1.2. Event Communication</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.3.1.3. Field Notification Communication</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#service-discovery-and-bridging">2.4. Service Discovery and Bridging</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-require-service">2.4.1. Service Gateway - require service</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-provide-service">2.4.2. Service Gateway - provide service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-discovery-and-bridging">2.3.2. Service Discovery and Bridging</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-require-service">2.3.2.1. Service Gateway - require service</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-provide-service">2.3.2.2. Service Gateway - provide service</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlock-detection">2.5. Deadlock detection</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#client-connector-deadlocks">2.6. Client_connector deadlocks</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector-deadlocks">2.7. Server_connector deadlocks</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlock-detection">2.4. Deadlock detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#client-connector-deadlocks">2.5. Client_connector deadlocks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector-deadlocks">2.6. Server_connector deadlocks</a></li>
 </ul>
   </nav></div>
 
