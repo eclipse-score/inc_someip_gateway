@@ -32,13 +32,13 @@ Rationale for Architecture Decomposition
 
 ``gatewayd`` is decomposed into three cohesive implementation units aligned with its Bazel target structure in ``score/gatewayd/BUILD.bazel``:
 
-1. **Main Startup Orchestrator (``main_orchestrator``, ``score/gatewayd/main.cpp``)**:
+1. **Main Startup Orchestrator** (``main_orchestrator``, ``score/gatewayd/main.cpp``):
    Parses command-line paths for the FlatBuffers gateway configuration (``--configuration``) and ``mw::com`` manifest (``--service_instance_manifest``), initializes the ``score_com_serializer`` C plugin and ``score::mw::com`` runtime, creates the ``score::socom::Runtime``, computes per-event shared-memory slot sizes via ``event_slot_size()`` (``score_com_serializer_get_max_serialized_size() + kSomeipFullHeaderSize``), establishes the ``mw::com`` IPC binding client to ``someipd`` via ``gateway_ipc_binding::mw_com::create_client()``, waits for ``binding_client->is_connected()``, and launches asynchronous discovery and offering for all configured local and remote service instances.
 
-2. **LocalServiceInstance Adapter (``local_service_instance``, ``score/gatewayd/impl/local_service_instance.h/.cpp``)**:
+2. **LocalServiceInstance Adapter** (``local_service_instance``, ``score/gatewayd/impl/local_service_instance.h/.cpp``):
    Implements the *Application-to-Network* bridge for a locally provided service instance. It discovers the local application's service via ``mw::com::GenericProxy::StartFindService``, creates and enables a ``socom::Enabled_server_connector`` (which ``gateway_ipc_binding`` bridges to ``someipd`` as a ``Role::provider`` ``GenericSkeleton``), subscribes to application ``GenericProxyEvent`` updates, and on each sample allocates a contiguous shared-memory ``socom::Writable_payload``, writes the 16-byte SOME/IP header followed by the serialized sample via ``score_com_serializer_serialize()``, shrinks the payload to the exact byte length, and publishes it via ``Enabled_server_connector::update_event()``.
 
-3. **RemoteServiceInstance Adapter (``remote_service_instance``, ``score/gatewayd/impl/remote_service_instance.h/.cpp``)**:
+3. **RemoteServiceInstance Adapter** (``remote_service_instance``, ``score/gatewayd/impl/remote_service_instance.h/.cpp``):
    Implements the *Network-to-Application* bridge for a remotely provided SOME/IP service instance. It queries ``score_com_serializer`` for the application C++ type size and alignment (``score_com_serializer_get_sizeof_type`` / ``score_com_serializer_get_alignof_type``), creates and offers a local ``mw::com::GenericSkeleton`` to consumer applications on the ECU, registers a ``socom::Client_connector`` (which ``gateway_ipc_binding`` bridges to ``someipd`` as a ``Role::consumer`` ``GenericProxy``), subscribes to all configured SOME/IP events when the service becomes available, and in ``forward_event()`` strips the 16-byte SOME/IP header (``payload.data().subspan(kSomeipFullHeaderSize)``), allocates a LoLa sample via ``GenericSkeletonEvent::Allocate()``, deserializes the payload via ``score_com_serializer_deserialize()``, and sends it to local consumers via ``GenericSkeletonEvent::Send()``.
 
 Static View
@@ -127,12 +127,12 @@ Required Interfaces
 
 ``gatewayd`` consumes the following internal and external interfaces (referenced via ``:uses:`` on :need:`comp__gatewayd`):
 
-- **Gateway IPC Binding (``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp``)**:
+- **Gateway IPC Binding** (``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp``):
 
   - ``score::gateway_ipc_binding::mw_com::create_client`` (:need:`real_arc_int_op__gib_arch__create_client`): Instantiates the ``mw::com``-based IPC bridge client, synthesizes ``bridged_ipc/<service_type_name>`` deployments, and sends the FlatBuffers configuration and consumer event slot sizes to ``someipd`` via ``SomeipdService::AddServiceConfiguration``.
   - ``score::gateway_ipc_binding::Gateway_ipc_binding_client::is_connected`` (:need:`real_arc_int_op__gib_arch__is_connected`): Polled during startup to block service instance creation until ``someipd`` has accepted ``AddServiceConfiguration``.
 
-- **SOCom In-Process Runtime and Connectors (``score/socom/``)**:
+- **SOCom In-Process Runtime and Connectors** (``score/socom/``):
 
   - ``score::socom::Runtime::make_client_connector`` (:need:`real_arc_int_op__socom_design__make_client`) and ``score::socom::Runtime::make_server_connector`` (:need:`real_arc_int_op__socom_design__make_server`): Create in-process connectors that couple ``LocalServiceInstance`` and ``RemoteServiceInstance`` to the ``gateway_ipc_binding`` bridge.
   - ``score::socom::Disabled_server_connector::enable`` (:need:`real_arc_int_op__socom_design__enable_srv`): Enables the server connector once a local application service is discovered.
@@ -140,23 +140,23 @@ Required Interfaces
   - ``score::socom::Client_connector::subscribe_event`` (:need:`real_arc_int_op__socom_design__sub_event`): Subscribes to remote SOME/IP events when the bridged service becomes available.
   - ``score::socom::Payload::data`` / ``Writable_payload::wdata`` / ``shrink`` (:need:`real_arc_int_op__socom_design__payload_span`): Provide byte-span access for SOME/IP header framing/stripping and payload sizing.
 
-- **Bridged Services Configuration Helper (``score/bridged_services/bridged_service_configs.h``)**:
+- **Bridged Services Configuration Helper** (``score/bridged_services/bridged_service_configs.h``):
 
   - ``score::bridged_services::bridged_service_configs(config, Daemon::gatewayd, event_slot_size)``: Builds the ``Service_configs`` vector mapping local service types to ``Role::provider`` and remote service types to ``Role::consumer``, sizing each event slot via ``event_slot_size``.
 
-- **Serializer Plugin C ABI (``score/serializer/serializer.h``)**:
+- **Serializer Plugin C ABI** (``score/serializer/serializer.h``):
 
   - ``score_com_serializer_init`` / ``score_com_serializer_deinit``: Initializes and cleans up the serializer plugin.
   - ``score_com_serializer_get``: Looks up the ``score_com_serializer`` descriptor for a ``(service_type, event_name)`` pair.
   - ``score_com_serializer_get_max_serialized_size`` / ``score_com_serializer_get_sizeof_type`` / ``score_com_serializer_get_alignof_type``: Queries maximum wire size (for IPC slot sizing) and C++ sample size/alignment (for ``mw::com::GenericSkeleton`` creation).
   - ``score_com_serializer_serialize`` / ``score_com_serializer_deserialize``: Converts between in-memory C++ application samples and wire-format SOME/IP payloads.
 
-- **LoLa IPC Middleware (``@score_communication//score/mw/com``)**:
+- **LoLa IPC Middleware** (``@score_communication//score/mw/com``):
 
   - ``score::mw::com::runtime::InitializeRuntime``: Initializes the LoLa runtime from ``--service_instance_manifest``.
   - ``score::mw::com::GenericProxy`` / ``GenericProxyEvent``: Discovers local application services (``StartFindService``, ``StopFindService``) and consumes event samples (``Subscribe``, ``SetReceiveHandler``, ``GetNewSamples``).
   - ``score::mw::com::GenericSkeleton`` / ``GenericSkeletonEvent``: Offers remote services locally (``Create``, ``OfferService``) and publishes deserialized event samples (``Allocate``, ``Send``).
 
-- **FlatBuffers Gateway Configuration Schema (``score/config/mw_someip_config_generated.h``)**:
+- **FlatBuffers Gateway Configuration Schema** (``score/config/mw_someip_config_generated.h``):
 
   - ``score::mw_someip_config::GetRoot``: Parses ``ServiceType``, ``ServiceInstance`` (``local_service_instances`` and ``remote_service_instances``), and ``Event`` metadata.

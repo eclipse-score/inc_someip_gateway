@@ -20,9 +20,9 @@ Architectural Design Decision: Dynamic Registration for SOME/IP Gateway
    :status: accepted
    :version: 1
    :decision:
-      Gateway processes dynamically register their communication requirements (FlatBuffers ``mw_someip_config`` service/event configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process (``someipd``) at runtime via the ``AddServiceConfiguration`` method on the dedicated typed ``SomeipdService`` ``mw::com`` IPC interface.
+      Gateway processes dynamically register their communication requirements (FlatBuffers mw_someip_config service/event configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process (someipd) at runtime via the AddServiceConfiguration method on the dedicated typed SomeipdService mw::com IPC interface.
    :context:
-      The SOME/IP Gateway architecture separates the core communication stack (``someipd``) from one or more gateway processes (``gatewayd``). This is necessary for safety separation (``ASIL_B`` vs. ``QM``) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the ``gatewayd`` client processes to inform the central ``someipd`` server process of their routing and service bridging needs at runtime.
+      The SOME/IP Gateway architecture separates the core communication stack (someipd) from one or more gateway processes (gatewayd). This is necessary for safety separation (ASIL_B vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gatewayd client processes to inform the central someipd server process of their routing and service bridging needs at runtime.
 
 
 Alternatives Considered
@@ -105,7 +105,7 @@ Disadvantages
 Justification for the Decision
 ------------------------------
 
-The **Dynamic Registration via ``SomeipdService::AddServiceConfiguration`` over ``mw::com``** approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:
+The **Dynamic Registration** via ``SomeipdService::AddServiceConfiguration`` over ``mw::com`` approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:
 
 *  **Flexibility and Independent Startup:**
    ``someipd`` starts without any static service configuration of its own and offers ``SomeipdService`` (``/score/someip/SomeipdService``).

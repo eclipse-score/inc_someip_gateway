@@ -32,10 +32,6 @@ The daemons use ``mw::com`` (LoLa) for event transport, service discovery, share
 ownership, and peer liveness. Bridged services use generic proxies and skeletons, while
 ``SomeipdService`` transfers gateway configuration and reports peer availability.
 
-.. uml:: models/component_diagram_gateway_ipc_binding_mw_com.puml
-   :align: center
-   :caption: Gateway IPC Binding component diagram
-
 Overview
 ========
 
@@ -45,7 +41,7 @@ This is the Gateway IPC Binding implementation used by ``gatewayd`` and ``someip
 Because ``mw::com`` already provides service discovery, subscription management, shared-memory transport and
 slot lifetime management, this implementation has **no IPC protocol of its own**. There are no message ids, no
 wire format and no shared-memory slot manager. The entire design question is therefore: *how are SOME/IP
-services mapped onto ``mw::com`` features?*
+services mapped onto mw::com features?*
 
 The one thing ``mw::com`` does not give away for free is peer liveness, because per-service availability
 cannot distinguish "the peer is down" from "the peer is up but the service is not there". That is solved with
