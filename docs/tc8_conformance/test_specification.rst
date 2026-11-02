@@ -78,7 +78,7 @@ instance ID, major/minor version, and TTL as configured.
 
 **Preconditions:**
 
-- ``someipd`` started without ``gatewayd``
+- ``someipd``, the ETS stub, and ``gatewayd`` started as the DUT stack
 - Multicast route available (``224.0.0.0/4``)
 
 **Stimuli:**
@@ -331,7 +331,8 @@ TC8-SDM-001: FindService: Any Instance (0xFFFF)
 
 **Purpose:**
 Verify that a FindService with instance_id = 0xFFFF (Any Instance) elicits an OfferService
-entry for every offered instance of the service.
+entry for every offered instance of the service. This checks SD offering only,
+no ``gatewayd`` bridge is involved.
 
 **Stimulus:**
 Send FindService with instance_id = 0xFFFF.
@@ -349,7 +350,7 @@ TC8-SDM-002: FindService: Specific Instance
 
 **Purpose:**
 Verify that a FindService with an exact instance_id elicits exactly one OfferService entry
-for that instance.
+for that instance. This checks SD offering only, no ``gatewayd`` bridge is involved.
 
 **Stimulus:**
 Send FindService with instance_id = 0x5678, then with instance_id = 0x5680.

@@ -37,7 +37,8 @@ DUT_RELIABLE_PORT: int = int(os.environ.get("TC8_SVC_TCP_PORT", "30510"))
 # ---------------------------------------------------------------------------
 SERVICE_ID: int = int(os.environ.get("TC8_SERVICE_ID", "0x1234"), 16)
 INSTANCE_ID: int = int(os.environ.get("TC8_INSTANCE_ID", "0x5678"), 16)
-#: Second instance of the service, configured in ``tc8_someipd_sd.json``.
+#: Second instance, in ``tc8_someipd_sd.json`` and ``tc8_someipd_config.json``.
+#: Only the first instance is bridged by someipd (TODO in score/someipd/impl/gatewayd_services.cpp).
 INSTANCE_ID_2: int = 0x5680
 MAJOR_VERSION: int = 1
 MINOR_VERSION: int = 0

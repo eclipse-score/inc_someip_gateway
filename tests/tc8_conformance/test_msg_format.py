@@ -49,7 +49,7 @@ SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 #: Expected failure for tests that need a SOME/IP method reply from the DUT.
 NO_ECHO_METHODS = pytest.mark.xfail(
     strict=True,
-    reason="DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+    reason="No reply to the SOME/IP method request is observed from the DUT",
 )
 
 _UNKNOWN_METHOD_ID: int = 0xBEEF
