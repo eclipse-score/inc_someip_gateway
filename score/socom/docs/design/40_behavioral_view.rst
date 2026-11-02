@@ -47,8 +47,11 @@ The server connector API provides the following features:
 - update event
 - update requested event
 
+Dynamic Architecture
+--------------------
+
 Event and Method Communication
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. comp_arc_dyn:: SOCom Event and Method Communication
    :id: comp_arc_dyn__socom_design__event_flow
@@ -73,14 +76,14 @@ Event and Method Communication
       :caption: Interaction diagram: Method communication
 
 Method Communication
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 Methods calls are routed 1:1 from client to server application.
 If a method reply is requested, the calling client is served with the related reply.
 Independent method calls share no state.
 
 Event Communication
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 The client subscribes to an event.
 On the subscription, SOCom informs the server using the event subscription change callback (``Event_state::subscribed``).
@@ -92,7 +95,7 @@ After unsubscription of the last subscriber, SOCom informs the server that the e
 SOCom keeps track of subscription states and related clients.
 
 Field Notification Communication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A field notification is implemented as an event with event update on subscription.
 
@@ -112,7 +115,7 @@ Consequently, update_event() satisfies the event update request implicitly.
    :caption: Interaction diagram: Field notification communication
 
 Service Discovery and Bridging
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. comp_arc_dyn:: SOCom Service Discovery and Bridging
    :id: comp_arc_dyn__socom_design__discovery
@@ -133,14 +136,14 @@ Service Discovery and Bridging
       :caption: Interaction diagram: Service Gateway - provide service
 
 Service Gateway - require service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The creation of client connectors is forwarded to bridges as request_service() calls.
 Service bridges look up the required service instance within their domain.
 If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).
 
 Service Gateway - provide service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
 Service bridges provide this information within their domain.

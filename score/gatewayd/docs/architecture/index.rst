@@ -17,18 +17,21 @@
 Gateway Daemon Architecture
 ===========================
 
-Overview and Safety Partitioning
---------------------------------
+Overview
+--------
 
 ``gatewayd`` (:need:`comp__gatewayd`) is the ``ASIL_B`` SOME/IP Gateway Daemon in the S-CORE communication stack. It bridges local ``ASIL_B`` and ``QM`` applications communicating over ``score::mw::com`` (LoLa shared-memory IPC) with the ``QM`` ``someipd`` network daemon (:need:`comp__someipd`).
+
+Description
+-----------
 
 To prevent freedom-from-interference violations between the third-party ``QM`` SOME/IP stack (``vsomeip``) and ``ASIL_B`` applications, the gateway architecture splits responsibilities across two OS processes:
 
 - **gatewayd (ASIL_B)**: Holds zero dependency on ``vsomeip``. It connects to local ``mw::com`` services via type-erased ``GenericProxy`` and ``GenericSkeleton`` instances, serializes and deserializes application samples through the ``score_com_serializer`` plugin, frames or strips the 16-byte SOME/IP header contiguously in shared memory (keeping future end-to-end protection inside the ``ASIL_B`` domain), and exchanges complete SOME/IP frames with ``someipd`` over ``gateway_ipc_binding``.
 - **someipd (QM)**: Receives the gateway configuration and consumer event slot sizes from ``gatewayd`` at startup and routes complete SOME/IP frames between the ``mw::com`` IPC bridge and ``vsomeip``.
 
-Rationale for Architecture Decomposition
-----------------------------------------
+Rationale Behind Architecture Decomposition
+*******************************************
 
 ``gatewayd`` is decomposed into three cohesive implementation units aligned with its Bazel target structure in ``score/gatewayd/BUILD.bazel``:
 
@@ -41,8 +44,8 @@ Rationale for Architecture Decomposition
 3. **RemoteServiceInstance Adapter** (``remote_service_instance``, ``score/gatewayd/impl/remote_service_instance.h/.cpp``):
    Bridges remotely provided SOME/IP services from the network to local consumers (*Network-to-Application*). It queries the serializer plugin for event type size and alignment, offers a local ``mw::com::GenericSkeleton`` on the ECU, and connects a ``socom`` client connector to ``someipd``. When a SOME/IP event arrives, it strips the 16-byte header, deserializes the payload into an allocated LoLa sample, and sends it to local consumer applications.
 
-Static View
------------
+Static Architecture
+-------------------
 
 .. comp_arc_sta:: Gateway Daemon Static Architecture
    :id: comp_arc_sta__gatewayd_arch__static_view
@@ -58,8 +61,8 @@ Static View
       :align: center
       :caption: Gateway Daemon Static Component Diagram
 
-Dynamic View
-------------
+Dynamic Architecture
+--------------------
 
 .. comp_arc_dyn:: Gateway Daemon Startup and Event Forwarding
    :id: comp_arc_dyn__gatewayd_arch__event_flow
@@ -75,8 +78,11 @@ Dynamic View
       :align: center
       :caption: Gateway Daemon Startup and Event Forwarding Sequence Diagram
 
+Interfaces
+----------
+
 Provided and Internal Component Interfaces
-------------------------------------------
+******************************************
 
 ``gatewayd`` is an executable daemon process and does not expose a C++ library header to external applications. Internally, the startup orchestrator interacts with two adapter interfaces implemented by ``LocalServiceInstance`` and ``RemoteServiceInstance``.
 
@@ -123,7 +129,7 @@ Provided and Internal Component Interfaces
    - ``RemoteServiceInstance::Create``: Offers the ``mw::com::GenericSkeleton`` to local applications and registers a ``socom`` client connector that subscribes to remote SOME/IP events, strips the 16-byte header, and publishes deserialized LoLa samples.
 
 Required Interfaces
--------------------
+*******************
 
 ``gatewayd`` consumes the following internal and external interfaces (referenced via ``:uses:`` on :need:`comp__gatewayd`):
 

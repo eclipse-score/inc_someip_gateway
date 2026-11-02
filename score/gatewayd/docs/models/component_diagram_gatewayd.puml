@@ -15,7 +15,7 @@
 left to right direction
 skinparam componentStyle rectangle
 
-package "gatewayd (ASIL_B)" as gatewayd <<component>> {
+package "gatewayd (ASIL_B)" as gatewayd <<component>> #line:red;line.bold {
     component "gatewayd\n(main.cpp)" as gatewayd_main <<unit>>
     component "LocalServiceInstance\n(local_service_instance)" as local_service_instance <<unit>>
     component "RemoteServiceInstance\n(remote_service_instance)" as remote_service_instance <<unit>>
@@ -26,7 +26,7 @@ component "Gateway IPC Binding (mw::com)\n(score/gateway_ipc_binding)" as gatewa
 component "Bridged Services Configuration\n(score/bridged_services)" as bridged_services <<component>>
 component "FlatBuffers Configuration\n(score/config)" as config <<component>>
 component "SOME/IP Constants\n(score/someip)" as someip <<component>>
-component "Serializer Plugin ABI\n(score/serializer)" as serializer <<component>>
+component "Serializer Plugin ABI\n(score/serializer)" as serializer <<component>> #line:red;line.bold
 component "LoLa IPC Middleware\n(score::mw::com)" as mw_com <<component>>
 
 interface "LocalServiceInstance::CreateAsyncLocalServices / Create" as i_local_svc

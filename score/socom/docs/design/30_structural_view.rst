@@ -24,8 +24,8 @@ SOCom provides interfaces which enable the implementation of service gateways (b
 This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
 SOCom provides intra-process client/server communication only.
 
-Rationale for Architecture Decomposition
-----------------------------------------
+Rationale Behind Architecture Decomposition
+-------------------------------------------
 
 SOCom decomposes in-process service-oriented communication into four orthogonal units:
 
@@ -33,6 +33,9 @@ SOCom decomposes in-process service-oriented communication into four orthogonal 
 - ``Client_connector`` encapsulates the consumer endpoint for service availability notifications, event subscriptions, and method calls.
 - ``Server_connector`` (split into ``Disabled_server_connector`` and ``Enabled_server_connector``) encodes provider lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.
 - ``Payload`` and ``Writable_payload`` decouple zero-copy buffer ownership and contiguous message span management from connector routing, keeping the 16-byte SOME/IP header and payload contiguous in memory (to support future in-place E2E protection in ``gatewayd``) and allowing ``gateway_ipc_binding`` to pass shared-memory LoLa slots without copying.
+
+Static Architecture
+-------------------
 
 .. comp_arc_sta:: SOCom Static Architecture
    :id: comp_arc_sta__socom_design__static_view
@@ -53,10 +56,13 @@ SOCom decomposes in-process service-oriented communication into four orthogonal 
 - :ref:`server_connector_component`
 - :ref:`payload_component`
 
+Interfaces
+----------
+
 .. _runtime_component:
 
 Runtime
--------
+~~~~~~~
 
 The Runtime creates and connects Client_connectors and Server_connectors.
 In addition to that it has a plugin interface for adding bridges to cross IPC or network boundaries.
@@ -95,7 +101,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.
 .. _client_connector_component:
 
 Client connector
-----------------
+~~~~~~~~~~~~~~~~
 
 A client application owns and uses this component to join client/server pattern based service oriented communication (SOCom).
 The client connector interacts with the server connector in order perform the supported communication primitives.
@@ -148,7 +154,7 @@ The client connector API provides the following features:
 .. _server_connector_component:
 
 Server connector
-----------------
+~~~~~~~~~~~~~~~~
 
 The Server_connector represents a service, which is used by a Client_connector.
 It can send event updates and respond to method calls.
@@ -196,7 +202,7 @@ It can send event updates and respond to method calls.
 .. _payload_component:
 
 Payload
--------
+~~~~~~~
 
 ``Payload`` and ``Writable_payload`` represent the move-only message buffer transferred across SOCom connectors.
 In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte header followed contiguously by payload bytes) so ``gatewayd`` can frame or strip headers and support future in-place E2E protection without copying, while an optional slot handle identifies the underlying LoLa shared-memory slot across ``gateway_ipc_binding``.
@@ -222,7 +228,7 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
    Provides read-only and writable byte-span access to the contiguous SOME/IP message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.
 
 Required Interfaces
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 SOCom has no external network or IPC dependencies and relies only on ``score_baselibs`` utilities:
 
