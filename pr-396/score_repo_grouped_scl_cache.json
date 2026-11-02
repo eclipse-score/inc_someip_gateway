@@ -699,7 +699,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_01_response_addresses",
@@ -708,7 +708,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_02_response_method_id_msb",
@@ -717,7 +717,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_03_copy_request_id",
@@ -726,7 +726,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_04_request_id_reuse",
@@ -735,7 +735,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_05_protocol_version",
@@ -744,7 +744,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_06_interface_version",
@@ -753,7 +753,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_07_message_type_response",
@@ -762,7 +762,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_11_return_code_ok",
@@ -771,7 +771,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_04_fire_and_forget",
@@ -780,7 +780,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_05_fire_and_forget_no_error",
@@ -789,7 +789,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_06_return_code_two_msb_zero",
@@ -798,7 +798,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_07_ignore_return_code_bits",
@@ -807,7 +807,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_08_no_reply_to_error",
@@ -825,7 +825,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_19_copy_request_id",
@@ -834,7 +834,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_20_copy_interface_version",
@@ -843,7 +843,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_ets_004_burst",
@@ -852,7 +852,7 @@
               "need": "comp_req__tc8_conformance__msg_resp_header",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             }
           ]
         }
@@ -869,7 +869,7 @@
               "need": "comp_req__tc8_conformance__msg_error_codes",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestMessageFormat__test_onwire_12_unknown_method",
@@ -878,7 +878,7 @@
               "need": "comp_req__tc8_conformance__msg_error_codes",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_rpc_09_error_without_payload",
@@ -887,7 +887,7 @@
               "need": "comp_req__tc8_conformance__msg_error_codes",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_ets_077_wrong_service_id",
@@ -896,7 +896,7 @@
               "need": "comp_req__tc8_conformance__msg_error_codes",
               "verify_type": "partially",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             }
           ]
         }
@@ -913,7 +913,7 @@
               "need": "comp_req__tc8_conformance__msg_malformed",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_ets_075_wrong_message_type",
@@ -922,7 +922,7 @@
               "need": "comp_req__tc8_conformance__msg_malformed",
               "verify_type": "partially",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             },
             {
               "name": "TestProtocolCompliance__test_ets_078_wrong_protocol_version",
@@ -931,7 +931,7 @@
               "need": "comp_req__tc8_conformance__msg_malformed",
               "verify_type": "partially",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             }
           ]
         }
@@ -948,7 +948,7 @@
               "need": "comp_req__tc8_conformance__udp_transport",
               "verify_type": "fully",
               "result": "skipped",
-              "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent"
+              "result_text": "No reply to the SOME/IP method request is observed from the DUT"
             }
           ]
         }

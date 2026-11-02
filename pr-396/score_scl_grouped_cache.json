@@ -911,7 +911,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -923,7 +923,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -935,7 +935,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -947,7 +947,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -959,7 +959,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -971,7 +971,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -983,7 +983,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -995,7 +995,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1007,7 +1007,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1019,7 +1019,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1031,7 +1031,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1043,7 +1043,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1055,7 +1055,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1079,7 +1079,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1091,7 +1091,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1103,7 +1103,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1115,7 +1115,7 @@
           "need": "comp_req__tc8_conformance__msg_resp_header",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1135,7 +1135,7 @@
           "need": "comp_req__tc8_conformance__msg_error_codes",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1147,7 +1147,7 @@
           "need": "comp_req__tc8_conformance__msg_error_codes",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1159,7 +1159,7 @@
           "need": "comp_req__tc8_conformance__msg_error_codes",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1171,7 +1171,7 @@
           "need": "comp_req__tc8_conformance__msg_error_codes",
           "verify_type": "partially",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1191,7 +1191,7 @@
           "need": "comp_req__tc8_conformance__msg_malformed",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1203,7 +1203,7 @@
           "need": "comp_req__tc8_conformance__msg_malformed",
           "verify_type": "partially",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1215,7 +1215,7 @@
           "need": "comp_req__tc8_conformance__msg_malformed",
           "verify_type": "partially",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -1235,7 +1235,7 @@
           "need": "comp_req__tc8_conformance__udp_transport",
           "verify_type": "fully",
           "result": "skipped",
-          "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+          "result_text": "No reply to the SOME/IP method request is observed from the DUT",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""

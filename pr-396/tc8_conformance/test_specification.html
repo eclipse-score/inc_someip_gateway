@@ -546,7 +546,7 @@ Verify that the OfferService entry carries the correct service ID,
 instance ID, major/minor version, and TTL as configured.</p>
 <p><strong>Preconditions:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> started without <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code>, the ETS stub, and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> started as the DUT stack</p></li>
 <li><p>Multicast route available (<code class="docutils literal notranslate"><span class="pre">224.0.0.0/4</span></code>)</p></li>
 </ul>
 <p><strong>Stimuli:</strong>
@@ -880,7 +880,8 @@ trigger method).</p>
 </dl>
 <p><strong>Purpose:</strong>
 Verify that a FindService with instance_id = 0xFFFF (Any Instance) elicits an OfferService
-entry for every offered instance of the service.</p>
+entry for every offered instance of the service. This checks SD offering only,
+no <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> bridge is involved.</p>
 <p><strong>Stimulus:</strong>
 Send FindService with instance_id = 0xFFFF.</p>
 <p><strong>Expected Result:</strong>
@@ -902,7 +903,7 @@ OfferService with two entries for service_id = 0x1234 and different instance IDs
 </dl>
 <p><strong>Purpose:</strong>
 Verify that a FindService with an exact instance_id elicits exactly one OfferService entry
-for that instance.</p>
+for that instance. This checks SD offering only, no <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> bridge is involved.</p>
 <p><strong>Stimulus:</strong>
 Send FindService with instance_id = 0x5678, then with instance_id = 0x5680.</p>
 <p><strong>Expected Result:</strong>
