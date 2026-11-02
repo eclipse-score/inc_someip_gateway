@@ -20,7 +20,7 @@ Architectural Design Decision: Dynamic Registration for SOME/IP Gateway
    :status: accepted
    :version: 1
    :decision:
-      Gateway processes dynamically register their communication requirements (FlatBuffers mw_someip_config service/event configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process (someipd) at runtime via the AddServiceConfiguration method on the dedicated typed SomeipdService mw::com IPC interface.
+      Gateway processes dynamically register their service configuration and consumer event payload sizes with the central SOME/IP daemon (someipd) at runtime via the dedicated SomeipdService mw::com interface.
    :context:
       The SOME/IP Gateway architecture separates the core communication stack (someipd) from one or more gateway processes (gatewayd). This is necessary for safety separation (ASIL_B vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gatewayd client processes to inform the central someipd server process of their routing and service bridging needs at runtime.
 
@@ -105,14 +105,14 @@ Disadvantages
 Justification for the Decision
 ------------------------------
 
-The **Dynamic Registration** via ``SomeipdService::AddServiceConfiguration`` over ``mw::com`` approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:
+The **Dynamic Registration** approach via ``SomeipdService`` over ``mw::com`` was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:
 
 *  **Flexibility and Independent Startup:**
-   ``someipd`` starts without any static service configuration of its own and offers ``SomeipdService`` (``/score/someip/SomeipdService``).
-   Each ``gatewayd`` discovers ``SomeipdService`` via ``StartFindService`` and invokes ``AddServiceConfiguration`` to pass its raw FlatBuffers ``mw_someip_config`` bytes (up to 64 KiB) and its consumer event sizes (``Bridged_event_sizes``).
-   If ``someipd`` restarts, ``gatewayd`` automatically re-discovers ``SomeipdService`` and re-registers its configuration; if ``gatewayd`` restarts with the identical configuration, ``someipd`` accepts the call idempotently without recreating existing service bindings.
-*  **Robust State Management and All-or-Nothing Registration:**
-   ``someipd`` validates the FlatBuffers configuration buffer and consumer event sizes, synthesizes the ``mw::com`` bridged service deployments via ``mw::com::runtime::AddConfiguration``, and sets up its IPC and SOME/IP network bindings atomically.
-   If any service fails validation or setup, ``someipd`` rolls back the bindings from that call and returns ``false``, leaving ``gatewayd``'s ``is_connected()`` false.
+   ``someipd`` starts without static service configuration of its own.
+   Each ``gatewayd`` discovers ``someipd`` at runtime and registers its gateway configuration and consumer event sizes.
+   If ``someipd`` restarts, ``gatewayd`` automatically re-discovers it and re-registers; if ``gatewayd`` restarts with the same configuration, ``someipd`` accepts the registration idempotently without recreating existing service bindings.
+*  **All-or-Nothing Registration:**
+   ``someipd`` validates the incoming configuration and sets up its IPC and SOME/IP network bindings atomically.
+   If any service in a registration call fails validation or setup, ``someipd`` rolls back the bindings from that call and rejects the registration.
 *  **Clear Separation of Concerns:**
-   ``SomeipdService`` provides a typed ``mw::com`` control contract between ``gatewayd`` and ``someipd`` while keeping ``someipd`` decoupled from static application-specific deployment files and serialization sizes.
+   ``SomeipdService`` provides a typed ``mw::com`` control contract between ``gatewayd`` and ``someipd``, keeping ``someipd`` decoupled from static application-specific deployment files and serializer payload sizes.

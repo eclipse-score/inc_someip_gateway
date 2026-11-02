@@ -38,8 +38,8 @@ The following model describes the state-behavior of an event subscription from a
      - The client and server are connected (``Service_state::available``) and the event is not subscribed.
        No event update is received in this state.
    * - Event_state::subscribed
-     - The client is subscribed to the event while ``Service_state::available`` holds.
-       The server connector is notified via ``on_event_subscription_change(Event_state::subscribed)`` on the first subscriber, and event updates published by the server are delivered immediately without a separate subscription-pending or acknowledgement state.
+     - The client is subscribed to the event while the service is available.
+       Event updates published by the server are delivered to the client without a separate subscription-pending or acknowledgement state.
 
 .. list-table:: Triggers
    :header-rows: 1
@@ -47,13 +47,13 @@ The following model describes the state-behavior of an event subscription from a
    * - Name
      - Description
    * - Client_connector::subscribe_event()
-     - The user calls ``Client_connector::subscribe_event()`` to transition from ``Event_state::unsubscribed`` to ``Event_state::subscribed``.
+     - Subscribes the client to an event.
    * - Client_connector::unsubscribe_event()
-     - The user calls ``Client_connector::unsubscribe_event()`` to transition from ``Event_state::subscribed`` to ``Event_state::unsubscribed``.
+     - Unsubscribes the client from an event.
    * - Client_connector::Callbacks::on_service_state_change(Service_state::available)
-     - SOCom calls the user callback ``on_service_state_change(Service_state::available)``, entering ``Event_state::unsubscribed``.
+     - Notifies the client that the service is available; events start unsubscribed.
    * - Client_connector::Callbacks::on_service_state_change(Service_state::not_available)
-     - SOCom calls the user callback ``on_service_state_change(Service_state::not_available)``, dropping any active subscription.
+     - Notifies the client that the service is no longer available, dropping any active subscriptions.
 
 .. _service_state_machine:
 

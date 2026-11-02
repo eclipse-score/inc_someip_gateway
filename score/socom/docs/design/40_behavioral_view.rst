@@ -26,7 +26,7 @@ Runtime
 The runtime is a (process internal) service instance broker.
 Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
 Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service instance find interface.
+Additionally, it provides a service bridge registration interface to forward service requests across process or network boundaries.
 
 Server connector
 ----------------
@@ -86,7 +86,7 @@ The client subscribes to an event.
 On the subscription, SOCom informs the server using the event subscription change callback (``Event_state::subscribed``).
 If no client is subscribed to an event, the server does not send any event updates.
 
-For zero-copy event updates, the server allocates a ``Writable_payload`` via ``allocate_event_payload()`` (which delegates to the client's ``on_event_payload_allocate`` callback), writes the contiguous full SOME/IP message (header + payload) into ``Writable_payload::wdata()``, and publishes it via ``update_event()``.
+For zero-copy event updates, the server requests a ``Writable_payload`` from the subscribed client before writing the contiguous SOME/IP message (header + payload) and publishing the update.
 
 After unsubscription of the last subscriber, SOCom informs the server that the event is not subscribed anymore (``Event_state::unsubscribed``).
 SOCom keeps track of subscription states and related clients.

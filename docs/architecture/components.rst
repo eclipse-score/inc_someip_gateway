@@ -22,17 +22,17 @@ The SOME/IP Gateway architecture separates safety-qualified processing from the 
 
 - **ASIL_B Side (Gateway and Serialization)**:
 
-  - :need:`comp__gatewayd` (``ASIL_B``): Bridges local ``mw::com`` application services with ``someipd`` over ``gateway_ipc_binding``, framing or stripping the 16-byte SOME/IP header contiguously with the payload in shared memory (to enable future E2E protection in the ``ASIL_B`` context) and invoking ``score_com_serializer`` for sample serialization and deserialization. See :ref:`gatewayd_architecture` (:need:`comp_arc_sta__gatewayd_arch__static_view`, :need:`comp_arc_dyn__gatewayd_arch__event_flow`).
+  - :need:`comp__gatewayd` (``ASIL_B``): Bridges local ``mw::com`` application services with ``someipd`` over the IPC binding, framing or stripping the 16-byte SOME/IP header contiguously with the payload in shared memory (enabling future E2E protection in the ``ASIL_B`` context) and serializing or deserializing application samples. See :ref:`gatewayd_architecture`.
   - :need:`comp__serializer` (``ASIL_B``): Serializes and deserializes application data types to and from SOME/IP wire format within ``gatewayd``.
   - :need:`comp__null_serializer` (``ASIL_B``): Passthrough serializer used by ``gatewayd`` when payloads are pre-serialized by the application.
 
 - **QM Side (Network Daemon, IPC Binding, Abstraction, Protocol, and Configuration)**:
 
-  - :need:`comp__socom` (``QM``): Intra-process service-oriented communication abstraction (``Runtime``, ``Client_connector``, ``Server_connector``) used inside both ``gatewayd`` and ``someipd`` to decouple service endpoints from IPC and network bindings. See :ref:`socom` and :ref:`software_element_socom` (:need:`comp_arc_sta__socom_design__static_view`, :need:`comp_arc_dyn__socom_design__event_flow`, :need:`comp_arc_dyn__socom_design__discovery`).
-  - :need:`comp__gateway_ipc_binding` (``QM``): Bridges ``score::socom`` services between ``gatewayd`` and ``someipd`` over ``score::mw::com`` (``GenericSkeleton`` / ``GenericProxy`` and ``SomeipdService``) using ``"asil-level": "QM"`` shared-memory instances. See :ref:`gateway_ipc_binding` and :ref:`gateway_ipc_binding_architecture` (:need:`comp_arc_sta__gib_arch__static_view`, :need:`comp_arc_dyn__gib_arch__startup_and_events`).
+  - :need:`comp__socom` (``QM``): In-process service-oriented communication abstraction used inside both ``gatewayd`` and ``someipd`` to decouple service endpoints from IPC and network bindings. See :ref:`software_element_socom`.
+  - :need:`comp__gateway_ipc_binding` (``QM``): Bridges ``socom`` services between ``gatewayd`` and ``someipd`` over ``mw::com`` shared-memory IPC and provides peer liveness and runtime configuration exchange. See :ref:`gateway_ipc_binding_architecture`.
   - :need:`comp__someipd` (``QM``): Central SOME/IP network daemon that owns the network sockets, handles SOME/IP Service Discovery, and routes messages between network peers and registered ``gatewayd`` instances.
   - :need:`comp__someip` (``QM``): SOME/IP protocol header, identifier, and error code definitions used to frame and parse SOME/IP messages.
-  - :need:`comp__config` (``QM``): FlatBuffers schema (``mw_someip_config.fbs``) and JSON schema defining the gateway service and instance configuration.
+  - :need:`comp__config` (``QM``): FlatBuffers and JSON schemas defining the gateway service and instance configuration.
 
 
 ..

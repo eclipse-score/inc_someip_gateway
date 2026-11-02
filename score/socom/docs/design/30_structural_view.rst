@@ -29,9 +29,10 @@ Rationale for Architecture Decomposition
 
 SOCom decomposes in-process service-oriented communication into four orthogonal units:
 
-- ``Runtime`` isolates service discovery, compatibility matching, and bridge registration from steady-state data transfer so connected endpoints communicate directly without central broker contention.
-- ``Client_connector`` and ``Server_connector`` (split into ``Disabled_server_connector`` and ``Enabled_server_connector``) encode endpoint role and lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.
-- ``Payload`` and ``Writable_payload`` separate zero-copy memory ownership and contiguous full SOME/IP message span management (``Payload::data()``, ``Writable_payload::wdata()``, ``shrink()``, and ``get_slot_handle()``) from connector routing logic, placing the 16-byte SOME/IP header and payload contiguously in memory (to enable future in-place E2E protection in ``gatewayd``) and allowing ``gateway_ipc_binding`` to map shared-memory LoLa slots without copying.
+- ``Runtime`` isolates service discovery, version-compatibility matching, and bridge registration from steady-state data transfer so connected endpoints communicate directly without central broker contention.
+- ``Client_connector`` encapsulates the consumer endpoint for service availability notifications, event subscriptions, and method calls.
+- ``Server_connector`` (split into ``Disabled_server_connector`` and ``Enabled_server_connector``) encodes provider lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.
+- ``Payload`` and ``Writable_payload`` decouple zero-copy buffer ownership and contiguous message span management from connector routing, keeping the 16-byte SOME/IP header and payload contiguous in memory (to support future in-place E2E protection in ``gatewayd``) and allowing ``gateway_ipc_binding`` to pass shared-memory LoLa slots without copying.
 
 .. comp_arc_sta:: SOCom Static Architecture
    :id: comp_arc_sta__socom_design__static_view
@@ -69,7 +70,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.
    :status: valid
    :language: cpp
 
-   Factory and registry interface (``score::socom::Runtime`` and ``score::socom::create_runtime()``) for creating client/server connectors and registering service bridges.
+   In-process service registry and factory interface (``score::socom::Runtime``) for creating client and server connectors and registering cross-domain service bridges.
 
 .. real_arc_int_op:: make_client_connector
    :id: real_arc_int_op__socom_design__make_client
@@ -79,7 +80,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.
    :status: valid
    :included_by: real_arc_int__socom_design__runtime
 
-   Creates a ``Client_connector`` instance registered for a ``Service_interface_definition`` and ``Service_instance`` with user ``Client_connector::Callbacks`` (and optional ``Posix_credentials``).
+   Creates and registers a ``Client_connector`` for a target service interface and instance.
 
 .. real_arc_int_op:: make_server_connector
    :id: real_arc_int_op__socom_design__make_server
@@ -89,7 +90,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.
    :status: valid
    :included_by: real_arc_int__socom_design__runtime
 
-   Creates a ``Disabled_server_connector`` instance registered for a ``Server_service_interface_definition`` and ``Service_instance`` with user ``Disabled_server_connector::Callbacks`` (and optional ``Posix_credentials``), and supports registering service bridges via ``register_service_bridge``.
+   Creates and registers a ``Disabled_server_connector`` for a provided service interface and instance, and supports registering service bridges with the runtime.
 
 .. _client_connector_component:
 
@@ -122,7 +123,7 @@ The client connector API provides the following features:
    :status: valid
    :language: cpp
 
-   Consumer-side service interface (``score::socom::Client_connector``) for subscribing to events, requesting event updates, allocating method call payloads, and invoking methods.
+   Consumer-side connector interface (``score::socom::Client_connector``) for receiving service state updates, subscribing to events, and invoking methods.
 
 .. real_arc_int_op:: subscribe_event and unsubscribe_event
    :id: real_arc_int_op__socom_design__sub_event
@@ -132,7 +133,7 @@ The client connector API provides the following features:
    :status: valid
    :included_by: real_arc_int__socom_design__client_conn
 
-   Subscribes to or unsubscribes from an ``Event_id`` (with ``Event_mode::update`` or ``Event_mode::update_and_initial_value``) and requests on-demand updates via ``request_event_update``.
+   Subscribes to or unsubscribes from service events (with optional initial-value request for fields) and requests on-demand event updates.
 
 .. real_arc_int_op:: call_method and allocate_method_call_payload
    :id: real_arc_int_op__socom_design__call_method
@@ -142,7 +143,7 @@ The client connector API provides the following features:
    :status: valid
    :included_by: real_arc_int__socom_design__client_conn
 
-   Allocates a ``Writable_payload`` for a method call via ``allocate_method_call_payload`` and invokes ``call_method`` with a ``Payload`` and optional ``Method_call_reply_data``.
+   Allocates method-call request buffers and invokes asynchronous RPC methods (with optional reply handling or fire-and-forget).
 
 .. _server_connector_component:
 
@@ -160,7 +161,7 @@ It can send event updates and respond to method calls.
    :status: valid
    :language: cpp
 
-   Provider-side service interfaces (``score::socom::Disabled_server_connector`` and ``score::socom::Enabled_server_connector``) for enabling/disabling service availability, allocating event payloads, and publishing event updates.
+   Provider-side connector interfaces (``score::socom::Disabled_server_connector`` and ``score::socom::Enabled_server_connector``) for controlling service availability, publishing events, and handling method calls.
 
 .. real_arc_int_op:: enable and disable
    :id: real_arc_int_op__socom_design__enable_srv
@@ -170,7 +171,7 @@ It can send event updates and respond to method calls.
    :status: valid
    :included_by: real_arc_int__socom_design__server_conn
 
-   Transitions a server connector between ``Disabled_server_connector`` and ``Enabled_server_connector`` via ``Disabled_server_connector::enable`` and ``Enabled_server_connector::disable``, notifying matching ``Client_connector`` instances of ``Service_state`` changes.
+   Transitions a server connector between disabled and enabled states and notifies matching clients of service availability changes.
 
 .. real_arc_int_op:: allocate_event_payload
    :id: real_arc_int_op__socom_design__alloc_payload
@@ -180,7 +181,7 @@ It can send event updates and respond to method calls.
    :status: valid
    :included_by: real_arc_int__socom_design__server_conn
 
-   Allocates a zero-copy ``Writable_payload`` for a given ``Event_id`` by delegating to the subscribed ``Client_connector`` callback ``on_event_payload_allocate``.
+   Allocates a writable event buffer from the subscribed client endpoint for zero-copy event transmission.
 
 .. real_arc_int_op:: update_event and update_requested_event
    :id: real_arc_int_op__socom_design__update_event
@@ -190,15 +191,15 @@ It can send event updates and respond to method calls.
    :status: valid
    :included_by: real_arc_int__socom_design__server_conn
 
-   Publishes a ``Payload`` containing the full SOME/IP message to the subscribed ``Client_connector`` via ``update_event`` or to an update-requesting client via ``update_requested_event``.
+   Publishes an event payload to the subscribed client or responds to a pending on-demand event update request.
 
 .. _payload_component:
 
 Payload
 -------
 
-``Payload`` and ``Writable_payload`` represent the contiguous message buffer transferred across SOCom connectors.
-In the SOME/IP gateway, ``Payload::data()`` and ``Writable_payload::wdata()`` hold the full SOME/IP message (16-byte header + payload) in contiguous memory (to enable future in-place E2E protection in ``gatewayd`` without copying), while ``get_slot_handle()`` tracks the underlying shared-memory slot across the IPC binding.
+``Payload`` and ``Writable_payload`` represent the move-only message buffer transferred across SOCom connectors.
+In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte header followed contiguously by payload bytes) so ``gatewayd`` can frame or strip headers and support future in-place E2E protection without copying, while an optional slot handle identifies the underlying LoLa shared-memory slot across ``gateway_ipc_binding``.
 
 .. real_arc_int:: SOCom Payload Interface
    :id: real_arc_int__socom_design__payload
@@ -208,7 +209,7 @@ In the SOME/IP gateway, ``Payload::data()`` and ``Writable_payload::wdata()`` ho
    :status: valid
    :language: cpp
 
-   Contiguous byte-span buffer interfaces (``score::socom::Payload`` and ``score::socom::Writable_payload``) with RAII release callback and shared-memory slot handle tracking.
+   Move-only message buffer interfaces (``score::socom::Payload`` and ``score::socom::Writable_payload``) providing contiguous byte-span access, RAII memory release, and shared-memory slot identification.
 
 .. real_arc_int_op:: data, wdata, shrink, and get_slot_handle
    :id: real_arc_int_op__socom_design__payload_span
@@ -218,13 +219,13 @@ In the SOME/IP gateway, ``Payload::data()`` and ``Writable_payload::wdata()`` ho
    :status: valid
    :included_by: real_arc_int__socom_design__payload
 
-   Provides read-only access to the contiguous full SOME/IP message via ``Payload::data()``, writable access via ``Writable_payload::wdata()``, payload size reduction via ``Writable_payload::shrink()``, and shared-memory slot identification via ``Payload::get_slot_handle()``.
+   Provides read-only and writable byte-span access to the contiguous SOME/IP message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.
 
 Required Interfaces
 -------------------
 
-SOCom depends exclusively on ``score_baselibs``:
+SOCom has no external network or IPC dependencies and relies only on ``score_baselibs`` utilities:
 
-- ``score::Result`` (``@score_baselibs//score/result``) for error-code-based return values across connector and runtime operations.
-- ``score::cpp::span`` and ``score::cpp::move_only_function`` (``@score_baselibs//score/language/futurecpp``) for contiguous byte views in ``Payload`` / ``Writable_payload`` and non-copyable callbacks.
-- ``score::mw::log`` (``@score_baselibs//score/mw/log``) used in ``runtime_impl.cpp`` for version-incompatibility error logging (while connector callback deadlock detection writes to ``std::cerr`` and calls ``std::abort()``).
+- ``score::Result`` for explicit error propagation across runtime and connector operations.
+- ``score::cpp::span``, ``score::cpp::move_only_function``, and ``score::utils::ScopeExit`` for contiguous byte views, move-only callbacks, and RAII cleanup actions.
+- ``score::mw::log`` for runtime diagnostic logging (such as interface minor-version mismatches).
