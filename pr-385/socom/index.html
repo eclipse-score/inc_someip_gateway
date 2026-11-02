@@ -72,7 +72,7 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Software design SOCom library" href="design/index.html" />
+    <link rel="next" title="SOCom Architecture" href="design/index.html" />
     <link rel="prev" title="Serializer" href="../serializer/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -411,7 +411,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../gatewayd/index.html">gatewayd</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../serializer/index.html">Serializer</a></li>
 <li class="toctree-l1 current active has-children"><a aria-current="page" class="current reference internal" href="#">SOCom</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="design/index.html">Software design SOCom library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design/index.html">SOCom Architecture</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../someip/index.html">someip</a></li>
@@ -478,7 +478,15 @@
                   
   <section id="socom">
 <span id="id1"></span><h1>SOCom<a class="headerlink" href="#socom" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-9c1e1985">
+<section id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Link to this heading">#</a></h2>
+<p>The SOCom (Service-Oriented Communication) library (<code class="docutils literal notranslate"><span class="pre">score::socom</span></code>) provides the in-process
+service-oriented runtime and connector abstraction for SOME/IP communication in the S-CORE
+framework. It decouples service consumers and providers from concrete SOME/IP network stack and
+IPC bridge implementations through its <code class="docutils literal notranslate"><span class="pre">Runtime</span></code>, <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>, and zero-copy <code class="docutils literal notranslate"><span class="pre">Payload</span></code> /
+<code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> abstractions.</p>
+<div class="need_container docutils container" id="SNCB-da373cdd">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__socom">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -526,31 +534,16 @@
 </table>
 </div>
 </div>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>The SOCom (Service-Oriented Communication) library (<code class="docutils literal notranslate"><span class="pre">score::socom</span></code>) provides the in-process
-service-oriented runtime and connector abstraction for SOME/IP communication in the S-CORE
-framework. It decouples service consumers and providers from concrete SOME/IP network stack and
-IPC bridge implementations through four primary abstractions:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Runtime</span></code>: In-process service instance registry, connector factory, and service bridge registration point.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Client_connector</span></code>: Consumer-side endpoint for service availability notifications, event subscriptions, and method invocations.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>: Provider-side state-typed endpoints for offering services, allocating and publishing event updates, and handling method calls.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>: Move-only buffer handles exposing a contiguous byte span for the full SOME/IP message (16-byte SOME/IP header followed by payload bytes) and an optional shared-memory slot handle for zero-copy transport.</p></li>
-</ul>
-<section id="safety-role">
-<h3>Safety Role<a class="headerlink" href="#safety-role" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">socom</span></code> is classified as a <code class="docutils literal notranslate"><span class="pre">QM</span></code> component and is instantiated in-process inside both:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>), which frames or strips the 16-byte SOME/IP header contiguously with the payload in the buffer span (enabling future in-place E2E protection in the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> context) and serializes or deserializes application samples.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> (<code class="docutils literal notranslate"><span class="pre">QM</span></code>), which bridges <code class="docutils literal notranslate"><span class="pre">socom</span></code> connectors between the SOME/IP network stack and the IPC binding to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p></li>
-</ul>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="design/index.html">Software design SOCom library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design/index.html">SOCom Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="design/30_structural_view.html">1. Structural View</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design/40_behavioral_view.html">2. Behavioral View</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design/50_state_dynamics_view.html">3. State Dynamics View</a></li>
+</ul>
+</li>
 </ul>
 </div>
-</section>
 </section>
 </section>
 
@@ -578,7 +571,7 @@ IPC bridge implementations through four primary abstractions:</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Software design SOCom library</p>
+        <p class="prev-next-title">SOCom Architecture</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -601,10 +594,7 @@ IPC bridge implementations through four primary abstractions:</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-role">Safety Role</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstract">Abstract</a></li>
 </ul>
   </nav></div>
 

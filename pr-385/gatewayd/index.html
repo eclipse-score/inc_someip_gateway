@@ -73,7 +73,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Gateway Daemon Architecture" href="architecture/index.html" />
-    <link rel="prev" title="Gateway IPC Binding" href="../gateway_ipc_binding/index.html" />
+    <link rel="prev" title="Gateway IPC Binding Architecture" href="../gateway_ipc_binding/architecture/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
@@ -481,7 +481,7 @@
 <section id="abstract">
 <h2>Abstract<a class="headerlink" href="#abstract" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> daemon bridges local <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> (LoLa) service instances with remote SOME/IP service instances across the safety boundary. Running as an <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> process with zero dependency on <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code>, <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> connects <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> and <code class="docutils literal notranslate"><span class="pre">QM</span></code> local applications to the <code class="docutils literal notranslate"><span class="pre">QM</span></code> <code class="docutils literal notranslate"><span class="pre">someipd</span></code> daemon over the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>-based <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code>, performing SOME/IP 16-byte header framing and stripping as well as payload serialization and deserialization via the <code class="docutils literal notranslate"><span class="pre">score_com_serializer</span></code> C plugin ABI.</p>
-<div class="need_container docutils container" id="SNCB-80983f4d">
+<div class="need_container docutils container" id="SNCB-a0d13776">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__gatewayd">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -507,7 +507,7 @@
 <div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../architecture/features.html#feat__someip_gateway" title="comp__gatewayd">feat__someip_gateway</a></span></span></div>
 <div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="architecture/index.html#comp_arc_dyn__gatewayd_arch__event_flow" title="comp__gatewayd">comp_arc_dyn__gatewayd_arch__event_flow</a>, <a class="reference internal" href="architecture/index.html#comp_arc_sta__gatewayd_arch__static_view" title="comp__gatewayd">comp_arc_sta__gatewayd_arch__static_view</a></span></span></div>
 <div class="line">implements: <span class="implements"><span><a class="reference internal" href="architecture/index.html#real_arc_int_op__gatewayd_arch__local_svc" title="comp__gatewayd">real_arc_int_op__gatewayd_arch__local_svc</a>, <a class="reference internal" href="architecture/index.html#real_arc_int_op__gatewayd_arch__remote_svc" title="comp__gatewayd">real_arc_int_op__gatewayd_arch__remote_svc</a></span></span></div>
-<div class="line">uses: <span class="uses"><span><a class="reference internal" href="../gateway_ipc_binding/index.html#real_arc_int_op__gib_arch__create_client" title="comp__gatewayd">real_arc_int_op__gib_arch__create_client</a>, <a class="reference internal" href="../gateway_ipc_binding/index.html#real_arc_int_op__gib_arch__is_connected" title="comp__gatewayd">real_arc_int_op__gib_arch__is_connected</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__alloc_payload" title="comp__gatewayd">real_arc_int_op__socom_design__alloc_payload</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__enable_srv" title="comp__gatewayd">real_arc_int_op__socom_design__enable_srv</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_client" title="comp__gatewayd">real_arc_int_op__socom_design__make_client</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_server" title="comp__gatewayd">real_arc_int_op__socom_design__make_server</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__payload_span" title="comp__gatewayd">real_arc_int_op__socom_design__payload_span</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__sub_event" title="comp__gatewayd">real_arc_int_op__socom_design__sub_event</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__update_event" title="comp__gatewayd">real_arc_int_op__socom_design__update_event</a></span></span></div>
+<div class="line">uses: <span class="uses"><span><a class="reference internal" href="../gateway_ipc_binding/architecture/index.html#real_arc_int_op__gib_arch__create_client" title="comp__gatewayd">real_arc_int_op__gib_arch__create_client</a>, <a class="reference internal" href="../gateway_ipc_binding/architecture/index.html#real_arc_int_op__gib_arch__is_connected" title="comp__gatewayd">real_arc_int_op__gib_arch__is_connected</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__alloc_payload" title="comp__gatewayd">real_arc_int_op__socom_design__alloc_payload</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__enable_srv" title="comp__gatewayd">real_arc_int_op__socom_design__enable_srv</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_client" title="comp__gatewayd">real_arc_int_op__socom_design__make_client</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_server" title="comp__gatewayd">real_arc_int_op__socom_design__make_server</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__payload_span" title="comp__gatewayd">real_arc_int_op__socom_design__payload_span</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__sub_event" title="comp__gatewayd">real_arc_int_op__socom_design__sub_event</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__update_event" title="comp__gatewayd">real_arc_int_op__socom_design__update_event</a></span></span></div>
 </span></div>
 <div class="score-coverage line"><span class="needs_label">coverage: </span><span class="needs_data">lines 44% · branches 46% · files 3/5</span></div>
 </div>
@@ -556,12 +556,12 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../gateway_ipc_binding/index.html"
+       href="../gateway_ipc_binding/architecture/index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Gateway IPC Binding</p>
+        <p class="prev-next-title">Gateway IPC Binding Architecture</p>
       </div>
     </a>
     <a class="right-next"
