@@ -182,7 +182,7 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -324,7 +324,7 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -457,7 +457,7 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../../components.html" class="nav-link">&lt;no title&gt;</a></li>
+    <li class="breadcrumb-item"><a href="../../components.html" class="nav-link">Components</a></li>
     
     
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">gatewayd</a></li>
@@ -494,17 +494,17 @@
 <h2>Rationale for Architecture Decomposition<a class="headerlink" href="#rationale-for-architecture-decomposition" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is decomposed into three cohesive implementation units aligned with its Bazel target structure in <code class="docutils literal notranslate"><span class="pre">score/gatewayd/BUILD.bazel</span></code>:</p>
 <ol class="arabic simple">
-<li><p><strong>Main Startup Orchestrator (``main_orchestrator``, ``score/gatewayd/main.cpp``)</strong>:
+<li><p><strong>Main Startup Orchestrator</strong> (<code class="docutils literal notranslate"><span class="pre">main_orchestrator</span></code>, <code class="docutils literal notranslate"><span class="pre">score/gatewayd/main.cpp</span></code>):
 Parses command-line paths for the FlatBuffers gateway configuration (<code class="docutils literal notranslate"><span class="pre">--configuration</span></code>) and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> manifest (<code class="docutils literal notranslate"><span class="pre">--service_instance_manifest</span></code>), initializes the <code class="docutils literal notranslate"><span class="pre">score_com_serializer</span></code> C plugin and <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> runtime, creates the <code class="docutils literal notranslate"><span class="pre">score::socom::Runtime</span></code>, computes per-event shared-memory slot sizes via <code class="docutils literal notranslate"><span class="pre">event_slot_size()</span></code> (<code class="docutils literal notranslate"><span class="pre">score_com_serializer_get_max_serialized_size()</span> <span class="pre">+</span> <span class="pre">kSomeipFullHeaderSize</span></code>), establishes the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> IPC binding client to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> via <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding::mw_com::create_client()</span></code>, waits for <code class="docutils literal notranslate"><span class="pre">binding_client-&gt;is_connected()</span></code>, and launches asynchronous discovery and offering for all configured local and remote service instances.</p></li>
-<li><p><strong>LocalServiceInstance Adapter (``local_service_instance``, ``score/gatewayd/impl/local_service_instance.h/.cpp``)</strong>:
+<li><p><strong>LocalServiceInstance Adapter</strong> (<code class="docutils literal notranslate"><span class="pre">local_service_instance</span></code>, <code class="docutils literal notranslate"><span class="pre">score/gatewayd/impl/local_service_instance.h/.cpp</span></code>):
 Implements the <em>Application-to-Network</em> bridge for a locally provided service instance. It discovers the local application’s service via <code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxy::StartFindService</span></code>, creates and enables a <code class="docutils literal notranslate"><span class="pre">socom::Enabled_server_connector</span></code> (which <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> bridges to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a <code class="docutils literal notranslate"><span class="pre">Role::provider</span></code> <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code>), subscribes to application <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent</span></code> updates, and on each sample allocates a contiguous shared-memory <code class="docutils literal notranslate"><span class="pre">socom::Writable_payload</span></code>, writes the 16-byte SOME/IP header followed by the serialized sample via <code class="docutils literal notranslate"><span class="pre">score_com_serializer_serialize()</span></code>, shrinks the payload to the exact byte length, and publishes it via <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector::update_event()</span></code>.</p></li>
-<li><p><strong>RemoteServiceInstance Adapter (``remote_service_instance``, ``score/gatewayd/impl/remote_service_instance.h/.cpp``)</strong>:
+<li><p><strong>RemoteServiceInstance Adapter</strong> (<code class="docutils literal notranslate"><span class="pre">remote_service_instance</span></code>, <code class="docutils literal notranslate"><span class="pre">score/gatewayd/impl/remote_service_instance.h/.cpp</span></code>):
 Implements the <em>Network-to-Application</em> bridge for a remotely provided SOME/IP service instance. It queries <code class="docutils literal notranslate"><span class="pre">score_com_serializer</span></code> for the application C++ type size and alignment (<code class="docutils literal notranslate"><span class="pre">score_com_serializer_get_sizeof_type</span></code> / <code class="docutils literal notranslate"><span class="pre">score_com_serializer_get_alignof_type</span></code>), creates and offers a local <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code> to consumer applications on the ECU, registers a <code class="docutils literal notranslate"><span class="pre">socom::Client_connector</span></code> (which <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> bridges to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> as a <code class="docutils literal notranslate"><span class="pre">Role::consumer</span></code> <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code>), subscribes to all configured SOME/IP events when the service becomes available, and in <code class="docutils literal notranslate"><span class="pre">forward_event()</span></code> strips the 16-byte SOME/IP header (<code class="docutils literal notranslate"><span class="pre">payload.data().subspan(kSomeipFullHeaderSize)</span></code>), allocates a LoLa sample via <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::Allocate()</span></code>, deserializes the payload via <code class="docutils literal notranslate"><span class="pre">score_com_serializer_deserialize()</span></code>, and sends it to local consumers via <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent::Send()</span></code>.</p></li>
 </ol>
 </section>
 <section id="static-view">
 <h2>Static View<a class="headerlink" href="#static-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-3de81027">
+<div class="need_container docutils container" id="SNCB-0528cde0">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__gatewayd_arch__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -536,7 +536,7 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 <p class="plantuml">
 <object data="../../_images/plantuml-929c833ee825a042631541090d373cd6f1cd0927.svg" type="image/svg+xml" style="width:2231px;height:1039px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 11 </span><span class="caption-text">Gateway Daemon Static Component Diagram</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 10 </span><span class="caption-text">Gateway Daemon Static Component Diagram</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </td>
@@ -558,7 +558,7 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 </section>
 <section id="dynamic-view">
 <h2>Dynamic View<a class="headerlink" href="#dynamic-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-7040f0cc">
+<div class="need_container docutils container" id="SNCB-d14488a0">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__gatewayd_arch__event_flow">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -590,7 +590,7 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 <p class="plantuml">
 <object data="../../_images/plantuml-acba77b44e6f0bda3efed98714d204ad90cfe0d4.svg" type="image/svg+xml" style="width:3396px;height:2183px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 12 </span><span class="caption-text">Gateway Daemon Startup and Event Forwarding Sequence Diagram</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 11 </span><span class="caption-text">Gateway Daemon Startup and Event Forwarding Sequence Diagram</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </td>
@@ -613,7 +613,7 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 <section id="provided-and-internal-component-interfaces">
 <h2>Provided and Internal Component Interfaces<a class="headerlink" href="#provided-and-internal-component-interfaces" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is an executable daemon process and does not expose a C++ library header to external applications. Internally, the startup orchestrator interacts with two adapter interfaces implemented by <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> and <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance</span></code>.</p>
-<div class="need_container docutils container" id="SNCB-573a6e10">
+<div class="need_container docutils container" id="SNCB-08747279">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gatewayd_arch__local_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -657,7 +657,7 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-95bf712f">
+<div class="need_container docutils container" id="SNCB-8822c551">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gatewayd_arch__local_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -705,7 +705,7 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3901c418">
+<div class="need_container docutils container" id="SNCB-77526431">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gatewayd_arch__remote_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -749,7 +749,7 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-4207532b">
+<div class="need_container docutils container" id="SNCB-0bf77f81">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gatewayd_arch__remote_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -802,13 +802,13 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 <h2>Required Interfaces<a class="headerlink" href="#required-interfaces" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> consumes the following internal and external interfaces (referenced via <code class="docutils literal notranslate"><span class="pre">:uses:</span></code> on <a class="reference internal" href="../index.html#comp__gatewayd" title="comp__gatewayd"><em class="xref need">SOME/IP Gateway Daemon (comp__gatewayd)</em></a>):</p>
 <ul class="simple">
-<li><p><strong>Gateway IPC Binding (``score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp``)</strong>:</p>
+<li><p><strong>Gateway IPC Binding</strong> (<code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp</span></code>):</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::gateway_ipc_binding::mw_com::create_client</span></code> (<a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#real_arc_int_op__gib_arch__create_client" title="real_arc_int_op__gib_arch__create_client"><em class="xref need">mw_com::create_client and b... (real_arc_int_op__gib_arch__create_client)</em></a>): Instantiates the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>-based IPC bridge client, synthesizes <code class="docutils literal notranslate"><span class="pre">bridged_ipc/&lt;service_type_name&gt;</span></code> deployments, and sends the FlatBuffers configuration and consumer event slot sizes to <code class="docutils literal notranslate"><span class="pre">someipd</span></code> via <code class="docutils literal notranslate"><span class="pre">SomeipdService::AddServiceConfiguration</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::gateway_ipc_binding::Gateway_ipc_binding_client::is_connected</span></code> (<a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#real_arc_int_op__gib_arch__is_connected" title="real_arc_int_op__gib_arch__is_connected"><em class="xref need">Gateway_ipc_binding_client:... (real_arc_int_op__gib_arch__is_connected)</em></a>): Polled during startup to block service instance creation until <code class="docutils literal notranslate"><span class="pre">someipd</span></code> has accepted <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code>.</p></li>
 </ul>
 </li>
-<li><p><strong>SOCom In-Process Runtime and Connectors (``score/socom/``)</strong>:</p>
+<li><p><strong>SOCom In-Process Runtime and Connectors</strong> (<code class="docutils literal notranslate"><span class="pre">score/socom/</span></code>):</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::socom::Runtime::make_client_connector</span></code> (<a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_client" title="real_arc_int_op__socom_design__make_client"><em class="xref need">make_client_connector (real_arc_int_op__socom_design__make_client)</em></a>) and <code class="docutils literal notranslate"><span class="pre">score::socom::Runtime::make_server_connector</span></code> (<a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_server" title="real_arc_int_op__socom_design__make_server"><em class="xref need">make_server_connector (real_arc_int_op__socom_design__make_server)</em></a>): Create in-process connectors that couple <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> and <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance</span></code> to the <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> bridge.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::socom::Disabled_server_connector::enable</span></code> (<a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__enable_srv" title="real_arc_int_op__socom_design__enable_srv"><em class="xref need">enable and disable (real_arc_int_op__socom_design__enable_srv)</em></a>): Enables the server connector once a local application service is discovered.</p></li>
@@ -817,12 +817,12 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 <li><p><code class="docutils literal notranslate"><span class="pre">score::socom::Payload::data</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata</span></code> / <code class="docutils literal notranslate"><span class="pre">shrink</span></code> (<a class="reference internal" href="../../socom/design/30_structural_view.html#real_arc_int_op__socom_design__payload_span" title="real_arc_int_op__socom_design__payload_span"><em class="xref need">data, wdata, shrink, and ge... (real_arc_int_op__socom_design__payload_span)</em></a>): Provide byte-span access for SOME/IP header framing/stripping and payload sizing.</p></li>
 </ul>
 </li>
-<li><p><strong>Bridged Services Configuration Helper (``score/bridged_services/bridged_service_configs.h``)</strong>:</p>
+<li><p><strong>Bridged Services Configuration Helper</strong> (<code class="docutils literal notranslate"><span class="pre">score/bridged_services/bridged_service_configs.h</span></code>):</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::bridged_services::bridged_service_configs(config,</span> <span class="pre">Daemon::gatewayd,</span> <span class="pre">event_slot_size)</span></code>: Builds the <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> vector mapping local service types to <code class="docutils literal notranslate"><span class="pre">Role::provider</span></code> and remote service types to <code class="docutils literal notranslate"><span class="pre">Role::consumer</span></code>, sizing each event slot via <code class="docutils literal notranslate"><span class="pre">event_slot_size</span></code>.</p></li>
 </ul>
 </li>
-<li><p><strong>Serializer Plugin C ABI (``score/serializer/serializer.h``)</strong>:</p>
+<li><p><strong>Serializer Plugin C ABI</strong> (<code class="docutils literal notranslate"><span class="pre">score/serializer/serializer.h</span></code>):</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">score_com_serializer_init</span></code> / <code class="docutils literal notranslate"><span class="pre">score_com_serializer_deinit</span></code>: Initializes and cleans up the serializer plugin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score_com_serializer_get</span></code>: Looks up the <code class="docutils literal notranslate"><span class="pre">score_com_serializer</span></code> descriptor for a <code class="docutils literal notranslate"><span class="pre">(service_type,</span> <span class="pre">event_name)</span></code> pair.</p></li>
@@ -830,14 +830,14 @@ Implements the <em>Network-to-Application</em> bridge for a remotely provided SO
 <li><p><code class="docutils literal notranslate"><span class="pre">score_com_serializer_serialize</span></code> / <code class="docutils literal notranslate"><span class="pre">score_com_serializer_deserialize</span></code>: Converts between in-memory C++ application samples and wire-format SOME/IP payloads.</p></li>
 </ul>
 </li>
-<li><p><strong>LoLa IPC Middleware (``&#64;score_communication//score/mw/com``)</strong>:</p>
+<li><p><strong>LoLa IPC Middleware</strong> (<code class="docutils literal notranslate"><span class="pre">&#64;score_communication//score/mw/com</span></code>):</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::mw::com::runtime::InitializeRuntime</span></code>: Initializes the LoLa runtime from <code class="docutils literal notranslate"><span class="pre">--service_instance_manifest</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::mw::com::GenericProxy</span></code> / <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent</span></code>: Discovers local application services (<code class="docutils literal notranslate"><span class="pre">StartFindService</span></code>, <code class="docutils literal notranslate"><span class="pre">StopFindService</span></code>) and consumes event samples (<code class="docutils literal notranslate"><span class="pre">Subscribe</span></code>, <code class="docutils literal notranslate"><span class="pre">SetReceiveHandler</span></code>, <code class="docutils literal notranslate"><span class="pre">GetNewSamples</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::mw::com::GenericSkeleton</span></code> / <code class="docutils literal notranslate"><span class="pre">GenericSkeletonEvent</span></code>: Offers remote services locally (<code class="docutils literal notranslate"><span class="pre">Create</span></code>, <code class="docutils literal notranslate"><span class="pre">OfferService</span></code>) and publishes deserialized event samples (<code class="docutils literal notranslate"><span class="pre">Allocate</span></code>, <code class="docutils literal notranslate"><span class="pre">Send</span></code>).</p></li>
 </ul>
 </li>
-<li><p><strong>FlatBuffers Gateway Configuration Schema (``score/config/mw_someip_config_generated.h``)</strong>:</p>
+<li><p><strong>FlatBuffers Gateway Configuration Schema</strong> (<code class="docutils literal notranslate"><span class="pre">score/config/mw_someip_config_generated.h</span></code>):</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">score::mw_someip_config::GetRoot</span></code>: Parses <code class="docutils literal notranslate"><span class="pre">ServiceType</span></code>, <code class="docutils literal notranslate"><span class="pre">ServiceInstance</span></code> (<code class="docutils literal notranslate"><span class="pre">local_service_instances</span></code> and <code class="docutils literal notranslate"><span class="pre">remote_service_instances</span></code>), and <code class="docutils literal notranslate"><span class="pre">Event</span></code> metadata.</p></li>
 </ul>

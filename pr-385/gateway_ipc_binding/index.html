@@ -182,7 +182,7 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -324,7 +324,7 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -457,7 +457,7 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../components.html" class="nav-link">&lt;no title&gt;</a></li>
+    <li class="breadcrumb-item"><a href="../components.html" class="nav-link">Components</a></li>
     
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Gateway IPC Binding</span></li>
   </ul>
@@ -478,7 +478,7 @@
                   
   <section id="gateway-ipc-binding">
 <span id="id1"></span><h1>Gateway IPC Binding<a class="headerlink" href="#gateway-ipc-binding" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-0dd6d53c">
+<div class="need_container docutils container" id="SNCB-8eafc775">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__gateway_ipc_binding">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -497,8 +497,8 @@
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_bazel_target"><span class="needs_label">bazel_target: </span><span class="needs_data">[&quot;&#64;&#64;//score/gateway_ipc_binding:gateway_ipc_binding&quot;,&quot;&#64;&#64;//score/gateway_ipc_binding:gateway_ipc_binding_mw_com&quot;]</span></span></div>
-<div class="line"><span class="needs_bazel_type"><span class="needs_label">bazel_type: </span><span class="needs_data">[&quot;cc_library&quot;,&quot;cc_library&quot;]</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_bazel_target"><span class="needs_label">bazel_target: </span><span class="needs_data">&#64;&#64;//score/gateway_ipc_binding:gateway_ipc_binding_mw_com</span></span></div>
+<div class="line"><span class="needs_bazel_type"><span class="needs_label">bazel_type: </span><span class="needs_data">cc_library</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../architecture/features.html#feat__someip_gateway" title="comp__gateway_ipc_binding">feat__someip_gateway</a></span></span></div>
@@ -506,7 +506,7 @@
 <div class="line">implements: <span class="implements"><span><a class="reference internal" href="architecture/index.html#real_arc_int_op__gib_arch__add_svc_cfg" title="comp__gateway_ipc_binding">real_arc_int_op__gib_arch__add_svc_cfg</a>, <a class="reference internal" href="architecture/index.html#real_arc_int_op__gib_arch__create_client" title="comp__gateway_ipc_binding">real_arc_int_op__gib_arch__create_client</a>, <a class="reference internal" href="architecture/index.html#real_arc_int_op__gib_arch__create_server" title="comp__gateway_ipc_binding">real_arc_int_op__gib_arch__create_server</a>, <a class="reference internal" href="architecture/index.html#real_arc_int_op__gib_arch__is_connected" title="comp__gateway_ipc_binding">real_arc_int_op__gib_arch__is_connected</a>, <a class="reference internal" href="architecture/index.html#real_arc_int_op__gib_arch__start_server" title="comp__gateway_ipc_binding">real_arc_int_op__gib_arch__start_server</a></span></span></div>
 <div class="line">uses: <span class="uses"><span><a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__alloc_payload" title="comp__gateway_ipc_binding">real_arc_int_op__socom_design__alloc_payload</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__enable_srv" title="comp__gateway_ipc_binding">real_arc_int_op__socom_design__enable_srv</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_client" title="comp__gateway_ipc_binding">real_arc_int_op__socom_design__make_client</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__make_server" title="comp__gateway_ipc_binding">real_arc_int_op__socom_design__make_server</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__payload_span" title="comp__gateway_ipc_binding">real_arc_int_op__socom_design__payload_span</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__sub_event" title="comp__gateway_ipc_binding">real_arc_int_op__socom_design__sub_event</a>, <a class="reference internal" href="../socom/design/30_structural_view.html#real_arc_int_op__socom_design__update_event" title="comp__gateway_ipc_binding">real_arc_int_op__socom_design__update_event</a></span></span></div>
 </span></div>
-<div class="score-coverage line"><span class="needs_label">coverage: </span><span class="needs_data">lines 82% · branches 70% · files 29/38</span></div>
+<div class="score-coverage line"><span class="needs_label">coverage: </span><span class="needs_data">lines 80% · branches 76% · files 13/19</span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
@@ -531,13 +531,6 @@
 The daemons use <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> (LoLa) for event transport, service discovery, shared-memory sample
 ownership, and peer liveness. Bridged services use generic proxies and skeletons, while
 <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> transfers gateway configuration and reports peer availability.</p>
-<figure class="align-center" id="id5">
-<p class="plantuml">
-<object data="../_images/plantuml-3b4a3fffbefd804f96c46036fa9e1610003c42fb.svg" type="image/svg+xml" style="width:1410px;height:1087px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Gateway IPC Binding component diagram</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
 <p>This is the Gateway IPC Binding implementation used by <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>. It uses
@@ -545,7 +538,7 @@ ownership, and peer liveness. Bridged services use generic proxies and skeletons
 <p>Because <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> already provides service discovery, subscription management, shared-memory transport and
 slot lifetime management, this implementation has <strong>no IPC protocol of its own</strong>. There are no message ids, no
 wire format and no shared-memory slot manager. The entire design question is therefore: <em>how are SOME/IP
-services mapped onto ``mw::com`` features?</em></p>
+services mapped onto mw::com features?</em></p>
 <p>The one thing <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> does not give away for free is peer liveness, because per-service availability
 cannot distinguish “the peer is down” from “the peer is up but the service is not there”. That is solved with
 a dedicated, typed <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, see <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>.</p>
@@ -700,11 +693,11 @@ pushes what it consumes into a <code class="docutils literal notranslate"><span 
 <li><p><strong>consumer role</strong>: the binding is a SOCom <code class="docutils literal notranslate"><span class="pre">Server_connector</span></code> for the same service and publishes what it
 receives from a <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code>.</p></li>
 </ul>
-<figure class="align-center" id="id6">
+<figure class="align-center" id="id5">
 <p class="plantuml">
-<object data="../_images/plantuml-e147dab5afafdcceb90d3eedc9fae59729b7379c.svg" type="image/svg+xml" style="width:1370px;height:467px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-e147dab5afafdcceb90d3eedc9fae59729b7379c.svg" type="image/svg+xml" style="width:1369px;height:466px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2 </span><span class="caption-text">Role assignment for both data directions</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Role assignment for both data directions</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>Because both daemons hold both roles at the same time, for different services, the bridged-service part of the
@@ -895,11 +888,11 @@ skeletons.</p></li>
 </section>
 <section id="architecture">
 <h3>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h3>
-<figure class="align-center" id="id7">
+<figure class="align-center" id="id6">
 <p class="plantuml">
-<object data="../_images/plantuml-3b4a3fffbefd804f96c46036fa9e1610003c42fb.svg" type="image/svg+xml" style="width:1410px;height:1087px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-3b4a3fffbefd804f96c46036fa9e1610003c42fb.svg" type="image/svg+xml" style="width:1410px;height:1081px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 3 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <ul class="simple">
@@ -961,11 +954,11 @@ backed by an <code class="docutils literal notranslate"><span class="pre">std::a
 <h3>Behavioural views<a class="headerlink" href="#behavioural-views" title="Link to this heading">#</a></h3>
 <section id="startup">
 <h4>Startup<a class="headerlink" href="#startup" title="Link to this heading">#</a></h4>
-<figure class="align-center" id="id8">
+<figure class="align-center" id="id7">
 <p class="plantuml">
 <object data="../_images/plantuml-a444f77395e3b79de771e2872afd9ab3c5cc4239.svg" type="image/svg+xml" style="width:1970px;height:1400px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 4 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> startup: <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> before bridged services</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">someipd</span></code> and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> startup: <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> before bridged services</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
@@ -973,25 +966,25 @@ backed by an <code class="docutils literal notranslate"><span class="pre">std::a
 <h4>Event flow<a class="headerlink" href="#event-flow" title="Link to this heading">#</a></h4>
 <p>The flow for one bridged service is split into availability, subscription lifecycle and event delivery.
 Availability precedes subscription; event delivery takes place between subscription and unsubscription.</p>
-<figure class="align-center" id="id9">
+<figure class="align-center" id="id8">
 <p class="plantuml">
 <object data="../_images/plantuml-7786e446dd79ffb44dfde911535b0505b2fe6269.svg" type="image/svg+xml" style="width:1816px;height:694px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Availability for one bridged service</span><a class="headerlink" href="#id9" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Availability for one bridged service</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id9">
+<p class="plantuml">
+<object data="../_images/plantuml-4ca02e65658c9043895a8d7258f4dfc393a7367c.svg" type="image/svg+xml" style="width:1684px;height:664px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Subscription lifecycle for one bridged service</span><a class="headerlink" href="#id9" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <figure class="align-center" id="id10">
 <p class="plantuml">
-<object data="../_images/plantuml-4ca02e65658c9043895a8d7258f4dfc393a7367c.svg" type="image/svg+xml" style="width:1684px;height:664px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-da2512e030fdf9265b56417b8e6cdc9e0c8b386d.svg" type="image/svg+xml" style="width:1428px;height:613px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Subscription lifecycle for one bridged service</span><a class="headerlink" href="#id10" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id11">
-<p class="plantuml">
-<object data="../_images/plantuml-f244917bf27e4ec2547aa1e40265111464f59054.svg" type="image/svg+xml" style="width:1396px;height:613px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Event delivery for one bridged service</span><a class="headerlink" href="#id11" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Event delivery for one bridged service</span><a class="headerlink" href="#id10" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>

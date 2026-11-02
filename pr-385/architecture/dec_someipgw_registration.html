@@ -182,7 +182,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -324,7 +324,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -478,7 +478,7 @@
                   
   <section id="architectural-design-decision-dynamic-registration-for-some-ip-gateway">
 <h1>Architectural Design Decision: Dynamic Registration for SOME/IP Gateway<a class="headerlink" href="#architectural-design-decision-dynamic-registration-for-some-ip-gateway" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-70244737">
+<div class="need_container docutils container" id="SNCB-49e8cb91">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__component__someip_gw_registration">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -497,8 +497,8 @@
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_context"><span class="needs_label">context: </span><span class="needs_data">The SOME/IP Gateway architecture separates the core communication stack (``someipd``) from one or more gateway processes (``gatewayd``). This is necessary for safety separation (``ASIL_B`` vs. ``QM``) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the ``gatewayd`` client processes to inform the central ``someipd`` server process of their routing and service bridging needs at runtime.</span></span></div>
-<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Gateway processes dynamically register their communication requirements (FlatBuffers ``mw_someip_config`` service/event configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process (``someipd``) at runtime via the ``AddServiceConfiguration`` method on the dedicated typed ``SomeipdService`` ``mw::com`` IPC interface.</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_context"><span class="needs_label">context: </span><span class="needs_data">The SOME/IP Gateway architecture separates the core communication stack (someipd) from one or more gateway processes (gatewayd). This is necessary for safety separation (ASIL_B vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gatewayd client processes to inform the central someipd server process of their routing and service bridging needs at runtime.</span></span></div>
+<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Gateway processes dynamically register their communication requirements (FlatBuffers mw_someip_config service/event configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process (someipd) at runtime via the AddServiceConfiguration method on the dedicated typed SomeipdService mw::com IPC interface.</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -608,7 +608,7 @@ While they could use different ports, this would violate the SOME/IP service arc
 </section>
 <section id="justification-for-the-decision">
 <h2>Justification for the Decision<a class="headerlink" href="#justification-for-the-decision" title="Link to this heading">#</a></h2>
-<p>The <strong>Dynamic Registration via ``SomeipdService::AddServiceConfiguration`` over ``mw::com``</strong> approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:</p>
+<p>The <strong>Dynamic Registration</strong> via <code class="docutils literal notranslate"><span class="pre">SomeipdService::AddServiceConfiguration</span></code> over <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:</p>
 <ul class="simple">
 <li><p><strong>Flexibility and Independent Startup:</strong>
 <code class="docutils literal notranslate"><span class="pre">someipd</span></code> starts without any static service configuration of its own and offers <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> (<code class="docutils literal notranslate"><span class="pre">/score/someip/SomeipdService</span></code>).
