@@ -23,9 +23,12 @@ Abstract
 The SOCom (Service-Oriented Communication) library (``score::socom``) provides the in-process
 service-oriented runtime and connector abstraction for SOME/IP communication in the S-CORE
 framework. It decouples service consumers and providers from concrete SOME/IP network stack and
-IPC bridge implementations through its ``Runtime``, ``Client_connector``,
-``Disabled_server_connector`` / ``Enabled_server_connector``, and zero-copy ``Payload`` /
-``Writable_payload`` abstractions.
+IPC bridge implementations through four primary abstractions:
+
+- ``Runtime``: In-process service instance registry, connector factory, and service bridge registration point.
+- ``Client_connector``: Consumer-side endpoint for service availability notifications, event subscriptions, and method invocations.
+- ``Disabled_server_connector`` / ``Enabled_server_connector``: Provider-side state-typed endpoints for offering services, allocating and publishing event updates, and handling method calls.
+- ``Payload`` / ``Writable_payload``: Move-only buffer handles exposing a contiguous byte span for the full SOME/IP message (16-byte SOME/IP header followed by payload bytes) and an optional shared-memory slot handle for zero-copy transport.
 
 .. comp:: SOCom
    :id: comp__socom
