@@ -478,7 +478,7 @@
                   
   <section id="gateway-ipc-binding">
 <span id="id1"></span><h1>Gateway IPC Binding<a class="headerlink" href="#gateway-ipc-binding" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-8eafc775">
+<div class="need_container docutils container" id="SNCB-f6c74c03">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__gateway_ipc_binding">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -542,15 +542,6 @@ services mapped onto mw::com features?</em></p>
 <p>The one thing <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> does not give away for free is peer liveness, because per-service availability
 cannot distinguish “the peer is down” from “the peer is up but the service is not there”. That is solved with
 a dedicated, typed <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code>, see <a class="reference internal" href="#someipd-service"><span class="std std-ref">SomeipdService and peer liveness</span></a>.</p>
-<section id="safety-boundary">
-<h3>Safety boundary<a class="headerlink" href="#safety-boundary" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">comp__gateway_ipc_binding</span></code> is classified as <code class="docutils literal notranslate"><span class="pre">QM</span></code> and runs in both <code class="docutils literal notranslate"><span class="pre">someipd</span></code> (<code class="docutils literal notranslate"><span class="pre">QM</span></code>) and <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>
-(<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>). Because <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is a <code class="docutils literal notranslate"><span class="pre">QM</span></code> process, all inter-daemon <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> shared-memory instances
-use <code class="docutils literal notranslate"><span class="pre">&quot;asil-level&quot;:</span> <span class="pre">&quot;QM&quot;</span></code>. On the <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>) side, freedom from interference and data integrity
-across the <code class="docutils literal notranslate"><span class="pre">QM</span></code> IPC channel are preserved by bounds-checking <code class="docutils literal notranslate"><span class="pre">sample_layout</span></code> payload lengths against the
-configured <code class="docutils literal notranslate"><span class="pre">max_payload_size</span></code> and performing End-to-End (E2E) validation over the contiguous SOME/IP header
-and payload before forwarding samples to safety-relevant applications.</p>
-</section>
 <section id="goals-and-non-goals">
 <h3>Goals and non-goals<a class="headerlink" href="#goals-and-non-goals" title="Link to this heading">#</a></h3>
 <p>Goals:</p>
@@ -890,7 +881,7 @@ skeletons.</p></li>
 <h3>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h3>
 <figure class="align-center" id="id6">
 <p class="plantuml">
-<object data="../_images/plantuml-3b4a3fffbefd804f96c46036fa9e1610003c42fb.svg" type="image/svg+xml" style="width:1410px;height:1081px;background:#FFFFFF;"></object></p>
+<object data="../_images/plantuml-ad77b0965df1e7d78ecc34df9936f0749164e6aa.svg" type="image/svg+xml" style="width:1414px;height:1179px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 2 </span><span class="caption-text">Gateway IPC Binding on mw::com, component view</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
 </figcaption>
@@ -1180,7 +1171,6 @@ still holds it open.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-boundary">Safety boundary</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#goals-and-non-goals">Goals and non-goals</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-design">Core design</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#service-representation">Service representation</a></li>

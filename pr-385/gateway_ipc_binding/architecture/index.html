@@ -494,12 +494,12 @@
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sample_layout</span></code> encapsulates the 8-byte binding metadata prefix (<code class="docutils literal notranslate"><span class="pre">payload_length</span></code> + reserved bytes) and 8-byte alignment rounding required to transport variable-length contiguous SOME/IP messages inside fixed-size <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> LoLa event slots.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bridged_service_configs</span></code> (in <code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code>) translates the FlatBuffers <code class="docutils literal notranslate"><span class="pre">mw_someip_config::Root</span></code> configuration and optional <code class="docutils literal notranslate"><span class="pre">Event_size_strategy</span></code> into <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> for either <code class="docutils literal notranslate"><span class="pre">Daemon::gatewayd</span></code> or <code class="docutils literal notranslate"><span class="pre">Daemon::someipd</span></code>, keeping FlatBuffers schema parsing decoupled from the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> transport units.</p></li>
 </ul>
+<p>FlatBuffers gateway configuration parsing is kept out of <code class="docutils literal notranslate"><span class="pre">comp__gateway_ipc_binding</span></code>; callers (<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>) use the separate <code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code> helper library (<code class="docutils literal notranslate"><span class="pre">bridged_service_configs()</span></code>) to construct the <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> passed to <code class="docutils literal notranslate"><span class="pre">mw_com::create_client()</span></code> and <code class="docutils literal notranslate"><span class="pre">Gateway_config_handler</span></code>.</p>
 </section>
 <section id="static-view">
 <h2>Static View<a class="headerlink" href="#static-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-cb94b614">
+<div class="need_container docutils container" id="SNCB-5ac4ce03">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__gib_arch__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -529,7 +529,7 @@
 <tr class="content row-odd"><td class="content" colspan="6"><p>Static decomposition of the Gateway IPC Binding into <code class="docutils literal notranslate"><span class="pre">Client_adapter</span></code>, <code class="docutils literal notranslate"><span class="pre">Server_adapter</span></code>, <code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code>, <code class="docutils literal notranslate"><span class="pre">Someipd_service_provider</span></code>, <code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code>, <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code>, and <code class="docutils literal notranslate"><span class="pre">sample_layout</span></code>, and their dependencies on <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> and <code class="docutils literal notranslate"><span class="pre">score::socom</span></code>.</p>
 <figure class="align-center" id="id2">
 <p class="plantuml">
-<object data="../../_images/plantuml-3b4a3fffbefd804f96c46036fa9e1610003c42fb.svg" type="image/svg+xml" style="width:1410px;height:1081px;background:#FFFFFF;"></object></p>
+<object data="../../_images/plantuml-ad77b0965df1e7d78ecc34df9936f0749164e6aa.svg" type="image/svg+xml" style="width:1414px;height:1179px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 7 </span><span class="caption-text">Gateway IPC Binding Static Architecture</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
 </figcaption>
@@ -553,7 +553,7 @@
 </section>
 <section id="dynamic-view">
 <h2>Dynamic View<a class="headerlink" href="#dynamic-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-6cf2b358">
+<div class="need_container docutils container" id="SNCB-38bcc3ad">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__gib_arch__startup_and_events">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -614,7 +614,7 @@
 </section>
 <section id="provided-interfaces">
 <h2>Provided Interfaces<a class="headerlink" href="#provided-interfaces" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-26f9f985">
+<div class="need_container docutils container" id="SNCB-2fbdd79b">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gib_arch__client">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -642,7 +642,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Client-side lifecycle and configuration interface exposed to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> via <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_client.hpp</span></code>, <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp</span></code>, and <code class="docutils literal notranslate"><span class="pre">score/bridged_services/bridged_service_configs.h</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Client-side lifecycle and configuration interface exposed to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> via <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_client.hpp</span></code> and <code class="docutils literal notranslate"><span class="pre">score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp</span></code>.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__gib_arch__client" title="real_arc_int__gib_arch__client">real_arc_int__gib_arch__client</a></span></span></div>
@@ -658,11 +658,11 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-0da1b2ad">
+<div class="need_container docutils container" id="SNCB-68ab4480">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__create_client">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">mw_com::create_client and bridged_service_configs</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">mw_com::create_client</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
@@ -687,7 +687,7 @@
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p><code class="docutils literal notranslate"><span class="pre">score::bridged_services::bridged_service_configs()</span></code> builds <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> from <code class="docutils literal notranslate"><span class="pre">mw_someip_config::Root</span></code> and an <code class="docutils literal notranslate"><span class="pre">Event_size_strategy</span></code>. <code class="docutils literal notranslate"><span class="pre">score::gateway_ipc_binding::mw_com::create_client()</span></code> validates the <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code>, synthesizes and registers missing <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> deployment entries via <code class="docutils literal notranslate"><span class="pre">mw::com::runtime::AddConfiguration</span></code>, creates and starts all <code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> and <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> instances in the local <code class="docutils literal notranslate"><span class="pre">socom::Runtime</span></code>, and starts <code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code> discovery to send <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p><code class="docutils literal notranslate"><span class="pre">score::gateway_ipc_binding::mw_com::create_client()</span></code> accepts <code class="docutils literal notranslate"><span class="pre">Service_configs</span></code> (constructed by callers using the separate <code class="docutils literal notranslate"><span class="pre">score/bridged_services</span></code> helper library), validates them, synthesizes and registers missing <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> deployment entries via <code class="docutils literal notranslate"><span class="pre">mw::com::runtime::AddConfiguration</span></code>, creates and starts all <code class="docutils literal notranslate"><span class="pre">Provider_service_binding</span></code> and <code class="docutils literal notranslate"><span class="pre">Consumer_service_binding</span></code> instances in the local <code class="docutils literal notranslate"><span class="pre">socom::Runtime</span></code>, and starts <code class="docutils literal notranslate"><span class="pre">Someipd_service_consumer</span></code> discovery to send <code class="docutils literal notranslate"><span class="pre">AddServiceConfiguration</span></code> to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__gib_arch__create_client" title="real_arc_int_op__gib_arch__create_client">real_arc_int_op__gib_arch__create_client</a></span></span></div>
@@ -703,7 +703,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-519b5fba">
+<div class="need_container docutils container" id="SNCB-e028e32b">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__is_connected">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -748,7 +748,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-9eb12c0f">
+<div class="need_container docutils container" id="SNCB-3220087c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gib_arch__server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -792,7 +792,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-45979f83">
+<div class="need_container docutils container" id="SNCB-8aa3df83">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__create_server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -836,7 +836,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3a564efc">
+<div class="need_container docutils container" id="SNCB-22646041">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__start_server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -880,7 +880,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-f5f4b7ee">
+<div class="need_container docutils container" id="SNCB-18c28f3a">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gib_arch__someipd_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -924,7 +924,7 @@
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ab887258">
+<div class="need_container docutils container" id="SNCB-10eb3439">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gib_arch__add_svc_cfg">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">

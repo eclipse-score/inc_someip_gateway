@@ -478,7 +478,7 @@
                   
   <section id="socom">
 <span id="id1"></span><h1>SOCom<a class="headerlink" href="#socom" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-8466549e">
+<div class="need_container docutils container" id="SNCB-6a849b7a">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp table" id="comp__socom">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -505,7 +505,7 @@
 <div class="line">has: <span class="belongs_to"><span><a class="reference internal" href="design/40_behavioral_view.html#comp_arc_dyn__socom_design__discovery" title="comp__socom">comp_arc_dyn__socom_design__discovery</a>, <a class="reference internal" href="design/40_behavioral_view.html#comp_arc_dyn__socom_design__event_flow" title="comp__socom">comp_arc_dyn__socom_design__event_flow</a>, <a class="reference internal" href="design/30_structural_view.html#comp_arc_sta__socom_design__static_view" title="comp__socom">comp_arc_sta__socom_design__static_view</a></span></span></div>
 <div class="line">implements: <span class="implements"><span><a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__alloc_payload" title="comp__socom">real_arc_int_op__socom_design__alloc_payload</a>, <a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__call_method" title="comp__socom">real_arc_int_op__socom_design__call_method</a>, <a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__enable_srv" title="comp__socom">real_arc_int_op__socom_design__enable_srv</a>, <a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__make_client" title="comp__socom">real_arc_int_op__socom_design__make_client</a>, <a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__make_server" title="comp__socom">real_arc_int_op__socom_design__make_server</a>, <a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__payload_span" title="comp__socom">real_arc_int_op__socom_design__payload_span</a>, <a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__sub_event" title="comp__socom">real_arc_int_op__socom_design__sub_event</a>, <a class="reference internal" href="design/30_structural_view.html#real_arc_int_op__socom_design__update_event" title="comp__socom">real_arc_int_op__socom_design__update_event</a></span></span></div>
 </span></div>
-<div class="score-coverage line"><span class="needs_label">coverage: </span><span class="needs_data">lines 93% · branches 75% · files 24/33</span></div>
+<div class="score-coverage line"><span class="needs_label">coverage: </span><span class="needs_data">lines 93% · branches 74% · files 24/33</span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
@@ -542,7 +542,7 @@ IPC bridge implementations through four primary abstractions:</p>
 <h3>Safety Role<a class="headerlink" href="#safety-role" title="Link to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">socom</span></code> is classified as a <code class="docutils literal notranslate"><span class="pre">QM</span></code> component and is instantiated in-process inside both:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>), which protects outgoing messages and checks incoming messages end-to-end (E2E) directly over the contiguous full SOME/IP message in <code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>), which frames or strips the 16-byte SOME/IP header contiguously with the payload in <code class="docutils literal notranslate"><span class="pre">Payload::data()</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload::wdata()</span></code> (enabling future in-place E2E protection in the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> context) and serializes/deserializes application samples.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> (<code class="docutils literal notranslate"><span class="pre">QM</span></code>), which bridges <code class="docutils literal notranslate"><span class="pre">socom</span></code> connectors between the SOME/IP network stack and the IPC binding to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p></li>
 </ul>
 <div class="toctree-wrapper compound">
