@@ -380,7 +380,7 @@ class TestSdMalformedPureBuilders:
 
     def test_subscribe_entry_bytes(self) -> None:
         entry = sd_malformed._subscribe_entry_bytes(0x1234, 0x0001, 0x0010)  # noqa: SLF001
-        assert entry.hex() == "06001000123400010000000300000010"
+        assert entry.hex() == "06000010123400010000000300000010"
 
     def test_endpoint_option_bytes(self) -> None:
         opt = sd_malformed._endpoint_option_bytes("192.168.1.50", 30510)  # noqa: SLF001
@@ -440,7 +440,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_find_with_options(sock, _DEST, 0x1234, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010000010001234ffffff000003ffffffff"
+            "ffff810000000030000000c801010200c000000000000010000000101234ffffff000003ffffffff"
             "0000000c00090400c0a801320011772e"
         )
 
@@ -457,9 +457,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The entry claims it has 3 options, but only 1 option is actually in the packet.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_entry_refs_more_options(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
+        sd_malformed.send_sd_entry_refs_more_options(sock, _DEST, 0x1234, 0x0001, 0x0010, 1, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060030001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000301234000101000003"
             "000000100000000c00090400c0a801320011772e"
         )
 
@@ -469,7 +469,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_entry_unknown_option_type(sock, _DEST, 0x1234, 0x0001, 0x0010)
         assert sock.sent[0].hex() == (
-            "ffff81000000002c000000c801010200c00000000000001006001000123400010000000300000010000000080005770000000000"
+            "ffff81000000002c000000c801010200c00000000000001006000010123400010000000300000010000000080005770000000000"
         )
 
     def test_send_sd_entry_same_option_twice(self) -> None:
@@ -478,8 +478,8 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_entry_same_option_twice(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000040000000c801010200c00000000000002006001000123400010000000300"
-            "000010060010001234000100000003000000100000000c00090400c0a801320011772e"
+            "ffff810000000040000000c801010200c00000000000002006000010123400010000000300"
+            "000010060000101234000100000003000000100000000c00090400c0a801320011772e"
         )
 
     def test_send_sd_option_length_too_long(self) -> None:
@@ -488,7 +488,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_option_length_too_long(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510, 0x00FF)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
             "000000100000000c00ff0400c0a801320011772e"
         )
 
@@ -498,7 +498,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_option_length_too_short(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
             "000000100000000c00010400c0a801320011772e"
         )
 
@@ -508,7 +508,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_option_length_unaligned(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
             "000000100000000c000a0400c0a801320011772e"
         )
 
@@ -519,7 +519,7 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_options_array_length_too_long(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
             "000000100000006400090400c0a801320011772e"
         )
 
@@ -530,26 +530,26 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_options_array_length_too_short(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000100000003"
             "000000100000000200090400c0a801320011772e"
         )
 
-    def test_send_sd_subscribe_no_endpoint(self) -> None:
-        # The subscribe entry has no endpoint option attached at all.
+    def test_send_sd_subscribe_empty_options(self) -> None:
+        # The subscribe entry has empty Options Array.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_subscribe_no_endpoint(sock, _DEST, 0x1234, 0x0001, 0x0010)
+        sd_malformed.send_sd_subscribe_empty_options(sock, _DEST, 0x1234, 0x0001, 0x0010, 1)
         assert sock.sent[0].hex() == (
-            "ffff810000000024000000c801010200c0000000000000100600000012340001000000030000001000000000"
+            "ffff810000000024000000c801010200c0000000000000100600000012340001010000030000001000000000"
         )
 
     def test_send_sd_subscribe_zero_ip(self) -> None:
         # The endpoint option address is 0.0.0.0, which is not a usable address.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_subscribe_zero_ip(sock, _DEST, 0x1234, 0x0001, 0x0010, 30510)
+        sd_malformed.send_sd_subscribe_zero_ip(sock, _DEST, 0x1234, 0x0001, 0x0010, 1, 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c00090400000000000011772e"
         )
 
@@ -558,10 +558,10 @@ class TestSdMalformedSendersGoldenVectors:
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
         sd_malformed.send_sd_subscribe_wrong_l4proto(
-            sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510, l4proto=0x00
+            sock, _DEST, 0x1234, 0x0001, 0x0010, 1, "192.168.1.50", 30510, l4proto=0x00
         )
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c00090400c0a801320000772e"
         )
 
@@ -569,9 +569,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The option type byte is 0x20, a reserved value the DUT should not see in practice.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_subscribe_reserved_option(sock, _DEST, 0x1234, 0x0001, 0x0010, "192.168.1.50", 30510)
+        sd_malformed.send_sd_subscribe_reserved_option(sock, _DEST, 0x1234, 0x0001, 0x0010, 1, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c000920000000000000000000"
         )
 
@@ -585,12 +585,12 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     def test_send_sd_wrong_someip_message_id(self) -> None:
-        # The top-level SOME/IP service id is changed from the SD id 0xffff to 0x1234.
+        # A subscribe whose SOME/IP Method ID is changed from the SD value 0x8100 to 0x8101.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_wrong_someip_message_id(sock, _DEST, service_id_override=0x1234)
+        sd_malformed.send_sd_wrong_someip_message_id(sock, _DEST, 0x1234, 0x5678, 0x0002, 1, "192.168.1.10", 30000)
         assert sock.sent[0].hex() == (
-            "1234810000000024000000c801010200c000000000000010000000001234ffffff000003ffffffff00000000"
+            "ffff810100000030000000c801010200c000000000000010060000101234567801000003000000020000000c00090400c0a8010a00117530"
         )
 
     def test_send_sd_truncated_entry(self) -> None:
@@ -613,9 +613,9 @@ class TestSdMalformedSendersGoldenVectors:
         # The option length field is set to 1, too short to be a valid option.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
-        sd_malformed.send_sd_empty_option(sock, _DEST, 0x1234, 0x0001, 0x0010)
+        sd_malformed.send_sd_empty_option(sock, _DEST, 0x1234, 0x0001, 0x0010, 1)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010001234000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000101234000101000003"
             "000000100000000c000104000000000000000000"
         )
 
@@ -625,6 +625,6 @@ class TestSdMalformedSendersGoldenVectors:
         sock = _FakeSocket()
         sd_malformed.send_sd_subscribe_nonexistent_service(sock, _DEST, 0x9999, 0x0001, 0x0010, "192.168.1.50", 30510)
         assert sock.sent[0].hex() == (
-            "ffff810000000030000000c801010200c000000000000010060010009999000100000003"
+            "ffff810000000030000000c801010200c000000000000010060000109999000100000003"
             "000000100000000c00090400c0a801320011772e"
         )

@@ -24,10 +24,7 @@
 #include <string>
 #include <thread>
 
-#include "score/gateway_ipc_binding/error.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_client.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_server.hpp"
 #include "score/mw/com/runtime.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/error.hpp"
@@ -37,6 +34,8 @@
 namespace score::gateway_ipc_binding {
 
 using namespace std::chrono_literals;
+using socom::Event_id;
+using socom::Method_id;
 
 inline void initialize_benchmark_runtime() {
     std::string manifest{"score/gateway_ipc_binding/benchmark/mw_com_config.json"};
@@ -103,8 +102,7 @@ class Event_transmission_benchmark_context final {
         auto payload = std::move(payload_result).value();
         auto writable = payload.wdata();
         if (writable.size() < sizeof(seq)) {
-            return MakeUnexpected(score::gateway_ipc_binding::Shared_memory_manager_error::
-                                      runtime_error_shared_memory_allocation_failed);
+            return MakeUnexpected(socom::Error::runtime_error_request_rejected);
         }
 
         std::memcpy(writable.data(), &seq, sizeof(seq));

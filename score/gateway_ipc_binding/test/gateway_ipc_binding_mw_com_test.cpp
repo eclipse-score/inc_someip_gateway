@@ -26,7 +26,7 @@
 #include <thread>
 #include <vector>
 
-#include "score/gateway_ipc_binding/impl/mw_com/someipd_service.hpp"
+#include "score/gateway_ipc_binding/impl/someipd_service.hpp"
 #include "score/mw/com/runtime.h"
 #include "score/socom/runtime.hpp"
 #include "util.hpp"
@@ -502,7 +502,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
         EXPECT_EQ(call(test_case.sizes), std::optional<bool>{test_case.expected});
     }
 
-    // 5 rejected calls + 1 accepted call reach the handler; the duplicate accepted call does not.
+    // 5 rejected calls + 1 accepted call reach the handler; the duplicate accepted call does
+    // not.
     EXPECT_EQ(handler_calls.load(), 6);
     EXPECT_EQ(offered_sample_size("bridged_ipc/keyed_sizes", "event_a"),
               sample_size(Event_config{"event_a", Mw_com_event_id{1U}, 100U}));
@@ -546,8 +547,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 
     EXPECT_EQ(offered_sample_size(), kSample_prefix_size + 8232U);
 
-    // Destroy the consumer before the provider so its proxy releases the LoLa shared-memory usage
-    // lock before restarted_server goes out of scope.
+    // Destroy the consumer before the provider so its proxy releases the LoLa shared-memory
+    // usage lock before restarted_server goes out of scope.
     client.reset();
 }
 

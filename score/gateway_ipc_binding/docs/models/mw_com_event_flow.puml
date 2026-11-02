@@ -39,6 +39,6 @@ alt a sample slot is free
   consumer -> server_connector : update_event(event, payload)
   note right of consumer : The payload owns the SamplePtr.\nDropping it returns the slot.
 else every slot is held by the peer or still in flight
-  provider --> client_connector : runtime_error_no_available_slots
+  provider --> client_connector : runtime_error_sample_allocation_failed
 end
 @enduml

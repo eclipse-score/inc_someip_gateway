@@ -31,7 +31,7 @@ jobs:
   quality-pack-comment:
     name: Comment traceability gate on the pull request
     if: github.event.workflow_run.event == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: read # list + download the artifacts of the triggering workflow run
       pull-requests: write # comment on the pull request

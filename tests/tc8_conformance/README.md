@@ -18,9 +18,6 @@ SPDX-License-Identifier: Apache-2.0
 Tests for the S-CORE SOME/IP Gateway based on
 [OPEN Alliance TC8](https://opensig.org/tech-committee/tc8-automotive-ethernet-ecu-test-specification/).
 
-For architecture diagrams and design rationale, see
-[docs/architecture/tc8_conformance_testing.rst](../../docs/architecture/tc8_conformance_testing.rst).
-
 ## Test Scopes
 
 | Scope | Description | DUT | Status |
@@ -34,6 +31,11 @@ and work with any SOME/IP binding.
 
 ## Quick Start
 
+Run the wildcard command for your platform for complete coverage. Bazel runs
+tests tagged `exclusive` without other tests running concurrently.
+
+### Linux
+
 ```bash
 # Run all TC8 conformance tests (Linux)
 bazel test --config=qemu-integration //tests/tc8_conformance/...
@@ -41,9 +43,30 @@ bazel test --config=qemu-integration //tests/tc8_conformance/...
 # Run a specific target
 bazel test --config=qemu-integration //tests/tc8_conformance:test_tc8_service_discovery
 
-# Run on QNX x86_64
-bazel test --config=x86_64-qnx //tests/tc8_conformance/...
+# Run only the timing-sensitive tests
+bazel test --config=qemu-integration \
+  //tests/tc8_conformance:test_tc8_sd_find \
+  //tests/tc8_conformance:test_tc8_sd_phases_timing \
+  //tests/tc8_conformance:test_tc8_sd_session_wrap
 ```
+
+### QNX x86_64
+
+```bash
+# Run all TC8 conformance tests
+bazel test --config=x86_64-qnx //tests/tc8_conformance/...
+
+# Run only the timing-sensitive tests
+bazel test --config=x86_64-qnx \
+  //tests/tc8_conformance:test_tc8_sd_find \
+  //tests/tc8_conformance:test_tc8_sd_phases_timing \
+  //tests/tc8_conformance:test_tc8_sd_session_wrap
+```
+
+Timing-sensitive tests are selected by wildcard runs (`/...`) like the other
+conformance tests. Their `exclusive` tag makes Bazel run them without other
+tests running concurrently. To run only these tests, select the three targets
+explicitly as shown above.
 
 ## Further Reading
 
@@ -51,7 +74,5 @@ bazel test --config=x86_64-qnx //tests/tc8_conformance/...
   [docs/architecture/tc8_conformance_testing.rst](../../docs/architecture/tc8_conformance_testing.rst)
 - Application-level test scope and plan:
   [application/README.md](application/README.md)
-- Network setup, port assignment, and config template placeholders: see the
-  module docstrings in `tc8_itf_conftest.py` and `helpers/dut_lifecycle.py`
-- Purpose of each helper: see the module docstring at the top of each file
-  under `helpers/`
+- Network setup and helpers: see the module docstrings in
+  [tc8_itf_conftest.py](tc8_itf_conftest.py) and [helpers/](helpers/).
