@@ -325,7 +325,7 @@ integration_test(
 
 integration_test(
     name = "test_tc8_msg_format",
-    timeout = "long",
+    timeout = "moderate",
     srcs = [
         "test_msg_format.py",
     ],
@@ -340,7 +340,7 @@ integration_test(
 
 integration_test(
     name = "test_tc8_msg_format_tcp",
-    timeout = "moderate",
+    timeout = "short",
     srcs = [
         "test_msg_format_tcp.py",
     ],
