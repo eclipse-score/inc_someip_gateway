@@ -510,7 +510,7 @@
     "need": "comp_req__tc8_conformance__tcp_transport",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+    "result_text": "OA SOMEIPSRV_RPC_01: a REQUEST over TCP is expected to get a RESPONSE. Observed: no reply is received",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -522,7 +522,7 @@
     "need": "comp_req__tc8_conformance__tcp_transport",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "DUT offers no echo methods (to_num_of_methods(0) in local_service_instance.cpp), so no reply is sent",
+    "result_text": "OA SOMEIPSRV_RPC_01: a REQUEST over TCP is expected to get a RESPONSE. Observed: no reply is received",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -626,11 +626,11 @@
   {
     "name": "TestMessageFormat__test_basic_01_define_service_using_service_id",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 178,
+    "line": 179,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -638,11 +638,11 @@
   {
     "name": "TestMessageFormat__test_onwire_01_response_addresses",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 190,
+    "line": 191,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -650,11 +650,11 @@
   {
     "name": "TestMessageFormat__test_onwire_02_response_method_id_msb",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 206,
+    "line": 207,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -662,11 +662,11 @@
   {
     "name": "TestMessageFormat__test_onwire_03_copy_request_id",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 220,
+    "line": 221,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -674,11 +674,11 @@
   {
     "name": "TestMessageFormat__test_onwire_04_request_id_reuse",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 236,
+    "line": 237,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -686,11 +686,11 @@
   {
     "name": "TestMessageFormat__test_onwire_05_protocol_version",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 252,
+    "line": 253,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -698,11 +698,11 @@
   {
     "name": "TestMessageFormat__test_onwire_06_interface_version",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 272,
+    "line": 273,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -710,11 +710,11 @@
   {
     "name": "TestMessageFormat__test_onwire_07_message_type_response",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 305,
+    "line": 306,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -722,11 +722,11 @@
   {
     "name": "TestMessageFormat__test_onwire_10_unknown_service",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 319,
+    "line": 320,
     "need": "comp_req__tc8_conformance__msg_error_codes",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -734,11 +734,11 @@
   {
     "name": "TestMessageFormat__test_onwire_11_return_code_ok",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 335,
+    "line": 336,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -746,11 +746,11 @@
   {
     "name": "TestMessageFormat__test_onwire_12_unknown_method",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 347,
+    "line": 348,
     "need": "comp_req__tc8_conformance__msg_error_codes",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -758,11 +758,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_04_fire_and_forget",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 364,
+    "line": 365,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -770,11 +770,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_05_fire_and_forget_no_error",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 377,
+    "line": 378,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -782,11 +782,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_06_return_code_two_msb_zero",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 390,
+    "line": 391,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -794,11 +794,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_07_ignore_return_code_bits",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 408,
+    "line": 409,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -806,11 +806,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_08_no_reply_to_error",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 424,
+    "line": 425,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "TC8-MSG-016 / OA RPC_08: a REQUEST with return code 0x01 and one with 0x1f get no ERROR; expected failure of SOMEIPSRV_RPC_08.",
+    "result_text": "OA SOMEIPSRV_RPC_08: a REQUEST that already carries an error return code is expected to get no ERROR. Observed: the control REQUEST gets no RESPONSE.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -818,11 +818,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_09_error_without_payload",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 446,
+    "line": 447,
     "need": "comp_req__tc8_conformance__msg_error_codes",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -830,11 +830,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_18_copy_message_id",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 461,
+    "line": 462,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -842,11 +842,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_19_copy_request_id",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 474,
+    "line": 475,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -854,11 +854,11 @@
   {
     "name": "TestProtocolCompliance__test_rpc_20_copy_interface_version",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 488,
+    "line": 489,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -866,11 +866,11 @@
   {
     "name": "TestProtocolCompliance__test_ets_004_burst",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 510,
+    "line": 511,
     "need": "comp_req__tc8_conformance__msg_resp_header",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -878,11 +878,11 @@
   {
     "name": "TestProtocolCompliance__test_ets_058_length_way_too_long",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 538,
+    "line": 539,
     "need": "comp_req__tc8_conformance__msg_malformed",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -890,11 +890,11 @@
   {
     "name": "TestProtocolCompliance__test_ets_075_wrong_message_type",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 562,
+    "line": 563,
     "need": "comp_req__tc8_conformance__msg_malformed",
     "verify_type": "partially",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -902,11 +902,11 @@
   {
     "name": "TestProtocolCompliance__test_ets_077_wrong_service_id",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 582,
+    "line": 583,
     "need": "comp_req__tc8_conformance__msg_error_codes",
     "verify_type": "partially",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -914,11 +914,11 @@
   {
     "name": "TestProtocolCompliance__test_ets_078_wrong_protocol_version",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 595,
+    "line": 596,
     "need": "comp_req__tc8_conformance__msg_malformed",
     "verify_type": "partially",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -926,11 +926,11 @@
   {
     "name": "TestUdpTransport__test_ets_069_unaligned_messages_udp",
     "file": "tests/tc8_conformance/test_msg_format.py",
-    "line": 612,
+    "line": 613,
     "need": "comp_req__tc8_conformance__udp_transport",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "No reply to the SOME/IP method request is observed from the DUT",
+    "result_text": "OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -974,7 +974,7 @@
   {
     "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_first_restart",
     "file": "tests/tc8_conformance/test_sd_client.py",
-    "line": 105,
+    "line": 104,
     "need": "comp_req__tc8_conformance__sd_reboot",
     "verify_type": "fully",
     "result": "passed",
@@ -986,7 +986,7 @@
   {
     "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
     "file": "tests/tc8_conformance/test_sd_client.py",
-    "line": 172,
+    "line": 171,
     "need": "comp_req__tc8_conformance__sd_reboot",
     "verify_type": "fully",
     "result": "passed",
@@ -998,7 +998,7 @@
   {
     "name": "TestSDOfferFormat__test_tc8_sd_002_offer_entry_format",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 230,
+    "line": 228,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -1010,7 +1010,7 @@
   {
     "name": "TestSDOfferFormat__test_tc8_sd_003_cyclic_offer_timing",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 262,
+    "line": 260,
     "need": "comp_req__tc8_conformance__sd_cyclic_timing",
     "verify_type": "fully",
     "result": "passed",
@@ -1022,7 +1022,7 @@
   {
     "name": "TestSDFindResponse__test_tc8_sd_004_find_known_service_unicast_offer",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 305,
+    "line": 303,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1034,7 +1034,7 @@
   {
     "name": "TestSDSubscribeLifecycle__test_tc8_sd_006_subscribe_valid_eventgroup_ack",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 355,
+    "line": 353,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1046,7 +1046,7 @@
   {
     "name": "TestSDSubscribeLifecycle__test_tc8_sd_007_subscribe_unknown_eventgroup_nack",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 387,
+    "line": 385,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1058,7 +1058,7 @@
   {
     "name": "TestSDSubscribeLifecycle__test_tc8_sd_008_stop_subscribe_ceases_notifications",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 414,
+    "line": 412,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1070,7 +1070,7 @@
   {
     "name": "TestSDOptionFormat__test_tc8_sd_011_offer_ipv4_endpoint_option",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 488,
+    "line": 486,
     "need": "comp_req__tc8_conformance__sd_endpoint_option",
     "verify_type": "fully",
     "result": "passed",
@@ -1082,7 +1082,7 @@
   {
     "name": "TestSDMulticastEventgroup__test_tc8_sd_013_subscribe_ack_has_multicast_option",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 539,
+    "line": 537,
     "need": "comp_req__tc8_conformance__sd_mcast_eg",
     "verify_type": "fully",
     "result": "passed",
@@ -1094,7 +1094,7 @@
   {
     "name": "TestSDTTLExpiry__test_tc8_sd_014_ttl_expiry_ceases_notifications",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 595,
+    "line": 592,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1106,7 +1106,7 @@
   {
     "name": "TestSDVersionMatching__test_sd_message_01_any_instance",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 661,
+    "line": 658,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1118,7 +1118,7 @@
   {
     "name": "TestSDVersionMatching__test_sd_message_02_instance_specific",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 687,
+    "line": 684,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1130,7 +1130,7 @@
   {
     "name": "TestSDVersionMatching__test_sd_message_03_any_major_version",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 713,
+    "line": 710,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1142,7 +1142,7 @@
   {
     "name": "TestSDVersionMatching__test_sd_message_04_major_version_specific",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 739,
+    "line": 736,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1154,7 +1154,7 @@
   {
     "name": "TestSDVersionMatching__test_sd_message_05_any_minor_version",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 765,
+    "line": 762,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1166,7 +1166,7 @@
   {
     "name": "TestSDVersionMatching__test_sd_message_06_minor_version_specific",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 793,
+    "line": 790,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1178,7 +1178,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_18_wrong_major_version",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 825,
+    "line": 822,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1190,7 +1190,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_14_15_16_unknown_service_id",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 863,
+    "line": 860,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1202,7 +1202,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_17_wrong_instance_id",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 901,
+    "line": 898,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1214,7 +1214,7 @@
   {
     "name": "TestSDSubscribeNAck__test_sd_message_19_unknown_eventgroup_id",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 939,
+    "line": 936,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1226,7 +1226,7 @@
   {
     "name": "TestSDSubscribeNAck__test_ets_144_reserved_field_endpoint_option_set",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 970,
+    "line": 967,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1238,7 +1238,7 @@
   {
     "name": "TestSDFindServiceTiming__test_sd_behavior_03_unicast_findservice_timing",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1025,
+    "line": 1014,
     "need": "comp_req__tc8_conformance__sd_find_mcast_rsp",
     "verify_type": "fully",
     "result": "passed",
@@ -1250,7 +1250,7 @@
   {
     "name": "TestSDFindServiceTiming__test_sd_behavior_04_multicast_findservice_timing",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1064,
+    "line": 1053,
     "need": "comp_req__tc8_conformance__sd_find_mcast_rsp",
     "verify_type": "fully",
     "result": "passed",
@@ -1262,7 +1262,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_088_two_subscribes_same_session",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1117,
+    "line": 1097,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "partially",
     "result": "passed",
@@ -1274,7 +1274,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_092_ttl_zero_stop_subscribe_no_nack",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1158,
+    "line": 1138,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1286,11 +1286,11 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_107_consider_entries_order",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1199,
+    "line": 1179,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "OA ETS_107: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed with the current DUT stack: they are not received after the subscription.",
+    "result_text": "OA ETS_107: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed: they are not received after the subscription.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -1298,11 +1298,11 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_120_events_sent_to_endpoint_option_port",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1272,
+    "line": 1252,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "partially",
     "result": "skipped",
-    "result_text": "OA ETS_120: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed with the current DUT stack: they are not received after the subscription.",
+    "result_text": "OA ETS_120: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed: they are not received after the subscription.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -1310,11 +1310,11 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_155_resubscribe_after_stop",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1331,
+    "line": 1311,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "OA ETS_155: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed with the current DUT stack: they are not received after the subscription.",
+    "result_text": "OA ETS_155: the initial fields 0x8005 to 0x8007 are expected after the subscription. Observed: they are not received after the subscription.",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""
@@ -1322,7 +1322,7 @@
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_095_subscribe_ttl_expires_no_events",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1408,
+    "line": 1388,
     "need": "comp_req__tc8_conformance__sd_ttl_expiry",
     "verify_type": "partially",
     "result": "passed",
@@ -1334,7 +1334,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_091_session_id_increments",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1482,
+    "line": 1462,
     "need": "comp_req__tc8_conformance__sd_offer_format",
     "verify_type": "fully",
     "result": "passed",
@@ -1346,7 +1346,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_121_events_sent_after_subscribe_ack",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1535,
+    "line": 1515,
     "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
     "verify_type": "fully",
     "result": "passed",
@@ -1358,7 +1358,7 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_128_multicast_findservice_version_any",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1598,
+    "line": 1579,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "passed",
@@ -1370,11 +1370,11 @@
   {
     "name": "TestSDFindServiceAdvanced__test_ets_130_multicast_findservice_unicast_flag_clear",
     "file": "tests/tc8_conformance/test_service_discovery.py",
-    "line": 1649,
+    "line": 1622,
     "need": "comp_req__tc8_conformance__sd_find_response",
     "verify_type": "fully",
     "result": "skipped",
-    "result_text": "OA ETS_130: a multicast FindService with the Unicast Flag cleared is expected to be answered with a unicast OfferService. Observed with the current DUT stack: no unicast OfferService is received",
+    "result_text": "OA ETS_130: a multicast FindService with the Unicast Flag cleared is expected to be answered with a unicast OfferService. Observed: no unicast OfferService is received",
     "repo_name": "local_repo",
     "hash": "",
     "url": ""

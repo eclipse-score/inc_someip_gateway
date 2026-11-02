@@ -1143,7 +1143,7 @@ OfferService.</p>
 Wait for the main phase, then send FindService with the Unicast Flag = 0.</p>
 <p><strong>Expected Result:</strong>
 OfferService with IP destination address equal to the SD multicast group, received
-within <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> (2 s).</p>
+within <code class="docutils literal notranslate"><span class="pre">cyclic_offer_delay</span></code> (2 s) plus the 1 s tolerance time.</p>
 </section>
 </section>
 <section id="sd-lifecycle-advanced-tests">
@@ -1222,6 +1222,8 @@ same eventgroup.</p>
 <p><strong>Expected Result:</strong>
 The entries are processed in order: a new SubscribeAck is received and the initial
 fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>) arrive again after the re-subscribe.</p>
+<p>Expected failure (xfail, not strict). OA expectation: the initial fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to
+<code class="docutils literal notranslate"><span class="pre">0x8007</span></code> after the second subscription. Observed: the Ack is received, the initial fields are not.</p>
 </section>
 <section id="tc8-sdlc-005-events-sent-to-endpoint-option-port">
 <h3>TC8-SDLC-005: Events Sent to Endpoint Option Port<a class="headerlink" href="#tc8-sdlc-005-events-sent-to-endpoint-option-port" title="Link to this heading">#</a></h3>
@@ -1247,6 +1249,8 @@ different tester port.</p>
 The ACK arrives on the SD socket and the initial fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>)
 arrive on the endpoint option socket. Not verified: an option IP address that differs
 from the tester IP address.</p>
+<p>Expected failure (xfail, not strict). OA expectation: the initial fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to
+<code class="docutils literal notranslate"><span class="pre">0x8007</span></code> on the endpoint option socket. Observed: the Ack is received, the initial fields are not.</p>
 </section>
 <section id="tc8-sdlc-007-re-subscribe-after-stopsubscribe">
 <h3>TC8-SDLC-007: Re-subscribe After StopSubscribe<a class="headerlink" href="#tc8-sdlc-007-re-subscribe-after-stopsubscribe" title="Link to this heading">#</a></h3>
@@ -1270,6 +1274,8 @@ Subscribe, wait for the ACK, StopSubscribe, re-Subscribe.</p>
 <p><strong>Expected Result:</strong>
 A new SubscribeAck and the initial fields (<code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to <code class="docutils literal notranslate"><span class="pre">0x8007</span></code>) are received after
 the re-subscription.</p>
+<p>Expected failure (xfail, not strict). OA expectation: the initial fields <code class="docutils literal notranslate"><span class="pre">0x8005</span></code> to
+<code class="docutils literal notranslate"><span class="pre">0x8007</span></code> after the subscription that follows the StopSubscribe. Observed: the Ack is received, the initial fields are not.</p>
 </section>
 <section id="tc8-sdlc-008-session-id-increments-per-offerservice">
 <h3>TC8-SDLC-008: Session ID Increments per OfferService<a class="headerlink" href="#tc8-sdlc-008-session-id-increments-per-offerservice" title="Link to this heading">#</a></h3>
@@ -1332,7 +1338,7 @@ Verify that the DUT stops sending FindService for a service after a StopOfferSer
 <p><strong>Stimulus:</strong>
 N/A (skipped).</p>
 <p><strong>Expected Result:</strong>
-Not applicable: the DUT has no ETS client mode (<code class="docutils literal notranslate"><span class="pre">clientServiceActivate</span></code>).</p>
+Not applicable: the OA procedure requires the DUT to handle <code class="docutils literal notranslate"><span class="pre">clientServiceActivate</span></code> (method 0x2F) to start its client, and the ETS application in this project has no handler for method 0x2F.</p>
 </section>
 <section id="tc8-sdlc-012-multicast-findservice-any-major-and-any-minor-version">
 <h3>TC8-SDLC-012: Multicast FindService: Any Major and Any Minor Version<a class="headerlink" href="#tc8-sdlc-012-multicast-findservice-any-major-and-any-minor-version" title="Link to this heading">#</a></h3>
@@ -1377,6 +1383,8 @@ with a unicast OfferService (the flag is ignored).</p>
 Send multicast FindService with unicast flag = 0.</p>
 <p><strong>Expected Result:</strong>
 Unicast OfferService received on the tester socket.</p>
+<p>Expected failure (xfail, not strict). OA expectation: a unicast OfferService. Observed:
+no unicast OfferService received.</p>
 </section>
 <section id="tc8-sdlc-015-restart-reboot-flag-and-session-id-after-first-restart">
 <h3>TC8-SDLC-015: Restart: Reboot Flag and Session ID After First Restart<a class="headerlink" href="#tc8-sdlc-015-restart-reboot-flag-and-session-id-after-first-restart" title="Link to this heading">#</a></h3>
@@ -2904,6 +2912,9 @@ checked.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_msg_format</span></code></p>
 </dd>
 </dl>
+<p>Expected failure (strict xfail) for every test of <code class="docutils literal notranslate"><span class="pre">test_msg_format</span></code>. OA expectation: a
+REQUEST gets the RESPONSE or ERROR listed per test. Observed: a REQUEST gets no reply,
+except one ERROR for a REQUEST with Protocol Version 0xFF.</p>
 <section id="tc8-msg-001-define-service-using-service-id">
 <h3>TC8-MSG-001: Define Service Using Service ID<a class="headerlink" href="#tc8-msg-001-define-service-using-service-id" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
@@ -3250,7 +3261,8 @@ Send the control REQUEST of TC8-MSG-012. Then send a REQUEST to method echoUINT8
 return code <code class="docutils literal notranslate"><span class="pre">0x01</span></code> and one with return code <code class="docutils literal notranslate"><span class="pre">0x1F</span></code>, and listen for 2 s after each.</p>
 <p><strong>Expected Result:</strong>
 No ERROR for either REQUEST.</p>
-<p>Expected failure (strict xfail) of SOMEIPSRV_RPC_08.</p>
+<p>Expected failure (strict xfail). OA expectation: no ERROR for a REQUEST that already
+carries an error return code. Observed: the control REQUEST gets no RESPONSE.</p>
 </section>
 <section id="tc8-msg-017-no-payload-in-error-message">
 <h3>TC8-MSG-017: No Payload in Error Message<a class="headerlink" href="#tc8-msg-017-no-payload-in-error-message" title="Link to this heading">#</a></h3>
@@ -3465,6 +3477,8 @@ steps: the control REQUEST that precedes the stimulus.</p>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">test_msg_format_tcp</span></code></p>
 </dd>
 </dl>
+<p>Expected failure (strict xfail) for every test of <code class="docutils literal notranslate"><span class="pre">test_msg_format_tcp</span></code>. OA expectation:
+a REQUEST over TCP gets a RESPONSE. Observed: the DUT sends no data after the REQUEST.</p>
 <section id="tc8-tcp-001-single-tcp-connection-for-all-methods">
 <h3>TC8-TCP-001: Single TCP Connection for All Methods<a class="headerlink" href="#tc8-tcp-001-single-tcp-connection-for-all-methods" title="Link to this heading">#</a></h3>
 <dl class="field-list simple">
