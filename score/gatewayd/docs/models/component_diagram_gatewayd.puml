@@ -59,6 +59,6 @@ remote_service_instance --> someip : kSomeipFullHeaderSize
 remote_service_instance --> config : reads ServiceType / ServiceInstance / Event
 
 gateway_ipc_binding --> socom : bridges local SOCom connectors
-gateway_ipc_binding --> mw_com : SomeipdServiceProxy &\nbridged_ipc GenericSkeleton / GenericProxy
+gateway_ipc_binding --> mw_com : Someipd_service_proxy &\nbridged_ipc GenericSkeleton / GenericProxy
 
 @enduml

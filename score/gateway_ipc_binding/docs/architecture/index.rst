@@ -141,7 +141,7 @@ Provided Interfaces
    :status: valid
    :language: cpp
 
-   Typed ``mw::com`` control service (``/score/someip/SomeipdService``) used between ``gatewayd`` and ``someipd`` for peer liveness detection and runtime configuration registration.
+   Typed ``mw::com`` control service (``/score/someip/SomeipdService``) used between ``gatewayd`` and ``someipd`` for daemon connectivity detection and runtime configuration registration.
 
 .. real_arc_int_op:: AddServiceConfiguration
    :id: real_arc_int_op__gib_arch__add_svc_cfg
@@ -164,5 +164,5 @@ Required Interfaces
 - ``score::mw::com`` (LoLa):
 
   - ``GenericSkeleton`` and ``GenericProxy`` for type-erased shared-memory event transport, service discovery, and subscription notification across bridged services.
-  - Typed skeleton and proxy for ``SomeipdService`` peer liveness and runtime configuration registration.
+  - Typed skeleton and proxy for ``SomeipdService`` daemon connectivity and runtime configuration registration.
   - Runtime configuration registration to synthesize and add bridged service deployments at startup or registration time.

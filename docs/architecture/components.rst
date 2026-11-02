@@ -29,7 +29,7 @@ The SOME/IP Gateway architecture separates safety-qualified processing from the 
 - **QM Side (Network Daemon, IPC Binding, Abstraction, Protocol, and Configuration)**:
 
   - :need:`comp__socom` (``QM``): In-process service-oriented communication abstraction used inside both ``gatewayd`` and ``someipd`` to decouple service endpoints from IPC and network bindings. See :ref:`software_element_socom`.
-  - :need:`comp__gateway_ipc_binding` (``QM``): Bridges ``socom`` services between ``gatewayd`` and ``someipd`` over ``mw::com`` shared-memory IPC and provides peer liveness and runtime configuration exchange. See :ref:`gateway_ipc_binding_architecture`.
+  - :need:`comp__gateway_ipc_binding` (``QM``): Bridges ``socom`` services between ``gatewayd`` and ``someipd`` over ``mw::com`` shared-memory IPC and provides daemon connectivity and runtime configuration exchange. See :ref:`gateway_ipc_binding_architecture`.
   - :need:`comp__someipd` (``QM``): Central SOME/IP network daemon that owns the network sockets, handles SOME/IP Service Discovery, and routes messages between network peers and registered ``gatewayd`` instances.
   - :need:`comp__someip` (``QM``): SOME/IP protocol header, identifier, and error code definitions used to frame and parse SOME/IP messages.
   - :need:`comp__config` (``QM``): FlatBuffers and JSON schemas defining the gateway service and instance configuration.

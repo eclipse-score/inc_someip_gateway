@@ -38,7 +38,7 @@ alt a sample slot is free
   proxy -> consumer : receiver(SamplePtr), per sample
   consumer -> server_connector : update_event(event, payload)
   note right of consumer : The payload owns the SamplePtr.\nDropping it returns the slot.
-else every slot is held by the peer or still in flight
+else all sample slots are in use
   provider --> client_connector : runtime_error_sample_allocation_failed
 end
 @enduml
