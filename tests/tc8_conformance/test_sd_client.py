@@ -92,11 +92,8 @@ def sd_client_config(
 
 
 def test_ets_097_tcp_reconnect() -> None:
-    """ETS_097: not applicable, it needs the ETS client mode (clientServiceActivate).
-
-    Follow-up: implement when the DUT supports the ETS client mode.
-    """
-    pytest.skip("The DUT has no ETS client mode (clientServiceActivate).")
+    """ETS_097: not applicable, the OA procedure requires the DUT to handle clientServiceActivate (0x2F); the ETS application has no 0x2F handler."""
+    pytest.skip("OA ETS_097: the OA procedure requires the DUT to handle clientServiceActivate (method 0x2F) to start its client, and the ETS application in this project has no handler for method 0x2F.")
 
 
 class TestSDClientReboot:

@@ -49,7 +49,8 @@ SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 #: Expected failure for tests that need a SOME/IP method reply from the DUT.
 NO_ECHO_METHODS = pytest.mark.xfail(
     strict=True,
-    reason="No reply to the SOME/IP method request is observed from the DUT",
+    reason="OA SOMEIPSRV_ONWIRE and SOMEIPSRV_RPC tests: a method REQUEST is expected to get a RESPONSE or ERROR. "
+    "Observed: a REQUEST gets no reply, except one ERROR for a REQUEST with Protocol Version 0xFF.",
 )
 
 _UNKNOWN_METHOD_ID: int = 0xBEEF
@@ -428,8 +429,8 @@ class TestProtocolCompliance:
     )
     @pytest.mark.xfail(
         strict=True,
-        reason="TC8-MSG-016 / OA RPC_08: a REQUEST with return code 0x01 and one with 0x1f get no ERROR; "
-        "expected failure of SOMEIPSRV_RPC_08.",
+        reason="OA SOMEIPSRV_RPC_08: a REQUEST that already carries an error return code is expected to get no ERROR. "
+        "Observed: the control REQUEST gets no RESPONSE.",
     )
     def test_rpc_08_no_reply_to_error(self, dut: subprocess.Popen[bytes], dut_ip: str) -> None:
         """TC8-MSG-016 (SOMEIPSRV_RPC_08): a REQUEST that already carries an error return code gets no ERROR."""
