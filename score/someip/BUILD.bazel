@@ -16,6 +16,7 @@ Common types and constants shared across the SOME/IP gateway components.
 """
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
 cc_library(
     name = "someip",
@@ -33,4 +34,17 @@ cc_library(
     hdrs = ["someip_error.h"],
     visibility = ["//visibility:public"],
     deps = ["@score_baselibs//score/result"],
+)
+
+# Keep the bundle at the component package boundary so coverage includes local
+# implementation dependencies while excluding code owned by other components.
+docs_bundle(
+    name = "docs_bundle",
+    code_targets = [
+        ":someip",
+        ":someip_error",
+    ],
+    primary_need_id = "comp__someip",
+    source_dir = "docs",
+    visibility = ["//visibility:public"],
 )

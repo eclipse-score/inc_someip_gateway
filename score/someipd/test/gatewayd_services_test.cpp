@@ -192,5 +192,25 @@ TEST_F(GatewaydServicesTest, AddsNothingWhenANetworkServiceFails) {
     EXPECT_TRUE(services.Add({config.data(), config.size()}, add_bridged_services_));
 }
 
+TEST_F(GatewaydServicesTest, AddsAServiceTypeWithMultipleLocalInstances) {
+    GatewaydServices services{routing(), *runtime_};
+    flatbuffers::FlatBufferBuilder builder;
+    std::vector<flatbuffers::Offset<mw_someip_config::Event>> events{
+        mw_someip_config::CreateEventDirect(builder, 1U, "event_a")};
+    std::vector<flatbuffers::Offset<mw_someip_config::ServiceInstance>> instances{
+        mw_someip_config::CreateServiceInstanceDirect(builder, "test/instance_1", 1U),
+        mw_someip_config::CreateServiceInstanceDirect(builder, "test/instance_2", 2U)};
+    std::vector<flatbuffers::Offset<mw_someip_config::ServiceType>> service_types{
+        mw_someip_config::CreateServiceTypeDirect(builder, "multi_instance", 0x1061U, 1U, 0U,
+                                                  &events, nullptr, &instances)};
+    builder.Finish(mw_someip_config::CreateRootDirect(builder, &service_types, 1U));
+    auto const* const config = reinterpret_cast<std::byte const*>(builder.GetBufferPointer());
+
+    EXPECT_TRUE(services.Add({config, builder.GetSize()}, add_bridged_services_));
+    ASSERT_EQ(bridged_.size(), 1U);
+    ASSERT_EQ(bridged_.front().size(), 1U);
+    EXPECT_EQ(bridged_.front().front().service_id, 0x1061U);
+}
+
 }  // namespace
 }  // namespace score::someipd

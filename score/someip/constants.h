@@ -31,16 +31,5 @@ constexpr InstanceId kAnyInstance = 0xFFFF;
 // Maximum number of event samples buffered per subscriber before oldest samples are dropped.
 constexpr std::size_t kMaxSampleCount = 10;
 
-// =============================================================================
-// SOCom IPC bridge constants
-// =============================================================================
-
-// Maximum size of IPC messages for the SOCom control channel.
-constexpr std::size_t kMaxIpcMessageSize = 32768;
-
-// Default name of the abstract unix domain socket connecting gatewayd and someipd. Must be
-// overridden per pair when several gatewayd/someipd pairs run on the same host.
-constexpr const char* kDefaultIpcChannelName = "someipd_gatewayd_ipc";
-
 }  // namespace score::someip
 #endif  // SCORE_SOMEIP_CONSTANTS_H

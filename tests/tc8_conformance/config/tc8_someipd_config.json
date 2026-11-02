@@ -1,4 +1,5 @@
 {
+    "ipc_instance_id": 1,
     "service_types": [
         {
             "service_type_name": "tc8_service",

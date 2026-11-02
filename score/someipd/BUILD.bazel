@@ -18,6 +18,7 @@ This daemon contains the SOME/IP communication stack and is QM
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 exports_files(
@@ -34,15 +35,13 @@ cc_binary(
     srcs = ["main.cpp"],
     visibility = ["//visibility:public"],
     deps = [
-        ":local_network_service",
-        ":remote_network_service",
+        ":gatewayd_services",
         ":routing",
-        "//score/config:config_flatbuffers",
-        "//score/gateway_ipc_binding",
+        "//score/bridged_services",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
-        "@score_communication//score/message_passing",
         "@score_communication//score/mw/com",
     ],
 )
@@ -122,10 +121,22 @@ native_binary(
     name = "someipd_example",
     src = "//score/someipd",
     args = [
-        "--configuration",
-        "$(rootpath //score/config:config_file)",
+        "--service_instance_manifest",
+        "$(rootpath etc/mw_com_config.json)",
     ],
     data = [
-        "//score/config:config_file",
+        "etc/mw_com_config.json",
     ],
+)
+
+# Keep the bundle at the component package boundary so coverage includes local
+# implementation dependencies while excluding code owned by other components.
+docs_bundle(
+    name = "docs_bundle",
+    code_targets = [
+        ":someipd",
+    ],
+    primary_need_id = "comp__someipd",
+    source_dir = "docs",
+    visibility = ["//visibility:public"],
 )

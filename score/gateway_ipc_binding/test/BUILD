@@ -46,7 +46,6 @@ cc_test(
     ],
     visibility = ["//tests/integration_test:__pkg__"],
     deps = [
-        "//score/gateway_ipc_binding",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",
         "//score/socom:mock",

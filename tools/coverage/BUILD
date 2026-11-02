@@ -18,7 +18,6 @@ score_coverage_scope(
     testonly = True,
     deps = [
         "//score/config:config_flatbuffers",
-        "//score/gateway_ipc_binding",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/gatewayd",
         "//score/serializer:interface",

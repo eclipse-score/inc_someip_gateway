@@ -65,10 +65,13 @@ jobs:
       matrix:
         include:
           - bazel_args: ""
+            targets: "//quality/... //tests/integration_test/... //tests/tc8_conformance/..."
             name: "default"
           - bazel_args: "--features=asan --features=lsan --features=ubsan_clang"
+            targets: "//quality/... //tests/integration_test/..."
             name: "with ASAN, LSAN, UBSAN"
           - bazel_args: "--features=tsan"
+            targets: "//quality/... //tests/integration_test/..."
             name: "with TSAN"
     name: Integration tests ${{ matrix.name }}
     steps:
@@ -97,11 +100,7 @@ jobs:
           sudo chmod 666 /dev/kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration ${{ matrix.bazel_args }} //quality/... //tests/integration_test/...
-      - name: Run TC8 tests
-        if: matrix.name == 'default'
-        run: |
-          bazel test --config=tc8-itf --test_output=errors //tests/tc8_conformance/...
+          bazel test --config=qemu-integration ${{ matrix.bazel_args }} ${{ matrix.targets }}
       - name: Stage TC8 test reports
         if: always() && matrix.name == 'default'
         run: |

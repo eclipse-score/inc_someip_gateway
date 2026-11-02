@@ -56,9 +56,9 @@ from helpers.constants import (
     EVENT_FIELD_UINT8,
     EVENT_FIELD_UINT8_ARRAY,
     EVENT_INTERFACE_VERSION,
-    EVENTGROUP_TCP_RELIABLE,
+    EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS,
     EVENTGROUP_UDP_MULTICAST,
-    EVENTGROUP_UDP_UNICAST,
+    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
     INSTANCE_ID,
     INSTANCE_ID_2,
     MAJOR_VERSION,
@@ -77,11 +77,15 @@ from helpers.someip_types import SOMEIPHeader, SOMEIPSDEntry, SOMEIPSDHeader
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
 
 #: Service and instance IDs declared in ``tc8_someipd_sd.json``.
-_UNKNOWNEVENTGROUP_UDP_UNICAST: int = 0xBEEF
+_UNKNOWN_EVENTGROUP: int = 0xBEEF
 _UNKNOWNSERVICE_ID: int = 0xBEEF
 
 #: Eventgroups subscribed together in ETS_088.
-_ETS_088_EVENTGROUPS = (EVENTGROUP_UDP_UNICAST, EVENTGROUP_TCP_RELIABLE, EVENTGROUP_UDP_MULTICAST)
+_ETS_088_EVENTGROUPS = (
+    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
+    EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS,
+    EVENTGROUP_UDP_MULTICAST,
+)
 
 #: SD configuration values from ``tc8_someipd_sd.json``.
 _CYCLIC_OFFER_DELAY_MS: float = 2000.0
@@ -365,19 +369,19 @@ class TestSDSubscribeLifecycle:
 
         sock = open_sender_socket(tester_ip)
         try:
-            _, raw_ack = _subscribe_for_ack(sock, "TC8-SD-006", dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
+            _, raw_ack = _subscribe_for_ack(sock, "TC8-SD-006", dut_ip, tester_ip, EVENTGROUP_ALL_EVENTS_AND_FIELDS)
             assert_eventgroup_ack_entry(
                 parse_raw_eventgroup_entry(raw_ack),
                 "TC8-SD-006",
                 service_id=SERVICE_ID,
                 instance_id=INSTANCE_ID,
                 major_version=MAJOR_VERSION,
-                eventgroup_id=EVENTGROUP_UDP_UNICAST,
+                eventgroup_id=EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                 ttl=0xFFFFFF,
             )
         finally:
             # TTL 0xFFFFFF does not expire, end the subscription.
-            _stop_subscribe(sock, dut_ip, tester_ip, EVENTGROUP_UDP_UNICAST)
+            _stop_subscribe(sock, dut_ip, tester_ip, EVENTGROUP_ALL_EVENTS_AND_FIELDS)
             sock.close()
 
     @add_test_properties(
@@ -397,14 +401,14 @@ class TestSDSubscribeLifecycle:
 
         sock = open_sender_socket(tester_ip)
         try:
-            _, raw_ack = _subscribe_for_ack(sock, "TC8-SD-007", dut_ip, tester_ip, _UNKNOWNEVENTGROUP_UDP_UNICAST)
+            _, raw_ack = _subscribe_for_ack(sock, "TC8-SD-007", dut_ip, tester_ip, _UNKNOWN_EVENTGROUP)
         finally:
             sock.close()
 
         ack = parse_raw_eventgroup_entry(raw_ack)
-        assert (ack.eventgroup_id, ack.ttl) == (_UNKNOWNEVENTGROUP_UDP_UNICAST, 0), (
+        assert (ack.eventgroup_id, ack.ttl) == (_UNKNOWN_EVENTGROUP, 0), (
             f"TC8-SD-007: expected SubscribeEventgroupNack (TTL=0) for unknown eventgroup "
-            f"0x{_UNKNOWNEVENTGROUP_UDP_UNICAST:04x}, got eventgroup 0x{ack.eventgroup_id:04x} TTL {ack.ttl}"
+            f"0x{_UNKNOWN_EVENTGROUP:04x}, got eventgroup 0x{ack.eventgroup_id:04x} TTL {ack.ttl}"
         )
 
     @add_test_properties(
@@ -438,7 +442,7 @@ class TestSDSubscribeLifecycle:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_TCP_RELIABLE,
+                    EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -451,7 +455,7 @@ class TestSDSubscribeLifecycle:
                 timeout_secs=5.0,
                 resend=_send_sub_008,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0 for e in acks), (
+            assert any(e.eventgroup_id == EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS and e.ttl > 0 for e in acks), (
                 "TC8-SD-008: Prerequisite failed, no SubscribeEventgroupAck received"
             )
 
@@ -464,7 +468,7 @@ class TestSDSubscribeLifecycle:
                 (dut_ip, SD_PORT),
                 SERVICE_ID,
                 INSTANCE_ID,
-                EVENTGROUP_TCP_RELIABLE,
+                EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS,
                 MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=notif_port,
@@ -618,7 +622,7 @@ class TestSDTTLExpiry:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -632,7 +636,7 @@ class TestSDTTLExpiry:
                 timeout_secs=5.0,
                 resend=_send_sub_ttl,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
+            assert any(e.eventgroup_id == EVENTGROUP_ALL_EVENTS_AND_FIELDS and e.ttl > 0 for e in acks), (
                 "TC8-SD-014: Prerequisite failed, no SubscribeEventgroupAck received"
             )
 
@@ -840,7 +844,7 @@ class TestSDSubscribeNAck:
                 "SOMEIPSRV_SD_MESSAGE_18",
                 dut_ip,
                 tester_ip,
-                EVENTGROUP_UDP_UNICAST,
+                EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                 major_version=MAJOR_VERSION + 1,
             )
         finally:
@@ -852,7 +856,7 @@ class TestSDSubscribeNAck:
             service_id=SERVICE_ID,
             instance_id=INSTANCE_ID,
             major_version=MAJOR_VERSION + 1,
-            eventgroup_id=EVENTGROUP_UDP_UNICAST,
+            eventgroup_id=EVENTGROUP_ALL_EVENTS_AND_FIELDS,
             ttl=0,
         )
 
@@ -878,7 +882,7 @@ class TestSDSubscribeNAck:
                 "SOMEIPSRV_SD_MESSAGE_14/15/16",
                 dut_ip,
                 tester_ip,
-                EVENTGROUP_UDP_UNICAST,
+                EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                 service_id=_UNKNOWNSERVICE_ID,
             )
         finally:
@@ -890,7 +894,7 @@ class TestSDSubscribeNAck:
             service_id=_UNKNOWNSERVICE_ID,
             instance_id=INSTANCE_ID,
             major_version=MAJOR_VERSION,
-            eventgroup_id=EVENTGROUP_UDP_UNICAST,
+            eventgroup_id=EVENTGROUP_ALL_EVENTS_AND_FIELDS,
             ttl=0,
         )
 
@@ -916,7 +920,7 @@ class TestSDSubscribeNAck:
                 "SOMEIPSRV_SD_MESSAGE_17",
                 dut_ip,
                 tester_ip,
-                EVENTGROUP_UDP_UNICAST,
+                EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                 instance_id=INSTANCE_ID + 1,
             )
         finally:
@@ -928,7 +932,7 @@ class TestSDSubscribeNAck:
             service_id=SERVICE_ID,
             instance_id=INSTANCE_ID + 1,
             major_version=MAJOR_VERSION,
-            eventgroup_id=EVENTGROUP_UDP_UNICAST,
+            eventgroup_id=EVENTGROUP_ALL_EVENTS_AND_FIELDS,
             ttl=0,
         )
 
@@ -949,9 +953,7 @@ class TestSDSubscribeNAck:
 
         sock = open_sender_socket(tester_ip)
         try:
-            _, raw_ack = _subscribe_for_ack(
-                sock, "SOMEIPSRV_SD_MESSAGE_19", dut_ip, tester_ip, _UNKNOWNEVENTGROUP_UDP_UNICAST
-            )
+            _, raw_ack = _subscribe_for_ack(sock, "SOMEIPSRV_SD_MESSAGE_19", dut_ip, tester_ip, _UNKNOWN_EVENTGROUP)
         finally:
             sock.close()
 
@@ -961,7 +963,7 @@ class TestSDSubscribeNAck:
             service_id=SERVICE_ID,
             instance_id=INSTANCE_ID,
             major_version=MAJOR_VERSION,
-            eventgroup_id=_UNKNOWNEVENTGROUP_UDP_UNICAST,
+            eventgroup_id=_UNKNOWN_EVENTGROUP,
             ttl=0,
         )
 
@@ -998,7 +1000,7 @@ class TestSDSubscribeNAck:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     tester_ip,
                     sender_port,
@@ -1011,7 +1013,7 @@ class TestSDSubscribeNAck:
                 timeout_secs=5.0,
                 resend=_send,
             )
-            acks = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0]
+            acks = [e for e in entries if e.eventgroup_id == EVENTGROUP_ALL_EVENTS_AND_FIELDS and e.ttl > 0]
             assert acks, "ETS_144: No SubscribeEventgroupAck (TTL>0) received for an endpoint option with Reserved set"
         finally:
             sock.close()
@@ -1176,7 +1178,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 (dut_ip, SD_PORT),
                 SERVICE_ID,
                 INSTANCE_ID,
-                EVENTGROUP_UDP_UNICAST,
+                EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                 MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=sender_port,
@@ -1223,7 +1225,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 return build_subscribe_entry(
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_TCP_RELIABLE,
+                    EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -1241,7 +1243,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 resend=_first,
                 max_results=1,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0 for e in first_acks), (
+            assert any(e.eventgroup_id == EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS and e.ttl > 0 for e in first_acks), (
                 "ETS_107: Prerequisite failed, no SubscribeAck for the initial subscribe"
             )
 
@@ -1257,7 +1259,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 timeout_secs=5.0,
                 max_results=1,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0 for e in acks), (
+            assert any(e.eventgroup_id == EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS and e.ttl > 0 for e in acks), (
                 "ETS_107: No SubscribeAck after one message with StopSubscribe followed by Subscribe. "
                 "DUT must process the entries in order."
             )
@@ -1300,7 +1302,7 @@ class TestSDSubscribeLifecycleAdvanced:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -1313,7 +1315,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 timeout_secs=5.0,
                 resend=_send,
             )
-            acks = [e for e in entries if e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0]
+            acks = [e for e in entries if e.eventgroup_id == EVENTGROUP_ALL_EVENTS_AND_FIELDS and e.ttl > 0]
             assert acks, f"ETS_120: No SubscribeAck received at tester_ip={tester_ip} on the SD source socket."
 
             notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
@@ -1356,7 +1358,7 @@ class TestSDSubscribeLifecycleAdvanced:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -1369,7 +1371,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 timeout_secs=5.0,
                 resend=_subscribe,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks1), (
+            assert any(e.eventgroup_id == EVENTGROUP_ALL_EVENTS_AND_FIELDS and e.ttl > 0 for e in acks1), (
                 "ETS_155: Prerequisite failed, no initial SubscribeAck received"
             )
 
@@ -1378,7 +1380,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 (dut_ip, SD_PORT),
                 SERVICE_ID,
                 INSTANCE_ID,
-                EVENTGROUP_UDP_UNICAST,
+                EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                 MAJOR_VERSION,
                 subscriber_ip=tester_ip,
                 subscriber_port=notif_port,
@@ -1394,7 +1396,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 timeout_secs=5.0,
                 resend=_subscribe,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks2), (
+            assert any(e.eventgroup_id == EVENTGROUP_ALL_EVENTS_AND_FIELDS and e.ttl > 0 for e in acks2), (
                 "ETS_155: No SubscribeAck received after re-subscribe following StopSubscribe"
             )
             notifs = capture_some_ip_messages(notif_sock, SERVICE_ID, timeout_secs=4.0)
@@ -1436,7 +1438,7 @@ class TestSDSubscribeLifecycleAdvanced:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_UDP_UNICAST,
+                    EVENTGROUP_ALL_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -1450,7 +1452,7 @@ class TestSDSubscribeLifecycleAdvanced:
                 timeout_secs=5.0,
                 resend=_send_sub_ttl,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_UDP_UNICAST and e.ttl > 0 for e in acks), (
+            assert any(e.eventgroup_id == EVENTGROUP_ALL_EVENTS_AND_FIELDS and e.ttl > 0 for e in acks), (
                 "ETS_095: Prerequisite failed, no SubscribeEventgroupAck received"
             )
 
@@ -1560,7 +1562,7 @@ class TestSDFindServiceAdvanced:
                     (dut_ip, SD_PORT),
                     SERVICE_ID,
                     INSTANCE_ID,
-                    EVENTGROUP_TCP_RELIABLE,
+                    EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS,
                     MAJOR_VERSION,
                     subscriber_ip=tester_ip,
                     subscriber_port=notif_port,
@@ -1573,7 +1575,7 @@ class TestSDFindServiceAdvanced:
                 timeout_secs=5.0,
                 resend=_subscribe,
             )
-            assert any(e.eventgroup_id == EVENTGROUP_TCP_RELIABLE and e.ttl > 0 for e in acks), (
+            assert any(e.eventgroup_id == EVENTGROUP_UNRELIABLE_EVENTS_AND_FIELDS and e.ttl > 0 for e in acks), (
                 "ETS_121: Prerequisite failed, no SubscribeAck received"
             )
 

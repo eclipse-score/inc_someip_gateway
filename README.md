@@ -38,10 +38,16 @@ A code coverage report can be generated for the `score` package using the follow
 
 ```sh
 bazel coverage //... --build_tests_only
-bazel run @score_coverage//:generate_coverage_html
+bazel run @score_coverage//:generate_coverage_html -- --archive-dir coverage-report
+bazel run //:docs
 ```
 
-The HTML report is stored at `coverage_linux/index.html`. You can open it in a web browser to view the coverage results.
+The HTML report is stored at `coverage_linux/index.html`. The archive directory
+also provides plain LCOV at `coverage-report/coverage_report.dat`, which the docs
+build reads to display line and branch coverage on each component Need. Generate
+coverage before building the docs (or starting live preview). Without this file,
+the docs show missing coverage data. The measurements are raw LCOV coverage;
+coverage justifications are not applied to the values shown in the docs.
 
 ## Quality pack
 
@@ -94,7 +100,7 @@ For current Bazel-based integration testing backends (Linux QEMU, and QNX QEMU) 
 
 ### Daemon Config Schema Validation
 
-Both the `gatewayd` and `someipd` daemons are configured using a single flatbuffer binary file generated from a JSON file. We provide a JSON schema which helps when editing the JSON file, and can also be used to validate it.
+`gatewayd` is configured using a flatbuffer binary file generated from a JSON file. It sends that configuration to `someipd` at runtime. We provide a JSON schema which helps when editing the JSON file, and can also be used to validate it.
 
 #### Configuration Schema
 

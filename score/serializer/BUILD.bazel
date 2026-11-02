@@ -15,6 +15,7 @@ load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
 # Interface between gatewayd and the serializer library. The interface is defined as a C header file and the actual implementation is provided by a shared library which is loaded at runtime by gatewayd.
 cc_library(
@@ -75,4 +76,18 @@ cc_import(
     # TODO: Need workaround for bug bazelbuild/bazel#10190 where bazel adds the .so to the runpath even though it is system_provided.
     system_provided = True,
     visibility = ["//score/gatewayd:__subpackages__"],
+)
+
+# Keep the bundle at the component package boundary so coverage includes local
+# implementation dependencies while excluding code owned by other components.
+docs_bundle(
+    name = "docs_bundle",
+    code_targets = [
+        ":interface",
+        ":pre_serialized_data",
+        ":null_serializer",
+    ],
+    primary_need_id = "comp__serializer",
+    source_dir = "docs",
+    visibility = ["//visibility:public"],
 )

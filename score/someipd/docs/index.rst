@@ -21,3 +21,14 @@ Abstract
 ========
 
 The SOME/IP daemon. Wraps the SOME/IP protocol stack, handles Service Discovery, and routes messages between remote peers and local IPC clients.
+
+
+.. comp:: SOME/IP Network Daemon
+   :id: comp__someipd
+   :status: valid
+   :version: 1
+   :safety: QM
+   :security: NO
+   :belongs_to: feat__someip_gateway
+
+   Handles the SOME/IP communication with the network.

@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_BINDING_HPP
-#define SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_BINDING_HPP
+#ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_SOMEIPD_SERVICE_BINDING_HPP
+#define SCORE_GATEWAY_IPC_BINDING_IMPL_SOMEIPD_SERVICE_BINDING_HPP
 
 #include <atomic>
 #include <functional>
@@ -103,4 +103,4 @@ class Someipd_service_consumer {
 
 }  // namespace score::gateway_ipc_binding::mw_com
 
-#endif  // SCORE_GATEWAY_IPC_BINDING_IMPL_MW_COM_SOMEIPD_SERVICE_BINDING_HPP
+#endif  // SCORE_GATEWAY_IPC_BINDING_IMPL_SOMEIPD_SERVICE_BINDING_HPP

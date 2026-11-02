@@ -47,10 +47,20 @@ pkg_files(
     srcs = [
         "//score/config:config_file",
         "//score/gatewayd:etc/mw_com_config.json",
+        "//score/serializer:null_serializer",
     ],
     renames = {
         "//score/config:config_file": "gatewayd_config.bin",
         "//score/gatewayd:etc/mw_com_config.json": "gatewayd_mw_com_config.json",
+        "//score/serializer:null_serializer": "score_com_serializer.so",
+    },
+)
+
+pkg_files(
+    name = "someipd_config_files",
+    srcs = ["//score/someipd:etc/mw_com_config.json"],
+    renames = {
+        "//score/someipd:etc/mw_com_config.json": "someipd_mw_com_config.json",
     },
 )
 
@@ -76,6 +86,7 @@ scoreipgw_pkg_tar(
     srcs = [
         "run_gateway.sh",
         ":gatewayd_config_files",
+        ":someipd_config_files",
         "//score/gatewayd",
         "//score/someipd",
     ],

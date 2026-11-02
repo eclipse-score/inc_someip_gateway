@@ -18,6 +18,7 @@ This daemon is a gateway between the SCORE middleware and the SOME/IP communicat
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 exports_files(
@@ -33,13 +34,13 @@ cc_binary(
     deps = [
         ":local_service_instance",
         ":remote_service_instance",
+        "//score/bridged_services",
         "//score/config:config_flatbuffers",
-        "//score/gateway_ipc_binding",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/serializer",
         "//score/socom",
         "@score_baselibs//score/filesystem",
         "@score_baselibs//score/mw/log",
-        "@score_communication//score/message_passing",
         "@score_communication//score/mw/com",
     ],
 )
@@ -95,4 +96,16 @@ native_binary(
         "//score/config:config_file",
         "//score/serializer:null_serializer",
     ],
+)
+
+# Keep the bundle at the component package boundary so coverage includes local
+# implementation dependencies while excluding code owned by other components.
+docs_bundle(
+    name = "docs_bundle",
+    code_targets = [
+        ":gatewayd",
+    ],
+    primary_need_id = "comp__gatewayd",
+    source_dir = "docs",
+    visibility = ["//visibility:public"],
 )

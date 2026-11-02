@@ -109,7 +109,8 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    The conformance test suite shall verify that ``someipd`` transmits
    SOME/IP-SD OfferService entries on the configured multicast group
    with correct service ID, instance ID, major/minor version, and TTL
-   fields upon startup.
+   fields upon startup. It shall also verify that the SD Session ID
+   increases with each message and restarts at 0x0001 after 0xFFFF.
 
    Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
    Specification R24-11, section 5.1.2.5.2 (Offer Service Entry).
@@ -262,7 +263,9 @@ Specification (AUTOSAR PRS_SOMEIP_SD).
    The conformance test suite shall verify that ``someipd`` resets its
    SD state upon restart: the reboot flag (SD flags byte bit 7) shall
    be set in the first SD message after restart, and the SD session ID
-   shall reset to a low value (≤ 2).
+   shall reset to a low value (≤ 2). It shall also verify that
+   ``someipd`` detects the reboot of a peer, shown by the reboot flag
+   set and a lower Session ID.
 
    Note: Traces to AUTOSAR SOME/IP Service Discovery Protocol
    Specification R24-11, section 5.1.2.2 (SOME/IP-SD Header, Reboot
