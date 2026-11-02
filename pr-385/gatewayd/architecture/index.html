@@ -504,7 +504,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </section>
 <section id="static-view">
 <h2>Static View<a class="headerlink" href="#static-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-6f7c105f">
+<div class="need_container docutils container" id="SNCB-b5c49313">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__gatewayd_arch__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -534,7 +534,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 <tr class="content row-odd"><td class="content" colspan="6"><p>Static decomposition of <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> into <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>), <code class="docutils literal notranslate"><span class="pre">local_service_instance</span></code>, and <code class="docutils literal notranslate"><span class="pre">remote_service_instance</span></code> units and their dependencies on <code class="docutils literal notranslate"><span class="pre">socom</span></code>, <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code>, <code class="docutils literal notranslate"><span class="pre">bridged_services</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>, <code class="docutils literal notranslate"><span class="pre">someip</span></code>, <code class="docutils literal notranslate"><span class="pre">serializer</span></code>, and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>.</p>
 <figure class="align-center" id="id1">
 <p class="plantuml">
-<object data="../../_images/plantuml-85c6f0759f87338e78dc5c66eb8d534cbe3c9c58.svg" type="image/svg+xml" style="width:2383px;height:1205px;background:#FFFFFF;"></object></p>
+<object data="../../_images/plantuml-587d62390c97f011fb84c9f039b00c42d53118e7.svg" type="image/svg+xml" style="width:2383px;height:1205px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 10 </span><span class="caption-text">Gateway Daemon Static Component Diagram</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
 </figcaption>
@@ -558,7 +558,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </section>
 <section id="dynamic-view">
 <h2>Dynamic View<a class="headerlink" href="#dynamic-view" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-92db648c">
+<div class="need_container docutils container" id="SNCB-615c6094">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__gatewayd_arch__event_flow">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -613,7 +613,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 <section id="provided-and-internal-component-interfaces">
 <h2>Provided and Internal Component Interfaces<a class="headerlink" href="#provided-and-internal-component-interfaces" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is an executable daemon process and does not expose a C++ library header to external applications. Internally, the startup orchestrator interacts with two adapter interfaces implemented by <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> and <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance</span></code>.</p>
-<div class="need_container docutils container" id="SNCB-2cab8974">
+<div class="need_container docutils container" id="SNCB-0abb389d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gatewayd_arch__local_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -657,7 +657,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-49dac058">
+<div class="need_container docutils container" id="SNCB-d389a4f4">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gatewayd_arch__local_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -705,7 +705,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-7da02467">
+<div class="need_container docutils container" id="SNCB-915d9cb0">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gatewayd_arch__remote_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -749,7 +749,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-0b388887">
+<div class="need_container docutils container" id="SNCB-36660622">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gatewayd_arch__remote_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
