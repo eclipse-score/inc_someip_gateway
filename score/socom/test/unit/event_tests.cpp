@@ -60,6 +60,9 @@ TEST_F(EventTest, FirstEventSubscriptionCallsOnEventSubscriptionChange) {
 }
 
 TEST_F(EventTest, ServerSendsEventWhichIsReceivedBySubscribedClient) {
+    RecordProperty("FullyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     std::vector<Payload> payloads{};
     payloads.emplace_back(empty_payload());
     payloads.emplace_back(clone_payload(real_payload));

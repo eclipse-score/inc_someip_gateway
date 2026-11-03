@@ -26,11 +26,9 @@ Component requirement IDs follow the format:
 Assumption of Use (AoU) requirements use:
 ``aou_req__<component>__<title_snake_case>``
 
-.. note::
-
-   Add component requirement files to the toctree below as they are created.
-   Use one file per component (e.g., ``gatewayd.rst``, ``someipd.rst``,
-   ``network_service.rst``).
-
 .. toctree::
    :maxdepth: 1
+
+   socom
+   gateway_ipc_binding
+   gatewayd
