@@ -15,8 +15,6 @@
 State Dynamics View
 ===================
 
-SOCom models the runtime lifecycle of event subscriptions and service availability through two state machines.
-
 .. _event_subscription_state_machine:
 
 Event subscription state
@@ -37,11 +35,11 @@ The following model describes the state-behavior of an event subscription from a
      - The client and server are not connected.
        No event subscription or transmission is possible.
    * - Event_state::unsubscribed
-     - The client and server are connected (``Service_state::available``) and the event is not subscribed.
-       No event update is received in this state.
+     - The client and server are connected and the event is not subscribed.
+       No event update will be received in this state.
    * - Event_state::subscribed
-     - The client is subscribed to the event while the service is available.
-       Event updates published by the server are delivered to the client without a separate subscription-pending or acknowledgement state.
+     - The user is subscribed to the event.
+       Event updates will be received in this state.
 
 .. list-table:: Triggers
    :header-rows: 1
@@ -49,13 +47,13 @@ The following model describes the state-behavior of an event subscription from a
    * - Name
      - Description
    * - Client_connector::subscribe_event()
-     - Subscribes the client to an event.
+     - The user calls Client_connector::subscribe_event() in order to subscribe to an event.
    * - Client_connector::unsubscribe_event()
-     - Unsubscribes the client from an event.
+     - The user calls Client_connector::unsubscribe_event() in order to unsubscribe from an event.
    * - Client_connector::Callbacks::on_service_state_change(Service_state::available)
-     - Notifies the client that the service is available; events start unsubscribed.
-   * - Client_connector::Callbacks::on_service_state_change(Service_state::not_available)
-     - Notifies the client that the service is no longer available, dropping any active subscriptions.
+     - SOCom calls the user callback Client_connector::Callbacks::on_service_state_change(Service_state::available).
+   * - Client_connector::Callbacks::on_service_state_change(!Service_state::available)
+     - SOCom calls the user callback Client_connector::Callbacks::on_service_state_change() with a state different from Service_state::available.
 
 .. _service_state_machine:
 
