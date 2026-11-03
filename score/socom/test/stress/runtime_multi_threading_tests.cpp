@@ -125,7 +125,6 @@ class RuntimeMultiThreadingTest : public SingleConnectionTest {
             Server_data server{connector_factory, configuration, instance};
         };
     }
-
 };
 
 TEST_F(RuntimeMultiThreadingTest, CreationOfServerAndClientConnectorsHasNoRaceCondition) {
