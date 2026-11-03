@@ -257,9 +257,8 @@ message::Call_method::Return_type Impl::receive(Client_connection const& /*clien
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    return message::Call_method::Return_type(
-        m_callbacks.on_method_call(*this, message.id, std::move(message.payload),
-                                   std::move(message.reply_data)));
+    return message::Call_method::Return_type(m_callbacks.on_method_call(
+        *this, message.id, std::move(message.payload), std::move(message.reply_data)));
 }
 
 message::Allocate_method_call_payload::Return_type Impl::receive(

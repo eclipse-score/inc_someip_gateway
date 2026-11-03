@@ -405,8 +405,8 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
 
     // check if one is already registered for this service interface and instance and return error
     // if yes
-    auto client_connector = std::make_unique<CC_impl>(std::move(configuration), instance,
-                                                      std::move(callbacks));
+    auto client_connector =
+        std::make_unique<CC_impl>(std::move(configuration), instance, std::move(callbacks));
 
     auto registration = register_connector(client_connector->get_configuration(),
                                            client_connector->get_service_instance(),

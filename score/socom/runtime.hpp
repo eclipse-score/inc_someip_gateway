@@ -18,7 +18,6 @@
 #include <memory>
 
 #include "score/socom/client_connector.hpp"
-
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 

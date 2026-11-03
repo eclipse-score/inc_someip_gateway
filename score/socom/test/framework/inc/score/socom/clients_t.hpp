@@ -339,7 +339,6 @@ struct Client_data {
     /// \param[in] event_id event to subscribe to
     /// \return subscription RAII objects for all clients
     static Subscriptions subscribe(Client_data::Vector const& clients, Event_id const& event_id);
-
 };
 
 }  // namespace score::socom
