@@ -52,11 +52,13 @@ deactivate client
 alt someipd offers SomeipdService
   mwcom -> sdsvc_consumer : find-service handler(handle)
   activate sdsvc_consumer
+  note right of sdsvc_consumer : Runs inside StartFindService()\nor later on an mw::com thread.
   sdsvc_consumer -> mwcom : Create(handle)
   sdsvc_consumer -> mwcom : AddServiceConfiguration(gateway config, event sizes)
   activate mwcom
   mwcom -> sdsvc_provider : AddServiceConfiguration handler
   activate sdsvc_provider
+  note left of sdsvc_provider : Runs on an mw::com\nmessage-passing thread.
   sdsvc_provider -> server : on_service_configuration(gateway config, event sizes)
   activate server
   server -> handler : handler(gateway config, add_bridged_services)
@@ -69,7 +71,7 @@ alt someipd offers SomeipdService
   deactivate server
   handler --> server : true
   deactivate handler
-  server ->> server : Post start() to ipc_discovery worker
+  server ->> server : m_discovery.Post(start)
   server --> sdsvc_provider : true (accepted)
   deactivate server
   sdsvc_provider --> mwcom : true (accepted)
@@ -81,7 +83,7 @@ alt someipd offers SomeipdService
 
   server -[hidden]-> server
   activate server
-  note left of server : Runs on ipc_discovery worker thread.
+  note left of server : Runs on m_discovery worker thread\n(StartFindService cannot run on the\nmw::com message-passing thread).
   server -> mwcom : StartFindService(consumer services)
   deactivate server
 else someipd withdraws SomeipdService, or never offers it

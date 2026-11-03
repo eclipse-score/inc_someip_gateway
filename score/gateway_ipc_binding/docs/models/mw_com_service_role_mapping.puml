@@ -47,5 +47,6 @@ gw_bind -up-> gw_app : SOCom Client_connector
 note bottom
   The peer that owns the data source owns the GenericSkeleton.
   The peer that consumes owns the GenericProxy.
+  Roles are fixed at startup, see decision D4.
 end note
 @enduml

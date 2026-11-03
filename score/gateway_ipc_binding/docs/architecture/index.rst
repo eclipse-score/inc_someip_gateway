@@ -412,10 +412,33 @@ On destruction, each service binding tears down its endpoints in order so no cal
 Threading and concurrency
 -------------------------
 
-``socom`` and ``mw::com`` callbacks run on arbitrary caller and message-passing threads:
+- SOCom callbacks and ``mw::com`` receive handlers run on different threads. Every ``Service_binding`` guards
+  its state with a mutex, plus one outer mutex per blocking transition it has to serialize.
+- Both stacks call the binding back **while holding an internal lock of their own**, and both take that same
+  internal lock from the API the binding calls into. A binding mutex that a callback takes may therefore
+  never be held across such a call, or the two lock orders form a cycle and the daemon deadlocks against a
+  stack-owned thread. Concretely:
 
-- **Lock ordering across callbacks**: ``Provider_service_binding`` orders ``m_offer_mutex`` outside ``m_mutex`` (with a separate mutex in ``Allocations``), and ``Consumer_service_binding`` orders ``m_lifecycle_mutex`` -> ``m_subscription_mutex`` -> ``m_mutex`` so ``mw::com`` and ``socom`` calls that acquire internal framework locks or wait for in-flight callbacks never deadlock with ``m_mutex``. ``mw::com`` proxies and skeletons are constructed and destroyed outside ``m_mutex``.
-- **Daemon registration and discovery**: ``Server_adapter`` serializes ``AddServiceConfiguration`` calls with ``m_mutex`` and posts ``start()`` onto its single-thread ``ipc_discovery`` ``ThreadPool``. ``Someipd_service_consumer`` guards its proxy and find handle with ``m_mutex`` and stores ``is_connected()`` in a ``std::atomic<bool>``.
+  - ``mw::com`` holds its service discovery lock across the find-service handler, and creating or destroying
+    a ``GenericProxy`` takes that same lock. Proxies are therefore constructed before, and destroyed after,
+    every binding mutex is released.
+  - ``mw::com`` holds its event notification registry lock across the receive-handler-registration handler,
+    and ``OfferService()`` / ``StopOfferService()`` take that same lock. The provider offers under
+    ``m_offer_mutex``, which that handler does not take.
+  - SOCom holds connector locks across the subscription callbacks, and ``enable()`` / ``disable()`` take
+    those same locks. The consumer enables and disables under ``m_lifecycle_mutex``, which no callback takes.
+
+  The outer mutexes exist purely to keep those transitions serialized against each other while the inner
+  ones are released.
+- Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O and no allocation
+  beyond the in-flight table inside them. The ``AddServiceConfiguration`` handler is the exception: it sets
+  up services, but never waits for a reply, see :ref:`gatewayd-services`.
+- ``GetNewSamples`` must not run concurrently for the same ``GenericProxyEvent``. Because the only caller is
+  the receive handler registered for that event, and ``mw::com`` serialises those, this holds without extra
+  locking; the mutex is still taken for the SOCom-visible state.
+- The SOCom deadlock detector terminates the process if a connector is destroyed from inside one of its own
+  callbacks. Teardown therefore never runs from a callback; the ``mw::com`` find-service handler schedules
+  the disable and destroys the connector outside the handler.
 
 .. _public-interface:
 
