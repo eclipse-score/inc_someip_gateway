@@ -105,7 +105,7 @@ Disadvantages
 Justification for the Decision
 ------------------------------
 
-The **Dynamic Registration** approach via ``SomeipdService`` over ``mw::com`` was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:
+Dynamic registration via ``SomeipdService`` over ``mw::com`` was chosen for three reasons:
 
 *  **Flexibility and Independent Startup:**
    ``someipd`` starts without static service configuration of its own.
@@ -114,5 +114,5 @@ The **Dynamic Registration** approach via ``SomeipdService`` over ``mw::com`` wa
 *  **All-or-Nothing Registration:**
    ``someipd`` validates the incoming configuration and sets up its IPC and SOME/IP network bindings atomically.
    If any service in a registration call fails validation or setup, ``someipd`` rolls back the bindings from that call and rejects the registration.
-*  **Clear Separation of Concerns:**
+*  **Decoupled Network Daemon Deployment:**
    ``SomeipdService`` provides a typed ``mw::com`` control contract between ``gatewayd`` and ``someipd``, keeping ``someipd`` decoupled from static application-specific deployment files and serializer payload sizes.

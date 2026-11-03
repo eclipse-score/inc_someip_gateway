@@ -26,14 +26,17 @@ Feature Definition
 Rationale Behind Architecture Decomposition
 -------------------------------------------
 
-The SOME/IP Gateway architecture separates safety-qualified processing from the QM network stack across two daemon processes connected via ``mw::com`` (LoLa) shared-memory IPC.
+The SOME/IP Gateway architecture separates safety-qualified processing from the QM network stack across two daemon processes connected via ``mw::com`` (LoLa) shared-memory IPC:
+
+- **Safety-qualified gateway process** (``gatewayd``, ``ASIL_B``): Isolates ``mw::com`` application-facing communication, sample serialization/deserialization, and contiguous 16-byte SOME/IP header framing in shared memory so future E2E protection executes entirely within the ``ASIL_B`` boundary.
+- **Central SOME/IP network daemon** (``someipd``, ``QM``): Encapsulates the non-safety-qualified SOME/IP network stack, socket management, and SOME/IP Service Discovery in a single ``QM`` process shared by one or more ``gatewayd`` instances.
 
 Used Components
 ---------------
 
 - **ASIL_B Side (Gateway and Serialization)**:
 
-  - :need:`comp__gatewayd` (``ASIL_B``): Bridges local ``mw::com`` application services with ``someipd`` over the IPC binding, framing or stripping the 16-byte SOME/IP header contiguously with the payload in shared memory (enabling future E2E protection in the ``ASIL_B`` context) and serializing or deserializing application samples. See :ref:`gatewayd_architecture`.
+  - :need:`comp__gatewayd` (``ASIL_B``): Bridges local ``mw::com`` application services with ``someipd`` over the IPC binding, framing or stripping the 16-byte SOME/IP header contiguously with the payload in shared memory and serializing or deserializing application samples. See :ref:`gatewayd_architecture`.
   - :need:`comp__serializer` (``ASIL_B``): Serializes and deserializes application data types to and from SOME/IP wire format within ``gatewayd``.
   - :need:`comp__null_serializer` (``ASIL_B``): Passthrough serializer used by ``gatewayd`` when payloads are pre-serialized by the application.
 

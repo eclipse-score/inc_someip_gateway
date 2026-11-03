@@ -92,12 +92,9 @@ Cons:
 Evaluation
 ----------
 
-Option 1 would build on top of ``mw::com`` with code reuse and inheriting its safety qualification.
-
-Option 2 is singled out due to the lack of zero-copy support.
-
-Option 3 leads to writing lots of IPC handling code for both message passing and shared memory.
-It then must also be safety qualified, which adds additional effort and complexity.
+* **Option 1**: Builds directly on ``mw::com`` (LoLa), reusing its zero-copy shared-memory transport and inheriting its existing ``ASIL_B`` safety qualification.
+* **Option 2**: Eliminated because pure message passing lacks zero-copy payload transfer and can block callers on QNX when the server is not ready, violating safe execution constraints.
+* **Option 3**: Requires implementing and maintaining custom IPC handling across ``message_passing`` and ``shared_memory`` building blocks, which would have to undergo separate safety qualification.
 
 Decision
 --------
@@ -107,7 +104,7 @@ Option 1 was selected: the IPC implementation is based on ``mw::com``.
 Consequences
 ------------
 
-* The integration between the ``gatewayd`` and ``someipd`` daemon is based on ``socom`` interfaces.
+* The integration between the ``gatewayd`` and ``someipd`` daemons is based on ``socom`` interfaces.
 * ``mw::com`` is the IPC transport between the daemons.
 * ``socom`` remains the service abstraction at the gateway boundary, bridged through the
   ``mw::com`` binding.
