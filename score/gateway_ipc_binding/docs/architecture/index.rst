@@ -504,21 +504,17 @@ Threading and concurrency
 Interfaces
 ==========
 
-The public API separates transport-independent lifecycle interfaces from ``mw::com``-specific configuration
-types and factory functions across three headers:
-
-- ``gateway_ipc_binding_client.hpp`` (``Gateway_ipc_binding_client``): Client-side lifecycle interface
-  exposing ``is_connected()`` to ``gatewayd``.
-- ``gateway_ipc_binding_server.hpp`` (``Gateway_ipc_binding_server``): Server-side lifecycle interface
-  exposing ``start()`` to ``someipd``.
-- ``gateway_ipc_binding_mw_com.hpp``: ``mw::com`` configuration structures (``Event_config``,
-  ``Service_config``, ``Service_configs``), the ``Gateway_config_handler`` and ``Add_bridged_services``
-  callbacks, and the ``mw_com::create_client()`` and ``mw_com::create_server()`` factory functions.
+The public ``Gateway_ipc_binding_client`` and ``Gateway_ipc_binding_server`` interfaces are declared in
+``gateway_ipc_binding_client.hpp`` and ``gateway_ipc_binding_server.hpp``. They expose only
+implementation-independent lifecycle operations. The ``gateway_ipc_binding_mw_com.hpp`` header adds the
+mw::com configuration types and the mw::com-specific free factory functions.
 
 .. _interface-semantics:
 
 Interface semantics under mw::com
 ---------------------------------
+
+The client and server interfaces expose the binding's lifecycle and connection state:
 
 .. list-table::
    :header-rows: 1
@@ -533,6 +529,8 @@ Interface semantics under mw::com
    * - ``Gateway_ipc_binding_server::start()``
      - Offers ``SomeipdService``. Bridged services are set up later via ``AddServiceConfiguration``, see
        :ref:`gatewayd-services`. Calling ``start()`` twice returns an error.
+
+``is_connected()`` is backed by ``std::atomic<bool>`` for thread-safe polling.
 
 .. real_arc_int:: Gateway IPC Binding Client Interface
    :id: real_arc_int__gib_arch__client
