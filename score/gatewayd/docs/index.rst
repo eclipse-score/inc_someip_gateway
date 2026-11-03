@@ -20,7 +20,16 @@ gatewayd
 Abstract
 ========
 
-The ``gatewayd`` daemon bridges local ``mw::com`` (LoLa) service instances with remote SOME/IP service instances across the safety boundary. Running as an ``ASIL_B`` process with zero dependency on ``vsomeip``, ``gatewayd`` connects ``ASIL_B`` and ``QM`` local applications to the ``QM`` ``someipd`` daemon over the ``mw::com``-based ``gateway_ipc_binding``, performing SOME/IP 16-byte header framing and stripping as well as payload serialization and deserialization via the ``score_com_serializer`` C plugin ABI.
+The SOME/IP Gateway Daemon (``gatewayd``) is the ``ASIL_B`` gateway process in the S-CORE
+framework that bridges local ``mw::com`` (LoLa) service instances with the ``QM`` ``someipd``
+network daemon across the safety boundary. Running with zero dependency on ``vsomeip``, it
+connects ``ASIL_B`` and ``QM`` local applications to ``someipd`` over ``gateway_ipc_binding``,
+framing or stripping the 16-byte SOME/IP header and serializing or deserializing payloads via
+the ``score_com_serializer`` C plugin ABI:
+
+- ``gatewayd`` (``score/gatewayd/main.cpp``): Daemon entry point that loads the gateway configuration and ``mw::com`` manifest, initializes the serializer plugin, LoLa runtime, and in-process ``socom::Runtime``, connects the ``gateway_ipc_binding`` client to ``someipd``, waits for ``is_connected()``, and starts all configured service instances.
+- ``LocalServiceInstance``: Application-to-network adapter that discovers locally provided ``mw::com`` services via ``GenericProxy``, frames the 16-byte SOME/IP header and serializes application event samples into shared memory, and publishes them to ``someipd`` through a ``socom`` server connector.
+- ``RemoteServiceInstance``: Network-to-application adapter that offers a local ``mw::com::GenericSkeleton`` on the ECU, subscribes to remote SOME/IP events from ``someipd`` through a ``socom`` client connector, strips the 16-byte SOME/IP header, and publishes deserialized samples to local consumers.
 
 
 .. comp:: SOME/IP Gateway Daemon
