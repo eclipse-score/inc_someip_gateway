@@ -411,7 +411,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../gatewayd/index.html">gatewayd</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../serializer/index.html">Serializer</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">SOCom</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">SOCom Architecture</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Software design SOCom library</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="30_structural_view.html">1. Structural View</a></li>
 <li class="toctree-l3"><a class="reference internal" href="40_behavioral_view.html">2. Behavioral View</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">3. State Dynamics View</a></li>
@@ -468,7 +468,7 @@
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">SOCom</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">SOCom Architecture</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Software design SOCom library</a></li>
     
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><span class="section-number">3. </span>State Dynamics View</span></li>
   </ul>
@@ -494,7 +494,7 @@
 <p>The following model describes the state-behavior of an event subscription from a logical perspective.</p>
 <figure class="align-center" id="id1">
 <p class="plantuml">
-<object data="../../_images/plantuml-cabe0cc6adaa78c9fc03582da49238ee93e58b7b.svg" type="image/svg+xml" style="width:555px;height:477px;background:#FFFFFF;"></object></p>
+<object data="../../_images/plantuml-25bc36ccf128aecf5c674ed8c3b4de239e118d8f.svg" type="image/svg+xml" style="width:659px;height:419px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 3.1 </span><span class="caption-text">State diagram of event subscription state</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
 </figcaption>
@@ -507,15 +507,15 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Service_state::not_available</p></td>
+<tr class="row-even"><td><p>Not_available</p></td>
 <td><p>The client and server are not connected.
 No event subscription or transmission is possible.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Event_state::unsubscribed</p></td>
+<tr class="row-odd"><td><p>Available</p></td>
 <td><p>The client and server are connected and the event is not subscribed.
 No event update will be received in this state.</p></td>
 </tr>
-<tr class="row-even"><td><p>Event_state::subscribed</p></td>
+<tr class="row-even"><td><p>Event_subscribed</p></td>
 <td><p>The user is subscribed to the event.
 Event updates will be received in this state.</p></td>
 </tr>
