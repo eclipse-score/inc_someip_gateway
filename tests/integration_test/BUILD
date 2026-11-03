@@ -101,8 +101,8 @@ integration_test(
     filesystem = ":example-app-pkg",
     deps = [
         "//tests/common:capture",
-        "@score_tooling//python_basics/score_pytest:attribute_plugin",
         "@score_someip_gateway_pip//pytest",
+        "@score_tooling//python_basics/score_pytest:attribute_plugin",
     ],
 )
 
@@ -117,8 +117,8 @@ integration_test(
     filesystem = ":example-app-pkg",
     deps = [
         "//tests/common:capture",
-        "@score_tooling//python_basics/score_pytest:attribute_plugin",
         "@score_someip_gateway_pip//pytest",
+        "@score_tooling//python_basics/score_pytest:attribute_plugin",
     ],
 )
 
@@ -133,8 +133,8 @@ integration_test(
     filesystem = ":example-app-pkg",
     deps = [
         "//tests/common:capture",
-        "@score_tooling//python_basics/score_pytest:attribute_plugin",
         "@score_someip_gateway_pip//pytest",
+        "@score_tooling//python_basics/score_pytest:attribute_plugin",
     ],
 )
 
@@ -149,7 +149,7 @@ integration_test(
     filesystem = ":example-app-pkg",
     deps = [
         "//tests/common:capture",
-        "@score_tooling//python_basics/score_pytest:attribute_plugin",
         "@score_someip_gateway_pip//pytest",
+        "@score_tooling//python_basics/score_pytest:attribute_plugin",
     ],
 )

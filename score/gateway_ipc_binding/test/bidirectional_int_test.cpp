@@ -86,8 +86,7 @@ INSTANTIATE_TEST_SUITE_P(, Gateway_ipc_binding_connected_bidirectional_integrati
                          readable_test_names);
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subscribes_to_event) {
-    RecordProperty("FullyVerifies",
-                   "comp_req__gib__propagates_subscriptions");
+    RecordProperty("FullyVerifies", "comp_req__gib__propagates_subscriptions");
     RecordProperty("TestType", "requirements-based");
     RecordProperty("DerivationTechnique", "requirements-analysis");
     std::promise<void> event_subscription_change_promise;
