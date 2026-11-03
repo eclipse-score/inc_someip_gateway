@@ -475,7 +475,7 @@
                   
   <section id="architectural-design-decision-dynamic-registration-for-some-ip-gateway">
 <h1>Architectural Design Decision: Dynamic Registration for SOME/IP Gateway<a class="headerlink" href="#architectural-design-decision-dynamic-registration-for-some-ip-gateway" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-2d551bac">
+<div class="need_container docutils container" id="SNCB-b8c78aa6">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__component__someip_gw_registration">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -494,8 +494,8 @@
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_context"><span class="needs_label">context: </span><span class="needs_data">The SOME/IP Gateway architecture separates the core communication stack (someipd) from one or more gateway processes (gatewayd). This is necessary for safety separation (ASIL_B vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gatewayd client processes to inform the central someipd server process of their routing and service bridging needs at runtime.</span></span></div>
-<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Gateway processes dynamically register their service configuration and consumer event payload sizes with the central SOME/IP daemon (someipd) at runtime via the dedicated SomeipdService mw::com interface.</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_context"><span class="needs_label">context: </span><span class="needs_data">The SOME/IP Gateway architecture separates the core communication stack from multiple gateway processes. This is necessary for safety separation (ASIL vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gateway &quot;client&quot; processes to inform the central &quot;server&quot; stack of their routing needs at runtime.</span></span></div>
+<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Gateway processes will dynamically register their communication requirements (service configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process via the dedicated SomeipdService mw::com IPC interface.</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -605,18 +605,21 @@ While they could use different ports, this would violate the SOME/IP service arc
 </section>
 <section id="justification-for-the-decision">
 <h2>Justification for the Decision<a class="headerlink" href="#justification-for-the-decision" title="Link to this heading">#</a></h2>
-<p>The <strong>Dynamic Registration</strong> approach via <code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> over <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> was chosen because it provides the best balance of flexibility, robustness, and manageable complexity:</p>
+<p>The <strong>Dynamic Registration via IPC</strong> approach was chosen because it provides the best balance of flexibility, robustness, and manageable complexity.</p>
 <ul class="simple">
-<li><p><strong>Flexibility and Independent Startup:</strong>
-<code class="docutils literal notranslate"><span class="pre">someipd</span></code> starts without static service configuration of its own.
-Each <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> discovers <code class="docutils literal notranslate"><span class="pre">someipd</span></code> at runtime and registers its gateway configuration and consumer event sizes.
-If <code class="docutils literal notranslate"><span class="pre">someipd</span></code> restarts, <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> automatically re-discovers it and re-registers; if <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> restarts with the same configuration, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> accepts the registration idempotently without recreating existing service bindings.</p></li>
-<li><p><strong>All-or-Nothing Registration:</strong>
-<code class="docutils literal notranslate"><span class="pre">someipd</span></code> validates the incoming configuration and sets up its IPC and SOME/IP network bindings atomically.
-If any service in a registration call fails validation or setup, <code class="docutils literal notranslate"><span class="pre">someipd</span></code> rolls back the bindings from that call and rejects the registration.</p></li>
+<li><p><strong>Flexibility and Scalability:</strong>
+This is the primary advantage.
+New gateway processes can be introduced, and existing ones can be restarted independently without affecting the central SOME/IP stack or any other gateway.
+This is essential for a dynamic, resilient system.</p></li>
+<li><p><strong>Robust State Management:</strong>
+The registration protocol provides explicit control over the system’s state.
+The central stack validates and sets up each gateway’s service configuration atomically on registration, and accepts identical re-registrations idempotently when a restarted gateway reconnects.</p></li>
 <li><p><strong>Clear Separation of Concerns:</strong>
-<code class="docutils literal notranslate"><span class="pre">SomeipdService</span></code> provides a typed <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> control contract between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, keeping <code class="docutils literal notranslate"><span class="pre">someipd</span></code> decoupled from static application-specific deployment files and serializer payload sizes.</p></li>
+It enforces the client-server model cleanly.
+The IPC protocol becomes a well-defined API contract between the components, allowing them to be developed, tested, and maintained independently.</p></li>
 </ul>
+<p>While this approach introduces the overhead of defining and managing an IPC protocol, this complexity is justified by the significant gains in flexibility and resilience when compared to the static alternatives.
+It is far less complex and risky than implementing a custom shared memory solution, and it is the only viable option that respects the fundamental networking constraints of the operating system.</p>
 </section>
 </section>
 

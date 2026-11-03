@@ -72,7 +72,7 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="SOMEIP Gateway Architecture" href="../../architecture/index.html" />
+    <link rel="next" title="SOCom Component Requirements" href="socom.html" />
     <link rel="prev" title="Feature Requirements" href="../feature/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -408,7 +408,10 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../stakeholder.html">Stakeholder Requirements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature Requirements</a></li>
-<li class="toctree-l1 current active has-children"><a aria-current="page" class="current reference internal" href="#">Component Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
+<li class="toctree-l1 current active has-children"><a aria-current="page" class="current reference internal" href="#">Component Requirements</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="socom.html">SOCom Component Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gateway_ipc_binding.html">Gateway IPC Binding Component Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gatewayd.html">gatewayd Component Requirements</a></li>
 </ul>
 </details></li>
 </ul>
@@ -481,13 +484,12 @@ is scoped to a specific component (<code class="docutils literal notranslate"><s
 <code class="docutils literal notranslate"><span class="pre">comp_req__&lt;component&gt;__&lt;title_snake_case&gt;</span></code></p>
 <p>Assumption of Use (AoU) requirements use:
 <code class="docutils literal notranslate"><span class="pre">aou_req__&lt;component&gt;__&lt;title_snake_case&gt;</span></code></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Add component requirement files to the toctree below as they are created.
-Use one file per component (e.g., <code class="docutils literal notranslate"><span class="pre">gatewayd.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">someipd.rst</span></code>,
-<code class="docutils literal notranslate"><span class="pre">network_service.rst</span></code>).</p>
-</div>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="socom.html">SOCom Component Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gateway_ipc_binding.html">Gateway IPC Binding Component Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gatewayd.html">gatewayd Component Requirements</a></li>
+</ul>
 </div>
 </section>
 
@@ -511,11 +513,11 @@ Use one file per component (e.g., <code class="docutils literal notranslate"><sp
       </div>
     </a>
     <a class="right-next"
-       href="../../architecture/index.html"
+       href="socom.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">SOMEIP Gateway Architecture</p>
+        <p class="prev-next-title">SOCom Component Requirements</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

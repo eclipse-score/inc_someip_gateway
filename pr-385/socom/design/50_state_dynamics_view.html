@@ -512,12 +512,12 @@
 No event subscription or transmission is possible.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Event_state::unsubscribed</p></td>
-<td><p>The client and server are connected (<code class="docutils literal notranslate"><span class="pre">Service_state::available</span></code>) and the event is not subscribed.
-No event update is received in this state.</p></td>
+<td><p>The client and server are connected and the event is not subscribed.
+No event update will be received in this state.</p></td>
 </tr>
 <tr class="row-even"><td><p>Event_state::subscribed</p></td>
-<td><p>The client is subscribed to the event while the service is available.
-Event updates published by the server are delivered to the client without a separate subscription-pending or acknowledgement state.</p></td>
+<td><p>The user is subscribed to the event.
+Event updates will be received in this state.</p></td>
 </tr>
 </tbody>
 </table>
@@ -531,16 +531,16 @@ Event updates published by the server are delivered to the client without a sepa
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Client_connector::subscribe_event()</p></td>
-<td><p>Subscribes the client to an event.</p></td>
+<td><p>The user calls Client_connector::subscribe_event() in order to subscribe to an event.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Client_connector::unsubscribe_event()</p></td>
-<td><p>Unsubscribes the client from an event.</p></td>
+<td><p>The user calls Client_connector::unsubscribe_event() in order to unsubscribe from an event.</p></td>
 </tr>
 <tr class="row-even"><td><p>Client_connector::Callbacks::on_service_state_change(Service_state::available)</p></td>
-<td><p>Notifies the client that the service is available; events start unsubscribed.</p></td>
+<td><p>SOCom calls the user callback Client_connector::Callbacks::on_service_state_change(Service_state::available).</p></td>
 </tr>
-<tr class="row-odd"><td><p>Client_connector::Callbacks::on_service_state_change(Service_state::not_available)</p></td>
-<td><p>Notifies the client that the service is no longer available, dropping any active subscriptions.</p></td>
+<tr class="row-odd"><td><p>Client_connector::Callbacks::on_service_state_change(!Service_state::available)</p></td>
+<td><p>SOCom calls the user callback Client_connector::Callbacks::on_service_state_change() with a state different from Service_state::available.</p></td>
 </tr>
 </tbody>
 </table>

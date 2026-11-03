@@ -483,31 +483,23 @@
 <span id="gatewayd-architecture"></span><h1>Gateway Daemon Architecture<a class="headerlink" href="#gateway-daemon-architecture" title="Link to this heading">#</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<a class="reference internal" href="../index.html#comp__gatewayd" title="comp__gatewayd"><em class="xref need">SOME/IP Gateway Daemon (comp__gatewayd)</em></a>) is the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> SOME/IP Gateway Daemon in the S-CORE communication stack. It bridges local <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> and <code class="docutils literal notranslate"><span class="pre">QM</span></code> applications communicating over <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> (LoLa shared-memory IPC) with the <code class="docutils literal notranslate"><span class="pre">QM</span></code> <code class="docutils literal notranslate"><span class="pre">someipd</span></code> network daemon (<a class="reference internal" href="../../someipd/index.html#comp__someipd" title="comp__someipd"><em class="xref need">SOME/IP Network Daemon (comp__someipd)</em></a>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<a class="reference internal" href="../index.html#comp__gatewayd" title="comp__gatewayd"><em class="xref need">SOME/IP Gateway Daemon (comp__gatewayd)</em></a>) is the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> SOME/IP Gateway Daemon in the S-CORE communication stack. It bridges local <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> and <code class="docutils literal notranslate"><span class="pre">QM</span></code> applications communicating over <code class="docutils literal notranslate"><span class="pre">score::mw::com</span></code> (LoLa shared-memory IPC) with the <code class="docutils literal notranslate"><span class="pre">QM</span></code> <code class="docutils literal notranslate"><span class="pre">someipd</span></code> network daemon (<a class="reference internal" href="../../someipd/index.html#comp__someipd" title="comp__someipd"><em class="xref need">SOME/IP Network Daemon (comp__someipd)</em></a>), isolating local safety-critical applications from the third-party SOME/IP network stack while handling SOME/IP header framing and sample serialization within the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> process boundary.</p>
 </section>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>To prevent freedom-from-interference violations between the third-party <code class="docutils literal notranslate"><span class="pre">QM</span></code> SOME/IP stack (<code class="docutils literal notranslate"><span class="pre">vsomeip</span></code>) and <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> applications, the gateway architecture splits responsibilities across two OS processes:</p>
-<ul class="simple">
-<li><p><strong>gatewayd (ASIL_B)</strong>: Holds zero dependency on <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code>. It connects to local <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> services via type-erased <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> instances, serializes and deserializes application samples through the <code class="docutils literal notranslate"><span class="pre">score_com_serializer</span></code> plugin, frames or strips the 16-byte SOME/IP header contiguously in shared memory (keeping future end-to-end protection inside the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> domain), and exchanges complete SOME/IP frames with <code class="docutils literal notranslate"><span class="pre">someipd</span></code> over <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code>.</p></li>
-<li><p><strong>someipd (QM)</strong>: Receives the gateway configuration and consumer event slot sizes from <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> at startup and routes complete SOME/IP frames between the <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> IPC bridge and <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code>.</p></li>
-</ul>
 <section id="rationale-behind-architecture-decomposition">
 <h3>Rationale Behind Architecture Decomposition<a class="headerlink" href="#rationale-behind-architecture-decomposition" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is decomposed into three cohesive implementation units aligned with its Bazel target structure in <code class="docutils literal notranslate"><span class="pre">score/gatewayd/BUILD.bazel</span></code>:</p>
-<ol class="arabic simple">
-<li><p><strong>Main Startup Orchestrator</strong> (<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>, <code class="docutils literal notranslate"><span class="pre">score/gatewayd/main.cpp</span></code>):
-Loads the FlatBuffers gateway configuration and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> manifest, initializes the serializer plugin, LoLa runtime, and in-process <code class="docutils literal notranslate"><span class="pre">socom::Runtime</span></code>, sizes the shared-memory IPC slots (maximum serialized payload plus the 16-byte SOME/IP header), connects the <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> client to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, and starts all configured local and remote service instances.</p></li>
-<li><p><strong>LocalServiceInstance Adapter</strong> (<code class="docutils literal notranslate"><span class="pre">local_service_instance</span></code>, <code class="docutils literal notranslate"><span class="pre">score/gatewayd/impl/local_service_instance.h/.cpp</span></code>):
-Bridges locally provided services from the ECU to the network (<em>Application-to-Network</em>). It discovers the local application’s service via <code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxy</span></code>, enables a <code class="docutils literal notranslate"><span class="pre">socom</span></code> server connector toward <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, and subscribes to configured application events. For each received sample, it allocates a shared-memory payload, writes the 16-byte SOME/IP header followed by the serialized sample bytes, and publishes the frame to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>.</p></li>
-<li><p><strong>RemoteServiceInstance Adapter</strong> (<code class="docutils literal notranslate"><span class="pre">remote_service_instance</span></code>, <code class="docutils literal notranslate"><span class="pre">score/gatewayd/impl/remote_service_instance.h/.cpp</span></code>):
-Bridges remotely provided SOME/IP services from the network to local consumers (<em>Network-to-Application</em>). It queries the serializer plugin for event type size and alignment, offers a local <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code> on the ECU, and connects a <code class="docutils literal notranslate"><span class="pre">socom</span></code> client connector to <code class="docutils literal notranslate"><span class="pre">someipd</span></code>. When a SOME/IP event arrives, it strips the 16-byte header, deserializes the payload into an allocated LoLa sample, and sends it to local consumer applications.</p></li>
-</ol>
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> separates process-level safety isolation and startup coordination from per-service directional bridging:</p>
+<ul class="simple">
+<li><p><strong>ASIL_B isolation from the QM network stack</strong>: To maintain freedom from interference (FFI) between <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> (<code class="docutils literal notranslate"><span class="pre">QM</span></code>) and <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> applications, <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> runs as a separate <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> process with zero dependency on <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code>. It runs <code class="docutils literal notranslate"><span class="pre">score_com_serializer</span></code> and frames or strips the 16-byte SOME/IP header contiguously in shared memory inside the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> domain (where E2E protection will run), while <code class="docutils literal notranslate"><span class="pre">someipd</span></code> (<code class="docutils literal notranslate"><span class="pre">QM</span></code>) owns the network sockets and <code class="docutils literal notranslate"><span class="pre">vsomeip</span></code> routing.</p></li>
+<li><p><strong>Startup synchronization before service bridging</strong> (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>): <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> initializes the configuration, serializer plugin, <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> runtime, and <code class="docutils literal notranslate"><span class="pre">socom::Runtime</span></code>, creates the <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> client, and waits for <code class="docutils literal notranslate"><span class="pre">binding_client-&gt;is_connected()</span></code> before creating any service adapters so <code class="docutils literal notranslate"><span class="pre">someipd</span></code> is guaranteed to have registered the bridged IPC services first.</p></li>
+<li><p><strong>Directional split</strong> (<code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> vs <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance</span></code>): Outbound and inbound services have opposite discovery and <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> roles — <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> discovers local <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> providers via <code class="docutils literal notranslate"><span class="pre">GenericProxy</span></code> and publishes framed SOME/IP events into a <code class="docutils literal notranslate"><span class="pre">socom</span></code> server connector, whereas <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance</span></code> offers a local <code class="docutils literal notranslate"><span class="pre">GenericSkeleton</span></code> up front and subscribes to incoming SOME/IP events via a <code class="docutils literal notranslate"><span class="pre">socom</span></code> client connector.</p></li>
+</ul>
 </section>
 </section>
 <section id="static-architecture">
 <h2>Static Architecture<a class="headerlink" href="#static-architecture" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-fb492f9f">
+<div class="need_container docutils container" id="SNCB-f2b2b0d6">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__gatewayd_arch__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -529,12 +521,13 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../index.html#comp__gatewayd" title="comp_arc_sta__gatewayd_arch__static_view">comp__gatewayd</a></span></span></div>
+<div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/gatewayd.html#comp_req__gatewayd__starts_from_config" title="comp_arc_sta__gatewayd_arch__static_view">comp_req__gatewayd__starts_from_config</a></span></span></div>
 </span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Static decomposition of <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> into <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>), <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code>, and <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance</span></code> units and their dependencies on <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>, <code class="docutils literal notranslate"><span class="pre">socom</span></code>, <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code>, and <code class="docutils literal notranslate"><span class="pre">serializer</span></code>.</p>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Component structure of <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and its dependencies on <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>, <code class="docutils literal notranslate"><span class="pre">socom</span></code>, <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code>, and <code class="docutils literal notranslate"><span class="pre">serializer</span></code>.</p>
 <figure class="align-center" id="id1">
 <p class="plantuml">
 <object data="../../_images/plantuml-c16c301f4a0cc23196a9ac400f98b79cdc05b476.svg" type="image/svg+xml" style="width:974px;height:640px;background:#FFFFFF;"></object></p>
@@ -561,7 +554,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </section>
 <section id="dynamic-architecture">
 <h2>Dynamic Architecture<a class="headerlink" href="#dynamic-architecture" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-ba891726">
+<div class="need_container docutils container" id="SNCB-a201a4a7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__gatewayd_arch__event_flow">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -583,6 +576,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../index.html#comp__gatewayd" title="comp_arc_dyn__gatewayd_arch__event_flow">comp__gatewayd</a></span></span></div>
+<div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/gatewayd.html#comp_req__gatewayd__starts_from_config" title="comp_arc_dyn__gatewayd_arch__event_flow">comp_req__gatewayd__starts_from_config</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -615,8 +609,8 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </section>
 <section id="interfaces">
 <h2>Interfaces<a class="headerlink" href="#interfaces" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is an executable daemon process and does not expose a C++ library header to external applications. Internally, the startup orchestrator interacts with two adapter interfaces implemented by <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> and <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance</span></code>.</p>
-<div class="need_container docutils container" id="SNCB-52121a6f">
+<p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> is an executable daemon process and does not expose a C++ library header to external applications. Internally, <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> uses two adapter factory interfaces in namespace <code class="docutils literal notranslate"><span class="pre">score::someip_gateway::gatewayd</span></code>.</p>
+<div class="need_container docutils container" id="SNCB-204ed97b">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gatewayd_arch__local_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -638,7 +632,8 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 <div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__gatewayd_arch__local_svc" title="real_arc_int__gatewayd_arch__local_svc">real_arc_int_op__gatewayd_arch__local_svc</a></span></span></div>
+<div class="line"><span><div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/gatewayd.html#comp_req__gatewayd__starts_from_config" title="real_arc_int__gatewayd_arch__local_svc">comp_req__gatewayd__starts_from_config</a></span></span></div>
+<div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__gatewayd_arch__local_svc" title="real_arc_int__gatewayd_arch__local_svc">real_arc_int_op__gatewayd_arch__local_svc</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -660,7 +655,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-0fee2c86">
+<div class="need_container docutils container" id="SNCB-1935ed5e">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gatewayd_arch__local_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -689,7 +684,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 <td class="meta" colspan="3"></td>
 </tr>
 <tr class="content row-odd"><td class="content" colspan="6"><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">LocalServiceInstance::CreateAsyncLocalServices</span></code>: Starts asynchronous <code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxy</span></code> discovery for a configured local service instance and instantiates <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> once the provider is found.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LocalServiceInstance::CreateAsyncLocalServices</span></code>: Starts asynchronous <code class="docutils literal notranslate"><span class="pre">mw::com::GenericProxy</span></code> discovery for a configured local service instance and instantiates <code class="docutils literal notranslate"><span class="pre">LocalServiceInstance</span></code> (stopping discovery) once the provider is found.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">LocalServiceInstance::Create</span></code>: Enables the <code class="docutils literal notranslate"><span class="pre">socom</span></code> server connector toward <code class="docutils literal notranslate"><span class="pre">someipd</span></code> and subscribes to configured <code class="docutils literal notranslate"><span class="pre">GenericProxyEvent</span></code> updates to frame, serialize, and forward application samples.</p></li>
 </ul>
 </td>
@@ -708,7 +703,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-78f5e171">
+<div class="need_container docutils container" id="SNCB-e2070c86">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__gatewayd_arch__remote_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -730,7 +725,8 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 <div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__gatewayd_arch__remote_svc" title="real_arc_int__gatewayd_arch__remote_svc">real_arc_int_op__gatewayd_arch__remote_svc</a></span></span></div>
+<div class="line"><span><div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/gatewayd.html#comp_req__gatewayd__starts_from_config" title="real_arc_int__gatewayd_arch__remote_svc">comp_req__gatewayd__starts_from_config</a></span></span></div>
+<div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__gatewayd_arch__remote_svc" title="real_arc_int__gatewayd_arch__remote_svc">real_arc_int_op__gatewayd_arch__remote_svc</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -752,7 +748,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-30d3d100">
+<div class="need_container docutils container" id="SNCB-6203efd7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__gatewayd_arch__remote_svc">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -782,7 +778,7 @@ Bridges remotely provided SOME/IP services from the network to local consumers (
 </tr>
 <tr class="content row-odd"><td class="content" colspan="6"><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance::CreateAsyncRemoteService</span></code>: Queries event type size and alignment from <code class="docutils literal notranslate"><span class="pre">score_com_serializer</span></code>, creates the local <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code>, and delegates to <code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance::Create</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance::Create</span></code>: Offers the <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code> to local applications and registers a <code class="docutils literal notranslate"><span class="pre">socom</span></code> client connector that subscribes to remote SOME/IP events, strips the 16-byte header, and publishes deserialized LoLa samples.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RemoteServiceInstance::Create</span></code>: Offers the <code class="docutils literal notranslate"><span class="pre">mw::com::GenericSkeleton</span></code> to local applications and registers a <code class="docutils literal notranslate"><span class="pre">socom</span></code> client connector that subscribes to remote SOME/IP events when <code class="docutils literal notranslate"><span class="pre">on_service_state_change(Service_state::available)</span></code> fires, strips the 16-byte header, and publishes deserialized LoLa samples.</p></li>
 </ul>
 </td>
 </tr>

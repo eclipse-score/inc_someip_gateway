@@ -523,9 +523,27 @@ The server connector API provides the following features:</p>
 </section>
 <section id="dynamic-architecture">
 <h2><span class="section-number">2.3. </span>Dynamic Architecture<a class="headerlink" href="#dynamic-architecture" title="Link to this heading">#</a></h2>
-<section id="event-and-method-communication">
-<h3><span class="section-number">2.3.1. </span>Event and Method Communication<a class="headerlink" href="#event-and-method-communication" title="Link to this heading">#</a></h3>
-<div class="need_container docutils container" id="SNCB-6c42a8fc">
+<section id="method-communication">
+<h3><span class="section-number">2.3.1. </span>Method Communication<a class="headerlink" href="#method-communication" title="Link to this heading">#</a></h3>
+<p>Methods calls are routed 1:1 from client to server application.
+If a method reply is requested, the calling client is served with the related reply.
+Independent method calls share no state.</p>
+<figure class="align-center" id="id1">
+<p class="plantuml">
+<object data="../../_images/plantuml-881dc1f91efd53e14b87b02e8b0a147100de6a00.svg" type="image/svg+xml" style="width:1166px;height:912px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.1 </span><span class="caption-text">Interaction diagram: Method communication</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="event-communication">
+<h3><span class="section-number">2.3.2. </span>Event Communication<a class="headerlink" href="#event-communication" title="Link to this heading">#</a></h3>
+<p>The client subscribes to an event.
+On the subscription, SOCom informs the server using the request for events.
+If no client is subscribed to an event, the server will not send any event updates.</p>
+<p>After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
+SOCom keeps track of subscription states and related clients.</p>
+<div class="need_container docutils container" id="SNCB-2f075e0c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__event_flow">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -535,7 +553,7 @@ The server connector API provides the following features:</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -547,31 +565,24 @@ The server connector API provides the following features:</p>
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../index.html#comp__socom" title="comp_arc_dyn__socom_design__event_flow">comp__socom</a></span></span></div>
+<div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__event_delivery" title="comp_arc_dyn__socom_design__event_flow">comp_req__socom__event_delivery</a></span></span></div>
 </span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Dynamic interaction for SOCom method invocation, event subscription and publication, field notification, and zero-copy event transport across <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> over LoLa shared memory.</p>
-<figure class="align-center" id="id1">
+<tr class="content row-odd"><td class="content" colspan="6"><figure class="align-center" id="id2">
 <p class="plantuml">
 <object data="../../_images/plantuml-40913dcf40fb41347e4f84e73e5bf22a7dac4ec0.svg" type="image/svg+xml" style="width:842px;height:718px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2.1 </span><span class="caption-text">Interaction diagram: Event communication</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id2">
-<p class="plantuml">
-<object data="../../_images/plantuml-0ad5c5e70c684a192e4117397146aa8bedb66057.svg" type="image/svg+xml" style="width:2348px;height:1028px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 2.2 </span><span class="caption-text">Interaction diagram: Zero-copy event update across someipd and gatewayd</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2.2 </span><span class="caption-text">Interaction diagram: Event communication</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <figure class="align-center" id="id3">
 <p class="plantuml">
-<object data="../../_images/plantuml-881dc1f91efd53e14b87b02e8b0a147100de6a00.svg" type="image/svg+xml" style="width:1166px;height:912px;background:#FFFFFF;"></object></p>
+<object data="../../_images/plantuml-0ad5c5e70c684a192e4117397146aa8bedb66057.svg" type="image/svg+xml" style="width:2348px;height:1028px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2.3 </span><span class="caption-text">Interaction diagram: Method communication</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2.3 </span><span class="caption-text">Interaction diagram: Zero-copy event update across someipd and gatewayd</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </td>
@@ -590,23 +601,9 @@ The server connector API provides the following features:</p>
 </table>
 </div>
 </div>
-<section id="method-communication">
-<h4><span class="section-number">2.3.1.1. </span>Method Communication<a class="headerlink" href="#method-communication" title="Link to this heading">#</a></h4>
-<p>Methods calls are routed 1:1 from client to server application.
-If a method reply is requested, the calling client is served with the related reply.
-Independent method calls share no state.</p>
-</section>
-<section id="event-communication">
-<h4><span class="section-number">2.3.1.2. </span>Event Communication<a class="headerlink" href="#event-communication" title="Link to this heading">#</a></h4>
-<p>The client subscribes to an event.
-On the subscription, SOCom informs the server using the event subscription change callback (<code class="docutils literal notranslate"><span class="pre">Event_state::subscribed</span></code>).
-If no client is subscribed to an event, the server does not send any event updates.</p>
-<p>For zero-copy event updates, the server requests a <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> from the subscribed client before writing the contiguous SOME/IP message (header + payload) and publishing the update.</p>
-<p>After unsubscription of the last subscriber, SOCom informs the server that the event is not subscribed anymore (<code class="docutils literal notranslate"><span class="pre">Event_state::unsubscribed</span></code>).
-SOCom keeps track of subscription states and related clients.</p>
 </section>
 <section id="field-notification-communication">
-<h4><span class="section-number">2.3.1.3. </span>Field Notification Communication<a class="headerlink" href="#field-notification-communication" title="Link to this heading">#</a></h4>
+<h3><span class="section-number">2.3.3. </span>Field Notification Communication<a class="headerlink" href="#field-notification-communication" title="Link to this heading">#</a></h3>
 <p>A field notification is implemented as an event with event update on subscription.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -625,10 +622,12 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 </figcaption>
 </figure>
 </section>
-</section>
-<section id="service-discovery-and-bridging">
-<h3><span class="section-number">2.3.2. </span>Service Discovery and Bridging<a class="headerlink" href="#service-discovery-and-bridging" title="Link to this heading">#</a></h3>
-<div class="need_container docutils container" id="SNCB-c7612014">
+<section id="service-gateway-require-service">
+<h3><span class="section-number">2.3.4. </span>Service Gateway - require service<a class="headerlink" href="#service-gateway-require-service" title="Link to this heading">#</a></h3>
+<p>The creation of client connectors is forwarded to bridges as request_service() calls.
+Service bridges look up the required service instance within their domain.
+If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).</p>
+<div class="need_container docutils container" id="SNCB-3d69160a">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__discovery">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -638,7 +637,7 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -650,24 +649,17 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../index.html#comp__socom" title="comp_arc_dyn__socom_design__discovery">comp__socom</a></span></span></div>
+<div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__identity_and_version" title="comp_arc_dyn__socom_design__discovery">comp_req__socom__identity_and_version</a></span></span></div>
 </span></div>
 </div>
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Dynamic interaction for in-process service discovery and cross-process service bridge registration (<code class="docutils literal notranslate"><span class="pre">request_service</span></code> and <code class="docutils literal notranslate"><span class="pre">on_service_state_change</span></code>).</p>
-<figure class="align-center" id="id5">
+<tr class="content row-odd"><td class="content" colspan="6"><figure class="align-center" id="id5">
 <p class="plantuml">
 <object data="../../_images/plantuml-5db3098dc90d28a08e15548db5f6ca95746b9093.svg" type="image/svg+xml" style="width:1404px;height:908px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 2.5 </span><span class="caption-text">Interaction diagram: Service Gateway - require service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id6">
-<p class="plantuml">
-<object data="../../_images/plantuml-1a5cb71e34a6ad93feb3a7f0c55be364961a716e.svg" type="image/svg+xml" style="width:1347px;height:968px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 2.6 </span><span class="caption-text">Interaction diagram: Service Gateway - provide service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </td>
@@ -686,18 +678,19 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 </table>
 </div>
 </div>
-<section id="service-gateway-require-service">
-<h4><span class="section-number">2.3.2.1. </span>Service Gateway - require service<a class="headerlink" href="#service-gateway-require-service" title="Link to this heading">#</a></h4>
-<p>The creation of client connectors is forwarded to bridges as request_service() calls.
-Service bridges look up the required service instance within their domain.
-If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).</p>
 </section>
 <section id="service-gateway-provide-service">
-<h4><span class="section-number">2.3.2.2. </span>Service Gateway - provide service<a class="headerlink" href="#service-gateway-provide-service" title="Link to this heading">#</a></h4>
+<h3><span class="section-number">2.3.5. </span>Service Gateway - provide service<a class="headerlink" href="#service-gateway-provide-service" title="Link to this heading">#</a></h3>
 <p>The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
 Service bridges provide this information within their domain.
 If any domain partner requests the service instance, the service bridge forwards all communication using this proxy client connector.</p>
-</section>
+<figure class="align-center" id="id6">
+<p class="plantuml">
+<object data="../../_images/plantuml-1a5cb71e34a6ad93feb3a7f0c55be364961a716e.svg" type="image/svg+xml" style="width:1347px;height:968px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.6 </span><span class="caption-text">Interaction diagram: Service Gateway - provide service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
 </section>
 </section>
 <section id="deadlock-detection">
@@ -706,7 +699,7 @@ If any domain partner requests the service instance, the service bridge forwards
 Server_connector the thread id of the caller is saved.
 After the callback returns, the previously saved thread id is removed.
 If the calling object is destructed prematurely the deadlock is detected by checking if the thread
-id is still present, printing an error message to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> and terminating the application via <code class="docutils literal notranslate"><span class="pre">std::abort()</span></code>.</p>
+id is still present, writing an error message to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> and terminating the application via <code class="docutils literal notranslate"><span class="pre">std::abort()</span></code>.</p>
 </section>
 <section id="client-connector-deadlocks">
 <h2><span class="section-number">2.5. </span>Client_connector deadlocks<a class="headerlink" href="#client-connector-deadlocks" title="Link to this heading">#</a></h2>
@@ -786,17 +779,11 @@ The callback on the other hand waits for the destructor to return.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">2.1. Runtime</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector">2.2. Server connector</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamic-architecture">2.3. Dynamic Architecture</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-and-method-communication">2.3.1. Event and Method Communication</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3.1.1. Method Communication</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.3.1.2. Event Communication</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.3.1.3. Field Notification Communication</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-discovery-and-bridging">2.3.2. Service Discovery and Bridging</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-require-service">2.3.2.1. Service Gateway - require service</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-provide-service">2.3.2.2. Service Gateway - provide service</a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3.1. Method Communication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.3.2. Event Communication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.3.3. Field Notification Communication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-require-service">2.3.4. Service Gateway - require service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-provide-service">2.3.5. Service Gateway - provide service</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlock-detection">2.4. Deadlock detection</a></li>

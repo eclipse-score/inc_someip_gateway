@@ -499,25 +499,19 @@
 <p>SOCom provides interfaces which enable the implementation of service gateways (bridges).
 This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
 SOCom provides intra-process client/server communication only.</p>
-<p><code class="docutils literal notranslate"><span class="pre">socom</span></code> is classified as a <code class="docutils literal notranslate"><span class="pre">QM</span></code> component and is instantiated in-process inside both:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> (<code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code>), which frames or strips the 16-byte SOME/IP header contiguously with the payload in the buffer span (enabling future in-place E2E protection in the <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code> context) and serializes or deserializes application samples.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code> (<code class="docutils literal notranslate"><span class="pre">QM</span></code>), which bridges <code class="docutils literal notranslate"><span class="pre">socom</span></code> connectors between the SOME/IP network stack and the IPC binding to <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>.</p></li>
-</ul>
 </section>
 <section id="rationale-behind-architecture-decomposition">
 <h2><span class="section-number">1.2. </span>Rationale Behind Architecture Decomposition<a class="headerlink" href="#rationale-behind-architecture-decomposition" title="Link to this heading">#</a></h2>
-<p>SOCom decomposes in-process service-oriented communication into four orthogonal units:</p>
+<p>SOCom separates connection setup and service matching from steady-state message transport:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Runtime</span></code> isolates service discovery, version-compatibility matching, and bridge registration from steady-state data transfer so connected endpoints communicate directly without central broker contention.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> encapsulates the consumer endpoint for service availability notifications, event subscriptions, and method calls.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Server_connector</span></code> (split into <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>) encodes provider lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> decouple zero-copy buffer ownership and contiguous message span management from connector routing, keeping the 16-byte SOME/IP header and payload contiguous in memory (to support future in-place E2E protection in <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code>) and allowing <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> to pass shared-memory LoLa slots without copying.</p></li>
+<li><p><strong>Central matching vs direct data path</strong> (<code class="docutils literal notranslate"><span class="pre">Runtime</span></code> vs connectors): <code class="docutils literal notranslate"><span class="pre">Runtime</span></code> handles service registration, interface and version compatibility checks (<code class="docutils literal notranslate"><span class="pre">Service_interface_definition</span></code>), and bridge callbacks during setup; once connected, <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code> invoke each other’s endpoints directly without central broker contention on data-path calls.</p></li>
+<li><p><strong>Compile-time provider state</strong> (<code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>): Encoding disabled and enabled server states as distinct move-only C++ types prevents a provider from allocating or publishing events while its service is not offered.</p></li>
+<li><p><strong>Zero-copy buffer ownership</strong> (<code class="docutils literal notranslate"><span class="pre">Payload</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>): Separating buffer lifetime (release callback and optional shared-memory <code class="docutils literal notranslate"><span class="pre">slot_handle</span></code>) from connector routing lets bridges such as <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> pass LoLa shared-memory sample slots across connectors without copying.</p></li>
 </ul>
 </section>
 <section id="static-architecture">
 <h2><span class="section-number">1.3. </span>Static Architecture<a class="headerlink" href="#static-architecture" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-1b418b19">
+<div class="need_container docutils container" id="SNCB-13d10c0c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__socom_design__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -527,7 +521,7 @@ SOCom provides intra-process client/server communication only.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -539,6 +533,7 @@ SOCom provides intra-process client/server communication only.</p>
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../index.html#comp__socom" title="comp_arc_sta__socom_design__static_view">comp__socom</a></span></span></div>
+<div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__event_delivery" title="comp_arc_sta__socom_design__static_view">comp_req__socom__event_delivery</a>, <a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__identity_and_version" title="comp_arc_sta__socom_design__static_view">comp_req__socom__identity_and_version</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -581,8 +576,8 @@ SOCom provides intra-process client/server communication only.</p>
 <span id="runtime-component"></span><h3><span class="section-number">1.4.1. </span>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
 <p>The Runtime creates and connects Client_connectors and Server_connectors.
 In addition to that it has a plugin interface for adding bridges to cross IPC or network boundaries.
-The Runtime outlives all created Client_connectors and Server_connectors.</p>
-<div class="need_container docutils container" id="SNCB-2fdb6b1a">
+The Runtime must outlive all created Client_connectors and Server_connectors.</p>
+<div class="need_container docutils container" id="SNCB-0ec5ed72">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__runtime">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -592,7 +587,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -604,7 +599,8 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 <div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__make_client" title="real_arc_int__socom_design__runtime">real_arc_int_op__socom_design__make_client</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__make_server" title="real_arc_int__socom_design__runtime">real_arc_int_op__socom_design__make_server</a></span></span></div>
+<div class="line"><span><div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__event_delivery" title="real_arc_int__socom_design__runtime">comp_req__socom__event_delivery</a>, <a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__identity_and_version" title="real_arc_int__socom_design__runtime">comp_req__socom__identity_and_version</a></span></span></div>
+<div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__make_client" title="real_arc_int__socom_design__runtime">real_arc_int_op__socom_design__make_client</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__make_server" title="real_arc_int__socom_design__runtime">real_arc_int_op__socom_design__make_server</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -626,7 +622,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-bc26758e">
+<div class="need_container docutils container" id="SNCB-13dcfc88">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__make_client">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -636,7 +632,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -671,7 +667,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-4e45a88a">
+<div class="need_container docutils container" id="SNCB-9b8d9711">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__make_server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -681,7 +677,7 @@ The Runtime outlives all created Client_connectors and Server_connectors.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -739,7 +735,7 @@ The client connector API provides the following features:</p>
 <li><p>requested event update indication</p></li>
 <li><p>event payload allocation callback for zero-copy reception</p></li>
 </ul>
-<div class="need_container docutils container" id="SNCB-a66bd702">
+<div class="need_container docutils container" id="SNCB-dbe28219">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__client_conn">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -749,7 +745,7 @@ The client connector API provides the following features:</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -761,7 +757,8 @@ The client connector API provides the following features:</p>
 <div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__call_method" title="real_arc_int__socom_design__client_conn">real_arc_int_op__socom_design__call_method</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__sub_event" title="real_arc_int__socom_design__client_conn">real_arc_int_op__socom_design__sub_event</a></span></span></div>
+<div class="line"><span><div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__event_delivery" title="real_arc_int__socom_design__client_conn">comp_req__socom__event_delivery</a>, <a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__identity_and_version" title="real_arc_int__socom_design__client_conn">comp_req__socom__identity_and_version</a></span></span></div>
+<div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__call_method" title="real_arc_int__socom_design__client_conn">real_arc_int_op__socom_design__call_method</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__sub_event" title="real_arc_int__socom_design__client_conn">real_arc_int_op__socom_design__sub_event</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -783,7 +780,7 @@ The client connector API provides the following features:</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-20d0961c">
+<div class="need_container docutils container" id="SNCB-3852b00d">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__sub_event">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -793,7 +790,7 @@ The client connector API provides the following features:</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -828,7 +825,7 @@ The client connector API provides the following features:</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-a911672e">
+<div class="need_container docutils container" id="SNCB-f29d9239">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__call_method">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -838,7 +835,7 @@ The client connector API provides the following features:</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -877,7 +874,7 @@ The client connector API provides the following features:</p>
 <span id="server-connector-component"></span><h3><span class="section-number">1.4.3. </span>Server connector<a class="headerlink" href="#server-connector" title="Link to this heading">#</a></h3>
 <p>The Server_connector represents a service, which is used by a Client_connector.
 It can send event updates and respond to method calls.</p>
-<div class="need_container docutils container" id="SNCB-2d4fa5e9">
+<div class="need_container docutils container" id="SNCB-9d07217f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__server_conn">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -887,7 +884,7 @@ It can send event updates and respond to method calls.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -899,7 +896,8 @@ It can send event updates and respond to method calls.</p>
 <div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__alloc_payload" title="real_arc_int__socom_design__server_conn">real_arc_int_op__socom_design__alloc_payload</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__enable_srv" title="real_arc_int__socom_design__server_conn">real_arc_int_op__socom_design__enable_srv</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__update_event" title="real_arc_int__socom_design__server_conn">real_arc_int_op__socom_design__update_event</a></span></span></div>
+<div class="line"><span><div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__event_delivery" title="real_arc_int__socom_design__server_conn">comp_req__socom__event_delivery</a>, <a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__identity_and_version" title="real_arc_int__socom_design__server_conn">comp_req__socom__identity_and_version</a></span></span></div>
+<div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__alloc_payload" title="real_arc_int__socom_design__server_conn">real_arc_int_op__socom_design__alloc_payload</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__enable_srv" title="real_arc_int__socom_design__server_conn">real_arc_int_op__socom_design__enable_srv</a>, <a class="reference internal" href="#real_arc_int_op__socom_design__update_event" title="real_arc_int__socom_design__server_conn">real_arc_int_op__socom_design__update_event</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -921,7 +919,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-40cc81a5">
+<div class="need_container docutils container" id="SNCB-b95c70f1">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__enable_srv">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -931,7 +929,7 @@ It can send event updates and respond to method calls.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -966,7 +964,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-9ccb7dba">
+<div class="need_container docutils container" id="SNCB-35342156">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__alloc_payload">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -976,7 +974,7 @@ It can send event updates and respond to method calls.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -1011,7 +1009,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-fb26fc22">
+<div class="need_container docutils container" id="SNCB-23ff3c7f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__update_event">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1021,7 +1019,7 @@ It can send event updates and respond to method calls.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -1059,9 +1057,9 @@ It can send event updates and respond to method calls.</p>
 </section>
 <section id="payload">
 <span id="payload-component"></span><h3><span class="section-number">1.4.4. </span>Payload<a class="headerlink" href="#payload" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> represent the move-only message buffer transferred across SOCom connectors.
-In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte header followed contiguously by payload bytes) so <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> can frame or strip headers and support future in-place E2E protection without copying, while an optional slot handle identifies the underlying LoLa shared-memory slot across <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code>.</p>
-<div class="need_container docutils container" id="SNCB-2d9b918d">
+<p><code class="docutils literal notranslate"><span class="pre">Payload</span></code> and <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code> represent read-only and writable message buffers exchanged between client and server connectors.
+They hold a contiguous byte span, a release callback, and an optional shared-memory <code class="docutils literal notranslate"><span class="pre">slot_handle</span></code> for zero-copy transport across service bridges.</p>
+<div class="need_container docutils container" id="SNCB-b091cf61">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__payload">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1071,7 +1069,7 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -1083,7 +1081,8 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
 <div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__payload_span" title="real_arc_int__socom_design__payload">real_arc_int_op__socom_design__payload_span</a></span></span></div>
+<div class="line"><span><div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__event_delivery" title="real_arc_int__socom_design__payload">comp_req__socom__event_delivery</a></span></span></div>
+<div class="line">includes: <span class="included_by"><span><a class="reference internal" href="#real_arc_int_op__socom_design__payload_span" title="real_arc_int__socom_design__payload">real_arc_int_op__socom_design__payload_span</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -1105,7 +1104,7 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-423912e2">
+<div class="need_container docutils container" id="SNCB-44c3fa47">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__payload_span">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1115,7 +1114,7 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -1134,7 +1133,7 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Provides read-only and writable byte-span access to the contiguous SOME/IP message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Provides read-only and writable byte-span access to the contiguous message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__payload_span" title="real_arc_int_op__socom_design__payload_span">real_arc_int_op__socom_design__payload_span</a></span></span></div>
