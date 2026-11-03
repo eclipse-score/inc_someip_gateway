@@ -80,7 +80,7 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
     Disabled_server_connector::Callbacks create_server_callbacks() {
         return {
             [](Enabled_server_connector& /*esc*/, Method_id /*mid*/, Payload /*pl*/,
-               Method_call_reply_data_opt const& reply, auto const& /*cred*/) {
+               Method_call_reply_data_opt const& reply) {
                 if (reply) {
                     reply->reply(Method_result{Application_return{}});
                 }

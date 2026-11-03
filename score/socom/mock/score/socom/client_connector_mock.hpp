@@ -30,7 +30,6 @@ class Client_connector_mock : public Client_connector {
                 (Method_id, Payload, Method_call_reply_data_opt), (const, noexcept, override));
     MOCK_METHOD(Result<Writable_payload>, allocate_method_call_payload, (Method_id method_id),
                 (noexcept, override));
-    MOCK_METHOD(Result<Posix_credentials>, get_peer_credentials, (), (const, noexcept, override));
     MOCK_METHOD(Service_interface_definition const&, get_configuration, (),
                 (const, noexcept, override));
     MOCK_METHOD(Service_instance const&, get_service_instance, (), (const, noexcept, override));

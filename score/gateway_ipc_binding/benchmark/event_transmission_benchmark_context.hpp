@@ -230,7 +230,7 @@ class Event_transmission_benchmark_context final {
 
         score::socom::Disabled_server_connector::Callbacks server_callbacks{
             [](score::socom::Enabled_server_connector&, Method_id, score::socom::Payload,
-               score::socom::Method_call_reply_data_opt, score::socom::Posix_credentials const&) {
+               score::socom::Method_call_reply_data_opt) {
                 return score::socom::Method_invocation::Uptr{};
             },
             [this](score::socom::Enabled_server_connector&, Event_id event_id,

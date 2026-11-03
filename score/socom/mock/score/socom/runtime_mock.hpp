@@ -32,17 +32,9 @@ class Runtime_mock : public Runtime {
     MOCK_METHOD(Result<Client_connector::Uptr>, make_client_connector,
                 (Service_interface_definition, Service_instance, Client_connector::Callbacks),
                 (noexcept, override));
-    MOCK_METHOD(Result<Client_connector::Uptr>, make_client_connector,
-                (Service_interface_definition, Service_instance, Client_connector::Callbacks,
-                 Posix_credentials const&),
-                (noexcept, override));
     MOCK_METHOD((Result<Disabled_server_connector::Uptr>), make_server_connector,
                 (Server_service_interface_definition, Service_instance,
                  Disabled_server_connector::Callbacks),
-                (noexcept, override));
-    MOCK_METHOD((Result<Disabled_server_connector::Uptr>), make_server_connector,
-                (Server_service_interface_definition, Service_instance,
-                 Disabled_server_connector::Callbacks, Posix_credentials const&),
                 (noexcept, override));
     MOCK_METHOD(Result<Service_bridge_registration>, register_service_bridge,
                 (Bridge_identity, Request_service_function), (noexcept, override));

@@ -107,43 +107,6 @@ INSTANTIATE_TEST_SUITE_P(
            create_results(Ar{clone_payload(empty_payload())}, Ar{clone_payload(empty_payload())}),
            create_results(Me::runtime_error_request_rejected, Me::runtime_error_request_rejected)));
 
-using MethodCallCredentialsTest = SingleConnectionTest;
-
-TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesCustomClientCredentials) {
-    Posix_credentials default_credentials{::getuid(), ::getgid()};
-    Posix_credentials client_credentials{::getuid() + 1, ::getgid() + 1};
-
-    Server_data server{connector_factory, connector_factory.get_configuration(),
-                       connector_factory.get_instance(), default_credentials};
-    Client_data client{connector_factory, connector_factory.get_configuration(),
-                       connector_factory.get_instance(), client_credentials};
-
-    auto& credentials_callbacks_mock = server.get_credentials_callbacks();
-
-    EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, payload_eq(input_data()), _, client_credentials))
-        .Times(1);
-
-    client.call_method(method_id, input_data());
-}
-
-TEST_F(MethodCallCredentialsTest, ClientCallsMethodServerReceivesDefaultClientCredentials) {
-    Posix_credentials default_credentials{::getuid(), ::getgid()};
-
-    Server_data server{connector_factory, connector_factory.get_configuration(),
-                       connector_factory.get_instance(), default_credentials};
-    Client_data client{connector_factory, connector_factory.get_configuration(),
-                       connector_factory.get_instance(), default_credentials};
-
-    auto& credentials_callbacks_mock = server.get_credentials_callbacks();
-
-    EXPECT_CALL(credentials_callbacks_mock,
-                on_method_call(_, method_id, payload_eq(input_data()), _, default_credentials))
-        .Times(1);
-
-    client.call_method(method_id, input_data());
-}
-
 using AllocateMethodPayloadTest = SingleConnectionTest;
 
 TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithOutOfBoundsMethodIdReturnsLogicError) {

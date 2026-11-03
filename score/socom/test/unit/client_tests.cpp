@@ -741,34 +741,6 @@ TEST_F(ClientConnectorTest, OnStateChangeRequestEventUpdate) {
     client0.expect_service_state_change(Service_state::not_available);
 }
 
-TEST_F(ClientConnectorTest, GetPeerCredentialsWithoutServerReturnsServiceNotAvailable) {
-    Client_connector_callbacks_mock callbacks;
-    Client_connector::Uptr cc{connector_factory.create_client_connector(callbacks)};
-
-    auto check_peer_credentials = [](Client_connector const& cc, auto /* state */,
-                                     auto const& /*unused*/) {
-        auto credentials = cc.get_peer_credentials();
-        ASSERT_TRUE(credentials);
-
-        EXPECT_EQ(::getuid(), credentials.value().uid);
-        EXPECT_EQ(::getgid(), credentials.value().gid);
-    };
-
-    auto no_peer_credentials = [](Client_connector const& cc, auto /* state */,
-                                  auto const& /*unused*/) {
-        auto credentials = cc.get_peer_credentials();
-        ASSERT_TRUE(!credentials.has_value());
-
-        EXPECT_EQ(credentials.error(), Error::runtime_error_service_not_available);
-    };
-
-    EXPECT_CALL(callbacks, on_service_state_change(_, Service_state::available, _))
-        .WillOnce(check_peer_credentials);
-    EXPECT_CALL(callbacks, on_service_state_change(_, Service_state::not_available, _))
-        .WillOnce(no_peer_credentials);
-    Server_data const server{connector_factory};
-}
-
 using ClientConnectorStartingConnectionDeathTest = ClientConnectorTest;
 
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION

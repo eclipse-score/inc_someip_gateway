@@ -77,16 +77,13 @@ struct Client_data {
                 Service_interface_definition const& configuration, Service_instance const& instance,
                 Service_state_change_callback state_change_callback = {});
 
-    /// \brief Create Client_data with custom configuration, POSIX credentials and connect to the
-    /// server
+    /// \brief Create Client_data with custom configuration and connect to the server
     ///
     /// \param[in] factory factory to create client connector with
     /// \param[in] configuration use this instead of the one stored in factory
     /// \param[in] instance use this instead of the one stored in factory
-    /// \param[in] credentials POSIX credentials
     Client_data(Connector_factory& factory, Service_interface_definition const& configuration,
-                Service_instance const& instance,
-                std::optional<Posix_credentials> const& credentials = {});
+                Service_instance const& instance);
 
     Client_data(Client_data const&) = delete;
     Client_data(Client_data&&) = delete;
@@ -343,10 +340,6 @@ struct Client_data {
     /// \return subscription RAII objects for all clients
     static Subscriptions subscribe(Client_data::Vector const& clients, Event_id const& event_id);
 
-    /// \brief Get peer credentials from server.
-    ///
-    /// \return Result with valid peer credentials or error.
-    score::Result<Posix_credentials> get_peer_credentials() const;
 };
 
 }  // namespace score::socom
