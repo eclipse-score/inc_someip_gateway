@@ -92,28 +92,6 @@ Consequently, update_event() satisfies the event update request implicitly.
    :align: center
    :caption: Interaction diagram: Field notification communication
 
-Service Gateway - require service
-----------------------------------
-
-The creation of client connectors is forwarded to bridges as request_service() calls.
-Service bridges look up the required service instance within their domain.
-If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).
-
-.. uml:: models/interaction_diagram_service_gateway_require_service.puml
-   :align: center
-   :caption: Interaction diagram: Service Gateway - require service
-
-Service Gateway - provide service
-----------------------------------
-
-The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
-Service bridges provide this information within their domain.
-If any domain partner requests the service instance, the service bridge forwards all communication using this proxy client connector.
-
-.. uml:: models/interaction_diagram_service_gateway_provide_service.puml
-   :align: center
-   :caption: Interaction diagram: Service Gateway - provide service
-
 Deadlock detection
 ------------------
 

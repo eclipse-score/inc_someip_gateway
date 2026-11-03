@@ -61,17 +61,6 @@ class Connector_factory {
     Connector_factory& operator=(Connector_factory const&) = delete;
     Connector_factory& operator=(Connector_factory&&) = delete;
 
-    /// \brief Registers bridge callbacks at the runtime until registration is destroyed
-    ///
-    /// Bridges can provide additional services via IPC. The callbacks are used the query the
-    /// bridges for services.
-    ///
-    /// \param[in] identity identity of the bridge to register, used for later identification
-    /// \param[in] request_service
-    /// \return RAII object which keeps the registration alive until it is destroyed
-    ::score::Result<Service_bridge_registration> register_service_bridge(
-        Bridge_identity identity, Request_service_function request_service);
-
     /// \brief Create server connector with default configuration
     ///
     /// \param[in] sc_callbacks callbacks for the server connector

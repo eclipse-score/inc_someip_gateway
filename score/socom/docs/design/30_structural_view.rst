@@ -20,8 +20,6 @@ The bundle service oriented communication (SOCom) implements components for clie
 - remote procedure call
 - publish/subscribe (event communication)
 
-SOCom provides interfaces which enable the implementation of service gateways (bridges).
-This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
 SOCom provides intra-process client/server communication only.
 
 .. uml:: models/component_diagram_socom.puml
@@ -40,7 +38,6 @@ Runtime
 -------
 
 The Runtime creates and connects Client_connectors and Server_connectors.
-In addition to that it has a plugin interface for adding bridges to cross IPC or network boundaries.
 The Runtime must outlive all created Client_connectors and Server_connectors.
 
 .. _client_connector_component:

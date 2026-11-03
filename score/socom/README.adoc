@@ -27,8 +27,6 @@ The bundle service oriented communication (SOCom) implements components for clie
 * remote procedure call;
 * publish/subscribe (event communication).
 
-SOCom provides interfaces which enable the implementation of service gateways (bridges).
-This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
 SOCom provides intra-process client/server communication only.
 
 == Design

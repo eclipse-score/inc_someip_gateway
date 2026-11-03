@@ -43,11 +43,6 @@ Connector_factory::Connector_factory(Connector_factory const& con_fac)
 
 Runtime& Connector_factory::get_runtime() { return *m_runtime; }
 
-score::Result<Service_bridge_registration> Connector_factory::register_service_bridge(
-    Bridge_identity identity, Request_service_function request_service) {
-    return m_runtime->register_service_bridge(identity, std::move(request_service));
-}
-
 Disabled_server_connector::Uptr Connector_factory::create_server_connector(
     Optional_reference<Server_connector_callbacks_mock> sc_callbacks) {
     return create_server_connector(m_configuration, m_instance, sc_callbacks);
