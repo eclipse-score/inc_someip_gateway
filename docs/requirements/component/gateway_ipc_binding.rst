@@ -60,4 +60,3 @@ transport. They do not claim method-call transport, which is not implemented.
    When an event is updated on a bridged SOCom server connector, the binding
    shall deliver the same payload bytes to subscribed clients on the remote
    peer.
-
