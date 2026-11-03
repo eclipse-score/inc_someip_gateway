@@ -15,7 +15,7 @@
 Behavioral View
 ===============
 
-This component implements the following state machines:
+SOCom coordinates runtime service matching, connector communication, cross-domain service bridging, and callback deadlock detection. The connector lifecycle is governed by two state machines:
 
 - :ref:`event subscription state <event_subscription_state_machine>`
 - :ref:`service state <service_state_machine>`
@@ -23,29 +23,27 @@ This component implements the following state machines:
 Runtime
 -------
 
-The runtime is a (process internal) service instance broker.
-Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
-Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service bridge registration interface to forward service requests across process or network boundaries.
+``Runtime`` acts as the process-internal service instance broker and connector factory:
+
+- **Lifecycle tracking**: Creates client and server connectors and tracks their existence and enabled/disabled state.
+- **Automatic matching**: Connects and disconnects compatible ``Client_connector`` and ``Server_connector`` instances based on service interface, version, and instance ID.
+- **Bridge forwarding**: Provides a service bridge registration interface to forward service discovery and requests across process or network boundaries.
 
 Server connector
 ----------------
 
-A server application owns and uses this component to join client/server pattern based service oriented communication (SOCom).
-The server connector interacts with the client connector in order perform the supported communication primitives.
-The server connector API provides the following features:
+A service provider owns a server connector to participate in SOCom communication and interact with connected ``Client_connector`` instances. The server connector API provides the following callbacks and operations:
 
-- remote procedure called indication
-- event subscription state changed indication:
+- Remote procedure call invocation callback.
+- Event subscription state change callback:
 
-  - on first subscriber
-  - on last unsubscriber
+  - on first subscriber (``Event_state::subscribed``)
+  - on last unsubscriber (``Event_state::unsubscribed``)
 
-- event update request indication
-- event mode getter (event with/without initial update)
-- allocate event payload
-- update event
-- update requested event
+- Event update request callback (for initial field values or on-demand requests).
+- Event mode query (event with or without initial update).
+- Event payload allocation (``allocate_event_payload()``) for zero-copy transmission.
+- Event publication (``update_event()`` and ``update_requested_event()``).
 
 Dynamic Architecture
 --------------------
@@ -85,30 +83,20 @@ Independent method calls share no state.
 Event Communication
 ^^^^^^^^^^^^^^^^^^^
 
-The client subscribes to an event.
-On the subscription, SOCom informs the server using the event subscription change callback (``Event_state::subscribed``).
-If no client is subscribed to an event, the server does not send any event updates.
+Event communication follows a subscription-driven lifecycle between client and server connectors:
 
-For zero-copy event updates, the server requests a ``Writable_payload`` from the subscribed client before writing the contiguous SOME/IP message (header + payload) and publishing the update.
-
-After unsubscription of the last subscriber, SOCom informs the server that the event is not subscribed anymore (``Event_state::unsubscribed``).
-SOCom keeps track of subscription states and related clients.
+- **Subscription**: When the first client subscribes to an event, SOCom notifies the server via the event subscription change callback (``Event_state::subscribed``). While no client is subscribed, the server does not send event updates.
+- **Zero-copy publication**: For zero-copy event updates, the server requests a ``Writable_payload`` from the subscribed client before writing the contiguous SOME/IP message (header + payload) and publishing the update.
+- **Unsubscription**: After the last subscriber unsubscribes, SOCom notifies the server that the event is no longer subscribed (``Event_state::unsubscribed``).
 
 Field Notification Communication
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A field notification is implemented as an event with event update on subscription.
+A field notification is implemented as an event with an initial event update on subscription:
 
-.. note::
-
-   Additional behavior compared to field communication:
-   since SOCom does not save the current event values, SOCom requests an event update from the server for each new subscriber.
-
-Servers answer this request with update_requested_event().
-Those updates are indicated to the client which is subscribed and has an initial event update pending.
-
-Regular update_event() calls update for the events of the subscriber and also fulfills the initial event update use-case.
-Consequently, update_event() satisfies the event update request implicitly.
+- **Initial value request**: Because SOCom does not cache event values, it requests an event update from the server for each new subscriber.
+- **Targeted response**: The server answers with ``update_requested_event()``, which delivers the initial value only to subscribers with a pending initial update.
+- **Implicit fulfillment**: A regular ``update_event()`` broadcast updates all subscribed clients and also satisfies any pending initial-update requests.
 
 .. uml:: models/interaction_diagram_field_notification_communication.puml
    :align: center
@@ -152,11 +140,11 @@ If any domain partner requests the service instance, the service bridge forwards
 Deadlock detection
 ------------------
 
-In order to facilitate deadlock detection, before a callback is called by a Client_connector or
-Server_connector the thread id of the caller is saved.
-After the callback returns, the previously saved thread id is removed.
-If the calling object is destructed prematurely the deadlock is detected by checking if the thread
-id is still present, printing an error message to ``std::cerr`` and terminating the application via ``std::abort()``.
+SOCom detects self-destruction deadlocks when a connector callback attempts to destroy its owning ``Client_connector`` or ``Server_connector``:
+
+- Before invoking a callback on a ``Client_connector`` or ``Server_connector``, SOCom records the caller's thread ID.
+- When the callback returns normally, the recorded thread ID is removed.
+- If the connector destructor is invoked while the current thread's ID is still recorded as executing a callback on that connector, SOCom detects the self-deadlock, logs an error message to ``std::cerr``, and terminates the process via ``std::abort()``.
 
 Client_connector deadlocks
 ---------------------------

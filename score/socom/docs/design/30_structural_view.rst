@@ -18,29 +18,24 @@ Structural View
 Overview
 --------
 
-The bundle service oriented communication (SOCom) implements components for client/server pattern based communication for the following communication paradigms:
+The SOCom (Service-Oriented Communication) library provides intra-process client/server communication and a bridge plugin interface that enables service gateways across external protocols (such as IPC and SOME/IP). It supports two communication patterns:
 
-- remote procedure call
-- publish/subscribe (event communication)
+- **Remote procedure calls (RPC)**: Asynchronous request/response and fire-and-forget method invocations.
+- **Publish/subscribe (event communication)**: Event subscriptions, event updates, and field notifications with initial-value requests.
 
-SOCom provides interfaces which enable the implementation of service gateways (bridges).
-This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
-SOCom provides intra-process client/server communication only.
+Classified as a ``QM`` component, ``socom`` is instantiated in-process inside both SOME/IP Gateway daemons:
 
-``socom`` is classified as a ``QM`` component and is instantiated in-process inside both:
-
-- ``gatewayd`` (``ASIL_B``), which frames or strips the 16-byte SOME/IP header contiguously with the payload in the buffer span (enabling future in-place E2E protection in the ``ASIL_B`` context) and serializes or deserializes application samples.
-- ``someipd`` (``QM``), which bridges ``socom`` connectors between the SOME/IP network stack and the IPC binding to ``gatewayd``.
+- ``gatewayd`` (``ASIL_B``): Frames or strips the 16-byte SOME/IP header contiguously with the payload in the buffer span (enabling future in-place E2E protection in the ``ASIL_B`` context) and serializes or deserializes application samples.
+- ``someipd`` (``QM``): Bridges ``socom`` connectors between the SOME/IP network stack and the IPC binding to ``gatewayd``.
 
 Rationale Behind Architecture Decomposition
 -------------------------------------------
 
-SOCom decomposes in-process service-oriented communication into four orthogonal units:
+SOCom separates connection setup and service matching from steady-state message transport:
 
-- ``Runtime`` isolates service discovery, version-compatibility matching, and bridge registration from steady-state data transfer so connected endpoints communicate directly without central broker contention.
-- ``Client_connector`` encapsulates the consumer endpoint for service availability notifications, event subscriptions, and method calls.
-- ``Server_connector`` (split into ``Disabled_server_connector`` and ``Enabled_server_connector``) encodes provider lifecycle state in the C++ type system, preventing event publication or method dispatch while a service is disabled.
-- ``Payload`` and ``Writable_payload`` decouple zero-copy buffer ownership and contiguous message span management from connector routing, keeping the 16-byte SOME/IP header and payload contiguous in memory (to support future in-place E2E protection in ``gatewayd``) and allowing ``gateway_ipc_binding`` to pass shared-memory LoLa slots without copying.
+- **Central matching vs direct data path** (``Runtime`` vs connectors): ``Runtime`` handles service registration, interface and version compatibility checks (``Service_interface_definition``), and bridge callbacks during setup; once connected, ``Client_connector`` and ``Enabled_server_connector`` invoke each other's endpoints directly without central broker contention on data-path calls.
+- **Compile-time provider state** (``Disabled_server_connector`` / ``Enabled_server_connector``): Encoding disabled and enabled server states as distinct move-only C++ types prevents a provider from allocating or publishing events while its service is not offered.
+- **Zero-copy buffer ownership** (``Payload`` / ``Writable_payload``): Separating buffer lifetime (release callback and optional shared-memory ``slot_handle``) from connector routing lets bridges such as ``gateway_ipc_binding`` pass LoLa shared-memory sample slots across connectors without copying.
 
 Static Architecture
 -------------------
@@ -72,9 +67,10 @@ Interfaces
 Runtime
 ~~~~~~~
 
-The Runtime creates and connects Client_connectors and Server_connectors.
-In addition to that it has a plugin interface for adding bridges to cross IPC or network boundaries.
-The Runtime outlives all created Client_connectors and Server_connectors.
+``Runtime`` is the in-process service registry and connector factory and outlives all created client and server connectors:
+
+- **Connector creation and matching**: Creates ``Client_connector`` and ``Disabled_server_connector`` instances and connects compatible service interfaces and instances within the process.
+- **Bridge plugin registration**: Registers cross-domain service bridges (such as ``gateway_ipc_binding`` and the SOME/IP stack bridge) to forward service discovery and communication across IPC or network boundaries.
 
 .. real_arc_int:: SOCom Runtime Interface
    :id: real_arc_int__socom_design__runtime
@@ -111,23 +107,20 @@ The Runtime outlives all created Client_connectors and Server_connectors.
 Client connector
 ~~~~~~~~~~~~~~~~
 
-A client application owns and uses this component to join client/server pattern based service oriented communication (SOCom).
-The client connector interacts with the server connector in order perform the supported communication primitives.
-The client connector API provides the following features:
+A service consumer owns a ``Client_connector`` to interact with a matching server connector in SOCom. The ``Client_connector`` API provides the following capabilities:
 
-- service instance state change indications
-- asynchronous remote procedure call:
+- Service instance state change notifications (``Service_state::available`` and ``Service_state::not_available``).
+- Asynchronous remote procedure calls:
 
   - with method reply
   - without method reply (fire and forget)
 
-- event subscription:
+- Event subscriptions:
 
   - with optional initial value request (required for fields)
 
-- event update indication
-- requested event update indication
-- event payload allocation callback for zero-copy reception
+- Event update and requested-event update indications.
+- Event payload allocation callback for zero-copy reception.
 
 .. real_arc_int:: SOCom Client Connector Interface
    :id: real_arc_int__socom_design__client_conn
@@ -164,8 +157,10 @@ The client connector API provides the following features:
 Server connector
 ~~~~~~~~~~~~~~~~
 
-The Server_connector represents a service, which is used by a Client_connector.
-It can send event updates and respond to method calls.
+A service provider owns a server connector to offer a service instance to matching ``Client_connector`` endpoints, publish event updates, and respond to incoming method calls. SOCom splits the server connector into two state-typed handles that enforce lifecycle ordering at compile time:
+
+- ``Disabled_server_connector``: Initial inactive endpoint returned by ``Runtime::make_server_connector()``, configured with server callbacks before offering the service via ``enable()``.
+- ``Enabled_server_connector``: Active endpoint returned by ``enable()`` that exposes ``allocate_event_payload()``, ``update_event()``, and ``update_requested_event()`` while the service is available to clients, and transitions back via ``disable()``.
 
 .. real_arc_int:: SOCom Server Connector Interface
    :id: real_arc_int__socom_design__server_conn
@@ -212,8 +207,10 @@ It can send event updates and respond to method calls.
 Payload
 ~~~~~~~
 
-``Payload`` and ``Writable_payload`` represent the move-only message buffer transferred across SOCom connectors.
-In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte header followed contiguously by payload bytes) so ``gatewayd`` can frame or strip headers and support future in-place E2E protection without copying, while an optional slot handle identifies the underlying LoLa shared-memory slot across ``gateway_ipc_binding``.
+SOCom transfers message buffers across connectors using move-only RAII handles that decouple memory ownership from connector routing. In the SOME/IP Gateway, the contiguous buffer span holds the full SOME/IP message (16-byte header followed contiguously by payload bytes) so ``gatewayd`` can frame or strip headers and support future in-place E2E protection without copying:
+
+- ``Payload``: Read-only move-only buffer handle exposing ``data()`` for message inspection and ``get_slot_handle()`` to identify an underlying LoLa shared-memory slot across ``gateway_ipc_binding``.
+- ``Writable_payload``: Mutable move-only buffer handle returned by payload allocation calls, exposing ``wdata()`` for in-place header framing and payload serialization and ``shrink()`` to finalize the written byte length before transmission.
 
 .. real_arc_int:: SOCom Payload Interface
    :id: real_arc_int__socom_design__payload
@@ -233,4 +230,4 @@ In the SOME/IP gateway, the buffer span holds the full SOME/IP message (16-byte 
    :status: valid
    :included_by: real_arc_int__socom_design__payload
 
-   Provides read-only and writable byte-span access to the contiguous SOME/IP message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.
+   Provides read-only and writable byte-span access to the contiguous message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.

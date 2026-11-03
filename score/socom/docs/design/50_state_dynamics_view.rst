@@ -15,6 +15,8 @@
 State Dynamics View
 ===================
 
+SOCom models the runtime lifecycle of event subscriptions and service availability through two state machines.
+
 .. _event_subscription_state_machine:
 
 Event subscription state
