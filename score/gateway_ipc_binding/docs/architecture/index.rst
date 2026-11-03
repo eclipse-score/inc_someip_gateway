@@ -25,8 +25,9 @@ The Gateway IPC Binding (:need:`comp__gateway_ipc_binding`) connects ``gatewayd`
 subscription management, event transport, and shared-memory sample management:
 
 - Transports ``socom`` event updates between ``gatewayd`` and ``someipd`` over ``mw::com`` shared memory.
-- Places the 16-byte SOME/IP header contiguously in front of every event payload in shared memory so E2E
-  protection can be computed over header and payload together without an extra copy.
+- Reserves an 8-byte binding prefix at the front of each shared-memory sample slot and exposes the remaining
+  bytes as a contiguous span so ``gatewayd`` and ``someipd`` keep the 16-byte SOME/IP header and payload
+  contiguous for E2E protection without copying.
 - Reports daemon connectivity through ``is_connected()`` and registers ``gatewayd`` service configurations
   at runtime via ``SomeipdService`` (see :ref:`someipd-service`).
 
@@ -36,29 +37,25 @@ Description
 Rationale Behind Architecture Decomposition
 -------------------------------------------
 
-- ``Client_adapter`` and ``Server_adapter`` implement the two public interfaces. Each owns one
-  ``Service_binding`` per configured service instance plus its ``SomeipdService`` endpoint
-  (``Someipd_service_consumer`` in ``Client_adapter``, ``Someipd_service_provider`` in ``Server_adapter``).
-  Only the ``SomeipdService`` half and the point in time at which the setup runs differ between them, so
-  they share the factory ``make_service_binding()`` instead of a common aggregate class.
-- ``Someipd_service_provider`` and ``Someipd_service_consumer`` implement the two halves of
-  :ref:`someipd-service`: ``Someipd_service_provider`` owns the ``Someipd_service_skeleton``, while
-  ``Someipd_service_consumer`` owns the ``FindServiceHandle``, the ``Someipd_service_proxy``, and the
-  ``std::atomic<bool>`` behind ``is_connected()``. They are the only classes in the binding that touch a
-  typed proxy or skeleton.
-- ``Provider_service_binding`` holds the ``GenericSkeleton``, the active ``SampleAllocateePtr`` map
-  (``Allocations``), and the SOCom ``Client_connector``.
-- ``Consumer_service_binding`` holds the ``FindServiceHandle``, the ``GenericProxy`` once found, and the SOCom
-  ``Disabled_server_connector`` / ``Enabled_server_connector``.
-- ``sample_layout`` encapsulates the 8-byte payload-length prefix and alignment calculation needed to carry
-  variable-length SOME/IP messages inside fixed-size ``mw::com`` shared-memory slots.
-- FlatBuffers configuration parsing is kept outside ``comp__gateway_ipc_binding`` in the separate
-  ``score/bridged_services`` helper library, keeping the IPC binding independent of the gateway configuration
-  schema.
-- Setting a bridged service up is all-or-nothing: if any entry of ``Service_configs`` fails,
-  ``create_client()`` returns ``nullptr`` instead of leaving a link that silently carries only part of the
-  configured services. On the ``someipd`` side ``AddServiceConfiguration`` returns false, see
-  :ref:`gatewayd-services`.
+The binding separates daemon-level lifecycle and control signaling from per-service event transport:
+
+- **Transport-independent daemon API** (``Gateway_ipc_binding_client`` and ``Gateway_ipc_binding_server``):
+  ``Client_adapter`` and ``Server_adapter`` expose only ``is_connected()`` and ``start()``, keeping
+  ``gatewayd`` and ``someipd`` independent of ``mw::com`` types outside the ``create_client()`` and
+  ``create_server()`` setup calls.
+- **Typed control service vs generic service bindings** (``SomeipdService`` vs ``Service_binding``): Bridged
+  SOME/IP services use type-erased ``GenericSkeleton`` and ``GenericProxy`` instances, which do not support
+  methods and are only offered while a service is active. A dedicated typed ``SomeipdService``
+  (``Someipd_service_provider`` and ``Someipd_service_consumer``) therefore handles daemon liveness and
+  runtime configuration registration (``AddServiceConfiguration``), while both daemons reuse
+  ``Provider_service_binding``, ``Consumer_service_binding``, and ``sample_layout`` via
+  ``make_service_bindings()`` for event transport.
+- **Configuration schema isolation** (``score/bridged_services``): Translating ``mw_someip_config`` into
+  ``Service_configs`` lives in ``score/bridged_services`` outside ``comp__gateway_ipc_binding``, keeping the
+  IPC binding independent of the FlatBuffers gateway configuration schema.
+- **All-or-nothing registration**: If any entry of ``Service_configs`` fails setup, ``create_client()`` returns
+  ``nullptr`` and ``AddServiceConfiguration`` rolls back and returns ``false`` (see :ref:`gatewayd-services`),
+  so partial service configurations never go live.
 
 .. _d1-generic:
 
@@ -195,15 +192,19 @@ than any SOME/IP service:
 
 Properties of this design:
 
-- it reflects actual daemon connectivity rather than a local self-check, so ``gatewayd``'s startup wait loop
-  continues once ``someipd`` has accepted its configuration
-- it recovers automatically. If ``someipd`` restarts, the handler fires with an empty container and then again
-  with a handle, so ``is_connected()`` goes false and true again. The bridged services re-establish themselves
-  independently and need no ordering guarantee relative to it.
-- the instance specifier must be unique per ``someipd`` on a host, and it is the one piece of
-  configuration ``someipd`` and all its ``gatewayd`` instances must agree on.
-- every ``gatewayd`` of a ``someipd`` MUST have its own ``mw::com`` ``applicationID``, or its own UID if it
-  configures none. LoLa treats a second ``gatewayd`` with the same one as a restart of the first.
+- **Actual daemon connectivity**: Reflects whether ``someipd`` is running and has accepted ``gatewayd``'s
+  configuration rather than a local self-check, so ``gatewayd``'s startup wait loop proceeds only once
+  ``someipd`` is ready.
+- **Automatic recovery**: If ``someipd`` restarts, the find-service handler fires with an empty container and
+  then again with a handle, so ``is_connected()`` transitions to ``false`` and back to ``true``. The bridged
+  services re-establish themselves independently and need no ordering guarantee relative to
+  ``SomeipdService``.
+- **Unique instance specifier per daemon**: The ``SomeipdService`` instance specifier must be unique per
+  ``someipd`` on a host, and it is the one piece of configuration ``someipd`` and all its ``gatewayd``
+  instances must agree on.
+- **Distinct application identity per client**: Every ``gatewayd`` connected to a ``someipd`` MUST have its
+  own ``mw::com`` ``applicationID``, or its own UID if it configures none, because LoLa treats a second
+  ``gatewayd`` with the same identity as a restart of the first.
 
 .. _someipd-service-ordering:
 
@@ -233,17 +234,18 @@ the following layout for every event sample it exchanges::
    ^                      ^
    sample base            Payload::data()
 
-- ``size`` of the ``DataTypeMetaInfo`` is ``8 + max_payload_size`` rounded up to a multiple of
-  8, ``alignment`` is 8. The 8-byte prefix keeps the payload 8-byte aligned; the rounding is
+- **Size and alignment**: ``size`` of the ``DataTypeMetaInfo`` is ``8 + max_payload_size`` rounded up to a
+  multiple of 8, and ``alignment`` is 8. The 8-byte prefix keeps the payload 8-byte aligned; the rounding is
   required because ``mw::com`` rejects a size that is not an integer multiple of its alignment. The padding
   at the end is never addressed, so ``Writable_payload::wdata()`` starts at ``max_payload_size`` bytes and
   ``Payload::data()`` spans ``payload_length`` bytes (up to ``max_payload_size``).
-- the binding builds ``socom::Payload`` and ``socom::Writable_payload`` over the bytes after the prefix, so
-  the producing and consuming applications see the whole message in ``data()``, and E2E can run over it.
-- ``payload_length`` is the only piece of binding metadata on the link. It is required because LoLa samples
-  are fixed size while SOME/IP payloads are not. The producer shrinks its ``Writable_payload``; the binding
-  writes ``payload.data().size()`` into the prefix just before ``Send()``; the consumer side reads it back
-  and sizes the ``socom::Payload`` accordingly.
+- **Zero-copy payload views**: The binding builds ``socom::Payload`` and ``socom::Writable_payload`` over the
+  bytes after the prefix, so the producing and consuming applications see the whole SOME/IP message in
+  ``data()`` and E2E protection can run over it in place.
+- **Length framing**: ``payload_length`` is the only piece of binding metadata on the link. It is required
+  because LoLa samples are fixed size while SOME/IP payloads are not. The producer shrinks its
+  ``Writable_payload``; the binding writes ``payload.data().size()`` into the prefix just before ``Send()``;
+  the consumer side reads it back and sizes the ``socom::Payload`` accordingly.
 
 .. _event-sizes:
 
@@ -294,8 +296,9 @@ at runtime via ``AddServiceConfiguration``:
   change while ``someipd`` runs.
 - **Starting service discovery for consumer services**: every ``Role::consumer`` service starts ``GenericProxy``
   discovery to detect when the peer daemon offers its ``GenericSkeleton``. In ``gatewayd``, consumer discovery
-  starts during ``create_client()``, while in ``someipd`` ``Server_adapter`` dispatches consumer service
-  discovery onto its ``ipc_discovery`` worker thread after accepting ``AddServiceConfiguration``.
+  starts during ``create_client()``, while in ``someipd`` ``Server_adapter`` dispatches ``start()`` onto its
+  ``ipc_discovery`` worker thread after accepting ``AddServiceConfiguration`` because ``StartFindService`` must
+  not be called from an ``mw::com`` message-passing callback thread.
 
 Availability propagation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -322,7 +325,7 @@ while somebody actually wants it:
 
 - **consumer side**: SOCom ``on_event_subscription_change(event_id, subscribed)`` maps to
   ``GenericProxyEvent::Subscribe(max_sample_count)`` plus ``SetReceiveHandler``, and to ``UnsetReceiveHandler``
-  plus ``Unsubscribe`` on ``not_subscribed``.
+  plus ``Unsubscribe`` on ``unsubscribed``.
 - **provider side**: ``GenericSkeletonEvent::SetReceiveHandlerRegistrationChangedHandler`` fires when the
   first remote receive handler is registered or the last one is removed. It maps to
   ``Client_connector::subscribe_event(event_id, Event_mode::update)`` and ``unsubscribe_event``.
@@ -339,9 +342,10 @@ Payload lifetime and flow control
 
 LoLa owns the shared-memory sample slots:
 
-- **provider side**: the provider allocates a LoLa sample slot on ``allocate_event_payload()``, holds the sample
-  handle mapped to its ``slot_handle`` until ``update_event()`` writes the payload-length prefix and sends it,
-  or releases the slot back to LoLa if the ``Writable_payload`` is dropped unsent.
+- **provider side**: ``Provider_service_binding::on_event_payload_allocate()`` allocates a LoLa sample slot and
+  stores the ``SampleAllocateePtr<void>`` in ``Allocations`` keyed by its ``slot_handle`` until
+  ``on_event_update()`` writes the payload-length prefix and sends it, or releases the slot back to LoLa if the
+  ``Writable_payload`` is dropped unsent.
 - **consumer side**: ``GetNewSamples`` yields a ``SamplePtr<void>`` per sample. The binding moves it into the
   release callback of the ``socom::Payload`` it builds. When the consuming application destroys the payload,
   the ``SamplePtr<void>`` is destroyed and the slot is returned to LoLa.
@@ -444,7 +448,7 @@ Static Architecture
    :status: valid
    :belongs_to: comp__gateway_ipc_binding
 
-   Static decomposition of the Gateway IPC Binding into client/server adapters, the ``SomeipdService`` control endpoints, provider/consumer service bindings, and sample framing, showing their relationships with ``mw::com`` and ``socom``.
+   Component structure of ``gateway_ipc_binding_mw_com`` and its dependencies on ``mw::com`` and ``socom``.
 
    .. uml:: ../models/component_diagram_gateway_ipc_binding_mw_com.puml
       :align: center
@@ -461,7 +465,7 @@ Dynamic Architecture
    :status: valid
    :belongs_to: comp__gateway_ipc_binding
 
-   Startup sequence for ``SomeipdService`` discovery and runtime service registration, followed by availability, subscription lifecycle, and zero-copy event sample allocation, transmission, and reception between ``socom`` and ``mw::com``.
+   Runtime sequences for ``SomeipdService`` registration, service availability, subscription propagation, and zero-copy event delivery.
 
    .. uml:: ../models/mw_com_startup.puml
       :align: center
@@ -482,35 +486,39 @@ Dynamic Architecture
 Teardown
 --------
 
-On destruction, each service binding stops discovery and unregisters its ``mw::com`` and ``socom`` callbacks
-before releasing its ``socom`` connectors, allocated sample handles, and ``mw::com`` proxy or skeleton.
+On destruction, each service binding tears down its endpoints in order so no callback or shared-memory sample outlives its owner:
+
+- ``Provider_service_binding``: Unsets ``GenericSkeletonEvent`` receive-handler registration callbacks, resets the ``socom::Client_connector``, clears ``Allocations`` (before skeleton destruction, as LoLa aborts if a ``SampleAllocateePtr`` outlives its event), and stops and destroys the ``GenericSkeleton``.
+- ``Consumer_service_binding``: Calls ``GenericProxy::StopFindService``, disables the ``socom`` server connector, unsets receive handlers and unsubscribes active ``GenericProxyEvent`` instances, and destroys the ``GenericProxy`` and disabled connector.
 
 Threading and concurrency
 -------------------------
 
-Each adapter and service binding synchronizes its internal state across concurrent ``socom`` and ``mw::com``
-callbacks with per-instance mutexes, constructing and destroying ``mw::com`` proxies outside internal state
-locks. ``Someipd_service_consumer`` stores the connection state returned by ``is_connected()`` in a
-``std::atomic<bool>`` flag. In ``someipd``, ``Server_adapter`` dispatches ``start()`` for newly registered
-consumer service bindings onto a dedicated single-thread ``score::concurrency::ThreadPool``
-(``ipc_discovery``).
+``socom`` and ``mw::com`` callbacks run on arbitrary caller and message-passing threads:
+
+- **Lock ordering across callbacks**: ``Provider_service_binding`` orders ``m_offer_mutex`` outside ``m_mutex`` (with a separate mutex in ``Allocations``), and ``Consumer_service_binding`` orders ``m_lifecycle_mutex`` -> ``m_subscription_mutex`` -> ``m_mutex`` so ``mw::com`` and ``socom`` calls that acquire internal framework locks or wait for in-flight callbacks never deadlock with ``m_mutex``. ``mw::com`` proxies and skeletons are constructed and destroyed outside ``m_mutex``.
+- **Daemon registration and discovery**: ``Server_adapter`` serializes ``AddServiceConfiguration`` calls with ``m_mutex`` and posts ``start()`` onto its single-thread ``ipc_discovery`` ``ThreadPool``. ``Someipd_service_consumer`` guards its proxy and find handle with ``m_mutex`` and stores ``is_connected()`` in a ``std::atomic<bool>``.
 
 .. _public-interface:
 
 Interfaces
 ==========
 
-The public ``Gateway_ipc_binding_client`` and ``Gateway_ipc_binding_server`` interfaces are declared in
-``gateway_ipc_binding_client.hpp`` and ``gateway_ipc_binding_server.hpp``. They expose only
-implementation-independent lifecycle operations. The ``gateway_ipc_binding_mw_com.hpp`` header adds the
-mw::com configuration types and the mw::com-specific free factory functions.
+The public API separates transport-independent lifecycle interfaces from ``mw::com``-specific configuration
+types and factory functions across three headers:
+
+- ``gateway_ipc_binding_client.hpp`` (``Gateway_ipc_binding_client``): Client-side lifecycle interface
+  exposing ``is_connected()`` to ``gatewayd``.
+- ``gateway_ipc_binding_server.hpp`` (``Gateway_ipc_binding_server``): Server-side lifecycle interface
+  exposing ``start()`` to ``someipd``.
+- ``gateway_ipc_binding_mw_com.hpp``: ``mw::com`` configuration structures (``Event_config``,
+  ``Service_config``, ``Service_configs``), the ``Gateway_config_handler`` and ``Add_bridged_services``
+  callbacks, and the ``mw_com::create_client()`` and ``mw_com::create_server()`` factory functions.
 
 .. _interface-semantics:
 
 Interface semantics under mw::com
 ---------------------------------
-
-The client and server interfaces expose the binding's lifecycle and connection state:
 
 .. list-table::
    :header-rows: 1
@@ -525,8 +533,6 @@ The client and server interfaces expose the binding's lifecycle and connection s
    * - ``Gateway_ipc_binding_server::start()``
      - Offers ``SomeipdService``. Bridged services are set up later via ``AddServiceConfiguration``, see
        :ref:`gatewayd-services`. Calling ``start()`` twice returns an error.
-
-``is_connected()`` is backed by ``std::atomic<bool>`` for thread-safe polling.
 
 .. real_arc_int:: Gateway IPC Binding Client Interface
    :id: real_arc_int__gib_arch__client

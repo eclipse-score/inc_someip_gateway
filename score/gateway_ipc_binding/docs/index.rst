@@ -20,10 +20,14 @@ Gateway IPC Binding
 Abstract
 ========
 
-The Gateway IPC Binding bridges SOCom service discovery and event transport between ``gatewayd`` and
-``someipd`` over ``mw::com`` (LoLa) shared-memory IPC. Bridged services use ``GenericProxy`` and
-``GenericSkeleton`` instances for zero-copy event transport, while the dedicated typed ``SomeipdService``
-transfers ``gatewayd`` service configurations at runtime and reports daemon connectivity.
+The Gateway IPC Binding (``score::gateway_ipc_binding``) bridges SOCom service discovery,
+subscription propagation, and zero-copy event transport between ``gatewayd`` and ``someipd`` over
+``mw::com`` (LoLa) shared-memory IPC:
+
+- ``Gateway_ipc_binding_client`` / ``Client_adapter`` and ``Gateway_ipc_binding_server`` / ``Server_adapter``: Daemon-level endpoints in ``gatewayd`` and ``someipd`` that own the configured per-service bindings and the ``SomeipdService`` endpoint.
+- ``SomeipdService`` (``Someipd_service_consumer`` / ``Someipd_service_provider``): Typed ``mw::com`` service used to track ``someipd`` connectivity and register ``gatewayd`` service configurations at runtime via ``AddServiceConfiguration``.
+- ``Provider_service_binding`` and ``Consumer_service_binding``: Per-service bridges connecting local ``socom`` client or server connectors to ``mw::com`` ``GenericSkeleton`` or ``GenericProxy`` instances.
+- ``sample_layout``: Shared-memory framing helpers that place an 8-byte binding prefix (4-byte ``uint32_t`` payload length plus 4 reserved bytes) in front of variable-length SOME/IP messages inside fixed-size LoLa sample slots.
 
 .. comp:: Gateway IPC Binding
    :id: comp__gateway_ipc_binding
