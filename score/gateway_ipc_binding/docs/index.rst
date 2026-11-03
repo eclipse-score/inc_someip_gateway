@@ -32,7 +32,7 @@ subscription propagation, and zero-copy event transport between ``gatewayd`` and
 .. comp:: Gateway IPC Binding
    :id: comp__gateway_ipc_binding
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :version: 1
    :belongs_to: feat__someip_gateway

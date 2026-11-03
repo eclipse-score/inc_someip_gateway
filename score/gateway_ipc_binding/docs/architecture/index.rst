@@ -362,9 +362,10 @@ Static Architecture
    :id: comp_arc_sta__gib_arch__static_view
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :belongs_to: comp__gateway_ipc_binding
+   :fulfils: comp_req__gib__connects_service_connectors, comp_req__gib__propagates_subscriptions, comp_req__gib__forwards_event_payloads
 
    Component structure of ``gateway_ipc_binding_mw_com`` and its dependencies on ``mw::com`` and ``socom``.
 
@@ -379,9 +380,10 @@ Dynamic Architecture
    :id: comp_arc_dyn__gib_arch__startup_and_events
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :belongs_to: comp__gateway_ipc_binding
+   :fulfils: comp_req__gib__connects_service_connectors, comp_req__gib__propagates_subscriptions, comp_req__gib__forwards_event_payloads
 
    Runtime sequences for ``SomeipdService`` registration, service availability, subscription propagation, and zero-copy event delivery.
 
@@ -454,9 +456,10 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int__gib_arch__client
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__gib__connects_service_connectors
 
    Client-side lifecycle and configuration interface used by ``gatewayd`` to connect its bridged services to ``someipd``.
 
@@ -464,7 +467,7 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int_op__gib_arch__create_client
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__gib_arch__client
 
@@ -474,7 +477,7 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int_op__gib_arch__is_connected
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__gib_arch__client
 
@@ -484,9 +487,10 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int__gib_arch__server
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__gib__connects_service_connectors
 
    Server-side lifecycle and configuration handler interface used by ``someipd`` to accept registrations from ``gatewayd`` peers.
 
@@ -494,7 +498,7 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int_op__gib_arch__create_server
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__gib_arch__server
 
@@ -504,7 +508,7 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int_op__gib_arch__start_server
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__gib_arch__server
 
@@ -514,9 +518,10 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int__gib_arch__someipd_svc
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__gib__connects_service_connectors
 
    Typed ``mw::com`` control service (``/score/someip/SomeipdService``) used between ``gatewayd`` and ``someipd`` for daemon connectivity detection and runtime configuration registration.
 
@@ -524,7 +529,7 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :id: real_arc_int_op__gib_arch__add_svc_cfg
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__gib_arch__someipd_svc
 

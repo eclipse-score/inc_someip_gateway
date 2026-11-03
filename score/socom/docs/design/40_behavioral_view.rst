@@ -75,9 +75,10 @@ SOCom keeps track of subscription states and related clients.
    :id: comp_arc_dyn__socom_design__event_flow
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :belongs_to: comp__socom
+   :fulfils: comp_req__socom__event_delivery
 
    .. uml:: models/interaction_diagram_event_communication.puml
       :align: center
@@ -118,9 +119,10 @@ If available, they connect to the remote counterpart and locally create a proxy 
    :id: comp_arc_dyn__socom_design__discovery
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :belongs_to: comp__socom
+   :fulfils: comp_req__socom__identity_and_version
 
    .. uml:: models/interaction_diagram_service_gateway_require_service.puml
       :align: center

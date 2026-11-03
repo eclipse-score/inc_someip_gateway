@@ -43,9 +43,10 @@ Static Architecture
    :id: comp_arc_sta__socom_design__static_view
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :belongs_to: comp__socom
+   :fulfils: comp_req__socom__identity_and_version, comp_req__socom__event_delivery
 
    .. uml:: models/component_diagram_socom.puml
       :align: center
@@ -74,9 +75,10 @@ The Runtime must outlive all created Client_connectors and Server_connectors.
    :id: real_arc_int__socom_design__runtime
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__socom__identity_and_version, comp_req__socom__event_delivery
 
    In-process service registry and factory interface (``score::socom::Runtime``) for creating client and server connectors and registering cross-domain service bridges.
 
@@ -84,7 +86,7 @@ The Runtime must outlive all created Client_connectors and Server_connectors.
    :id: real_arc_int_op__socom_design__make_client
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__runtime
 
@@ -94,7 +96,7 @@ The Runtime must outlive all created Client_connectors and Server_connectors.
    :id: real_arc_int_op__socom_design__make_server
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__runtime
 
@@ -127,9 +129,10 @@ The client connector API provides the following features:
    :id: real_arc_int__socom_design__client_conn
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__socom__identity_and_version, comp_req__socom__event_delivery
 
    Consumer-side connector interface (``score::socom::Client_connector``) for receiving service state updates, subscribing to events, and invoking methods.
 
@@ -137,7 +140,7 @@ The client connector API provides the following features:
    :id: real_arc_int_op__socom_design__sub_event
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__client_conn
 
@@ -147,7 +150,7 @@ The client connector API provides the following features:
    :id: real_arc_int_op__socom_design__call_method
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__client_conn
 
@@ -165,9 +168,10 @@ It can send event updates and respond to method calls.
    :id: real_arc_int__socom_design__server_conn
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__socom__identity_and_version, comp_req__socom__event_delivery
 
    Provider-side connector interfaces (``score::socom::Disabled_server_connector`` and ``score::socom::Enabled_server_connector``) for controlling service availability, publishing events, and handling method calls.
 
@@ -175,7 +179,7 @@ It can send event updates and respond to method calls.
    :id: real_arc_int_op__socom_design__enable_srv
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__server_conn
 
@@ -185,7 +189,7 @@ It can send event updates and respond to method calls.
    :id: real_arc_int_op__socom_design__alloc_payload
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__server_conn
 
@@ -195,7 +199,7 @@ It can send event updates and respond to method calls.
    :id: real_arc_int_op__socom_design__update_event
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__server_conn
 
@@ -213,9 +217,10 @@ They hold a contiguous byte span, a release callback, and an optional shared-mem
    :id: real_arc_int__socom_design__payload
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__socom__event_delivery
 
    Move-only message buffer interfaces (``score::socom::Payload`` and ``score::socom::Writable_payload``) providing contiguous byte-span access, RAII memory release, and shared-memory slot identification.
 
@@ -223,7 +228,7 @@ They hold a contiguous byte span, a release callback, and an optional shared-mem
    :id: real_arc_int_op__socom_design__payload_span
    :version: 1
    :security: NO
-   :safety: QM
+   :safety: ASIL_B
    :status: valid
    :included_by: real_arc_int__socom_design__payload
 

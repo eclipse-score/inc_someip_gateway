@@ -44,6 +44,7 @@ Static Architecture
    :safety: ASIL_B
    :status: valid
    :belongs_to: comp__gatewayd
+   :fulfils: comp_req__gatewayd__starts_from_config
 
    Component structure of ``gatewayd`` and its dependencies on ``mw::com``, ``socom``, ``gateway_ipc_binding``, and ``serializer``.
 
@@ -61,6 +62,7 @@ Dynamic Architecture
    :safety: ASIL_B
    :status: valid
    :belongs_to: comp__gatewayd
+   :fulfils: comp_req__gatewayd__starts_from_config
 
    Runtime sequence for local service event forwarding (Application to ``gatewayd`` to ``someipd``) and remote service event forwarding (``someipd`` to ``gatewayd`` to Application).
 
@@ -80,6 +82,7 @@ Interfaces
    :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__gatewayd__starts_from_config
 
    Internal C++ factory and discovery interface declared in ``score/gatewayd/impl/local_service_instance.h`` (namespace ``score::someip_gateway::gatewayd``) for bridging locally provided ``mw::com`` services to ``someipd``.
 
@@ -101,6 +104,7 @@ Interfaces
    :safety: ASIL_B
    :status: valid
    :language: cpp
+   :fulfils: comp_req__gatewayd__starts_from_config
 
    Internal C++ factory interface declared in ``score/gatewayd/impl/remote_service_instance.h`` (namespace ``score::someip_gateway::gatewayd``) for bridging remotely provided SOME/IP services from ``someipd`` to local ``mw::com`` consumer applications.
 

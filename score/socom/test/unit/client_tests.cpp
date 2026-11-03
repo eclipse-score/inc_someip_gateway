@@ -613,6 +613,9 @@ TEST_F(ClientConnectorTest, RetrieveServerConnectorConfig) {
 }
 
 TEST_F(ClientConnectorTest, DifferentServiceInterfaceId) {
+    RecordProperty("FullyVerifies", "comp_req__socom__identity_and_version");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto modified_interface_id =
         connector_factory.get_configuration().get_interface().id.data() + std::to_string(1);
     auto const conf = Server_service_interface_definition{
@@ -628,6 +631,9 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceId) {
 }
 
 TEST_F(ClientConnectorTest, DifferentServiceInstanceId) {
+    RecordProperty("FullyVerifies", "comp_req__socom__identity_and_version");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const modified_instance_id =
         Service_instance{connector_factory.get_instance().id.data() + std::to_string(1)};
     Server_data server{connector_factory, connector_factory.get_configuration(),
@@ -640,6 +646,9 @@ TEST_F(ClientConnectorTest, DifferentServiceInstanceId) {
 }
 
 TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
+    RecordProperty("FullyVerifies", "comp_req__socom__identity_and_version");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const modified_major_interface = Service_interface_identifier{
         connector_factory.get_configuration().get_interface().id,
         {static_cast<uint16_t>(connector_factory.get_configuration().get_interface().version.major +
@@ -657,6 +666,9 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
 }
 
 TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
+    RecordProperty("FullyVerifies", "comp_req__socom__identity_and_version");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const modified_minor_interface = Service_interface_identifier{
         connector_factory.get_configuration().get_interface().id,
         {connector_factory.get_configuration().get_interface().version.major,
@@ -675,6 +687,9 @@ TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
 }
 
 TEST_F(ClientConnectorTest, SmallerServiceInterfaceMinorVersion) {
+    RecordProperty("FullyVerifies", "comp_req__socom__identity_and_version");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const modified_minor_interface = Service_interface_identifier{
         connector_factory.get_configuration().get_interface().id,
         {connector_factory.get_configuration().get_interface().version.major,

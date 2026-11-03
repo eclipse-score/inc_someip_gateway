@@ -236,7 +236,7 @@ bazel_dep(name = "score_docs_as_code", version = "8.6.0")
 # ============================================================================
 # Communication Framework
 # ============================================================================
-bazel_dep(name = "score_communication", version = "0.5.0")
+bazel_dep(name = "score_communication", version = "0.6.0")
 single_version_override(
     module_name = "score_communication",
     patch_strip = 1,
@@ -249,7 +249,7 @@ single_version_override(
 # ============================================================================
 # Base Libraries
 # ============================================================================
-bazel_dep(name = "score_baselibs", version = "0.2.16")
+bazel_dep(name = "score_baselibs", version = "0.2.17")
 single_version_override(
     module_name = "score_baselibs",
     patch_strip = 1,
