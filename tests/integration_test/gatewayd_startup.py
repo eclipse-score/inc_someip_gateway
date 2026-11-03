@@ -13,7 +13,7 @@
 
 import logging
 import time
-from score_pytest.attribute_plugin import add_test_properties
+from attribute_plugin import add_test_properties
 from util import (
     ShellProcess,
     get_running_processes_on_target,
