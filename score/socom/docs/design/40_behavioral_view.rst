@@ -26,7 +26,7 @@ Runtime
 The runtime is a (process internal) service instance broker.
 Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
 Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service bridge registration interface to forward service requests across process or network boundaries.
+Additionally, it provides a service bridge registration interface.
 
 Server connector
 ----------------
@@ -43,9 +43,9 @@ The server connector API provides the following features:
 
 - event update request indication
 - event mode getter (event with/without initial update)
-- allocate event payload
 - update event
 - update requested event
+- allocate event payload
 
 Dynamic Architecture
 --------------------
@@ -146,7 +146,7 @@ In order to facilitate deadlock detection, before a callback is called by a Clie
 Server_connector the thread id of the caller is saved.
 After the callback returns, the previously saved thread id is removed.
 If the calling object is destructed prematurely the deadlock is detected by checking if the thread
-id is still present, writing an error message to ``std::cerr`` and terminating the application via ``std::abort()``.
+id is still present, issuing a warning log and terminating the application.
 
 Client_connector deadlocks
 ---------------------------

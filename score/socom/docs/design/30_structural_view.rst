@@ -57,7 +57,6 @@ Static Architecture
 - :ref:`runtime_component`
 - :ref:`client_connector_component`
 - :ref:`server_connector_component`
-- :ref:`payload_component`
 
 Interfaces
 ----------
@@ -121,9 +120,9 @@ The client connector API provides the following features:
 
   - with optional initial value request (required for fields)
 
+- event payload allocation indication
 - event update indication
 - requested event update indication
-- event payload allocation callback for zero-copy reception
 
 .. real_arc_int:: SOCom Client Connector Interface
    :id: real_arc_int__socom_design__client_conn
@@ -204,14 +203,6 @@ It can send event updates and respond to method calls.
    :included_by: real_arc_int__socom_design__server_conn
 
    Publishes an event payload to the subscribed client or responds to a pending on-demand event update request.
-
-.. _payload_component:
-
-Payload
-~~~~~~~
-
-``Payload`` and ``Writable_payload`` represent read-only and writable message buffers exchanged between client and server connectors.
-They hold a contiguous byte span, a release callback, and an optional shared-memory ``slot_handle`` for zero-copy transport across service bridges.
 
 .. real_arc_int:: SOCom Payload Interface
    :id: real_arc_int__socom_design__payload

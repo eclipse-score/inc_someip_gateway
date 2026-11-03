@@ -31,13 +31,13 @@ The following model describes the state-behavior of an event subscription from a
 
    * - Name
      - Description
-   * - Service_state::not_available
+   * - Not_available
      - The client and server are not connected.
        No event subscription or transmission is possible.
-   * - Event_state::unsubscribed
+   * - Available
      - The client and server are connected and the event is not subscribed.
        No event update will be received in this state.
-   * - Event_state::subscribed
+   * - Event_subscribed
      - The user is subscribed to the event.
        Event updates will be received in this state.
 
