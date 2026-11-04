@@ -12,78 +12,48 @@
    SPDX-License-Identifier: Apache-2.0
    *******************************************************************************
 
-SOME/IP Gateway Migration PRs
-=============================
+SOME/IP Gateway Migration Sequence
+==================================
 
-The goal is to simplify SOCom in the incubator, then move the retained
-communication-protocol behavior and ``gatewayd`` support into
-``communication``. SOCom remains an internal protocol layer; ``mw::com`` is
-the only application-facing API. The seven Communication PRs below include
-their own focused tests.
+The migration is proposed as seven changes. Together, they cover the
+``gatewayd`` daemon, SOCom, and the SOME/IP binding. The sequence is a starting
+point; component boundaries and the scope of each change need further
+refinement.
 
-``someipd`` and its SOME/IP stack are not part of these seven PRs because they
-are not ASIL-B compatible. A separate future QM-scoped migration will move
-them, outside the ASIL-B ``gatewayd`` boundary.
+1. **Add SOCom payload types**
 
-Incubator Work (Not Counted)
-----------------------------
+   Define the payload view and allocation contract needed by the binding, with
+   focused payload ownership tests.
 
-* **`#342 <https://github.com/eclipse-score/inc_someip_gateway/pull/342>`_, merged:** establishes the full-message read-only payload view and
-  writable allocation API; it also changes the mw::com bridge sample layout.
-* **`#322 <https://github.com/eclipse-score/inc_someip_gateway/pull/322>`_:** separates service identity, versioning, and discovery
-  filters, and updates callers. Port the accepted API and ``gatewayd``-relevant
-  changes only; exclude ``someipd`` call sites.
-* **SOCom simplification refactor (`#335 <https://github.com/eclipse-score/inc_someip_gateway/issues/335>`_), still needed:** after resolving `#322 <https://github.com/eclipse-score/inc_someip_gateway/pull/322>`_'s API,
-  remove the competing public frontend and features the gateway does not need,
-  while preserving and stabilizing the required communication-protocol
-  behavior. This is an incubator prerequisite, not one of the seven
-  Communication PRs.
-* **`#291 <https://github.com/eclipse-score/inc_someip_gateway/pull/291>`_, merged / `#348 <https://github.com/eclipse-score/inc_someip_gateway/pull/348>`_:** `#291 <https://github.com/eclipse-score/inc_someip_gateway/pull/291>`_ introduced the mw::com bridge; `#348 <https://github.com/eclipse-score/inc_someip_gateway/pull/348>`_
-   wires both daemons to it. Use the ``gatewayd`` wiring from `#348 <https://github.com/eclipse-score/inc_someip_gateway/pull/348>`_ as migration
-   input; do not port its ``someipd`` changes in this sequence.
-* **`#345 <https://github.com/eclipse-score/inc_someip_gateway/pull/345>`_ / `#346 <https://github.com/eclipse-score/inc_someip_gateway/pull/346>`_:** configurable IPC test setup and startup/event diagrams; useful
-  support, not code that needs a Communication port PR.
+2. **Add SOCom service identity and discovery**
 
-Communication PRs
------------------
+   Add service/version identity and discovery behavior required by the
+   gateway, with tests for the agreed behavior.
 
-1. **``feat(socom): add payload records``**
+3. **Add the reduced SOCom runtime and registry**
 
-   Port `#342 <https://github.com/eclipse-score/inc_someip_gateway/pull/342>`_'s full-message read-only view and writable allocation contract as
-   internal protocol types, with payload ownership tests; do not create a
-   second application-facing API.
+   Migrate the service registration, event, callback, and lifecycle behavior
+   required by the gateway. Add focused runtime tests.
 
-2. **``feat(socom): add service identity and discovery``**
+4. **Define the daemon bridge API and configuration**
 
-   Port `#322 <https://github.com/eclipse-score/inc_someip_gateway/pull/322>`_'s service/version identity and discovery-filter semantics as
-   internal protocol behavior, plus required ``gatewayd`` call-site changes;
-   exclude ``someipd`` call sites.
+   Agree on the local bridge contract and configuration between the daemons.
 
-3. **``feat(socom): add reduced runtime and registry``**
+5. **Add the bridge backend**
 
-   Port only the private service registration, event, callback, and lifecycle
-   behavior retained by the incubator simplification; do not port public
-   connectors or unused SOCom features.
+   Implement the provider/consumer event bridge and test its event paths.
 
-4. **``feat(mw/com/gateway): add local bridge API and configuration``**
+6. **Add gateway configuration and serializer integration**
 
-   Define the daemon-to-daemon LoLa bridge contract and its configuration.
-   Keep it distinct from Communication's existing cross-domain gateway
-   ``Transport`` API.
+   Migrate the configuration and serializer behavior needed by the gateway,
+   with focused tests.
 
-5. **``feat(mw/com/gateway): add LoLa bridge backend``**
+7. **Integrate ``gatewayd``**
 
-   Port the mw::com provider/consumer event bridge from `#291 <https://github.com/eclipse-score/inc_someip_gateway/pull/291>`_ and apply `#342 <https://github.com/eclipse-score/inc_someip_gateway/pull/342>`_'s
-   sample-layout changes; include focused backend tests.
+   Connect the gateway service adapters and executable to the migrated SOCom
+   behavior and bridge. Verify startup and event paths.
 
-6. **``feat(mw/com/gateway): add gateway configuration and serializer``**
-
-   Port only configuration owned by ``gatewayd`` and the serializer boundary;
-   leave SOME/IP stack, wire-format, and ``someipd`` configuration for the
-   separate future migration.
-
-7. **``feat(mw/com/gateway): integrate gatewayd``**
-
-   Port ``gatewayd`` service adapters and executable wiring to the reduced
-   SOCom behavior and LoLa bridge, with startup and event-path tests. Do not
-   add ``someipd`` to this migration.
+Requirements, architecture/design, and associated tests should be refined
+alongside these changes. Only the high-level migration blocks are agreed now;
+refine the boundaries, ordering, and detailed test scope as ongoing migration
+and cleanup work is completed.
