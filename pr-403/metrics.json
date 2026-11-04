@@ -81,17 +81,17 @@
         }
       }
     },
-    "comp__gateway_ipc_binding": {
+    "comp__socom": {
       "requirements": {
         "status": {
-          "valid": 3,
+          "valid": 2,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 3
+          "not_covered": 2
         }
       },
       "architecture": {
@@ -133,17 +133,43 @@
         }
       }
     },
-    "comp__gatewayd": {
+    "comp__config": {
       "requirements": {
         "status": {
-          "valid": 1,
+          "valid": 0,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 1
+          "not_covered": 0
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      }
+    },
+    "comp__gateway_ipc_binding": {
+      "requirements": {
+        "status": {
+          "valid": 3,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 3
         }
       },
       "architecture": {
@@ -185,43 +211,17 @@
         }
       }
     },
-    "comp__socom": {
+    "comp__gatewayd": {
       "requirements": {
         "status": {
-          "valid": 2,
+          "valid": 1,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 2
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
-    "comp__config": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
+          "not_covered": 1
         }
       },
       "architecture": {

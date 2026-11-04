@@ -481,7 +481,7 @@
 <h1>Gateway IPC Binding Component Requirements<a class="headerlink" href="#gateway-ipc-binding-component-requirements" title="Link to this heading">#</a></h1>
 <p>These requirements cover the Gateway IPC Binding’s control and event data
 transport. They do not claim method-call transport, which is not implemented.</p>
-<div class="need_container docutils container" id="SNCB-58d03448">
+<div class="need_container docutils container" id="SNCB-0ff6b2a9">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gib__connects_service_connectors">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -510,11 +510,9 @@ transport. They do not claim method-call transport, which is not implemented.</p
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>For each service configured on both peers, the binding shall bridge the
-service in its configured direction. A service provided locally shall be
-consumable by the peer; a service provided by the peer shall be discoverable
-by local SOCom consumers. Local service availability shall reflect the
-availability of the corresponding peer service.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>When a configured service is offered on one side of the IPC connection, the
+binding shall make it available to SOCom clients on the other side, and make
+it unavailable when the service stops being offered.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp_req__gib__connects_service_connectors" title="comp_req__gib__connects_service_connectors">comp_req__gib__connects_service_connectors</a></span></span></div>
@@ -530,7 +528,7 @@ availability of the corresponding peer service.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-53fbee87">
+<div class="need_container docutils container" id="SNCB-803fc5db">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gib__propagates_subscriptions">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -576,7 +574,7 @@ be propagated to the corresponding server connector on the other peer.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-de430916">
+<div class="need_container docutils container" id="SNCB-7dfd6ddc">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gib__forwards_event_payloads">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
