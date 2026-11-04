@@ -28,11 +28,9 @@ transport. They do not claim method-call transport, which is not implemented.
    :derived_from: feat_req__com__service_discovery, feat_req__com__service_instance_names
    :satisfied_by: comp__gateway_ipc_binding
 
-   For each service configured on both peers, the binding shall bridge the
-   service in its configured direction. A service provided locally shall be
-   consumable by the peer; a service provided by the peer shall be discoverable
-   by local SOCom consumers. Local service availability shall reflect the
-   availability of the corresponding peer service.
+   When a configured service is offered on one side of the IPC connection, the
+   binding shall make it available to SOCom clients on the other side, and make
+   it unavailable when the service stops being offered.
 
 .. comp_req:: IPC binding propagates event subscriptions
    :id: comp_req__gib__propagates_subscriptions
