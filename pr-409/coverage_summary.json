@@ -1,0 +1,110 @@
+{
+  "coverage_summaries": [
+    {
+      "branches": {
+        "percent": null,
+        "total": null
+      },
+      "files": {
+        "measured": 0,
+        "total": 1
+      },
+      "lines": {
+        "percent": null,
+        "total": null
+      },
+      "primary_need_id": "comp__config"
+    },
+    {
+      "branches": {
+        "percent": 76,
+        "total": 372
+      },
+      "files": {
+        "measured": 13,
+        "total": 19
+      },
+      "lines": {
+        "percent": 81,
+        "total": 1172
+      },
+      "primary_need_id": "comp__gateway_ipc_binding"
+    },
+    {
+      "branches": {
+        "percent": 46,
+        "total": 118
+      },
+      "files": {
+        "measured": 3,
+        "total": 5
+      },
+      "lines": {
+        "percent": 44,
+        "total": 565
+      },
+      "primary_need_id": "comp__gatewayd"
+    },
+    {
+      "branches": {
+        "percent": 88,
+        "total": 48
+      },
+      "files": {
+        "measured": 2,
+        "total": 3
+      },
+      "lines": {
+        "percent": 97,
+        "total": 125
+      },
+      "primary_need_id": "comp__serializer"
+    },
+    {
+      "branches": {
+        "percent": 74,
+        "total": 276
+      },
+      "files": {
+        "measured": 22,
+        "total": 31
+      },
+      "lines": {
+        "percent": 94,
+        "total": 1061
+      },
+      "primary_need_id": "comp__socom"
+    },
+    {
+      "branches": {
+        "percent": 0,
+        "total": 24
+      },
+      "files": {
+        "measured": 1,
+        "total": 4
+      },
+      "lines": {
+        "percent": 0,
+        "total": 32
+      },
+      "primary_need_id": "comp__someip"
+    },
+    {
+      "branches": {
+        "percent": 70,
+        "total": 106
+      },
+      "files": {
+        "measured": 6,
+        "total": 9
+      },
+      "lines": {
+        "percent": 72,
+        "total": 454
+      },
+      "primary_need_id": "comp__someipd"
+    }
+  ],
+  "version": 1
+}
