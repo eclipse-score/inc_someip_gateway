@@ -38,7 +38,7 @@ Runtime
 -------
 
 The Runtime creates and connects Client_connectors and Server_connectors.
-The Runtime must outlive all created Client_connectors and Server_connectors.
+It must outlive all created Client_connectors and Server_connectors.
 
 .. _client_connector_component:
 
