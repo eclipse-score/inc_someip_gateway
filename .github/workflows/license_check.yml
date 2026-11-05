@@ -11,10 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: License Check
+name: License check preparation
 
 on:
-  workflow_call:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   pull-requests: write
@@ -22,6 +25,11 @@ permissions:
 
 jobs:
   license-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v.0.0.3
+    if: >-
+      (github.event_name == 'merge_group') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@4c70b38c9cb40c96ec63320190b9db9091648968 # v0.0.3-43-7e8ea4c
+    with:
+      repo-url: "${{ github.server_url }}/${{ github.repository }}"
+      bazel-target: "run --lockfile_mode=error //:license-check"
     secrets:
       dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}

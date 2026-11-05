@@ -13,6 +13,7 @@
 
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
+load("@score_tooling//:defs.bzl", "dash_license_checker")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 load("//tools/lint:linters.bzl", "use_clang_tidy_targets", "use_ruff_targets")
 
@@ -135,4 +136,20 @@ compile_pip_requirements(
         "no_proxy",
     ],
     requirements_txt = "python_requirements_lock.txt",
+)
+
+# ==============================================================================
+# License Check (Eclipse Dash)
+# ==============================================================================
+# Run by the license-check CI workflow: `bazel run //:license-check`
+# Checks the Python dependencies pinned in python_requirements_lock.txt.
+filegroup(
+    name = "python_requirements_lock",
+    srcs = ["python_requirements_lock.txt"],
+)
+
+dash_license_checker(
+    src = ":python_requirements_lock",
+    file_type = "requirements",
+    visibility = ["//visibility:public"],
 )
