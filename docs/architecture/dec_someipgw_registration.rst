@@ -17,10 +17,10 @@ Architectural Design Decision: Dynamic Registration for SOME/IP Gateway
 
 .. dec_rec:: Dynamic Registration for SOME/IP Gateway
    :id: dec_rec__component__someip_gw_registration
-   :status: proposed
+   :status: accepted
    :version: 1
    :decision:
-      Gateway processes will dynamically register their communication requirements (e.g., required services and events) with the central SOME/IP Communication Stack process. This will be achieved via a dedicated, message-based IPC interface.
+      Gateway processes will dynamically register their communication requirements (service configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process via the dedicated SomeipdService mw::com IPC interface.
    :context:
       The SOME/IP Gateway architecture separates the core communication stack from multiple gateway processes. This is necessary for safety separation (ASIL vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gateway "client" processes to inform the central "server" stack of their routing needs at runtime.
 
@@ -109,12 +109,11 @@ The **Dynamic Registration via IPC** approach was chosen because it provides the
 
 *  **Flexibility and Scalability:**
    This is the primary advantage.
-   New gateway processes can be introduced, and existing ones can be updated and restarted independently without affecting the central SOME/IP stack or any other gateway.
+   New gateway processes can be introduced, and existing ones can be restarted independently without affecting the central SOME/IP stack or any other gateway.
    This is essential for a dynamic, resilient system.
 *  **Robust State Management:**
    The registration protocol provides explicit control over the system's state.
-   The central stack knows exactly which gateways are active and what their requirements are.
-   The IPC connection's liveness provides a reliable and immediate mechanism to detect client failures and clean up associated routes, preventing data loss to dead processes.
+   The central stack validates and sets up each gateway's service configuration atomically on registration, and accepts identical re-registrations idempotently when a restarted gateway reconnects.
 *  **Clear Separation of Concerns:**
    It enforces the client-server model cleanly.
    The IPC protocol becomes a well-defined API contract between the components, allowing them to be developed, tested, and maintained independently.

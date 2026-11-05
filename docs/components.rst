@@ -12,6 +12,9 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
+Components
+==========
+
 .. Anchor point for docs_bundles
 .. toctree::
    :maxdepth: 1

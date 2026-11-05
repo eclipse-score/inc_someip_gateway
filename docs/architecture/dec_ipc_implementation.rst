@@ -22,7 +22,7 @@ DR-002-Arch: IPC implementation
    :status: accepted
    :version: 1
    :context: SOME/IP Gateway
-   :decision: Option 1 (``mw::com`` / LoLa with GenericSkeleton and GenericProxy)
+   :decision: Option 1 (mw::com / LoLa with GenericSkeleton and GenericProxy)
 
 Context / Problem
 -----------------
@@ -37,7 +37,7 @@ Option 1: ``mw::com`` / LoLa with GenericSkeleton and GenericProxy as IPC implem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This option would use ``mw::com`` / LoLa as the IPC implementation for transporting the semantics of the SOME/IP stack abstraction to each process.
-Gateway specific RPC calls are done via a dedicated `mw::com` service.
+Gateway specific RPC calls are done via a dedicated ``mw::com`` service.
 
 Pros:
 
@@ -107,7 +107,7 @@ Option 1 was selected: the IPC implementation is based on ``mw::com``.
 Consequences
 ------------
 
-* The integration between the ``gatewayd`` and ``someipd`` daemon is based on ``socom`` interfaces.
+* The integration between the ``gatewayd`` and ``someipd`` daemons is based on ``socom`` interfaces.
 * ``mw::com`` is the IPC transport between the daemons.
 * ``socom`` remains the service abstraction at the gateway boundary, bridged through the
   ``mw::com`` binding.

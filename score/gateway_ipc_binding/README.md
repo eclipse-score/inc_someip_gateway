@@ -17,9 +17,9 @@ SPDX-License-Identifier: Apache-2.0
 
 Gateway IPC Binding bridges SOCom services between ``gatewayd`` and ``someipd`` over ``mw::com``
 (LoLa). The implementation uses generic proxies and skeletons for bridged service events and a
-typed ``SomeipdService`` for peer liveness and configuration exchange.
+typed ``SomeipdService`` for daemon connectivity and configuration exchange.
 
 ## Design
 
-[The design](docs/mw_com_binding.rst) describes the behavior and architecture of the Gateway IPC
+[The design](docs/index.rst) describes the behavior and architecture of the Gateway IPC
 Binding.
