@@ -41,3 +41,11 @@ Design decisions
    dec_someip_api_abstraction.rst
    dec_ipc_implementation.rst
    tc8_conformance_testing.rst
+
+Migration planning
+------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   someip_gateway_pr_sequence
