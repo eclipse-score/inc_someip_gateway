@@ -28,11 +28,9 @@ transport. They do not claim method-call transport, which is not implemented.
    :derived_from: feat_req__com__service_discovery, feat_req__com__service_instance_names
    :satisfied_by: comp__gateway_ipc_binding
 
-   The IPC binding shall carry the ``Service_instance`` identity of each
-   offered service between peers and, once the IPC client and server are
-   connected, establish a local SOCom client or server connector whose
-   service-instance identifier matches the identity received from the remote
-   peer.
+   When a configured service is offered on one side of the IPC connection, the
+   binding shall make it available to SOCom clients on the other side, and make
+   it unavailable when the service stops being offered.
 
 .. comp_req:: IPC binding propagates event subscriptions
    :id: comp_req__gib__propagates_subscriptions
