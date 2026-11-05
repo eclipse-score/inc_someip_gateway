@@ -40,6 +40,14 @@ jobs:
     if: ${{ !cancelled() }}
     secrets: inherit
     uses: ./.github/workflows/docs.yml
+  license_check:
+    # Secrets are not available to pull requests from forks.
+    if: github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    secrets: inherit
+    uses: ./.github/workflows/license_check.yml
+    permissions:
+      pull-requests: write
+      issues: write
   quality_pack:
     secrets: inherit
     uses: ./.github/workflows/quality_pack.yml
@@ -60,6 +68,7 @@ jobs:
       - build_and_test_cross_compilation
       - coverage
       - docs
+      - license_check
       - quality_pack
       - static-code-analysis
     permissions: {}
