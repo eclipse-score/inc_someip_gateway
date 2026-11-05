@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   license-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@4c70b38c9cb40c96ec63320190b9db9091648968 # v0.0.3-43-7e8ea4c
+    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@d768523bcb4ce716e2e56f9a8e3b2c25fcd30b06 # main @ d768523
     with:
       repo-url: "${{ github.server_url }}/${{ github.repository }}"
       bazel-target: "run //:license-check"
