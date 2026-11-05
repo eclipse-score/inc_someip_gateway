@@ -110,9 +110,6 @@ using Request_service_function =
 /// client/server connection and disconnection at runtime.
 
 /// A service interface supports the following communication patterns:
-///   - method call (1:1)
-///     - client-server-client
-///     - client-server
 ///   - event, also known as publish/subscribe (1:n)
 ///     - server-clients
 class Runtime {
@@ -205,7 +202,7 @@ class Runtime {
         Disabled_server_connector::Callbacks callbacks,
         Posix_credentials const& credentials) noexcept = 0;
 
-    /// \brief Registers a bridge which transports events or method calls over an IPC channel.
+    /// \brief Registers a bridge which transports events over an IPC channel.
     /// \param identity Bridge identity.
     /// \param request_service Function to call if the requested service is not present locally.
     /// \return A registration RAII object in case of successful operation, otherwise an error.

@@ -383,7 +383,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 socom::Server_service_interface_definition const kBridged_definition{
     socom::Service_interface_identifier{std::string_view{"bridged_/test/ipc/BridgedService"},
                                         socom::Service_interface_identifier::Version{1U, 0U}},
-    socom::to_num_of_methods(0U), socom::to_num_of_events(2U)};
+    socom::to_num_of_events(2U)};
 socom::Service_instance const kBridged_instance{std::string_view{"1"}};
 
 std::vector<Event_config> two_bridged_events(std::size_t const max_payload_size) {

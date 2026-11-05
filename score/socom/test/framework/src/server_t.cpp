@@ -17,7 +17,6 @@
 #include <future>
 #include <memory>
 
-#include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
@@ -26,19 +25,9 @@
 
 using ::testing::_;
 using ::testing::Assign;
-using ::testing::ByMove;
 using ::testing::DoAll;
-using ::testing::InvokeWithoutArgs;
-using ::testing::Return;
 namespace score::socom {
 namespace {
-Server_connector_callbacks_mock& expect_method_call(Server_connector_callbacks_mock& sc_callbacks,
-                                                    Method_id const& method_id,
-                                                    Payload const& expected_payload) {
-    EXPECT_CALL(sc_callbacks, on_method_call(_, method_id, payload_eq(expected_payload), _));
-    return sc_callbacks;
-}
-
 auto ignore_call() {
     return []() {};
 }
@@ -49,12 +38,6 @@ static_assert(!std::is_default_constructible<Server_data>::value, "");
 
 Server_data::Server_data(Connector_factory& factory)
     : m_connector{factory.create_and_enable(m_callbacks)} {}
-
-Server_data::Server_data(Connector_factory& factory, Method_id method_id,
-                         Payload const& expected_payload)
-    : m_connector{
-          factory.create_and_enable(expect_method_call(m_callbacks, method_id, expected_payload))} {
-}
 
 Server_data::Server_data(Connector_factory& factory,
                          Server_service_interface_definition const& configuration,
@@ -67,10 +50,7 @@ Server_data::Server_data(Connector_factory& factory,
     : m_connector{factory.create_and_enable(configuration, instance, m_credential_callbacks,
                                             credentials)} {}
 
-Server_data::~Server_data() {
-    wait_for_atomics(m_callback_called, m_method_callback_called, m_subscribed, m_unsubscribed,
-                     m_method_payload_allocate_called);
-}
+Server_data::~Server_data() { wait_for_atomics(m_callback_called, m_subscribed, m_unsubscribed); }
 
 Server_connector_callbacks_mock& Server_data::get_callbacks() { return m_callbacks; }
 
@@ -145,80 +125,6 @@ void Server_data::expect_and_respond_update_event_request(Event_id const& event_
         .WillOnce([cloned](Enabled_server_connector& connector, Event_id const& eid) {
             EXPECT_TRUE(connector.update_requested_event(eid, clone_payload(*cloned)));
         });
-}
-
-std::atomic<bool> const& Server_data::expect_method_allocate_payload(
-    Method_id const& method_id, score::Result<Writable_payload> result) {
-    EXPECT_CALL(m_callbacks, on_method_call_payload_allocate(_, method_id))
-        .WillOnce(DoAll(Assign(&m_method_payload_allocate_called, true),
-                        Return(ByMove(std::move(result)))));
-
-    m_method_payload_allocate_called = false;
-    return m_method_payload_allocate_called;
-}
-
-std::atomic<bool> const& Server_data::expect_and_respond_method_calls(size_t const counter,
-                                                                      Method_id const& method_id,
-                                                                      Payload const& payload,
-                                                                      Method_result const& result) {
-    EXPECT_TRUE(m_method_callback_called);
-    m_method_callback_called = false;
-    m_num_method_calls = 0;
-
-    auto const reply = [this, &result, counter](auto& /*connector*/, auto /*mid*/,
-                                                auto const& /*pl*/, auto const& cb) {
-        if (cb) {
-            cb->reply(result);
-        }
-        m_num_method_calls++;
-        if (counter == m_num_method_calls) {
-            m_method_callback_called = true;
-        }
-        return std::make_unique<Method_invocation>();
-    };
-
-    EXPECT_CALL(m_callbacks, on_method_call(_, method_id, payload_eq(payload), _))
-        .Times(counter)
-        .WillRepeatedly(reply);
-    return m_method_callback_called;
-}
-
-std::atomic<bool> const& Server_data::expect_and_respond_method_call(Method_id const& method_id,
-                                                                     Payload const& payload,
-                                                                     Method_result const& result) {
-    return expect_and_respond_method_calls(1, method_id, payload, result);
-}
-
-std::future<Method_call_reply_data_opt> Server_data::expect_and_return_method_call(
-    Method_id const& method_id, Payload const& payload) {
-    EXPECT_TRUE(m_method_callback_called);
-    m_method_callback_called = false;
-
-    auto saved_callback = std::make_shared<std::promise<Method_call_reply_data_opt>>();
-
-    EXPECT_CALL(m_callbacks, on_method_call(_, method_id, payload_eq(payload), _))
-        .WillOnce(
-            [this, saved_callback](auto& /*connector*/, auto /*mid*/, auto const& /*pl*/, auto cb) {
-                m_method_callback_called = true;
-                saved_callback->set_value(std::move(cb));
-                return std::make_unique<Method_invocation>();
-            });
-
-    return saved_callback->get_future();
-}
-
-std::future<void> Server_data::expect_method_calls(std::size_t const& min_num,
-                                                   Method_id const& method_id,
-                                                   Payload const& payload) {
-    std::promise<void> methods_called;
-    auto methods_called_future = methods_called.get_future();
-
-    auto check_update_count =
-        create_check_update_count(m_num_method_calls, min_num, std::move(methods_called));
-
-    EXPECT_CALL(m_callbacks, on_method_call(_, method_id, payload_eq(payload), _))
-        .WillRepeatedly(DoAll(check_update_count, []() { return nullptr; }));
-    return methods_called_future;
 }
 
 Event_mode Server_data::get_event_mode(Event_id server_id) const {

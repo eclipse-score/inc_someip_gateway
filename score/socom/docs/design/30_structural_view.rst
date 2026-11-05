@@ -20,7 +20,6 @@ Overview
 
 The bundle service oriented communication (SOCom) implements components for client/server pattern based communication for the following communication paradigms:
 
-- remote procedure call
 - publish/subscribe (event communication)
 
 SOCom provides interfaces which enable the implementation of service gateways (bridges).
@@ -111,11 +110,6 @@ The client connector interacts with the server connector in order perform the su
 The client connector API provides the following features:
 
 - service instance state change indications
-- asynchronous remote procedure call:
-
-  - with method reply
-  - without method reply (fire and forget)
-
 - event subscription:
 
   - with optional initial value request (required for fields)
@@ -133,7 +127,7 @@ The client connector API provides the following features:
    :language: cpp
    :fulfils: comp_req__socom__identity_and_version, comp_req__socom__event_delivery
 
-   Consumer-side connector interface (``score::socom::Client_connector``) for receiving service state updates, subscribing to events, and invoking methods.
+   Consumer-side connector interface (``score::socom::Client_connector``) for receiving service state updates and subscribing to events.
 
 .. real_arc_int_op:: subscribe_event and unsubscribe_event
    :id: real_arc_int_op__socom_design__sub_event
@@ -145,23 +139,13 @@ The client connector API provides the following features:
 
    Subscribes to or unsubscribes from service events (with optional initial-value request for fields) and requests on-demand event updates.
 
-.. real_arc_int_op:: call_method and allocate_method_call_payload
-   :id: real_arc_int_op__socom_design__call_method
-   :version: 1
-   :security: NO
-   :safety: ASIL_B
-   :status: valid
-   :included_by: real_arc_int__socom_design__client_conn
-
-   Allocates method-call request buffers and invokes asynchronous RPC methods (with optional reply handling or fire-and-forget).
-
 .. _server_connector_component:
 
 Server connector
 ~~~~~~~~~~~~~~~~
 
 The Server_connector represents a service, which is used by a Client_connector.
-It can send event updates and respond to method calls.
+It can send event updates.
 
 .. real_arc_int:: SOCom Server Connector Interface
    :id: real_arc_int__socom_design__server_conn
@@ -172,7 +156,7 @@ It can send event updates and respond to method calls.
    :language: cpp
    :fulfils: comp_req__socom__identity_and_version, comp_req__socom__event_delivery
 
-   Provider-side connector interfaces (``score::socom::Disabled_server_connector`` and ``score::socom::Enabled_server_connector``) for controlling service availability, publishing events, and handling method calls.
+   Provider-side connector interfaces (``score::socom::Disabled_server_connector`` and ``score::socom::Enabled_server_connector``) for controlling service availability and publishing events.
 
 .. real_arc_int_op:: enable and disable
    :id: real_arc_int_op__socom_design__enable_srv

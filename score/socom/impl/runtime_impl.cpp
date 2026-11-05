@@ -152,9 +152,8 @@ bool is_valid(Client_connector::Callbacks const& callbacks) {
 }
 
 bool is_valid(Disabled_server_connector::Callbacks const& callbacks) {
-    return !callbacks.on_method_call.empty() && !callbacks.on_event_update_request.empty() &&
-           !callbacks.on_event_subscription_change.empty() &&
-           !callbacks.on_method_call_payload_allocate.empty();
+    return !callbacks.on_event_update_request.empty() &&
+           !callbacks.on_event_subscription_change.empty();
 }
 
 // actually understandable and easily reviewed, a code change is not justified.
@@ -407,15 +406,15 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
 
 Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
     Service_interface_definition configuration, Service_instance instance,
-    Client_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
+    Client_connector::Callbacks callbacks, Posix_credentials const& /*credentials*/) noexcept {
     if (!is_valid(callbacks)) {
         return MakeUnexpected(Construction_error::callback_missing);
     }
 
     // check if one is already registered for this service interface and instance and return error
     // if yes
-    auto client_connector = std::make_unique<CC_impl>(std::move(configuration), instance,
-                                                      std::move(callbacks), credentials);
+    auto client_connector =
+        std::make_unique<CC_impl>(std::move(configuration), instance, std::move(callbacks));
 
     auto registration = register_connector(client_connector->get_configuration(),
                                            client_connector->get_service_instance(),

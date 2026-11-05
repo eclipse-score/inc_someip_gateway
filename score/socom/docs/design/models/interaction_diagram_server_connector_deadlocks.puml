@@ -16,25 +16,8 @@ participant Server_callbacks
 participant Server_connector
 participant Client_connector
 
-' Method_call_callback on_method_call;
 ' Event_subscription_change_callback on_event_subscription_change;
 ' Event_request_update_callback on_event_update_request;
-
-== Deadlock by on_method_call ==
-
-Client_connector --> Server_connector: call_method()
-activate Server_connector
-
-Server_connector --> Server_callbacks: on_method_call()
-activate Server_callbacks
-
-Server_callbacks --> Server_connector: ~Server_connector()
-destroy Server_connector
-deactivate Server_callbacks
-
-rnote over Server_connector
- Deadlock happens here because destructor waits for callback to finish.
-endrnote
 
 == Deadlock by on_event_subscription_change ==
 

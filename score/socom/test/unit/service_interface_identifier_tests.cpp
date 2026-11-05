@@ -28,19 +28,15 @@ class ServiceInterfaceIdentifierTest : public Test {
                                                          service_interface_version};
     Service_interface_identifier const service_interface_2{service_interface_id_2,
                                                            service_interface_version};
-    std::size_t num_methods{1U};
-    std::size_t num_methods_2{2U};
     std::size_t num_events{2U};
     std::size_t num_events_2{3U};
 
-    Service_interface_definition const interface_config_1{
-        service_interface, to_num_of_methods(num_methods), to_num_of_events(num_events)};
-    Service_interface_definition const interface_config_2{
-        service_interface_2, to_num_of_methods(num_methods), to_num_of_events(num_events)};
-    Service_interface_definition const interface_config_3{
-        service_interface, to_num_of_methods(num_methods_2), to_num_of_events(num_events)};
-    Service_interface_definition const interface_config_4{
-        service_interface, to_num_of_methods(num_methods), to_num_of_events(num_events_2)};
+    Service_interface_definition const interface_config_1{service_interface,
+                                                          to_num_of_events(num_events)};
+    Service_interface_definition const interface_config_2{service_interface_2,
+                                                          to_num_of_events(num_events)};
+    Service_interface_definition const interface_config_4{service_interface,
+                                                          to_num_of_events(num_events_2)};
 };
 
 using ServiceInterfaceConfigurationDeathTest = ServiceInterfaceIdentifierTest;
@@ -88,10 +84,6 @@ TEST_F(ServiceInterfaceIdentifierTest, StringViewLiteralConstructorUsesStringVie
     auto const registry_string_view = service_id_registry().insert(service_interface_id).first;
     EXPECT_EQ(interface.id, registry_string_view);
     EXPECT_EQ(interface.id.data(), registry_string_view.data());
-}
-
-TEST_F(ServiceInterfaceConfigurationDeathTest, SameInterfaceDifferentNumMethodsAsserts) {
-    EXPECT_DEATH((void)(interface_config_1 == interface_config_3), "");
 }
 
 TEST_F(ServiceInterfaceConfigurationDeathTest, SameInterfaceDifferentNumEventsAsserts) {

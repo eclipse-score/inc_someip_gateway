@@ -174,26 +174,6 @@ const score::mw_someip_config::NullSerializerConfig* lookup_serialization_config
                     return event->serialization_config_as_NullSerializerConfig();
                 }
             }
-        } else if (element_type == score_com_serializer_element_type_method_call) {
-            if (service_type->methods() == nullptr) {
-                return nullptr;
-            }
-            for (const auto* method : *service_type->methods()) {
-                if (method->method_name() != nullptr &&
-                    method->method_name()->string_view() == element_name) {
-                    return method->request_serialization_config_as_NullSerializerConfig();
-                }
-            }
-        } else if (element_type == score_com_serializer_element_type_method_response) {
-            if (service_type->methods() == nullptr) {
-                return nullptr;
-            }
-            for (const auto* method : *service_type->methods()) {
-                if (method->method_name() != nullptr &&
-                    method->method_name()->string_view() == element_name) {
-                    return method->response_serialization_config_as_NullSerializerConfig();
-                }
-            }
         }
 
         return nullptr;

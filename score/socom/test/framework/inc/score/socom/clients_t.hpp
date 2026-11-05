@@ -38,15 +38,11 @@ struct Client_data {
     std::atomic<bool> m_event_callback_called{true};
     std::atomic<bool> m_event_request_callback_called{true};
     std::atomic<bool> m_event_subscription_status_change_called{true};
-    std::atomic<bool> m_method_callback_called{true};
     std::atomic<bool> m_not_available{true};
     std::atomic<bool> m_available{true};
     std::atomic<bool> m_event_payload_allocate_called{true};
     std::atomic<uint32_t> m_num_event_callback_called{0};
-    std::atomic<uint32_t> m_num_method_callback_called{0};
     Client_connector_callbacks_mock m_callbacks;
-    Method_reply_callback_mock m_method_callback;
-    std::vector<Method_invocation::Uptr> m_method_invocations;
     Client_connector::Uptr m_connector;
 
     std::atomic<bool>& get_atomic(Service_state const& state);
@@ -129,48 +125,6 @@ struct Client_data {
     ///
     /// \param[in] event_id event to request update for
     void request_event_update(Event_id const& event_id) const;
-
-    /// \brief Allocate a payload for the given method ID.
-    ///
-    /// \param method_id ID of the method for which a payload should be allocated.
-    /// \return A writable payload in case of successful operation, otherwise an error.
-    score::Result<Writable_payload> allocate_method_call_payload(Method_id method_id);
-
-    /// \brief Call method method_id with payload
-    ///
-    /// \param[in] method_id method to call
-    /// \param[in] payload payload of method
-    void call_method(Method_id const& method_id, Payload const& payload);
-
-    /// \brief Call method method_id with payload and reply callback
-    ///
-    /// \param[in] method_id method to call
-    /// \param[in] payload payload of method
-    /// \param[in] reply reply callback
-    void call_method(Method_id const& method_id, Payload const& payload,
-                     Method_reply_callback reply);
-
-    /// \brief Call method method_id with payload and reply callback
-    ///
-    /// \param[in] method_id method to call
-    /// \param[in] payload payload of method
-    /// \param[in] reply reply callback
-    void call_method(Method_id const& method_id, Payload const& payload,
-                     Method_call_reply_data reply);
-
-    /// \brief Call method without callback and without expecting a response
-    ///
-    /// \param[in] method_id method to call
-    /// \param[in] payload the data of the method call
-    void call_method_fire_and_forget(Method_id const& method_id, Payload const& payload);
-
-    /// Call method without callback and without expecting a response
-    ///
-    /// \param[in] method_id method to call
-    /// \param[in] payload the data of the method call
-    /// \return Method_invocation on success, else error
-    score::Result<Method_invocation::Uptr> call_method_fire_and_forget_and_return_invocation(
-        Method_id const& method_id, Payload const& payload);
 
     /// \brief Expect state change of configured service
     ///
@@ -255,28 +209,6 @@ struct Client_data {
     std::atomic<bool> const& expect_and_request_event_update(Event_id const& event_id,
                                                              Payload const& payload);
 
-    /// \brief Expect response and call method
-    ///
-    /// \param[in] method_id method to call
-    /// \param[in] payload the data of the method call
-    /// \param[in] method_result response of the method
-    /// \return boolean reference which becomes true when the response is received
-    std::atomic<bool> const& expect_and_call_method(Method_id const& method_id,
-                                                    Payload const& payload,
-                                                    Method_result const& method_result);
-
-    /// \brief Expect responses and call methods
-    ///
-    /// \param[in] count number of times the service switches into this state
-    /// \param[in] method_id method to call
-    /// \param[in] payload the data of the method call
-    /// \param[in] method_result response of the method
-    /// \return boolean reference which becomes true after all responses have been received
-    std::atomic<bool> const& expect_and_call_methods(size_t const& count,
-                                                     Method_id const& method_id,
-                                                     Payload const& payload,
-                                                     Method_result const& method_result);
-
     /// \brief Create and connect clients
     ///
     /// \param[in] factory factory used to create and configure the clients
@@ -323,18 +255,6 @@ struct Client_data {
     /// received
     static Callbacks_called_t expect_and_request_event_update(Vector& clients, Event_id event_id,
                                                               Payload const& payload);
-
-    /// \brief Expect response and call method
-    ///
-    /// \param[in] clients clients which are subscribed to the event
-    /// \param[in] method_id method to call
-    /// \param[in] payload the data of the method call
-    /// \param[in] method_result response of the method
-    /// \return boolean references for each client which become true after the response has been
-    /// received
-    static Callbacks_called_t expect_and_call_method(Vector& clients, Method_id method_id,
-                                                     Payload const& payload,
-                                                     Method_result const& method_result);
 
     /// \brief Create event subscriptions for event_id with Event_mode::update
     ///

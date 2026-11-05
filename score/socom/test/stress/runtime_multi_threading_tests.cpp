@@ -167,7 +167,6 @@ TEST_F(RuntimeMultiThreadingTest,
             Server_data server{
                 connector_factory,
                 Server_service_interface_definition{configuration.interface,
-                                                    to_num_of_methods(configuration.num_methods),
                                                     to_num_of_events(configuration.num_events)},
                 instance};
             return nullptr;

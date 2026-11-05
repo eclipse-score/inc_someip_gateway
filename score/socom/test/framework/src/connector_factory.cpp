@@ -31,10 +31,8 @@ Connector_factory::Connector_factory(Server_service_interface_definition configu
       m_instance{instance} {}
 
 Connector_factory::Connector_factory(Service_interface_identifier const& sif,
-                                     Num_of_methods const num_methods,
                                      Num_of_events const num_events, Service_instance instance)
-    : Connector_factory{Server_service_interface_definition{sif, num_methods, num_events},
-                        instance} {}
+    : Connector_factory{Server_service_interface_definition{sif, num_events}, instance} {}
 
 Connector_factory::Connector_factory(Connector_factory const& con_fac)
     : m_runtime{create_runtime()},
@@ -226,10 +224,6 @@ Server_service_interface_definition const& Connector_factory::get_configuration(
 }
 
 Service_instance const& Connector_factory::get_instance() const { return m_instance; }
-
-std::size_t Connector_factory::get_num_methods() const noexcept {
-    return m_configuration.get_num_methods();
-}
 
 std::size_t Connector_factory::get_num_events() const noexcept {
     return m_configuration.get_num_events();

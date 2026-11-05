@@ -40,14 +40,6 @@ struct Connect {
     Client_connector_endpoint& endpoint;
 };
 
-struct Call_method {
-    using Return_type = score::Result<Method_invocation::Uptr>;
-    Method_id const id;
-    Payload payload;
-    Method_call_reply_data_opt reply_data;
-    Posix_credentials const& credentials;
-};
-
 struct Posix_credentials {
     using Return_type = score::Result<::score::socom::Posix_credentials>;
 };
@@ -83,11 +75,6 @@ struct Update_requested_event {
 struct Allocate_event_payload {
     using Return_type = score::Result<Writable_payload>;
     Event_id const id;
-};
-
-struct Allocate_method_call_payload {
-    using Return_type = score::Result<Writable_payload>;
-    Method_id const id;
 };
 
 }  // namespace message

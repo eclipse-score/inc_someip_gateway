@@ -20,7 +20,6 @@
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/error.hpp"
-#include "score/socom/method.hpp"
 
 namespace score::socom {
 
@@ -60,7 +59,7 @@ static Service_interface_identifier create_service_interface(size_t const interf
 
 Server_service_interface_definition create_service_interface_configuration(
     size_t const interface_id) {
-    return Server_service_interface_definition{create_service_interface(interface_id), {}, {}};
+    return Server_service_interface_definition{create_service_interface(interface_id), {}};
 }
 
 std::vector<Server_service_interface_definition> create_service_interfaces(size_t const num) {
@@ -88,8 +87,6 @@ std::vector<Service_instance> create_instances(size_t const num) {
 }  // namespace score::socom
 
 namespace score::socom {
-
-std::ostream& operator<<(std::ostream& out, Method_result const& /*method_result*/) { return out; }
 
 std::ostream& operator<<(std::ostream& out,
                          Service_interface_definition const& /*service_interface_configuration*/) {

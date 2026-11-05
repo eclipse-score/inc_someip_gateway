@@ -103,8 +103,6 @@ class Impl final : virtual public Disabled_server_connector,
     message::Connect::Return_type receive(message::Connect message);
 
     // Connection endpoint
-    message::Call_method::Return_type receive(Client_connection const& client,
-                                              message::Call_method message);
     message::Posix_credentials::Return_type receive(Client_connection const& client,
                                                     message::Posix_credentials const& message);
     message::Subscribe_event::Return_type receive(Client_connection const& client,
@@ -113,8 +111,6 @@ class Impl final : virtual public Disabled_server_connector,
                                                     message::Unsubscribe_event message);
     message::Request_event_update::Return_type receive(Client_connection const& client,
                                                        message::Request_event_update message);
-    message::Allocate_method_call_payload::Return_type receive(
-        Client_connection const& client, message::Allocate_method_call_payload message);
 
    private:
     struct Event_info {

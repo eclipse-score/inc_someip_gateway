@@ -20,7 +20,6 @@
 #include "score/socom/clients_t.hpp"
 #include "score/socom/connector_factory.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/server_t.hpp"
@@ -45,8 +44,6 @@ class ServerConnectorTest : public SingleConnectionTest {
 
     Event_subscription_change_callback_mock esccb;
     Event_request_update_callback_mock eruc;
-    Method_call_credentials_callback_mock mccb;
-    Method_call_payload_allocate_callback_mock mpacb;
 };
 
 TEST_F(ServerConnectorTest, ConstructDestruct) {
@@ -61,7 +58,6 @@ TEST_F(ServerConnectorTest, ConfigurationAndInstanceIsAsExpected) {
 
     auto const& service_cfg_disabled = scd->get_configuration();
     EXPECT_EQ(service_cfg_disabled.get_interface(), service_interface);
-    EXPECT_EQ(service_cfg_disabled.get_num_methods(), num_methods);
     EXPECT_EQ(service_cfg_disabled.get_num_events(), num_events);
 
     EXPECT_EQ(scd->get_service_instance(), service_instance);
@@ -71,7 +67,6 @@ TEST_F(ServerConnectorTest, ConfigurationAndInstanceIsAsExpected) {
     auto const validate_configuration = [this](auto const& sce) {
         auto const& service_cfg_enabled = sce.get_configuration();
         EXPECT_EQ(service_cfg_enabled.get_interface(), service_interface);
-        EXPECT_EQ(service_cfg_enabled.get_num_methods(), num_methods);
         EXPECT_EQ(service_cfg_enabled.get_num_events(), num_events);
     };
 
@@ -125,15 +120,9 @@ TEST_F(ServerConnectorTest, ConstructDestructNoCallbacksReturnsCallbackMissing) 
 }
 
 TEST_F(ServerConnectorTest, WhenCallbackMissingCreationReturnsCallbackMissing) {
-    std::array<Disabled_server_connector::Callbacks, 4> server_callbacks_array = {
-        Disabled_server_connector::Callbacks{nullptr, esccb.as_function(), eruc.as_function(),
-                                             mpacb.as_function()},
-        Disabled_server_connector::Callbacks{mccb.as_function(), nullptr, eruc.as_function(),
-                                             mpacb.as_function()},
-        Disabled_server_connector::Callbacks{mccb.as_function(), esccb.as_function(), nullptr,
-                                             mpacb.as_function()},
-        Disabled_server_connector::Callbacks{mccb.as_function(), esccb.as_function(),
-                                             eruc.as_function(), nullptr},
+    std::array<Disabled_server_connector::Callbacks, 2> server_callbacks_array = {
+        Disabled_server_connector::Callbacks{nullptr, eruc.as_function()},
+        Disabled_server_connector::Callbacks{esccb.as_function(), nullptr},
     };
 
     for (auto& server_callbacks : server_callbacks_array) {
@@ -221,40 +210,6 @@ TEST_F(ServerConnectorDeathTest,
         EXPECT_CALL(callbacks, on_event_update_request(_, _)).WillOnce(self_destruct);
 
         client0.request_event_update(event_id);
-    };
-    EXPECT_DEATH(el_failure(), expected_message);
-}
-
-TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallResultsInLoggingAndTermination) {
-    auto const el_failure = [this]() {
-        auto const self_destruct = [this](Enabled_server_connector& /*server*/,
-                                          Method_id /*method_id*/, Payload const& /*payload*/,
-                                          Method_call_reply_data_opt /*reply*/) {
-            server.reset();
-            return nullptr;
-        };
-
-        EXPECT_CALL(callbacks, on_method_call(_, _, _, _)).WillOnce(self_destruct);
-        client0.call_method_fire_and_forget(method_id, empty_payload());
-    };
-    EXPECT_DEATH(el_failure(), expected_message);
-}
-
-TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallReplyResultsInLoggingAndTermination) {
-    auto const el_failure = [this]() {
-        auto const empty_reply = [](Enabled_server_connector& /*server*/, Method_id /*method_id*/,
-                                    Payload const& /*payload*/, Method_call_reply_data_opt reply) {
-            reply->reply(Method_result{Application_return{}});
-            return nullptr;
-        };
-
-        EXPECT_CALL(callbacks, on_method_call(_, _, _, _)).WillOnce(empty_reply);
-
-        Method_reply_callback reset_server = [this](Method_result const& /*mr*/) {
-            server.reset();
-        };
-
-        client0.call_method(method_id, empty_payload(), std::move(reset_server));
     };
     EXPECT_DEATH(el_failure(), expected_message);
 }

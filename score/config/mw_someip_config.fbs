@@ -31,9 +31,6 @@ table ServiceType {
     /// All events published by this service type.
     events: [Event];
 
-    /// All methods published by this service type.
-    methods: [Method];
-
     /// Instances of this service hosted on this machine that shall be offered to the network.
     local_service_instances: [ServiceInstance];
 
@@ -80,23 +77,6 @@ table Event {
     /// Must match the eventgroups declared in the vsomeip JSON config for correct
     /// SubscribeEventgroup handling. If empty, the event_id is used as a fallback group.
     eventgroup_ids: [uint16];
-}
-
-/// Describes a single method within a service.
-table Method {
-    /// 16-bit identifier for this method within the service.
-    /// Corresponds to the Method ID field in the SOME/IP specification.
-    method_id: uint16 (key);
-
-    /// Name of the method. Must exactly match the field name in the score::mw::com
-    /// service interface definition to correlate SOME/IP method IDs with IPC methods.
-    method_name: string (required);
-
-    /// Serialization configuration for the request (call) of this method.
-    request_serialization_config: SerializationConfig;
-
-    /// Serialization configuration for the response (return) of this method.
-    response_serialization_config: SerializationConfig;
 }
 
 root_type Root;

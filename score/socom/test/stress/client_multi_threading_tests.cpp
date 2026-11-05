@@ -36,7 +36,6 @@ class ClientMultiThreadingTest : public SingleConnectionTest {
     Server_data server{connector_factory};
     Client_data client{connector_factory};
     std::size_t const minimum_num_event_updates = 100;
-    std::size_t const min_method_calls = 100;
 };
 
 TEST_F(ClientMultiThreadingTest, SubscribeEventIsCalledByTwoThreadsWithoutRaceConditions) {
@@ -81,17 +80,6 @@ TEST_F(ClientMultiThreadingTest, RequestEventUpdateIsCalledByTwoThreadsWithoutRa
     // Make sure that server.expect_update_event_request(event_id) is always fulfilled. When running
     // with valgrind it happens very rarely that the client is able to subscribe.
     client.request_event_update(event_id);
-}
-
-TEST_F(ClientMultiThreadingTest, CallMethodIsCalledByTwoThreadsWithoutRaceConditions) {
-    auto const method_called =
-        server.expect_method_calls(min_method_calls, method_id, empty_payload());
-
-    auto const call_method = [this]() {
-        (void)client.call_method_fire_and_forget_and_return_invocation(method_id, empty_payload());
-    };
-
-    multi_threaded_test_template({call_method, call_method}, is_ready(method_called));
 }
 
 TEST_F(ClientMultiThreadingTest, GetPeerCredentialsIsCalledByTwoThreadsWithoutRaceConditions) {

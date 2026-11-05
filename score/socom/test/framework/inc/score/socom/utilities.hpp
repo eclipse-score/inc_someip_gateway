@@ -211,8 +211,6 @@ std::ostream& operator<<(std::ostream& out, std::function<RET(ARGS...)> const& /
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, Method_result const& /*unused*/);
-
 std::ostream& operator<<(std::ostream& out, Service_interface_definition const& /*unused*/);
 
 std::ostream& operator<<(std::ostream& out, Server_service_interface_definition const& conf);

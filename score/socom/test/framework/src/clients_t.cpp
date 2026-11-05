@@ -21,7 +21,6 @@
 #include "gmock/gmock.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/method.hpp"
 #include "score/socom/utilities.hpp"
 #include "score/socom/vector_payload.hpp"
 
@@ -30,7 +29,6 @@ using ::testing::AnyNumber;
 using ::testing::Assign;
 using ::testing::ByMove;
 using ::testing::Return;
-using ::testing::Truly;
 
 namespace score::socom {
 namespace {
@@ -92,9 +90,9 @@ Client_data::Client_data(Connector_factory& factory,
     : m_connector{factory.create_and_connect(configuration, instance, m_callbacks, credentials)} {}
 
 Client_data::~Client_data() {
-    wait_for_atomics(m_event_callback_called, m_event_request_callback_called,
-                     m_method_callback_called, m_available, m_not_available,
-                     m_event_subscription_status_change_called, m_event_payload_allocate_called);
+    wait_for_atomics(m_event_callback_called, m_event_request_callback_called, m_available,
+                     m_not_available, m_event_subscription_status_change_called,
+                     m_event_payload_allocate_called);
 }
 
 void Client_data::subscribe_event(Event_id const& event_id, Event_mode const mode) {
@@ -119,44 +117,6 @@ std::unique_ptr<Temporary_event_subscription> Client_data::create_event_subscrip
 
 void Client_data::request_event_update(Event_id const& event_id) const {
     EXPECT_TRUE(m_connector->request_event_update(event_id));
-}
-
-score::Result<Writable_payload> Client_data::allocate_method_call_payload(Method_id method_id) {
-    return m_connector->allocate_method_call_payload(method_id);
-}
-
-void Client_data::call_method(Method_id const& method_id, Payload const& payload) {
-    auto result = m_connector->call_method(
-        method_id, clone_payload(payload),
-        Method_call_reply_data{m_method_callback.as_function(), std::nullopt});
-    ASSERT_TRUE(result);
-    m_method_invocations.emplace_back(std::move(result).value());
-}
-
-void Client_data::call_method(Method_id const& method_id, Payload const& payload,
-                              Method_reply_callback reply) {
-    call_method(method_id, payload, Method_call_reply_data{std::move(reply), std::nullopt});
-}
-
-void Client_data::call_method(Method_id const& method_id, Payload const& payload,
-                              Method_call_reply_data reply) {
-    auto result = m_connector->call_method(method_id, clone_payload(payload), std::move(reply));
-    ASSERT_TRUE(result);
-    m_method_invocations.emplace_back(std::move(result).value());
-}
-
-void Client_data::call_method_fire_and_forget(Method_id const& method_id, Payload const& payload) {
-    EXPECT_TRUE(m_method_callback_called);
-    m_method_invocations.clear();
-    auto result = m_connector->call_method(method_id, clone_payload(payload));
-    ASSERT_TRUE(result);
-    m_method_invocations.emplace_back(std::move(result).value());
-}
-
-score::Result<Method_invocation::Uptr>
-Client_data::call_method_fire_and_forget_and_return_invocation(Method_id const& method_id,
-                                                               Payload const& payload) {
-    return m_connector->call_method(method_id, clone_payload(payload));
 }
 
 std::atomic<bool> const& Client_data::expect_service_state_change(Service_state const& state) {
@@ -271,38 +231,6 @@ std::atomic<bool> const& Client_data::expect_and_request_event_update(Event_id c
     return cb_called;
 }
 
-std::atomic<bool> const& Client_data::expect_and_call_method(Method_id const& method_id,
-                                                             Payload const& payload,
-                                                             Method_result const& method_result) {
-    return expect_and_call_methods(1, method_id, payload, method_result);
-}
-
-std::atomic<bool> const& Client_data::expect_and_call_methods(size_t const& count,
-                                                              Method_id const& method_id,
-                                                              Payload const& payload,
-                                                              Method_result const& method_result) {
-    auto const check_update_count = [this, count](auto const& /*method_result*/) {
-        m_num_method_callback_called++;
-        if (count == m_num_method_callback_called) {
-            m_method_callback_called = true;
-        }
-    };
-
-    EXPECT_TRUE(m_method_callback_called);
-    m_method_invocations.clear();
-    m_method_callback_called = false;
-    m_num_method_callback_called = 0;
-    EXPECT_CALL(
-        m_method_callback,
-        Call(Truly([&method_result](auto const& result) { return result == method_result; })))
-        .Times(count)
-        .WillRepeatedly(check_update_count);
-    for (auto i = size_t{0}; i < count; i++) {
-        call_method(method_id, payload);
-    }
-    return m_method_callback_called;
-}
-
 Client_data::Vector Client_data::create_clients(Connector_factory& factory, size_t const& size) {
     return create_clients(factory, size, factory.get_configuration(), factory.get_instance());
 }
@@ -348,20 +276,6 @@ Callbacks_called_t Client_data::expect_and_request_event_update(Vector& clients,
             break;
         }
         auto const& cb_call = client->expect_and_request_event_update(event_id, payload);
-        cb_called.emplace_back(cb_call);
-    }
-    return cb_called;
-}
-
-Callbacks_called_t Client_data::expect_and_call_method(Vector& clients, Method_id const method_id,
-                                                       Payload const& payload,
-                                                       Method_result const& method_result) {
-    auto cb_called = Callbacks_called_t{};
-    for (auto& client : clients) {
-        if (nullptr == client) {
-            break;
-        }
-        auto const& cb_call = client->expect_and_call_method(method_id, payload, method_result);
         cb_called.emplace_back(cb_call);
     }
     return cb_called;

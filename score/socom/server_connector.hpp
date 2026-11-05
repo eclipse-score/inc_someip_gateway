@@ -19,7 +19,6 @@
 
 #include "score/socom/error.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/posix_credentials.hpp"
 #include "score/socom/service_interface_definition.hpp"
@@ -36,16 +35,6 @@ using Event_subscription_change_callback =
 /// \brief Function type for indicating an event update request to the service provider.
 using Event_request_update_callback =
     score::cpp::move_only_function<void(Enabled_server_connector&, Event_id)>;
-
-/// \brief Function type for processing any client side method invocation.
-using Method_call_credentials_callback = score::cpp::move_only_function<Method_invocation::Uptr(
-    Enabled_server_connector&, Method_id, Payload, Method_call_reply_data_opt,
-    Posix_credentials const&)>;
-
-/// \brief Function type for indicating a method call payload request to the service provider.
-using Method_call_payload_allocate_callback =
-    score::cpp::move_only_function<score::Result<Writable_payload>(Enabled_server_connector&,
-                                                                   Method_id)>;
 
 class Configuration_getter {
    public:
@@ -83,9 +72,6 @@ class Disabled_server_connector : public Configuration_getter {
     /// deadlock. If a deadlock situation is detected, a warning will be logged and the application
     /// terminated.
     struct Callbacks {
-        /// \brief Callback is called on any client side method invocation.
-        Method_call_credentials_callback on_method_call;
-
         /// \brief Callback is called if an event is subscribed by the first Client_connector or
         /// unsubscribed by the last Client_connector.
         Event_subscription_change_callback on_event_subscription_change;
@@ -98,9 +84,6 @@ class Disabled_server_connector : public Configuration_getter {
         ///   - update_event() is called if new data is available from the application (indicate new
         /// state to all clients).
         Event_request_update_callback on_event_update_request;
-
-        /// \brief Callback is called to allocate method call payloads.
-        Method_call_payload_allocate_callback on_method_call_payload_allocate;
     };
 
     /// \brief Makes the service available to clients.
@@ -126,8 +109,6 @@ class Disabled_server_connector : public Configuration_getter {
 /// \brief Interface for applications to use a service (server-role).
 /// \details This interface represents an enabled Server_connector, thus it is registered by the
 /// SOCom service registry and available to connected Client_connector(s).
-///
-/// If a client calls Client_connector::call_method, then the callback on_method_called() is called.
 ///
 /// If the client-aggregated need of an event changes, then callback on_event_subscription_change()
 /// is called.

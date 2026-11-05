@@ -79,44 +79,4 @@ deactivate Client_callbacks
 rnote over Client_connector
  Deadlock happens here because destructor waits for callback to finish.
 endrnote
-
-== Deadlock by on_method_reply at client ==
-
-Client_connector --> Server_connector: call_method()
-activate Client_connector
-activate Server_connector
-
-Server_connector --> Client_connector: method_reply()
-
-Client_connector --> Client_callbacks: on_method_reply()
-activate Client_callbacks
-
-Client_callbacks --> Client_connector: ~Client_connector()
-destroy Client_connector
-deactivate Client_callbacks
-deactivate Server_connector
-
-rnote over Client_connector
- Deadlock happens here because destructor waits for callback to finish.
-endrnote
-
-== Deadlock by on_method_reply at server ==
-
-Client_connector --> Server_connector: call_method()
-activate Client_connector
-activate Server_connector
-
-Server_connector --> Client_connector: method_reply()
-
-Client_connector --> Client_callbacks: on_method_reply()
-activate Client_callbacks
-
-Client_callbacks --> Server_connector: ~Server_connector()
-deactivate Client_connector
-deactivate Client_callbacks
-destroy Server_connector
-
-rnote over Client_connector
- Deadlock happens here because destructor waits for callback to finish.
-endrnote
 @enduml
