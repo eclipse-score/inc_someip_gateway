@@ -182,7 +182,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -324,7 +324,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -481,7 +481,7 @@
 <h1>Gateway IPC Binding Component Requirements<a class="headerlink" href="#gateway-ipc-binding-component-requirements" title="Link to this heading">#</a></h1>
 <p>These requirements cover the Gateway IPC Binding’s control and event data
 transport. They do not claim method-call transport, which is not implemented.</p>
-<div class="need_container docutils container" id="SNCB-636b42b8">
+<div class="need_container docutils container" id="SNCB-eed6b21e">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gib__connects_service_connectors">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -505,6 +505,7 @@ transport. They do not claim method-call transport, which is not implemented.</p
 </span></span></div>
 <div class="line"><span><div class="line">derived from: <span class="derived_from"><span><span class="needs_dead_link forbidden">feat_req__com__service_discovery</span>, <span class="needs_dead_link forbidden">feat_req__com__service_instance_names</span></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gateway_ipc_binding/index.html#comp__gateway_ipc_binding" title="comp_req__gib__connects_service_connectors">comp__gateway_ipc_binding</a></span></span></div>
+<div class="line">fulfilled by: <span class="fulfils"><span><a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#comp_arc_dyn__gib_arch__startup_and_events" title="comp_req__gib__connects_service_connectors">comp_arc_dyn__gib_arch__startup_and_events</a>, <a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#comp_arc_sta__gib_arch__static_view" title="comp_req__gib__connects_service_connectors">comp_arc_sta__gib_arch__static_view</a>, <a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#real_arc_int__gib_arch__client" title="comp_req__gib__connects_service_connectors">real_arc_int__gib_arch__client</a>, <a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#real_arc_int__gib_arch__server" title="comp_req__gib__connects_service_connectors">real_arc_int__gib_arch__server</a>, <a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#real_arc_int__gib_arch__someipd_svc" title="comp_req__gib__connects_service_connectors">real_arc_int__gib_arch__someipd_svc</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -528,7 +529,7 @@ it unavailable when the service stops being offered.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ff74d678">
+<div class="need_container docutils container" id="SNCB-d355cd5f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gib__propagates_subscriptions">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -552,6 +553,7 @@ it unavailable when the service stops being offered.</p></td>
 </span></span></div>
 <div class="line"><span><div class="line">derived from: <span class="derived_from"><span><span class="needs_dead_link forbidden">feat_req__com__producer_consumer</span></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gateway_ipc_binding/index.html#comp__gateway_ipc_binding" title="comp_req__gib__propagates_subscriptions">comp__gateway_ipc_binding</a></span></span></div>
+<div class="line">fulfilled by: <span class="fulfils"><span><a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#comp_arc_dyn__gib_arch__startup_and_events" title="comp_req__gib__propagates_subscriptions">comp_arc_dyn__gib_arch__startup_and_events</a>, <a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#comp_arc_sta__gib_arch__static_view" title="comp_req__gib__propagates_subscriptions">comp_arc_sta__gib_arch__static_view</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -574,7 +576,7 @@ be propagated to the corresponding server connector on the other peer.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-bdf07964">
+<div class="need_container docutils container" id="SNCB-15ea2299">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gib__forwards_event_payloads">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -598,6 +600,7 @@ be propagated to the corresponding server connector on the other peer.</p></td>
 </span></span></div>
 <div class="line"><span><div class="line">derived from: <span class="derived_from"><span><span class="needs_dead_link forbidden">feat_req__com__event_type</span>, <span class="needs_dead_link forbidden">feat_req__com__producer_consumer</span></span></span></div>
 <div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gateway_ipc_binding/index.html#comp__gateway_ipc_binding" title="comp_req__gib__forwards_event_payloads">comp__gateway_ipc_binding</a></span></span></div>
+<div class="line">fulfilled by: <span class="fulfils"><span><a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#comp_arc_dyn__gib_arch__startup_and_events" title="comp_req__gib__forwards_event_payloads">comp_arc_dyn__gib_arch__startup_and_events</a>, <a class="reference internal" href="../../gateway_ipc_binding/architecture/index.html#comp_arc_sta__gib_arch__static_view" title="comp_req__gib__forwards_event_payloads">comp_arc_sta__gib_arch__static_view</a></span></span></div>
 </span></div>
 </div>
 </td>
