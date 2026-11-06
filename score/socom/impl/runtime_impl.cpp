@@ -32,21 +32,6 @@ namespace score::socom {
 
 namespace {
 
-bool is_matching_instance(std::optional<Service_instance> const& filter,
-                          Service_instance const& instance) {
-    return !filter || *filter == instance;
-}
-
-template <typename Map>
-std::vector<typename Map::key_type> get_keys(Map const& map) {
-    std::vector<typename Map::key_type> keys;
-    keys.reserve(map.size());
-    for (auto const& pair : map) {
-        keys.emplace_back(pair.first);
-    }
-    return keys;
-}
-
 class Final_action_registration final : public IRegistration {
     // will be executed as a final action on destruction.
     Final_action m_final_action;
@@ -98,42 +83,6 @@ Service_record& Service_database::get_record(Service_interface_identifier const&
         it_interface->second.emplace(instance, Service_record{m_runtime_mutex}).first->second;
 
     return record;
-}
-
-Interfaces_instances Service_database::get_instances(
-    Service_interface_identifier const& interface,
-    std::optional<Service_instance> const& filter) const {
-    auto const it_interface = m_service_records.find(interface);
-    if (std::end(m_service_records) == it_interface) {
-        return {};
-    }
-    auto const& instances = it_interface->second;
-    auto const matches_filter = [&filter](Service_instances::value_type const& instance) {
-        return (instance.second.is_available() && is_matching_instance(filter, instance.first));
-    };
-
-    Service_instances filtered_instances;
-    (void)std::copy_if(std::begin(instances), std::end(instances),
-                       std::inserter(filtered_instances, std::end(filtered_instances)),
-                       matches_filter);
-    return {{interface, get_keys(filtered_instances)}};
-}
-
-Interfaces_instances Service_database::get_instances(
-    std::optional<Service_interface_identifier> const& interface,
-    std::optional<Service_instance> const& filter) const {
-    if (interface) {
-        return get_instances(*interface, filter);
-    }
-
-    Interfaces_instances result{};
-    for (auto const& interface_with_instances : m_service_records) {
-        auto& instances = result[interface_with_instances.first];
-        for (auto const& instance : interface_with_instances.second) {
-            instances.emplace_back(instance.first);
-        }
-    }
-    return result;
 }
 
 Service_record::Service_record(std::mutex& runtime_mutex) : m_runtime_mutex{runtime_mutex} {}

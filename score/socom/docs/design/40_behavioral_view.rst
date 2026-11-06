@@ -26,7 +26,6 @@ Runtime
 The runtime is a (process internal) service instance broker.
 Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
 Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service bridge registration interface.
 
 Server connector
 ----------------

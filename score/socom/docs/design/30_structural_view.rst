@@ -30,7 +30,7 @@ Rationale Behind Architecture Decomposition
 
 SOCom separates connection setup and service matching from steady-state message transport:
 
-- **Central matching vs direct data path** (``Runtime`` vs connectors): ``Runtime`` handles service registration, interface and version compatibility checks (``Service_interface_definition``), and bridge callbacks during setup; once connected, ``Client_connector`` and ``Enabled_server_connector`` invoke each other's endpoints directly without central broker contention on data-path calls.
+- **Central matching vs direct data path** (``Runtime`` vs connectors): ``Runtime`` handles service registration and interface and version compatibility checks (``Service_interface_definition``) during setup; once connected, ``Client_connector`` and ``Enabled_server_connector`` invoke each other's endpoints directly without central broker contention on data-path calls.
 - **Compile-time provider state** (``Disabled_server_connector`` / ``Enabled_server_connector``): Encoding disabled and enabled server states as distinct move-only C++ types prevents a provider from allocating or publishing events while its service is not offered.
 - **Zero-copy buffer ownership** (``Payload`` / ``Writable_payload``): Separating buffer lifetime (release callback and optional shared-memory ``slot_handle``) from connector routing lets bridges such as ``gateway_ipc_binding`` pass LoLa shared-memory sample slots across connectors without copying.
 
@@ -76,7 +76,7 @@ It must outlive all created Client_connectors and Server_connectors.
    :language: cpp
    :fulfils: comp_req__socom__identity_and_version, comp_req__socom__event_delivery
 
-   In-process service registry and factory interface (``score::socom::Runtime``) for creating client and server connectors and registering cross-domain service bridges.
+   In-process service registry and factory interface (``score::socom::Runtime``) for creating client and server connectors.
 
 .. real_arc_int_op:: make_client_connector
    :id: real_arc_int_op__socom_design__make_client
@@ -96,7 +96,7 @@ It must outlive all created Client_connectors and Server_connectors.
    :status: valid
    :included_by: real_arc_int__socom_design__runtime
 
-   Creates and registers a ``Disabled_server_connector`` for a provided service interface and instance, and supports registering service bridges with the runtime.
+   Creates and registers a ``Disabled_server_connector`` for a provided service interface and instance.
 
 .. _client_connector_component:
 

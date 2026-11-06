@@ -19,7 +19,6 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
-#include <vector>
 
 #include "client_connector_impl.hpp"
 #include "runtime_registration.hpp"
@@ -74,16 +73,11 @@ class Service_record {
     Result<Client_registration> register_client_connector(
         Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update);
 
-    bool is_available() const { return m_server.has_value(); }
-
    private:
     std::mutex& m_runtime_mutex;
     Server m_server;
     Client m_client;
 };
-
-using Instances = std::vector<Service_instance>;
-using Interfaces_instances = std::unordered_map<Service_interface_identifier, Instances>;
 
 class Service_database {
    public:
@@ -91,12 +85,6 @@ class Service_database {
 
     Service_record& get_record(Service_interface_identifier const& interface,
                                Service_instance const& instance);
-
-    Interfaces_instances get_instances(Service_interface_identifier const& interface,
-                                       std::optional<Service_instance> const& filter) const;
-
-    Interfaces_instances get_instances(std::optional<Service_interface_identifier> const& interface,
-                                       std::optional<Service_instance> const& filter) const;
 
    private:
     struct Minor_version_ignoring_key_equal {

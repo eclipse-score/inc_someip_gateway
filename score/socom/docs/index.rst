@@ -25,7 +25,7 @@ service-oriented runtime and connector abstraction for SOME/IP communication in 
 framework. It decouples service consumers and providers from concrete SOME/IP network stack and
 IPC bridge implementations through four primary abstractions:
 
-- ``Runtime``: In-process service instance registry, connector factory, and service bridge registration point.
+- ``Runtime``: In-process service instance registry and connector factory.
 - ``Client_connector``: Consumer-side endpoint for service availability notifications, event subscriptions, and method invocations.
 - ``Disabled_server_connector`` / ``Enabled_server_connector``: Provider-side state-typed endpoints for offering services, allocating and publishing event updates, and handling method calls.
 - ``Payload`` / ``Writable_payload``: Move-only buffer handles managing a contiguous byte span, an RAII release callback, and an optional shared-memory slot handle (used in the SOME/IP Gateway to hold the 16-byte SOME/IP header followed contiguously by payload bytes for zero-copy transport).
