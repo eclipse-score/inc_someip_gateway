@@ -498,8 +498,7 @@
 <h2><span class="section-number">2.1. </span>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h2>
 <p>The runtime is a (process internal) service instance broker.
 Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
-Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service bridge registration interface.</p>
+Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.</p>
 </section>
 <section id="server-connector">
 <h2><span class="section-number">2.2. </span>Server connector<a class="headerlink" href="#server-connector" title="Link to this heading">#</a></h2>
@@ -543,7 +542,7 @@ On the subscription, SOCom informs the server using the request for events.
 If no client is subscribed to an event, the server will not send any event updates.</p>
 <p>After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
 SOCom keeps track of subscription states and related clients.</p>
-<div class="need_container docutils container" id="SNCB-250a45be">
+<div class="need_container docutils container" id="SNCB-9dd2a791">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__event_flow">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -622,76 +621,6 @@ Consequently, update_event() satisfies the event update request implicitly.</p>
 </figcaption>
 </figure>
 </section>
-<section id="service-gateway-require-service">
-<h3><span class="section-number">2.3.4. </span>Service Gateway - require service<a class="headerlink" href="#service-gateway-require-service" title="Link to this heading">#</a></h3>
-<p>The creation of client connectors is forwarded to bridges as request_service() calls.
-Service bridges look up the required service instance within their domain.
-If available, they connect to the remote counterpart and locally create a proxy server connector (forwarding all communication).</p>
-<div class="need_container docutils container" id="SNCB-39dabcd2">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__discovery">
-<tbody>
-<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">SOCom Service Discovery and Bridging</span></span></span></div>
-</div>
-</td>
-<td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
-</div>
-</td>
-<td class="head_right" colspan="2"><div class="needs_head_right line-block">
-<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
-</div>
-</td>
-</tr>
-<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
-</span></span></div>
-<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../index.html#comp__socom" title="comp_arc_dyn__socom_design__discovery">comp__socom</a></span></span></div>
-<div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__identity_and_version" title="comp_arc_dyn__socom_design__discovery">comp_req__socom__identity_and_version</a></span></span></div>
-</span></div>
-</div>
-</td>
-<td class="meta" colspan="3"></td>
-</tr>
-<tr class="content row-odd"><td class="content" colspan="6"><figure class="align-center" id="id5">
-<p class="plantuml">
-<object data="../../_images/plantuml-5db3098dc90d28a08e15548db5f6ca95746b9093.svg" type="image/svg+xml" style="width:1404px;height:908px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 2.5 </span><span class="caption-text">Interaction diagram: Service Gateway - require service</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-</td>
-</tr>
-<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp_arc_dyn__socom_design__discovery" title="comp_arc_dyn__socom_design__discovery">comp_arc_dyn__socom_design__discovery</a></span></span></div>
-</div>
-</td>
-<td class="footer" colspan="2"><div class="needs_footer line-block">
-<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component Sequence Diagram</span></span></span></div>
-</div>
-</td>
-<td class="footer_right" colspan="2"></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</section>
-<section id="service-gateway-provide-service">
-<h3><span class="section-number">2.3.5. </span>Service Gateway - provide service<a class="headerlink" href="#service-gateway-provide-service" title="Link to this heading">#</a></h3>
-<p>The creation of server connectors is found by service bridges using the client connector Service_state_change_callback.
-Service bridges provide this information within their domain.
-If any domain partner requests the service instance, the service bridge forwards all communication using this proxy client connector.</p>
-<figure class="align-center" id="id6">
-<p class="plantuml">
-<object data="../../_images/plantuml-1a5cb71e34a6ad93feb3a7f0c55be364961a716e.svg" type="image/svg+xml" style="width:1347px;height:968px;background:#FFFFFF;"></object></p>
-<figcaption>
-<p><span class="caption-number">Fig. 2.6 </span><span class="caption-text">Interaction diagram: Service Gateway - provide service</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-</section>
 </section>
 <section id="deadlock-detection">
 <h2><span class="section-number">2.4. </span>Deadlock detection<a class="headerlink" href="#deadlock-detection" title="Link to this heading">#</a></h2>
@@ -706,11 +635,11 @@ id is still present, issuing a warning log and terminating the application.</p>
 <p>When a running callback destroys the calling Client_connector a deadlock will happen, which will cause the application to be terminated.</p>
 <p>The deadlock is caused because the Client_connector destructor waits for the callback to return.
 The callback on the other hand waits for the destructor to return.</p>
-<figure class="align-center" id="id7">
+<figure class="align-center" id="id5">
 <p class="plantuml">
 <object data="../../_images/plantuml-cfd79a91bcf14577534891fbbe067b6db022ae4b.svg" type="image/svg+xml" style="width:568px;height:1131px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2.7 </span><span class="caption-text">Interaction diagram: Client_connector deadlocks</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2.5 </span><span class="caption-text">Interaction diagram: Client_connector deadlocks</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
@@ -719,11 +648,11 @@ The callback on the other hand waits for the destructor to return.</p>
 <p>When a running callback destroys the calling Server_connector a deadlock will happen, which will cause the application to be terminated.</p>
 <p>The deadlock is caused because the Server_connector destructor waits for the callback to return.
 The callback on the other hand waits for the destructor to return.</p>
-<figure class="align-center" id="id8">
+<figure class="align-center" id="id6">
 <p class="plantuml">
 <object data="../../_images/plantuml-aa84fcfc34d13b32009a4a1155a2adb128dbf400.svg" type="image/svg+xml" style="width:567px;height:582px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2.8 </span><span class="caption-text">Interaction diagram: Server_connector deadlocks</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2.6 </span><span class="caption-text">Interaction diagram: Server_connector deadlocks</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
@@ -782,8 +711,6 @@ The callback on the other hand waits for the destructor to return.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3.1. Method Communication</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.3.2. Event Communication</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.3.3. Field Notification Communication</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-require-service">2.3.4. Service Gateway - require service</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service-gateway-provide-service">2.3.5. Service Gateway - provide service</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlock-detection">2.4. Deadlock detection</a></li>
