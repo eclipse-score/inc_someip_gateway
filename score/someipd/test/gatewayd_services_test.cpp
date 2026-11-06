@@ -169,7 +169,7 @@ TEST_F(GatewaydServicesTest, AddsNothingWhenANetworkServiceFails) {
     GatewaydServices services{routing(), *runtime_};
     auto const config = gateway_config(
         {{"created_first", 0x1041U, true, 1U}, {"already_provided", 0x1042U, false, 1U}});
-    socom::Method_call_credentials_callback_mock method_call;
+    socom::Method_call_callback_mock method_call;
     socom::Event_subscription_change_callback_mock event_subscription_change;
     socom::Event_request_update_callback_mock event_update_request;
     socom::Method_call_payload_allocate_callback_mock method_payload_allocate;

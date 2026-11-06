@@ -122,8 +122,4 @@ bool operator==(Disabled_server_connector const& /*lhs*/,
     return false;
 }
 
-bool operator==(Posix_credentials const& lhs, Posix_credentials const& rhs) {
-    return (lhs.uid == rhs.uid) && (lhs.gid == rhs.gid);
-}
-
 }  // namespace score::socom

@@ -17,7 +17,6 @@
 #include <memory>
 
 #include "score/socom/client_connector.hpp"
-#include "score/socom/posix_credentials.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 
@@ -61,27 +60,10 @@ class Runtime {
     /// \return A pointer to a Client_connector instance in case of successful operation, otherwise
     /// an error.
     /// \note Construction_error::callback_missing is returned if any of the callbacks is not set.
-    /// \note This method sets the values returned from getuid() and getpid() (unistd.h) as
-    /// credentials of the returned Client_connector.
     [[nodiscard]]
     virtual Result<Client_connector::Uptr> make_client_connector(
         Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks) noexcept = 0;
-
-    /// \brief Creates a new client connector.
-    /// \details This method behaves the same as the make_client_connector() above.
-    /// Additionally, custom posix credentials can be passed.
-    /// \param configuration Service interface configuration.
-    /// \param instance Service instance.
-    /// \param callbacks User callbacks to be called based on the internal states.
-    /// \param credentials Posix credentials to be set for the client connector.
-    /// \return A pointer to a Client_connector instance in case of successful operation, otherwise
-    /// an error.
-    /// \note Construction_error::callback_missing is returned if any of the callbacks is not set.
-    [[nodiscard]]
-    virtual Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_definition configuration, Service_instance instance,
-        Client_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept = 0;
 
     /// \brief Creates a new server connector.
     /// \details Returns a new instance of Disabled_server_connector registered as a service
@@ -99,27 +81,10 @@ class Runtime {
     /// \param callbacks User callbacks to be called based on the internal states.
     /// \return A pointer to a server connector instance in case of successful operation, otherwise
     /// an error.
-    /// \note This method sets the values returned from getuid() and getpid() (unistd.h) as
-    /// credentials of the returned Disabled_server_connector.
     [[nodiscard]]
     virtual Result<Disabled_server_connector::Uptr> make_server_connector(
         Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks) noexcept = 0;
-
-    /// \brief Creates a new server connector.
-    /// \details This method behaves the same as the make_server_connector() above.
-    /// Additionally, custom posix credentials can be passed.
-    /// \param configuration Service interface configuration.
-    /// \param instance Service instance.
-    /// \param callbacks User callbacks to be called based on the internal states.
-    /// \param credentials Posix credentials to be set for the server connector.
-    /// \return A pointer to a server connector instance in case of successful operation, otherwise
-    /// an error.
-    [[nodiscard]]
-    virtual Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_definition configuration, Service_instance instance,
-        Disabled_server_connector::Callbacks callbacks,
-        Posix_credentials const& credentials) noexcept = 0;
 };
 
 /// \brief Function to instantiate a Runtime object.

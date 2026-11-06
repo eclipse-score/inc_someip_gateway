@@ -223,8 +223,6 @@ std::ostream& operator<<(std::ostream& out, Construction_error const& error);
 
 bool operator==(Disabled_server_connector const& /*lhs*/, Disabled_server_connector const& /*rhs*/);
 
-bool operator==(Posix_credentials const& lhs, Posix_credentials const& rhs);
-
 }  // namespace score::socom
 
 #endif

@@ -20,7 +20,6 @@
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/posix_credentials.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/socom_mocks.hpp"
 
@@ -40,7 +39,6 @@ struct Server_data {
     std::atomic<bool> m_method_payload_allocate_called{true};
     std::atomic<uint32_t> m_num_method_calls{0};
     Server_connector_callbacks_mock m_callbacks;
-    Server_connector_credentials_callbacks_mock m_credential_callbacks;
     Enabled_server_connector::Uptr m_connector;
 
    public:
@@ -65,16 +63,6 @@ struct Server_data {
                 Server_service_interface_definition const& configuration,
                 Service_instance const& instance);
 
-    /// \brief Create a new instance with the configuration stored in factory and POSIX credentials
-    ///
-    /// \param[in] factory factory to create server connector with
-    /// \param[in] configuration use this instead of the one stored in factory
-    /// \param[in] instance use this instead of the one stored in factory
-    /// \param[in] credentials use POSIX credentials
-    Server_data(Connector_factory& factory,
-                Server_service_interface_definition const& configuration,
-                Service_instance const& instance, Posix_credentials const& credentials);
-
     Server_data(Server_data const&) = delete;
     Server_data(Server_data&&) = delete;
 
@@ -88,11 +76,6 @@ struct Server_data {
     ///
     /// \return callback mocks
     Server_connector_callbacks_mock& get_callbacks();
-
-    /// \brief Return credentials callback mocks object
-    ///
-    /// \return callback mocks
-    Server_connector_credentials_callbacks_mock& get_credentials_callbacks();
 
     /// \brief Return server connector
     ///

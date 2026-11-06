@@ -118,19 +118,9 @@ class Runtime_impl final : public Runtime {
         Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks) noexcept override;
 
-    Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_definition configuration, Service_instance instance,
-        Client_connector::Callbacks callbacks,
-        Posix_credentials const& credentials) noexcept override;
-
     Result<Disabled_server_connector::Uptr> make_server_connector(
         Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks) noexcept override;
-
-    Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_definition configuration, Service_instance instance,
-        Disabled_server_connector::Callbacks callbacks,
-        Posix_credentials const& credentials) noexcept override;
 
     Result<Registration> register_connector(Service_interface_definition const& configuration,
                                             Service_instance const& instance,

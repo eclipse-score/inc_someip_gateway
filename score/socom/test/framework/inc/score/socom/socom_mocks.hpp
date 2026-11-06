@@ -42,21 +42,8 @@ struct Server_connector_callbacks_naggy_mock {
                 (Enabled_server_connector&, Method_id));
 };
 
-struct Server_connector_credentials_callbacks_naggy_mock {
-    MOCK_METHOD(Method_invocation::Uptr, on_method_call,
-                (Enabled_server_connector&, Method_id, Payload, Method_call_reply_data_opt,
-                 Posix_credentials const&));
-    MOCK_METHOD(void, on_event_subscription_change,
-                (Enabled_server_connector&, Event_id, Event_state));
-    MOCK_METHOD(void, on_event_update_request, (Enabled_server_connector&, Event_id));
-    MOCK_METHOD(score::Result<Writable_payload>, on_method_call_payload_allocate,
-                (Enabled_server_connector&, Method_id));
-};
-
 using Server_connector_callbacks_mock =
     ::testing::StrictMock<Server_connector_callbacks_naggy_mock>;
-using Server_connector_credentials_callbacks_mock =
-    ::testing::StrictMock<Server_connector_credentials_callbacks_naggy_mock>;
 using Client_connector_callbacks_mock =
     ::testing::StrictMock<Client_connector_callbacks_naggy_mock>;
 
@@ -64,12 +51,6 @@ using Client_connector_callbacks_mock =
 /// \param[in] mock Mock object to be wrapped in a server callback object
 /// \return server callback object which forwards calls to the given mock object
 Disabled_server_connector::Callbacks create_server_callbacks(Server_connector_callbacks_mock& mock);
-
-/// \brief Creates server callbacks, which will call mock
-/// \param[in] mock Mock object to be wrapped in a server callback object
-/// \return server callback object which forwards calls to the given mock object
-Disabled_server_connector::Callbacks create_server_callbacks(
-    Server_connector_credentials_callbacks_mock& mock);
 
 /// \brief Creates client callbacks, which will call mock
 /// \param[in] mock Mock object to be wrapped in a client callback object

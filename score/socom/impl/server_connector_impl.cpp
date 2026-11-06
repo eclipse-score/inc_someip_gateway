@@ -35,7 +35,7 @@ Client_connection::Client_connection(Impl& impl, Client_connector_endpoint clien
 
 Impl::Impl(Runtime_impl& runtime, Server_service_interface_definition configuration,
            Service_instance instance, Disabled_server_connector::Callbacks callbacks,
-           Final_action final_action, Posix_credentials const& credentials)
+           Final_action final_action)
     : m_runtime{runtime},
       m_configuration{std::move(configuration)},
       m_instance{instance},
@@ -43,8 +43,7 @@ Impl::Impl(Runtime_impl& runtime, Server_service_interface_definition configurat
       m_subscriber(m_configuration.get_num_events()),
       m_update_requester(m_configuration.get_num_events()),
       m_event_infos(m_configuration.get_num_events()),
-      m_final_action{std::move(final_action)},
-      m_credentials{credentials} {
+      m_final_action{std::move(final_action)} {
     SCORE_LANGUAGE_FUTURECPP_ASSERT(m_subscriber.size() == m_configuration.get_num_events());
     SCORE_LANGUAGE_FUTURECPP_ASSERT(m_update_requester.size() == m_configuration.get_num_events());
     SCORE_LANGUAGE_FUTURECPP_ASSERT(m_event_infos.size() == m_configuration.get_num_events());
@@ -258,9 +257,8 @@ message::Call_method::Return_type Impl::receive(Client_connection const& /*clien
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
-    return message::Call_method::Return_type(
-        m_callbacks.on_method_call(*this, message.id, std::move(message.payload),
-                                   std::move(message.reply_data), message.credentials));
+    return message::Call_method::Return_type(m_callbacks.on_method_call(
+        *this, message.id, std::move(message.payload), std::move(message.reply_data)));
 }
 
 message::Allocate_method_call_payload::Return_type Impl::receive(
@@ -275,11 +273,6 @@ message::Allocate_method_call_payload::Return_type Impl::receive(
     Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
 #endif
     return m_callbacks.on_method_call_payload_allocate(*this, message.id);
-}
-
-message::Posix_credentials::Return_type Impl::receive(
-    Client_connection const& /*client*/, message::Posix_credentials const& /* message */) {
-    return message::Posix_credentials::Return_type(m_credentials);
 }
 
 message::Subscribe_event::Return_type Impl::receive(Client_connection const& client,

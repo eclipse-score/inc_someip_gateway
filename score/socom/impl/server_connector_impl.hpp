@@ -80,7 +80,7 @@ class Impl final : virtual public Disabled_server_connector,
 
     Impl(Runtime_impl& runtime, Server_service_interface_definition configuration,
          Service_instance instance, Disabled_server_connector::Callbacks callbacks,
-         Final_action final_action, Posix_credentials const& credentials);
+         Final_action final_action);
     Impl(Impl const&) = delete;
     Impl(Impl&&) = delete;
     Impl& operator=(Impl const&) = delete;
@@ -105,8 +105,6 @@ class Impl final : virtual public Disabled_server_connector,
     // Connection endpoint
     message::Call_method::Return_type receive(Client_connection const& client,
                                               message::Call_method message);
-    message::Posix_credentials::Return_type receive(Client_connection const& client,
-                                                    message::Posix_credentials const& message);
     message::Subscribe_event::Return_type receive(Client_connection const& client,
                                                   message::Subscribe_event message);
     message::Unsubscribe_event::Return_type receive(Client_connection const& client,
@@ -161,7 +159,6 @@ class Impl final : virtual public Disabled_server_connector,
     std::optional<Client_connection> m_client;               // Protected by m_mutex
     Registration m_registration;
     Final_action m_final_action;
-    Posix_credentials m_credentials;
 };
 
 template <typename MessageType>
