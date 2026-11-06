@@ -24,38 +24,21 @@ build --tool_java_language_version=17
 build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 
-# Target platform configs. Platforms come from score_bazel_platforms.
-# Usage: bazel build //... --config=<x86_64-linux|aarch64-linux|x86_64-qnx|aarch64-qnx>
+# Import central S-CORE toolchain configuration
+import %workspace%/score.bazelrc/score_toolchain.bazelrc
 
+# Repository-specific ext4 toolchain
 common --extra_toolchains=@score_linux_x86_64_ext4_toolchain//:ext4-x86_64-linux
-common:_toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux
-common:_toolchain_common --extra_toolchains=@score_gcc_x86_64_toolchain//:all
 
+# QNX settings
+common:score-qnx-x86_64 --repo_env=TARGET_ARCH=x86_64
+common:score-qnx-x86_64 --@rules_python//python/config_settings:precompile=force_disabled
+common:score-qnx-aarch64 --repo_env=TARGET_ARCH=aarch64
+common:score-qnx-aarch64 --@rules_python//python/config_settings:precompile=force_disabled
 
-common:x86_64-linux --config=_toolchain_common
-common:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux
-common:x86_64-linux --extra_toolchains=@score_gcc_x86_64_toolchain//:all
-common:x86_64-linux --repo_env=TARGET_ARCH=x86_64
-
-common:aarch64-linux --config=_toolchain_common
-common:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
-common:aarch64-linux --extra_toolchains=@score_gcc_aarch64_toolchain//:all
-common:aarch64-linux --repo_env=TARGET_ARCH=aarch64
-
-common:x86_64-qnx --config=_toolchain_common
-common:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
-common:x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:all
-common:x86_64-qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:all
-common:x86_64-qnx --repo_env=TARGET_ARCH=x86_64
-# precompile must be force_disabled: "disabled" still causes a NoneType crash via QNX TARGET toolchain lookup.
-common:x86_64-qnx --@rules_python//python/config_settings:precompile=force_disabled
-
-common:aarch64-qnx --config=_toolchain_common
-common:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
-common:aarch64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:all
-common:aarch64-qnx --extra_toolchains=@score_qnx_aarch64_ifs_toolchain//:all
-common:aarch64-qnx --repo_env=TARGET_ARCH=aarch64
-common:aarch64-qnx --@rules_python//python/config_settings:precompile=force_disabled
+# Linux settings
+common:score-linux-x86_64 --repo_env=TARGET_ARCH=x86_64
+common:score-linux-aarch64 --repo_env=TARGET_ARCH=aarch64
 
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 
@@ -68,10 +51,18 @@ common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_he
 test:qemu-integration --strategy_regexp='^Testing .*(integration_test|tc8_conformance).*=linux-sandbox'
 test:qemu-integration --//quality/integration_testing/flags:linux_backend=qemu
 test:qemu-integration --run_under=@score_itf//scripts:run_under_qemu
-test:x86_64-qnx --strategy_regexp='^Testing .*(integration_test|tc8_conformance).*=linux-sandbox'
-test:x86_64-qnx --run_under=@score_itf//scripts:run_under_qemu
-test:aarch64-qnx --strategy_regexp='^Testing .*(integration_test|tc8_conformance).*=linux-sandbox'
-test:aarch64-qnx --run_under=@score_itf//scripts:run_under_qemu
+test:score-qnx-x86_64 --strategy_regexp='^Testing .*(integration_test|tc8_conformance).*=linux-sandbox'
+test:score-qnx-x86_64 --run_under=@score_itf//scripts:run_under_qemu
+test:score-qnx-aarch64 --strategy_regexp='^Testing .*(integration_test|tc8_conformance).*=linux-sandbox'
+test:score-qnx-aarch64 --run_under=@score_itf//scripts:run_under_qemu
+
+# -------------------------------------------------------------------------------
+# Backward-compatibility aliases for previous config names
+# -------------------------------------------------------------------------------
+common:x86_64-linux --config=score-linux-x86_64
+common:aarch64-linux --config=score-linux-aarch64
+common:x86_64-qnx --config=score-qnx-x86_64
+common:aarch64-qnx --config=score-qnx-aarch64
 
 
 # ============================================================================
