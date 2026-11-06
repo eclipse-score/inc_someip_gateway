@@ -26,7 +26,7 @@ Runtime
 The runtime is a (process internal) service instance broker.
 Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
 Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service instance find interface.
+Additionally, it provides a service bridge registration interface.
 
 Server connector
 ----------------
@@ -45,10 +45,13 @@ The server connector API provides the following features:
 - event mode getter (event with/without initial update)
 - update event
 - update requested event
-- acknowledge event subscription
+- allocate event payload
+
+Dynamic Architecture
+--------------------
 
 Method Communication
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 Methods calls are routed 1:1 from client to server application.
 If a method reply is requested, the calling client is served with the related reply.
@@ -59,7 +62,7 @@ Independent method calls share no state.
    :caption: Interaction diagram: Method communication
 
 Event Communication
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The client subscribes to an event.
 On the subscription, SOCom informs the server using the request for events.
@@ -68,12 +71,25 @@ If no client is subscribed to an event, the server will not send any event updat
 After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
 SOCom keeps track of subscription states and related clients.
 
-.. uml:: models/interaction_diagram_event_communication.puml
-   :align: center
-   :caption: Interaction diagram: Event communication
+.. comp_arc_dyn:: SOCom Event and Method Communication
+   :id: comp_arc_dyn__socom_design__event_flow
+   :version: 1
+   :security: NO
+   :safety: ASIL_B
+   :status: valid
+   :belongs_to: comp__socom
+   :fulfils: comp_req__socom__event_delivery
+
+   .. uml:: models/interaction_diagram_event_communication.puml
+      :align: center
+      :caption: Interaction diagram: Event communication
+
+   .. uml:: models/zero_copy_event_update.puml
+      :align: center
+      :caption: Interaction diagram: Zero-copy event update across someipd and gatewayd
 
 Field Notification Communication
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A field notification is implemented as an event with event update on subscription.
 

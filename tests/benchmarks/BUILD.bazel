@@ -11,10 +11,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@score_tooling//:defs.bzl", "score_py_pytest")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
@@ -104,7 +104,7 @@ generate_someip_config_bin(
     output = "echo_someip_config.bin",
 )
 
-py_pytest(
+score_py_pytest(
     name = "e2e_benchmarks",
     size = "large",
     srcs = [
@@ -126,12 +126,9 @@ py_pytest(
         ":perf_tests": ["@platforms//os:linux"],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    deps = [
-        "@score_someip_gateway_pip//pytest",
-    ],
 )
 
-py_pytest(
+score_py_pytest(
     name = "e2e_benchmarks_profiling",
     size = "large",
     srcs = [
@@ -153,9 +150,6 @@ py_pytest(
         ":perf_tests": ["@platforms//os:linux"],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    deps = [
-        "@score_someip_gateway_pip//pytest",
-    ],
 )
 
 validate_json_schema_test(

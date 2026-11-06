@@ -1,0 +1,51 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+@startuml component_diagram_gatewayd
+left to right direction
+
+interface "LocalServiceInstance" as i_local_svc
+interface "RemoteServiceInstance" as i_remote_svc
+
+package "gatewayd (ASIL_B)" as gatewayd <<component>> #line:red;line.bold {
+  component "gatewayd (main.cpp)" as gatewayd_main <<unit>>
+  component "LocalServiceInstance" as local_service_instance <<unit>>
+  component "RemoteServiceInstance" as remote_service_instance <<unit>>
+}
+
+component "serializer (ASIL_B)" as serializer <<component>> #line:red;line.bold
+
+package "mw::com" as mw_com <<component>> {
+  component "mw::com::GenericProxy" as proxy <<unit>>
+  component "mw::com::GenericSkeleton" as skeleton <<unit>>
+}
+
+package "socom" as socom <<component>> {
+  component "socom::Server_connector" as server_connector <<unit>>
+  component "socom::Client_connector" as client_connector <<unit>>
+}
+
+component "gateway_ipc_binding" as gateway_ipc_binding <<component>>
+
+i_local_svc -- local_service_instance
+i_remote_svc -- remote_service_instance
+gatewayd_main --> local_service_instance : creates
+gatewayd_main --> remote_service_instance : creates
+gatewayd_main --> gateway_ipc_binding : creates client
+local_service_instance --> proxy
+local_service_instance --> serializer : serializes
+local_service_instance --> server_connector
+remote_service_instance --> client_connector
+remote_service_instance --> serializer : deserializes
+remote_service_instance --> skeleton
+gateway_ipc_binding --> socom : bridges
+@enduml

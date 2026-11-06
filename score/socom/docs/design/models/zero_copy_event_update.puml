@@ -12,98 +12,49 @@
 ' *******************************************************************************
 
 @startuml Zero Copy Event Update from Network
+title Zero-copy event update across someipd and gatewayd
 
-actor network as "Network"
-
-box Network Daemon
-
-participant someip_network_impl as "SOME/IP Network implementation"
-participant socom_server_nd as "socom::Server_connector"
-participant socom_client_nd as "socom::Client_connector"
-
+actor "Network" as network
+box "someipd process"
+participant "SOME/IP Stack" as someip_stack
+participant "socom::Enabled_server_connector" as socom_srv_nd
+participant "socom::Client_connector" as socom_cli_nd
+participant "Provider_service_binding" as ipc_provider
 end box
-
-participant ipc as "Message passing IPC"
-
-box Gateway Daemon
-
-participant socom_server_gd as "socom::Server_connector"
-participant socom_client_gd as "socom::Client_connector"
-participant gateway as "Gatway logic"
-participant mwcom as "mw::com"
-
+participant "mw::com\n(LoLa SHM)" as lola_shm
+box "gatewayd process"
+participant "Consumer_service_binding" as ipc_consumer
+participant "socom::Enabled_server_connector" as socom_srv_gd
+participant "socom::Client_connector" as socom_cli_gd
+participant "RemoteServiceInstance" as remote_svc
 end box
+participant "mw::com\n(Application)" as app_mwcom
 
-note right network
-socom was design with a 1:n relationship. An event update by a Server_connector
-is distributed to multiple Client_connectors. However this does not work well
-with zero-copy.
+== Allocate shared-memory slot and write SOME/IP frame ==
+network -> someip_stack : event notification
+someip_stack -> socom_srv_nd : allocate_event_payload(event)
+socom_srv_nd -> socom_cli_nd : on_event_payload_allocate(event)
+socom_cli_nd -> ipc_provider : on_event_payload_allocate(event)
+ipc_provider -> lola_shm : Allocate()
+lola_shm --> ipc_provider : SampleAllocateePtr
+ipc_provider --> socom_cli_nd : Writable_payload
+socom_cli_nd --> socom_srv_nd : Writable_payload
+socom_srv_nd --> someip_stack : Writable_payload
+someip_stack -> someip_stack : write SOME/IP header & payload
 
-For zero-copy there needs to be a 1:1 relationship between Server_connector
-and Client_connector. The assumption is that Message passing / mw::com
-will do the multiplexing if needed.
-end note
+== Publish event over LoLa shared memory ==
+someip_stack -> socom_srv_nd : update_event(event, payload)
+socom_srv_nd -> socom_cli_nd : on_event_update(event, payload)
+socom_cli_nd -> ipc_provider : on_event_update(event, payload)
+ipc_provider -> lola_shm : Send(sample)
 
-== Read event from network into IPC buffer ==
-
-network -> someip_network_impl : Receive event update notification
-
-activate someip_network_impl
-someip_network_impl -> socom_server_nd : allocate_event_update()
-activate socom_server_nd
-socom_server_nd -> socom_client_nd : allocate_payload()
-
-note right
-Call is actually callback through Client_connector and does not really invoke Client_connector code.
-Actually the Server_connector calls a callback which directly uses Message Passing to allocate the buffer.
-
-This applies to all Client_connector calls in this diagram.
-end note
-
-activate socom_client_nd
-socom_client_nd -> ipc : allocate_ipc_buffer()
-activate ipc
-return Buffer
-return Buffer
-return Buffer
-someip_network_impl -> network : Read event update into buffer
-
-== Send event update via IPC to Gateway Daemon ==
-
-someip_network_impl -> socom_server_nd : update_event(event_id, Buffer)
-activate socom_server_nd
-socom_server_nd -> socom_client_nd : update_event(event_id, Buffer)
-activate socom_client_nd
-socom_client_nd -> ipc : send_event_update(event_id, Buffer)
-activate ipc
-return
-return
-return
-deactivate someip_network_impl
-
-== Gateway Daemon allocates buffer for event update ==
-
-ipc -> socom_server_gd : receive_event_update(event_id, Buffer)
-activate socom_server_gd
-socom_server_gd -> socom_client_gd : allocate_event_payload(event_id)
-activate socom_client_gd
-socom_client_gd -> gateway : allocate()
-activate gateway
-gateway -> mwcom : allocate(event_id)
-activate mwcom
-return Buffer
-return Buffer
-return Buffer
-
-== Gateway Daemon processes event update ==
-
-socom_server_gd -> socom_client_gd : update_event(event_id, Buffer)
-activate socom_client_gd
-socom_client_gd -> gateway : update_event(event_id, Buffer)
-activate gateway
-gateway -> gateway : E2E check
-gateway -> gateway : Process event update
-
-gateway -> mwcom : send(event_id, processed Buffer)
-
+== Receive event in gatewayd and forward to application ==
+lola_shm ->> ipc_consumer : receive handler
+ipc_consumer -> lola_shm : GetNewSamples()
+lola_shm -> ipc_consumer : receiver(SamplePtr), per sample
+ipc_consumer -> socom_srv_gd : update_event(event, payload)
+socom_srv_gd -> socom_cli_gd : on_event_update(event, payload)
+socom_cli_gd -> remote_svc : on_event_update(event, payload)
+remote_svc -> app_mwcom : strip header, deserialize, Send(sample)
+note right of ipc_consumer : The payload owns the SamplePtr.\nDropping it returns the slot.
 @enduml

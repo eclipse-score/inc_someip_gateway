@@ -1,0 +1,50 @@
+' *******************************************************************************
+' Copyright (c) 2026 Contributors to the Eclipse Foundation
+'
+' See the NOTICE file(s) distributed with this work for additional
+' information regarding copyright ownership.
+'
+' This program and the accompanying materials are made available under the
+' terms of the Apache License Version 2.0 which is available at
+' https://www.apache.org/licenses/LICENSE-2.0
+'
+' SPDX-License-Identifier: Apache-2.0
+' *******************************************************************************
+
+@startuml sequence_diagram_gatewayd
+title Gateway Daemon: local and remote event forwarding
+
+participant "mw::com\n(Application)" as app
+box "gatewayd process"
+participant "LocalServiceInstance" as local_svc
+participant "RemoteServiceInstance" as remote_svc
+participant "serializer" as serializer
+end box
+participant "socom /\ngateway_ipc_binding" as ipc
+
+== Local service: Application -> gatewayd -> someipd ==
+app ->> local_svc : receive handler
+local_svc -> app : GetNewSamples()
+app -> local_svc : receiver(SamplePtr), per sample
+local_svc -> ipc : allocate_event_payload(event)
+alt a sample slot is free and serialization succeeds
+  ipc --> local_svc : Writable_payload
+  local_svc -> local_svc : write 16-byte SOME/IP header
+  local_svc -> serializer : serialize(sample, payload)
+  local_svc -> ipc : update_event(event, payload)
+else slot allocation or serialization fails
+  local_svc -> local_svc : drop sample
+end
+
+== Remote service: someipd -> gatewayd -> Application ==
+ipc -> remote_svc : on_event_update(event, payload)
+remote_svc -> remote_svc : strip 16-byte SOME/IP header
+remote_svc -> app : Allocate()
+alt a sample slot is free and deserialization succeeds
+  app --> remote_svc : SampleAllocateePtr
+  remote_svc -> serializer : deserialize(payload, sample)
+  remote_svc -> app : Send(sample)
+else slot allocation or deserialization fails
+  remote_svc -> remote_svc : drop event
+end
+@enduml

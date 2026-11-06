@@ -12,10 +12,10 @@
 # *******************************************************************************
 
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
-load("@bazel_tools_python//quality:defs.bzl", "py_pytest")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_python//python:defs.bzl", "py_library")
 load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
+load("@score_tooling//:defs.bzl", "score_py_pytest")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//quality/integration_testing:integration_testing.bzl", "integration_test")
 
@@ -33,25 +33,23 @@ py_library(
     ],
 )
 
-py_pytest(
+score_py_pytest(
     name = "test_golden_vectors",
     size = "small",
     srcs = ["test_golden_vectors.py"],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":tc8-helpers-lib",
-        "@score_someip_gateway_pip//pytest",
     ],
 )
 
-py_pytest(
+score_py_pytest(
     name = "test_helper_regressions",
     size = "small",
     srcs = ["helpers/test_helper_regressions.py"],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":tc8-helpers-lib",
-        "@score_someip_gateway_pip//pytest",
     ],
 )
 
