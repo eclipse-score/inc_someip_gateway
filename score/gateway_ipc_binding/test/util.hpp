@@ -58,10 +58,8 @@ struct Client_connector_with_callbacks {
 };
 
 struct Server_connector_with_callbacks {
-    socom::Method_call_credentials_callback_mock mock_method_call_credentials_cb;
     socom::Event_subscription_change_callback_mock mock_event_subscription_change_cb;
     socom::Event_request_update_callback_mock mock_event_request_update_cb;
-    socom::Method_call_payload_allocate_callback_mock mock_method_payload_allocate_cb;
     socom::Enabled_server_connector::Uptr connector;
 
     Server_connector_with_callbacks(socom::Runtime& runtime,

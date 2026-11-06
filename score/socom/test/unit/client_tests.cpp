@@ -15,7 +15,6 @@
 
 #include <atomic>
 #include <functional>
-#include <future>
 #include <memory>
 #include <optional>
 #include <string>
@@ -25,7 +24,6 @@
 #include "score/socom/client_connector.hpp"
 #include "score/socom/clients_t.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_t.hpp"
 #include "score/socom/service_interface_definition.hpp"
@@ -34,13 +32,8 @@
 #include "score/socom/temporary_event_subscription.hpp"
 #include "score/socom/utilities.hpp"
 
-using namespace std::literals::chrono_literals;
-
 using ::testing::_;
 using ::testing::Assign;
-using ::testing::ByMove;
-using ::testing::DoAll;
-using ::testing::Return;
 using ::testing::StaticAssertTypeEq;
 using ::testing::StrictMock;
 using ::testing::TestWithParam;
@@ -50,14 +43,6 @@ namespace score::socom {
 bool operator==(Client_connector const& /*lhs*/, Client_connector const& /*rhs*/) {
     ADD_FAILURE();
     return false;
-}
-
-Method_call_reply_data_opt get_value(std::future<Method_call_reply_data_opt> reply_future) {
-    SCOPED_TRACE("get_value");
-    EXPECT_TRUE(reply_future.valid());
-    reply_future.wait();
-    // maybe handle exceptions
-    return reply_future.get();
 }
 
 #ifdef WITH_SOCOM_DEADLOCK_DETECTION
@@ -103,20 +88,16 @@ struct Test_member_pair {
     T const server_id;
 };
 
-using Test_method_id = Test_member_pair<Method_id>;
 using Test_event_id = Test_member_pair<Event_id>;
-using Test_method_ids = std::vector<Test_method_id>;
 using Test_event_ids = std::vector<Test_event_id>;
 
 struct Test_setup {
     explicit Test_setup(Service_interface_definition service_interface_configuration,
-                        Test_method_ids test_method_ids = {}, Test_event_ids test_event_ids = {})
+                        Test_event_ids test_event_ids = {})
         : service_interface_configuration{std::move(service_interface_configuration)},
-          test_method_ids{std::move(test_method_ids)},
           test_event_ids{std::move(test_event_ids)} {}
 
     Service_interface_definition const service_interface_configuration;
-    Test_method_ids const test_method_ids;
     Test_event_ids const test_event_ids;
 };
 
@@ -127,53 +108,30 @@ std::ostream& operator<<(std::ostream& out, Test_setup const& /*ignored*/) { ret
 
 Payload const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
 
-Method_result const application_return{Application_return{}};
-
 auto const service_interface = Service_interface_identifier{
     std::string_view{"TestInterface1"}, Service_interface_identifier::Version{1U, 2U}};
 auto const service_instance = Service_instance{std::string_view{"TestInstance1"}};
 
-Server_service_interface_definition const server_configuration{
-    service_interface, to_num_of_methods(2U), to_num_of_events(3U)};
+Server_service_interface_definition const server_configuration{service_interface,
+                                                               to_num_of_events(3U)};
 
-Test_setup const full_client_configuration_setup{
-    test_values::server_configuration, {{0U, 0U}, {1U, 1U}}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
+Test_setup const full_client_configuration_setup{test_values::server_configuration,
+                                                 {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
 
 Service_interface_definition const no_client_configuration{service_interface};
 
-Test_setup const no_client_configuration_setup{
-    no_client_configuration, {{0U, 0U}, {1U, 1U}}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
-
-// method variations
-Server_service_interface_definition const method_without_event_configuration{
-    service_interface, to_num_of_methods(2U), to_num_of_events(0U)};
-
-Test_setup const method_without_event_configuration_setup{
-    method_without_event_configuration, {{0U, 0U}, {1U, 1U}}, {}};
-
-Service_interface_definition const method_subset_client_configuration{
-    service_interface, to_num_of_methods(1U), to_num_of_events(3U)};
-
-Test_setup const method_subset_client_configuration_setup{
-    method_subset_client_configuration, {{0U, 0U}}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
+Test_setup const no_client_configuration_setup{no_client_configuration,
+                                               {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
 
 // event variations
-Server_service_interface_definition const event_without_method_configuration{
-    service_interface, to_num_of_methods(0U), to_num_of_events(3U)};
+Service_interface_definition const event_subset_client_configuration{service_interface,
+                                                                     to_num_of_events(2U)};
 
-Test_setup const event_without_method_configuration_setup{
-    event_without_method_configuration, {}, {{0U, 0U}, {1U, 1U}, {2U, 2U}}};
+Test_setup const event_subset_client_configuration_setup{event_subset_client_configuration,
+                                                         {{0U, 0U}, {1U, 1U}}};
 
-Service_interface_definition const event_subset_client_configuration{
-    service_interface, to_num_of_methods(2U), to_num_of_events(2U)};
-
-Test_setup const event_subset_client_configuration_setup{
-    event_subset_client_configuration, {{0U, 0U}, {1U, 1U}}, {{0U, 0U}, {1U, 1U}}};
-
-auto const setups =
-    Values(full_client_configuration_setup, no_client_configuration_setup,
-           method_without_event_configuration_setup, method_subset_client_configuration_setup,
-           event_without_method_configuration_setup, event_subset_client_configuration_setup);
+auto const setups = Values(full_client_configuration_setup, no_client_configuration_setup,
+                           event_subset_client_configuration_setup);
 
 }  // namespace test_values
 
@@ -291,20 +249,6 @@ TEST_P(UnconnectedClientConnectorTest,
     }
 }
 
-TEST_P(UnconnectedClientConnectorTest, CallMethodReturnsServiceNotAvailable) {
-    Method_reply_callback_mock mrcb;
-    auto const no_connection_method =
-        score::MakeUnexpected(Error::runtime_error_service_not_available);
-
-    for (auto const& input : GetParam().test_method_ids) {
-        auto const result =
-            cc->call_method(input.client_id, empty_payload(),
-                            Method_call_reply_data{mrcb.as_function(), std::nullopt});
-
-        EXPECT_EQ(result, no_connection_method);
-    }
-}
-
 INSTANTIATE_TEST_SUITE_P(UnconnectedClientConnectorTestInstance, UnconnectedClientConnectorTest,
                          test_values::setups);
 
@@ -358,20 +302,6 @@ TEST_P(UnavailableServerConnectorClientConnectorTest,
     }
 }
 
-TEST_P(UnavailableServerConnectorClientConnectorTest, CallMethodReturnsServiceNotAvailable) {
-    Method_reply_callback_mock mrcb;
-    auto const no_connection_method =
-        score::MakeUnexpected(Error::runtime_error_service_not_available);
-
-    for (auto const& input : GetParam().test_method_ids) {
-        auto const result =
-            cc->call_method(input.client_id, empty_payload(),
-                            Method_call_reply_data{mrcb.as_function(), std::nullopt});
-
-        EXPECT_EQ(result, no_connection_method);
-    }
-}
-
 INSTANTIATE_TEST_SUITE_P(UnavailableServerConnectorClientConnectorTestInstance,
                          UnavailableServerConnectorClientConnectorTest, test_values::setups);
 
@@ -387,8 +317,6 @@ class ConnectedClientConnectorTest : public ::testing::TestWithParam<test_values
                                       test_values::service_instance)};
 
     Client_data& client = *client_owner;
-
-    Method_reply_callback_mock reply_mock{};
 
     Event_state const subscribed{Event_state::subscribed};
 
@@ -410,53 +338,6 @@ class ConnectedClientConnectorTest : public ::testing::TestWithParam<test_values
         wait_for_atomics(wait_unsubscribed);
     }
 };
-
-TEST_P(ConnectedClientConnectorTest, CallMethodWithoutReply) {
-    for (auto const& input : GetParam().test_method_ids) {
-        auto reply_future =
-            server.expect_and_return_method_call(input.server_id, test_values::real_payload);
-
-        client.call_method_fire_and_forget(input.client_id, test_values::real_payload);
-
-        auto reply_callback = get_value(std::move(reply_future));
-        EXPECT_EQ(reply_callback, std::nullopt);
-    }
-}
-
-TEST_P(ConnectedClientConnectorTest, CallMethodWithReply) {
-    for (auto const& input : GetParam().test_method_ids) {
-        auto reply_future =
-            server.expect_and_return_method_call(input.server_id, test_values::real_payload);
-
-        auto const& wait_reply = client.expect_and_call_method(
-            input.client_id, test_values::real_payload, test_values::application_return);
-
-        auto reply_callback = get_value(std::move(reply_future));
-        ASSERT_NE(reply_callback, std::nullopt);
-
-        reply_callback->reply(test_values::application_return);
-        wait_for_atomics(wait_reply);
-    }
-}
-
-TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
-    if (GetParam().test_method_ids.empty()) {
-        return;
-    }
-
-    auto const& input = GetParam().test_method_ids.at(0);
-
-    auto reply_callback_future =
-        server.expect_and_return_method_call(input.server_id, empty_payload());
-
-    client.call_method(input.client_id, empty_payload(), reply_mock.as_function());
-
-    auto reply_callback = get_value(std::move(reply_callback_future));
-
-    client_owner = nullptr;
-
-    reply_callback->reply(test_values::application_return);
-}
 
 TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
     for (auto const& input : GetParam().test_event_ids) {
@@ -567,7 +448,6 @@ TEST_F(ClientConnectorTest, ConfigurationAndInstanceIsAsExpected) {
     auto validate_configuration = [this](Client_connector const& cc) {
         auto const& service_cfg = cc.get_configuration();
         EXPECT_EQ(service_cfg.interface, service_interface);
-        EXPECT_EQ(service_cfg.num_methods, num_methods);
         EXPECT_EQ(service_cfg.num_events, num_events);
     };
 
@@ -621,7 +501,6 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceId) {
     auto const conf = Server_service_interface_definition{
         Service_interface_identifier{std::move(modified_interface_id),
                                      connector_factory.get_configuration().get_interface().version},
-        to_num_of_methods(connector_factory.get_num_methods()),
         to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
 
@@ -655,8 +534,7 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceMajorVersion) {
                                1),
          connector_factory.get_configuration().get_interface().version.minor}};
     auto const conf = Server_service_interface_definition{
-        modified_major_interface, to_num_of_methods(connector_factory.get_num_methods()),
-        to_num_of_events(connector_factory.get_num_events())};
+        modified_major_interface, to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
 
     {
@@ -676,8 +554,7 @@ TEST_F(ClientConnectorTest, BiggerServiceInterfaceMinorVersion) {
                                1)}};
 
     auto const conf = Server_service_interface_definition{
-        modified_minor_interface, to_num_of_methods(connector_factory.get_num_methods()),
-        to_num_of_events(connector_factory.get_num_events())};
+        modified_minor_interface, to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
 
     {
@@ -697,37 +574,10 @@ TEST_F(ClientConnectorTest, SmallerServiceInterfaceMinorVersion) {
                                1)}};
 
     auto const conf = Server_service_interface_definition{
-        modified_minor_interface, to_num_of_methods(connector_factory.get_num_methods()),
-        to_num_of_events(connector_factory.get_num_events())};
+        modified_minor_interface, to_num_of_events(connector_factory.get_num_events())};
     Server_data server{connector_factory, conf, connector_factory.get_instance()};
 
     Client_data client1{connector_factory};
-}
-
-TEST_F(ClientConnectorTest, OnStateChangeDoMethodCall) {
-    std::atomic_bool available{false};
-    std::atomic_bool method_call{false};
-
-    Client_data client0{
-        connector_factory, Client_data::might_connect,
-        [this, &available](auto const& client_connector, auto state, auto const& configuration) {
-            EXPECT_EQ(state, Service_state::available);
-            EXPECT_EQ(configuration, connector_factory.get_configuration());
-
-            auto const handle = client_connector.call_method(method_id, empty_payload(), {});
-            available = true;
-        }};
-
-    Server_connector_callbacks_mock server_callbacks;
-
-    EXPECT_CALL(server_callbacks, on_method_call(_, method_id, payload_eq(empty_payload()), _))
-        .WillOnce(DoAll(Assign(&method_call, true),
-                        Return(ByMove(std::make_unique<Method_invocation>()))));
-
-    auto server_connector = connector_factory.create_and_enable(server_callbacks);
-    wait_for_atomics(available, method_call);
-
-    client0.expect_service_state_change(Service_state::not_available);
 }
 
 TEST_F(ClientConnectorTest, OnStateChangeRequestEventUpdate) {
@@ -861,18 +711,6 @@ TEST_F(ClientConnectorDeathTest,
     EXPECT_DEATH(el_failure(), expected_message);
 }
 
-TEST_F(ClientConnectorDeathTest, ClientDeletionByOnMethodReplyResultsInLoggingAndTermination) {
-    auto const el_failure = [this]() {
-        auto reply_callback = server.expect_and_return_method_call(method_id, empty_payload());
-        auto const delete_client = [this](Method_result const& /*eid*/) { client0.reset(); };
-        ASSERT_TRUE(client0->call_method(method_id, empty_payload(),
-                                         Method_call_reply_data{delete_client, std::nullopt}));
-        ASSERT_EQ(std::future_status::ready, reply_callback.wait_for(0ms));
-        reply_callback.get()->reply(Method_result{Application_return{empty_payload()}});
-    };
-    EXPECT_DEATH(el_failure(), expected_message);
-}
-
 #endif
 
 class ClientConnectorOutOfBoundsTest : public SingleConnectionTest {
@@ -903,20 +741,6 @@ TEST_F(ClientConnectorOutOfBoundsTest, RequestEventUpdateWithOutOfBoundsIndexRet
     auto const client0 = connector_factory.create_and_connect(callbacks);
 
     EXPECT_EQ(out_of_range, (client0->request_event_update(max_event_id + 1)));
-}
-
-TEST_F(ClientConnectorOutOfBoundsTest, CallMethodWithOutOfBoundsIndexReturnsOutOfRange) {
-    auto const mr = Method_result{Application_return{}};
-
-    Server_data server{connector_factory};
-    Client_connector_callbacks_mock callbacks;
-    Method_reply_callback_mock mrcb;
-    auto const client0 = connector_factory.create_and_connect(callbacks);
-
-    auto const out_of_range_method = score::MakeUnexpected(Error::logic_error_id_out_of_range);
-    EXPECT_EQ(out_of_range_method,
-              (client0->call_method(max_method_id + 1, empty_payload(),
-                                    Method_call_reply_data{mrcb.as_function(), std::nullopt})));
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, ResultCompareOperator) {

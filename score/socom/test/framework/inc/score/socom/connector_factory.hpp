@@ -42,12 +42,10 @@ class Connector_factory {
     /// \brief Creates a Connector_factory with default configuration
     ///
     /// \param[in] sif default service interface for created server and clients
-    /// \param[in] version Version of the server interface
-    /// \param[in] methods Number of Methods
     /// \param[in] events Number of Events
     /// \param[in] instance default intance for created server and clients
-    Connector_factory(Service_interface_identifier const& sif, Num_of_methods num_methods,
-                      Num_of_events num_events, Service_instance instance);
+    Connector_factory(Service_interface_identifier const& sif, Num_of_events num_events,
+                      Service_instance instance);
 
     /// \brief Copy constructor which copies the configuraton of con_fac
     ///
@@ -243,9 +241,6 @@ class Connector_factory {
 
     /// \return default instance for server and client connector
     Service_instance const& get_instance() const;
-
-    /// \return method names in same order as used by server and client
-    std::size_t get_num_methods() const noexcept;
 
     /// \return event names in same order as used by server and client
     std::size_t get_num_events() const noexcept;

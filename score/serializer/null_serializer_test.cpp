@@ -31,39 +31,26 @@ using score::someip_gateway::serializer::PreSerializedData;
 namespace config = score::mw_someip_config;
 
 constexpr uint32_t kTestMaxMessageSize = 256;
-constexpr uint32_t kTestMethodRequestMaxSize = 128;
-constexpr uint32_t kTestMethodResponseMaxSize = 64;
 constexpr uint16_t kTestEventId = 1;
-constexpr uint16_t kTestMethodId = 10;
 const char* const kTestServiceTypeName = "test_service";
 const char* const kTestEventName = "test_event";
-const char* const kTestMethodName = "test_method";
 
-/// Builds a flatbuffer config binary with a single service type containing one event and one
-/// method, each with NullSerializerConfig.
+/// Builds a flatbuffer config binary with a single service type containing one event
+/// with NullSerializerConfig.
 std::vector<uint8_t> build_test_config() {
     flatbuffers::FlatBufferBuilder fbb;
 
     auto null_config = config::CreateNullSerializerConfig(fbb, kTestMaxMessageSize);
-    auto method_request_config = config::CreateNullSerializerConfig(fbb, kTestMethodRequestMaxSize);
-    auto method_response_config =
-        config::CreateNullSerializerConfig(fbb, kTestMethodResponseMaxSize);
 
     auto event =
         config::CreateEvent(fbb, kTestEventId, fbb.CreateString(kTestEventName),
                             config::SerializationConfig_NullSerializerConfig, null_config.Union());
 
-    auto method = config::CreateMethod(
-        fbb, kTestMethodId, fbb.CreateString(kTestMethodName),
-        config::SerializationConfig_NullSerializerConfig, method_request_config.Union(),
-        config::SerializationConfig_NullSerializerConfig, method_response_config.Union());
-
     std::vector<flatbuffers::Offset<config::Event>> events_vec = {event};
-    std::vector<flatbuffers::Offset<config::Method>> methods_vec = {method};
 
-    auto service_type = config::CreateServiceTypeDirect(
-        fbb, kTestServiceTypeName, /*service_id=*/1, /*service_version_major=*/1,
-        /*service_version_minor=*/0, &events_vec, &methods_vec);
+    auto service_type = config::CreateServiceTypeDirect(fbb, kTestServiceTypeName, /*service_id=*/1,
+                                                        /*service_version_major=*/1,
+                                                        /*service_version_minor=*/0, &events_vec);
 
     std::vector<flatbuffers::Offset<config::ServiceType>> service_types_vec = {service_type};
     auto root = config::CreateRootDirect(fbb, &service_types_vec);
@@ -141,28 +128,6 @@ TEST_F(NullSerializer_test, get_event_serializer_succeeds) {
     EXPECT_NE(serializer, nullptr);
 }
 
-TEST_F(NullSerializer_test, get_method_call_serializer_succeeds) {
-    const score_com_serializer* serializer = nullptr;
-    std::string service(kTestServiceTypeName);
-    std::string element(kTestMethodName);
-    auto result = score_com_serializer_get(service.c_str(), service.size(),
-                                           score_com_serializer_element_type_method_call,
-                                           element.c_str(), element.size(), &serializer);
-    EXPECT_EQ(result, score_com_serializer_result_ok);
-    EXPECT_NE(serializer, nullptr);
-}
-
-TEST_F(NullSerializer_test, get_method_response_serializer_succeeds) {
-    const score_com_serializer* serializer = nullptr;
-    std::string service(kTestServiceTypeName);
-    std::string element(kTestMethodName);
-    auto result = score_com_serializer_get(service.c_str(), service.size(),
-                                           score_com_serializer_element_type_method_response,
-                                           element.c_str(), element.size(), &serializer);
-    EXPECT_EQ(result, score_com_serializer_result_ok);
-    EXPECT_NE(serializer, nullptr);
-}
-
 TEST_F(NullSerializer_test, get_with_unknown_service_type_fails) {
     const score_com_serializer* serializer = nullptr;
     std::string service("nonexistent_service");
@@ -197,28 +162,6 @@ TEST_F(NullSerializer_test, get_with_null_serializer_output_fails) {
 TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for_event) {
     const auto* serializer = get_event_serializer();
     EXPECT_EQ(score_com_serializer_get_max_serialized_size(serializer), kTestMaxMessageSize);
-}
-
-TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for_method_call) {
-    const score_com_serializer* serializer = nullptr;
-    std::string service(kTestServiceTypeName);
-    std::string element(kTestMethodName);
-    ASSERT_EQ(score_com_serializer_get(service.c_str(), service.size(),
-                                       score_com_serializer_element_type_method_call,
-                                       element.c_str(), element.size(), &serializer),
-              score_com_serializer_result_ok);
-    EXPECT_EQ(score_com_serializer_get_max_serialized_size(serializer), kTestMethodRequestMaxSize);
-}
-
-TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for_method_response) {
-    const score_com_serializer* serializer = nullptr;
-    std::string service(kTestServiceTypeName);
-    std::string element(kTestMethodName);
-    ASSERT_EQ(score_com_serializer_get(service.c_str(), service.size(),
-                                       score_com_serializer_element_type_method_response,
-                                       element.c_str(), element.size(), &serializer),
-              score_com_serializer_result_ok);
-    EXPECT_EQ(score_com_serializer_get_max_serialized_size(serializer), kTestMethodResponseMaxSize);
 }
 
 TEST_F(NullSerializer_test, get_max_serialized_size_returns_zero_for_null) {

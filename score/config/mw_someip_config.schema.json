@@ -45,10 +45,6 @@
                 "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_Event"},
                 "description" : "All events published by this service type."
               },
-        "methods" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_Method"},
-                "description" : "All methods published by this service type."
-              },
         "local_service_instances" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/score_mw_someip_config_ServiceInstance"},
                 "description" : "Instances of this service hosted on this machine that shall be offered to the network."
@@ -112,36 +108,6 @@
               }
       },
       "required" : ["event_name"],
-      "additionalProperties" : false
-    },
-    "score_mw_someip_config_Method" : {
-      "type" : "object",
-      "description" : "Describes a single method within a service.",
-      "properties" : {
-        "method_id" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 65535,
-                "description" : "16-bit identifier for this method within the service.\nCorresponds to the Method ID field in the SOME/IP specification."
-              },
-        "method_name" : {
-                "type" : "string",
-                "description" : "Name of the method. Must exactly match the field name in the score::mw::com\nservice interface definition to correlate SOME/IP method IDs with IPC methods."
-              },
-        "request_serialization_config_type" : {
-                "$ref" : "#/definitions/score_mw_someip_config_SerializationConfig"
-              },
-        "request_serialization_config" : {
-                "anyOf": [{ "$ref" : "#/definitions/score_mw_someip_config_NullSerializerConfig" }],
-                "description" : "Serialization configuration for the request (call) of this method."
-              },
-        "response_serialization_config_type" : {
-                "$ref" : "#/definitions/score_mw_someip_config_SerializationConfig"
-              },
-        "response_serialization_config" : {
-                "anyOf": [{ "$ref" : "#/definitions/score_mw_someip_config_NullSerializerConfig" }],
-                "description" : "Serialization configuration for the response (return) of this method."
-              }
-      },
-      "required" : ["method_name"],
       "additionalProperties" : false
     }
   },

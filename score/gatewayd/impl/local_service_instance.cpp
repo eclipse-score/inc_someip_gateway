@@ -53,23 +53,14 @@ Result<std::unique_ptr<LocalServiceInstance>> LocalServiceInstance::Create(
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
 
     socom::Server_service_interface_definition const server_config{
-        iface, socom::to_num_of_methods(0),
-        socom::to_num_of_events(service_type_config->events()->size())};
+        iface, socom::to_num_of_events(service_type_config->events()->size())};
 
     auto disabled_server_connector = socom_runtime.make_server_connector(
         server_config, inst,
         {
-            .on_method_call = [](socom::Enabled_server_connector&, socom::Method_id, socom::Payload,
-                                 socom::Method_call_reply_data_opt, socom::Posix_credentials const&)
-                -> socom::Method_invocation::Uptr { return nullptr; },
             .on_event_subscription_change = [](socom::Enabled_server_connector&, socom::Event_id,
                                                socom::Event_state) {},
             .on_event_update_request = [](socom::Enabled_server_connector&, socom::Event_id) {},
-            .on_method_call_payload_allocate =
-                [](socom::Enabled_server_connector&,
-                   socom::Method_id) -> score::Result<socom::Writable_payload> {
-                return MakeUnexpected(socom::Error::runtime_error_request_rejected);
-            },
         });
 
     if (!disabled_server_connector.has_value()) {

@@ -247,36 +247,6 @@ message::Connect::Return_type Impl::receive(message::Connect message) {
          message::Service_state_change{Service_state::available, m_configuration}}};
 }
 
-message::Call_method::Return_type Impl::receive(Client_connection const& /*client*/,
-                                                message::Call_method message) {
-    if (message.id >= m_configuration.get_num_methods()) {
-        return MakeUnexpected(Error::logic_error_id_out_of_range);
-    }
-
-    SCORE_LANGUAGE_FUTURECPP_ASSERT(message.id < m_configuration.get_num_methods());
-
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-    Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
-#endif
-    return message::Call_method::Return_type(
-        m_callbacks.on_method_call(*this, message.id, std::move(message.payload),
-                                   std::move(message.reply_data), message.credentials));
-}
-
-message::Allocate_method_call_payload::Return_type Impl::receive(
-    Client_connection const& /*client*/, message::Allocate_method_call_payload message) {
-    if (message.id >= m_configuration.get_num_methods()) {
-        return MakeUnexpected(Error::logic_error_id_out_of_range);
-    }
-
-    SCORE_LANGUAGE_FUTURECPP_ASSERT(message.id < m_configuration.get_num_methods());
-
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-    Temporary_thread_id_add const tmptia{m_deadlock_detector.enter_callback()};
-#endif
-    return m_callbacks.on_method_call_payload_allocate(*this, message.id);
-}
-
 message::Posix_credentials::Return_type Impl::receive(
     Client_connection const& /*client*/, message::Posix_credentials const& /* message */) {
     return message::Posix_credentials::Return_type(m_credentials);

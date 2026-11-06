@@ -54,8 +54,7 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
 
     socom::Service_interface_definition const client_connector_config{
-        iface, socom::to_num_of_methods(0),
-        socom::to_num_of_events(service_type_config->events()->size())};
+        iface, socom::to_num_of_events(service_type_config->events()->size())};
 
     auto connector_result = socom_runtime.make_client_connector(
         client_connector_config, inst,

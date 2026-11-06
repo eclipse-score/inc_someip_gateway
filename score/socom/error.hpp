@@ -24,13 +24,11 @@ namespace score::socom {
 
 /// \brief Error conditions when using Client_connector.
 enum class Error : score::result::ErrorCode {
-    /// Service state is not Service_state::available. Service_state::available cannot prevent
-    /// network issues, so if it is important that the Server receives a method call, it always has
-    /// to send some return value via the callback.
+    /// Service state is not Service_state::available.
     runtime_error_service_not_available,
     /// Request is rejected.
     runtime_error_request_rejected,
-    /// Event or method ID is out of range.
+    /// Event ID is out of range.
     logic_error_id_out_of_range,
     /// Payload cannot be deserialized.
     runtime_error_malformed_payload,
@@ -42,7 +40,7 @@ score::result::Error MakeError(Error code, std::string_view user_message = "") n
 
 /// \brief Error conditions when using Enabled_server_connector.
 enum class Server_connector_error : score::result::ErrorCode {
-    /// Event or method ID is out of range.
+    /// Event ID is out of range.
     logic_error_id_out_of_range,
     runtime_error_no_client_subscribed_for_event,
 };

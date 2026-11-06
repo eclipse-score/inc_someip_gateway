@@ -30,7 +30,6 @@ inline const std::vector<std::byte> expected_payload{std::byte{1}, std::byte{2},
                                                      std::byte{4}};
 
 using socom::Event_id;
-using socom::Method_id;
 
 struct Shared_memory_metadata {
     std::size_t slot_size;
@@ -43,7 +42,7 @@ class Test_constants {
         "bridged_/test/ipc/BridgedService", socom::Literal_tag{}, {1, 0}};
     socom::Service_instance const instance{"1", socom::Literal_tag{}};
     socom::Server_service_interface_definition const socom_server_config{
-        interface, socom::to_num_of_methods(0), socom::to_num_of_events(2)};
+        interface, socom::to_num_of_events(2)};
 
     Shared_memory_metadata const mw_com_metadata{8232U, 4U};
 

@@ -34,13 +34,13 @@ class MultipleRuntimesTest : public ::testing::Test {
    protected:
     static constexpr std::string_view test_service_id{"TestInterface1"};
     static constexpr std::string_view test_instance_id{"TestInstance1"};
-    Connector_factory factory0 = Connector_factory{
-        Service_interface_identifier{test_service_id, {1, 0}}, to_num_of_methods(2U),
-        to_num_of_events(3U), Service_instance{test_instance_id}};
+    Connector_factory factory0 =
+        Connector_factory{Service_interface_identifier{test_service_id, {1, 0}},
+                          to_num_of_events(3U), Service_instance{test_instance_id}};
 
-    Connector_factory factory1 = Connector_factory{
-        Service_interface_identifier{test_service_id, {2, 3}}, to_num_of_methods(2U),
-        to_num_of_events(3U), Service_instance{test_instance_id}};
+    Connector_factory factory1 =
+        Connector_factory{Service_interface_identifier{test_service_id, {2, 3}},
+                          to_num_of_events(3U), Service_instance{test_instance_id}};
 
     Payload const real_payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U));
     Payload const more_payload = make_vector_payload(
@@ -110,59 +110,22 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreSendingEvents) {
     pair1.server.update_event(event1, real_payload);
 }
 
-TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairHasAMethodCall) {
-    auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
-    auto const result0 = Method_result{Application_return{clone_payload(real_payload)}};
-
-    Client_server pair0{factory0};
-    Client_server pair1{factory1};
-
-    pair0.server.expect_and_respond_method_calls(1, method0, real_payload, result0);
-    pair0.client.expect_and_call_method(method0, real_payload, result0);
-}
-
-TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndSecondPairHasAMethodCall) {
-    auto const method1 = Method_id{1};
-    auto const result1 = Method_result{Application_return{clone_payload(real_payload)}};
-
-    Client_server pair0{factory0};
-    Client_server pair1{factory1};
-
-    pair1.server.expect_and_respond_method_calls(1, method1, real_payload, result1);
-    pair1.client.expect_and_call_method(method1, real_payload, result1);
-}
-
-TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAndBothHaveMethodCalls) {
-    auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
-    auto const result0 = Method_result{Application_return{clone_payload(real_payload)}};
-
-    auto const method1 = Method_id{1};
-    auto const result1 = Method_result{Application_return{clone_payload(more_payload)}};
-
-    Client_server pair0{factory0};
-    Client_server pair1{factory1};
-
-    pair0.server.expect_and_respond_method_calls(1, method0, real_payload, result0);
-    pair0.client.expect_and_call_method(method0, real_payload, result0);
-
-    pair1.server.expect_and_respond_method_calls(1, method1, real_payload, result1);
-    pair1.client.expect_and_call_method(method1, real_payload, result1);
-}
-
 TEST_F(MultipleRuntimesTest, BothRuntimesHaveSameInstanceIdAndConfigurationButAreStillSeparated) {
-    auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
-    auto const result0 = Method_result{Application_return{clone_payload(real_payload)}};
-    auto const result1 = Method_result{Application_return{clone_payload(more_payload)}};
+    auto const event0 = static_cast<Event_id>(factory0.get_num_events() / 2);
 
     auto rt1 = Connector_factory{factory0};
     Client_server pair0{factory0};
     Client_server pair1{rt1};
 
-    pair0.server.expect_and_respond_method_calls(1, method0, real_payload, result0);
-    pair0.client.expect_and_call_method(method0, real_payload, result0);
+    pair0.server.expect_event_subscription(event0);
+    auto const sub0 = pair0.client.create_event_subscription(event0);
+    pair0.client.expect_event_update(event0, real_payload);
+    pair0.server.update_event(event0, real_payload);
 
-    pair1.server.expect_and_respond_method_calls(1, method0, real_payload, result1);
-    pair1.client.expect_and_call_method(method0, real_payload, result1);
+    pair1.server.expect_event_subscription(event0);
+    auto const sub1 = pair1.client.create_event_subscription(event0);
+    pair1.client.expect_event_update(event0, more_payload);
+    pair1.server.update_event(event0, more_payload);
 }
 
 }  // namespace score::socom

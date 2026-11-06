@@ -94,8 +94,7 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
     socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
 
     socom::Service_interface_definition const client_config{
-        iface, socom::to_num_of_methods(0),
-        socom::to_num_of_events(service_type_config->events()->size())};
+        iface, socom::to_num_of_events(service_type_config->events()->size())};
 
     // Create the instance first so callbacks can capture a raw pointer to it.
     auto instance = std::unique_ptr<RemoteServiceInstance>(new RemoteServiceInstance(

@@ -50,7 +50,7 @@ class LocalNetworkServiceTest : public ::testing::Test {
         std::vector<flatbuffers::Offset<mw_someip_config::ServiceType>> service_types{
             mw_someip_config::CreateServiceTypeDirect(builder, kServiceTypeName, 0x1234,
                                                       kVersionMajor, kVersionMinor, &events,
-                                                      nullptr, &instances)};
+                                                      &instances)};
         builder.Finish(mw_someip_config::CreateRootDirect(builder, &service_types));
 
         buffer_ = std::make_shared<std::vector<std::uint8_t>>(
@@ -69,13 +69,12 @@ class LocalNetworkServiceTest : public ::testing::Test {
         socom::Server_service_interface_definition const config{
             socom::Service_interface_identifier{
                 kServiceTypeNameView, {kVersionMajor, static_cast<std::uint16_t>(kVersionMinor)}},
-            socom::to_num_of_methods(0), socom::to_num_of_events(kNumEvents)};
-        auto result = runtime_->make_server_connector(
-            config, socom::Service_instance{kServiceTypeNameView},
-            socom::Disabled_server_connector::Callbacks{
-                method_call_mock_.as_function(), event_subscription_change_mock_.as_function(),
-                event_update_request_mock_.as_function(),
-                method_payload_allocate_mock_.as_function()});
+            socom::to_num_of_events(kNumEvents)};
+        auto result =
+            runtime_->make_server_connector(config, socom::Service_instance{kServiceTypeNameView},
+                                            socom::Disabled_server_connector::Callbacks{
+                                                event_subscription_change_mock_.as_function(),
+                                                event_update_request_mock_.as_function()});
         if (!result.has_value()) {
             ADD_FAILURE() << "make_server_connector() failed";
             return nullptr;
@@ -100,10 +99,8 @@ class LocalNetworkServiceTest : public ::testing::Test {
 
     socom::Runtime::Uptr runtime_ = socom::create_runtime();
 
-    socom::Method_call_credentials_callback_mock method_call_mock_;
     socom::Event_subscription_change_callback_mock event_subscription_change_mock_;
     socom::Event_request_update_callback_mock event_update_request_mock_;
-    socom::Method_call_payload_allocate_callback_mock method_payload_allocate_mock_;
 };
 
 // Regression test for the race behind issue #305: if the server connector is already available,

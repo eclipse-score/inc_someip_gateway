@@ -126,8 +126,7 @@ Interface_configuration_and_expected_connection create_conf(
     Service_interface_identifier const& client, Service_interface_identifier const& server,
     Expectation const& expected_connection) {
     using Server_conf = Server_service_interface_definition;
-    return std::make_tuple(Server_conf{client, {}, {}}, Server_conf{server, {}, {}},
-                           expected_connection);
+    return std::make_tuple(Server_conf{client, {}}, Server_conf{server, {}}, expected_connection);
 }
 
 constexpr std::string_view id0{"0"};

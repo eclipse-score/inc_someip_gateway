@@ -113,11 +113,11 @@ class Gateway_ipc_binding_many_services_integration_test
     socom::Service_instance const instance{"1", socom::Literal_tag{}};
 
     socom::Server_service_interface_definition const server_config_alpha{
-        service_interface_alpha, socom::to_num_of_methods(0), socom::to_num_of_events(1)};
-    socom::Server_service_interface_definition const server_config_beta{
-        service_interface_beta, socom::to_num_of_methods(0), socom::to_num_of_events(2)};
+        service_interface_alpha, socom::to_num_of_events(1)};
+    socom::Server_service_interface_definition const server_config_beta{service_interface_beta,
+                                                                        socom::to_num_of_events(2)};
     socom::Server_service_interface_definition const server_config_gamma{
-        service_interface_gamma, socom::to_num_of_methods(0), socom::to_num_of_events(3)};
+        service_interface_gamma, socom::to_num_of_events(3)};
 
     Shared_memory_metadata const server_metadata_alpha{512, 4};
     Shared_memory_metadata const server_metadata_beta{640, 4};

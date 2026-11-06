@@ -41,7 +41,7 @@ class Impl final : public Client_connector {
         std::function<void(::score::socom::Server_connector_listen_endpoint const&)>;
 
     Impl(Service_interface_definition configuration, Service_instance instance,
-         Client_connector::Callbacks callbacks, Posix_credentials const& credentials);
+         Client_connector::Callbacks callbacks);
     Impl(Impl const&) = delete;
     Impl(Impl&&) = delete;
     Impl& operator=(Impl const&) = delete;
@@ -50,16 +50,12 @@ class Impl final : public Client_connector {
     ~Impl() noexcept override;
 
     // interface ::score::socom::Client_connector
-    Result<Writable_payload> allocate_method_call_payload(Method_id method_id) noexcept override;
     message::Subscribe_event::Return_type subscribe_event(Event_id client_id,
                                                           Event_mode mode) const noexcept override;
     message::Unsubscribe_event::Return_type unsubscribe_event(
         Event_id client_id) const noexcept override;
     message::Request_event_update::Return_type request_event_update(
         Event_id client_id) const noexcept override;
-    message::Call_method::Return_type call_method(
-        Method_id client_id, Payload payload,
-        Method_call_reply_data_opt reply_data) const noexcept override;
     Result<Posix_credentials> get_peer_credentials() const noexcept override;
     Service_interface_definition const& get_configuration() const noexcept override;
     Service_instance const& get_service_instance() const noexcept override;
@@ -97,7 +93,6 @@ class Impl final : public Client_connector {
     Reference_token m_stop_block_token;                 // Protected by m_mutex
     std::optional<Server_connector_endpoint> m_server;  // Protected by m_mutex
     Registration m_registration;                        // Protected by m_mutex
-    Posix_credentials m_credentials;
 };
 
 template <typename ReturnType, typename F>

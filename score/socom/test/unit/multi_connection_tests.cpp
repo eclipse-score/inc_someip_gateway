@@ -26,9 +26,8 @@ using Conf_instance = std::pair<Server_service_interface_definition, Service_ins
 using MultiConnectionTest = SingleConnectionTest;
 
 TEST_F(MultiConnectionTest, ClientAndServerInDifferentThreadsCommunicateRaceFree) {
-    auto const mr = Method_result{Application_return(clone_payload(real_payload))};
-    auto const num_method_calls = 100;
     auto const num_events = 1000;
+    auto const num_requests = 100;
 
     Server_data server{connector_factory};
     server.expect_event_subscription(event_id);
@@ -36,7 +35,7 @@ TEST_F(MultiConnectionTest, ClientAndServerInDifferentThreadsCommunicateRaceFree
     Client_data client{connector_factory};
     auto const sub0 = client.create_event_subscription(event_id);
     // Google Mock does not allow EXPECT_CALL statements concurrently from multiple threads
-    server.expect_and_respond_method_calls(num_method_calls, method_id, empty_payload(), mr);
+    auto const& requests_received = server.expect_update_event_requests(event_id);
     auto const& events_received = client.expect_event_updates(num_events, event_id, real_payload);
 
     auto const server_thread = [this, &server]() {
@@ -45,40 +44,40 @@ TEST_F(MultiConnectionTest, ClientAndServerInDifferentThreadsCommunicateRaceFree
         }
     };
 
-    auto const client_thread = [&mr, &client]() {
-        wait_for_atomics(
-            client.expect_and_call_methods(num_method_calls, method_id, empty_payload(), mr));
+    auto const client_thread = [&client]() {
+        for (auto i = 0; i < num_requests; i++) {
+            client.request_event_update(event_id);
+        }
     };
 
     auto const server_return = std::async(std::launch::async, server_thread);
     auto const client_return = std::async(std::launch::async, client_thread);
-    wait_for_atomics(events_received);
+    wait_for_atomics(events_received, requests_received);
 }
 
 TEST_F(MultiConnectionTest, ClientAndServerCreatedInDifferentThreadsCommunicateRaceFree) {
-    auto const mr = Method_result{Application_return(clone_payload(real_payload))};
-    auto const num_method_calls = 100;
     auto const num_events = 1000;
+    auto const num_requests = 100;
 
     std::atomic<bool> client_done{false};
     // Google Mock does not allow EXPECT_CALL statements concurrently from multiple threads
     std::atomic<bool> client_ready{false};
     std::atomic<bool> server_ready{false};
 
-    auto const server_thread = [this, &mr, &server_ready, &client_ready, &client_done]() {
+    auto const server_thread = [this, &server_ready, &client_ready, &client_done]() {
         Server_data server{connector_factory};
         server.expect_event_subscription(event_id);
 
-        server.expect_and_respond_method_calls(num_method_calls, method_id, empty_payload(), mr);
+        auto const& requests_received = server.expect_update_event_requests(event_id);
         server_ready = true;
         wait_for_atomics(client_ready);
         for (auto i = 0; i < num_events; i++) {
             server.update_event(event_id, real_payload);
         }
-        wait_for_atomics(client_done);
+        wait_for_atomics(requests_received, client_done);
     };
 
-    auto const client_thread = [this, &mr, &server_ready, &client_ready, &client_done]() {
+    auto const client_thread = [this, &server_ready, &client_ready, &client_done]() {
         {  // Destroy client before server to prevent call of on_service_state_change callback
             wait_for_atomics(server_ready);
             Client_data client{connector_factory};
@@ -86,8 +85,9 @@ TEST_F(MultiConnectionTest, ClientAndServerCreatedInDifferentThreadsCommunicateR
             auto const& events_received =
                 client.expect_event_updates(num_events, event_id, real_payload);
             client_ready = true;
-            wait_for_atomics(
-                client.expect_and_call_methods(num_method_calls, method_id, empty_payload(), mr));
+            for (auto i = 0; i < num_requests; i++) {
+                client.request_event_update(event_id);
+            }
             wait_for_atomics(events_received);
         }
         client_done = true;

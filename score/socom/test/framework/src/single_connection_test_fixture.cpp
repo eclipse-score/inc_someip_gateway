@@ -25,7 +25,6 @@ Payload const& error_data() {
     return data;
 }
 
-Method_id const SingleConnectionTest::method_id;
 Event_id const SingleConnectionTest::event_id;
 
 }  // namespace score::socom

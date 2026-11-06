@@ -18,7 +18,6 @@
 
 #include "score/socom/connector_factory.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/posix_credentials.hpp"
 #include "score/socom/server_connector.hpp"
@@ -34,11 +33,8 @@ namespace score::socom {
 struct Server_data {
    private:
     std::atomic<bool> m_callback_called{true};
-    std::atomic<bool> m_method_callback_called{true};
     std::atomic<bool> m_subscribed{true};
     std::atomic<bool> m_unsubscribed{true};
-    std::atomic<bool> m_method_payload_allocate_called{true};
-    std::atomic<uint32_t> m_num_method_calls{0};
     Server_connector_callbacks_mock m_callbacks;
     Server_connector_credentials_callbacks_mock m_credential_callbacks;
     Enabled_server_connector::Uptr m_connector;
@@ -48,13 +44,6 @@ struct Server_data {
     ///
     /// \param[in] factory factory to create server connector with
     explicit Server_data(Connector_factory& factory);
-
-    /// \brief Create new instance and expect immediately a method call.
-    ///
-    /// \param[in] factory factory to create server connector with
-    /// \param[in] method_id method which is expected
-    /// \param[in] payload input of the method
-    Server_data(Connector_factory& factory, Method_id method_id, Payload const& expected_payload);
 
     /// \brief Create a new instance with the configuration stored in factory
     ///
@@ -167,52 +156,6 @@ struct Server_data {
     /// \param[in] event_id event for which a update is requested
     /// \param[in] payload the data to send
     void expect_and_respond_update_event_request(Event_id const& event_id, Payload const& payload);
-
-    /// \brief Expect and respond to method calls
-    ///
-    /// \param[in] method_id method which is expected
-    /// \param[in] result allocated payload
-    /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_method_allocate_payload(Method_id const& method_id,
-                                                            score::Result<Writable_payload> result);
-
-    /// \brief Expect and respond to method calls
-    ///
-    /// \param[in] counter number of expected method calls
-    /// \param[in] method_id method which is expected
-    /// \param[in] payload input of the method
-    /// \param[in] result return of the method
-    /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_and_respond_method_calls(size_t counter,
-                                                             Method_id const& method_id,
-                                                             Payload const& payload,
-                                                             Method_result const& result);
-
-    /// \brief Expect and respond to a method call
-    ///
-    /// \param[in] method_id method which is expected
-    /// \param[in] payload input of the method
-    /// \param[in] result return of the method
-    /// \return boolean reference which becomes true when the callback is called
-    std::atomic<bool> const& expect_and_respond_method_call(Method_id const& method_id,
-                                                            Payload const& payload,
-                                                            Method_result const& result);
-
-    /// \brief Expect method call and return received client callback
-    ///
-    /// \param[in] method_id method which is expected
-    /// \param[in] payload input of the method
-    /// \return Future which will return the client callback once the method is called
-    std::future<Method_call_reply_data_opt> expect_and_return_method_call(
-        Method_id const& method_id, Payload const& payload);
-
-    /// Expect minimum number of method call and return received client callback
-    ///
-    /// \param[in] method_id method which is expected
-    /// \param[in] payload input of the method
-    /// \return Future which will return the client callback once the method is called
-    std::future<void> expect_method_calls(std::size_t const& min_num, Method_id const& method_id,
-                                          Payload const& payload);
 
     /// \brief Return event mode
     ///

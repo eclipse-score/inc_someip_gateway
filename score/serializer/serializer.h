@@ -77,9 +77,7 @@ size_t score_com_serializer_get_alignof_type(const struct score_com_serializer* 
 
 enum score_com_serializer_element_type {
     score_com_serializer_element_type_event = 0,
-    score_com_serializer_element_type_field = 1,
-    score_com_serializer_element_type_method_call = 2,
-    score_com_serializer_element_type_method_response = 3
+    score_com_serializer_element_type_field = 1
 };
 
 /// Retrieves a serializer for the specified interface and component.
@@ -87,7 +85,7 @@ enum score_com_serializer_element_type {
 /// null-terminated).
 /// @param service_type_size Size of the `service_type` string in bytes.
 /// @param element_type Specifies the type of element for which the serializer is requested.
-/// @param element_name Identifies the event/field/method for which the serializer is requested (not
+/// @param element_name Identifies the event/field for which the serializer is requested (not
 /// null-terminated).
 /// @param element_name_size Size of the `element_name` string in bytes.
 /// @param[out] serializer Pointer to a score_com_serializer struct where the function will write

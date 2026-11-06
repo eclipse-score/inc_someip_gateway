@@ -20,7 +20,6 @@
 
 #include "score/socom/error.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/posix_credentials.hpp"
 #include "score/socom/service_interface_definition.hpp"
@@ -65,7 +64,7 @@ using Event_payload_allocate_callback =
 ///
 /// If the Service_interface_definition of the Client_connector instance contains a member
 /// configuration, then the client_id is translated to the server_id based on the matching member
-/// names (configuration.members.events and configuration.members.methods).
+/// names (configuration.members.events).
 ///
 /// If the Service_interface_definition of the Client_connector instance does not contain a
 /// member configuration, then the client_id is translated to the server_id 1:1.
@@ -128,9 +127,6 @@ class Client_connector {
     /// Blocks until all operations have completed and the service state is (implicitly)
     /// Service_state::not_available. It does not call callback on_service_state_change().
     ///
-    /// Aborts all method calls. This ensures no method reply will be invoked after completion the
-    /// destructor.
-    ///
     /// Implicitly unsubscribes all subscribed events.
     ///
     /// Detect deadlocks, which are caused by destroying the Client_connector from a running
@@ -143,15 +139,6 @@ class Client_connector {
 
     Client_connector& operator=(Client_connector const&) = delete;
     Client_connector& operator=(Client_connector&&) = delete;
-
-    /// \brief Allocate a payload for the given method ID.
-    ///
-    /// This requires a Server_connector to be connected to which payload allocation is delegated.
-    ///
-    /// \param method_id ID of the method for which a payload should be allocated.
-    /// \return A writable payload in case of successful operation, otherwise an error.
-    [[nodiscard]]
-    virtual Result<Writable_payload> allocate_method_call_payload(Method_id method_id) noexcept = 0;
 
     /// \brief Subscribe an event to receive event updates from the Server_connector.
     /// \details The mode value Event_mode::update_and_initial_value supports the field use-case.
@@ -209,28 +196,6 @@ class Client_connector {
     /// \param client_id ID of the event.
     /// \return Void in case of successful operation, otherwise an error.
     virtual Result<void> request_event_update(Event_id client_id) const noexcept = 0;
-
-    /// \brief Calls a method at the Server_connector side.
-    /// \details If reply_data is nullopt, then the Server application (of the
-    /// Enabled_server_connector instance) and the Method_invocation object returned do not allocate
-    /// any resources for this method call and callback on_method_reply() will not be called.
-    ///
-    /// If reply_data is not nullopt, then the server application (of the
-    /// Enabled_server_connector instance) returns a Method_invocation object which allocates
-    /// resources required for the ongoing method invocation. Once the method invocation is
-    /// completed, the server application calls reply_data.reply_callback().
-    /// Discarding the Method_invocation object cancels the method invocation.
-    ///
-    /// If the service state is Service_state::available, then the available Server_connector
-    /// instance calls the callback on_method_call(server_id, payload, reply_data).
-    /// \param client_id ID of the method.
-    /// \param payload Payload to be called with.
-    /// \param reply_data Callback and payload buffer in case a reply is requested.
-    /// \return A pointer to a Method_invocation object in case of successful invocation, otherwise
-    /// an error.
-    [[nodiscard]] virtual Result<Method_invocation::Uptr> call_method(
-        Method_id client_id, Payload payload,
-        Method_call_reply_data_opt reply_data = std::nullopt) const noexcept = 0;
 
     /// \brief Retrieves the peer posix credentials from the server.
     /// \details If the client connector is not connected, then an error is returned.

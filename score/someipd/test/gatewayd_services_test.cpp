@@ -51,7 +51,7 @@ std::vector<std::byte> gateway_config(std::vector<Service> const& services) {
         std::vector<flatbuffers::Offset<mw_someip_config::ServiceInstance>> instances{
             mw_someip_config::CreateServiceInstanceDirect(builder, "test/instance", 1U)};
         service_types.push_back(mw_someip_config::CreateServiceTypeDirect(
-            builder, service.name, service.service_id, 1U, 0U, &events, nullptr,
+            builder, service.name, service.service_id, 1U, 0U, &events,
             service.local ? &instances : nullptr, service.local ? nullptr : &instances));
     }
     builder.Finish(mw_someip_config::CreateRootDirect(builder, &service_types));
@@ -93,7 +93,7 @@ TEST_F(GatewaydServicesTest, RejectsAServiceTypeWithoutName) {
         mw_someip_config::CreateServiceInstanceDirect(builder, "test/instance", 1U)};
     std::vector<flatbuffers::Offset<mw_someip_config::ServiceType>> service_types{
         mw_someip_config::CreateServiceTypeDirect(builder, nullptr, 0x1051U, 1U, 0U, &events,
-                                                  nullptr, &instances)};
+                                                  &instances)};
     builder.Finish(mw_someip_config::CreateRootDirect(builder, &service_types));
     auto const* const config = reinterpret_cast<std::byte const*>(builder.GetBufferPointer());
 
@@ -108,7 +108,7 @@ TEST_F(GatewaydServicesTest, RejectsAServiceTypeWithoutEvents) {
         mw_someip_config::CreateServiceInstanceDirect(builder, "test/instance", 1U)};
     std::vector<flatbuffers::Offset<mw_someip_config::ServiceType>> service_types{
         mw_someip_config::CreateServiceTypeDirect(builder, "no_events", 0x1052U, 1U, 0U, nullptr,
-                                                  nullptr, &instances)};
+                                                  &instances)};
     builder.Finish(mw_someip_config::CreateRootDirect(builder, &service_types));
     auto const* const config = reinterpret_cast<std::byte const*>(builder.GetBufferPointer());
 
@@ -169,20 +169,17 @@ TEST_F(GatewaydServicesTest, AddsNothingWhenANetworkServiceFails) {
     GatewaydServices services{routing(), *runtime_};
     auto const config = gateway_config(
         {{"created_first", 0x1041U, true, 1U}, {"already_provided", 0x1042U, false, 1U}});
-    socom::Method_call_credentials_callback_mock method_call;
     socom::Event_subscription_change_callback_mock event_subscription_change;
     socom::Event_request_update_callback_mock event_update_request;
-    socom::Method_call_payload_allocate_callback_mock method_payload_allocate;
     constexpr std::string_view kAlready_provided{"already_provided"};
     // RemoteNetworkService can't provide it a second time.
     auto blocking = runtime_->make_server_connector(
         socom::Server_service_interface_definition{
             socom::Service_interface_identifier{kAlready_provided, {1U, 0U}},
-            socom::to_num_of_methods(0U), socom::to_num_of_events(1U)},
+            socom::to_num_of_events(1U)},
         socom::Service_instance{kAlready_provided},
-        socom::Disabled_server_connector::Callbacks{
-            method_call.as_function(), event_subscription_change.as_function(),
-            event_update_request.as_function(), method_payload_allocate.as_function()});
+        socom::Disabled_server_connector::Callbacks{event_subscription_change.as_function(),
+                                                    event_update_request.as_function()});
     ASSERT_TRUE(blocking.has_value());
 
     EXPECT_FALSE(services.Add({config.data(), config.size()}, add_bridged_services_));
@@ -202,7 +199,7 @@ TEST_F(GatewaydServicesTest, AddsAServiceTypeWithMultipleLocalInstances) {
         mw_someip_config::CreateServiceInstanceDirect(builder, "test/instance_2", 2U)};
     std::vector<flatbuffers::Offset<mw_someip_config::ServiceType>> service_types{
         mw_someip_config::CreateServiceTypeDirect(builder, "multi_instance", 0x1061U, 1U, 0U,
-                                                  &events, nullptr, &instances)};
+                                                  &events, &instances)};
     builder.Finish(mw_someip_config::CreateRootDirect(builder, &service_types, 1U));
     auto const* const config = reinterpret_cast<std::byte const*>(builder.GetBufferPointer());
 

@@ -18,35 +18,19 @@ namespace score::socom {
 Disabled_server_connector::Callbacks create_server_callbacks(
     Server_connector_callbacks_mock& mock) {
     return Disabled_server_connector::Callbacks{
-        [&mock](auto& connector, auto mid, auto payload, Method_call_reply_data_opt reply_callback,
-                auto /*cred*/) {
-            return mock.on_method_call(connector, mid, std::move(payload),
-                                       std::move(reply_callback));
-        },
         [&mock](auto& connector, auto eid, auto state) {
             mock.on_event_subscription_change(connector, eid, state);
         },
-        [&mock](auto& connector, auto eid) { mock.on_event_update_request(connector, eid); },
-        [&mock](auto& connector, auto mid) {
-            return mock.on_method_call_payload_allocate(connector, mid);
-        }};
+        [&mock](auto& connector, auto eid) { mock.on_event_update_request(connector, eid); }};
 }
 
 Disabled_server_connector::Callbacks create_server_callbacks(
     Server_connector_credentials_callbacks_mock& mock) {
     return Disabled_server_connector::Callbacks{
-        [&mock](auto& connector, auto mid, auto payload, Method_call_reply_data_opt reply_callback,
-                auto const& credentials) {
-            return mock.on_method_call(connector, mid, std::move(payload),
-                                       std::move(reply_callback), credentials);
-        },
         [&mock](auto& connector, auto eid, auto state) {
             mock.on_event_subscription_change(connector, eid, state);
         },
-        [&mock](auto& connector, auto eid) { mock.on_event_update_request(connector, eid); },
-        [&mock](auto& connector, auto mid) {
-            return mock.on_method_call_payload_allocate(connector, mid);
-        }};
+        [&mock](auto& connector, auto eid) { mock.on_event_update_request(connector, eid); }};
 }
 
 Client_connector::Callbacks create_client_callbacks(Client_connector_callbacks_mock& mock) {

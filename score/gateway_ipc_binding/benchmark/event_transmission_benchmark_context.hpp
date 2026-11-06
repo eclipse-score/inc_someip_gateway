@@ -35,7 +35,6 @@ namespace score::gateway_ipc_binding {
 
 using namespace std::chrono_literals;
 using socom::Event_id;
-using socom::Method_id;
 
 inline void initialize_benchmark_runtime() {
     std::string manifest{"score/gateway_ipc_binding/benchmark/mw_com_config.json"};
@@ -132,7 +131,7 @@ class Event_transmission_benchmark_context final {
         "bridged_com.test.gateway.benchmark", score::socom::Literal_tag{}, {1, 0}};
     score::socom::Service_instance const instance_{"instance1", score::socom::Literal_tag{}};
     score::socom::Server_service_interface_definition const server_interface_definition_{
-        interface_, score::socom::to_num_of_methods(1), score::socom::to_num_of_events(1)};
+        interface_, score::socom::to_num_of_events(1)};
 
     Event_id const event_id_{0};
 
@@ -229,10 +228,6 @@ class Event_transmission_benchmark_context final {
         SCORE_LANGUAGE_FUTURECPP_ASSERT(sink_connector_);
 
         score::socom::Disabled_server_connector::Callbacks server_callbacks{
-            [](score::socom::Enabled_server_connector&, Method_id, score::socom::Payload,
-               score::socom::Method_call_reply_data_opt, score::socom::Posix_credentials const&) {
-                return score::socom::Method_invocation::Uptr{};
-            },
             [this](score::socom::Enabled_server_connector&, Event_id event_id,
                    score::socom::Event_state state) {
                 if (event_id == event_id_ && state == score::socom::Event_state::subscribed) {
@@ -243,10 +238,7 @@ class Event_transmission_benchmark_context final {
                     connection_state_cv_.notify_all();
                 }
             },
-            [](score::socom::Enabled_server_connector&, Event_id) {},
-            [](score::socom::Enabled_server_connector&, Method_id) {
-                return MakeUnexpected(score::socom::Error::runtime_error_request_rejected);
-            }};
+            [](score::socom::Enabled_server_connector&, Event_id) {}};
 
         auto disabled_connector_result = runtime_client_->make_server_connector(
             server_interface_definition_, instance_, std::move(server_callbacks));

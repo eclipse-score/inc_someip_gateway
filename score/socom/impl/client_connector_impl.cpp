@@ -25,13 +25,12 @@
 namespace score::socom::client_connector {
 
 Impl::Impl(Service_interface_definition configuration, Service_instance instance,
-           Client_connector::Callbacks callbacks, Posix_credentials const& credentials)
+           Client_connector::Callbacks callbacks)
     : m_configuration{std::move(configuration)},
       m_instance{instance},
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
-          std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
-      m_credentials{credentials} {}
+          std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })} {}
 
 Impl::~Impl() noexcept {
     {
@@ -73,25 +72,6 @@ message::Unsubscribe_event::Return_type Impl::unsubscribe_event(Event_id client_
 message::Request_event_update::Return_type Impl::request_event_update(
     Event_id client_id) const noexcept {
     return send(message::Request_event_update{client_id});
-}
-
-message::Call_method::Return_type Impl::call_method(
-    Method_id client_id, Payload payload, Method_call_reply_data_opt reply_data) const noexcept {
-    if (reply_data) {
-        reply_data->set_block_token(create_weak_block_token()
-#ifdef WITH_SOCOM_DEADLOCK_DETECTION
-                                        ,
-                                    m_deadlock_detector
-#endif
-        );
-    }
-
-    return send(
-        message::Call_method{client_id, std::move(payload), std::move(reply_data), m_credentials});
-}
-
-Result<Writable_payload> Impl::allocate_method_call_payload(Method_id method_id) noexcept {
-    return send(message::Allocate_method_call_payload{method_id});
 }
 
 Result<Posix_credentials> Impl::get_peer_credentials() const noexcept {

@@ -94,13 +94,6 @@ Result<std::unique_ptr<Consumer_service_binding>> Consumer_service_binding::crea
 Result<void> Consumer_service_binding::create_server_connector(
     score::socom::Runtime& runtime, Service_config const& config) noexcept {
     score::socom::Disabled_server_connector::Callbacks callbacks{
-        [](score::socom::Enabled_server_connector&, score::socom::Method_id, score::socom::Payload,
-           score::socom::Method_call_reply_data_opt,
-           score::socom::Posix_credentials const&) -> score::socom::Method_invocation::Uptr {
-            // GenericProxy and GenericSkeleton are event only, so bridged methods are not
-            // representable. Known gap, see docs/mw_com_binding.rst.
-            return nullptr;
-        },
         [this](score::socom::Enabled_server_connector&, score::socom::Event_id const event_id,
                score::socom::Event_state const state) {
             on_event_subscription_change(event_id, state == score::socom::Event_state::subscribed);
@@ -110,16 +103,10 @@ Result<void> Consumer_service_binding::create_server_connector(
             score::mw::log::LogWarn()
                 << kLog_tag << "Ignoring the update request for event" << event_id
                 << ": mw::com cannot serve requested event updates";
-        },
-        [](score::socom::Enabled_server_connector&,
-           score::socom::Method_id) -> Result<score::socom::Writable_payload> {
-            return score::socom::Writable_payload{score::socom::Writable_payload::Writable_span{},
-                                                  score::socom::kNoSlotHandle, []() {}};
         }};
 
     score::socom::Server_service_interface_definition const definition{
-        config.interface, score::socom::to_num_of_methods(0U),
-        score::socom::to_num_of_events(config.events.size())};
+        config.interface, score::socom::to_num_of_events(config.events.size())};
 
     auto connector =
         runtime.make_server_connector(definition, config.instance, std::move(callbacks));

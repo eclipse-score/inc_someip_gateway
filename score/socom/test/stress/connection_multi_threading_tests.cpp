@@ -18,7 +18,6 @@
 #include "gtest/gtest.h"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/method.hpp"
 #include "score/socom/multi_threaded_test_template.hpp"
 #include "score/socom/payload.hpp"
 #include "score/socom/server_connector.hpp"
@@ -27,24 +26,16 @@
 
 namespace score::socom {
 
-class Event_method_counter {
+class Event_counter {
     std::size_t const m_min_events_received = 1000;
-    std::size_t const m_min_method_call_responses_received = 1000;
     std::atomic<std::size_t> m_events_received{0};
-    std::atomic<std::size_t> m_method_call_responses_received{0};
 
    public:
     void event_received() { m_events_received++; }
     std::size_t num_events_received() const { return m_events_received; }
 
-    void method_response_received() { m_method_call_responses_received++; }
-    std::size_t num_method_responses_received() const { return m_method_call_responses_received; }
-
     Stop_condition create_stop_condition() const {
-        return [this]() {
-            return num_events_received() >= m_min_events_received &&
-                   num_method_responses_received() >= m_min_method_call_responses_received;
-        };
+        return [this]() { return num_events_received() >= m_min_events_received; };
     }
 };
 
@@ -58,48 +49,19 @@ void subscribe_events(Client_connector const& cc, std::size_t const num_events) 
     }
 }
 
-void call_methods(Client_connector const& cc, std::size_t const num_methods, Payload const& payload,
-                  Method_reply_callback on_method_reply) {
-    for (std::size_t i{0}; i < num_methods; i++) {
-        auto reply_cb = 0 == i % 2
-                            ? Method_call_reply_data_opt{std::in_place, std::move(on_method_reply),
-                                                         std::nullopt}
-                            : Method_call_reply_data_opt{std::nullopt};
-        (void)cc.call_method(i, clone_payload(payload), std::move(reply_cb));
-    }
-}
-
 class ConnectionMultiThreadingTest : public SingleConnectionTest {
    protected:
-    Event_method_counter counter;
-
-    Method_reply_callback create_method_reply_callback() {
-        return [this](Method_result const& /*result*/) { counter.method_response_received(); };
-    }
+    Event_counter counter;
 
     Disabled_server_connector::Callbacks create_server_callbacks() {
-        return {
-            [](Enabled_server_connector& /*esc*/, Method_id /*mid*/, Payload /*pl*/,
-               Method_call_reply_data_opt const& reply, auto const& /*cred*/) {
-                if (reply) {
-                    reply->reply(Method_result{Application_return{}});
-                }
-                return Method_invocation::Uptr{};
-            },
-            [this](Enabled_server_connector& esc, Event_id const& eid,
-                   Event_state const& /*state*/) {
-                EXPECT_TRUE(esc.update_event(eid, clone_payload(real_payload)));
-            },
-            [this](Enabled_server_connector& esc, Event_id const& eid) {
-                EXPECT_TRUE(esc.update_event(eid, clone_payload(real_payload)));
-            },
-            [](Enabled_server_connector& /*esc*/,
-               Method_id const& /*mid*/) -> score::Result<Writable_payload> {
-                ADD_FAILURE() << "Unexpected call to on_method_call_payload_allocate for method_id "
-                              << event_id;
-                return score::MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
-            }};
-    }  // namespace score::socom
+        return {[this](Enabled_server_connector& esc, Event_id const& eid,
+                       Event_state const& /*state*/) {
+                    EXPECT_TRUE(esc.update_event(eid, clone_payload(real_payload)));
+                },
+                [this](Enabled_server_connector& esc, Event_id const& eid) {
+                    EXPECT_TRUE(esc.update_event(eid, clone_payload(real_payload)));
+                }};
+    }
 
     std::function<void()> const server_thread = [this]() {
         auto esc = Disabled_server_connector::enable(
@@ -128,14 +90,11 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
     }
 };
 
-TEST_F(ConnectionMultiThreadingTest,
-       ClientSubscribesEventsAndCallsMethodsInStateChangeCallbackWithoutRace) {
+TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsInStateChangeCallbackWithoutRace) {
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
                                   Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
             subscribe_events(cc, connector_factory.get_num_events());
-            call_methods(cc, connector_factory.get_num_methods(), real_payload,
-                         create_method_reply_callback());
         }
     };
 
@@ -148,44 +107,7 @@ TEST_F(ConnectionMultiThreadingTest,
     multi_threaded_test_template({client_thread, server_thread}, counter.create_stop_condition());
 }
 
-TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsServerThreadAndCallsMethodsInOwnThread) {
-    auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
-                                  Service_interface_definition const& /*conf*/) {
-        if (Service_state::available == state) {
-            subscribe_events(cc, connector_factory.get_num_events());
-        }
-    };
-
-    auto const client_thread = [this, on_state_change]() {
-        auto const cc = this->connector_factory.create_client_connector(
-            create_client_callbacks(on_state_change));
-        call_methods(*cc, connector_factory.get_num_methods(), real_payload,
-                     create_method_reply_callback());
-    };
-
-    multi_threaded_test_template({client_thread, server_thread}, counter.create_stop_condition());
-}
-
-TEST_F(ConnectionMultiThreadingTest,
-       ClientCallsMethodsInServerThreadAndSubscribesEventsInOwnThreadWithoutRace) {
-    auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
-                                  Service_interface_definition const& /*conf*/) {
-        if (Service_state::available == state) {
-            call_methods(cc, connector_factory.get_num_methods(), real_payload,
-                         create_method_reply_callback());
-        }
-    };
-
-    auto const client_thread = [this, on_state_change]() {
-        auto const cc = this->connector_factory.create_client_connector(
-            create_client_callbacks(on_state_change));
-        subscribe_events(*cc, connector_factory.get_num_events());
-    };
-
-    multi_threaded_test_template({client_thread, server_thread}, counter.create_stop_condition());
-}
-
-TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnThreadWithoutRace) {
+TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsInOwnThreadWithoutRace) {
     auto on_state_change = [](Client_connector const& /* cc */, Service_state const& /* state */,
                               Service_interface_definition const& /*conf*/) {};
 
@@ -193,8 +115,6 @@ TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnT
         auto const cc = this->connector_factory.create_client_connector(
             create_client_callbacks(on_state_change));
         subscribe_events(*cc, connector_factory.get_num_events());
-        call_methods(*cc, connector_factory.get_num_methods(), real_payload,
-                     create_method_reply_callback());
     };
 
     multi_threaded_test_template({client_thread, server_thread}, counter.create_stop_condition());

@@ -35,7 +35,6 @@ A server application owns and uses this component to join client/server pattern 
 The server connector interacts with the client connector in order perform the supported communication primitives.
 The server connector API provides the following features:
 
-- remote procedure called indication
 - event subscription state changed indication:
 
   - on first subscriber
@@ -50,17 +49,6 @@ The server connector API provides the following features:
 Dynamic Architecture
 --------------------
 
-Method Communication
-~~~~~~~~~~~~~~~~~~~~
-
-Methods calls are routed 1:1 from client to server application.
-If a method reply is requested, the calling client is served with the related reply.
-Independent method calls share no state.
-
-.. uml:: models/interaction_diagram_method_communication.puml
-   :align: center
-   :caption: Interaction diagram: Method communication
-
 Event Communication
 ~~~~~~~~~~~~~~~~~~~
 
@@ -71,7 +59,7 @@ If no client is subscribed to an event, the server will not send any event updat
 After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
 SOCom keeps track of subscription states and related clients.
 
-.. comp_arc_dyn:: SOCom Event and Method Communication
+.. comp_arc_dyn:: SOCom Event Communication
    :id: comp_arc_dyn__socom_design__event_flow
    :version: 1
    :security: NO
