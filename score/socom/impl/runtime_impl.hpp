@@ -14,13 +14,11 @@
 #ifndef SCORE_SOCOM_RUNTIME_IMPL_HPP
 #define SCORE_SOCOM_RUNTIME_IMPL_HPP
 
-#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <set>
 #include <unordered_map>
-#include <vector>
 
 #include "client_connector_impl.hpp"
 #include "runtime_registration.hpp"
@@ -29,23 +27,10 @@
 #include "server_connector_impl.hpp"
 #include "service_identifier.hpp"
 
-namespace score {
-namespace socom {
+namespace score::socom {
 
 using CC_impl = client_connector::Impl;
 using SC_impl = server_connector::Impl;
-
-using Bridge_registration_id = Service_bridge_registration_handle const*;
-
-template <typename VALUE>
-using Bridge_id_to = std::map<Bridge_registration_id, VALUE>;
-
-using Bridge_id_to_request = Bridge_id_to<Service_request>;
-
-template <typename INSTANCE, typename HANDLE>
-using Active_bridge_requests = std::map<
-    std::tuple<Service_interface_definition, INSTANCE>,
-    std::tuple<std::weak_ptr<Bridge_id_to<HANDLE>>, std::vector<std::optional<Bridge_identity>>>>;
 
 template <typename T>
 struct Mutexed_variable {
@@ -88,16 +73,11 @@ class Service_record {
     Result<Client_registration> register_client_connector(
         Service_interface_identifier const& interface, CC_impl::Server_indication on_server_update);
 
-    bool is_available() const { return m_server.has_value(); }
-
    private:
     std::mutex& m_runtime_mutex;
     Server m_server;
     Client m_client;
 };
-
-using Instances = std::vector<Service_instance>;
-using Interfaces_instances = std::unordered_map<Service_interface_identifier, Instances>;
 
 class Service_database {
    public:
@@ -105,12 +85,6 @@ class Service_database {
 
     Service_record& get_record(Service_interface_identifier const& interface,
                                Service_instance const& instance);
-
-    Interfaces_instances get_instances(Service_interface_identifier const& interface,
-                                       std::optional<Service_instance> const& filter) const;
-
-    Interfaces_instances get_instances(std::optional<Service_interface_identifier> const& interface,
-                                       std::optional<Service_instance> const& filter) const;
 
    private:
     struct Minor_version_ignoring_key_equal {
@@ -137,39 +111,9 @@ class Service_database {
     Service_interfaces m_service_records;
 };
 
-struct Stop_subscription {
-    Stop_subscription() = default;
-    Stop_subscription(Stop_subscription const&) = delete;
-    Stop_subscription(Stop_subscription&&) = delete;
-    virtual ~Stop_subscription() noexcept;
-    Stop_subscription& operator=(Stop_subscription const&) = delete;
-    Stop_subscription& operator=(Stop_subscription&&) = delete;
-
-    virtual void stop_registration(Bridge_registration_id const& id) noexcept = 0;
-};
-
-class Bridge_registration_handle_impl final : public Service_bridge_registration_handle {
-   public:
-    explicit Bridge_registration_handle_impl(Stop_subscription& stopper, Bridge_identity identity)
-        : m_stopper{stopper}, m_identity{identity} {}
-    Bridge_registration_handle_impl(Bridge_registration_handle_impl const&) = delete;
-    Bridge_registration_handle_impl(Bridge_registration_handle_impl&&) = delete;
-    Bridge_registration_handle_impl& operator=(Bridge_registration_handle_impl const&) = delete;
-    Bridge_registration_handle_impl& operator=(Bridge_registration_handle_impl&&) = delete;
-    ~Bridge_registration_handle_impl() noexcept override { m_stopper.stop_registration(this); };
-    Bridge_identity get_identity() const override { return m_identity; }
-
-   private:
-    Stop_subscription& m_stopper;
-    Bridge_identity m_identity;
-};
-
 // both base classes delete the operator= in question
-class Runtime_impl final : public Runtime, public Stop_subscription {
+class Runtime_impl final : public Runtime {
    public:
-    using Bridge_registration_to_callbacks =
-        Bridge_id_to<std::tuple<Request_service_function, Interfaces_instances>>;
-
     Result<Client_connector::Uptr> make_client_connector(
         Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks) noexcept override;
@@ -177,11 +121,6 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
     Result<Disabled_server_connector::Uptr> make_server_connector(
         Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks) noexcept override;
-
-    // NOLINTBEGIN(bugprone-exception-escape)(ClangTidy Android Warning)
-    Result<Service_bridge_registration> register_service_bridge(
-        Bridge_identity identity, Request_service_function request_service) noexcept override;
-    // NOLINTEND(bugprone-exception-escape)
 
     Result<Registration> register_connector(Service_interface_definition const& configuration,
                                             Service_instance const& instance,
@@ -191,35 +130,14 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
                                     Service_instance const& instance,
                                     SC_impl::Listen_endpoint endpoint);
 
-    void stop_registration(Bridge_registration_id const& id) noexcept override;
-
    private:
-    std::shared_ptr<Bridge_id_to_request> get_or_create_service_requests(
-        Service_interface_definition const& configuration, Service_instance const& instance);
-
-    void remove_from_service_requests(Service_interface_definition const& configuration,
-                                      Service_instance const& instance);
-
-    Registration bridge_service_requests(Service_interface_definition const& configuration,
-                                         Service_instance const& instance);
-
-    Interfaces_instances get_bridge_reported_instances(
-        Service_interface_identifier const& interface,
-        std::optional<Service_instance> const& instance) const;
-
     mutable std::mutex m_runtime_mutex{};
     Service_database m_database{m_runtime_mutex};
-
-    mutable std::mutex m_bridge_mutex;
-    Bridge_registration_to_callbacks m_bridge_to_callbacks{};
-
-    Active_bridge_requests<Service_instance, Service_request> m_service_requests{};
 
     std::shared_ptr<Service_identifiers> m_service_identifiers{
         std::make_shared<Service_identifiers>()};
 };
 
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom
 
 #endif  // SCORE_SOCOM_RUNTIME_IMPL_HPP
