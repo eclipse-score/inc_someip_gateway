@@ -26,7 +26,7 @@
       },
       "lines": {
         "percent": 80,
-        "total": 1183
+        "total": 1182
       },
       "primary_need_id": "comp__gateway_ipc_binding"
     },
@@ -67,11 +67,11 @@
       },
       "files": {
         "measured": 24,
-        "total": 33
+        "total": 32
       },
       "lines": {
         "percent": 97,
-        "total": 916
+        "total": 898
       },
       "primary_need_id": "comp__socom"
     },
