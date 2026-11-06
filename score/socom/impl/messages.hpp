@@ -17,11 +17,8 @@
 #include "endpoint.hpp"
 #include "score/socom/client_connector.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/posix_credentials.hpp"
 
-namespace score {
-namespace socom {
-namespace message {
+namespace score::socom::message {
 
 struct Service_state_change {
     using Return_type = void;
@@ -45,11 +42,6 @@ struct Call_method {
     Method_id const id;
     Payload payload;
     Method_call_reply_data_opt reply_data;
-    Posix_credentials const& credentials;
-};
-
-struct Posix_credentials {
-    using Return_type = score::Result<::score::socom::Posix_credentials>;
 };
 
 struct Subscribe_event {
@@ -90,8 +82,6 @@ struct Allocate_method_call_payload {
     Method_id const id;
 };
 
-}  // namespace message
-}  // namespace socom
-}  // namespace score
+}  // namespace score::socom::message
 
 #endif  // SCORE_SOCOM_MESSAGES_HPP

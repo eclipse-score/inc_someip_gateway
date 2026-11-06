@@ -61,22 +61,12 @@ Server_data::Server_data(Connector_factory& factory,
                          Service_instance const& instance)
     : m_connector{factory.create_and_enable(configuration, instance, m_callbacks)} {}
 
-Server_data::Server_data(Connector_factory& factory,
-                         Server_service_interface_definition const& configuration,
-                         Service_instance const& instance, Posix_credentials const& credentials)
-    : m_connector{factory.create_and_enable(configuration, instance, m_credential_callbacks,
-                                            credentials)} {}
-
 Server_data::~Server_data() {
     wait_for_atomics(m_callback_called, m_method_callback_called, m_subscribed, m_unsubscribed,
                      m_method_payload_allocate_called);
 }
 
 Server_connector_callbacks_mock& Server_data::get_callbacks() { return m_callbacks; }
-
-Server_connector_credentials_callbacks_mock& Server_data::get_credentials_callbacks() {
-    return m_credential_callbacks;
-}
 
 Enabled_server_connector& Server_data::get_connector() { return *m_connector; }
 

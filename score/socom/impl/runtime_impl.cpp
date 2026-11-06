@@ -13,8 +13,6 @@
 
 #include "runtime_impl.hpp"
 
-#include <unistd.h>
-
 #include <algorithm>
 #include <iterator>
 #include <memory>
@@ -401,21 +399,14 @@ Result<Service_record::Client_registration> Service_record::register_client_conn
 Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
     Service_interface_definition configuration, Service_instance instance,
     Client_connector::Callbacks callbacks) noexcept {
-    return make_client_connector(std::move(configuration), instance, std::move(callbacks),
-                                 Posix_credentials{::getuid(), ::getgid()});
-}
-
-Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
-    Service_interface_definition configuration, Service_instance instance,
-    Client_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
     if (!is_valid(callbacks)) {
         return MakeUnexpected(Construction_error::callback_missing);
     }
 
     // check if one is already registered for this service interface and instance and return error
     // if yes
-    auto client_connector = std::make_unique<CC_impl>(std::move(configuration), instance,
-                                                      std::move(callbacks), credentials);
+    auto client_connector =
+        std::make_unique<CC_impl>(std::move(configuration), instance, std::move(callbacks));
 
     auto registration = register_connector(client_connector->get_configuration(),
                                            client_connector->get_service_instance(),
@@ -433,13 +424,6 @@ Result<Client_connector::Uptr> Runtime_impl::make_client_connector(
 Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
     Server_service_interface_definition configuration, Service_instance instance,
     Disabled_server_connector::Callbacks callbacks) noexcept {
-    return make_server_connector(std::move(configuration), instance, std::move(callbacks),
-                                 Posix_credentials{::getuid(), ::getgid()});
-}
-
-Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
-    Server_service_interface_definition configuration, Service_instance instance,
-    Disabled_server_connector::Callbacks callbacks, Posix_credentials const& credentials) noexcept {
     Service_instance_identifier const identifier{configuration.get_interface(), instance};
 
     if (!is_valid(callbacks)) {
@@ -463,7 +447,7 @@ Result<Disabled_server_connector::Uptr> Runtime_impl::make_server_connector(
         }};
 
     return {std::make_unique<SC_impl>(*this, std::move(configuration), instance,
-                                      std::move(callbacks), std::move(final_action), credentials)};
+                                      std::move(callbacks), std::move(final_action))};
 }
 
 Result<Service_bridge_registration> Runtime_impl::register_service_bridge(

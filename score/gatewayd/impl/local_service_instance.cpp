@@ -60,7 +60,7 @@ Result<std::unique_ptr<LocalServiceInstance>> LocalServiceInstance::Create(
         server_config, inst,
         {
             .on_method_call = [](socom::Enabled_server_connector&, socom::Method_id, socom::Payload,
-                                 socom::Method_call_reply_data_opt, socom::Posix_credentials const&)
+                                 socom::Method_call_reply_data_opt)
                 -> socom::Method_invocation::Uptr { return nullptr; },
             .on_event_subscription_change = [](socom::Enabled_server_connector&, socom::Event_id,
                                                socom::Event_state) {},

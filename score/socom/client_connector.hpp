@@ -18,11 +18,9 @@
 #include <optional>
 #include <score/move_only_function.hpp>
 
-#include "score/socom/error.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/posix_credentials.hpp"
 #include "score/socom/service_interface_definition.hpp"
 
 namespace score::socom {
@@ -231,11 +229,6 @@ class Client_connector {
     [[nodiscard]] virtual Result<Method_invocation::Uptr> call_method(
         Method_id client_id, Payload payload,
         Method_call_reply_data_opt reply_data = std::nullopt) const noexcept = 0;
-
-    /// \brief Retrieves the peer posix credentials from the server.
-    /// \details If the client connector is not connected, then an error is returned.
-    /// \return Posix credentials in case of successful operation, otherwise an error.
-    [[nodiscard]] virtual Result<Posix_credentials> get_peer_credentials() const noexcept = 0;
 
     [[nodiscard]] virtual Service_interface_definition const& get_configuration()
         const noexcept = 0;

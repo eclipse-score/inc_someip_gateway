@@ -95,8 +95,7 @@ Result<void> Consumer_service_binding::create_server_connector(
     score::socom::Runtime& runtime, Service_config const& config) noexcept {
     score::socom::Disabled_server_connector::Callbacks callbacks{
         [](score::socom::Enabled_server_connector&, score::socom::Method_id, score::socom::Payload,
-           score::socom::Method_call_reply_data_opt,
-           score::socom::Posix_credentials const&) -> score::socom::Method_invocation::Uptr {
+           score::socom::Method_call_reply_data_opt) -> score::socom::Method_invocation::Uptr {
             // GenericProxy and GenericSkeleton are event only, so bridged methods are not
             // representable. Known gap, see docs/mw_com_binding.rst.
             return nullptr;

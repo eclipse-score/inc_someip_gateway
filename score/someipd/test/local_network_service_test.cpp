@@ -100,7 +100,7 @@ class LocalNetworkServiceTest : public ::testing::Test {
 
     socom::Runtime::Uptr runtime_ = socom::create_runtime();
 
-    socom::Method_call_credentials_callback_mock method_call_mock_;
+    socom::Method_call_callback_mock method_call_mock_;
     socom::Event_subscription_change_callback_mock event_subscription_change_mock_;
     socom::Event_request_update_callback_mock event_update_request_mock_;
     socom::Method_call_payload_allocate_callback_mock method_payload_allocate_mock_;

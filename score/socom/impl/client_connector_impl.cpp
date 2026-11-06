@@ -25,13 +25,12 @@
 namespace score::socom::client_connector {
 
 Impl::Impl(Service_interface_definition configuration, Service_instance instance,
-           Client_connector::Callbacks callbacks, Posix_credentials const& credentials)
+           Client_connector::Callbacks callbacks)
     : m_configuration{std::move(configuration)},
       m_instance{instance},
       m_callbacks{std::move(callbacks)},
       m_stop_block_token{
-          std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })},
-      m_credentials{credentials} {}
+          std::make_shared<Final_action>([this]() { m_stop_complete_promise.set_value(); })} {}
 
 Impl::~Impl() noexcept {
     {
@@ -86,16 +85,11 @@ message::Call_method::Return_type Impl::call_method(
         );
     }
 
-    return send(
-        message::Call_method{client_id, std::move(payload), std::move(reply_data), m_credentials});
+    return send(message::Call_method{client_id, std::move(payload), std::move(reply_data)});
 }
 
 Result<Writable_payload> Impl::allocate_method_call_payload(Method_id method_id) noexcept {
     return send(message::Allocate_method_call_payload{method_id});
-}
-
-Result<Posix_credentials> Impl::get_peer_credentials() const noexcept {
-    return send(message::Posix_credentials{});
 }
 
 Service_interface_definition const& Impl::get_configuration() const noexcept {

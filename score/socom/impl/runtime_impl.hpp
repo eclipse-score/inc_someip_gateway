@@ -174,19 +174,9 @@ class Runtime_impl final : public Runtime, public Stop_subscription {
         Service_interface_definition configuration, Service_instance instance,
         Client_connector::Callbacks callbacks) noexcept override;
 
-    Result<Client_connector::Uptr> make_client_connector(
-        Service_interface_definition configuration, Service_instance instance,
-        Client_connector::Callbacks callbacks,
-        Posix_credentials const& credentials) noexcept override;
-
     Result<Disabled_server_connector::Uptr> make_server_connector(
         Server_service_interface_definition configuration, Service_instance instance,
         Disabled_server_connector::Callbacks callbacks) noexcept override;
-
-    Result<Disabled_server_connector::Uptr> make_server_connector(
-        Server_service_interface_definition configuration, Service_instance instance,
-        Disabled_server_connector::Callbacks callbacks,
-        Posix_credentials const& credentials) noexcept override;
 
     // NOLINTBEGIN(bugprone-exception-escape)(ClangTidy Android Warning)
     Result<Service_bridge_registration> register_service_bridge(

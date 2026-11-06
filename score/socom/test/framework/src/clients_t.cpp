@@ -87,9 +87,8 @@ Client_data::Client_data(Connector_factory& factory, No_connect_helper const& co
 
 Client_data::Client_data(Connector_factory& factory,
                          Service_interface_definition const& configuration,
-                         Service_instance const& instance,
-                         std::optional<Posix_credentials> const& credentials)
-    : m_connector{factory.create_and_connect(configuration, instance, m_callbacks, credentials)} {}
+                         Service_instance const& instance)
+    : m_connector{factory.create_and_connect(configuration, instance, m_callbacks)} {}
 
 Client_data::~Client_data() {
     wait_for_atomics(m_event_callback_called, m_event_request_callback_called,
@@ -374,10 +373,6 @@ Subscriptions Client_data::subscribe(Client_data::Vector const& clients, Event_i
         result.emplace_back(item->create_event_subscription(event_id));
     }
     return result;
-}
-
-score::Result<Posix_credentials> Client_data::get_peer_credentials() const {
-    return m_connector->get_peer_credentials();
 }
 
 }  // namespace score::socom

@@ -94,10 +94,4 @@ TEST_F(ClientMultiThreadingTest, CallMethodIsCalledByTwoThreadsWithoutRaceCondit
     multi_threaded_test_template({call_method, call_method}, is_ready(method_called));
 }
 
-TEST_F(ClientMultiThreadingTest, GetPeerCredentialsIsCalledByTwoThreadsWithoutRaceConditions) {
-    auto const get_peer_credentials = [this]() { (void)client.get_peer_credentials(); };
-
-    multi_threaded_test_template({get_peer_credentials, get_peer_credentials}, always_successful);
-}
-
 }  // namespace score::socom
