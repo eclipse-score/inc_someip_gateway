@@ -83,13 +83,13 @@ Module / Feature Documentation
    tc8_conformance/index.rst
 
 
-Component documentation
--------------------------------
+Component Documentation
+-----------------------
 
 .. toctree::
    :maxdepth: 1
 
-   components
+   components.rst
 
 
 Examples

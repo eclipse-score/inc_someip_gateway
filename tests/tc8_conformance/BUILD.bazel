@@ -322,3 +322,33 @@ integration_test(
     ],
     deps = _ITF_DEPS,
 )
+
+integration_test(
+    name = "test_tc8_msg_format",
+    timeout = "moderate",
+    srcs = [
+        "test_msg_format.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
+
+integration_test(
+    name = "test_tc8_msg_format_tcp",
+    timeout = "short",
+    srcs = [
+        "test_msg_format_tcp.py",
+    ],
+    args = _ITF_ARGS,
+    filesystem = ":tc8-itf-pkg",
+    tags = [
+        "conformance",
+        "tc8",
+    ],
+    deps = _ITF_DEPS,
+)
