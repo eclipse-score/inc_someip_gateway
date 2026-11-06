@@ -517,9 +517,7 @@ No event update will be received in this state.</p></td>
 </tr>
 <tr class="row-even"><td><p>Event_subscribed</p></td>
 <td><p>The user is subscribed to the event.
-Event updates will be received in this state.
-However, the server has not acknowledged the subscription yet.
-Thus clients do not know if the server will send event updates.</p></td>
+Event updates will be received in this state.</p></td>
 </tr>
 </tbody>
 </table>
@@ -550,7 +548,7 @@ Thus clients do not know if the server will send event updates.</p></td>
 </section>
 <section id="service-state">
 <span id="service-state-machine"></span><h2><span class="section-number">3.2. </span>Service state<a class="headerlink" href="#service-state" title="Link to this heading">#</a></h2>
-<p>The following model describes the state-behavior of a service instance as reported to an instance of type Client_connector by callback on_state_change().</p>
+<p>The following model describes the state-behavior of a service instance as reported to an instance of type Client_connector by callback on_service_state_change().</p>
 <figure class="align-center" id="id4">
 <p class="plantuml">
 <object data="../../_images/plantuml-81ebdb46e39b8356131c245ce9fc4c1283da6ea2.svg" type="image/svg+xml" style="width:893px;height:250px;background:#FFFFFF;"></object></p>
@@ -590,12 +588,15 @@ Thus the service instance can be used and service requests will be answered.</p>
 <td><p>Construction of Disabled_server_connector by API function Runtime::make_server_connector().</p></td>
 </tr>
 <tr class="row-odd"><td><p>Disabled_server_connector::enable()</p></td>
+<td><p>Enabling of Disabled_server_connector by API function Disabled_server_connector::enable().</p></td>
+</tr>
+<tr class="row-even"><td><p>Enabled_server_connector::disable()</p></td>
 <td><p>Disabling of Enabled_server_connector by API function Enabled_server_connector::disable().</p></td>
 </tr>
-<tr class="row-even"><td><p>~Disabled_server_connector()</p></td>
+<tr class="row-odd"><td><p>~Disabled_server_connector()</p></td>
 <td><p>Destruction of Disabled_server_connector().</p></td>
 </tr>
-<tr class="row-odd"><td><p>~Enabled_server_connector()</p></td>
+<tr class="row-even"><td><p>~Enabled_server_connector()</p></td>
 <td><p>Destruction of Enabled_server_connector().</p></td>
 </tr>
 </tbody>

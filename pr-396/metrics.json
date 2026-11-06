@@ -2,22 +2,31 @@
   "schema_version": "2",
   "generated_by": "sphinx_build",
   "overall_metrics": {
-    "total": 18,
+    "total": 25,
     "with_code_link": 0,
     "with_test_link": 15,
     "fully_linked": 0,
     "with_code_link_pct": 0.0,
-    "with_test_link_pct": 83.33333333333334,
+    "with_test_link_pct": 60.0,
     "fully_linked_pct": 0.0
   },
   "metrics_by_type": {
+    "aou_req": {
+      "total": 1,
+      "with_code_link": 0,
+      "with_test_link": 0,
+      "fully_linked": 0,
+      "with_code_link_pct": 0.0,
+      "with_test_link_pct": 0.0,
+      "fully_linked_pct": 0.0
+    },
     "comp_req": {
-      "total": 16,
+      "total": 22,
       "with_code_link": 0,
       "with_test_link": 15,
       "fully_linked": 0,
       "with_code_link_pct": 0.0,
-      "with_test_link_pct": 93.75,
+      "with_test_link_pct": 68.18181818181817,
       "fully_linked_pct": 0.0
     },
     "feat_req": {
@@ -40,13 +49,13 @@
     }
   },
   "tests": {
-    "total": 132,
+    "total": 178,
     "linked_to_requirements": 123,
-    "linked_to_requirements_pct": 93.18181818181817,
+    "linked_to_requirements_pct": 69.10112359550563,
     "broken_references": []
   },
   "verification_metrics": {
-    "comp__serializer": {
+    "comp__null_serializer": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -73,6 +82,32 @@
       }
     },
     "comp__socom": {
+      "requirements": {
+        "status": {
+          "valid": 2,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 2
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 3,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 3
+        }
+      }
+    },
+    "comp__serializer": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -124,7 +159,7 @@
         }
       }
     },
-    "comp__gatewayd": {
+    "comp__someip": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -153,26 +188,52 @@
     "comp__gateway_ipc_binding": {
       "requirements": {
         "status": {
-          "valid": 0,
+          "valid": 3,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 0
+          "not_covered": 3
         }
       },
       "architecture": {
         "status": {
-          "valid": 0,
+          "valid": 2,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 0
+          "not_covered": 2
+        }
+      }
+    },
+    "comp__gatewayd": {
+      "requirements": {
+        "status": {
+          "valid": 1,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 1
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 2,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 2
         }
       }
     },
@@ -187,58 +248,6 @@
           "fully_covered": 14,
           "partially_covered": 1,
           "not_covered": 1
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
-    "comp__someip": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
-    "comp__null_serializer": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
         }
       },
       "architecture": {

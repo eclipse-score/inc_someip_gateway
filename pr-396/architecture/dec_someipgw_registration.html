@@ -73,7 +73,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="DR-001-Arch: SOME/IP stack abstraction" href="dec_someip_api_abstraction.html" />
-    <link rel="prev" title="Components" href="components.html" />
+    <link rel="prev" title="Features" href="features.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
@@ -408,9 +408,6 @@
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
 </ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
-</ul>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Architectural Design Decision: Dynamic Registration for SOME/IP Gateway</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dec_someip_api_abstraction.html">DR-001-Arch: SOME/IP stack abstraction</a></li>
@@ -478,7 +475,7 @@
                   
   <section id="architectural-design-decision-dynamic-registration-for-some-ip-gateway">
 <h1>Architectural Design Decision: Dynamic Registration for SOME/IP Gateway<a class="headerlink" href="#architectural-design-decision-dynamic-registration-for-some-ip-gateway" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-eecd5fbb">
+<div class="need_container docutils container" id="SNCB-1dd4a093">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_dec_rec table" id="dec_rec__component__someip_gw_registration">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -486,7 +483,7 @@
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">proposed</span></span></span></div>
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">accepted</span></span></span></div>
 <div class="line"><span></span></div>
 <div class="line"><span></span></div>
 </div>
@@ -498,7 +495,7 @@
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
 <div class="line"><span><span><div class="line"><span class="needs_context"><span class="needs_label">context: </span><span class="needs_data">The SOME/IP Gateway architecture separates the core communication stack from multiple gateway processes. This is necessary for safety separation (ASIL vs. QM) and to manage a single network socket, which can only be bound by one process. A mechanism is required for the gateway &quot;client&quot; processes to inform the central &quot;server&quot; stack of their routing needs at runtime.</span></span></div>
-<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Gateway processes will dynamically register their communication requirements (e.g., required services and events) with the central SOME/IP Communication Stack process. This will be achieved via a dedicated, message-based IPC interface.</span></span></div>
+<div class="line"><span class="needs_decision"><span class="needs_label">decision: </span><span class="needs_data">Gateway processes will dynamically register their communication requirements (service configuration and consumer event payload sizes) with the central SOME/IP Communication Stack process via the dedicated SomeipdService mw::com IPC interface.</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -612,12 +609,11 @@ While they could use different ports, this would violate the SOME/IP service arc
 <ul class="simple">
 <li><p><strong>Flexibility and Scalability:</strong>
 This is the primary advantage.
-New gateway processes can be introduced, and existing ones can be updated and restarted independently without affecting the central SOME/IP stack or any other gateway.
+New gateway processes can be introduced, and existing ones can be restarted independently without affecting the central SOME/IP stack or any other gateway.
 This is essential for a dynamic, resilient system.</p></li>
 <li><p><strong>Robust State Management:</strong>
 The registration protocol provides explicit control over the system’s state.
-The central stack knows exactly which gateways are active and what their requirements are.
-The IPC connection’s liveness provides a reliable and immediate mechanism to detect client failures and clean up associated routes, preventing data loss to dead processes.</p></li>
+The central stack validates and sets up each gateway’s service configuration atomically on registration, and accepts identical re-registrations idempotently when a restarted gateway reconnects.</p></li>
 <li><p><strong>Clear Separation of Concerns:</strong>
 It enforces the client-server model cleanly.
 The IPC protocol becomes a well-defined API contract between the components, allowing them to be developed, tested, and maintained independently.</p></li>
@@ -638,12 +634,12 @@ It is far less complex and risky than implementing a custom shared memory soluti
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="components.html"
+       href="features.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Components</p>
+        <p class="prev-next-title">Features</p>
       </div>
     </a>
     <a class="right-next"
