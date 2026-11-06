@@ -182,7 +182,7 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -324,7 +324,7 @@
 
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -462,7 +462,7 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../../components.html" class="nav-link">&lt;no title&gt;</a></li>
+    <li class="breadcrumb-item"><a href="../../components.html" class="nav-link">Components</a></li>
     
     
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">SOCom</a></li>
@@ -498,8 +498,7 @@
 <h2><span class="section-number">2.1. </span>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h2>
 <p>The runtime is a (process internal) service instance broker.
 Client connectors and server connectors are created using the runtime (factory), which keeps track of their existence and state.
-Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.
-Additionally, it provides a service instance find interface.</p>
+Depending on the existence and state of the communication partners, the runtime takes care for connecting/disconnecting service interface and service instance compatible client and server connectors.</p>
 </section>
 <section id="server-connector">
 <h2><span class="section-number">2.2. </span>Server connector<a class="headerlink" href="#server-connector" title="Link to this heading">#</a></h2>
@@ -518,11 +517,13 @@ The server connector API provides the following features:</p>
 <li><p>event mode getter (event with/without initial update)</p></li>
 <li><p>update event</p></li>
 <li><p>update requested event</p></li>
-<li><p>acknowledge event subscription</p></li>
+<li><p>allocate event payload</p></li>
 </ul>
 </section>
+<section id="dynamic-architecture">
+<h2><span class="section-number">2.3. </span>Dynamic Architecture<a class="headerlink" href="#dynamic-architecture" title="Link to this heading">#</a></h2>
 <section id="method-communication">
-<h2><span class="section-number">2.3. </span>Method Communication<a class="headerlink" href="#method-communication" title="Link to this heading">#</a></h2>
+<h3><span class="section-number">2.3.1. </span>Method Communication<a class="headerlink" href="#method-communication" title="Link to this heading">#</a></h3>
 <p>Methods calls are routed 1:1 from client to server application.
 If a method reply is requested, the calling client is served with the related reply.
 Independent method calls share no state.</p>
@@ -535,22 +536,73 @@ Independent method calls share no state.</p>
 </figure>
 </section>
 <section id="event-communication">
-<h2><span class="section-number">2.4. </span>Event Communication<a class="headerlink" href="#event-communication" title="Link to this heading">#</a></h2>
+<h3><span class="section-number">2.3.2. </span>Event Communication<a class="headerlink" href="#event-communication" title="Link to this heading">#</a></h3>
 <p>The client subscribes to an event.
 On the subscription, SOCom informs the server using the request for events.
 If no client is subscribed to an event, the server will not send any event updates.</p>
 <p>After unsubscription of the subscriber, SOCom informs the server that an event is not subscribed anymore.
 SOCom keeps track of subscription states and related clients.</p>
-<figure class="align-center" id="id2">
+<div class="need_container docutils container" id="SNCB-1e61a19b">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_dyn table" id="comp_arc_dyn__socom_design__event_flow">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">SOCom Event and Method Communication</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="reference internal" href="../index.html#comp__socom" title="comp_arc_dyn__socom_design__event_flow">comp__socom</a></span></span></div>
+<div class="line">fulfils: <span class="fulfils"><span><a class="reference internal" href="../../requirements/component/socom.html#comp_req__socom__event_delivery" title="comp_arc_dyn__socom_design__event_flow">comp_req__socom__event_delivery</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"><figure class="align-center" id="id2">
 <p class="plantuml">
 <object data="../../_images/plantuml-40913dcf40fb41347e4f84e73e5bf22a7dac4ec0.svg" type="image/svg+xml" style="width:842px;height:718px;background:#FFFFFF;"></object></p>
 <figcaption>
 <p><span class="caption-number">Fig. 2.2 </span><span class="caption-text">Interaction diagram: Event communication</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
+<figure class="align-center" id="id3">
+<p class="plantuml">
+<object data="../../_images/plantuml-0ad5c5e70c684a192e4117397146aa8bedb66057.svg" type="image/svg+xml" style="width:2348px;height:1028px;background:#FFFFFF;"></object></p>
+<figcaption>
+<p><span class="caption-number">Fig. 2.3 </span><span class="caption-text">Interaction diagram: Zero-copy event update across someipd and gatewayd</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#comp_arc_dyn__socom_design__event_flow" title="comp_arc_dyn__socom_design__event_flow">comp_arc_dyn__socom_design__event_flow</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Component Sequence Diagram</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
 <section id="field-notification-communication">
-<h2><span class="section-number">2.5. </span>Field Notification Communication<a class="headerlink" href="#field-notification-communication" title="Link to this heading">#</a></h2>
+<h3><span class="section-number">2.3.3. </span>Field Notification Communication<a class="headerlink" href="#field-notification-communication" title="Link to this heading">#</a></h3>
 <p>A field notification is implemented as an event with event update on subscription.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -561,16 +613,17 @@ since SOCom does not save the current event values, SOCom requests an event upda
 Those updates are indicated to the client which is subscribed and has an initial event update pending.</p>
 <p>Regular update_event() calls update for the events of the subscriber and also fulfills the initial event update use-case.
 Consequently, update_event() satisfies the event update request implicitly.</p>
-<figure class="align-center" id="id3">
+<figure class="align-center" id="id4">
 <p class="plantuml">
 <object data="../../_images/plantuml-0f7b7324104a8b08456803bb47d1876ad1573b83.svg" type="image/svg+xml" style="width:1003px;height:819px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2.3 </span><span class="caption-text">Interaction diagram: Field notification communication</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2.4 </span><span class="caption-text">Interaction diagram: Field notification communication</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
+</section>
 <section id="deadlock-detection">
-<h2><span class="section-number">2.6. </span>Deadlock detection<a class="headerlink" href="#deadlock-detection" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.4. </span>Deadlock detection<a class="headerlink" href="#deadlock-detection" title="Link to this heading">#</a></h2>
 <p>In order to facilitate deadlock detection, before a callback is called by a Client_connector or
 Server_connector the thread id of the caller is saved.
 After the callback returns, the previously saved thread id is removed.
@@ -578,28 +631,28 @@ If the calling object is destructed prematurely the deadlock is detected by chec
 id is still present, issuing a warning log and terminating the application.</p>
 </section>
 <section id="client-connector-deadlocks">
-<h2><span class="section-number">2.7. </span>Client_connector deadlocks<a class="headerlink" href="#client-connector-deadlocks" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.5. </span>Client_connector deadlocks<a class="headerlink" href="#client-connector-deadlocks" title="Link to this heading">#</a></h2>
 <p>When a running callback destroys the calling Client_connector a deadlock will happen, which will cause the application to be terminated.</p>
 <p>The deadlock is caused because the Client_connector destructor waits for the callback to return.
 The callback on the other hand waits for the destructor to return.</p>
-<figure class="align-center" id="id4">
+<figure class="align-center" id="id5">
 <p class="plantuml">
-<object data="../../_images/plantuml-769d436dbdd9a6a534af9d955d7090f040364bfd.svg" type="image/svg+xml" style="width:660px;height:1131px;background:#FFFFFF;"></object></p>
+<object data="../../_images/plantuml-cfd79a91bcf14577534891fbbe067b6db022ae4b.svg" type="image/svg+xml" style="width:568px;height:1131px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2.4 </span><span class="caption-text">Interaction diagram: Client_connector deadlocks</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2.5 </span><span class="caption-text">Interaction diagram: Client_connector deadlocks</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
 <section id="server-connector-deadlocks">
-<h2><span class="section-number">2.8. </span>Server_connector deadlocks<a class="headerlink" href="#server-connector-deadlocks" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.6. </span>Server_connector deadlocks<a class="headerlink" href="#server-connector-deadlocks" title="Link to this heading">#</a></h2>
 <p>When a running callback destroys the calling Server_connector a deadlock will happen, which will cause the application to be terminated.</p>
 <p>The deadlock is caused because the Server_connector destructor waits for the callback to return.
 The callback on the other hand waits for the destructor to return.</p>
-<figure class="align-center" id="id5">
+<figure class="align-center" id="id6">
 <p class="plantuml">
 <object data="../../_images/plantuml-aa84fcfc34d13b32009a4a1155a2adb128dbf400.svg" type="image/svg+xml" style="width:567px;height:582px;background:#FFFFFF;"></object></p>
 <figcaption>
-<p><span class="caption-number">Fig. 2.5 </span><span class="caption-text">Interaction diagram: Server_connector deadlocks</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 2.6 </span><span class="caption-text">Interaction diagram: Server_connector deadlocks</span><a class="headerlink" href="#id6" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 </section>
@@ -654,12 +707,15 @@ The callback on the other hand waits for the destructor to return.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#runtime">2.1. Runtime</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector">2.2. Server connector</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3. Method Communication</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.4. Event Communication</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.5. Field Notification Communication</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlock-detection">2.6. Deadlock detection</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#client-connector-deadlocks">2.7. Client_connector deadlocks</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector-deadlocks">2.8. Server_connector deadlocks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamic-architecture">2.3. Dynamic Architecture</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-communication">2.3.1. Method Communication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-communication">2.3.2. Event Communication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#field-notification-communication">2.3.3. Field Notification Communication</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deadlock-detection">2.4. Deadlock detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#client-connector-deadlocks">2.5. Client_connector deadlocks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-connector-deadlocks">2.6. Server_connector deadlocks</a></li>
 </ul>
   </nav></div>
 
