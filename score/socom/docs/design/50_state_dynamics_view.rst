@@ -40,8 +40,6 @@ The following model describes the state-behavior of an event subscription from a
    * - Event_subscribed
      - The user is subscribed to the event.
        Event updates will be received in this state.
-       However, the server has not acknowledged the subscription yet.
-       Thus clients do not know if the server will send event updates.
 
 .. list-table:: Triggers
    :header-rows: 1
@@ -62,7 +60,7 @@ The following model describes the state-behavior of an event subscription from a
 Service state
 -------------
 
-The following model describes the state-behavior of a service instance as reported to an instance of type Client_connector by callback on_state_change().
+The following model describes the state-behavior of a service instance as reported to an instance of type Client_connector by callback on_service_state_change().
 
 .. uml:: models/state_diagram_service_state.puml
    :align: center
@@ -89,6 +87,8 @@ The following model describes the state-behavior of a service instance as report
    * - Runtime::make_server_connector()
      - Construction of Disabled_server_connector by API function Runtime::make_server_connector().
    * - Disabled_server_connector::enable()
+     - Enabling of Disabled_server_connector by API function Disabled_server_connector::enable().
+   * - Enabled_server_connector::disable()
      - Disabling of Enabled_server_connector by API function Enabled_server_connector::disable().
    * - ~Disabled_server_connector()
      - Destruction of Disabled_server_connector().

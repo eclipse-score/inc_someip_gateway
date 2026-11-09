@@ -15,7 +15,6 @@
 #include "score/socom/client_connector.hpp"
 #include "score/socom/clients_t.hpp"
 #include "score/socom/event.hpp"
-#include "score/socom/posix_credentials.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/server_t.hpp"
 #include "score/socom/single_connection_test_fixture.hpp"
@@ -119,35 +118,6 @@ TEST_F(SingleConnectionTest, DisablingServerMakesClientLoseEventSubscription) {
 
     // GMock would fail, if these were received
     server.update_event(event_id, real_payload);
-}
-
-TEST_F(SingleConnectionTest, ClientRetrievesCustomCredentialsFromServer) {
-    auto uid = ::getuid() + 1;
-    auto gid = ::getgid() + 1;
-    Posix_credentials valid_credentials{uid, gid};
-    Server_data server{connector_factory, connector_factory.get_configuration(),
-                       connector_factory.get_instance(), valid_credentials};
-    Client_data client{connector_factory};
-
-    auto result = client.get_peer_credentials();
-    ASSERT_TRUE(result.has_value());
-
-    auto credentials = result.value();
-    EXPECT_EQ(credentials.uid, uid);
-    EXPECT_EQ(credentials.gid, gid);
-}
-
-TEST_F(SingleConnectionTest, ClientRetrievesDefaultCredentialsFromServer) {
-    Server_data server{connector_factory, connector_factory.get_configuration(),
-                       connector_factory.get_instance()};
-    Client_data client{connector_factory};
-
-    auto result = client.get_peer_credentials();
-    ASSERT_TRUE(result.has_value());
-
-    auto credentials = result.value();
-    EXPECT_EQ(credentials.uid, ::getuid());
-    EXPECT_EQ(credentials.gid, ::getgid());
 }
 
 }  // namespace score::socom

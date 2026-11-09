@@ -64,12 +64,12 @@ rnote over Client_connector
  Deadlock happens here because destructor waits for callback to finish.
 endrnote
 
-== Deadlock by on_event_subscription_status_change ==
+== Deadlock by on_event_payload_allocate ==
 
-Server_connector --> Client_connector: set_event_subscription_state()
+Server_connector --> Client_connector: allocate_event_payload()
 activate Client_connector
 
-Client_connector --> Client_callbacks: on_event_subscription_status_change ()
+Client_connector --> Client_callbacks: on_event_payload_allocate()
 activate Client_callbacks
 
 Client_callbacks --> Client_connector: ~Client_connector()

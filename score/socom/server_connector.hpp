@@ -17,11 +17,9 @@
 #include <memory>
 #include <score/move_only_function.hpp>
 
-#include "score/socom/error.hpp"
 #include "score/socom/event.hpp"
 #include "score/socom/method.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/posix_credentials.hpp"
 #include "score/socom/service_interface_definition.hpp"
 
 namespace score::socom {
@@ -38,9 +36,8 @@ using Event_request_update_callback =
     score::cpp::move_only_function<void(Enabled_server_connector&, Event_id)>;
 
 /// \brief Function type for processing any client side method invocation.
-using Method_call_credentials_callback = score::cpp::move_only_function<Method_invocation::Uptr(
-    Enabled_server_connector&, Method_id, Payload, Method_call_reply_data_opt,
-    Posix_credentials const&)>;
+using Method_call_callback = score::cpp::move_only_function<Method_invocation::Uptr(
+    Enabled_server_connector&, Method_id, Payload, Method_call_reply_data_opt)>;
 
 /// \brief Function type for indicating a method call payload request to the service provider.
 using Method_call_payload_allocate_callback =
@@ -84,7 +81,7 @@ class Disabled_server_connector : public Configuration_getter {
     /// terminated.
     struct Callbacks {
         /// \brief Callback is called on any client side method invocation.
-        Method_call_credentials_callback on_method_call;
+        Method_call_callback on_method_call;
 
         /// \brief Callback is called if an event is subscribed by the first Client_connector or
         /// unsubscribed by the last Client_connector.

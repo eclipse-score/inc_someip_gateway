@@ -33,18 +33,12 @@ using Event_payload_allocate_callback_mock =
 using Event_subscription_change_callback_mock =
     Move_only_function_mock<Event_subscription_change_callback>;
 using Event_request_update_callback_mock = Move_only_function_mock<Event_request_update_callback>;
-using Method_call_credentials_callback_mock =
-    Move_only_function_mock<Method_call_credentials_callback>;
+using Method_call_callback_mock = Move_only_function_mock<Method_call_callback>;
 using Method_call_payload_allocate_callback_mock =
     Move_only_function_mock<Method_call_payload_allocate_callback>;
 
 // Method callbacks
-using Method_call_credentials_callback_mock =
-    Move_only_function_mock<Method_call_credentials_callback>;
 using Method_reply_callback_mock = Move_only_function_mock<Method_reply_callback>;
-
-// Bridge callbacks
-using Request_service_function_mock = ::testing::MockFunction<Request_service_function>;
 
 }  // namespace score::socom
 

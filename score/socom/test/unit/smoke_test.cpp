@@ -39,7 +39,7 @@ class Runtime_test : public ::testing::Test {
     // Server_connector mocks
     Event_subscription_change_callback_mock m_event_subscription_change_mock;
     Event_request_update_callback_mock m_event_update_request_mock;
-    Method_call_credentials_callback_mock m_method_call_mock;
+    Method_call_callback_mock m_method_call_mock;
     Method_call_payload_allocate_callback_mock m_method_payload_allocate_mock;
 
     Disabled_server_connector::Callbacks make_server_callbacks() {
@@ -86,7 +86,6 @@ class Connection_test : public Runtime_test {
     std::unique_ptr<Enabled_server_connector> server_connector;
 
     // Method mocks
-    Method_call_credentials_callback_mock m_method_call_credentials_mock;
     Method_reply_callback_mock m_method_reply_mock;
 };
 
@@ -128,8 +127,8 @@ TEST_F(Connection_test, server_sends_event_which_is_received_by_the_client) {
 
 TEST_F(Connection_test, client_calls_method_and_gets_response) {
     Method_call_reply_data_opt pointer;
-    EXPECT_CALL(m_method_call_mock, Call(_, 0, _, _, _))
-        .WillOnce([&pointer](auto&, auto, auto, auto cb_data, auto) {
+    EXPECT_CALL(m_method_call_mock, Call(_, 0, _, _))
+        .WillOnce([&pointer](auto&, auto, auto, auto cb_data) {
             pointer = std::move(cb_data);
             return nullptr;
         });

@@ -18,7 +18,7 @@ on:
 
 jobs:
   build-docs:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@3f61217cfa69b1d40b366049ace7fc63932e63c2 # main (2026-10-28)
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@f606cc0c3fccd3e85dcc6d112f3f1f9aed7efdb8 # main
     permissions:
       contents: read
 

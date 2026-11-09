@@ -98,9 +98,8 @@ void Server_connector_with_callbacks::create_connector(
     socom::Runtime& runtime, socom::Server_service_interface_definition const& interface,
     score::socom::Service_instance const& instance) {
     socom::Disabled_server_connector::Callbacks callbacks{
-        mock_method_call_credentials_cb.as_function(),
-        mock_event_subscription_change_cb.as_function(), mock_event_request_update_cb.as_function(),
-        mock_method_payload_allocate_cb.as_function()};
+        mock_method_call_cb.as_function(), mock_event_subscription_change_cb.as_function(),
+        mock_event_request_update_cb.as_function(), mock_method_payload_allocate_cb.as_function()};
 
     auto server_connector_result =
         runtime.make_server_connector(interface, instance, std::move(callbacks));
