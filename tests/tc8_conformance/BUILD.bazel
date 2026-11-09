@@ -14,9 +14,9 @@
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_python//python:defs.bzl", "py_library")
+load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("@score_someip_gateway//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 load("@score_tooling//:defs.bzl", "score_py_pytest")
-load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//quality/integration_testing:integration_testing.bzl", "integration_test")
 
 # Linux only: QNX has no Python toolchain and is excluded from the QNX build sweep.

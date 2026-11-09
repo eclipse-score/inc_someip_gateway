@@ -13,7 +13,7 @@
 
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
-load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 
 exports_files(
     ["mw_com_config.json"],
