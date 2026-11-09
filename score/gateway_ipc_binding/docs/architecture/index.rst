@@ -266,7 +266,7 @@ Payload lifetime and flow control
 LoLa owns the shared-memory sample slots:
 
 - **provider side**: ``Provider_service_binding::on_event_payload_allocate()`` allocates a LoLa sample slot and
-  stores the ``SampleAllocateePtr<void>`` in ``Allocations`` keyed by its ``slot_handle`` until
+  stores the ``SampleAllocateePtr<void>`` as inline user data in the ``Writable_payload`` until
   ``on_event_update()`` writes the payload-length prefix and sends it, or releases the slot back to LoLa if the
   ``Writable_payload`` is dropped unsent. If all sample slots of an event are in use
   (``kNumber_of_sample_slots = 20``, shared between allocated samples awaiting ``Send()`` on the provider and
