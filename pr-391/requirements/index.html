@@ -182,7 +182,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -324,7 +324,7 @@
 
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../components.html">
-    <no title>
+    Components
   </a>
 </li>
 
@@ -476,7 +476,10 @@ following the S-CORE docs-as-code requirements process.</p>
 <li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature Requirements</a><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="component/index.html">Component Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="component/socom.html">SOCom Component Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="component/gateway_ipc_binding.html">Gateway IPC Binding Component Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="component/gatewayd.html">gatewayd Component Requirements</a></li>
 </ul>
 </li>
 </ul>
@@ -534,6 +537,14 @@ S-CORE requirements engineering process:</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gatewayd</span></code></p></td>
 <td><p>ASIL-B</p></td>
 <td><p>Gateway daemon — bridges IPC and SOME/IP, E2E protection, ACL enforcement</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code></p></td>
+<td><p>ASIL-B</p></td>
+<td><p>IPC bridge between <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code> for service control and event payloads</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">socom</span></code></p></td>
+<td><p>ASIL-B</p></td>
+<td><p>SOCom connector abstraction for service offers, discovery, and event transport</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">someipd</span></code></p></td>
 <td><p>QM</p></td>
@@ -604,7 +615,8 @@ S-CORE requirements engineering process:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">:safety:</span></code> — <code class="docutils literal notranslate"><span class="pre">QM</span></code> or <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:security:</span></code> — <code class="docutils literal notranslate"><span class="pre">YES</span></code> or <code class="docutils literal notranslate"><span class="pre">NO</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:reqtype:</span></code> — <code class="docutils literal notranslate"><span class="pre">Functional</span></code>, <code class="docutils literal notranslate"><span class="pre">Interface</span></code>, <code class="docutils literal notranslate"><span class="pre">Process</span></code>, or <code class="docutils literal notranslate"><span class="pre">Non-Functional</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">:satisfies:</span></code> — parent requirement ID (mandatory for feature and component levels)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:derived_from:</span></code> — parent requirement ID (mandatory for feature and component levels, used for upward requirement links)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:satisfied_by:</span></code> — component ID that implements a component requirement</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:rationale:</span></code> — justification text (mandatory for stakeholder level only)</p></li>
 </ul>
 </section>
