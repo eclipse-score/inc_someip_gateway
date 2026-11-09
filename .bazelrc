@@ -25,7 +25,14 @@ build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 
 # Import central S-CORE toolchain configuration
-import %workspace%/score.bazelrc/score_toolchain.bazelrc
+try-import %workspace%/score.bazelrc/score_toolchain.bazelrc
+
+# Repository-specific host tool settings to allow code generators (e.g. flatbuffers)
+# and foreign_cc tools (make/pkgconfig for vsomeip) to bootstrap cleanly
+build --host_platform=@score_bazel_platforms//:x86_64-linux
+build --host_features=-warnings_as_errors
+build --extra_toolchains=@rules_foreign_cc//toolchains:preinstalled_make_toolchain
+build --extra_toolchains=@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain
 
 # Repository-specific ext4 toolchain
 common --extra_toolchains=@score_linux_x86_64_ext4_toolchain//:ext4-x86_64-linux
@@ -95,6 +102,7 @@ common --registry=https://bcr.bazel.build
 # Feature Flags & S-CORE Configuration
 # ============================================================================
 common --features=-treat_warnings_as_errors
+common --features=-warnings_as_errors
 common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration

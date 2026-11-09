@@ -11,20 +11,51 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# Target configuration for CPU:x86-64|OS:Linux build (do not use it in case of system toolchains!)
-build:score-linux-x86_64 --platforms=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
-build:score-linux-x86_64 --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0
+build:_score_common --host_platform=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
+build:_score_common --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
+build:_score_common --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0
 
-# Target configuration for CPU:AArch64|OS:Linux build (cross-compilation)
-build:score-linux-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
-build:score-linux-aarch64 --extra_toolchains=@score_gcc_aarch64_toolchain//:aarch64-linux-gcc_12.2.0
-
-# Target configuration for CPU:x86-64|OS:QNX build (do not use it in case of system toolchains!)
+build:score-qnx-x86_64 --config=_score_common
+build:score-qnx-x86_64 --noexperimental_merged_skyframe_analysis_execution
+build:score-qnx-x86_64 --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+build:score-qnx-x86_64 --incompatible_enable_cc_toolchain_resolution
+build:score-qnx-x86_64 --incompatible_strict_action_env
+build:score-qnx-x86_64 --sandbox_writable_path=/var/tmp
 build:score-qnx-x86_64 --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 build:score-qnx-x86_64 --extra_toolchains=@score_qcc_x86_64_toolchain//:x86_64-qnx-sdp_8.0.0
 build:score-qnx-x86_64 --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:ifs-x86_64-qnx-sdp_8.0.0
+build:score-qnx-x86_64 --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
 
-# Target configuration for CPU:AArch64|OS:QNX build (do not use it in case of system toolchains!)
+build:score-qnx-aarch64 --config=_score_common
+build:score-qnx-aarch64 --noexperimental_merged_skyframe_analysis_execution
+build:score-qnx-aarch64 --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+build:score-qnx-aarch64 --incompatible_enable_cc_toolchain_resolution
+build:score-qnx-aarch64 --incompatible_strict_action_env
+build:score-qnx-aarch64 --sandbox_writable_path=/var/tmp
 build:score-qnx-aarch64 --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 build:score-qnx-aarch64 --extra_toolchains=@score_qcc_aarch64_toolchain//:aarch64-qnx-sdp_8.0.0
 build:score-qnx-aarch64 --extra_toolchains=@score_qnx_aarch64_ifs_toolchain//:ifs-aarch64-qnx-sdp_8.0.0
+build:score-qnx-aarch64 --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
+
+build:score-linux-x86_64 --config=_score_common
+build:score-linux-x86_64 --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0
+build:score-linux-x86_64 --platforms=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
+
+build:score-linux-aarch64 --config=_score_common
+build:score-linux-aarch64 --extra_toolchains=@score_gcc_aarch64_toolchain//:aarch64-linux-gcc_12.2.0
+build:score-linux-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
+
+build:score-eb-aarch64 --config=_score_common
+build:score-eb-aarch64 --extra_toolchains=@score_ebclfsa_toolchain//:aarch64-linux-sdk_0.1.0-ebclfsa
+build:score-eb-aarch64 --extra_toolchains=@ferrocene_aarch64_ebclfsa//:rust_ferrocene_toolchain
+build:score-eb-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-sdk_0.1.0-ebclfsa
+
+build:score-autosd-x86_64 --config=_score_common
+build:score-autosd-x86_64 --force_pic
+build:score-autosd-x86_64 --platforms=@score_bazel_platforms//:x86_64-linux-autosd10
+build:score-autosd-x86_64 --extra_toolchains=@score_autosd10_x86_64_toolchain//:x86_64-linux-autosd10
+
+build:score-autosd-aarch64 --force_pic
+build:score-autosd-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-autosd10
+build:score-autosd-aarch64 --extra_toolchains=@score_autosd10_aarch64_toolchain//:aarch64-linux-autosd10
+build:score-autosd-aarch64 --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu
