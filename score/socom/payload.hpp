@@ -131,7 +131,8 @@ class Payload_impl final {
     explicit Payload_impl(Span data) noexcept : m_data(data) {}
 
     /// \brief Construct new writable instance.
-    explicit Payload_impl(Writable_span data) noexcept : m_data(data), m_writable_data(data.data()) {}
+    explicit Payload_impl(Writable_span data) noexcept
+        : m_data(data), m_writable_data(data.data()) {}
 
     template <typename T>
     Payload_impl(Span data, T&& user_data) noexcept
@@ -139,9 +140,7 @@ class Payload_impl final {
 
     template <typename T>
     Payload_impl(Writable_span data, T&& user_data) noexcept
-        : m_data(data),
-          m_writable_data(data.data()),
-          m_user_data(std::forward<T>(user_data)) {}
+        : m_data(data), m_writable_data(data.data()), m_user_data(std::forward<T>(user_data)) {}
 
     ~Payload_impl() = default;
 

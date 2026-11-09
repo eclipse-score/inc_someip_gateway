@@ -29,8 +29,6 @@ bool Payload_impl::operator==(Payload_impl const& other) const noexcept {
 }
 }  // namespace detail
 
-Payload empty_payload() {
-    return Payload{Payload::Span{}};
-}
+Payload empty_payload() { return Payload{Payload::Span{}}; }
 
 }  // namespace score::socom

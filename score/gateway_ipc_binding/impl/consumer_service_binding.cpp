@@ -112,8 +112,7 @@ Result<void> Consumer_service_binding::create_server_connector(
         },
         [](score::socom::Enabled_server_connector&,
            score::socom::Method_id) -> Result<score::socom::Writable_payload> {
-            return score::socom::Writable_payload{score::socom::Writable_payload::Writable_span{},
-                                                  []() {}};
+            return score::socom::Writable_payload{score::socom::Writable_payload::Writable_span{}};
         }};
 
     score::socom::Server_service_interface_definition const definition{
