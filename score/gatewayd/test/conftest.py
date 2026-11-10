@@ -22,6 +22,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--configuration", required=True, type=Path)
     parser.addoption("--service-instance-manifest", required=True, type=Path)
     parser.addoption("--someipd-service-instance-manifest", required=True, type=Path)
+    parser.addoption("--local-service-provider", required=True, type=Path)
 
 
 @pytest.fixture(autouse=True)
@@ -32,3 +33,4 @@ def _test_paths(request: pytest.FixtureRequest) -> None:
     request.cls.configuration = request.config.getoption("--configuration")
     request.cls.service_instance_manifest = request.config.getoption("--service-instance-manifest")
     request.cls.someipd_service_instance_manifest = request.config.getoption("--someipd-service-instance-manifest")
+    request.cls.local_service_provider = request.config.getoption("--local-service-provider")

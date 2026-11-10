@@ -41,3 +41,22 @@ network daemon.
 
    When someipd receives SIGTERM or SIGINT while running, it shall stop and
    exit with a success exit code.
+
+.. comp_req:: someipd offers a local service only while it is available
+   :id: comp_req__someipd__offer_follows_availability
+   :status: valid
+   :version: 1
+   :safety: QM
+   :security: NO
+   :reqtype: Functional
+   :satisfied_by: comp__someipd
+
+   someipd shall offer a configured local service instance on SOME/IP only
+   while its bridged service is available from gatewayd. When the bridged
+   service becomes unavailable, someipd shall send a StopOfferService entry
+   for the instance; when it becomes available again, someipd shall offer the
+   instance again.
+
+   someipd sees the availability only as far as gatewayd and
+   ``mw::com`` report it. A crashed process is in general not reported (see
+   the ``mw::com`` Assumption of Use ``NoNotificationOnTerminationOfProducer``).

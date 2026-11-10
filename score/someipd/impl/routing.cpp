@@ -37,7 +37,16 @@ Result<std::unique_ptr<Routing>> Routing::Create() {
     return routing;
 }
 
+bool Routing::IsRegistered() {
+    std::lock_guard const lock{mutex_};
+    return registered_;
+}
+
 void Routing::SetupOfferings(score::mw_someip_config::Root const& config) {
+    std::lock_guard const offer_lock{offer_mutex_};
+    if (!IsRegistered()) {
+        return;
+    }
     for (const auto* const service_type : *config.service_types()) {
         const auto* service_instances = service_type->local_service_instances();
         if ((service_instances != nullptr) && !service_instances->empty()) {
@@ -59,15 +68,44 @@ void Routing::SetupOfferings(score::mw_someip_config::Root const& config) {
                                               local_service_instance->instance_id(),
                                               event->event_id(), groups);
                 }
-                score::mw::log::LogInfo()
-                    << "[someipd] Offering service 0x"
-                    << score::mw::log::LogHex16{service_type->service_id()} << " instance 0x"
-                    << score::mw::log::LogHex16{local_service_instance->instance_id()};
-                application_->offer_service(service_type->service_id(),
-                                            local_service_instance->instance_id(),
-                                            service_type->service_version_major());
+                // Offer only what SetLocalOffer() wants, i.e. what is available already.
+                if (wanted_offers_.count(service_type->service_id()) != 0U) {
+                    SwitchOffer(*service_type, *local_service_instance, true);
+                }
             }
+            services_with_events_.insert(service_type->service_id());
         }
+    }
+}
+
+void Routing::SetLocalOffer(score::mw_someip_config::ServiceType const& service_type,
+                            bool const offered) {
+    std::lock_guard const offer_lock{offer_mutex_};
+    auto const service = service_type.service_id();
+    bool const changed =
+        offered ? wanted_offers_.insert(service).second : (wanted_offers_.erase(service) != 0U);
+    if (!changed || !IsRegistered() || (services_with_events_.count(service) == 0U)) {
+        // Nothing to do, or SetupOfferings() applies the wish later.
+        return;
+    }
+    for (auto const* const instance : *service_type.local_service_instances()) {
+        SwitchOffer(service_type, *instance, offered);
+    }
+}
+
+void Routing::SwitchOffer(score::mw_someip_config::ServiceType const& service_type,
+                          score::mw_someip_config::ServiceInstance const& instance,
+                          bool const offered) {
+    score::mw::log::LogInfo() << "[someipd] " << (offered ? "Offering" : "Stopping the offer of")
+                              << " service 0x"
+                              << score::mw::log::LogHex16{service_type.service_id()}
+                              << " instance 0x" << score::mw::log::LogHex16{instance.instance_id()};
+    if (offered) {
+        application_->offer_service(service_type.service_id(), instance.instance_id(),
+                                    service_type.service_version_major());
+    } else {
+        application_->stop_offer_service(service_type.service_id(), instance.instance_id(),
+                                         service_type.service_version_major());
     }
 }
 
@@ -89,9 +127,13 @@ void Routing::Run(const std::function<void()>& wait_for_shutdown) {
     application_->register_state_handler([this](vsomeip::state_type_e state) {
         std::vector<Services> services{};
         {
+            std::lock_guard const offer_lock{offer_mutex_};
             std::lock_guard const lock{mutex_};
             registered_ = (state == vsomeip::state_type_e::ST_REGISTERED);
             if (!registered_) {
+                // SetupOfferings() registers the events again on the next ST_REGISTERED, and
+                // only then re-offers the wanted instances.
+                services_with_events_.clear();
                 return;
             }
             services = services_;

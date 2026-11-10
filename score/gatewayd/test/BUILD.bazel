@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
@@ -97,6 +98,20 @@ cc_test(
     ],
 )
 
+# Provides a local service, so that gatewayd bridges it and someipd offers it on SOME/IP.
+cc_binary(
+    name = "local_service_provider",
+    testonly = True,
+    srcs = ["local_service_provider.cpp"],
+    features = COMPILER_WARNING_FEATURES,
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        "//score/serializer:pre_serialized_data",
+        "@score_baselibs//score/filesystem",
+        "@score_communication//score/mw/com",
+    ],
+)
+
 score_py_pytest(
     name = "gatewayd_test",
     srcs = [
@@ -106,11 +121,13 @@ score_py_pytest(
     args = [
         "--configuration=$(location //score/config:config_file)",
         "--gatewayd=$(location //score/gatewayd:gatewayd)",
+        "--local-service-provider=$(location :local_service_provider)",
         "--service-instance-manifest=$(location //score/gatewayd:etc/mw_com_config.json)",
         "--someipd=$(location //score/someipd:someipd)",
         "--someipd-service-instance-manifest=$(location //score/someipd:etc/mw_com_config.json)",
     ],
     data = [
+        ":local_service_provider",
         "//score/config:config_file",
         "//score/gatewayd",
         "//score/gatewayd:etc/mw_com_config.json",

@@ -228,6 +228,9 @@ Each ``gatewayd`` registers its bridged services with ``someipd`` at runtime via
   already registered with ``runtime::AddConfiguration`` stays in ``someipd`` until ``someipd`` restarts, because
   ``mw::com`` cannot remove a configuration.
 - **Restarts and ownership**: ``someipd`` keeps a ``gatewayd``'s services alive when that ``gatewayd`` stops.
+  Their SOME/IP offers do not stay, though: ``someipd`` withdraws the offer of a local service while its
+  bridged service is unavailable and offers it again when it is back
+  (:need:`comp_req__someipd__offer_follows_availability`).
   When a restarted ``gatewayd`` reconnects and sends the exact same configuration bytes and event sizes,
   ``someipd`` accepts the call immediately without recreating the services. Any *different* call that reuses a
   ``service_id`` from an already-accepted call is rejected: each service belongs to one ``gatewayd`` and cannot

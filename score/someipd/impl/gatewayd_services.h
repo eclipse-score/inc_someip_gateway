@@ -30,7 +30,9 @@
 namespace score::someipd {
 
 /// \brief The services that gatewayds added to someipd
-/// \details someipd keeps them until it stops.
+/// \details someipd keeps them until it stops. The SOME/IP offer of a local service follows the
+///          availability of its bridged service, though: it is withdrawn while the provider or
+///          its gatewayd is gone.
 class GatewaydServices {
    public:
     GatewaydServices(Routing& routing, socom::Runtime& socom_runtime) noexcept;
