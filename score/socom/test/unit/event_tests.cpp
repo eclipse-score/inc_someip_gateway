@@ -81,6 +81,9 @@ TEST_F(EventTest, ServerSendsEventWhichIsReceivedBySubscribedClient) {
 }
 
 TEST_F(EventTest, ClientRequestsEventUpdateAndReceivesEventUpdate) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -93,6 +96,9 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndReceivesEventUpdate) {
 }
 
 TEST_F(EventTest, ClientRequestsEventUpdateAndServerRespondsWithUpdateRequestedEvent) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -113,6 +119,9 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndServerRespondsWithUpdateRequestedE
 }
 
 TEST_F(EventTest, ClientRequestsEventUpdateAndServerConnectorRespondsWithUpdateEvent) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_connector_callbacks_mock callbacks;
     Enabled_server_connector::Uptr server = connector_factory.create_and_enable(callbacks);
     Client_data client{connector_factory};
@@ -137,6 +146,9 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndServerConnectorRespondsWithUpdateE
 }
 
 TEST_F(EventTest, ClientRequestsEventUpdateWithDataAndReceivesEventUpdate) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     server.expect_event_subscription(event_id);
     Client_data client0{connector_factory};
@@ -165,6 +177,9 @@ TEST_F(EventTest, ServerUpdatesRequestedEventWithoutRequestAndClientReceivesNoUp
 }
 
 TEST_F(EventTest, ClientRequestsManyEventUpdatesAndReceivesEventUpdates) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -184,6 +199,9 @@ TEST_F(EventTest, ClientRequestsManyEventUpdatesAndReceivesEventUpdates) {
 
 TEST_F(EventTest,
        ClientRequestsManyEventUpdatesWhichAreCachedByTheMiddlewareAndClientReceivesOneEventUpdate) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -226,6 +244,9 @@ TEST_F(EventTest, ClientSubscribesEventWithUpdateAndInitialValueFollowedByReques
 }
 
 TEST_F(EventTest, MiddlewareCachesEventUpdateRequestsUntilServerAnswers) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 

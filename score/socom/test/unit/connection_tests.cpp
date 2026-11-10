@@ -98,6 +98,9 @@ TEST_F(SingleConnectionTest, ServerIsDestroyedBeforeClientAndEventSubsciption) {
 }
 
 TEST_F(SingleConnectionTest, DisablingServerMakesClientLoseEventSubscription) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
