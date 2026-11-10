@@ -228,6 +228,19 @@ exports_files(["flamegraph.pl", "stackcollapse-perf.pl"])
     remote = "https://github.com/brendangregg/FlameGraph.git",
 )
 
+git_repository(
+    name = "open_someip_spec",
+    build_file_content = """
+filegroup(
+    name = "rst_sources",
+    srcs = glob(["src/*.rst"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    commit = "4860461802c23f41c6227befcb25cc80e7d68771",
+    remote = "https://github.com/some-ip-com/open-someip-spec.git",
+)
+
 # ============================================================================
 # Documentation
 # ============================================================================
