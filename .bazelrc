@@ -102,7 +102,6 @@ common --registry=https://bcr.bazel.build
 # Feature Flags & S-CORE Configuration
 # ============================================================================
 common --features=-treat_warnings_as_errors
-common --features=-warnings_as_errors
 common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration
