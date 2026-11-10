@@ -62,8 +62,31 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    :status: valid
    :version: 1
    :tags: tc8, conformance, someip, verification
-   :derived_from: stkh_req__someip_gw__interoperability, stkh_req__extspec__someip_83,
-                  stkh_req__extspec__someip_90, stkh_req__extspec__someip_95
+   :derived_from: stkh_req__someip_gw__interoperability,
+                  stkh_req__extspec__someip_79, stkh_req__extspec__someip_83,
+                  stkh_req__extspec__someip_90, stkh_req__extspec__someip_95,
+                  stkh_req__extspec__someip_141, stkh_req__extspec__someip_144,
+                  stkh_req__extspec__someip_361, stkh_req__extspec__someip_371,
+                  stkh_req__extspec__someip_807, stkh_req__extspec__someip_816,
+                  stkh_req__extspec__someipsd_41, stkh_req__extspec__someipsd_47,
+                  stkh_req__extspec__someipsd_62, stkh_req__extspec__someipsd_63,
+                  stkh_req__extspec__someipsd_64, stkh_req__extspec__someipsd_67,
+                  stkh_req__extspec__someipsd_73, stkh_req__extspec__someipsd_75,
+                  stkh_req__extspec__someipsd_76, stkh_req__extspec__someipsd_79,
+                  stkh_req__extspec__someipsd_81, stkh_req__extspec__someipsd_83,
+                  stkh_req__extspec__someipsd_90, stkh_req__extspec__someipsd_91,
+                  stkh_req__extspec__someipsd_127, stkh_req__extspec__someipsd_128,
+                  stkh_req__extspec__someipsd_129, stkh_req__extspec__someipsd_253,
+                  stkh_req__extspec__someipsd_321, stkh_req__extspec__someipsd_322,
+                  stkh_req__extspec__someipsd_332, stkh_req__extspec__someipsd_333,
+                  stkh_req__extspec__someipsd_613, stkh_req__extspec__someipsd_614,
+                  stkh_req__extspec__someipsd_618, stkh_req__extspec__someipsd_619,
+                  stkh_req__extspec__someipsd_681, stkh_req__extspec__someipsd_723,
+                  stkh_req__extspec__someipsd_724, stkh_req__extspec__someipsd_763,
+                  stkh_req__extspec__someipsd_765, stkh_req__extspec__someipsd_824,
+                  stkh_req__extspec__someipsd_849, stkh_req__extspec__someipsd_850,
+                  stkh_req__extspec__someipsd_854, stkh_req__extspec__someipsd_863,
+                  stkh_req__extspec__someipsd_871, stkh_req__extspec__someipsd_1297
    :satisfied_by: feat__someip_gateway
    :safety: QM
    :security: NO
