@@ -444,8 +444,8 @@
     "TestType": "requirements-based",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__sd_phases_timing",
-    "FullyVerifies": null
+    "PartiallyVerifies": null,
+    "FullyVerifies": "comp_req__tc8_conformance__sd_phases_timing"
   },
   {
     "name": "tests/tc8_conformance/tc8_someipd_config_test",
@@ -752,8 +752,8 @@
     "TestType": "requirements-based",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__sd_find_mcast_rsp",
-    "FullyVerifies": null
+    "PartiallyVerifies": null,
+    "FullyVerifies": "comp_req__tc8_conformance__sd_find_mcast_rsp"
   },
   {
     "name": "TestSDFindServiceTiming__test_sd_behavior_04_multicast_findservice_timing",
@@ -766,8 +766,8 @@
     "TestType": "requirements-based",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__sd_find_mcast_rsp",
-    "FullyVerifies": null
+    "PartiallyVerifies": null,
+    "FullyVerifies": "comp_req__tc8_conformance__sd_find_mcast_rsp"
   },
   {
     "name": "TestSDSubscribeLifecycleAdvanced__test_ets_088_two_subscribes_same_session",
@@ -1606,8 +1606,8 @@
     "TestType": "requirements-based",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "TC8-SDI-003 / OA ETS_093: the initial event 0x8005 is expected after a new subscription and again after the client reboot (Session ID 1). Observed: 0x8005 is received only after the first subscription of part A, not after Session ID 1 in part A, nor after Session IDs 4 and 1 in part B.",
-    "PartiallyVerifies": "comp_req__tc8_conformance__sd_reboot",
-    "FullyVerifies": null
+    "PartiallyVerifies": null,
+    "FullyVerifies": "comp_req__tc8_conformance__sd_reboot"
   },
   {
     "name": "TestEts094__test_ets_094_reboot_detection_server_side",
@@ -1998,8 +1998,8 @@
     "TestType": "requirements-based",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__sd_reboot",
-    "FullyVerifies": null
+    "PartiallyVerifies": null,
+    "FullyVerifies": "comp_req__tc8_conformance__sd_reboot"
   },
   {
     "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
@@ -2012,8 +2012,8 @@
     "TestType": "requirements-based",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__sd_reboot",
-    "FullyVerifies": null
+    "PartiallyVerifies": null,
+    "FullyVerifies": "comp_req__tc8_conformance__sd_reboot"
   },
   {
     "name": "TestSdSessionIdWraparound__test_no_consecutive_duplicate_across_wraparound",
