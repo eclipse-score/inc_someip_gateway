@@ -926,35 +926,35 @@
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_request_empty_payload",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "77",
+    "line": "78",
     "result": "passed",
-    "repo_name": null,
-    "hash": null,
-    "url": null,
-    "TestType": null,
-    "DerivationTechnique": null,
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "requirements-based",
+    "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": null,
+    "PartiallyVerifies": "stkh_req__extspec__someip_83",
     "FullyVerifies": null
   },
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_request_with_payload",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "89",
+    "line": "96",
     "result": "passed",
-    "repo_name": null,
-    "hash": null,
-    "url": null,
-    "TestType": null,
-    "DerivationTechnique": null,
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "requirements-based",
+    "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": null,
+    "PartiallyVerifies": "stkh_req__extspec__someip_90, stkh_req__extspec__someip_95",
     "FullyVerifies": null
   },
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_request_no_return",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "106",
+    "line": "119",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -968,7 +968,7 @@
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_truncated_message",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "121",
+    "line": "134",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -982,7 +982,7 @@
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_wrong_protocol_version_request",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "127",
+    "line": "140",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -996,7 +996,7 @@
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_oversized_message",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "134",
+    "line": "147",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1010,7 +1010,7 @@
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_notification_as_request",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "139",
+    "line": "152",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1024,7 +1024,7 @@
   {
     "name": "TestMessageBuilderGoldenVectors__test_build_request_with_return_code",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "156",
+    "line": "169",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1038,7 +1038,7 @@
   {
     "name": "TestSdSenderGoldenVectors__test_send_find_service",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "189",
+    "line": "202",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1052,7 +1052,7 @@
   {
     "name": "TestSdSenderGoldenVectors__test_send_subscribe_eventgroup_single_protocol",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "214",
+    "line": "227",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1066,7 +1066,7 @@
   {
     "name": "TestSdSenderGoldenVectors__test_send_subscribe_eventgroup_mixed_protocol",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "250",
+    "line": "263",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1080,7 +1080,7 @@
   {
     "name": "TestSdSenderGoldenVectors__test_send_subscribe_eventgroup_reserved_set",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "284",
+    "line": "297",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1094,7 +1094,7 @@
   {
     "name": "TestSdSenderWireFormatParsing__test_parse_single_protocol_subscribe",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "331",
+    "line": "344",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1108,7 +1108,7 @@
   {
     "name": "TestSdSenderWireFormatParsing__test_parse_mixed_protocol_subscribe",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "348",
+    "line": "361",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1122,7 +1122,7 @@
   {
     "name": "TestSdMalformedPureBuilders__test_build_raw_sd_packet_empty",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "372",
+    "line": "385",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1136,7 +1136,7 @@
   {
     "name": "TestSdMalformedPureBuilders__test_find_service_entry_bytes",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "377",
+    "line": "390",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1150,7 +1150,7 @@
   {
     "name": "TestSdMalformedPureBuilders__test_subscribe_entry_bytes",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "381",
+    "line": "394",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1164,7 +1164,7 @@
   {
     "name": "TestSdMalformedPureBuilders__test_endpoint_option_bytes",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "385",
+    "line": "398",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1178,7 +1178,7 @@
   {
     "name": "TestSdMalformedPureBuilders__test_unknown_option_bytes",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "389",
+    "line": "402",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1192,7 +1192,7 @@
   {
     "name": "TestSdMalformedPureBuilders__test_build_raw_sd_packet_with_length_override",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "394",
+    "line": "407",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1206,7 +1206,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_high_session_id",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "419",
+    "line": "432",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1220,7 +1220,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_empty_entries",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "429",
+    "line": "442",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1234,7 +1234,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_find_with_options",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "436",
+    "line": "449",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1248,7 +1248,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entries_length_wrong",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "447",
+    "line": "460",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1262,7 +1262,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entry_refs_more_options",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "456",
+    "line": "469",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1276,7 +1276,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entry_unknown_option_type",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "466",
+    "line": "479",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1290,7 +1290,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entry_same_option_twice",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "475",
+    "line": "488",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1304,7 +1304,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_option_length_too_long",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "485",
+    "line": "498",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1318,7 +1318,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_option_length_too_short",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "495",
+    "line": "508",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1332,7 +1332,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_option_length_unaligned",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "505",
+    "line": "518",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1346,7 +1346,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_options_array_length_too_long",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "515",
+    "line": "528",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1360,7 +1360,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_options_array_length_too_short",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "526",
+    "line": "539",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1374,7 +1374,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_empty_options",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "537",
+    "line": "550",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1388,7 +1388,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_zero_ip",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "546",
+    "line": "559",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1402,7 +1402,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_wrong_l4proto",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "556",
+    "line": "569",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1416,7 +1416,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_reserved_option",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "568",
+    "line": "581",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1430,7 +1430,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_wrong_someip_length",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "578",
+    "line": "591",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1444,7 +1444,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_wrong_someip_message_id",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "587",
+    "line": "600",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1458,7 +1458,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_truncated_entry",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "596",
+    "line": "609",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1472,7 +1472,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_oversized_entries_length",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "603",
+    "line": "616",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1486,7 +1486,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_empty_option",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "612",
+    "line": "625",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1500,7 +1500,7 @@
   {
     "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_nonexistent_service",
     "file": "tests/tc8_conformance/test_golden_vectors.py",
-    "line": "622",
+    "line": "635",
     "result": "passed",
     "repo_name": null,
     "hash": null,
