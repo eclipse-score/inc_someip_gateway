@@ -14,6 +14,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <csignal>
 #include <cstddef>
 #include <future>
 #include <optional>
@@ -33,6 +34,42 @@ using testing::Values;
 using namespace std::chrono_literals;
 
 namespace score::gateway_ipc_binding {
+
+class Provider_teardown_death_test : public Gateway_ipc_binding_unconnected_integration_test {
+   protected:
+    // The threadsafe death test re-executes this fixture while the parent is still alive.
+    // Do not let both processes offer the same mw::com service instance.
+    void SetUp() override {}
+};
+
+TEST_F(Provider_teardown_death_test, provider_teardown_aborts_with_an_outstanding_event_payload) {
+    auto trigger_teardown = [this]() {
+        auto gateway_server = create_mw_com_server(*runtime_server, "someipd/daemon",
+                                                   mw_com_services(mw_com::Role::provider, 0U));
+        auto gateway_client = create_mw_com_client(
+            *runtime_client, "someipd/daemon",
+            mw_com_services(mw_com::Role::consumer, mw_com_metadata.slot_size));
+        ASSERT_NE(gateway_server, nullptr);
+        ASSERT_NE(gateway_client, nullptr);
+        ASSERT_TRUE(gateway_server->start());
+        ASSERT_TRUE(wait_on_connection_state(*gateway_client, Connection_state::Connected,
+                                             very_long_timeout));
+
+        Server_connector_with_callbacks socom_server{*runtime_server, socom_server_config,
+                                                     instance};
+        Client_connector_with_callbacks socom_client{*runtime_client, socom_server_config,
+                                                     instance};
+        socom_client.subscribe_event(socom_server.mock_event_subscription_change_cb, event_id);
+
+        auto payload = socom_server.connector->allocate_event_payload(event_id);
+        ASSERT_TRUE(payload);
+
+        gateway_server.reset();
+    };
+
+    GTEST_FLAG_SET(death_test_style, "threadsafe");
+    EXPECT_EXIT(trigger_teardown(), ::testing::KilledBySignal(SIGABRT), "");
+}
 
 TEST_F(Gateway_ipc_binding_unconnected_integration_test, connect) {
     // This test verifies that a client connects to the server.
