@@ -96,7 +96,8 @@ gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc")
 # Compiler-warning features are owned by score_cpp_policies
 _WARNING_ENABLED_FEATURES = [
     "@score_cpp_policies//warnings/gcc/features:minimal_warnings",
-    "@score_cpp_policies//warnings/gcc/features:warnings_as_errors",
+    # -Werror makes toolchain migrations unreasonable difficult
+    # "@score_cpp_policies//warnings/gcc/features:warnings_as_errors",
 ]
 
 _WARNING_KNOWN_FEATURES = [
