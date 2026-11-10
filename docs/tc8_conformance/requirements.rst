@@ -62,7 +62,8 @@ as a formal verification activity for the SOME/IP Gateway's protocol stack.
    :status: valid
    :version: 1
    :tags: tc8, conformance, someip, verification
-   :derived_from: stkh_req__someip_gw__interoperability
+   :derived_from: stkh_req__someip_gw__interoperability, stkh_req__extspec__someip_83,
+                  stkh_req__extspec__someip_90, stkh_req__extspec__someip_95
    :satisfied_by: feat__someip_gateway
    :safety: QM
    :security: NO
