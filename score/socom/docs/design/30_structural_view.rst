@@ -32,7 +32,7 @@ SOCom separates connection setup and service matching from steady-state message 
 
 - **Central matching vs direct data path** (``Runtime`` vs connectors): ``Runtime`` handles service registration and interface and version compatibility checks (``Service_interface_definition``) during setup; once connected, ``Client_connector`` and ``Enabled_server_connector`` invoke each other's endpoints directly without central broker contention on data-path calls.
 - **Compile-time provider state** (``Disabled_server_connector`` / ``Enabled_server_connector``): Encoding disabled and enabled server states as distinct move-only C++ types prevents a provider from allocating or publishing events while its service is not offered.
-- **Zero-copy buffer ownership** (``Payload`` / ``Writable_payload``): Separating buffer lifetime (release callback and optional inline user data) from connector routing lets bridges such as ``gateway_ipc_binding`` pass LoLa shared-memory samples across connectors without copying.
+- **Zero-copy buffer ownership** (``Payload`` / ``Writable_payload``): Separating the buffer lifetime (including the release callback and optional inline user data) from connector routing allows bridges such as ``gateway_ipc_binding`` to pass LoLa shared-memory samples across connectors without copying.
 
 Static Architecture
 -------------------

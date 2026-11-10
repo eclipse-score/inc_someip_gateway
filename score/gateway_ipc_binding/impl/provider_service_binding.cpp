@@ -366,8 +366,6 @@ void Provider_service_binding::on_event_update(score::socom::Event_id const even
 
     auto* const sample = payload.get_user_data<score::mw::com::SampleAllocateePtr<void>>();
     if (sample == nullptr) {
-        // The payload was not allocated through this binding, so it is not backed by a LoLa slot
-        // and there is nothing that could be sent.
         score::mw::log::LogWarn() << kLog_tag << "Dropping the update of event" << event_id
                                   << ": the payload is not backed by a mw::com sample";
         return;
