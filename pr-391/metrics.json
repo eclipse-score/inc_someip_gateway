@@ -55,7 +55,7 @@
     "broken_references": []
   },
   "verification_metrics": {
-    "comp__config": {
+    "comp__serializer": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -78,6 +78,32 @@
           "fully_covered": 0,
           "partially_covered": 0,
           "not_covered": 0
+        }
+      }
+    },
+    "comp__socom": {
+      "requirements": {
+        "status": {
+          "valid": 2,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 2
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 2,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 2
         }
       }
     },
@@ -159,32 +185,6 @@
         }
       }
     },
-    "comp__serializer": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
     "comp__gateway_ipc_binding": {
       "requirements": {
         "status": {
@@ -211,29 +211,29 @@
         }
       }
     },
-    "comp__socom": {
+    "comp__config": {
       "requirements": {
         "status": {
-          "valid": 2,
+          "valid": 0,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 2
+          "not_covered": 0
         }
       },
       "architecture": {
         "status": {
-          "valid": 2,
+          "valid": 0,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 2
+          "not_covered": 0
         }
       }
     },
