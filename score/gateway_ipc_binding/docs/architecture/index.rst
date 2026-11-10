@@ -273,7 +273,7 @@ LoLa owns the shared-memory sample slots:
   received samples up to ``max_sample_count`` held by the consumer), ``GenericSkeletonEvent::Allocate()`` fails
   and ``on_event_payload_allocate()`` logs a warning and returns ``runtime_error_sample_allocation_failed``.
 - **consumer side**: ``GetNewSamples`` yields a ``SamplePtr<void>`` per sample. The binding moves it into the
-  release callback of the ``socom::Payload`` it builds. When the consuming application destroys the payload,
+  user data of the ``socom::Payload`` it builds. When the consuming application destroys the payload,
   the ``SamplePtr<void>`` is destroyed and the slot is returned to LoLa.
 
 Configuration
@@ -408,7 +408,7 @@ Teardown
 
 On destruction, each service binding tears down its endpoints in order so no callback or shared-memory sample outlives its owner:
 
-- ``Provider_service_binding``: Unsets ``GenericSkeletonEvent`` receive-handler registration callbacks, resets the ``socom::Client_connector``, clears ``Allocations`` (before skeleton destruction, as LoLa aborts if a ``SampleAllocateePtr`` outlives its event), and stops and destroys the ``GenericSkeleton``.
+- ``Provider_service_binding``: Unsets ``GenericSkeletonEvent`` receive-handler registration callbacks, resets the ``socom::Client_connector``, and stops and destroys the ``GenericSkeleton``.
 - ``Consumer_service_binding``: Calls ``GenericProxy::StopFindService``, disables the ``socom`` server connector, unsets receive handlers and unsubscribes active ``GenericProxyEvent`` instances, and destroys the ``GenericProxy`` and disabled connector.
 
 Threading and concurrency
@@ -432,8 +432,8 @@ Threading and concurrency
 
   The outer mutexes exist purely to keep those transitions serialized against each other while the inner
   ones are released.
-- Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O and no allocation
-  beyond the in-flight table inside them. The ``AddServiceConfiguration`` handler is the exception: it sets
+- Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O. The
+  ``AddServiceConfiguration`` handler is the exception: it sets
   up services, but never waits for a reply, see :ref:`gatewayd-services`.
 - ``GetNewSamples`` must not run concurrently for the same ``GenericProxyEvent``. Because the only caller is
   the receive handler registered for that event, and ``mw::com`` serialises those, this holds without extra

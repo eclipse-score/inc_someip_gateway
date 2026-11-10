@@ -13,19 +13,17 @@
 
 #include "score/socom/vector_payload.hpp"
 
-#include <memory>
-
 namespace score::socom {
 
 Payload make_vector_payload(Vector_buffer buffer) {
-    auto buf = std::make_unique<Vector_buffer>(std::move(buffer));
-    auto span = Payload::Span{*buf};
+    auto buf = Vector_buffer(std::move(buffer));
+    auto span = Payload::Span{buf};
     return Payload{span, std::move(buf)};
 }
 
 Writable_payload make_writable_vector_payload(std::size_t size) {
-    auto buf = std::make_unique<std::vector<std::byte>>(size);
-    auto span = Writable_payload::Writable_span{*buf};
+    auto buf = Vector_buffer(size);
+    auto span = Writable_payload::Writable_span{buf};
     return Writable_payload{span, std::move(buf)};
 }
 

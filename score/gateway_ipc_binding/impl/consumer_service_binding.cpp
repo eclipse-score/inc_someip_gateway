@@ -37,7 +37,7 @@ Consumer_service_binding::Consumer_service_binding(std::vector<Event> events,
     : m_events{std::move(events)}, m_instance_specifier{std::move(instance_specifier)} {}
 
 Consumer_service_binding::~Consumer_service_binding() noexcept {
-    // See docs/mw_com_binding.rst, section "Teardown". Stop discovery first, so that no handler
+    // See docs/architecture/index.rst, section "Teardown". Stop discovery first, so that no handler
     // can race with the teardown below.
     std::optional<score::mw::com::FindServiceHandle> find_handle{};
     {

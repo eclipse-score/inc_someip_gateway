@@ -38,6 +38,8 @@ class Payload_user_data final {
                       "Payload user data must be nothrow move constructible");
         static_assert(std::is_nothrow_destructible<User_data_type>::value,
                       "Payload user data must be nothrow destructible");
+        static_assert(!std::is_lvalue_reference<T&&>::value,
+                      "Payload user data must not be passed as an lvalue (use std::move)");
 
         new (m_storage) User_data_type(std::forward<T>(user_data));
         m_ops = operations<User_data_type>();

@@ -220,4 +220,4 @@ It can send event updates and respond to method calls.
    :status: valid
    :included_by: real_arc_int__socom_design__payload
 
-   Provides read-only and writable byte-span access to the contiguous message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.
+   Provides read-only and writable byte-span access to the contiguous message buffer and payload size adjustment after writing.
