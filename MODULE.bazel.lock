@@ -3259,7 +3259,7 @@
     "@@score_bazel_cpp_toolchains+//extensions:gcc.bzl%gcc": {
       "general": {
         "bzlTransitiveDigest": "muOim1Y4TLSENpinhZF/JtW1n+MCplZTMixloQg5zbI=",
-        "usagesDigest": "P7AuQXgMnsK8/nDLjAVTvsYmcT9e/8gdZVaROnMzju4=",
+        "usagesDigest": "Z0jUBiovkKvR4K1hRVxgfRrpeRhCZM9pUGND3M4X1RU=",
         "recordedInputs": [
           "REPO_MAPPING:,score_cpp_policies score_cpp_policies+",
           "REPO_MAPPING:bazel_tools,rules_cc rules_cc+",
@@ -3397,8 +3397,7 @@
                 "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings"
               ],
               "extra_enabled_features": [
-                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings",
-                "@@score_cpp_policies+//warnings/gcc/features:warnings_as_errors"
+                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings"
               ],
               "extra_link_flags": [],
               "license_info_variable": "",
@@ -3429,8 +3428,7 @@
                 "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings"
               ],
               "extra_enabled_features": [
-                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings",
-                "@@score_cpp_policies+//warnings/gcc/features:warnings_as_errors"
+                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings"
               ],
               "extra_link_flags": [],
               "license_info_variable": "",
@@ -3663,8 +3661,7 @@
                 "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings"
               ],
               "extra_enabled_features": [
-                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings",
-                "@@score_cpp_policies+//warnings/gcc/features:warnings_as_errors"
+                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings"
               ],
               "extra_link_flags": [],
               "license_info_variable": "",
@@ -3695,8 +3692,7 @@
                 "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings"
               ],
               "extra_enabled_features": [
-                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings",
-                "@@score_cpp_policies+//warnings/gcc/features:warnings_as_errors"
+                "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings"
               ],
               "extra_link_flags": [],
               "license_info_variable": "",
