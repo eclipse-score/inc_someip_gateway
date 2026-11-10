@@ -30,7 +30,6 @@ try-import %workspace%/score.bazelrc/score_toolchain.bazelrc
 # Repository-specific host tool settings to allow code generators (e.g. flatbuffers)
 # and foreign_cc tools (make/pkgconfig for vsomeip) to bootstrap cleanly
 build --host_platform=@score_bazel_platforms//:x86_64-linux
-build --host_features=-warnings_as_errors
 build --extra_toolchains=@rules_foreign_cc//toolchains:preinstalled_make_toolchain
 build --extra_toolchains=@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain
 
