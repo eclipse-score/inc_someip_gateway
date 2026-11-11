@@ -1164,66 +1164,6 @@
     }
   },
   {
-    "need": "stkh_req__extspec__someip_83",
-    "links": {
-      "CodeLinks": [],
-      "TestLinks": [
-        {
-          "name": "TestMessageBuilderGoldenVectors__test_build_request_empty_payload",
-          "file": "tests/tc8_conformance/test_golden_vectors.py",
-          "line": 78,
-          "need": "stkh_req__extspec__someip_83",
-          "verify_type": "partially",
-          "result": "passed",
-          "result_text": "",
-          "repo_name": "local_repo",
-          "hash": "",
-          "url": ""
-        }
-      ]
-    }
-  },
-  {
-    "need": "stkh_req__extspec__someip_90",
-    "links": {
-      "CodeLinks": [],
-      "TestLinks": [
-        {
-          "name": "TestMessageBuilderGoldenVectors__test_build_request_with_payload",
-          "file": "tests/tc8_conformance/test_golden_vectors.py",
-          "line": 96,
-          "need": "stkh_req__extspec__someip_90",
-          "verify_type": "partially",
-          "result": "passed",
-          "result_text": "",
-          "repo_name": "local_repo",
-          "hash": "",
-          "url": ""
-        }
-      ]
-    }
-  },
-  {
-    "need": "stkh_req__extspec__someip_95",
-    "links": {
-      "CodeLinks": [],
-      "TestLinks": [
-        {
-          "name": "TestMessageBuilderGoldenVectors__test_build_request_with_payload",
-          "file": "tests/tc8_conformance/test_golden_vectors.py",
-          "line": 96,
-          "need": "stkh_req__extspec__someip_95",
-          "verify_type": "partially",
-          "result": "passed",
-          "result_text": "",
-          "repo_name": "local_repo",
-          "hash": "",
-          "url": ""
-        }
-      ]
-    }
-  },
-  {
     "need": "comp_req__tc8_conformance__sd_reboot",
     "links": {
       "CodeLinks": [],
