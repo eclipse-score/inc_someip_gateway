@@ -30,6 +30,8 @@
 #include <vector>
 
 #include "score/memory/data_type_size_info.h"
+#include "score/mw/com/impl/bindings/mock_binding/sample_allocatee_ptr.h"
+#include "score/mw/com/impl/bindings/mock_binding/sample_ptr.h"
 #include "score/mw/com/impl/configuration/lola_event_instance_deployment.h"
 #include "score/mw/com/impl/configuration/lola_service_instance_deployment.h"
 #include "score/mw/com/impl/configuration/lola_service_instance_id.h"
@@ -440,6 +442,19 @@ using SkeletonMethodBindingFactoryMockGuard =
     FactoryMockGuard<score::mw::com::impl::SkeletonMethodBindingFactory,
                      SkeletonMethodBindingFactoryMock>;
 
+inline score::mw::com::impl::SamplePtr<void> MakeMockSample(
+    void* const raw_ptr, score::mw::com::impl::TrackerGuardFactory& tracker) {
+    return score::mw::com::impl::SamplePtr<void>{
+        score::mw::com::impl::mock_binding::SamplePtr{raw_ptr, +[](void*) noexcept {}},
+        *tracker.TakeGuard()};
+}
+
+inline score::Result<score::mw::com::impl::SampleAllocateePtr<void>> MakeAllocatedSample(
+    void* const buffer, score::mw::com::impl::SampleAllocateeGuard guard) noexcept {
+    score::mw::com::impl::mock_binding::SampleAllocateePtr mock_ptr{buffer, +[](void*) noexcept {}};
+    return score::mw::com::impl::MakeSampleAllocateePtr(std::move(mock_ptr), std::move(guard));
+}
+
 inline constexpr std::uint16_t kInitialLolaEventId{1U};
 inline constexpr std::uint16_t kDefaultLolaSampleSlots{1U};
 inline constexpr std::uint8_t kDefaultLolaMaxSubscribers{1U};
@@ -553,16 +568,16 @@ class MwComTestFixture : public ::testing::Test {
         return skeleton_method_factory_guard_.mock();
     }
 
-    void ExpectInstanceResolved(std::string_view const specifier,
-                                std::initializer_list<std::string_view> const events,
-                                ServiceDeploymentSpec const& spec) {
+    void StubInstanceResolved(std::string_view const specifier,
+                              std::initializer_list<std::string_view> const events,
+                              ServiceDeploymentSpec const& spec) {
         auto const id = instance_holder_.MakeIdentifier(specifier, events, spec);
         ON_CALL(runtime_mock_guard_.mock(), resolve(::testing::_))
             .WillByDefault(
                 ::testing::Return(std::vector<score::mw::com::impl::InstanceIdentifier>{id}));
     }
 
-    void ExpectInstanceNotResolved() {
+    void StubInstanceNotResolved() {
         ON_CALL(runtime_mock_guard_.mock(), resolve(::testing::_))
             .WillByDefault(
                 ::testing::Return(std::vector<score::mw::com::impl::InstanceIdentifier>{}));

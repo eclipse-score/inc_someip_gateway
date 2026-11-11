@@ -28,9 +28,9 @@
 #include <utility>
 #include <vector>
 
+#include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/gatewayd/test/service_instance_test_fixture.h"
 #include "score/mw/com/com_error_domain.h"
-#include "score/mw/com/impl/bindings/mock_binding/sample_ptr.h"
 #include "score/mw/com/impl/com_error.h"
 #include "score/mw/com/impl/find_service_handle.h"
 #include "score/mw/com/impl/find_service_handler.h"
@@ -58,7 +58,6 @@ using ::testing::A;
 using ::testing::ByMove;
 using ::testing::NiceMock;
 using ::testing::Return;
-using ::testing::StrictMock;
 
 using score::someip_gateway::serializer::PreSerializedData;
 
@@ -100,6 +99,54 @@ constexpr std::size_t kSomeipMessageTypeOffset{14U};
 constexpr std::size_t kSomeipReturnCodeOffset{15U};
 constexpr std::size_t kSomeipPayloadOffset{someip::kSomeipFullHeaderSize};
 
+PreSerializedData<kMaxMessageSize> MakeTestSample() noexcept {
+    PreSerializedData<kMaxMessageSize> sample{};
+    sample.size = kPayloadSize;
+    (void)std::copy(kTestSampleBytes.cbegin(), kTestSampleBytes.cend(), std::begin(sample.data));
+    return sample;
+}
+
+socom::Writable_payload MakeWritablePayload(score::cpp::span<std::byte> const buffer) {
+    return socom::Writable_payload{buffer, socom::kNoSlotHandle, []() {}};
+}
+
+void ExpectSingleSampleDelivered(
+    NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>& event_mock,
+    PreSerializedData<kMaxMessageSize>& sample_obj) {
+    EXPECT_CALL(event_mock, GetNewSamples(_, _))
+        .WillOnce(
+            [&sample_obj](
+                score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
+                score::mw::com::impl::TrackerGuardFactory& tracker) -> score::Result<std::size_t> {
+                cb(score::gateway_ipc_binding::testing::MakeMockSample(&sample_obj, tracker),
+                   kSampleSlotIndex);
+                return kSingleSampleProcessed;
+            });
+}
+
+void VerifySomeipNotificationPacket(score::cpp::span<std::byte const> const wire_bytes) {
+    ASSERT_EQ(wire_bytes.size(), someip::kSomeipFullHeaderSize + kPayloadSize);
+    EXPECT_EQ(wire_bytes[kSomeipServiceIdHighByteOffset],
+              static_cast<std::byte>(kServiceId >> kByteShift8));
+    EXPECT_EQ(wire_bytes[kSomeipServiceIdLowByteOffset],
+              static_cast<std::byte>(kServiceId & kLowByteMask));
+    EXPECT_EQ(wire_bytes[kSomeipMethodIdHighByteOffset],
+              static_cast<std::byte>(kEventSerializedId >> kByteShift8));
+    EXPECT_EQ(wire_bytes[kSomeipMethodIdLowByteOffset],
+              static_cast<std::byte>(kEventSerializedId & kLowByteMask));
+    EXPECT_EQ(wire_bytes[kSomeipClientIdHighByteOffset], std::byte{kSomeipClientIdByte});
+    EXPECT_EQ(wire_bytes[kSomeipClientIdLowByteOffset], std::byte{kSomeipClientIdByte});
+    EXPECT_EQ(wire_bytes[kSomeipSessionIdHighByteOffset], std::byte{kSomeipSessionIdByte});
+    EXPECT_EQ(wire_bytes[kSomeipSessionIdLowByteOffset], std::byte{kSomeipSessionIdByte});
+    EXPECT_EQ(wire_bytes[kSomeipProtocolVersionOffset], std::byte{kSomeipProtocolVersion});
+    EXPECT_EQ(wire_bytes[kSomeipInterfaceVersionOffset], std::byte{kServiceMajorVersion});
+    EXPECT_EQ(wire_bytes[kSomeipMessageTypeOffset], std::byte{kSomeipMessageTypeNotification});
+    EXPECT_EQ(wire_bytes[kSomeipReturnCodeOffset], std::byte{kSomeipReturnCodeOk});
+    for (std::size_t i{0U}; i < kPayloadSize; ++i) {
+        EXPECT_EQ(wire_bytes[kSomeipPayloadOffset + i], kTestSampleBytes[i]);
+    }
+}
+
 class LocalServiceInstanceTest : public ServiceInstanceTestFixture {
    protected:
     struct ReceiveHandlerContext {
@@ -109,42 +156,10 @@ class LocalServiceInstanceTest : public ServiceInstanceTestFixture {
         std::weak_ptr<score::mw::com::impl::ScopedEventReceiveHandler> receive_handler{};
     };
 
-    static score::mw::com::impl::SamplePtr<void> MakeMockSample(
-        void* const raw_ptr, score::mw::com::impl::TrackerGuardFactory& tracker) {
-        return score::mw::com::impl::SamplePtr<void>{
-            score::mw::com::impl::mock_binding::SamplePtr{raw_ptr, [](void*) noexcept {}},
-            *tracker.TakeGuard()};
-    }
-
-    static PreSerializedData<kMaxMessageSize> MakeTestSample() noexcept {
-        PreSerializedData<kMaxMessageSize> sample{};
-        sample.size = kPayloadSize;
-        (void)std::copy(kTestSampleBytes.cbegin(), kTestSampleBytes.cend(),
-                        std::begin(sample.data));
-        return sample;
-    }
-
-    static socom::Writable_payload MakeWritablePayload(score::cpp::span<std::byte> const buffer) {
-        return socom::Writable_payload{buffer, socom::kNoSlotHandle, []() {}};
-    }
-
-    static void ExpectSingleSampleDelivered(
-        NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>& event_mock,
-        PreSerializedData<kMaxMessageSize>& sample_obj) {
-        EXPECT_CALL(event_mock, GetNewSamples(_, _))
-            .WillOnce([&sample_obj](score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
-                                    score::mw::com::impl::TrackerGuardFactory& tracker)
-                          -> score::Result<std::size_t> {
-                cb(MakeMockSample(&sample_obj, tracker), kSampleSlotIndex);
-                return kSingleSampleProcessed;
-            });
-    }
-
-    static void ExpectMakeServerConnector(
-        socom::Runtime_mock& socom_runtime,
+    void ExpectMakeServerConnector(
         NiceMock<socom::Server_connector_mock>** const out_sc_mock = nullptr,
         socom::Disabled_server_connector::Callbacks* const out_callbacks = nullptr) {
-        EXPECT_CALL(socom_runtime, make_server_connector(_, _, _))
+        EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
             .WillOnce([out_sc_mock, out_callbacks](
                           socom::Server_service_interface_definition, socom::Service_instance,
                           socom::Disabled_server_connector::Callbacks callbacks)
@@ -179,9 +194,12 @@ class LocalServiceInstanceTest : public ServiceInstanceTestFixture {
     }
 
     score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType>
-    StartAsyncDiscoveryAndCaptureHandler(
-        BuiltConfig const& cfg, socom::Runtime_mock& socom_runtime,
-        std::vector<std::unique_ptr<LocalServiceInstance>>& instances) {
+    StartAsyncDiscoveryAndCaptureHandler() {
+        return StartAsyncDiscoveryAndCaptureHandler(default_cfg_);
+    }
+
+    score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType>
+    StartAsyncDiscoveryAndCaptureHandler(BuiltConfig const& cfg) {
         score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> find_handler{};
         EXPECT_CALL(service_discovery_mock(),
                     StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
@@ -194,43 +212,23 @@ class LocalServiceInstanceTest : public ServiceInstanceTestFixture {
                 return score::mw::com::impl::make_FindServiceHandle(kFindServiceUid);
             });
         auto const handle_res = LocalServiceInstance::CreateAsyncLocalServices(
-            cfg.local_instance, cfg.service_type, socom_runtime, instances);
+            cfg.local_instance, cfg.service_type, socom_runtime_, instances_);
         EXPECT_TRUE(handle_res.has_value());
         return find_handler;
     }
 
-    static void VerifySomeipNotificationPacket(score::cpp::span<std::byte const> const wire_bytes) {
-        ASSERT_EQ(wire_bytes.size(), someip::kSomeipFullHeaderSize + kPayloadSize);
-        EXPECT_EQ(wire_bytes[kSomeipServiceIdHighByteOffset],
-                  static_cast<std::byte>(kServiceId >> kByteShift8));
-        EXPECT_EQ(wire_bytes[kSomeipServiceIdLowByteOffset],
-                  static_cast<std::byte>(kServiceId & kLowByteMask));
-        EXPECT_EQ(wire_bytes[kSomeipMethodIdHighByteOffset],
-                  static_cast<std::byte>(kEventSerializedId >> kByteShift8));
-        EXPECT_EQ(wire_bytes[kSomeipMethodIdLowByteOffset],
-                  static_cast<std::byte>(kEventSerializedId & kLowByteMask));
-        EXPECT_EQ(wire_bytes[kSomeipClientIdHighByteOffset], std::byte{kSomeipClientIdByte});
-        EXPECT_EQ(wire_bytes[kSomeipClientIdLowByteOffset], std::byte{kSomeipClientIdByte});
-        EXPECT_EQ(wire_bytes[kSomeipSessionIdHighByteOffset], std::byte{kSomeipSessionIdByte});
-        EXPECT_EQ(wire_bytes[kSomeipSessionIdLowByteOffset], std::byte{kSomeipSessionIdByte});
-        EXPECT_EQ(wire_bytes[kSomeipProtocolVersionOffset], std::byte{kSomeipProtocolVersion});
-        EXPECT_EQ(wire_bytes[kSomeipInterfaceVersionOffset], std::byte{kServiceMajorVersion});
-        EXPECT_EQ(wire_bytes[kSomeipMessageTypeOffset], std::byte{kSomeipMessageTypeNotification});
-        EXPECT_EQ(wire_bytes[kSomeipReturnCodeOffset], std::byte{kSomeipReturnCodeOk});
-        for (std::size_t i{0U}; i < kPayloadSize; ++i) {
-            EXPECT_EQ(wire_bytes[kSomeipPayloadOffset + i], kTestSampleBytes[i]);
-        }
+    ReceiveHandlerContext CreateInstanceWithReceiveHandler() {
+        return CreateInstanceWithReceiveHandler(default_cfg_);
     }
 
-    ReceiveHandlerContext CreateInstanceWithReceiveHandler(socom::Runtime_mock& socom_runtime,
-                                                           BuiltConfig const& cfg) {
+    ReceiveHandlerContext CreateInstanceWithReceiveHandler(BuiltConfig const& cfg) {
         ReceiveHandlerContext ctx{};
         ctx.event_mock = ExpectProxyWithSingleEvent(kEventSerialized);
         auto proxy_res =
             score::mw::com::GenericProxy::Create(MakeHandle(kLocalSpecifier, {kEventSerialized}));
         EXPECT_TRUE(proxy_res.has_value());
 
-        ExpectMakeServerConnector(socom_runtime, &ctx.sc_mock);
+        ExpectMakeServerConnector(&ctx.sc_mock);
         EXPECT_CALL(*ctx.event_mock, SetReceiveHandler(_))
             .WillOnce([&ctx](std::weak_ptr<score::mw::com::impl::ScopedEventReceiveHandler> handler)
                           -> score::Result<void> {
@@ -240,111 +238,85 @@ class LocalServiceInstanceTest : public ServiceInstanceTestFixture {
         EXPECT_CALL(*ctx.event_mock, Subscribe(_)).WillOnce(Return(score::Result<void>{}));
 
         auto inst_res = LocalServiceInstance::Create(cfg.local_instance, cfg.service_type,
-                                                     std::move(*proxy_res), socom_runtime);
+                                                     std::move(*proxy_res), socom_runtime_);
         EXPECT_TRUE(inst_res.has_value());
         ctx.instance = std::move(*inst_res);
         return ctx;
     }
+
+    std::vector<std::unique_ptr<LocalServiceInstance>> instances_{};
 };
 
 // Returns ComErrc::kInvalidConfiguration when service_instance_config is null.
 TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesFailsWhenInstanceConfigIsNull) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-
-    auto const null_res = LocalServiceInstance::CreateAsyncLocalServices(nullptr, cfg.service_type,
-                                                                         socom_runtime, instances);
+    auto const null_res = LocalServiceInstance::CreateAsyncLocalServices(
+        nullptr, default_cfg_.service_type, socom_runtime_, instances_);
     ASSERT_FALSE(null_res.has_value());
     EXPECT_EQ(null_res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
 
 // Returns the error from GenericProxy::StartFindService() when service discovery fails to start.
 TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesPropagatesStartFindServiceFailure) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-
     EXPECT_CALL(service_discovery_mock(),
                 StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
         .WillOnce(Return(
             score::MakeUnexpected(score::mw::com::impl::ComErrc::kFindServiceHandlerFailure)));
 
     auto const find_fail = LocalServiceInstance::CreateAsyncLocalServices(
-        cfg.local_instance, cfg.service_type, socom_runtime, instances);
+        default_cfg_.local_instance, default_cfg_.service_type, socom_runtime_, instances_);
     EXPECT_FALSE(find_fail.has_value());
 }
 
 // Does not create a SOCom Server_connector or LocalServiceInstance when GenericProxy::Create()
 // fails in the discovery callback.
 TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenProxyCreationFails) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto find_handler = StartAsyncDiscoveryAndCaptureHandler(cfg, socom_runtime, instances);
+    auto find_handler = StartAsyncDiscoveryAndCaptureHandler();
     score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
         MakeHandle(kLocalSpecifier, {kEventSerialized})};
 
     EXPECT_CALL(proxy_binding_factory_mock(), Create(_)).WillOnce(Return(ByMove(nullptr)));
     find_handler(handles, score::mw::com::impl::make_FindServiceHandle(kFindServiceUid));
-    EXPECT_TRUE(instances.empty());
+    EXPECT_TRUE(instances_.empty());
 }
 
 // Does not store a LocalServiceInstance when SOCom make_server_connector() fails in the discovery
 // callback.
 TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenServerConnectorCreationFails) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto find_handler = StartAsyncDiscoveryAndCaptureHandler(cfg, socom_runtime, instances);
+    auto find_handler = StartAsyncDiscoveryAndCaptureHandler();
     score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
         MakeHandle(kLocalSpecifier, {kEventSerialized})};
 
     (void)ExpectProxyWithSingleEvent(kEventSerialized);
-    EXPECT_CALL(socom_runtime, make_server_connector(_, _, _))
+    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
         .WillOnce(Return(ByMove(score::MakeUnexpected<socom::Disabled_server_connector::Uptr>(
             socom::Construction_error::duplicate_service))));
 
     find_handler(handles, score::mw::com::impl::make_FindServiceHandle(kFindServiceUid));
-    EXPECT_TRUE(instances.empty());
+    EXPECT_TRUE(instances_.empty());
 }
 
 // Stores the created LocalServiceInstance and calls StopFindService(), keeping the instance even
 // if StopFindService() returns an error.
 TEST_F(LocalServiceInstanceTest,
        FindServiceCallbackStoresCreatedInstanceAndLogsStopFindServiceError) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto find_handler = StartAsyncDiscoveryAndCaptureHandler(cfg, socom_runtime, instances);
+    auto find_handler = StartAsyncDiscoveryAndCaptureHandler();
     score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
         MakeHandle(kLocalSpecifier, {kEventSerialized})};
 
     auto* const event_mock = ExpectProxyWithSingleEvent(kEventSerialized);
     EXPECT_CALL(*event_mock, SetReceiveHandler(_)).WillOnce(Return(score::Result<void>{}));
     EXPECT_CALL(*event_mock, Subscribe(_)).WillOnce(Return(score::Result<void>{}));
-    ExpectMakeServerConnector(socom_runtime);
+    ExpectMakeServerConnector();
     EXPECT_CALL(service_discovery_mock(), StopFindService(_))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kInvalidHandle)));
 
     find_handler(handles, score::mw::com::impl::make_FindServiceHandle(kFindServiceUid));
-    EXPECT_EQ(instances.size(), kExpectedInstanceCount);
+    EXPECT_EQ(instances_.size(), kExpectedInstanceCount);
 }
 
 // Skips configured events missing from GenericProxy::GetEvents() or missing a registered
 // serializer without failing service creation.
 TEST_F(LocalServiceInstanceTest, CreateSkipsMissingIpcEventAndUnconfiguredSerializerEvent) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
     auto const cfg = BuildConfig({
         EventSpec{kEventMissingInIpc, kEventMissingInIpcId, kMaxMessageSize},
         EventSpec{kEventNoSerializer, kEventNoSerializerId, std::nullopt},
@@ -357,19 +329,15 @@ TEST_F(LocalServiceInstanceTest, CreateSkipsMissingIpcEventAndUnconfiguredSerial
         score::mw::com::GenericProxy::Create(MakeHandle(kLocalSpecifier, {kEventNoSerializer}));
     ASSERT_TRUE(proxy_res.has_value());
 
-    ExpectMakeServerConnector(socom_runtime);
+    ExpectMakeServerConnector();
     auto const inst_res = LocalServiceInstance::Create(cfg.local_instance, cfg.service_type,
-                                                       std::move(*proxy_res), socom_runtime);
+                                                       std::move(*proxy_res), socom_runtime_);
     EXPECT_TRUE(inst_res.has_value());
 }
 
 // Logs SetReceiveHandler() and Subscribe() errors on an event without failing
 // LocalServiceInstance::Create() for the whole service.
 TEST_F(LocalServiceInstanceTest, CreateLogsErrorsWhenSetReceiveHandlerAndSubscribeFail) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
     auto* const event_mock = ExpectProxyWithSingleEvent(kEventSerialized);
     EXPECT_CALL(*event_mock, SetReceiveHandler(_))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kSetHandlerNotSet)));
@@ -380,9 +348,10 @@ TEST_F(LocalServiceInstanceTest, CreateLogsErrorsWhenSetReceiveHandlerAndSubscri
         score::mw::com::GenericProxy::Create(MakeHandle(kLocalSpecifier, {kEventSerialized}));
     ASSERT_TRUE(proxy_res.has_value());
 
-    ExpectMakeServerConnector(socom_runtime);
-    auto const inst_res = LocalServiceInstance::Create(cfg.local_instance, cfg.service_type,
-                                                       std::move(*proxy_res), socom_runtime);
+    ExpectMakeServerConnector();
+    auto const inst_res =
+        LocalServiceInstance::Create(default_cfg_.local_instance, default_cfg_.service_type,
+                                     std::move(*proxy_res), socom_runtime_);
     EXPECT_TRUE(inst_res.has_value());
 }
 
@@ -390,10 +359,6 @@ TEST_F(LocalServiceInstanceTest, CreateLogsErrorsWhenSetReceiveHandlerAndSubscri
 // calls and ignore event subscription or update-request callbacks.
 TEST_F(LocalServiceInstanceTest,
        DefaultServerConnectorCallbacksRejectMethodCallsAndIgnoreEventNotifications) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
     auto* const event_mock = ExpectProxyWithSingleEvent(kEventSerialized);
     EXPECT_CALL(*event_mock, SetReceiveHandler(_)).WillOnce(Return(score::Result<void>{}));
     EXPECT_CALL(*event_mock, Subscribe(_)).WillOnce(Return(score::Result<void>{}));
@@ -403,9 +368,10 @@ TEST_F(LocalServiceInstanceTest,
     ASSERT_TRUE(proxy_res.has_value());
 
     socom::Disabled_server_connector::Callbacks captured_callbacks{};
-    ExpectMakeServerConnector(socom_runtime, nullptr, &captured_callbacks);
-    auto const inst_res = LocalServiceInstance::Create(cfg.local_instance, cfg.service_type,
-                                                       std::move(*proxy_res), socom_runtime);
+    ExpectMakeServerConnector(nullptr, &captured_callbacks);
+    auto const inst_res =
+        LocalServiceInstance::Create(default_cfg_.local_instance, default_cfg_.service_type,
+                                     std::move(*proxy_res), socom_runtime_);
     ASSERT_TRUE(inst_res.has_value());
 
     NiceMock<socom::Server_connector_mock> dummy_sc{};
@@ -423,11 +389,7 @@ TEST_F(LocalServiceInstanceTest,
 
 // Logs and returns without aborting when GetNewSamples() fails inside the LoLa receive handler.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenGetNewSamplesFails) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const ctx = CreateInstanceWithReceiveHandler(socom_runtime, cfg);
+    auto const ctx = CreateInstanceWithReceiveHandler();
     ASSERT_FALSE(ctx.receive_handler.expired());
 
     EXPECT_CALL(*ctx.event_mock, GetNewSamples(_, _))
@@ -437,11 +399,7 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenGetNewSamplesFails) 
 
 // Skips serialization and update_event() when SOCom allocate_event_payload() returns an error.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerSkipsUpdateWhenPayloadAllocationFails) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const ctx = CreateInstanceWithReceiveHandler(socom_runtime, cfg);
+    auto const ctx = CreateInstanceWithReceiveHandler();
     ASSERT_FALSE(ctx.receive_handler.expired());
 
     auto sample_obj = MakeTestSample();
@@ -458,11 +416,7 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerSkipsUpdateWhenPayloadAllocationF
 // update_event() when serialization fails.
 TEST_F(LocalServiceInstanceTest,
        ReceiveHandlerSkipsUpdateWhenAllocatedBufferIsTooSmallForSerializer) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const ctx = CreateInstanceWithReceiveHandler(socom_runtime, cfg);
+    auto const ctx = CreateInstanceWithReceiveHandler();
     ASSERT_FALSE(ctx.receive_handler.expired());
 
     auto sample_obj = MakeTestSample();
@@ -478,11 +432,7 @@ TEST_F(LocalServiceInstanceTest,
 
 // Logs and returns without aborting when SOCom update_event() returns an error.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenUpdateEventFails) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const ctx = CreateInstanceWithReceiveHandler(socom_runtime, cfg);
+    auto const ctx = CreateInstanceWithReceiveHandler();
     ASSERT_FALSE(ctx.receive_handler.expired());
 
     auto sample_obj = MakeTestSample();
@@ -502,11 +452,7 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenUpdateEventFails) {
 // and calls shrink() with the written byte count.
 TEST_F(LocalServiceInstanceTest,
        ReceiveHandlerSerializesSampleIntoSomeipPacketAndUpdatesServerConnector) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const ctx = CreateInstanceWithReceiveHandler(socom_runtime, cfg);
+    auto const ctx = CreateInstanceWithReceiveHandler();
     ASSERT_FALSE(ctx.receive_handler.expired());
 
     auto sample_obj = MakeTestSample();

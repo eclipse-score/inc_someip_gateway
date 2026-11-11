@@ -36,6 +36,7 @@
 #include "score/mw/com/impl/handle_type.h"
 #include "score/result/result.h"
 #include "score/serializer/serializer.h"
+#include "score/socom/runtime_mock.hpp"
 
 namespace score::someip_gateway::gatewayd {
 
@@ -128,11 +129,8 @@ inline BuiltConfig BuildConfig(std::vector<EventSpec> const& event_specs) {
 }
 
 class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::MwComTestFixture {
-   protected:
-    void SetUp() override {
-        ON_CALL(service_discovery_mock(), StopOfferService(::testing::_))
-            .WillByDefault(::testing::Return(score::Result<void>{}));
-
+   public:
+    static void SetUpTestSuite() {
         auto const serializer_cfg = BuildConfig({
             EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
             EventSpec{kEventNoSerializer, kEventNoSerializerId, std::nullopt},
@@ -146,18 +144,31 @@ class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::M
 
         ASSERT_EQ(score_com_serializer_init(config_path_.c_str(), config_path_.size()),
                   score_com_serializer_result_ok);
+        serializer_initialized_ = true;
     }
 
-    void TearDown() override {
-        EXPECT_EQ(score_com_serializer_deinit(), score_com_serializer_result_ok);
-        (void)std::remove(config_path_.c_str());
+    static void TearDownTestSuite() {
+        if (serializer_initialized_) {
+            EXPECT_EQ(score_com_serializer_deinit(), score_com_serializer_result_ok);
+            serializer_initialized_ = false;
+        }
+        if (!config_path_.empty()) {
+            (void)std::remove(config_path_.c_str());
+            config_path_.clear();
+        }
     }
 
-    using MwComTestFixture::ExpectInstanceResolved;
+   protected:
+    ServiceInstanceTestFixture() {
+        ON_CALL(service_discovery_mock(), StopOfferService(::testing::_))
+            .WillByDefault(::testing::Return(score::Result<void>{}));
+    }
 
-    void ExpectInstanceResolved(std::string_view const specifier,
-                                std::initializer_list<std::string_view> const events) {
-        MwComTestFixture::ExpectInstanceResolved(
+    using MwComTestFixture::StubInstanceResolved;
+
+    void StubInstanceResolved(std::string_view const specifier,
+                              std::initializer_list<std::string_view> const events) {
+        MwComTestFixture::StubInstanceResolved(
             specifier, events,
             score::gateway_ipc_binding::testing::ServiceDeploymentSpec{
                 kServiceTypeName, kServiceId, kServiceMajorVersion, kServiceMinorVersion,
@@ -173,8 +184,14 @@ class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::M
                 kInstanceId});
     }
 
+    BuiltConfig default_cfg_{BuildConfig({
+        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
+    })};
+    ::testing::StrictMock<socom::Runtime_mock> socom_runtime_{};
+
    private:
-    std::string config_path_{};
+    static inline std::string config_path_{};
+    static inline bool serializer_initialized_{false};
 };
 
 }  // namespace score::someip_gateway::gatewayd

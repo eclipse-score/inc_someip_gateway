@@ -27,7 +27,6 @@
 #include "score/gateway_ipc_binding/impl/service_binding.hpp"
 #include "score/gateway_ipc_binding/test/unit/ipc_binding_test_fixture.hpp"
 #include "score/memory/data_type_size_info.h"
-#include "score/mw/com/impl/bindings/mock_binding/sample_ptr.h"
 #include "score/mw/com/impl/com_error.h"
 #include "score/mw/com/impl/find_service_handle.h"
 #include "score/mw/com/impl/find_service_handler.h"
@@ -53,7 +52,6 @@ using ::testing::A;
 using ::testing::ByMove;
 using ::testing::NiceMock;
 using ::testing::Return;
-using ::testing::StrictMock;
 
 constexpr socom::Method_id kDefaultMethodId{0U};
 constexpr socom::Event_id kFirstEventId{0U};
@@ -88,15 +86,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
         std::weak_ptr<score::mw::com::impl::ScopedEventReceiveHandler> receive_handler{};
     };
 
-    static score::mw::com::impl::SamplePtr<void> MakeMockSample(
-        void* const raw_ptr, score::mw::com::impl::TrackerGuardFactory& tracker) {
-        return score::mw::com::impl::SamplePtr<void>{
-            score::mw::com::impl::mock_binding::SamplePtr{raw_ptr, [](void*) noexcept {}},
-            *tracker.TakeGuard()};
-    }
-
     CreatedConsumer CreateConsumer() {
-        ExpectInstanceResolved();
         CreatedConsumer created{};
         EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
             .WillOnce([&created](socom::Server_service_interface_definition,
@@ -174,8 +164,6 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
                              score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
         return sub;
     }
-
-    StrictMock<socom::Runtime_mock> socom_runtime_{};
 };
 
 // Invalid specifier syntax fails in create() before creating a SOCom Server_connector.
@@ -188,7 +176,7 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
 
 // Undeployed specifier fails in create() instead of waiting indefinitely in StartFindService().
 TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
-    ExpectInstanceNotResolved();
+    StubInstanceNotResolved();
     auto const result =
         Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
     ASSERT_FALSE(result.has_value());
@@ -197,7 +185,6 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
 
 // Returns runtime_error_service_setup_failed when SOCom make_server_connector() fails.
 TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) {
-    ExpectInstanceResolved();
     EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
         .WillOnce(Return(ByMove(score::MakeUnexpected<socom::Disabled_server_connector::Uptr>(
             socom::Construction_error::duplicate_service))));
@@ -211,7 +198,6 @@ TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) 
 // ignored without out-of-bounds access.
 TEST_F(ConsumerServiceBindingTest,
        ServerConnectorDefaultCallbacksHandleUnsupportedOperationsAndOutOfRangeEvent) {
-    ExpectInstanceResolved();
     socom::Disabled_server_connector::Callbacks captured_cbs{};
     EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
         .WillOnce([&captured_cbs](socom::Server_service_interface_definition,
@@ -386,10 +372,10 @@ TEST_F(ConsumerServiceBindingTest,
             [&oversized_buf, &valid_buf](
                 score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
                 score::mw::com::impl::TrackerGuardFactory& tracker) -> score::Result<std::size_t> {
-                cb(MakeMockSample(nullptr, tracker), kCallbackMaxSampleCount);
-                cb(MakeMockSample(oversized_buf.data(), tracker), kCallbackMaxSampleCount);
-                cb(MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
-                cb(MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
+                cb(testing::MakeMockSample(nullptr, tracker), kCallbackMaxSampleCount);
+                cb(testing::MakeMockSample(oversized_buf.data(), tracker), kCallbackMaxSampleCount);
+                cb(testing::MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
+                cb(testing::MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
                 return kProcessedSampleCount;
             });
     EXPECT_CALL(*started.connector_mock, update_event(kFirstEventId, _))

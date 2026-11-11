@@ -40,7 +40,6 @@ using ::testing::_;
 using ::testing::ByMove;
 using ::testing::NiceMock;
 using ::testing::Return;
-using ::testing::StrictMock;
 
 constexpr std::string_view kMissingPrefixSpecifier{"not_bridged/service"};
 constexpr std::string_view kInvalidPrefixedSpecifier{"bridged_//invalid_spec"};
@@ -90,7 +89,7 @@ TEST_F(ServiceBindingTest, CheckInstanceIsDeployedRejectsUndeployedSpecifier) {
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
     ASSERT_TRUE(valid.has_value());
 
-    ExpectInstanceNotResolved();
+    StubInstanceNotResolved();
     auto const not_deployed =
         check_instance_is_deployed(*valid, std::string{kValidBridgedSpecifier});
     ASSERT_FALSE(not_deployed.has_value());
@@ -102,7 +101,6 @@ TEST_F(ServiceBindingTest, CheckInstanceIsDeployedAcceptsDeployedSpecifier) {
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
     ASSERT_TRUE(valid.has_value());
 
-    ExpectInstanceResolved();
     auto const deployed = check_instance_is_deployed(*valid, std::string{kValidBridgedSpecifier});
     EXPECT_TRUE(deployed.has_value());
 }
@@ -230,7 +228,6 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsMalformedBridgedInstanceSpeci
 // Skips AddConfiguration() when the service is already in mw_com_config.json because re-adding a
 // deployed service aborts LoLa.
 TEST_F(ServiceBindingTest, AddToMwComRuntimeSucceedsWhenServiceAlreadyDeployed) {
-    ExpectInstanceResolved();
     auto const valid_cfg = MakeServiceConfig();
     EXPECT_TRUE(add_to_mw_com_runtime({valid_cfg}).has_value());
 }
@@ -238,56 +235,49 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeSucceedsWhenServiceAlreadyDeployed) 
 // Runs validate() in make_service_binding() even when static mw_com_config.json was used without
 // calling add_to_mw_com_runtime().
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsInvalidServiceConfig) {
-    StrictMock<socom::Runtime_mock> socom_runtime{};
     auto no_events = MakeServiceConfig();
     no_events.events.clear();
-    auto const res = make_service_binding(socom_runtime, no_events);
+    auto const res = make_service_binding(socom_runtime_, no_events);
     ASSERT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
 // Rejects an undeployed consumer specifier before creating a SOCom Server_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedConsumer) {
-    ExpectInstanceNotResolved();
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const res = make_service_binding(socom_runtime, MakeServiceConfig(Role::consumer));
+    StubInstanceNotResolved();
+    auto const res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
     ASSERT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
 // Rejects an undeployed provider specifier before creating a SOCom Client_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedProvider) {
-    ExpectInstanceNotResolved();
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    auto const res = make_service_binding(socom_runtime, MakeServiceConfig(Role::provider));
+    StubInstanceNotResolved();
+    auto const res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::provider));
     ASSERT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
 }
 
 // Role is named from mw::com's perspective, so Role::consumer creates a SOCom Server_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
-    ExpectInstanceResolved();
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    EXPECT_CALL(socom_runtime, make_server_connector(_, _, _))
+    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
         .WillOnce(Return(ByMove(score::Result<socom::Disabled_server_connector::Uptr>{
             std::make_unique<NiceMock<socom::Server_connector_mock>>()})));
 
-    auto const res = make_service_binding(socom_runtime, MakeServiceConfig(Role::consumer));
+    auto const res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
     ASSERT_TRUE(res.has_value());
     EXPECT_NE(*res, nullptr);
 }
 
 // Role::provider creates a LoLa GenericSkeleton and a SOCom Client_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesProviderBinding) {
-    ExpectInstanceResolved();
     auto const cfg = MakeServiceConfig(Role::provider);
     ExpectProviderSkeletonCreated(cfg);
-    StrictMock<socom::Runtime_mock> socom_runtime{};
-    EXPECT_CALL(socom_runtime, make_client_connector(_, _, _))
+    EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
         .WillOnce(Return(ByMove(score::Result<socom::Client_connector::Uptr>{
             std::make_unique<NiceMock<socom::Client_connector_mock>>()})));
 
-    auto const res = make_service_binding(socom_runtime, cfg);
+    auto const res = make_service_binding(socom_runtime_, cfg);
     ASSERT_TRUE(res.has_value());
     EXPECT_NE(*res, nullptr);
 }

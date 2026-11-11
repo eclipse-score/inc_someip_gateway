@@ -52,7 +52,6 @@ using ::testing::A;
 using ::testing::ByMove;
 using ::testing::NiceMock;
 using ::testing::Return;
-using ::testing::StrictMock;
 
 constexpr std::string_view kEmptySpecifier{""};
 constexpr std::string_view kClientIdentifier{"client0"};
@@ -187,8 +186,6 @@ class SomeipdServiceBindingTest : public IpcBindingTestFixture {
             .WillOnce(Return(ByMove(std::move(method_mock))));
     }
 
-    StrictMock<socom::Runtime_mock> socom_runtime_{};
-
    private:
     score::mw::com::impl::SkeletonMethodBinding::TypeErasedHandler captured_method_handler_{};
     score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType>
@@ -234,7 +231,7 @@ TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsInvalidSpecifier) {
 
 // Fails server->start() when the SomeipdService specifier is missing from mw_com_config.json.
 TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
-    ExpectInstanceNotResolved();
+    StubInstanceNotResolved();
     auto server =
         create_server(socom_runtime_, std::string{kSomeipdSpecifier}, &AcceptAllGatewayConfigs);
     ASSERT_NE(server, nullptr);
@@ -248,7 +245,6 @@ TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
 // Fails Someipd_service_provider::create() if RegisterHandler() fails, since LoLa aborts
 // OfferService() when a method has no handler.
 TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
-    ExpectInstanceResolved();
     auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
     auto method_mock =
         std::make_unique<NiceMock<score::mw::com::impl::mock_binding::SkeletonMethod>>();
@@ -267,7 +263,6 @@ TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
 
 // Returns runtime_error_someipd_service_offer_failed when OfferService() fails in server->start().
 TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
-    ExpectInstanceResolved();
     auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
     auto* const skel_mock_ptr = skel_mock.get();
     auto method_mock =
@@ -291,7 +286,6 @@ TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
 // Calling server->start() a second time returns logic_error_already_started without replacing the
 // active skeleton.
 TEST_F(SomeipdServiceBindingTest, ServerSecondStartReturnsAlreadyStartedError) {
-    ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
 
     auto server =
@@ -306,7 +300,6 @@ TEST_F(SomeipdServiceBindingTest, ServerSecondStartReturnsAlreadyStartedError) {
 // Rejects gateway_config.size > max_size before reading past the SHM array, and returns false when
 // the configuration callback returns false.
 TEST_F(SomeipdServiceBindingTest, ServerRejectsOversizedAndHandlerRejectedConfigurations) {
-    ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
 
     bool handler_accepts{false};
@@ -327,7 +320,6 @@ TEST_F(SomeipdServiceBindingTest, ServerRejectsOversizedAndHandlerRejectedConfig
 // Rejects provider configurations when event_sizes has the wrong count or an unknown
 // (service_id, event_id) pair.
 TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEventSizes) {
-    ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
 
     auto server = create_server(
@@ -350,7 +342,6 @@ TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEvent
 // Returns true without creating duplicate bindings when a restarted gatewayd sends the same
 // configuration again.
 TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircuitsDuplicate) {
-    ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
 
     auto server = create_server(
@@ -382,7 +373,7 @@ TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpeci
     ASSERT_FALSE(invalid_res.has_value());
     EXPECT_EQ(invalid_res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 
-    ExpectInstanceNotResolved();
+    StubInstanceNotResolved();
     auto const undeployed_res =
         Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
     ASSERT_FALSE(undeployed_res.has_value());
@@ -391,7 +382,6 @@ TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpeci
 
 // Returns runtime_error_someipd_service_find_failed when StartFindService() fails.
 TEST_F(SomeipdServiceBindingTest, ConsumerCreateFailsWhenStartFindServiceFails) {
-    ExpectInstanceResolved();
     auto const cfg = std::make_unique<Service_configuration>();
     EXPECT_CALL(service_discovery_mock(),
                 StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
@@ -407,8 +397,6 @@ TEST_F(SomeipdServiceBindingTest, ConsumerCreateFailsWhenStartFindServiceFails) 
 // capacity, or SOCom connector creation fails.
 TEST_F(SomeipdServiceBindingTest,
        CreateClientRejectsInvalidConfigOversizedPayloadAndFailedBinding) {
-    ExpectInstanceResolved();
-
     auto bad_service = MakeServiceConfig();
     bad_service.events.clear();
     EXPECT_EQ(create_client(socom_runtime_, std::string{kSomeipdSpecifier}, {bad_service}),
@@ -431,7 +419,6 @@ TEST_F(SomeipdServiceBindingTest,
 // again when SomeipdService stops offering.
 TEST_F(SomeipdServiceBindingTest,
        ClientConnectionStateTracksSomeipdDiscoveryAndConfigurationReply) {
-    ExpectInstanceResolved();
     auto client = CreateTestClient();
     ASSERT_NE(client, nullptr);
     EXPECT_FALSE(client->is_connected());

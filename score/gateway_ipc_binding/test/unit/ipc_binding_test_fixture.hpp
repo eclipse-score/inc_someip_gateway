@@ -14,6 +14,8 @@
 #ifndef SCORE_GATEWAY_IPC_BINDING_TEST_UNIT_IPC_BINDING_TEST_FIXTURE_HPP
 #define SCORE_GATEWAY_IPC_BINDING_TEST_UNIT_IPC_BINDING_TEST_FIXTURE_HPP
 
+#include <gmock/gmock.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <initializer_list>
@@ -24,6 +26,7 @@
 #include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/mw/com/impl/handle_type.h"
 #include "score/mw/com/impl/instance_identifier.h"
+#include "score/socom/runtime_mock.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
@@ -65,10 +68,12 @@ inline Service_config MakeServiceConfig(Role const role = Role::consumer,
 
 class IpcBindingTestFixture : public testing::MwComTestFixture {
    protected:
-    using MwComTestFixture::ExpectInstanceResolved;
+    IpcBindingTestFixture() { StubInstanceResolved(); }
 
-    void ExpectInstanceResolved(std::initializer_list<std::string_view> const events = {kEvent0}) {
-        MwComTestFixture::ExpectInstanceResolved(
+    using MwComTestFixture::StubInstanceResolved;
+
+    void StubInstanceResolved(std::initializer_list<std::string_view> const events = {kEvent0}) {
+        MwComTestFixture::StubInstanceResolved(
             kValidBridgedSpecifier, events,
             testing::ServiceDeploymentSpec{kDefaultServiceTypeName, kDefaultServiceId,
                                            kDefaultMajorVersion, kDefaultMinorVersion,
@@ -92,6 +97,8 @@ class IpcBindingTestFixture : public testing::MwComTestFixture {
                                            kDefaultMajorVersion, kDefaultMinorVersion,
                                            kDefaultInstanceId});
     }
+
+    ::testing::StrictMock<socom::Runtime_mock> socom_runtime_{};
 };
 
 }  // namespace score::gateway_ipc_binding::mw_com

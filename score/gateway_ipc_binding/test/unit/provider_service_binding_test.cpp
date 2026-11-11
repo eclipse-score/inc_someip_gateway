@@ -26,7 +26,6 @@
 #include "score/gateway_ipc_binding/impl/sample_layout.hpp"
 #include "score/gateway_ipc_binding/test/unit/ipc_binding_test_fixture.hpp"
 #include "score/memory/data_type_size_info.h"
-#include "score/mw/com/impl/bindings/mock_binding/sample_allocatee_ptr.h"
 #include "score/mw/com/impl/com_error.h"
 #include "score/mw/com/impl/generic_skeleton_event_binding.h"
 #include "score/mw/com/impl/plumbing/sample_allocatee_ptr.h"
@@ -44,7 +43,6 @@ using ::testing::_;
 using ::testing::ByMove;
 using ::testing::NiceMock;
 using ::testing::Return;
-using ::testing::StrictMock;
 
 constexpr socom::Event_id kSocomEvent0Id{0U};
 constexpr socom::Event_id kUnknownEventId{99U};
@@ -90,7 +88,6 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
     }
 
     std::unique_ptr<Provider_service_binding> CreateConnectedProvider() {
-        ExpectInstanceResolved();
         (void)ExpectSkeletonWithEvent(ExpectedEventSampleSize());
         EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
             .WillOnce([this](socom::Service_interface_definition, socom::Service_instance,
@@ -120,18 +117,10 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
             *client_connector_mock_, socom::Service_state::available, server_interface_definition_);
     }
 
-    static score::Result<score::mw::com::impl::SampleAllocateePtr<void>> MakeAllocatedSample(
-        std::byte* const buffer, score::mw::com::impl::SampleAllocateeGuard guard) {
-        score::mw::com::impl::mock_binding::SampleAllocateePtr mock_ptr{buffer,
-                                                                        [](void*) noexcept {}};
-        return score::mw::com::impl::MakeSampleAllocateePtr(std::move(mock_ptr), std::move(guard));
-    }
-
     Service_config const provider_config_{MakeServiceConfig(Role::provider)};
     socom::Server_service_interface_definition const server_interface_definition_{
         provider_config_.interface, socom::to_num_of_methods(kZeroMethods),
         socom::to_num_of_events(kSingleEventCount)};
-    StrictMock<socom::Runtime_mock> socom_runtime_{};
     socom::Client_connector::Callbacks client_callbacks_{};
     NiceMock<socom::Client_connector_mock>* client_connector_mock_{nullptr};
     score::mw::com::impl::mock_binding::Skeleton* skeleton_mock_{nullptr};
@@ -150,7 +139,7 @@ TEST_F(ProviderServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
 // Missing mw_com_config.json entry fails GenericSkeleton::Create() before creating a SOCom
 // Client_connector.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
-    ExpectInstanceNotResolved();
+    StubInstanceNotResolved();
     auto const result = Provider_service_binding::create(socom_runtime_, provider_config_);
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
@@ -158,7 +147,6 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
 
 // Fails create() if a configured event name is missing from GenericSkeleton::GetEvents().
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
-    ExpectInstanceResolved();
     auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
     EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
         .WillOnce(Return(ByMove(std::move(skel_mock))));
@@ -173,7 +161,6 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
 // Fails with runtime_error_sample_size_mismatch if LoLa's SHM slot size differs from
 // sample_size(event).
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatches) {
-    ExpectInstanceResolved();
     (void)ExpectSkeletonWithEvent(kMismatchedEventSize);
 
     auto const result = Provider_service_binding::create(socom_runtime_, provider_config_);
@@ -184,7 +171,6 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatc
 // Fails create() if LoLa rejects the subscription callback, and destructor cleanup does not abort
 // when unsetting that callback also fails.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandlerFails) {
-    ExpectInstanceResolved();
     auto* const event_mock = ExpectSkeletonWithEvent(
         ExpectedEventSampleSize(),
         score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure));
@@ -198,7 +184,6 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandler
 
 // Fails create() if SOCom make_client_connector() returns an error.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenMakingClientConnectorFails) {
-    ExpectInstanceResolved();
     (void)ExpectSkeletonWithEvent(ExpectedEventSampleSize());
     EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
         .WillOnce(Return(ByMove(score::MakeUnexpected<socom::Client_connector::Uptr>(
@@ -302,7 +287,7 @@ TEST_F(ProviderServiceBindingTest, EventPayloadAllocationHandlesFailureAndDroppe
     alignas(kSample_alignment) std::array<std::byte, kSampleBufferSize> sample_buf{};
     EXPECT_CALL(*skeleton_event_mock_, Allocate(_))
         .WillOnce([&sample_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeAllocatedSample(sample_buf.data(), std::move(guard));
+            return testing::MakeAllocatedSample(sample_buf.data(), std::move(guard));
         });
     {
         auto const dropped_alloc =
@@ -322,7 +307,7 @@ TEST_F(ProviderServiceBindingTest, EventUpdateWritesPayloadLengthAndSendsSampleT
 
     EXPECT_CALL(*skeleton_event_mock_, Allocate(_))
         .WillOnce([&sample_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeAllocatedSample(sample_buf.data(), std::move(guard));
+            return testing::MakeAllocatedSample(sample_buf.data(), std::move(guard));
         });
     auto alloc_fail_send =
         client_callbacks_.on_event_payload_allocate(*client_connector_mock_, kSocomEvent0Id);
@@ -335,7 +320,7 @@ TEST_F(ProviderServiceBindingTest, EventUpdateWritesPayloadLengthAndSendsSampleT
 
     EXPECT_CALL(*skeleton_event_mock_, Allocate(_))
         .WillOnce([&sample_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeAllocatedSample(sample_buf.data(), std::move(guard));
+            return testing::MakeAllocatedSample(sample_buf.data(), std::move(guard));
         });
     auto alloc_ok =
         client_callbacks_.on_event_payload_allocate(*client_connector_mock_, kSocomEvent0Id);

@@ -31,9 +31,9 @@
 #include <vector>
 
 #include "score/containers/non_relocatable_vector.h"
+#include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/gatewayd/test/service_instance_test_fixture.h"
 #include "score/mw/com/com_error_domain.h"
-#include "score/mw/com/impl/bindings/mock_binding/sample_allocatee_ptr.h"
 #include "score/mw/com/impl/com_error.h"
 #include "score/mw/com/impl/plumbing/sample_allocatee_ptr.h"
 #include "score/mw/com/types.h"
@@ -54,7 +54,6 @@ using ::testing::_;
 using ::testing::ByMove;
 using ::testing::NiceMock;
 using ::testing::Return;
-using ::testing::StrictMock;
 
 using score::someip_gateway::serializer::PreSerializedData;
 
@@ -73,8 +72,21 @@ constexpr socom::Event_id kThirdSocomId{2U};
 constexpr std::uint16_t kZeroMethodsCount{0U};
 constexpr std::size_t kSingleInstanceCount{1U};
 
+std::array<std::byte, kWirePacketSize> MakeValidWireBytes() noexcept {
+    std::array<std::byte, kWirePacketSize> wire{};
+    (void)std::copy(kWirePayloadBytes.cbegin(), kWirePayloadBytes.cend(),
+                    wire.begin() + someip::kSomeipFullHeaderSize);
+    return wire;
+}
+
+socom::Payload MakeSpanPayload(score::cpp::span<std::byte const> const bytes) {
+    return socom::Payload{bytes, socom::kNoSlotHandle, []() noexcept {}};
+}
+
 class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
    protected:
+    RemoteServiceInstanceTest() { StubInstanceResolved(kRemoteSpecifier, {kEventSerialized}); }
+
     struct MockIpcSkeleton {
         score::mw::com::GenericSkeleton skeleton;
         score::mw::com::impl::mock_binding::Skeleton* skeleton_binding{nullptr};
@@ -87,24 +99,6 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
         NiceMock<socom::Client_connector_mock>* client_connector{nullptr};
         score::mw::com::impl::mock_binding::GenericSkeletonEvent* serialized_event{nullptr};
     };
-
-    static std::array<std::byte, kWirePacketSize> MakeValidWireBytes() noexcept {
-        std::array<std::byte, kWirePacketSize> wire{};
-        (void)std::copy(kWirePayloadBytes.cbegin(), kWirePayloadBytes.cend(),
-                        wire.begin() + someip::kSomeipFullHeaderSize);
-        return wire;
-    }
-
-    static socom::Payload MakeSpanPayload(score::cpp::span<std::byte const> const bytes) {
-        return socom::Payload{bytes, socom::kNoSlotHandle, []() noexcept {}};
-    }
-
-    static score::Result<score::mw::com::impl::SampleAllocateePtr<void>> MakeAllocateeSample(
-        void* const buffer, score::mw::com::impl::SampleAllocateeGuard guard) noexcept {
-        score::mw::com::impl::mock_binding::SampleAllocateePtr mock_ptr{buffer,
-                                                                        +[](void*) noexcept {}};
-        return score::mw::com::impl::MakeSampleAllocateePtr(std::move(mock_ptr), std::move(guard));
-    }
 
     void ExpectSkeletonFactoryOfferSuccess() {
         auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
@@ -127,7 +121,7 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
     MockIpcSkeleton CreateMockIpcSkeleton(
         std::initializer_list<std::string_view> const event_names = {kEventSerialized},
         bool const expect_offer_success = true) {
-        ExpectInstanceResolved(kRemoteSpecifier, event_names);
+        StubInstanceResolved(kRemoteSpecifier, event_names);
 
         auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
         auto* const skel_mock_ptr = skel_mock.get();
@@ -172,6 +166,11 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
     }
 
     ConnectedRemoteInstance CreateConnectedInstance(
+        std::initializer_list<std::string_view> const ipc_events = {kEventSerialized}) {
+        return CreateConnectedInstance(default_cfg_, ipc_events);
+    }
+
+    ConnectedRemoteInstance CreateConnectedInstance(
         BuiltConfig const& cfg, std::initializer_list<std::string_view> const ipc_events = {
                                     kEventNoSerializer, kEventSerialized}) {
         auto mock_skel = CreateMockIpcSkeleton(ipc_events);
@@ -195,31 +194,25 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
         return connected;
     }
 
-    StrictMock<socom::Runtime_mock> socom_runtime_{};
+    std::vector<std::unique_ptr<RemoteServiceInstance>> instances_{};
 };
 
 // Returns ComErrc::kInvalidConfiguration when service_instance_config is null.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenInstanceConfigIsNull) {
-    std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
-    auto const valid_cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
-        nullptr, valid_cfg.service_type, socom_runtime_, instances);
+        nullptr, default_cfg_.service_type, socom_runtime_, instances_);
     ASSERT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
 
 // Returns ComErrc::kInvalidConfiguration when any configured event has no registered serializer.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenEventLacksSerializer) {
-    std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
     auto const bad_ser_cfg = BuildConfig({
         EventSpec{kEventNoSerializer, kEventNoSerializerId, std::nullopt},
     });
 
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
-        bad_ser_cfg.remote_instance, bad_ser_cfg.service_type, socom_runtime_, instances);
+        bad_ser_cfg.remote_instance, bad_ser_cfg.service_type, socom_runtime_, instances_);
     ASSERT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
@@ -227,14 +220,10 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenEventLacksSer
 // Returns ComErrc::kInvalidConfiguration when GenericSkeleton::Create() fails for an unresolved
 // InstanceSpecifier.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenIpcSkeletonCreationFails) {
-    std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
-    auto const valid_cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    ExpectInstanceNotResolved();
+    StubInstanceNotResolved();
 
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
-        valid_cfg.remote_instance, valid_cfg.service_type, socom_runtime_, instances);
+        default_cfg_.remote_instance, default_cfg_.service_type, socom_runtime_, instances_);
     ASSERT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
@@ -242,12 +231,6 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenIpcSkeletonCr
 // Returns ComErrc::kBindingFailure without creating a SOCom Client_connector when
 // GenericSkeleton::OfferService() fails.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOfferFails) {
-    std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
-    auto const valid_cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    ExpectInstanceResolved(kRemoteSpecifier, {kEventSerialized});
-
     auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
     auto* const skel_mock_ptr = skel_mock.get();
     auto skel_event_mock =
@@ -261,7 +244,7 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOffer
         .WillOnce(Return(ByMove(std::move(skel_event_mock))));
 
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
-        valid_cfg.remote_instance, valid_cfg.service_type, socom_runtime_, instances);
+        default_cfg_.remote_instance, default_cfg_.service_type, socom_runtime_, instances_);
     ASSERT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kBindingFailure);
 }
@@ -269,11 +252,6 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOffer
 // Appends the created RemoteServiceInstance to instances so its GenericSkeleton and SOCom
 // Client_connector are not destroyed when CreateAsyncRemoteService() returns.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceAppendsCreatedInstanceOnSuccess) {
-    std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
-    auto const valid_cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    ExpectInstanceResolved(kRemoteSpecifier, {kEventSerialized});
     ExpectSkeletonFactoryOfferSuccess();
 
     EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
@@ -284,9 +262,9 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceAppendsCreatedInstance
             });
 
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
-        valid_cfg.remote_instance, valid_cfg.service_type, socom_runtime_, instances);
+        default_cfg_.remote_instance, default_cfg_.service_type, socom_runtime_, instances_);
     ASSERT_TRUE(res.has_value());
-    EXPECT_EQ(instances.size(), kSingleInstanceCount);
+    EXPECT_EQ(instances_.size(), kSingleInstanceCount);
 }
 
 // Returns runtime_error_request_rejected when SOCom make_client_connector() fails.
@@ -344,10 +322,7 @@ TEST_F(RemoteServiceInstanceTest, ServiceStateTransitionSubscribesEventsOnlyWhen
 
 // Skips deserialization and Send() when LoLa Allocate() fails because no sample slot is free.
 TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenSampleAllocationFails) {
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const connected = CreateConnectedInstance(cfg, {kEventSerialized});
+    auto const connected = CreateConnectedInstance();
     auto const valid_wire = MakeValidWireBytes();
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_))
@@ -363,15 +338,13 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenSampleAllocationFails) {
 
 // Skips Send() when the deserializer rejects an invalid or oversized SOME/IP payload.
 TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenPayloadDeserializationFails) {
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const connected = CreateConnectedInstance(cfg, {kEventSerialized});
+    auto const connected = CreateConnectedInstance();
     PreSerializedData<kMaxMessageSize> sample_storage{};
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_))
         .WillOnce([&sample_storage](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeAllocateeSample(&sample_storage, std::move(guard));
+            return score::gateway_ipc_binding::testing::MakeAllocatedSample(&sample_storage,
+                                                                            std::move(guard));
         });
     EXPECT_CALL(*connected.serialized_event, Send(_, _)).Times(0);
 
@@ -383,16 +356,14 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenPayloadDeserializationFail
 
 // Logs and returns without aborting when GenericSkeletonEvent::Send() returns an error.
 TEST_F(RemoteServiceInstanceTest, EventUpdateHandlesSkeletonSendFailureGracefully) {
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const connected = CreateConnectedInstance(cfg, {kEventSerialized});
+    auto const connected = CreateConnectedInstance();
     PreSerializedData<kMaxMessageSize> sample_storage{};
     auto const valid_wire = MakeValidWireBytes();
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_))
         .WillOnce([&sample_storage](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeAllocateeSample(&sample_storage, std::move(guard));
+            return score::gateway_ipc_binding::testing::MakeAllocatedSample(&sample_storage,
+                                                                            std::move(guard));
         });
     EXPECT_CALL(*connected.serialized_event, Send(_, _))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
@@ -405,16 +376,14 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateHandlesSkeletonSendFailureGracefull
 // Skips the 16-byte SOME/IP header in the SOCom payload so only the event payload body is written
 // into the LoLa sample.
 TEST_F(RemoteServiceInstanceTest, EventUpdateDeserializesSomeipPacketAndSendsSample) {
-    auto const cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const connected = CreateConnectedInstance(cfg, {kEventSerialized});
+    auto const connected = CreateConnectedInstance();
     PreSerializedData<kMaxMessageSize> sample_storage{};
     auto const valid_wire = MakeValidWireBytes();
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_))
         .WillOnce([&sample_storage](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeAllocateeSample(&sample_storage, std::move(guard));
+            return score::gateway_ipc_binding::testing::MakeAllocatedSample(&sample_storage,
+                                                                            std::move(guard));
         });
     EXPECT_CALL(*connected.serialized_event, Send(_, _)).WillOnce(Return(score::Result<void>{}));
 
@@ -430,15 +399,12 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateDeserializesSomeipPacketAndSendsSam
 // Skips Allocate() and Send() when the incoming event's name is absent from
 // GenericSkeleton::GetEvents().
 TEST_F(RemoteServiceInstanceTest, EventUpdateDropsEventWhenMissingFromIpcSkeleton) {
-    auto cfg = BuildConfig({
-        EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
-    });
-    auto const connected = CreateConnectedInstance(cfg, {kEventSerialized});
+    auto const connected = CreateConnectedInstance();
     auto const valid_wire = MakeValidWireBytes();
 
-    auto const it = std::search(cfg.buffer->begin(), cfg.buffer->end(), kEventSerialized.begin(),
-                                kEventSerialized.end());
-    ASSERT_NE(it, cfg.buffer->end());
+    auto const it = std::search(default_cfg_.buffer->begin(), default_cfg_.buffer->end(),
+                                kEventSerialized.begin(), kEventSerialized.end());
+    ASSERT_NE(it, default_cfg_.buffer->end());
     *it = kCorruptEventNameChar;
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_)).Times(0);

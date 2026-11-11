@@ -37,6 +37,7 @@ cc_library(
         ":mw_com_mocks",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",
+        "//score/socom:mock",
         "@googletest//:gtest",
         "@score_communication//score/mw/com",
     ],
