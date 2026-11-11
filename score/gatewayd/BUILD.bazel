@@ -49,6 +49,7 @@ cc_library(
     name = "local_service_instance",
     srcs = ["impl/local_service_instance.cpp"],
     hdrs = ["impl/local_service_instance.h"],
+    visibility = ["//score/gatewayd/test:__pkg__"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/serializer",
@@ -63,6 +64,7 @@ cc_library(
     name = "remote_service_instance",
     srcs = ["impl/remote_service_instance.cpp"],
     hdrs = ["impl/remote_service_instance.h"],
+    visibility = ["//score/gatewayd/test:__pkg__"],
     deps = [
         "//score/config:config_flatbuffers",
         "//score/serializer",

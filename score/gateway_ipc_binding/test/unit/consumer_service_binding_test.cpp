@@ -1,0 +1,420 @@
+/********************************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
+#include "score/gateway_ipc_binding/impl/consumer_service_binding.hpp"
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <array>
+#include <cstddef>
+#include <memory>
+#include <optional>
+#include <utility>
+
+#include "score/gateway_ipc_binding/error.hpp"
+#include "score/gateway_ipc_binding/impl/sample_layout.hpp"
+#include "score/gateway_ipc_binding/impl/service_binding.hpp"
+#include "score/gateway_ipc_binding/test/unit/ipc_binding_test_fixture.hpp"
+#include "score/memory/data_type_size_info.h"
+#include "score/mw/com/impl/bindings/mock_binding/sample_ptr.h"
+#include "score/mw/com/impl/com_error.h"
+#include "score/mw/com/impl/find_service_handle.h"
+#include "score/mw/com/impl/find_service_handler.h"
+#include "score/mw/com/impl/generic_proxy_event_binding.h"
+#include "score/mw/com/impl/handle_type.h"
+#include "score/mw/com/impl/instance_specifier.h"
+#include "score/mw/com/impl/plumbing/sample_ptr.h"
+#include "score/mw/com/impl/sample_reference_tracker.h"
+#include "score/mw/com/impl/scoped_event_receive_handler.h"
+#include "score/mw/com/impl/subscription_state.h"
+#include "score/result/result.h"
+#include "score/socom/error.hpp"
+#include "score/socom/payload.hpp"
+#include "score/socom/runtime_mock.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/server_connector_mock.hpp"
+
+namespace score::gateway_ipc_binding::mw_com {
+namespace {
+
+using ::testing::_;
+using ::testing::A;
+using ::testing::ByMove;
+using ::testing::NiceMock;
+using ::testing::Return;
+using ::testing::StrictMock;
+
+constexpr socom::Method_id kDefaultMethodId{0U};
+constexpr socom::Event_id kFirstEventId{0U};
+constexpr socom::Event_id kUnknownEventId{99U};
+constexpr std::size_t kFirstFindServiceUid{1U};
+constexpr std::size_t kShortSampleSize{8U};
+constexpr std::size_t kValidSampleSize{kSample_prefix_size + kEvent0MaxPayload};
+constexpr std::size_t kSampleBufferSize{32U};
+constexpr std::size_t kValidPayloadLength{4U};
+constexpr std::size_t kOversizedPayloadLength{kEvent0MaxPayload + 4U};
+constexpr std::size_t kCallbackMaxSampleCount{0U};
+constexpr std::size_t kProcessedSampleCount{4U};
+constexpr std::byte kSamplePayloadByte{0x42};
+
+class ConsumerServiceBindingTest : public IpcBindingTestFixture {
+   protected:
+    struct CreatedConsumer {
+        std::unique_ptr<Consumer_service_binding> binding{};
+        socom::Disabled_server_connector::Callbacks callbacks{};
+        NiceMock<socom::Server_connector_mock>* connector_mock{nullptr};
+    };
+
+    struct StartedConsumer {
+        std::unique_ptr<Consumer_service_binding> binding{};
+        socom::Disabled_server_connector::Callbacks callbacks{};
+        NiceMock<socom::Server_connector_mock>* connector_mock{nullptr};
+        score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> find_handler{};
+    };
+
+    struct SubscribedEvent {
+        NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>* event_mock{nullptr};
+        std::weak_ptr<score::mw::com::impl::ScopedEventReceiveHandler> receive_handler{};
+    };
+
+    static score::mw::com::impl::SamplePtr<void> MakeMockSample(
+        void* const raw_ptr, score::mw::com::impl::TrackerGuardFactory& tracker) {
+        return score::mw::com::impl::SamplePtr<void>{
+            score::mw::com::impl::mock_binding::SamplePtr{raw_ptr, [](void*) noexcept {}},
+            *tracker.TakeGuard()};
+    }
+
+    CreatedConsumer CreateConsumer() {
+        ExpectInstanceResolved();
+        CreatedConsumer created{};
+        EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
+            .WillOnce([&created](socom::Server_service_interface_definition,
+                                 socom::Service_instance,
+                                 socom::Disabled_server_connector::Callbacks callbacks)
+                          -> score::Result<socom::Disabled_server_connector::Uptr> {
+                created.callbacks = std::move(callbacks);
+                auto mock = std::make_unique<NiceMock<socom::Server_connector_mock>>();
+                created.connector_mock = mock.get();
+                ON_CALL(*created.connector_mock, enable())
+                    .WillByDefault(Return(created.connector_mock));
+                ON_CALL(*created.connector_mock, disable())
+                    .WillByDefault(Return(created.connector_mock));
+                return mock;
+            });
+        auto binding_res =
+            Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
+        EXPECT_TRUE(binding_res.has_value());
+        created.binding = std::move(*binding_res);
+        return created;
+    }
+
+    StartedConsumer CreateAndStartConsumer() {
+        auto created = CreateConsumer();
+        StartedConsumer started{
+            std::move(created.binding), std::move(created.callbacks), created.connector_mock, {}};
+        EXPECT_CALL(service_discovery_mock(),
+                    StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
+            .WillOnce([&started](
+                          score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType>
+                              handler,
+                          score::mw::com::impl::InstanceSpecifier)
+                          -> score::Result<score::mw::com::impl::FindServiceHandle> {
+                started.find_handler = std::move(handler);
+                return score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid);
+            });
+        EXPECT_TRUE(started.binding->start().has_value());
+        return started;
+    }
+
+    NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>* ExpectProxyWithEvent(
+        std::size_t const peer_sample_size = kValidSampleSize) {
+        auto proxy_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Proxy>>();
+        auto event_mock =
+            std::make_unique<NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>>();
+        auto* const event_mock_ptr = event_mock.get();
+        ON_CALL(*event_mock_ptr, GetDataTypeSizeInfo())
+            .WillByDefault(
+                Return(score::memory::DataTypeSizeInfo{peer_sample_size, kSample_alignment}));
+        ON_CALL(*event_mock_ptr, GetSubscriptionState())
+            .WillByDefault(Return(score::mw::com::impl::SubscriptionState::kNotSubscribed));
+        EXPECT_CALL(*proxy_mock, IsEventProvided(kEvent0)).WillOnce(Return(true));
+        EXPECT_CALL(proxy_binding_factory_mock(), Create(_))
+            .WillOnce(Return(ByMove(std::move(proxy_mock))));
+        EXPECT_CALL(generic_proxy_event_factory_mock(), Create(_, _, kEvent0, _))
+            .WillOnce(Return(ByMove(std::move(event_mock))));
+        return event_mock_ptr;
+    }
+
+    SubscribedEvent AttachAndSubscribeConsumer(StartedConsumer& started) {
+        SubscribedEvent sub{};
+        sub.event_mock = ExpectProxyWithEvent();
+        EXPECT_CALL(*sub.event_mock, Subscribe(_)).WillOnce(Return(score::Result<void>{}));
+        EXPECT_CALL(*sub.event_mock, SetReceiveHandler(_))
+            .WillOnce([&sub](std::weak_ptr<score::mw::com::impl::ScopedEventReceiveHandler> handler)
+                          -> score::Result<void> {
+                sub.receive_handler = std::move(handler);
+                return {};
+            });
+        started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
+                                                       socom::Event_state::subscribed);
+        score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const
+            handles{MakeHandle()};
+        started.find_handler(handles,
+                             score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+        return sub;
+    }
+
+    StrictMock<socom::Runtime_mock> socom_runtime_{};
+};
+
+// Catches registering a SOCom Server_connector for a malformed instance_specifier instead of
+// rejecting it in create() with logic_error_invalid_instance_specifier.
+TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
+    auto const result = Consumer_service_binding::create(
+        socom_runtime_, MakeServiceConfig(Role::consumer, kInvalidSpecifier));
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
+}
+
+// Catches accepting a syntactically valid InstanceSpecifier that is missing from the mw::com
+// deployment instead of failing create() with logic_error_invalid_instance_specifier.
+TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
+    ExpectInstanceNotResolved();
+    auto const result =
+        Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
+}
+
+// Catches returning a binding with a null m_disabled_connector or aborting when
+// make_server_connector() fails, instead of returning runtime_error_service_setup_failed.
+TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) {
+    ExpectInstanceResolved();
+    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
+        .WillOnce(Return(ByMove(score::MakeUnexpected<socom::Disabled_server_connector::Uptr>(
+            socom::Construction_error::duplicate_service))));
+    auto const result =
+        Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
+}
+
+// Catches wiring Role::consumer to a Client_connector, leaving unsupported Server_connector
+// callbacks uninitialized, or indexing m_events out of bounds on an unknown Event_id.
+TEST_F(ConsumerServiceBindingTest,
+       ServerConnectorDefaultCallbacksHandleUnsupportedOperationsAndOutOfRangeEvent) {
+    ExpectInstanceResolved();
+    socom::Disabled_server_connector::Callbacks captured_cbs{};
+    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
+        .WillOnce([&captured_cbs](socom::Server_service_interface_definition,
+                                  socom::Service_instance,
+                                  socom::Disabled_server_connector::Callbacks callbacks)
+                      -> score::Result<socom::Disabled_server_connector::Uptr> {
+            captured_cbs = std::move(callbacks);
+            return std::make_unique<NiceMock<socom::Server_connector_mock>>();
+        });
+
+    auto const binding_res =
+        make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
+    ASSERT_TRUE(binding_res.has_value());
+
+    NiceMock<socom::Server_connector_mock> dummy_sc{};
+    EXPECT_EQ(captured_cbs.on_method_call(dummy_sc, kDefaultMethodId, socom::empty_payload(),
+                                          std::nullopt),
+              nullptr);
+    captured_cbs.on_event_update_request(dummy_sc, kFirstEventId);
+    auto const alloc_res = captured_cbs.on_method_call_payload_allocate(dummy_sc, kDefaultMethodId);
+    EXPECT_TRUE(alloc_res.has_value());
+    captured_cbs.on_event_subscription_change(dummy_sc, kUnknownEventId,
+                                              socom::Event_state::subscribed);
+}
+
+// Catches reporting start() success or aborting on find_handle.value() when StartFindService()
+// fails, instead of returning runtime_error_service_find_failed.
+TEST_F(ConsumerServiceBindingTest, StartFailsWhenStartFindServiceFails) {
+    auto created = CreateConsumer();
+    EXPECT_CALL(service_discovery_mock(),
+                StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
+        .WillOnce(Return(
+            score::MakeUnexpected(score::mw::com::impl::ComErrc::kFindServiceHandlerFailure)));
+    auto const start_res = created.binding->start();
+    ASSERT_FALSE(start_res.has_value());
+    EXPECT_EQ(start_res.error(), Mw_com_binding_error::runtime_error_service_find_failed);
+}
+
+// Catches forgetting to call StopFindService() on teardown, or aborting inside the noexcept
+// destructor when StopFindService() returns an error.
+TEST_F(ConsumerServiceBindingTest, DestructorHandlesStopFindServiceFailureGracefully) {
+    auto started = CreateAndStartConsumer();
+    EXPECT_CALL(service_discovery_mock(), StopFindService(_))
+        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kInvalidHandle)));
+    started.binding.reset();
+}
+
+// Catches reading handles.front() or disabling a null m_enabled_connector on an empty discovery
+// update, or aborting on created.value() when GenericProxy::Create() fails.
+TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProxyCreationFailure) {
+    auto started = CreateAndStartConsumer();
+    started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
+                                                   socom::Event_state::subscribed);
+    started.find_handler(
+        score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType>{},
+        score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+
+    score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
+        MakeHandle()};
+    EXPECT_CALL(proxy_binding_factory_mock(), Create(_)).WillOnce(Return(ByMove(nullptr)));
+    started.find_handler(handles,
+                         score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+}
+
+// Catches dereferencing proxy_events.cend() on a missing peer event, accepting an undersized peer
+// SHM sample, or keeping a rejected m_proxy so later discovery updates are ignored.
+TEST_F(ConsumerServiceBindingTest,
+       FindServiceCallbackRejectsProxyWithMissingEventOrUndersizedSample) {
+    auto started = CreateAndStartConsumer();
+    score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
+        MakeHandle()};
+
+    EXPECT_CALL(proxy_binding_factory_mock(), Create(_))
+        .WillOnce(Return(
+            ByMove(std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Proxy>>())));
+    started.find_handler(handles,
+                         score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+
+    (void)ExpectProxyWithEvent(kShortSampleSize);
+    started.find_handler(handles,
+                         score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+}
+
+// Catches dropping a SOCom subscription requested before peer discovery, aborting when Subscribe()
+// fails, or recreating m_proxy on a duplicate StartFindService() callback.
+TEST_F(ConsumerServiceBindingTest,
+       AttachReconcilesPendingSubscriptionAndIgnoresDuplicateFindServiceHandle) {
+    auto started = CreateAndStartConsumer();
+    auto* const event_mock_ptr = ExpectProxyWithEvent();
+    started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
+                                                   socom::Event_state::subscribed);
+
+    score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
+        MakeHandle()};
+    EXPECT_CALL(*event_mock_ptr, Subscribe(_))
+        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+    started.find_handler(handles,
+                         score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+
+    started.find_handler(handles,
+                         score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+}
+
+// Catches leaving the GenericProxyEvent subscribed in LoLa when SetReceiveHandler() fails, which
+// leaks the subscriber slot and aborts LoLa when m_proxy is later destroyed.
+TEST_F(ConsumerServiceBindingTest, SubscriptionRollsBackWhenSetReceiveHandlerFails) {
+    auto started = CreateAndStartConsumer();
+    auto* const event_mock_ptr = ExpectProxyWithEvent();
+    score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
+        MakeHandle()};
+    started.find_handler(handles,
+                         score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+
+    EXPECT_CALL(*event_mock_ptr, Subscribe(_)).WillOnce(Return(score::Result<void>{}));
+    EXPECT_CALL(*event_mock_ptr, SetReceiveHandler(_))
+        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kSetHandlerNotSet)));
+    EXPECT_CALL(*event_mock_ptr, GetSubscriptionState())
+        .WillOnce(Return(score::mw::com::impl::SubscriptionState::kNotSubscribed))
+        .WillOnce(Return(score::mw::com::impl::SubscriptionState::kSubscribed));
+    EXPECT_CALL(*event_mock_ptr, Unsubscribe());
+    started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
+                                                   socom::Event_state::subscribed);
+}
+
+// Catches duplicate Subscribe() calls when already subscribed, stale subscribed state blocking
+// re-subscription, or destroying m_proxy on peer loss before unsubscribing its events.
+TEST_F(ConsumerServiceBindingTest, ConnectedConsumerHandlesSubscribeUnsubscribeAndPeerDetach) {
+    auto started = CreateAndStartConsumer();
+    auto const sub = AttachAndSubscribeConsumer(started);
+    ASSERT_FALSE(sub.receive_handler.expired());
+
+    started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
+                                                   socom::Event_state::subscribed);
+
+    EXPECT_CALL(*sub.event_mock, GetSubscriptionState())
+        .WillOnce(Return(score::mw::com::impl::SubscriptionState::kSubscribed));
+    EXPECT_CALL(*sub.event_mock, UnsetReceiveHandler()).WillOnce(Return(score::Result<void>{}));
+    EXPECT_CALL(*sub.event_mock, Unsubscribe());
+    started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
+                                                   socom::Event_state::unsubscribed);
+
+    EXPECT_CALL(*sub.event_mock, GetSubscriptionState())
+        .WillOnce(Return(score::mw::com::impl::SubscriptionState::kNotSubscribed));
+    EXPECT_CALL(*sub.event_mock, Subscribe(_)).WillOnce(Return(score::Result<void>{}));
+    EXPECT_CALL(*sub.event_mock, SetReceiveHandler(_)).WillOnce(Return(score::Result<void>{}));
+    started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
+                                                   socom::Event_state::subscribed);
+
+    EXPECT_CALL(*sub.event_mock, GetSubscriptionState())
+        .WillOnce(Return(score::mw::com::impl::SubscriptionState::kSubscribed));
+    EXPECT_CALL(*sub.event_mock, UnsetReceiveHandler()).WillOnce(Return(score::Result<void>{}));
+    EXPECT_CALL(*sub.event_mock, Unsubscribe());
+    started.find_handler(
+        score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType>{},
+        score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
+}
+
+// Catches dereferencing a null SamplePtr, reading past max_payload_size when the 8-byte SHM header
+// claims an oversized length, or aborting when update_event() returns an error.
+TEST_F(ConsumerServiceBindingTest,
+       ReceiveHandlerSkipsNullAndOversizedSamplesAndForwardsValidSamples) {
+    auto started = CreateAndStartConsumer();
+    auto const sub = AttachAndSubscribeConsumer(started);
+    ASSERT_FALSE(sub.receive_handler.expired());
+
+    alignas(kSample_alignment) std::array<std::byte, kSampleBufferSize> oversized_buf{};
+    write_payload_length(oversized_buf.data(), kOversizedPayloadLength);
+    alignas(kSample_alignment) std::array<std::byte, kSampleBufferSize> valid_buf{};
+    write_payload_length(valid_buf.data(), kValidPayloadLength);
+    valid_buf[kSample_prefix_size] = kSamplePayloadByte;
+
+    EXPECT_CALL(*sub.event_mock, GetNewSamples(_, _))
+        .WillOnce(
+            [&oversized_buf, &valid_buf](
+                score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
+                score::mw::com::impl::TrackerGuardFactory& tracker) -> score::Result<std::size_t> {
+                cb(MakeMockSample(nullptr, tracker), kCallbackMaxSampleCount);
+                cb(MakeMockSample(oversized_buf.data(), tracker), kCallbackMaxSampleCount);
+                cb(MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
+                cb(MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
+                return kProcessedSampleCount;
+            });
+    EXPECT_CALL(*started.connector_mock, update_event(kFirstEventId, _))
+        .WillOnce(Return(
+            score::MakeUnexpected(socom::Server_connector_error::logic_error_id_out_of_range)))
+        .WillOnce(Return(score::Result<void>{}));
+    (*sub.receive_handler.lock())();
+}
+
+// Catches unwrapping the GetNewSamples() Result without an error check and aborting inside the
+// noexcept receive handler.
+TEST_F(ConsumerServiceBindingTest, ReceiveHandlerHandlesGetNewSamplesErrorGracefully) {
+    auto started = CreateAndStartConsumer();
+    auto const sub = AttachAndSubscribeConsumer(started);
+    ASSERT_FALSE(sub.receive_handler.expired());
+
+    EXPECT_CALL(*sub.event_mock, GetNewSamples(_, _))
+        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+    (*sub.receive_handler.lock())();
+}
+
+}  // namespace
+}  // namespace score::gateway_ipc_binding::mw_com

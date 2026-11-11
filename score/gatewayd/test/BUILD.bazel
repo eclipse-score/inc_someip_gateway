@@ -11,7 +11,88 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_test")
+load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+
+cc_library(
+    name = "service_instance_test_fixture",
+    testonly = True,
+    hdrs = ["service_instance_test_fixture.h"],
+    features = COMPILER_WARNING_FEATURES,
+    deps = [
+        "//score/config:config_flatbuffers",
+        "//score/gateway_ipc_binding/test/unit:mw_com_mocks",
+        "//score/serializer",
+        "@googletest//:gtest",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+cc_test(
+    name = "local_service_instance_test",
+    size = "small",
+    srcs = [
+        "local_service_instance_test.cpp",
+    ],
+    data = [
+        "//score/serializer:null_serializer",
+    ],
+    features = COMPILER_WARNING_FEATURES,
+    linkstatic = True,
+    tags = [
+        "block-network",
+        "unit",
+    ],
+    visibility = ["//:__pkg__"],
+    deps = [
+        ":service_instance_test_fixture",
+        "//score/config:config_flatbuffers",
+        "//score/gateway_ipc_binding/test/unit:mw_com_mocks",
+        "//score/gatewayd:local_service_instance",
+        "//score/serializer",
+        "//score/serializer:pre_serialized_data",
+        "//score/socom",
+        "//score/socom:mock",
+        "//score/someip",
+        "@googletest//:gtest_main",
+        "@score_baselibs//score/mw/log:backend_stub_testutil",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+cc_test(
+    name = "remote_service_instance_test",
+    size = "small",
+    srcs = [
+        "remote_service_instance_test.cpp",
+    ],
+    data = [
+        "//score/serializer:null_serializer",
+    ],
+    features = COMPILER_WARNING_FEATURES,
+    linkstatic = True,
+    tags = [
+        "block-network",
+        "unit",
+    ],
+    visibility = ["//:__pkg__"],
+    deps = [
+        ":service_instance_test_fixture",
+        "//score/config:config_flatbuffers",
+        "//score/gateway_ipc_binding/test/unit:mw_com_mocks",
+        "//score/gatewayd:remote_service_instance",
+        "//score/serializer",
+        "//score/serializer:pre_serialized_data",
+        "//score/socom",
+        "//score/socom:mock",
+        "//score/someip",
+        "@googletest//:gtest_main",
+        "@score_baselibs//score/mw/log:backend_stub_testutil",
+        "@score_communication//score/mw/com",
+    ],
+)
 
 py_test(
     name = "gatewayd_test",
@@ -36,6 +117,7 @@ py_test(
         "unit",
     ],
     target_compatible_with = ["@platforms//os:linux"],
+    visibility = ["//:__pkg__"],
     deps = [
         "//quality/pytest:process",
     ],
