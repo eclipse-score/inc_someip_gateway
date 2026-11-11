@@ -49,7 +49,9 @@ class OpenSomeipPinUpdateTest(unittest.TestCase):
             replace_commit_pin(content, DOCS_PIN_PATTERN, "c" * 40, "docs/conf.py")
 
     def test_extracts_the_source_repository_from_docs_config(self) -> None:
-        self.assertEqual("https://github.com/example/spec", extract_spec_repo('SPEC_REPO = "https://github.com/example/spec"\n'))
+        self.assertEqual(
+            "https://github.com/example/spec", extract_spec_repo('SPEC_REPO = "https://github.com/example/spec"\n')
+        )
 
     def test_validates_requirement_locations_and_fetches_each_document_once(self) -> None:
         commit = "a" * 40

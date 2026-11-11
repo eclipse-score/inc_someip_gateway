@@ -111,9 +111,7 @@ def validate_source_locations(
         for line, need_id in sorted(needs_by_line.items()):
             actual_id = _requirement_id_at_line(source_lines, line)
             if actual_id != need_id:
-                raise ValueError(
-                    f"{url}: line {line} maps to {actual_id!r}, expected requirement {need_id!r}"
-                )
+                raise ValueError(f"{url}: line {line} maps to {actual_id!r}, expected requirement {need_id!r}")
 
     print(
         f"Validated {sum(len(needs_by_line) for needs_by_line in lines_by_document.values())} source location(s) "
