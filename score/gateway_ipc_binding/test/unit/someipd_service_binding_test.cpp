@@ -37,12 +37,10 @@
 #include "score/mw/com/impl/find_service_handler.h"
 #include "score/mw/com/impl/handle_type.h"
 #include "score/mw/com/impl/instance_specifier.h"
-#include "score/mw/com/impl/methods/proxy_method_binding.h"
 #include "score/mw/com/impl/methods/skeleton_method_binding.h"
+#include "score/result/result.h"
 #include "score/socom/error.hpp"
-#include "score/socom/runtime_mock.hpp"
 #include "score/socom/server_connector.hpp"
-#include "score/socom/server_connector_mock.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 namespace {
@@ -92,35 +90,16 @@ bool AcceptAllGatewayConfigs(score::cpp::span<std::byte const>,
     return true;
 }
 
-score::Result<socom::Disabled_server_connector::Uptr> MakeDummyServerConnector(
-    socom::Server_service_interface_definition, socom::Service_instance,
-    socom::Disabled_server_connector::Callbacks) {
-    return std::make_unique<NiceMock<socom::Server_connector_mock>>();
-}
-
 class SomeipdServiceBindingTest : public IpcBindingTestFixture {
    protected:
     void ExpectSomeipdSkeletonOfferSuccess() {
-        auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
-        auto* const skel_mock_ptr = skel_mock.get();
-        auto method_mock =
-            std::make_unique<NiceMock<score::mw::com::impl::mock_binding::SkeletonMethod>>();
-        EXPECT_CALL(*method_mock, RegisterHandler(_))
+        auto const mocks = ExpectSkeletonWithMethod();
+        EXPECT_CALL(*mocks.method, RegisterHandler(_))
             .WillOnce([this](score::mw::com::impl::SkeletonMethodBinding::TypeErasedHandler&& cb)
                           -> score::Result<void> {
                 captured_method_handler_ = std::move(cb);
                 return {};
             });
-        EXPECT_CALL(*skel_mock_ptr, PrepareOffer(_, _, _)).WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(*skel_mock_ptr, VerifyAllMethodHandlersRegistered()).WillOnce(Return(true));
-        EXPECT_CALL(service_discovery_mock(), OfferService(_))
-            .WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(service_discovery_mock(), StopOfferService(_))
-            .WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
-            .WillOnce(Return(ByMove(std::move(skel_mock))));
-        EXPECT_CALL(skeleton_method_factory_mock(), Create(_, _, _, _, _, _))
-            .WillOnce(Return(ByMove(std::move(method_mock))));
     }
 
     bool InvokeAddServiceConfiguration(Service_configuration& cfg) {
@@ -131,8 +110,7 @@ class SomeipdServiceBindingTest : public IpcBindingTestFixture {
     }
 
     std::unique_ptr<Gateway_ipc_binding_client> CreateTestClient() {
-        EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
-            .WillOnce(&MakeDummyServerConnector);
+        (void)ExpectServerConnectorCreated();
         EXPECT_CALL(service_discovery_mock(),
                     StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
             .WillOnce(Return(
@@ -145,8 +123,6 @@ class SomeipdServiceBindingTest : public IpcBindingTestFixture {
                     someipd_find_handler_ = std::move(cb);
                     return score::mw::com::impl::make_FindServiceHandle(kSomeipdFindServiceUid);
                 });
-        EXPECT_CALL(service_discovery_mock(), StopFindService(_))
-            .WillRepeatedly(Return(score::Result<void>{}));
         constexpr std::array<std::byte, kSmallGatewayConfigSize> kSmallGwCfg{
             kConfigByte0, kConfigByte1, kConfigByte2, kConfigByte3};
         return create_client(socom_runtime_, std::string{kSomeipdSpecifier},
@@ -167,10 +143,8 @@ class SomeipdServiceBindingTest : public IpcBindingTestFixture {
     }
 
     void ExpectSomeipdProxyCallResult(bool const accepted) {
-        auto proxy_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Proxy>>();
-        ON_CALL(*proxy_mock, SetupMethods(_)).WillByDefault(Return(score::Result<void>{}));
-        auto method_mock =
-            std::make_unique<NiceMock<score::mw::com::impl::mock_binding::ProxyMethod>>();
+        auto proxy_mock = std::make_unique<NiceMock<testing::Proxy>>();
+        auto method_mock = std::make_unique<NiceMock<testing::ProxyMethod>>();
         ON_CALL(*method_mock, GetInArgsBuffer(_))
             .WillByDefault(Return(AsWritableBytes(*in_arg_buffer_)));
         ON_CALL(*method_mock, GetReturnValueBuffer(_))
@@ -245,15 +219,9 @@ TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
 // Fails Someipd_service_provider::create() if RegisterHandler() fails, since LoLa aborts
 // OfferService() when a method has no handler.
 TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
-    auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
-    auto method_mock =
-        std::make_unique<NiceMock<score::mw::com::impl::mock_binding::SkeletonMethod>>();
-    EXPECT_CALL(*method_mock, RegisterHandler(_))
+    auto const mocks = ExpectSkeletonWithMethod();
+    EXPECT_CALL(*mocks.method, RegisterHandler(_))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
-    EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
-        .WillOnce(Return(ByMove(std::move(skel_mock))));
-    EXPECT_CALL(skeleton_method_factory_mock(), Create(_, _, _, _, _, _))
-        .WillOnce(Return(ByMove(std::move(method_mock))));
 
     auto const result =
         Someipd_service_provider::create(std::string{kSomeipdSpecifier}, &AcceptAllConfigurations);
@@ -263,17 +231,9 @@ TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
 
 // Returns runtime_error_someipd_service_offer_failed when OfferService() fails in server->start().
 TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
-    auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
-    auto* const skel_mock_ptr = skel_mock.get();
-    auto method_mock =
-        std::make_unique<NiceMock<score::mw::com::impl::mock_binding::SkeletonMethod>>();
-    ON_CALL(*method_mock, RegisterHandler(_)).WillByDefault(Return(score::Result<void>{}));
-    EXPECT_CALL(*skel_mock_ptr, PrepareOffer(_, _, _))
+    auto const mocks = ExpectSkeletonWithMethod();
+    EXPECT_CALL(*mocks.skeleton, PrepareOffer(_, _, _))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
-    EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
-        .WillOnce(Return(ByMove(std::move(skel_mock))));
-    EXPECT_CALL(skeleton_method_factory_mock(), Create(_, _, _, _, _, _))
-        .WillOnce(Return(ByMove(std::move(method_mock))));
 
     auto server =
         create_server(socom_runtime_, std::string{kSomeipdSpecifier}, &AcceptAllGatewayConfigs);
@@ -351,13 +311,11 @@ TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircui
         });
     ASSERT_TRUE(server->start().has_value());
 
-    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _)).WillOnce(&MakeDummyServerConnector);
+    (void)ExpectServerConnectorCreated();
     EXPECT_CALL(service_discovery_mock(),
                 StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
         .WillRepeatedly(
             Return(score::mw::com::impl::make_FindServiceHandle(kServerFindServiceUid)));
-    EXPECT_CALL(service_discovery_mock(), StopFindService(_))
-        .WillRepeatedly(Return(score::Result<void>{}));
 
     auto cfg = std::make_unique<Service_configuration>();
     EXPECT_TRUE(InvokeAddServiceConfiguration(*cfg));

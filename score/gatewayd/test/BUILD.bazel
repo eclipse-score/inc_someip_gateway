@@ -25,7 +25,6 @@ cc_library(
         "//score/config:config_flatbuffers",
         "//score/gateway_ipc_binding/test/unit:mw_com_mocks",
         "//score/serializer",
-        "//score/socom:mock",
         "@googletest//:gtest",
         "@score_communication//score/mw/com",
     ],

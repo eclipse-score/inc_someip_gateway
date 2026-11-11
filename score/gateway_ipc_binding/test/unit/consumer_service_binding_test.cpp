@@ -40,7 +40,6 @@
 #include "score/result/result.h"
 #include "score/socom/error.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/runtime_mock.hpp"
 #include "score/socom/server_connector.hpp"
 #include "score/socom/server_connector_mock.hpp"
 
@@ -82,26 +81,13 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
     };
 
     struct SubscribedEvent {
-        NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>* event_mock{nullptr};
+        NiceMock<testing::GenericProxyEvent>* event_mock{nullptr};
         std::weak_ptr<score::mw::com::impl::ScopedEventReceiveHandler> receive_handler{};
     };
 
     CreatedConsumer CreateConsumer() {
         CreatedConsumer created{};
-        EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
-            .WillOnce([&created](socom::Server_service_interface_definition,
-                                 socom::Service_instance,
-                                 socom::Disabled_server_connector::Callbacks callbacks)
-                          -> score::Result<socom::Disabled_server_connector::Uptr> {
-                created.callbacks = std::move(callbacks);
-                auto mock = std::make_unique<NiceMock<socom::Server_connector_mock>>();
-                created.connector_mock = mock.get();
-                ON_CALL(*created.connector_mock, enable())
-                    .WillByDefault(Return(created.connector_mock));
-                ON_CALL(*created.connector_mock, disable())
-                    .WillByDefault(Return(created.connector_mock));
-                return mock;
-            });
+        created.connector_mock = ExpectServerConnectorCreated(&created.callbacks);
         auto binding_res =
             Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
         EXPECT_TRUE(binding_res.has_value());
@@ -127,22 +113,14 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
         return started;
     }
 
-    NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>* ExpectProxyWithEvent(
+    using MwComTestFixture::ExpectProxyWithEvent;
+
+    NiceMock<testing::GenericProxyEvent>* ExpectProxyWithEvent(
         std::size_t const peer_sample_size = kValidSampleSize) {
-        auto proxy_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Proxy>>();
-        auto event_mock =
-            std::make_unique<NiceMock<score::mw::com::impl::mock_binding::GenericProxyEvent>>();
-        auto* const event_mock_ptr = event_mock.get();
+        auto* const event_mock_ptr = MwComTestFixture::ExpectProxyWithEvent(kEvent0);
         ON_CALL(*event_mock_ptr, GetDataTypeSizeInfo())
             .WillByDefault(
                 Return(score::memory::DataTypeSizeInfo{peer_sample_size, kSample_alignment}));
-        ON_CALL(*event_mock_ptr, GetSubscriptionState())
-            .WillByDefault(Return(score::mw::com::impl::SubscriptionState::kNotSubscribed));
-        EXPECT_CALL(*proxy_mock, IsEventProvided(kEvent0)).WillOnce(Return(true));
-        EXPECT_CALL(proxy_binding_factory_mock(), Create(_))
-            .WillOnce(Return(ByMove(std::move(proxy_mock))));
-        EXPECT_CALL(generic_proxy_event_factory_mock(), Create(_, _, kEvent0, _))
-            .WillOnce(Return(ByMove(std::move(event_mock))));
         return event_mock_ptr;
     }
 
@@ -199,14 +177,7 @@ TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) 
 TEST_F(ConsumerServiceBindingTest,
        ServerConnectorDefaultCallbacksHandleUnsupportedOperationsAndOutOfRangeEvent) {
     socom::Disabled_server_connector::Callbacks captured_cbs{};
-    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
-        .WillOnce([&captured_cbs](socom::Server_service_interface_definition,
-                                  socom::Service_instance,
-                                  socom::Disabled_server_connector::Callbacks callbacks)
-                      -> score::Result<socom::Disabled_server_connector::Uptr> {
-            captured_cbs = std::move(callbacks);
-            return std::make_unique<NiceMock<socom::Server_connector_mock>>();
-        });
+    (void)ExpectServerConnectorCreated(&captured_cbs);
 
     auto const binding_res =
         make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
@@ -269,8 +240,7 @@ TEST_F(ConsumerServiceBindingTest,
         MakeHandle()};
 
     EXPECT_CALL(proxy_binding_factory_mock(), Create(_))
-        .WillOnce(Return(
-            ByMove(std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Proxy>>())));
+        .WillOnce(Return(ByMove(std::make_unique<NiceMock<testing::Proxy>>())));
     started.find_handler(handles,
                          score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
 

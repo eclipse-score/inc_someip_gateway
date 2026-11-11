@@ -18,27 +18,18 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <string_view>
-#include <utility>
 
 #include "score/gateway_ipc_binding/error.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 #include "score/gateway_ipc_binding/impl/sample_layout.hpp"
 #include "score/gateway_ipc_binding/test/unit/ipc_binding_test_fixture.hpp"
-#include "score/socom/client_connector.hpp"
-#include "score/socom/client_connector_mock.hpp"
-#include "score/socom/runtime_mock.hpp"
-#include "score/socom/server_connector.hpp"
-#include "score/socom/server_connector_mock.hpp"
+#include "score/memory/data_type_size_info.h"
 
 namespace score::gateway_ipc_binding::mw_com {
 namespace {
 
-using ::testing::_;
-using ::testing::ByMove;
-using ::testing::NiceMock;
 using ::testing::Return;
 
 constexpr std::string_view kMissingPrefixSpecifier{"not_bridged/service"};
@@ -49,24 +40,7 @@ constexpr std::uint16_t kSecondEventId{2U};
 constexpr std::size_t kSecondEventMaxPayload{8U};
 constexpr std::size_t kZeroMaxSampleCount{0U};
 
-class ServiceBindingTest : public IpcBindingTestFixture {
-   protected:
-    void ExpectProviderSkeletonCreated(Service_config const& cfg) {
-        auto skel_mock = std::make_unique<NiceMock<testing::Skeleton>>();
-        auto skel_event_mock = std::make_unique<NiceMock<testing::GenericSkeletonEvent>>();
-        ON_CALL(*skel_event_mock, GetEventDataTypeSizeInfo())
-            .WillByDefault(Return(score::memory::DataTypeSizeInfo{sample_size(cfg.events.front()),
-                                                                  kSample_alignment}));
-        ON_CALL(*skel_event_mock, SetReceiveHandlerRegistrationChangedHandler(_))
-            .WillByDefault(Return(score::Result<void>{}));
-        ON_CALL(*skel_event_mock, UnsetReceiveHandlerRegistrationChangedHandler())
-            .WillByDefault(Return(score::Result<void>{}));
-        EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
-            .WillOnce(Return(ByMove(std::move(skel_mock))));
-        EXPECT_CALL(generic_skeleton_event_factory_mock(), Create(_, _, kEvent0, _))
-            .WillOnce(Return(ByMove(std::move(skel_event_mock))));
-    }
-};
+class ServiceBindingTest : public IpcBindingTestFixture {};
 
 // Preserves the exact instance specifier string when parsing succeeds.
 TEST_F(ServiceBindingTest, MakeInstanceSpecifierAcceptsValidSpecifier) {
@@ -260,9 +234,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedProvider) {
 
 // Role is named from mw::com's perspective, so Role::consumer creates a SOCom Server_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
-    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
-        .WillOnce(Return(ByMove(score::Result<socom::Disabled_server_connector::Uptr>{
-            std::make_unique<NiceMock<socom::Server_connector_mock>>()})));
+    (void)ExpectServerConnectorCreated();
 
     auto const res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
     ASSERT_TRUE(res.has_value());
@@ -272,10 +244,11 @@ TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
 // Role::provider creates a LoLa GenericSkeleton and a SOCom Client_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesProviderBinding) {
     auto const cfg = MakeServiceConfig(Role::provider);
-    ExpectProviderSkeletonCreated(cfg);
-    EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
-        .WillOnce(Return(ByMove(score::Result<socom::Client_connector::Uptr>{
-            std::make_unique<NiceMock<socom::Client_connector_mock>>()})));
+    auto const mocks = ExpectSkeletonWithEvent(kEvent0);
+    ON_CALL(*mocks.event, GetEventDataTypeSizeInfo())
+        .WillByDefault(Return(
+            score::memory::DataTypeSizeInfo{sample_size(cfg.events.front()), kSample_alignment}));
+    (void)ExpectClientConnectorCreated();
 
     auto const res = make_service_binding(socom_runtime_, cfg);
     ASSERT_TRUE(res.has_value());

@@ -33,8 +33,6 @@
 #include "score/socom/client_connector_mock.hpp"
 #include "score/socom/error.hpp"
 #include "score/socom/payload.hpp"
-#include "score/socom/runtime_mock.hpp"
-#include "score/socom/server_connector.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 namespace {
@@ -59,13 +57,13 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
         return sample_size(provider_config_.events.front());
     }
 
-    score::mw::com::impl::mock_binding::GenericSkeletonEvent* ExpectSkeletonWithEvent(
+    using MwComTestFixture::ExpectSkeletonWithEvent;
+
+    testing::GenericSkeletonEvent* ExpectSkeletonWithEvent(
         std::size_t const reported_size, score::Result<void> const register_handler_result = {}) {
-        auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
-        skeleton_mock_ = skel_mock.get();
-        auto skel_event_mock =
-            std::make_unique<NiceMock<score::mw::com::impl::mock_binding::GenericSkeletonEvent>>();
-        skeleton_event_mock_ = skel_event_mock.get();
+        auto const mocks = MwComTestFixture::ExpectSkeletonWithEvent(kEvent0);
+        skeleton_mock_ = mocks.skeleton;
+        skeleton_event_mock_ = mocks.event;
 
         ON_CALL(*skeleton_event_mock_, GetEventDataTypeSizeInfo())
             .WillByDefault(
@@ -77,27 +75,12 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
                 interest_cb_ = std::move(cb);
                 return register_handler_result;
             });
-        ON_CALL(*skeleton_event_mock_, UnsetReceiveHandlerRegistrationChangedHandler())
-            .WillByDefault(Return(score::Result<void>{}));
-
-        EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
-            .WillOnce(Return(ByMove(std::move(skel_mock))));
-        EXPECT_CALL(generic_skeleton_event_factory_mock(), Create(_, _, kEvent0, _))
-            .WillOnce(Return(ByMove(std::move(skel_event_mock))));
         return skeleton_event_mock_;
     }
 
     std::unique_ptr<Provider_service_binding> CreateConnectedProvider() {
         (void)ExpectSkeletonWithEvent(ExpectedEventSampleSize());
-        EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
-            .WillOnce([this](socom::Service_interface_definition, socom::Service_instance,
-                             socom::Client_connector::Callbacks callbacks)
-                          -> score::Result<socom::Client_connector::Uptr> {
-                client_callbacks_ = std::move(callbacks);
-                auto mock = std::make_unique<NiceMock<socom::Client_connector_mock>>();
-                client_connector_mock_ = mock.get();
-                return mock;
-            });
+        client_connector_mock_ = ExpectClientConnectorCreated(&client_callbacks_);
         auto binding_res = Provider_service_binding::create(socom_runtime_, provider_config_);
         EXPECT_TRUE(binding_res.has_value());
         return std::move(*binding_res);
@@ -105,8 +88,6 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
 
     void ExpectOfferServiceSucceeds() {
         EXPECT_CALL(*skeleton_mock_, PrepareOffer(_, _, _)).WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(*skeleton_event_mock_, PrepareOffer(_)).WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(*skeleton_mock_, VerifyAllMethodHandlersRegistered()).WillOnce(Return(true));
         EXPECT_CALL(service_discovery_mock(), OfferService(_))
             .WillOnce(Return(score::Result<void>{}));
     }
@@ -123,8 +104,8 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
         socom::to_num_of_events(kSingleEventCount)};
     socom::Client_connector::Callbacks client_callbacks_{};
     NiceMock<socom::Client_connector_mock>* client_connector_mock_{nullptr};
-    score::mw::com::impl::mock_binding::Skeleton* skeleton_mock_{nullptr};
-    score::mw::com::impl::mock_binding::GenericSkeletonEvent* skeleton_event_mock_{nullptr};
+    testing::Skeleton* skeleton_mock_{nullptr};
+    testing::GenericSkeletonEvent* skeleton_event_mock_{nullptr};
     score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback interest_cb_{};
 };
 
@@ -147,7 +128,7 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
 
 // Fails create() if a configured event name is missing from GenericSkeleton::GetEvents().
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
-    auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
+    auto skel_mock = std::make_unique<NiceMock<testing::Skeleton>>();
     EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
         .WillOnce(Return(ByMove(std::move(skel_mock))));
     EXPECT_CALL(generic_skeleton_event_factory_mock(), Create(_, _, kEvent0, _))

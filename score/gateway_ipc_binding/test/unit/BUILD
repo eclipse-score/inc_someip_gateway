@@ -18,11 +18,12 @@ load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER
 cc_library(
     name = "mw_com_mocks",
     testonly = True,
-    srcs = ["mw_com_mocks.cpp"],
     hdrs = ["mw_com_mocks.hpp"],
     features = COMPILER_WARNING_FEATURES,
     visibility = ["//score/gatewayd/test:__pkg__"],
     deps = [
+        "//score/socom",
+        "//score/socom:mock",
         "@googletest//:gtest",
         "@score_communication//score/mw/com",
     ],
@@ -37,7 +38,6 @@ cc_library(
         ":mw_com_mocks",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",
-        "//score/socom:mock",
         "@googletest//:gtest",
         "@score_communication//score/mw/com",
     ],

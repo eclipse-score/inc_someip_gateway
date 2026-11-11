@@ -34,9 +34,7 @@
 #include "score/config/mw_someip_config_generated.h"
 #include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/mw/com/impl/handle_type.h"
-#include "score/result/result.h"
 #include "score/serializer/serializer.h"
-#include "score/socom/runtime_mock.hpp"
 
 namespace score::someip_gateway::gatewayd {
 
@@ -159,11 +157,6 @@ class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::M
     }
 
    protected:
-    ServiceInstanceTestFixture() {
-        ON_CALL(service_discovery_mock(), StopOfferService(::testing::_))
-            .WillByDefault(::testing::Return(score::Result<void>{}));
-    }
-
     using MwComTestFixture::StubInstanceResolved;
 
     void StubInstanceResolved(std::string_view const specifier,
@@ -187,7 +180,6 @@ class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::M
     BuiltConfig default_cfg_{BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
     })};
-    ::testing::StrictMock<socom::Runtime_mock> socom_runtime_{};
 
    private:
     static inline std::string config_path_{};

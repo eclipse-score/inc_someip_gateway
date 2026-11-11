@@ -50,6 +50,8 @@
 namespace score::someip_gateway::gatewayd {
 namespace {
 
+namespace ipc_testing = score::gateway_ipc_binding::testing;
+
 using ::testing::_;
 using ::testing::ByMove;
 using ::testing::NiceMock;
@@ -89,68 +91,37 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
 
     struct MockIpcSkeleton {
         score::mw::com::GenericSkeleton skeleton;
-        score::mw::com::impl::mock_binding::Skeleton* skeleton_binding{nullptr};
-        score::mw::com::impl::mock_binding::GenericSkeletonEvent* serialized_event{nullptr};
+        ipc_testing::Skeleton* skeleton_binding{nullptr};
+        ipc_testing::GenericSkeletonEvent* serialized_event{nullptr};
     };
 
     struct ConnectedRemoteInstance {
         std::unique_ptr<RemoteServiceInstance> instance{};
         socom::Client_connector::Callbacks callbacks{};
         NiceMock<socom::Client_connector_mock>* client_connector{nullptr};
-        score::mw::com::impl::mock_binding::GenericSkeletonEvent* serialized_event{nullptr};
+        ipc_testing::GenericSkeletonEvent* serialized_event{nullptr};
     };
 
-    void ExpectSkeletonFactoryOfferSuccess() {
-        auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
-        auto* const skel_mock_ptr = skel_mock.get();
-        auto skel_event_mock =
-            std::make_unique<NiceMock<score::mw::com::impl::mock_binding::GenericSkeletonEvent>>();
-        auto* const skel_event_ptr = skel_event_mock.get();
-
-        EXPECT_CALL(*skel_mock_ptr, PrepareOffer(_, _, _)).WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(*skel_event_ptr, PrepareOffer(_)).WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(*skel_mock_ptr, VerifyAllMethodHandlersRegistered()).WillOnce(Return(true));
-        EXPECT_CALL(service_discovery_mock(), OfferService(_))
-            .WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
-            .WillOnce(Return(ByMove(std::move(skel_mock))));
-        EXPECT_CALL(generic_skeleton_event_factory_mock(), Create(_, _, kEventSerialized, _))
-            .WillOnce(Return(ByMove(std::move(skel_event_mock))));
-    }
-
     MockIpcSkeleton CreateMockIpcSkeleton(
-        std::initializer_list<std::string_view> const event_names = {kEventSerialized},
-        bool const expect_offer_success = true) {
+        std::initializer_list<std::string_view> const event_names = {kEventSerialized}) {
         StubInstanceResolved(kRemoteSpecifier, event_names);
 
-        auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
+        auto skel_mock = std::make_unique<NiceMock<ipc_testing::Skeleton>>();
         auto* const skel_mock_ptr = skel_mock.get();
         EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
             .WillOnce(Return(ByMove(std::move(skel_mock))));
 
-        if (expect_offer_success) {
-            EXPECT_CALL(*skel_mock_ptr, PrepareOffer(_, _, _))
-                .WillOnce(Return(score::Result<void>{}));
-            EXPECT_CALL(*skel_mock_ptr, VerifyAllMethodHandlersRegistered()).WillOnce(Return(true));
-            EXPECT_CALL(service_discovery_mock(), OfferService(_))
-                .WillOnce(Return(score::Result<void>{}));
-        }
-
-        score::mw::com::impl::mock_binding::GenericSkeletonEvent* serialized_event_ptr{nullptr};
+        ipc_testing::GenericSkeletonEvent* serialized_event_ptr{nullptr};
         score::containers::NonRelocatableVector<score::mw::com::EventInfo> events(
             event_names.size());
         score::mw::com::DataTypeMetaInfo const meta{sizeof(PreSerializedData<kMaxMessageSize>),
                                                     alignof(PreSerializedData<kMaxMessageSize>)};
 
         for (auto const name : event_names) {
-            auto event_mock = std::make_unique<
-                NiceMock<score::mw::com::impl::mock_binding::GenericSkeletonEvent>>();
+            auto event_mock = std::make_unique<NiceMock<ipc_testing::GenericSkeletonEvent>>();
             auto* const event_ptr = event_mock.get();
             if (name == kEventSerialized) {
                 serialized_event_ptr = event_ptr;
-            }
-            if (expect_offer_success) {
-                EXPECT_CALL(*event_ptr, PrepareOffer(_)).WillOnce(Return(score::Result<void>{}));
             }
             EXPECT_CALL(generic_skeleton_event_factory_mock(), Create(_, _, name, _))
                 .WillOnce(Return(ByMove(std::move(event_mock))));
@@ -176,16 +147,7 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
         auto mock_skel = CreateMockIpcSkeleton(ipc_events);
         ConnectedRemoteInstance connected{};
         connected.serialized_event = mock_skel.serialized_event;
-
-        EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
-            .WillOnce([&connected](socom::Service_interface_definition, socom::Service_instance,
-                                   socom::Client_connector::Callbacks callbacks)
-                          -> score::Result<socom::Client_connector::Uptr> {
-                connected.callbacks = std::move(callbacks);
-                auto mock = std::make_unique<NiceMock<socom::Client_connector_mock>>();
-                connected.client_connector = mock.get();
-                return mock;
-            });
+        connected.client_connector = ExpectClientConnectorCreated(&connected.callbacks);
 
         auto inst_res = RemoteServiceInstance::Create(
             cfg.remote_instance, cfg.service_type, std::move(mock_skel.skeleton), socom_runtime_);
@@ -231,17 +193,9 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenIpcSkeletonCr
 // Returns ComErrc::kBindingFailure without creating a SOCom Client_connector when
 // GenericSkeleton::OfferService() fails.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOfferFails) {
-    auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
-    auto* const skel_mock_ptr = skel_mock.get();
-    auto skel_event_mock =
-        std::make_unique<NiceMock<score::mw::com::impl::mock_binding::GenericSkeletonEvent>>();
-
-    EXPECT_CALL(*skel_mock_ptr, PrepareOffer(_, _, _))
+    auto const mocks = ExpectSkeletonWithEvent(kEventSerialized);
+    EXPECT_CALL(*mocks.skeleton, PrepareOffer(_, _, _))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
-    EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
-        .WillOnce(Return(ByMove(std::move(skel_mock))));
-    EXPECT_CALL(generic_skeleton_event_factory_mock(), Create(_, _, kEventSerialized, _))
-        .WillOnce(Return(ByMove(std::move(skel_event_mock))));
 
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
         default_cfg_.remote_instance, default_cfg_.service_type, socom_runtime_, instances_);
@@ -252,14 +206,8 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOffer
 // Appends the created RemoteServiceInstance to instances so its GenericSkeleton and SOCom
 // Client_connector are not destroyed when CreateAsyncRemoteService() returns.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceAppendsCreatedInstanceOnSuccess) {
-    ExpectSkeletonFactoryOfferSuccess();
-
-    EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
-        .WillOnce(
-            [](socom::Service_interface_definition, socom::Service_instance,
-               socom::Client_connector::Callbacks) -> score::Result<socom::Client_connector::Uptr> {
-                return std::make_unique<NiceMock<socom::Client_connector_mock>>();
-            });
+    (void)ExpectSkeletonWithEvent(kEventSerialized);
+    (void)ExpectClientConnectorCreated();
 
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
         default_cfg_.remote_instance, default_cfg_.service_type, socom_runtime_, instances_);
@@ -343,8 +291,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenPayloadDeserializationFail
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_))
         .WillOnce([&sample_storage](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return score::gateway_ipc_binding::testing::MakeAllocatedSample(&sample_storage,
-                                                                            std::move(guard));
+            return ipc_testing::MakeAllocatedSample(&sample_storage, std::move(guard));
         });
     EXPECT_CALL(*connected.serialized_event, Send(_, _)).Times(0);
 
@@ -362,8 +309,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateHandlesSkeletonSendFailureGracefull
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_))
         .WillOnce([&sample_storage](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return score::gateway_ipc_binding::testing::MakeAllocatedSample(&sample_storage,
-                                                                            std::move(guard));
+            return ipc_testing::MakeAllocatedSample(&sample_storage, std::move(guard));
         });
     EXPECT_CALL(*connected.serialized_event, Send(_, _))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
@@ -382,8 +328,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateDeserializesSomeipPacketAndSendsSam
 
     EXPECT_CALL(*connected.serialized_event, Allocate(_))
         .WillOnce([&sample_storage](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return score::gateway_ipc_binding::testing::MakeAllocatedSample(&sample_storage,
-                                                                            std::move(guard));
+            return ipc_testing::MakeAllocatedSample(&sample_storage, std::move(guard));
         });
     EXPECT_CALL(*connected.serialized_event, Send(_, _)).WillOnce(Return(score::Result<void>{}));
 

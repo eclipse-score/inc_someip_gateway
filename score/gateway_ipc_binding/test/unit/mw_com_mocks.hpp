@@ -75,19 +75,16 @@
 #include "score/mw/com/impl/subscription_state.h"
 #include "score/mw/com/impl/tracing/configuration/i_tracing_filter_config.h"
 #include "score/result/result.h"
+#include "score/socom/client_connector.hpp"
+#include "score/socom/client_connector_mock.hpp"
+#include "score/socom/runtime_mock.hpp"
+#include "score/socom/server_connector.hpp"
+#include "score/socom/server_connector_mock.hpp"
 
 namespace score::gateway_ipc_binding::testing {
 
 class RuntimeMock : public score::mw::com::impl::IRuntime {
    public:
-    RuntimeMock();
-    ~RuntimeMock() override;
-
-    RuntimeMock(RuntimeMock const&) = delete;
-    RuntimeMock& operator=(RuntimeMock const&) = delete;
-    RuntimeMock(RuntimeMock&&) = delete;
-    RuntimeMock& operator=(RuntimeMock&&) = delete;
-
     MOCK_METHOD(score::mw::com::impl::IBindingRuntime*, GetBindingRuntime,
                 (score::mw::com::impl::BindingType), (const, noexcept, override));
     MOCK_METHOD(std::vector<score::mw::com::impl::InstanceIdentifier>, resolve,
@@ -119,14 +116,6 @@ class RuntimeMockGuard {
 
 class ServiceDiscoveryMock : public score::mw::com::impl::IServiceDiscovery {
    public:
-    ServiceDiscoveryMock();
-    ~ServiceDiscoveryMock() override;
-
-    ServiceDiscoveryMock(ServiceDiscoveryMock const&) = delete;
-    ServiceDiscoveryMock& operator=(ServiceDiscoveryMock const&) = delete;
-    ServiceDiscoveryMock(ServiceDiscoveryMock&&) = delete;
-    ServiceDiscoveryMock& operator=(ServiceDiscoveryMock&&) = delete;
-
     MOCK_METHOD(score::Result<void>, OfferService, (score::mw::com::impl::InstanceIdentifier),
                 (override));
     MOCK_METHOD(score::Result<void>, StopOfferService, (score::mw::com::impl::InstanceIdentifier),
@@ -157,18 +146,8 @@ class ServiceDiscoveryMock : public score::mw::com::impl::IServiceDiscovery {
                 FindService, (score::mw::com::impl::InstanceSpecifier), (override));
 };
 
-namespace mock_binding {
-
 class Proxy : public score::mw::com::impl::ProxyBinding {
    public:
-    Proxy();
-    ~Proxy() override;
-
-    Proxy(Proxy const&) = delete;
-    Proxy& operator=(Proxy const&) = delete;
-    Proxy(Proxy&&) = delete;
-    Proxy& operator=(Proxy&&) = delete;
-
     MOCK_METHOD(bool, IsEventProvided, (std::string_view), (const, override));
     MOCK_METHOD(score::Result<void>, SetupMethods, (std::size_t), (override));
     MOCK_METHOD(void, PrepareDeinitialize, (), (override));
@@ -177,13 +156,11 @@ class Proxy : public score::mw::com::impl::ProxyBinding {
 
 class GenericProxyEvent : public score::mw::com::impl::GenericProxyEventBinding {
    public:
-    GenericProxyEvent();
-    ~GenericProxyEvent() override;
-
-    GenericProxyEvent(GenericProxyEvent const&) = delete;
-    GenericProxyEvent& operator=(GenericProxyEvent const&) = delete;
-    GenericProxyEvent(GenericProxyEvent&&) = delete;
-    GenericProxyEvent& operator=(GenericProxyEvent&&) = delete;
+    GenericProxyEvent() {
+        ON_CALL(*this, GetSubscriptionState())
+            .WillByDefault(
+                ::testing::Return(score::mw::com::impl::SubscriptionState::kNotSubscribed));
+    }
 
     MOCK_METHOD(score::mw::com::impl::SubscriptionState, GetSubscriptionState, (),
                 (const, noexcept, override));
@@ -209,14 +186,6 @@ class GenericProxyEvent : public score::mw::com::impl::GenericProxyEventBinding 
 
 class ProxyMethod : public score::mw::com::impl::ProxyMethodBinding {
    public:
-    ProxyMethod();
-    ~ProxyMethod() override;
-
-    ProxyMethod(ProxyMethod const&) = delete;
-    ProxyMethod& operator=(ProxyMethod const&) = delete;
-    ProxyMethod(ProxyMethod&&) = delete;
-    ProxyMethod& operator=(ProxyMethod&&) = delete;
-
     MOCK_METHOD(score::Result<score::cpp::span<std::byte>>, GetInArgsBuffer, (std::size_t),
                 (override));
     MOCK_METHOD(score::Result<score::cpp::span<std::byte>>, GetReturnValueBuffer, (std::size_t),
@@ -226,13 +195,9 @@ class ProxyMethod : public score::mw::com::impl::ProxyMethodBinding {
 
 class Skeleton : public score::mw::com::impl::SkeletonBinding {
    public:
-    Skeleton();
-    ~Skeleton() override;
-
-    Skeleton(Skeleton const&) = delete;
-    Skeleton& operator=(Skeleton const&) = delete;
-    Skeleton(Skeleton&&) = delete;
-    Skeleton& operator=(Skeleton&&) = delete;
+    Skeleton() {
+        ON_CALL(*this, VerifyAllMethodHandlersRegistered()).WillByDefault(::testing::Return(true));
+    }
 
     MOCK_METHOD(score::Result<void>, PrepareOffer,
                 (SkeletonEventBindings&, SkeletonFieldBindings&,
@@ -246,14 +211,6 @@ class Skeleton : public score::mw::com::impl::SkeletonBinding {
 
 class GenericSkeletonEvent : public score::mw::com::impl::GenericSkeletonEventBinding {
    public:
-    GenericSkeletonEvent();
-    ~GenericSkeletonEvent() override;
-
-    GenericSkeletonEvent(GenericSkeletonEvent const&) = delete;
-    GenericSkeletonEvent& operator=(GenericSkeletonEvent const&) = delete;
-    GenericSkeletonEvent(GenericSkeletonEvent&&) = delete;
-    GenericSkeletonEvent& operator=(GenericSkeletonEvent&&) = delete;
-
     MOCK_METHOD(score::Result<void>, Send,
                 (score::mw::com::impl::SampleAllocateePtr<void> sample,
                  std::optional<SendTraceCallback>),
@@ -279,25 +236,8 @@ class GenericSkeletonEvent : public score::mw::com::impl::GenericSkeletonEventBi
 
 class SkeletonMethod : public score::mw::com::impl::SkeletonMethodBinding {
    public:
-    SkeletonMethod();
-    ~SkeletonMethod() override;
-
-    SkeletonMethod(SkeletonMethod const&) = delete;
-    SkeletonMethod& operator=(SkeletonMethod const&) = delete;
-    SkeletonMethod(SkeletonMethod&&) = delete;
-    SkeletonMethod& operator=(SkeletonMethod&&) = delete;
-
     MOCK_METHOD(score::Result<void>, RegisterHandler, (TypeErasedHandler&&), (override));
 };
-
-}  // namespace mock_binding
-
-using Proxy = mock_binding::Proxy;
-using GenericProxyEvent = mock_binding::GenericProxyEvent;
-using ProxyMethod = mock_binding::ProxyMethod;
-using Skeleton = mock_binding::Skeleton;
-using GenericSkeletonEvent = mock_binding::GenericSkeletonEvent;
-using SkeletonMethod = mock_binding::SkeletonMethod;
 
 template <typename Factory, typename Mock>
 class FactoryMockGuard {
@@ -319,14 +259,6 @@ class FactoryMockGuard {
 
 class ProxyBindingFactoryMock : public score::mw::com::impl::IProxyBindingFactory {
    public:
-    ProxyBindingFactoryMock();
-    ~ProxyBindingFactoryMock() override;
-
-    ProxyBindingFactoryMock(ProxyBindingFactoryMock const&) = delete;
-    ProxyBindingFactoryMock& operator=(ProxyBindingFactoryMock const&) = delete;
-    ProxyBindingFactoryMock(ProxyBindingFactoryMock&&) = delete;
-    ProxyBindingFactoryMock& operator=(ProxyBindingFactoryMock&&) = delete;
-
     MOCK_METHOD(score::Result<std::unique_ptr<score::mw::com::impl::ProxyBinding>>, Create,
                 (score::mw::com::impl::HandleType const&), (noexcept, override));
 };
@@ -337,15 +269,6 @@ using ProxyBindingFactoryMockGuard =
 class GenericProxyEventBindingFactoryMock
     : public score::mw::com::impl::IGenericProxyEventBindingFactory {
    public:
-    GenericProxyEventBindingFactoryMock();
-    ~GenericProxyEventBindingFactoryMock() override;
-
-    GenericProxyEventBindingFactoryMock(GenericProxyEventBindingFactoryMock const&) = delete;
-    GenericProxyEventBindingFactoryMock& operator=(GenericProxyEventBindingFactoryMock const&) =
-        delete;
-    GenericProxyEventBindingFactoryMock(GenericProxyEventBindingFactoryMock&&) = delete;
-    GenericProxyEventBindingFactoryMock& operator=(GenericProxyEventBindingFactoryMock&&) = delete;
-
     MOCK_METHOD(score::Result<std::unique_ptr<score::mw::com::impl::GenericProxyEventBinding>>,
                 Create,
                 (score::mw::com::impl::HandleType, score::mw::com::impl::ProxyBinding&,
@@ -360,14 +283,6 @@ using GenericProxyEventBindingFactoryMockGuard =
 
 class ProxyMethodBindingFactoryMock : public score::mw::com::impl::IProxyMethodBindingFactory {
    public:
-    ProxyMethodBindingFactoryMock();
-    ~ProxyMethodBindingFactoryMock() override;
-
-    ProxyMethodBindingFactoryMock(ProxyMethodBindingFactoryMock const&) = delete;
-    ProxyMethodBindingFactoryMock& operator=(ProxyMethodBindingFactoryMock const&) = delete;
-    ProxyMethodBindingFactoryMock(ProxyMethodBindingFactoryMock&&) = delete;
-    ProxyMethodBindingFactoryMock& operator=(ProxyMethodBindingFactoryMock&&) = delete;
-
     MOCK_METHOD(score::Result<std::unique_ptr<score::mw::com::impl::ProxyMethodBinding>>, Create,
                 (score::mw::com::impl::HandleType parent_handle,
                  score::mw::com::impl::ProxyBinding& parent_binding, std::string_view method_name,
@@ -383,14 +298,6 @@ using ProxyMethodBindingFactoryMockGuard =
 
 class SkeletonBindingFactoryMock : public score::mw::com::impl::ISkeletonBindingFactory {
    public:
-    SkeletonBindingFactoryMock();
-    ~SkeletonBindingFactoryMock() override;
-
-    SkeletonBindingFactoryMock(SkeletonBindingFactoryMock const&) = delete;
-    SkeletonBindingFactoryMock& operator=(SkeletonBindingFactoryMock const&) = delete;
-    SkeletonBindingFactoryMock(SkeletonBindingFactoryMock&&) = delete;
-    SkeletonBindingFactoryMock& operator=(SkeletonBindingFactoryMock&&) = delete;
-
     MOCK_METHOD(std::unique_ptr<score::mw::com::impl::SkeletonBinding>, Create,
                 (score::mw::com::impl::InstanceIdentifier const&), (noexcept, override));
 };
@@ -400,14 +307,6 @@ using SkeletonBindingFactoryMockGuard =
 
 class SkeletonEventBindingFactoryMock : public score::mw::com::impl::ISkeletonEventBindingFactory {
    public:
-    SkeletonEventBindingFactoryMock();
-    ~SkeletonEventBindingFactoryMock() override;
-
-    SkeletonEventBindingFactoryMock(SkeletonEventBindingFactoryMock const&) = delete;
-    SkeletonEventBindingFactoryMock& operator=(SkeletonEventBindingFactoryMock const&) = delete;
-    SkeletonEventBindingFactoryMock(SkeletonEventBindingFactoryMock&&) = delete;
-    SkeletonEventBindingFactoryMock& operator=(SkeletonEventBindingFactoryMock&&) = delete;
-
     MOCK_METHOD(std::unique_ptr<score::mw::com::impl::SkeletonEventBinding>, Create,
                 (score::mw::com::impl::InstanceIdentifier const&,
                  score::mw::com::impl::SkeletonBinding&, std::string_view,
@@ -422,14 +321,6 @@ using SkeletonEventBindingFactoryMockGuard =
 class SkeletonMethodBindingFactoryMock
     : public score::mw::com::impl::ISkeletonMethodBindingFactory {
    public:
-    SkeletonMethodBindingFactoryMock();
-    ~SkeletonMethodBindingFactoryMock() override;
-
-    SkeletonMethodBindingFactoryMock(SkeletonMethodBindingFactoryMock const&) = delete;
-    SkeletonMethodBindingFactoryMock& operator=(SkeletonMethodBindingFactoryMock const&) = delete;
-    SkeletonMethodBindingFactoryMock(SkeletonMethodBindingFactoryMock&&) = delete;
-    SkeletonMethodBindingFactoryMock& operator=(SkeletonMethodBindingFactoryMock&&) = delete;
-
     MOCK_METHOD(std::unique_ptr<score::mw::com::impl::SkeletonMethodBinding>, Create,
                 (score::mw::com::impl::InstanceIdentifier const&,
                  score::mw::com::impl::SkeletonBinding&, std::string_view,
@@ -473,7 +364,6 @@ struct ServiceDeploymentSpec {
 class DeployedInstanceHolder {
    public:
     DeployedInstanceHolder() = default;
-    ~DeployedInstanceHolder() = default;
 
     DeployedInstanceHolder(DeployedInstanceHolder const&) = delete;
     DeployedInstanceHolder& operator=(DeployedInstanceHolder const&) = delete;
@@ -525,6 +415,16 @@ class DeployedInstanceHolder {
    private:
     std::deque<score::mw::com::impl::ServiceTypeDeployment> type_deployments_{};
     std::deque<score::mw::com::impl::ServiceInstanceDeployment> instance_deployments_{};
+};
+
+struct MockSkeletonWithEvent {
+    ::testing::NiceMock<Skeleton>* skeleton{nullptr};
+    ::testing::NiceMock<GenericSkeletonEvent>* event{nullptr};
+};
+
+struct MockSkeletonWithMethod {
+    ::testing::NiceMock<Skeleton>* skeleton{nullptr};
+    ::testing::NiceMock<SkeletonMethod>* method{nullptr};
 };
 
 class MwComTestFixture : public ::testing::Test {
@@ -583,6 +483,83 @@ class MwComTestFixture : public ::testing::Test {
                 ::testing::Return(std::vector<score::mw::com::impl::InstanceIdentifier>{}));
     }
 
+    ::testing::NiceMock<GenericProxyEvent>* ExpectProxyWithEvent(
+        std::string_view const event_name) {
+        auto proxy_mock = std::make_unique<::testing::NiceMock<Proxy>>();
+        auto event_mock = std::make_unique<::testing::NiceMock<GenericProxyEvent>>();
+        auto* const event_ptr = event_mock.get();
+        EXPECT_CALL(*proxy_mock, IsEventProvided(event_name)).WillOnce(::testing::Return(true));
+        EXPECT_CALL(proxy_binding_factory_mock(), Create(::testing::_))
+            .WillOnce(::testing::Return(::testing::ByMove(std::move(proxy_mock))));
+        EXPECT_CALL(generic_proxy_event_factory_mock(),
+                    Create(::testing::_, ::testing::_, event_name, ::testing::_))
+            .WillOnce(::testing::Return(::testing::ByMove(std::move(event_mock))));
+        return event_ptr;
+    }
+
+    MockSkeletonWithEvent ExpectSkeletonWithEvent(std::string_view const event_name) {
+        auto skel_mock = std::make_unique<::testing::NiceMock<Skeleton>>();
+        auto event_mock = std::make_unique<::testing::NiceMock<GenericSkeletonEvent>>();
+        MockSkeletonWithEvent const mocks{skel_mock.get(), event_mock.get()};
+        EXPECT_CALL(skeleton_binding_factory_mock(), Create(::testing::_))
+            .WillOnce(::testing::Return(::testing::ByMove(std::move(skel_mock))));
+        EXPECT_CALL(generic_skeleton_event_factory_mock(),
+                    Create(::testing::_, ::testing::_, event_name, ::testing::_))
+            .WillOnce(::testing::Return(::testing::ByMove(std::move(event_mock))));
+        return mocks;
+    }
+
+    MockSkeletonWithMethod ExpectSkeletonWithMethod() {
+        auto skel_mock = std::make_unique<::testing::NiceMock<Skeleton>>();
+        auto method_mock = std::make_unique<::testing::NiceMock<SkeletonMethod>>();
+        MockSkeletonWithMethod const mocks{skel_mock.get(), method_mock.get()};
+        EXPECT_CALL(skeleton_binding_factory_mock(), Create(::testing::_))
+            .WillOnce(::testing::Return(::testing::ByMove(std::move(skel_mock))));
+        EXPECT_CALL(skeleton_method_factory_mock(),
+                    Create(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_,
+                           ::testing::_))
+            .WillOnce(::testing::Return(::testing::ByMove(std::move(method_mock))));
+        return mocks;
+    }
+
+    ::testing::NiceMock<socom::Server_connector_mock>* ExpectServerConnectorCreated(
+        socom::Disabled_server_connector::Callbacks* const out_callbacks = nullptr) {
+        auto sc_mock = std::make_unique<::testing::NiceMock<socom::Server_connector_mock>>();
+        auto* const sc_ptr = sc_mock.get();
+        ON_CALL(*sc_ptr, enable()).WillByDefault(::testing::Return(sc_ptr));
+        ON_CALL(*sc_ptr, disable()).WillByDefault(::testing::Return(sc_ptr));
+        EXPECT_CALL(socom_runtime_, make_server_connector(::testing::_, ::testing::_, ::testing::_))
+            .WillOnce([sc = std::move(sc_mock), out_callbacks](
+                          socom::Server_service_interface_definition, socom::Service_instance,
+                          socom::Disabled_server_connector::Callbacks callbacks) mutable
+                          -> score::Result<socom::Disabled_server_connector::Uptr> {
+                if (out_callbacks != nullptr) {
+                    *out_callbacks = std::move(callbacks);
+                }
+                return std::move(sc);
+            });
+        return sc_ptr;
+    }
+
+    ::testing::NiceMock<socom::Client_connector_mock>* ExpectClientConnectorCreated(
+        socom::Client_connector::Callbacks* const out_callbacks = nullptr) {
+        auto cc_mock = std::make_unique<::testing::NiceMock<socom::Client_connector_mock>>();
+        auto* const cc_ptr = cc_mock.get();
+        EXPECT_CALL(socom_runtime_, make_client_connector(::testing::_, ::testing::_, ::testing::_))
+            .WillOnce([cc = std::move(cc_mock), out_callbacks](
+                          socom::Service_interface_definition, socom::Service_instance,
+                          socom::Client_connector::Callbacks callbacks) mutable
+                          -> score::Result<socom::Client_connector::Uptr> {
+                if (out_callbacks != nullptr) {
+                    *out_callbacks = std::move(callbacks);
+                }
+                return std::move(cc);
+            });
+        return cc_ptr;
+    }
+
+    ::testing::StrictMock<socom::Runtime_mock> socom_runtime_{};
+
    private:
     DeployedInstanceHolder instance_holder_{};
     ::testing::NiceMock<ServiceDiscoveryMock> service_discovery_mock_{};
@@ -596,17 +573,5 @@ class MwComTestFixture : public ::testing::Test {
 };
 
 }  // namespace score::gateway_ipc_binding::testing
-
-namespace score::mw::com::impl::mock_binding {
-
-using Proxy = score::gateway_ipc_binding::testing::mock_binding::Proxy;
-using GenericProxyEvent = score::gateway_ipc_binding::testing::mock_binding::GenericProxyEvent;
-using ProxyMethod = score::gateway_ipc_binding::testing::mock_binding::ProxyMethod;
-using Skeleton = score::gateway_ipc_binding::testing::mock_binding::Skeleton;
-using GenericSkeletonEvent =
-    score::gateway_ipc_binding::testing::mock_binding::GenericSkeletonEvent;
-using SkeletonMethod = score::gateway_ipc_binding::testing::mock_binding::SkeletonMethod;
-
-}  // namespace score::mw::com::impl::mock_binding
 
 #endif  // SCORE_GATEWAY_IPC_BINDING_TEST_UNIT_MW_COM_MOCKS_HPP

@@ -26,7 +26,6 @@
 #include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/mw/com/impl/handle_type.h"
 #include "score/mw/com/impl/instance_identifier.h"
-#include "score/socom/runtime_mock.hpp"
 #include "score/socom/service_interface_identifier.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
@@ -97,8 +96,6 @@ class IpcBindingTestFixture : public testing::MwComTestFixture {
                                            kDefaultMajorVersion, kDefaultMinorVersion,
                                            kDefaultInstanceId});
     }
-
-    ::testing::StrictMock<socom::Runtime_mock> socom_runtime_{};
 };
 
 }  // namespace score::gateway_ipc_binding::mw_com
