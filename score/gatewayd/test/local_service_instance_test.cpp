@@ -247,7 +247,7 @@ class LocalServiceInstanceTest : public ServiceInstanceTestFixture {
     }
 };
 
-// Catches dereferencing null service_instance_config instead of returning kInvalidConfiguration.
+// Returns ComErrc::kInvalidConfiguration when service_instance_config is null.
 TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesFailsWhenInstanceConfigIsNull) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
@@ -261,7 +261,7 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesFailsWhenInstanceConfig
     EXPECT_EQ(null_res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
 
-// Catches unwrapping or ignoring a StartFindService error instead of returning it to the caller.
+// Returns the error from GenericProxy::StartFindService() when service discovery fails to start.
 TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesPropagatesStartFindServiceFailure) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
@@ -279,8 +279,8 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesPropagatesStartFindServ
     EXPECT_FALSE(find_fail.has_value());
 }
 
-// Catches unwrapping a failed GenericProxy::Create result or registering a SOCom Server_connector
-// when attaching to the discovered LoLa service fails.
+// Does not create a SOCom Server_connector or LocalServiceInstance when GenericProxy::Create()
+// fails in the discovery callback.
 TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenProxyCreationFails) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
@@ -296,8 +296,8 @@ TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenProxyCreatio
     EXPECT_TRUE(instances.empty());
 }
 
-// Catches unwrapping a failed make_server_connector result or storing a LocalServiceInstance when
-// SOCom rejects Server_connector creation.
+// Does not store a LocalServiceInstance when SOCom make_server_connector() fails in the discovery
+// callback.
 TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenServerConnectorCreationFails) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     std::vector<std::unique_ptr<LocalServiceInstance>> instances{};
@@ -317,8 +317,8 @@ TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenServerConnec
     EXPECT_TRUE(instances.empty());
 }
 
-// Catches forgetting to store the created LocalServiceInstance, forgetting StopFindService once
-// found, or dropping the instance when StopFindService returns an error.
+// Stores the created LocalServiceInstance and calls StopFindService(), keeping the instance even
+// if StopFindService() returns an error.
 TEST_F(LocalServiceInstanceTest,
        FindServiceCallbackStoresCreatedInstanceAndLogsStopFindServiceError) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
@@ -341,8 +341,8 @@ TEST_F(LocalServiceInstanceTest,
     EXPECT_EQ(instances.size(), kExpectedInstanceCount);
 }
 
-// Catches dereferencing events.cend() when a configured event is absent on the GenericProxy, or
-// subscribing to a LoLa event that has no serializer instead of skipping it.
+// Skips configured events missing from GenericProxy::GetEvents() or missing a registered
+// serializer without failing service creation.
 TEST_F(LocalServiceInstanceTest, CreateSkipsMissingIpcEventAndUnconfiguredSerializerEvent) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     auto const cfg = BuildConfig({
@@ -363,8 +363,8 @@ TEST_F(LocalServiceInstanceTest, CreateSkipsMissingIpcEventAndUnconfiguredSerial
     EXPECT_TRUE(inst_res.has_value());
 }
 
-// Catches unwrapping .value() or failing LocalServiceInstance::Create for the whole service when
-// SetReceiveHandler or Subscribe returns an error on an IPC event.
+// Logs SetReceiveHandler() and Subscribe() errors on an event without failing
+// LocalServiceInstance::Create() for the whole service.
 TEST_F(LocalServiceInstanceTest, CreateLogsErrorsWhenSetReceiveHandlerAndSubscribeFail) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     auto const cfg = BuildConfig({
@@ -386,8 +386,8 @@ TEST_F(LocalServiceInstanceTest, CreateLogsErrorsWhenSetReceiveHandlerAndSubscri
     EXPECT_TRUE(inst_res.has_value());
 }
 
-// Catches leaving a Server_connector callback empty (crashing when SOCom invokes it) or accepting
-// unsupported SOME/IP method calls instead of returning runtime_error_request_rejected.
+// Registers non-empty SOCom Server_connector callbacks that reject unsupported SOME/IP method
+// calls and ignore event subscription or update-request callbacks.
 TEST_F(LocalServiceInstanceTest,
        DefaultServerConnectorCallbacksRejectMethodCallsAndIgnoreEventNotifications) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
@@ -421,8 +421,7 @@ TEST_F(LocalServiceInstanceTest,
     EXPECT_EQ(method_alloc.error(), socom::Error::runtime_error_request_rejected);
 }
 
-// Catches unwrapping GetNewSamples().value() inside the async LoLa receive handler and crashing
-// gatewayd when reading IPC samples fails.
+// Logs and returns without aborting when GetNewSamples() fails inside the LoLa receive handler.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenGetNewSamplesFails) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     auto const cfg = BuildConfig({
@@ -436,8 +435,7 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenGetNewSamplesFails) 
     (*ctx.receive_handler.lock())();
 }
 
-// Catches dereferencing maybe_payload or calling update_event when SOCom fails to allocate an
-// outgoing event payload buffer.
+// Skips serialization and update_event() when SOCom allocate_event_payload() returns an error.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerSkipsUpdateWhenPayloadAllocationFails) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     auto const cfg = BuildConfig({
@@ -456,8 +454,8 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerSkipsUpdateWhenPayloadAllocationF
     (*ctx.receive_handler.lock())();
 }
 
-// Catches forgetting to subtract the 16-byte SOME/IP header from the serializer buffer capacity or
-// calling update_event with a header-only packet when score_com_serializer_serialize fails.
+// Subtracts the 16-byte SOME/IP header from the buffer capacity passed to the serializer and skips
+// update_event() when serialization fails.
 TEST_F(LocalServiceInstanceTest,
        ReceiveHandlerSkipsUpdateWhenAllocatedBufferIsTooSmallForSerializer) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
@@ -478,8 +476,7 @@ TEST_F(LocalServiceInstanceTest,
     (*ctx.receive_handler.lock())();
 }
 
-// Catches unwrapping update_event().value() inside the sample callback and crashing gatewayd when
-// SOCom rejects an outgoing event update.
+// Logs and returns without aborting when SOCom update_event() returns an error.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenUpdateEventFails) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     auto const cfg = BuildConfig({
@@ -501,8 +498,8 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenUpdateEventFails) {
     (*ctx.receive_handler.lock())();
 }
 
-// Catches wrong byte order or field offsets in the 16-byte SOME/IP notification header, writing
-// payload at the wrong offset, or omitting payload.shrink(pos) and sending trailing buffer bytes.
+// Writes the 16-byte big-endian SOME/IP notification header followed by the serialized payload,
+// and calls shrink() with the written byte count.
 TEST_F(LocalServiceInstanceTest,
        ReceiveHandlerSerializesSampleIntoSomeipPacketAndUpdatesServerConnector) {
     StrictMock<socom::Runtime_mock> socom_runtime{};

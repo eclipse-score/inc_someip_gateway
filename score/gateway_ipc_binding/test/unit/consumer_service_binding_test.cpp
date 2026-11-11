@@ -178,8 +178,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
     StrictMock<socom::Runtime_mock> socom_runtime_{};
 };
 
-// Catches registering a SOCom Server_connector for a malformed instance_specifier instead of
-// rejecting it in create() with logic_error_invalid_instance_specifier.
+// Invalid specifier syntax fails in create() before creating a SOCom Server_connector.
 TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
     auto const result = Consumer_service_binding::create(
         socom_runtime_, MakeServiceConfig(Role::consumer, kInvalidSpecifier));
@@ -187,8 +186,7 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Catches accepting a syntactically valid InstanceSpecifier that is missing from the mw::com
-// deployment instead of failing create() with logic_error_invalid_instance_specifier.
+// Undeployed specifier fails in create() instead of waiting indefinitely in StartFindService().
 TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
     ExpectInstanceNotResolved();
     auto const result =
@@ -197,8 +195,7 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Catches returning a binding with a null m_disabled_connector or aborting when
-// make_server_connector() fails, instead of returning runtime_error_service_setup_failed.
+// Returns runtime_error_service_setup_failed when SOCom make_server_connector() fails.
 TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) {
     ExpectInstanceResolved();
     EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
@@ -210,8 +207,8 @@ TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) 
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
 }
 
-// Catches wiring Role::consumer to a Client_connector, leaving unsupported Server_connector
-// callbacks uninitialized, or indexing m_events out of bounds on an unknown Event_id.
+// Unsupported SOCom method and update-request callbacks are no-ops, and out-of-range event IDs are
+// ignored without out-of-bounds access.
 TEST_F(ConsumerServiceBindingTest,
        ServerConnectorDefaultCallbacksHandleUnsupportedOperationsAndOutOfRangeEvent) {
     ExpectInstanceResolved();
@@ -240,8 +237,7 @@ TEST_F(ConsumerServiceBindingTest,
                                               socom::Event_state::subscribed);
 }
 
-// Catches reporting start() success or aborting on find_handle.value() when StartFindService()
-// fails, instead of returning runtime_error_service_find_failed.
+// Returns runtime_error_service_find_failed when LoLa StartFindService() fails.
 TEST_F(ConsumerServiceBindingTest, StartFailsWhenStartFindServiceFails) {
     auto created = CreateConsumer();
     EXPECT_CALL(service_discovery_mock(),
@@ -253,8 +249,7 @@ TEST_F(ConsumerServiceBindingTest, StartFailsWhenStartFindServiceFails) {
     EXPECT_EQ(start_res.error(), Mw_com_binding_error::runtime_error_service_find_failed);
 }
 
-// Catches forgetting to call StopFindService() on teardown, or aborting inside the noexcept
-// destructor when StopFindService() returns an error.
+// noexcept destructor logs and continues instead of aborting if StopFindService() returns an error.
 TEST_F(ConsumerServiceBindingTest, DestructorHandlesStopFindServiceFailureGracefully) {
     auto started = CreateAndStartConsumer();
     EXPECT_CALL(service_discovery_mock(), StopFindService(_))
@@ -262,8 +257,8 @@ TEST_F(ConsumerServiceBindingTest, DestructorHandlesStopFindServiceFailureGracef
     started.binding.reset();
 }
 
-// Catches reading handles.front() or disabling a null m_enabled_connector on an empty discovery
-// update, or aborting on created.value() when GenericProxy::Create() fails.
+// Empty discovery results or a failed GenericProxy::Create() keep the SOCom Server_connector
+// disabled.
 TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProxyCreationFailure) {
     auto started = CreateAndStartConsumer();
     started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
@@ -279,8 +274,8 @@ TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProx
                          score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
 }
 
-// Catches dereferencing proxy_events.cend() on a missing peer event, accepting an undersized peer
-// SHM sample, or keeping a rejected m_proxy so later discovery updates are ignored.
+// Rejects a GenericProxy with a missing event or undersized SHM slot so a later StartFindService()
+// callback can create a new GenericProxy.
 TEST_F(ConsumerServiceBindingTest,
        FindServiceCallbackRejectsProxyWithMissingEventOrUndersizedSample) {
     auto started = CreateAndStartConsumer();
@@ -298,8 +293,8 @@ TEST_F(ConsumerServiceBindingTest,
                          score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
 }
 
-// Catches dropping a SOCom subscription requested before peer discovery, aborting when Subscribe()
-// fails, or recreating m_proxy on a duplicate StartFindService() callback.
+// Subscribes in LoLa for events subscribed on SOCom before service discovery, and ignores
+// duplicate StartFindService() callbacks while a GenericProxy is active.
 TEST_F(ConsumerServiceBindingTest,
        AttachReconcilesPendingSubscriptionAndIgnoresDuplicateFindServiceHandle) {
     auto started = CreateAndStartConsumer();
@@ -318,8 +313,8 @@ TEST_F(ConsumerServiceBindingTest,
                          score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
 }
 
-// Catches leaving the GenericProxyEvent subscribed in LoLa when SetReceiveHandler() fails, which
-// leaks the subscriber slot and aborts LoLa when m_proxy is later destroyed.
+// Calls Unsubscribe() if SetReceiveHandler() fails after Subscribe() (LoLa aborts if GenericProxy
+// is destroyed while an event is still subscribed).
 TEST_F(ConsumerServiceBindingTest, SubscriptionRollsBackWhenSetReceiveHandlerFails) {
     auto started = CreateAndStartConsumer();
     auto* const event_mock_ptr = ExpectProxyWithEvent();
@@ -339,8 +334,8 @@ TEST_F(ConsumerServiceBindingTest, SubscriptionRollsBackWhenSetReceiveHandlerFai
                                                    socom::Event_state::subscribed);
 }
 
-// Catches duplicate Subscribe() calls when already subscribed, stale subscribed state blocking
-// re-subscription, or destroying m_proxy on peer loss before unsubscribing its events.
+// Subscribes and unsubscribes on LoLa as SOCom state changes, and unsubscribes before destroying
+// GenericProxy when the LoLa service stops offering.
 TEST_F(ConsumerServiceBindingTest, ConnectedConsumerHandlesSubscribeUnsubscribeAndPeerDetach) {
     auto started = CreateAndStartConsumer();
     auto const sub = AttachAndSubscribeConsumer(started);
@@ -372,8 +367,8 @@ TEST_F(ConsumerServiceBindingTest, ConnectedConsumerHandlesSubscribeUnsubscribeA
         score::mw::com::impl::make_FindServiceHandle(kFirstFindServiceUid));
 }
 
-// Catches dereferencing a null SamplePtr, reading past max_payload_size when the 8-byte SHM header
-// claims an oversized length, or aborting when update_event() returns an error.
+// Ignores null SamplePtrs and SHM samples whose 8-byte length prefix exceeds max_payload_size
+// instead of reading out of bounds.
 TEST_F(ConsumerServiceBindingTest,
        ReceiveHandlerSkipsNullAndOversizedSamplesAndForwardsValidSamples) {
     auto started = CreateAndStartConsumer();
@@ -404,8 +399,7 @@ TEST_F(ConsumerServiceBindingTest,
     (*sub.receive_handler.lock())();
 }
 
-// Catches unwrapping the GetNewSamples() Result without an error check and aborting inside the
-// noexcept receive handler.
+// Logs and returns without aborting when GetNewSamples() fails inside the noexcept callback.
 TEST_F(ConsumerServiceBindingTest, ReceiveHandlerHandlesGetNewSamplesErrorGracefully) {
     auto started = CreateAndStartConsumer();
     auto const sub = AttachAndSubscribeConsumer(started);

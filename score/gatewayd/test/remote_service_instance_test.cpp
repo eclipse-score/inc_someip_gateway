@@ -198,8 +198,7 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
     StrictMock<socom::Runtime_mock> socom_runtime_{};
 };
 
-// Catches dereferencing a null service_instance_config when reading instance_specifier() instead of
-// returning ComErrc::kInvalidConfiguration.
+// Returns ComErrc::kInvalidConfiguration when service_instance_config is null.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenInstanceConfigIsNull) {
     std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
     auto const valid_cfg = BuildConfig({
@@ -212,8 +211,7 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenInstanceConfi
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
 
-// Catches querying sizeof/alignof on a null serializer or skipping an event with no registered
-// serializer instead of returning ComErrc::kInvalidConfiguration.
+// Returns ComErrc::kInvalidConfiguration when any configured event has no registered serializer.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenEventLacksSerializer) {
     std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
     auto const bad_ser_cfg = BuildConfig({
@@ -226,8 +224,8 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenEventLacksSer
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
 
-// Catches calling .value() on a failed GenericSkeleton::Create result when the InstanceSpecifier
-// cannot be resolved, instead of returning ComErrc::kInvalidConfiguration.
+// Returns ComErrc::kInvalidConfiguration when GenericSkeleton::Create() fails for an unresolved
+// InstanceSpecifier.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenIpcSkeletonCreationFails) {
     std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
     auto const valid_cfg = BuildConfig({
@@ -241,8 +239,8 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenIpcSkeletonCr
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
 
-// Catches ignoring an ipc_skeleton.OfferService() failure and still creating a SOCom
-// Client_connector for an unoffered LoLa skeleton instead of returning ComErrc::kBindingFailure.
+// Returns ComErrc::kBindingFailure without creating a SOCom Client_connector when
+// GenericSkeleton::OfferService() fails.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOfferFails) {
     std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
     auto const valid_cfg = BuildConfig({
@@ -268,8 +266,8 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOffer
     EXPECT_EQ(res.error(), score::mw::com::ComErrc::kBindingFailure);
 }
 
-// CreateAsyncRemoteService returns Result<void>, so forgetting to push the new instance into
-// instances would destroy it on return and tear down its offered skeleton and Client_connector.
+// Appends the created RemoteServiceInstance to instances so its GenericSkeleton and SOCom
+// Client_connector are not destroyed when CreateAsyncRemoteService() returns.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceAppendsCreatedInstanceOnSuccess) {
     std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
     auto const valid_cfg = BuildConfig({
@@ -291,8 +289,7 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceAppendsCreatedInstance
     EXPECT_EQ(instances.size(), kSingleInstanceCount);
 }
 
-// Catches aborting on connector_result.value() or returning an instance with a null
-// client_connector_ instead of runtime_error_request_rejected when make_client_connector fails.
+// Returns runtime_error_request_rejected when SOCom make_client_connector() fails.
 TEST_F(RemoteServiceInstanceTest, CreateFailsWhenMakeClientConnectorFails) {
     auto const cfg = BuildConfig({
         EventSpec{kEventMissingInIpc, kEventMissingInIpcId, kMaxMessageSize},
@@ -311,8 +308,8 @@ TEST_F(RemoteServiceInstanceTest, CreateFailsWhenMakeClientConnectorFails) {
     EXPECT_EQ(res.error(), socom::Error::runtime_error_request_rejected);
 }
 
-// Catches calling subscribe_event while the remote service is not_available, or failing to
-// subscribe every configured Event_id in Event_mode::update once it becomes available.
+// Does not call subscribe_event() while the SOCom service is not_available, and subscribes every
+// configured Event_id in Event_mode::update when it becomes available.
 TEST_F(RemoteServiceInstanceTest, ServiceStateTransitionSubscribesEventsOnlyWhenAvailable) {
     auto const cfg = BuildConfig({
         EventSpec{kEventMissingInIpc, kEventMissingInIpcId, kMaxMessageSize},
@@ -345,8 +342,7 @@ TEST_F(RemoteServiceInstanceTest, ServiceStateTransitionSubscribesEventsOnlyWhen
                                                   socom::empty_payload());
 }
 
-// Catches aborting on maybe_sample.value() or calling Send when ipc_event.Allocate() fails because
-// no LoLa sample slot is free.
+// Skips deserialization and Send() when LoLa Allocate() fails because no sample slot is free.
 TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenSampleAllocationFails) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
@@ -365,8 +361,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenSampleAllocationFails) {
         MakeSpanPayload(score::cpp::span<std::byte const>{valid_wire.data(), valid_wire.size()}));
 }
 
-// Catches publishing an uninitialized or corrupt LoLa sample via ipc_event.Send when
-// score_com_serializer_deserialize rejects a malformed or oversized SOME/IP payload.
+// Skips Send() when the deserializer rejects an invalid or oversized SOME/IP payload.
 TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenPayloadDeserializationFails) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
@@ -386,7 +381,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenPayloadDeserializationFail
                                             oversized_wire.data(), oversized_wire.size()}));
 }
 
-// Catches calling .value() on ipc_event.Send() and crashing gatewayd when LoLa Send fails.
+// Logs and returns without aborting when GenericSkeletonEvent::Send() returns an error.
 TEST_F(RemoteServiceInstanceTest, EventUpdateHandlesSkeletonSendFailureGracefully) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
@@ -407,8 +402,8 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateHandlesSkeletonSendFailureGracefull
         MakeSpanPayload(score::cpp::span<std::byte const>{valid_wire.data(), valid_wire.size()}));
 }
 
-// SOCom delivers the full SOME/IP frame, so forgetting to strip kSomeipFullHeaderSize would copy
-// the 16-byte header into the LoLa sample instead of sending only the event payload body.
+// Skips the 16-byte SOME/IP header in the SOCom payload so only the event payload body is written
+// into the LoLa sample.
 TEST_F(RemoteServiceInstanceTest, EventUpdateDeserializesSomeipPacketAndSendsSample) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
@@ -432,8 +427,8 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateDeserializesSomeipPacketAndSendsSam
                            std::cbegin(sample_storage.data)));
 }
 
-// Catches dereferencing ipc_skeleton_.GetEvents().cend() in forward_event when the configured event
-// name is absent from the LoLa skeleton's event map.
+// Skips Allocate() and Send() when the incoming event's name is absent from
+// GenericSkeleton::GetEvents().
 TEST_F(RemoteServiceInstanceTest, EventUpdateDropsEventWhenMissingFromIpcSkeleton) {
     auto cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},

@@ -198,7 +198,8 @@ class SomeipdServiceBindingTest : public IpcBindingTestFixture {
     bool return_value_buffer_{false};
 };
 
-// Checks operator== didn't forget any of the 3 fields (service_id, event_id, max_payload_size).
+// C++17 requires a hand-written operator==; verifies service_id, event_id, and max_payload_size
+// are all compared.
 TEST(BridgedEventSizeTest, EqualityComparesAllFields) {
     constexpr Bridged_event_size kBaseline{kSampleServiceId, kSampleEventId, kSampleMaxPayloadSize};
     constexpr Bridged_event_size kIdentical{kSampleServiceId, kSampleEventId,
@@ -216,13 +217,13 @@ TEST(BridgedEventSizeTest, EqualityComparesAllFields) {
     EXPECT_FALSE(kBaseline == kDifferentPayloadSize);
 }
 
-// Catches missing empty-string check on someipd_service_specifier in create_server().
+// Returns nullptr when someipd_service_specifier is empty.
 TEST_F(SomeipdServiceBindingTest, CreateServerReturnsNullptrOnEmptySpecifier) {
     EXPECT_EQ(create_server(socom_runtime_, std::string{kEmptySpecifier}, &AcceptAllGatewayConfigs),
               nullptr);
 }
 
-// Bad specifier syntax returns logic_error_invalid_instance_specifier, not a generic creation
+// Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a generic creation
 // error.
 TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsInvalidSpecifier) {
     auto const result =
@@ -231,8 +232,7 @@ TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsInvalidSpecifier) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Missing SomeipdService entry in mw_com_config.json fails server->start() instead of offering
-// nothing.
+// Fails server->start() when the SomeipdService specifier is missing from mw_com_config.json.
 TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
     ExpectInstanceNotResolved();
     auto server =
@@ -245,8 +245,8 @@ TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
               Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
 }
 
-// Catches ignoring RegisterHandler() failure (LoLa aborts OfferService() if a method has no
-// handler).
+// Fails Someipd_service_provider::create() if RegisterHandler() fails, since LoLa aborts
+// OfferService() when a method has no handler.
 TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
     ExpectInstanceResolved();
     auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
@@ -265,7 +265,7 @@ TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
 }
 
-// Catches ignoring OfferService() failure in server->start().
+// Returns runtime_error_someipd_service_offer_failed when OfferService() fails in server->start().
 TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
     ExpectInstanceResolved();
     auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
@@ -288,8 +288,8 @@ TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
               Mw_com_binding_error::runtime_error_someipd_service_offer_failed);
 }
 
-// Calling server->start() twice fails with logic_error_already_started instead of overwriting the
-// live skeleton.
+// Calling server->start() a second time returns logic_error_already_started without replacing the
+// active skeleton.
 TEST_F(SomeipdServiceBindingTest, ServerSecondStartReturnsAlreadyStartedError) {
     ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
@@ -303,8 +303,8 @@ TEST_F(SomeipdServiceBindingTest, ServerSecondStartReturnsAlreadyStartedError) {
     EXPECT_EQ(second_start.error(), Mw_com_binding_error::logic_error_already_started);
 }
 
-// Rejects corrupted gateway_config.size > max_size from SHM before reading out of bounds, and
-// propagates handler false.
+// Rejects gateway_config.size > max_size before reading past the SHM array, and returns false when
+// the configuration callback returns false.
 TEST_F(SomeipdServiceBindingTest, ServerRejectsOversizedAndHandlerRejectedConfigurations) {
     ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
@@ -324,8 +324,8 @@ TEST_F(SomeipdServiceBindingTest, ServerRejectsOversizedAndHandlerRejectedConfig
     EXPECT_FALSE(InvokeAddServiceConfiguration(*cfg));
 }
 
-// Refuses to create provider skeletons if gatewayd sent the wrong event count or an unknown
-// (service_id, event_id).
+// Rejects provider configurations when event_sizes has the wrong count or an unknown
+// (service_id, event_id) pair.
 TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEventSizes) {
     ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
@@ -347,8 +347,8 @@ TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEvent
     EXPECT_FALSE(InvokeAddServiceConfiguration(*cfg));
 }
 
-// When a restarted gatewayd resends the same config, returns true without creating duplicate
-// bindings.
+// Returns true without creating duplicate bindings when a restarted gatewayd sends the same
+// configuration again.
 TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircuitsDuplicate) {
     ExpectInstanceResolved();
     ExpectSomeipdSkeletonOfferSuccess();
@@ -373,8 +373,8 @@ TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircui
     EXPECT_TRUE(InvokeAddServiceConfiguration(*cfg));
 }
 
-// Undeployed or bad SomeipdService specifier fails immediately instead of waiting forever in
-// StartFindService().
+// Invalid or undeployed SomeipdService specifier fails immediately instead of waiting indefinitely
+// in StartFindService().
 TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpecifier) {
     auto const cfg = std::make_unique<Service_configuration>();
 
@@ -389,7 +389,7 @@ TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpeci
     EXPECT_EQ(undeployed_res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Catches ignoring a StartFindService() error when creating the SomeipdService client.
+// Returns runtime_error_someipd_service_find_failed when StartFindService() fails.
 TEST_F(SomeipdServiceBindingTest, ConsumerCreateFailsWhenStartFindServiceFails) {
     ExpectInstanceResolved();
     auto const cfg = std::make_unique<Service_configuration>();
@@ -403,8 +403,8 @@ TEST_F(SomeipdServiceBindingTest, ConsumerCreateFailsWhenStartFindServiceFails) 
     EXPECT_EQ(start_fail.error(), Mw_com_binding_error::runtime_error_someipd_service_find_failed);
 }
 
-// Returns nullptr if any bridged service config is invalid, gateway_config exceeds SHM max size, or
-// SOCom setup fails.
+// Returns nullptr if a bridged service config is invalid, gateway_config exceeds the SHM array
+// capacity, or SOCom connector creation fails.
 TEST_F(SomeipdServiceBindingTest,
        CreateClientRejectsInvalidConfigOversizedPayloadAndFailedBinding) {
     ExpectInstanceResolved();
@@ -427,8 +427,8 @@ TEST_F(SomeipdServiceBindingTest,
               nullptr);
 }
 
-// is_connected() turns true only after AddServiceConfiguration succeeds (not just on discovery),
-// and resets when someipd disappears.
+// is_connected() returns true only after AddServiceConfiguration returns true, and returns false
+// again when SomeipdService stops offering.
 TEST_F(SomeipdServiceBindingTest,
        ClientConnectionStateTracksSomeipdDiscoveryAndConfigurationReply) {
     ExpectInstanceResolved();

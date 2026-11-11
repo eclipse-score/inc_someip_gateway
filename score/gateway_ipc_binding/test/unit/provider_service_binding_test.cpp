@@ -139,8 +139,7 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
     score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback interest_cb_{};
 };
 
-// Catches calling .value() on an unchecked InstanceSpecifier or reporting
-// runtime_error_service_setup_failed instead of logic_error_invalid_instance_specifier.
+// Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a setup error.
 TEST_F(ProviderServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
     auto const result = Provider_service_binding::create(
         socom_runtime_, MakeServiceConfig(Role::provider, kInvalidSpecifier));
@@ -148,8 +147,8 @@ TEST_F(ProviderServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Catches unwrapping a failed GenericSkeleton::Create() result or wiring a SOCom Client_connector
-// when the instance is missing from the mw::com deployment.
+// Missing mw_com_config.json entry fails GenericSkeleton::Create() before creating a SOCom
+// Client_connector.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
     ExpectInstanceNotResolved();
     auto const result = Provider_service_binding::create(socom_runtime_, provider_config_);
@@ -157,8 +156,7 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
 }
 
-// Catches forgetting to pass m_config.events into GenericSkeleton::Create() or ignoring a failed
-// LoLa event binding and wiring the SOCom Client_connector anyway.
+// Fails create() if a configured event name is missing from GenericSkeleton::GetEvents().
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
     ExpectInstanceResolved();
     auto skel_mock = std::make_unique<NiceMock<score::mw::com::impl::mock_binding::Skeleton>>();
@@ -172,7 +170,8 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
 }
 
-// Catches writing past the end of SHM if LoLa's actual slot size doesn't match sample_size(event).
+// Fails with runtime_error_sample_size_mismatch if LoLa's SHM slot size differs from
+// sample_size(event).
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatches) {
     ExpectInstanceResolved();
     (void)ExpectSkeletonWithEvent(kMismatchedEventSize);
@@ -182,8 +181,8 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatc
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_sample_size_mismatch);
 }
 
-// Catches missing LoLa subscriptions when SetReceiveHandlerRegistrationChangedHandler() fails, or
-// crashing in the noexcept destructor when unsetting that handler also fails.
+// Fails create() if LoLa rejects the subscription callback, and destructor cleanup does not abort
+// when unsetting that callback also fails.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandlerFails) {
     ExpectInstanceResolved();
     auto* const event_mock = ExpectSkeletonWithEvent(
@@ -197,8 +196,7 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandler
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
 }
 
-// Catches unwrapping a failed make_client_connector() result or leaving GenericSkeleton callbacks
-// registered when SOCom rejects the client connector during setup.
+// Fails create() if SOCom make_client_connector() returns an error.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenMakingClientConnectorFails) {
     ExpectInstanceResolved();
     (void)ExpectSkeletonWithEvent(ExpectedEventSampleSize());
@@ -211,8 +209,8 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenMakingClientConnectorFails) {
     EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
 }
 
-// Catches indexing past m_events on an unknown Event_id, leaving on_event_requested_update unset,
-// or calling StopOfferService() when not_available arrives for a service that was never offered.
+// Out-of-range event IDs return an error or are ignored without out-of-bounds access, and
+// on_event_requested_update is a no-op.
 TEST_F(ProviderServiceBindingTest, StartSucceedsAndOutOfRangeOrRequestedCallbacksAreIgnored) {
     auto const binding = CreateConnectedProvider();
     EXPECT_TRUE(binding->start().has_value());
@@ -230,8 +228,8 @@ TEST_F(ProviderServiceBindingTest, StartSucceedsAndOutOfRangeOrRequestedCallback
         *client_connector_mock_, socom::Service_state::not_available, server_interface_definition_);
 }
 
-// Catches losing early LoLa subscriber interest, subscribing on SOCom after OfferService() fails,
-// re-offering on duplicate available states, or setting subscribed when subscribe_event() fails.
+// Subscribes on SOCom only after OfferService() succeeds (including when a LoLa proxy subscribed
+// earlier), and retries if subscribe_event() fails.
 TEST_F(ProviderServiceBindingTest, ServiceAvailabilityOffersServiceAndReconcilesPeerSubscription) {
     auto const binding = CreateConnectedProvider();
     interest_cb_(true);
@@ -256,8 +254,8 @@ TEST_F(ProviderServiceBindingTest, ServiceAvailabilityOffersServiceAndReconciles
     interest_cb_(true);
 }
 
-// When nobody in LoLa is subscribed, withdrawing the service must destroy and recreate
-// GenericSkeleton (LoLa can't re-offer a stopped skeleton) without crashing if recreate fails.
+// LoLa cannot re-offer a stopped skeleton, so when the SOCom service stops and no LoLa proxy is
+// subscribed, GenericSkeleton is destroyed and recreated on the next offer.
 TEST_F(ProviderServiceBindingTest,
        PeerUnsubscriptionAndServiceWithdrawalTearDownAndRecreateSkeleton) {
     auto const binding = CreateConnectedProvider();
@@ -286,8 +284,8 @@ TEST_F(ProviderServiceBindingTest,
         *client_connector_mock_, socom::Service_state::available, server_interface_definition_);
 }
 
-// Catches leaking an SHM slot when the producer drops a Writable_payload without sending, crashing
-// when LoLa runs out of slots, or sending an event update not backed by a LoLa sample.
+// Returns runtime_error_sample_allocation_failed when LoLa has no free SHM slots, and releases the
+// slot if the caller destroys Writable_payload without sending it.
 TEST_F(ProviderServiceBindingTest, EventPayloadAllocationHandlesFailureAndDroppedPayloads) {
     auto const binding = CreateConnectedProvider();
     OfferService();
@@ -315,8 +313,8 @@ TEST_F(ProviderServiceBindingTest, EventPayloadAllocationHandlesFailureAndDroppe
                                       socom::empty_payload());
 }
 
-// Catches stamping max_payload_size instead of the shrunk SOME/IP byte count into the 8-byte SHM
-// header, or crashing when GenericSkeletonEvent::Send() returns an error.
+// Writes the payload length after shrink() (not max_payload_size) into the 8-byte SHM header
+// before calling GenericSkeletonEvent::Send().
 TEST_F(ProviderServiceBindingTest, EventUpdateWritesPayloadLengthAndSendsSampleToSkeletonEvent) {
     auto const binding = CreateConnectedProvider();
     OfferService();

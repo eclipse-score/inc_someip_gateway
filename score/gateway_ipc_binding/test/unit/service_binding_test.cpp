@@ -69,22 +69,23 @@ class ServiceBindingTest : public IpcBindingTestFixture {
     }
 };
 
-// Checks make_instance_specifier() doesn't strip or alter the specifier string.
+// Preserves the exact instance specifier string when parsing succeeds.
 TEST_F(ServiceBindingTest, MakeInstanceSpecifierAcceptsValidSpecifier) {
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
     ASSERT_TRUE(valid.has_value());
     EXPECT_EQ(valid->ToString(), kValidBridgedSpecifier);
 }
 
-// Bad specifier syntax returns logic_error_invalid_instance_specifier, not a generic setup error.
+// Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a generic setup
+// error.
 TEST_F(ServiceBindingTest, MakeInstanceSpecifierRejectsInvalidSpecifier) {
     auto const invalid = make_instance_specifier(std::string{kInvalidSpecifier});
     ASSERT_FALSE(invalid.has_value());
     EXPECT_EQ(invalid.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Missing mw_com_config.json entry fails immediately instead of letting LoLa StartFindService()
-// wait forever.
+// Fails immediately when the specifier is missing from mw_com_config.json instead of letting LoLa
+// StartFindService() wait indefinitely.
 TEST_F(ServiceBindingTest, CheckInstanceIsDeployedRejectsUndeployedSpecifier) {
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
     ASSERT_TRUE(valid.has_value());
@@ -96,7 +97,7 @@ TEST_F(ServiceBindingTest, CheckInstanceIsDeployedRejectsUndeployedSpecifier) {
     EXPECT_EQ(not_deployed.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Doesn't falsely reject a specifier when ResolveInstanceIDs() finds a match.
+// Succeeds when ResolveInstanceIDs() returns at least one InstanceIdentifier.
 TEST_F(ServiceBindingTest, CheckInstanceIsDeployedAcceptsDeployedSpecifier) {
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
     ASSERT_TRUE(valid.has_value());
@@ -106,14 +107,14 @@ TEST_F(ServiceBindingTest, CheckInstanceIsDeployedAcceptsDeployedSpecifier) {
     EXPECT_TRUE(deployed.has_value());
 }
 
-// Catches inverted checks in validate() that would reject a valid config.
+// Accepts a complete Service_config that satisfies all identifier, event, and sample limits.
 TEST_F(ServiceBindingTest, ValidateAcceptsValidServiceConfig) {
     auto const valid_cfg = MakeServiceConfig();
     EXPECT_TRUE(validate(valid_cfg).has_value());
 }
 
-// Catches a missing "bridged_" prefix, which could otherwise collide with a real app's service in
-// mw::com.
+// Requires the "bridged_" prefix so gateway specifiers remain distinct from application specifiers
+// in mw::com.
 TEST_F(ServiceBindingTest, ValidateRejectsMissingBridgedPrefix) {
     auto const no_prefix = MakeServiceConfig(Role::consumer, kMissingPrefixSpecifier);
     auto const res = validate(no_prefix);
@@ -121,8 +122,8 @@ TEST_F(ServiceBindingTest, ValidateRejectsMissingBridgedPrefix) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches a service with 0 events (GenericProxy and GenericSkeleton only bridge events, not
-// methods).
+// Rejects a service with zero events because GenericProxy and GenericSkeleton only forward events,
+// not methods.
 TEST_F(ServiceBindingTest, ValidateRejectsEmptyEvents) {
     auto no_events = MakeServiceConfig();
     no_events.events.clear();
@@ -131,7 +132,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsEmptyEvents) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches an empty event name before LoLa's JSON config parser aborts on "".
+// Rejects an empty event name before LoLa's JSON configuration parser aborts on "".
 TEST_F(ServiceBindingTest, ValidateRejectsEmptyEventName) {
     auto empty_name = MakeServiceConfig();
     empty_name.events.front().name.clear();
@@ -140,8 +141,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsEmptyEventName) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches two events with the same LoLa eventName, which would abort AddConfiguration() or share
-// one SHM buffer.
+// Rejects two events with the same LoLa eventName before AddConfiguration() aborts.
 TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventName) {
     auto dup_name = MakeServiceConfig();
     dup_name.events.push_back(Event_config{std::string{kEvent0}, Mw_com_event_id{kSecondEventId},
@@ -151,7 +151,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventName) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches two events with the same LoLa eventId before AddConfiguration() aborts.
+// Rejects two events with the same LoLa eventId before AddConfiguration() aborts.
 TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventId) {
     auto dup_id = MakeServiceConfig();
     dup_id.events.push_back(Event_config{std::string{kSecondEventName}, Mw_com_event_id{kEvent0Id},
@@ -161,7 +161,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventId) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches max_payload_size > UINT32_MAX, which would overflow the 4-byte length header in SHM.
+// Rejects max_payload_size > UINT32_MAX because the SHM sample header stores length in 4 bytes.
 TEST_F(ServiceBindingTest, ValidateRejectsOversizedEventPayload) {
     auto oversized = MakeServiceConfig();
     oversized.events.front().max_payload_size = kMax_payload_length + 1U;
@@ -170,8 +170,8 @@ TEST_F(ServiceBindingTest, ValidateRejectsOversizedEventPayload) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches max_sample_count == 0 on a consumer (LoLa Subscribe(0) succeeds without error, then drops
-// every event).
+// Rejects max_sample_count == 0 on a consumer because LoLa Subscribe(0) succeeds without error and
+// delivers no events.
 TEST_F(ServiceBindingTest, ValidateRejectsConsumerWithZeroMaxSampleCount) {
     auto zero_samples = MakeServiceConfig(Role::consumer);
     zero_samples.max_sample_count = kZeroMaxSampleCount;
@@ -180,8 +180,8 @@ TEST_F(ServiceBindingTest, ValidateRejectsConsumerWithZeroMaxSampleCount) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches max_sample_count > kNumber_of_sample_slots, which would fail Subscribe() for lack of SHM
-// slots.
+// Rejects max_sample_count > kNumber_of_sample_slots so Subscribe() will not fail for lack of SHM
+// sample slots.
 TEST_F(ServiceBindingTest, ValidateRejectsExcessiveMaxSampleCount) {
     auto too_many_samples = MakeServiceConfig(Role::provider);
     too_many_samples.max_sample_count = kNumber_of_sample_slots + 1U;
@@ -190,7 +190,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsExcessiveMaxSampleCount) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches add_to_mw_com_runtime() forgetting to run validate() before feeding JSON to LoLa
+// Runs validate() in add_to_mw_com_runtime() before passing generated JSON to LoLa
 // AddConfiguration().
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsInvalidServiceConfig) {
     auto no_events = MakeServiceConfig();
@@ -200,7 +200,8 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsInvalidServiceConfig) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches duplicate instance_specifier across two services before LoLa AddConfiguration() aborts.
+// Rejects duplicate instance_specifier values across services before LoLa AddConfiguration()
+// aborts.
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateInstanceSpecifier) {
     auto const valid_cfg = MakeServiceConfig();
     auto const res = add_to_mw_com_runtime({valid_cfg, valid_cfg});
@@ -208,7 +209,7 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateInstanceSpecifier) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches two different services given the same LoLa SHM service_id.
+// Rejects two services configured with the same LoLa service_id.
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateServiceId) {
     auto const valid_cfg = MakeServiceConfig();
     auto second_cfg = MakeServiceConfig(Role::consumer, kSecondBridgedSpecifier);
@@ -218,8 +219,7 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateServiceId) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches "bridged_//..." passing validate()'s prefix check when full specifier syntax is still
-// invalid.
+// Rejects a "bridged_" specifier whose remaining path syntax fails InstanceSpecifier::Create().
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsMalformedBridgedInstanceSpecifier) {
     auto const bad_syntax = MakeServiceConfig(Role::consumer, kInvalidPrefixedSpecifier);
     auto const res = add_to_mw_com_runtime({bad_syntax});
@@ -227,16 +227,16 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsMalformedBridgedInstanceSpeci
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Catches calling AddConfiguration() on an already-deployed service (re-adding a service aborts
-// LoLa).
+// Skips AddConfiguration() when the service is already in mw_com_config.json because re-adding a
+// deployed service aborts LoLa.
 TEST_F(ServiceBindingTest, AddToMwComRuntimeSucceedsWhenServiceAlreadyDeployed) {
     ExpectInstanceResolved();
     auto const valid_cfg = MakeServiceConfig();
     EXPECT_TRUE(add_to_mw_com_runtime({valid_cfg}).has_value());
 }
 
-// Catches make_service_binding() skipping validate() when static mw_com_config.json bypassed
-// add_to_mw_com_runtime().
+// Runs validate() in make_service_binding() even when static mw_com_config.json was used without
+// calling add_to_mw_com_runtime().
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsInvalidServiceConfig) {
     StrictMock<socom::Runtime_mock> socom_runtime{};
     auto no_events = MakeServiceConfig();
@@ -246,7 +246,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingRejectsInvalidServiceConfig) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
 }
 
-// Catches registering a SOCom server for a consumer whose specifier is missing from mw::com config.
+// Rejects an undeployed consumer specifier before creating a SOCom Server_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedConsumer) {
     ExpectInstanceNotResolved();
     StrictMock<socom::Runtime_mock> socom_runtime{};
@@ -255,7 +255,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedConsumer) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
 }
 
-// Catches registering a SOCom client for a provider whose specifier is missing from mw::com config.
+// Rejects an undeployed provider specifier before creating a SOCom Client_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedProvider) {
     ExpectInstanceNotResolved();
     StrictMock<socom::Runtime_mock> socom_runtime{};
@@ -264,8 +264,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedProvider) {
     EXPECT_EQ(res.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
 }
 
-// Role is named from mw::com's side, so Role::consumer must wire a SOCom Server_connector, not a
-// Client_connector.
+// Role is named from mw::com's perspective, so Role::consumer creates a SOCom Server_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
     ExpectInstanceResolved();
     StrictMock<socom::Runtime_mock> socom_runtime{};
@@ -278,8 +277,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
     EXPECT_NE(*res, nullptr);
 }
 
-// Opposite direction: Role::provider must wire a SOCom Client_connector and LoLa GenericSkeleton,
-// not a Server_connector.
+// Role::provider creates a LoLa GenericSkeleton and a SOCom Client_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesProviderBinding) {
     ExpectInstanceResolved();
     auto const cfg = MakeServiceConfig(Role::provider);
