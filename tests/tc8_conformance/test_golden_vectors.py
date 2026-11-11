@@ -22,7 +22,6 @@ import itertools
 
 import helpers.sd_malformed as sd_malformed
 import helpers.sd_sender as sd_sender
-from attribute_plugin import add_test_properties
 from helpers.message_builder import (
     build_notification_as_request,
     build_oversized_message,
@@ -75,13 +74,7 @@ def _reset_sd_malformed_counter() -> None:
 class TestMessageBuilderGoldenVectors:
     """Golden byte vectors for every public builder in ``message_builder.py``."""
 
-    @add_test_properties(
-        partially_verifies=["stkh_req__extspec__someip_83"],
-        test_type="requirements-based",
-        derivation_technique="requirements-analysis",
-    )
     def test_build_request_empty_payload(self) -> None:
-        """Request encoding uses the specified Client ID and Session ID fields."""
         raw = build_request(0x1234, 0x0421, client_id=0x0001, session_id=0x0001, interface_version=1, payload=b"")
         assert raw.hex() == "12340421000000080001000101010000"
         parsed, rest = SOMEIPHeader.parse(raw)
@@ -93,13 +86,7 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.message_type == SOMEIPMessageType.REQUEST
         assert parsed.payload == b""
 
-    @add_test_properties(
-        partially_verifies=["stkh_req__extspec__someip_90", "stkh_req__extspec__someip_95"],
-        test_type="requirements-based",
-        derivation_technique="requirements-analysis",
-    )
     def test_build_request_with_payload(self) -> None:
-        """Request encoding uses the specified protocol version and message type."""
         raw = build_request(
             0x1234,
             0x0421,
