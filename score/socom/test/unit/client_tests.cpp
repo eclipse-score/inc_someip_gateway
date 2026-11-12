@@ -512,6 +512,9 @@ TEST_P(ConnectedClientConnectorTest, RequestEventUpdate) {
 }
 
 TEST_P(ConnectedClientConnectorTest, OnEventUpdate) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         server.update_event(input.server_id, test_values::real_payload);
 
@@ -561,6 +564,9 @@ class ClientConnectorTest : public SingleConnectionTest {
 };
 
 TEST_F(ClientConnectorTest, ConfigurationAndInstanceIsAsExpected) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__identity_and_version");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_connector_callbacks_mock callbacks;
     Client_connector::Uptr cc{connector_factory.create_client_connector(callbacks)};
 

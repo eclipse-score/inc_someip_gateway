@@ -66,6 +66,9 @@ TEST_F(MultipleRuntimesTest, ConnectingTwoTimesServerAndClient) {
 }
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndLastPairExchangesAnEvent) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_server pair0{factory0};
     Client_server pair1{factory1};
 
@@ -79,6 +82,9 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndLastPairExchan
 }
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairExchangesAnEvent) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_server pair0{factory0};
     Client_server pair1{factory1};
 
@@ -92,6 +98,9 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairExcha
 }
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreSendingEvents) {
+    RecordProperty("PartiallyVerifies", "comp_req__socom__event_delivery");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_server pair0{factory0};
     Client_server pair1{factory1};
 
