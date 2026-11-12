@@ -75,11 +75,9 @@ single_version_override(
 
 bazel_dep(name = "rules_pkg", version = "1.2.0")
 
-###############################################################################
-#
+# ============================================================================
 # S-CORE Toolchains (DO NOT MODIFY)
-#
-###############################################################################
+# ============================================================================
 # Toolchain dependencies.
 bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.5", dev_dependency = True)
 
@@ -92,7 +90,7 @@ bazel_dep(name = "score_rules_imagefs", version = "0.1.0")
 bazel_dep(name = "score_cpp_policies", version = "0.1.2", dev_dependency = True)
 
 # GCC Toolchains
-gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc")
+gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
 
 # Compiler-warning features are owned by score_cpp_policies
 _WARNING_ENABLED_FEATURES = [
@@ -165,6 +163,7 @@ use_repo(
 ferrocene = use_extension(
     "@score_toolchains_rust//extensions:ferrocene_toolchain_ext.bzl",
     "ferrocene_toolchain_ext",
+    dev_dependency = True,
 )
 ferrocene.toolchain(
     name = "ferrocene_aarch64_ebclfsa",

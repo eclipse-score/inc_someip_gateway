@@ -3260,7 +3260,7 @@
     "@@score_bazel_cpp_toolchains+//extensions:gcc.bzl%gcc": {
       "general": {
         "bzlTransitiveDigest": "B8q0vqoyCF73c604BGTN8TCFKF0Ep76GQiW3O313m10=",
-        "usagesDigest": "Qkj3L4ec1VWIgas+lmhSbnzhsGyP8/W3rKq62FpALPw=",
+        "usagesDigest": "x2UGtsrhsYGyxMKs9eGINBjC5TEmbLhlmXFqF7tkqo8=",
         "recordedInputs": [
           "REPO_MAPPING:,score_cpp_policies score_cpp_policies+",
           "REPO_MAPPING:bazel_tools,rules_cc rules_cc+",
@@ -3953,7 +3953,7 @@
     "@@score_toolchains_rust+//extensions:ferrocene_toolchain_ext.bzl%ferrocene_toolchain_ext": {
       "general": {
         "bzlTransitiveDigest": "9k8SLwP4ec9xXjFivq0Kn0FradTQhcEA+j/WsLxfVPM=",
-        "usagesDigest": "LAGVcZs957lUJEIfh6vaw8/cMFNYOdIDb7LTnHr6284=",
+        "usagesDigest": "ZPa1jH7AR2CuHub2DXKkK9wiI8XIgPbx7BP+WB49M3E=",
         "recordedInputs": [],
         "generatedRepoSpecs": {
           "ferrocene_aarch64_ebclfsa": {
