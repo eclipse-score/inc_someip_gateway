@@ -46,9 +46,9 @@ build:score-linux-aarch64 --extra_toolchains=@score_gcc_aarch64_toolchain//:aarc
 build:score-linux-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
 
 build:score-eb-aarch64 --config=_score_common
-build:score-eb-aarch64 --extra_toolchains=@score_ebclfsa_toolchain//:aarch64-linux-sdk_0.1.0-ebclfsa
+build:score-eb-aarch64 --extra_toolchains=@score_ebclfsa_toolchain//:aarch64-linux-sdk_2.0.0-beta2-ebclfsa
 build:score-eb-aarch64 --extra_toolchains=@ferrocene_aarch64_ebclfsa//:rust_ferrocene_toolchain
-build:score-eb-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-sdk_0.1.0-ebclfsa
+build:score-eb-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-sdk_2.0.0-beta2-ebclfsa
 
 build:score-autosd-x86_64 --config=_score_common
 build:score-autosd-x86_64 --force_pic

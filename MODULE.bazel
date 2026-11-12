@@ -82,7 +82,7 @@ bazel_dep(name = "rules_pkg", version = "1.2.0")
 #
 ###############################################################################
 # Toolchain dependencies.
-bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.4", dev_dependency = True)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.5", dev_dependency = True)
 
 bazel_dep(name = "score_bazel_platforms", version = "1.3.0")
 
@@ -129,7 +129,7 @@ gcc.toolchain(
 gcc.toolchain(
     name = "score_ebclfsa_toolchain",
     runtime_ecosystem = "ebclfsa",
-    sdk_version = "0.1.0",
+    sdk_version = "2.0.0-beta2",
     target_cpu = "aarch64",
     target_os = "linux",
     use_default_package = True,
