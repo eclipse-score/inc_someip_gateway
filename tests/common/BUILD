@@ -26,7 +26,7 @@ py_library(
     srcs = ["capture.py"],
     imports = ["."],
     target_compatible_with = ["@platforms//os:linux"],
-    visibility = ["//tests:__subpackages__"],
+    visibility = ["//visibility:public"],
 )
 
 score_py_pytest(
