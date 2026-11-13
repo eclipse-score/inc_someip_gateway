@@ -16,28 +16,15 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
 
 cc_library(
-    name = "mw_com_mocks",
-    testonly = True,
-    hdrs = ["mw_com_mocks.hpp"],
-    features = COMPILER_WARNING_FEATURES,
-    visibility = ["//score/gatewayd/test:__pkg__"],
-    deps = [
-        "//score/socom",
-        "//score/socom:mock",
-        "@googletest//:gtest",
-        "@score_communication//score/mw/com",
-    ],
-)
-
-cc_library(
     name = "ipc_binding_test_fixture",
     testonly = True,
     hdrs = ["ipc_binding_test_fixture.hpp"],
     features = COMPILER_WARNING_FEATURES,
     deps = [
-        ":mw_com_mocks",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/socom",
+        "//score/test:mw_com_mocks",
+        "//score/test:mw_com_test_fixture",
         "@googletest//:gtest",
         "@score_communication//score/mw/com",
     ],
@@ -108,11 +95,12 @@ cc_test(
     visibility = ["//:__pkg__"],
     deps = [
         ":ipc_binding_test_fixture",
-        ":mw_com_mocks",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com_impl_headers",
         "//score/socom",
         "//score/socom:mock",
+        "//score/test:mw_com_mocks",
+        "//score/test:mw_com_test_fixture",
         "@googletest//:gtest_main",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
         "@score_communication//score/mw/com",
@@ -132,11 +120,12 @@ cc_test(
     visibility = ["//:__pkg__"],
     deps = [
         ":ipc_binding_test_fixture",
-        ":mw_com_mocks",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com_impl_headers",
         "//score/socom",
         "//score/socom:mock",
+        "//score/test:mw_com_mocks",
+        "//score/test:mw_com_test_fixture",
         "@googletest//:gtest_main",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
         "@score_communication//score/mw/com",
@@ -156,11 +145,12 @@ cc_test(
     visibility = ["//:__pkg__"],
     deps = [
         ":ipc_binding_test_fixture",
-        ":mw_com_mocks",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com_impl_headers",
         "//score/socom",
         "//score/socom:mock",
+        "//score/test:mw_com_mocks",
+        "//score/test:mw_com_test_fixture",
         "@googletest//:gtest_main",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
         "@score_communication//score/mw/com",
@@ -180,11 +170,12 @@ cc_test(
     visibility = ["//:__pkg__"],
     deps = [
         ":ipc_binding_test_fixture",
-        ":mw_com_mocks",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com_impl_headers",
         "//score/socom",
         "//score/socom:mock",
+        "//score/test:mw_com_mocks",
+        "//score/test:mw_com_test_fixture",
         "@googletest//:gtest_main",
         "@score_baselibs//score/mw/log:backend_stub_testutil",
         "@score_communication//score/mw/com",

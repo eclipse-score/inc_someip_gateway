@@ -23,10 +23,11 @@
 #include <string_view>
 
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
-#include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/mw/com/impl/handle_type.h"
 #include "score/mw/com/impl/instance_identifier.h"
 #include "score/socom/service_interface_identifier.hpp"
+#include "score/test/mw_com_mocks.hpp"
+#include "score/test/mw_com_test_fixture.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 

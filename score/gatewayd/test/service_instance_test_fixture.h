@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <initializer_list>
 #include <iterator>
@@ -28,13 +29,15 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "flatbuffers/flatbuffers.h"
 #include "score/config/mw_someip_config_generated.h"
-#include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/mw/com/impl/handle_type.h"
 #include "score/serializer/serializer.h"
+#include "score/test/mw_com_mocks.hpp"
+#include "score/test/mw_com_test_fixture.hpp"
 
 namespace score::someip_gateway::gatewayd {
 
@@ -126,14 +129,17 @@ inline BuiltConfig BuildConfig(std::vector<EventSpec> const& event_specs) {
     };
 }
 
-class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::MwComTestFixture {
+class ServiceInstanceTestFixture : public score::testing::MwComTestFixture {
    public:
     static void SetUpTestSuite() {
         auto const serializer_cfg = BuildConfig({
             EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
             EventSpec{kEventNoSerializer, kEventNoSerializerId, std::nullopt},
         });
-        config_path_ = ::testing::TempDir() + "service_instance_test_config.bin";
+        std::string dir_template = ::testing::TempDir() + "gatewayd_test_XXXXXX";
+        ASSERT_NE(::mkdtemp(dir_template.data()), nullptr);
+        config_dir_ = std::move(dir_template);
+        config_path_ = config_dir_ + "/service_instance_test_config.bin";
         {
             std::ofstream file{config_path_, std::ios::binary | std::ios::out};
             (void)std::copy(serializer_cfg.buffer->cbegin(), serializer_cfg.buffer->cend(),
@@ -154,6 +160,10 @@ class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::M
             (void)std::remove(config_path_.c_str());
             config_path_.clear();
         }
+        if (!config_dir_.empty()) {
+            (void)std::remove(config_dir_.c_str());
+            config_dir_.clear();
+        }
     }
 
    protected:
@@ -163,18 +173,17 @@ class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::M
                               std::initializer_list<std::string_view> const events) {
         MwComTestFixture::StubInstanceResolved(
             specifier, events,
-            score::gateway_ipc_binding::testing::ServiceDeploymentSpec{
-                kServiceTypeName, kServiceId, kServiceMajorVersion, kServiceMinorVersion,
-                kInstanceId});
+            score::testing::ServiceDeploymentSpec{kServiceTypeName, kServiceId,
+                                                  kServiceMajorVersion, kServiceMinorVersion,
+                                                  kInstanceId});
     }
 
     score::mw::com::impl::HandleType MakeHandle(
         std::string_view const specifier, std::initializer_list<std::string_view> const events) {
-        return instance_holder().MakeHandle(
-            specifier, events,
-            score::gateway_ipc_binding::testing::ServiceDeploymentSpec{
-                kServiceTypeName, kServiceId, kServiceMajorVersion, kServiceMinorVersion,
-                kInstanceId});
+        return instance_holder().MakeHandle(specifier, events,
+                                            score::testing::ServiceDeploymentSpec{
+                                                kServiceTypeName, kServiceId, kServiceMajorVersion,
+                                                kServiceMinorVersion, kInstanceId});
     }
 
     BuiltConfig default_cfg_{BuildConfig({
@@ -182,6 +191,7 @@ class ServiceInstanceTestFixture : public score::gateway_ipc_binding::testing::M
     })};
 
    private:
+    static inline std::string config_dir_{};
     static inline std::string config_path_{};
     static inline bool serializer_initialized_{false};
 };

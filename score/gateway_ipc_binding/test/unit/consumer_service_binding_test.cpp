@@ -218,6 +218,8 @@ TEST_F(ConsumerServiceBindingTest, DestructorHandlesStopFindServiceFailureGracef
 // disabled.
 TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProxyCreationFailure) {
     auto started = CreateAndStartConsumer();
+    EXPECT_CALL(*started.connector_mock, enable()).Times(0);
+    EXPECT_CALL(*started.connector_mock, disable()).Times(0);
     started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
                                                    socom::Event_state::subscribed);
     started.find_handler(
@@ -236,6 +238,8 @@ TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProx
 TEST_F(ConsumerServiceBindingTest,
        FindServiceCallbackRejectsProxyWithMissingEventOrUndersizedSample) {
     auto started = CreateAndStartConsumer();
+    EXPECT_CALL(*started.connector_mock, enable()).Times(0);
+    EXPECT_CALL(*started.connector_mock, disable()).Times(0);
     score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
         MakeHandle()};
 
@@ -342,13 +346,16 @@ TEST_F(ConsumerServiceBindingTest,
             [&oversized_buf, &valid_buf](
                 score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
                 score::mw::com::impl::TrackerGuardFactory& tracker) -> score::Result<std::size_t> {
+                // Skipped: null and oversized samples do not call update_event().
                 cb(testing::MakeMockSample(nullptr, tracker), kCallbackMaxSampleCount);
                 cb(testing::MakeMockSample(oversized_buf.data(), tracker), kCallbackMaxSampleCount);
+                // Forwarded: only the two valid samples call update_event().
                 cb(testing::MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
                 cb(testing::MakeMockSample(valid_buf.data(), tracker), kCallbackMaxSampleCount);
                 return kProcessedSampleCount;
             });
     EXPECT_CALL(*started.connector_mock, update_event(kFirstEventId, _))
+        .Times(2)
         .WillOnce(Return(
             score::MakeUnexpected(socom::Server_connector_error::logic_error_id_out_of_range)))
         .WillOnce(Return(score::Result<void>{}));

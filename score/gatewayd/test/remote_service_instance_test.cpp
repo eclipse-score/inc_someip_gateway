@@ -31,7 +31,6 @@
 #include <vector>
 
 #include "score/containers/non_relocatable_vector.h"
-#include "score/gateway_ipc_binding/test/unit/mw_com_mocks.hpp"
 #include "score/gatewayd/test/service_instance_test_fixture.h"
 #include "score/mw/com/com_error_domain.h"
 #include "score/mw/com/impl/com_error.h"
@@ -46,11 +45,12 @@
 #include "score/socom/runtime_mock.hpp"
 #include "score/socom/service_interface_definition.hpp"
 #include "score/someip/constants.h"
+#include "score/test/mw_com_mocks.hpp"
 
 namespace score::someip_gateway::gatewayd {
 namespace {
 
-namespace ipc_testing = score::gateway_ipc_binding::testing;
+namespace ipc_testing = score::testing;
 
 using ::testing::_;
 using ::testing::ByMove;
