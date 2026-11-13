@@ -496,22 +496,20 @@
 <li><p>remote procedure call</p></li>
 <li><p>publish/subscribe (event communication)</p></li>
 </ul>
-<p>SOCom provides interfaces which enable the implementation of service gateways (bridges).
-This allows users to independently implement service bridges for different communication protocols (e.g. IPC, SOME/IP, …).
-SOCom provides intra-process client/server communication only.</p>
+<p>SOCom provides intra-process client/server communication only.</p>
 </section>
 <section id="rationale-behind-architecture-decomposition">
 <h2><span class="section-number">1.2. </span>Rationale Behind Architecture Decomposition<a class="headerlink" href="#rationale-behind-architecture-decomposition" title="Link to this heading">#</a></h2>
 <p>SOCom separates connection setup and service matching from steady-state message transport:</p>
 <ul class="simple">
-<li><p><strong>Central matching vs direct data path</strong> (<code class="docutils literal notranslate"><span class="pre">Runtime</span></code> vs connectors): <code class="docutils literal notranslate"><span class="pre">Runtime</span></code> handles service registration, interface and version compatibility checks (<code class="docutils literal notranslate"><span class="pre">Service_interface_definition</span></code>), and bridge callbacks during setup; once connected, <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code> invoke each other’s endpoints directly without central broker contention on data-path calls.</p></li>
+<li><p><strong>Central matching vs direct data path</strong> (<code class="docutils literal notranslate"><span class="pre">Runtime</span></code> vs connectors): <code class="docutils literal notranslate"><span class="pre">Runtime</span></code> handles service registration and interface and version compatibility checks (<code class="docutils literal notranslate"><span class="pre">Service_interface_definition</span></code>) during setup; once connected, <code class="docutils literal notranslate"><span class="pre">Client_connector</span></code> and <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code> invoke each other’s endpoints directly without central broker contention on data-path calls.</p></li>
 <li><p><strong>Compile-time provider state</strong> (<code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> / <code class="docutils literal notranslate"><span class="pre">Enabled_server_connector</span></code>): Encoding disabled and enabled server states as distinct move-only C++ types prevents a provider from allocating or publishing events while its service is not offered.</p></li>
 <li><p><strong>Zero-copy buffer ownership</strong> (<code class="docutils literal notranslate"><span class="pre">Payload</span></code> / <code class="docutils literal notranslate"><span class="pre">Writable_payload</span></code>): Separating buffer lifetime (release callback and optional shared-memory <code class="docutils literal notranslate"><span class="pre">slot_handle</span></code>) from connector routing lets bridges such as <code class="docutils literal notranslate"><span class="pre">gateway_ipc_binding</span></code> pass LoLa shared-memory sample slots across connectors without copying.</p></li>
 </ul>
 </section>
 <section id="static-architecture">
 <h2><span class="section-number">1.3. </span>Static Architecture<a class="headerlink" href="#static-architecture" title="Link to this heading">#</a></h2>
-<div class="need_container docutils container" id="SNCB-f14315b1">
+<div class="need_container docutils container" id="SNCB-6e112208">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_arc_sta table" id="comp_arc_sta__socom_design__static_view">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -574,9 +572,8 @@ SOCom provides intra-process client/server communication only.</p>
 <section id="runtime">
 <span id="runtime-component"></span><h3><span class="section-number">1.4.1. </span>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">#</a></h3>
 <p>The Runtime creates and connects Client_connectors and Server_connectors.
-In addition to that it has a plugin interface for adding bridges to cross IPC or network boundaries.
-The Runtime must outlive all created Client_connectors and Server_connectors.</p>
-<div class="need_container docutils container" id="SNCB-fc3ab124">
+It must outlive all created Client_connectors and Server_connectors.</p>
+<div class="need_container docutils container" id="SNCB-90d2f495">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__runtime">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -605,7 +602,7 @@ The Runtime must outlive all created Client_connectors and Server_connectors.</p
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>In-process service registry and factory interface (<code class="docutils literal notranslate"><span class="pre">score::socom::Runtime</span></code>) for creating client and server connectors and registering cross-domain service bridges.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>In-process service registry and factory interface (<code class="docutils literal notranslate"><span class="pre">score::socom::Runtime</span></code>) for creating client and server connectors.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int__socom_design__runtime" title="real_arc_int__socom_design__runtime">real_arc_int__socom_design__runtime</a></span></span></div>
@@ -621,7 +618,7 @@ The Runtime must outlive all created Client_connectors and Server_connectors.</p
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-5ea04f61">
+<div class="need_container docutils container" id="SNCB-4159f442">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__make_client">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -666,7 +663,7 @@ The Runtime must outlive all created Client_connectors and Server_connectors.</p
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-a09e413b">
+<div class="need_container docutils container" id="SNCB-1d600a4e">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__make_server">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -695,7 +692,7 @@ The Runtime must outlive all created Client_connectors and Server_connectors.</p
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Creates and registers a <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> for a provided service interface and instance, and supports registering service bridges with the runtime.</p></td>
+<tr class="content row-odd"><td class="content" colspan="6"><p>Creates and registers a <code class="docutils literal notranslate"><span class="pre">Disabled_server_connector</span></code> for a provided service interface and instance.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
 <div class="line"><span><span class="needs-id"><a class="reference internal" href="#real_arc_int_op__socom_design__make_server" title="real_arc_int_op__socom_design__make_server">real_arc_int_op__socom_design__make_server</a></span></span></div>
@@ -734,7 +731,7 @@ The client connector API provides the following features:</p>
 <li><p>event update indication</p></li>
 <li><p>requested event update indication</p></li>
 </ul>
-<div class="need_container docutils container" id="SNCB-0403d7be">
+<div class="need_container docutils container" id="SNCB-ba658b93">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__client_conn">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -779,7 +776,7 @@ The client connector API provides the following features:</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e78926d2">
+<div class="need_container docutils container" id="SNCB-54e42ed4">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__sub_event">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -824,7 +821,7 @@ The client connector API provides the following features:</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-f4e6f729">
+<div class="need_container docutils container" id="SNCB-57dde1f1">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__call_method">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -873,7 +870,7 @@ The client connector API provides the following features:</p>
 <span id="server-connector-component"></span><h3><span class="section-number">1.4.3. </span>Server connector<a class="headerlink" href="#server-connector" title="Link to this heading">#</a></h3>
 <p>The Server_connector represents a service, which is used by a Client_connector.
 It can send event updates and respond to method calls.</p>
-<div class="need_container docutils container" id="SNCB-e0a5c501">
+<div class="need_container docutils container" id="SNCB-04c6362a">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__server_conn">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -918,7 +915,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-0cb0ce57">
+<div class="need_container docutils container" id="SNCB-1b262778">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__enable_srv">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -963,7 +960,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-2cb3661a">
+<div class="need_container docutils container" id="SNCB-6fc4622a">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__alloc_payload">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1008,7 +1005,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3c5aaaa2">
+<div class="need_container docutils container" id="SNCB-b52f4d1e">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__update_event">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1053,7 +1050,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-a0632da3">
+<div class="need_container docutils container" id="SNCB-58c2c6d7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__socom_design__payload">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1098,7 +1095,7 @@ It can send event updates and respond to method calls.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-fbc91ee7">
+<div class="need_container docutils container" id="SNCB-dfbd4767">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int_op table" id="real_arc_int_op__socom_design__payload_span">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
