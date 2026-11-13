@@ -32,3 +32,4 @@ Assumption of Use (AoU) requirements use:
    socom
    gateway_ipc_binding
    gatewayd
+   serializer
