@@ -17,7 +17,7 @@
     },
     {
       "branches": {
-        "percent": 76,
+        "percent": 93,
         "total": 372
       },
       "files": {
@@ -25,14 +25,14 @@
         "total": 19
       },
       "lines": {
-        "percent": 80,
-        "total": 1182
+        "percent": 97,
+        "total": 1186
       },
       "primary_need_id": "comp__gateway_ipc_binding"
     },
     {
       "branches": {
-        "percent": 46,
+        "percent": 81,
         "total": 118
       },
       "files": {
@@ -40,7 +40,7 @@
         "total": 5
       },
       "lines": {
-        "percent": 44,
+        "percent": 88,
         "total": 575
       },
       "primary_need_id": "comp__gatewayd"
