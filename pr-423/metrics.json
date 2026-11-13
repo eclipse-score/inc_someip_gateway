@@ -2,12 +2,12 @@
   "schema_version": "2",
   "generated_by": "sphinx_build",
   "overall_metrics": {
-    "total": 22,
+    "total": 24,
     "with_code_link": 0,
     "with_test_link": 10,
     "fully_linked": 0,
     "with_code_link_pct": 0.0,
-    "with_test_link_pct": 45.45454545454545,
+    "with_test_link_pct": 41.66666666666667,
     "fully_linked_pct": 0.0
   },
   "metrics_by_type": {
@@ -21,12 +21,12 @@
       "fully_linked_pct": 0.0
     },
     "comp_req": {
-      "total": 19,
+      "total": 21,
       "with_code_link": 0,
       "with_test_link": 10,
       "fully_linked": 0,
       "with_code_link_pct": 0.0,
-      "with_test_link_pct": 52.63157894736842,
+      "with_test_link_pct": 47.61904761904761,
       "fully_linked_pct": 0.0
     },
     "feat_req": {
@@ -55,6 +55,32 @@
     "broken_references": []
   },
   "verification_metrics": {
+    "comp__null_serializer": {
+      "requirements": {
+        "status": {
+          "valid": 1,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 1
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 0,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 0
+        }
+      }
+    },
     "comp__socom": {
       "requirements": {
         "status": {
@@ -81,7 +107,33 @@
         }
       }
     },
-    "comp__null_serializer": {
+    "comp__gatewayd": {
+      "requirements": {
+        "status": {
+          "valid": 1,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 1
+        }
+      },
+      "architecture": {
+        "status": {
+          "valid": 2,
+          "valid_inspected": 0,
+          "invalid": 0
+        },
+        "coverage": {
+          "fully_covered": 0,
+          "partially_covered": 0,
+          "not_covered": 2
+        }
+      }
+    },
+    "comp__someip": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -107,7 +159,7 @@
         }
       }
     },
-    "comp__serializer": {
+    "comp__config": {
       "requirements": {
         "status": {
           "valid": 0,
@@ -159,33 +211,7 @@
         }
       }
     },
-    "comp__someip": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      }
-    },
-    "comp__gatewayd": {
+    "comp__serializer": {
       "requirements": {
         "status": {
           "valid": 1,
@@ -200,14 +226,14 @@
       },
       "architecture": {
         "status": {
-          "valid": 2,
+          "valid": 0,
           "valid_inspected": 0,
           "invalid": 0
         },
         "coverage": {
           "fully_covered": 0,
           "partially_covered": 0,
-          "not_covered": 2
+          "not_covered": 0
         }
       }
     },
@@ -234,32 +260,6 @@
           "fully_covered": 0,
           "partially_covered": 0,
           "not_covered": 2
-        }
-      }
-    },
-    "comp__config": {
-      "requirements": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
-        }
-      },
-      "architecture": {
-        "status": {
-          "valid": 0,
-          "valid_inspected": 0,
-          "invalid": 0
-        },
-        "coverage": {
-          "fully_covered": 0,
-          "partially_covered": 0,
-          "not_covered": 0
         }
       }
     }
