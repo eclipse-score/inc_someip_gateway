@@ -15,16 +15,107 @@
 #define SCORE_SOCOM_PAYLOAD_HPP
 
 #include <cstddef>
-#include <limits>
-#include <score/move_only_function.hpp>
+#include <new>
 #include <score/span.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace score::socom {
 
-/// \brief Sentinel value indicating that a payload is not associated with a shared memory slot.
-constexpr std::size_t kNoSlotHandle = std::numeric_limits<std::size_t>::max();
-
 namespace detail {
+class Payload_user_data final {
+   public:
+    Payload_user_data() = default;
+
+    template <typename T>
+    explicit Payload_user_data(T&& user_data) noexcept {
+        using User_data_type = std::remove_cv_t<std::remove_reference_t<T>>;
+        static_assert(sizeof(User_data_type) <= kStorage_size,
+                      "Payload user data must fit in the inline storage");
+        static_assert(alignof(User_data_type) <= alignof(std::max_align_t),
+                      "Payload user data alignment exceeds the inline storage alignment");
+        static_assert(std::is_nothrow_move_constructible<User_data_type>::value,
+                      "Payload user data must be nothrow move constructible");
+        static_assert(std::is_nothrow_destructible<User_data_type>::value,
+                      "Payload user data must be nothrow destructible");
+        static_assert(!std::is_lvalue_reference<T&&>::value,
+                      "Payload user data must not be passed as an lvalue (use std::move)");
+
+        new (m_storage) User_data_type(std::forward<T>(user_data));
+        m_ops = operations<User_data_type>();
+    }
+
+    ~Payload_user_data() { reset(); }
+
+    Payload_user_data(Payload_user_data const&) = delete;
+    Payload_user_data& operator=(Payload_user_data const&) = delete;
+
+    Payload_user_data(Payload_user_data&& other) noexcept { move_from(other); }
+
+    Payload_user_data& operator=(Payload_user_data&& other) noexcept {
+        if (this != &other) {
+            reset();
+            move_from(other);
+        }
+        return *this;
+    }
+
+    template <typename T>
+    [[nodiscard]] T* get() noexcept {
+        using User_data_type = std::remove_cv_t<T>;
+        if (m_ops != operations<User_data_type>()) {
+            return nullptr;
+        }
+        return std::launder(reinterpret_cast<User_data_type*>(m_storage));
+    }
+
+    template <typename T>
+    [[nodiscard]] T const* get() const noexcept {
+        using User_data_type = std::remove_cv_t<T>;
+        if (m_ops != operations<User_data_type>()) {
+            return nullptr;
+        }
+        return std::launder(reinterpret_cast<User_data_type const*>(m_storage));
+    }
+
+   private:
+    struct Operations {
+        void (*destroy)(void*) noexcept;
+        void (*move)(void*, void*) noexcept;
+    };
+
+    static constexpr std::size_t kStorage_size{128U};
+
+    template <typename T>
+    [[nodiscard]] static Operations const* operations() noexcept {
+        static constexpr Operations ops{
+            [](void* storage) noexcept { std::launder(static_cast<T*>(storage))->~T(); },
+            [](void* destination, void* source) noexcept {
+                new (destination) T(std::move(*std::launder(static_cast<T*>(source))));
+                std::launder(static_cast<T*>(source))->~T();
+            }};
+        return &ops;
+    }
+
+    void reset() noexcept {
+        if (m_ops != nullptr) {
+            m_ops->destroy(m_storage);
+            m_ops = nullptr;
+        }
+    }
+
+    void move_from(Payload_user_data& other) noexcept {
+        if (other.m_ops != nullptr) {
+            other.m_ops->move(m_storage, other.m_storage);
+            m_ops = other.m_ops;
+            other.m_ops = nullptr;
+        }
+    }
+
+    alignas(std::max_align_t) std::byte m_storage[kStorage_size]{};
+    Operations const* m_ops{nullptr};
+};
+
 class Payload_impl final {
    public:
     /// \brief Alias for a data byte.
@@ -36,41 +127,29 @@ class Payload_impl final {
     /// \brief Alias for writable payload data.
     using Writable_span = score::cpp::span<Byte>;
 
-    /// \brief Called when Payload_impl and memory is released. Can own the memory if it is heap
-    /// allocated.
-    using Payload_destroyed = score::cpp::move_only_function<void(), 48>;
-
     Payload_impl() = default;
 
     /// \brief Construct new read-only instance.
-    Payload_impl(Span data, std::size_t slot_handle, Payload_destroyed payload_destroyed) noexcept
-        : m_data(data),
-          m_slot_handle(slot_handle),
-          m_payload_destroyed(std::move(payload_destroyed)) {}
+    explicit Payload_impl(Span data) noexcept : m_data(data) {}
 
     /// \brief Construct new writable instance.
-    Payload_impl(Writable_span data, std::size_t slot_handle,
-                 Payload_destroyed payload_destroyed) noexcept
-        : m_data(data),
-          m_writable_data(data.data()),
-          m_slot_handle(slot_handle),
-          m_payload_destroyed(std::move(payload_destroyed)) {}
+    explicit Payload_impl(Writable_span data) noexcept
+        : m_data(data), m_writable_data(data.data()) {}
 
-    ~Payload_impl() { call_payload_destroyed(); }
+    template <typename T>
+    Payload_impl(Span data, T&& user_data) noexcept
+        : m_data(data), m_user_data(std::forward<T>(user_data)) {}
+
+    template <typename T>
+    Payload_impl(Writable_span data, T&& user_data) noexcept
+        : m_data(data), m_writable_data(data.data()), m_user_data(std::forward<T>(user_data)) {}
+
+    ~Payload_impl() = default;
 
     Payload_impl(Payload_impl const&) = delete;
     Payload_impl(Payload_impl&&) = default;
     Payload_impl& operator=(Payload_impl const&) = delete;
-    Payload_impl& operator=(Payload_impl&& other) {
-        if (this != &other) {
-            call_payload_destroyed();
-            m_data = std::move(other.m_data);
-            m_writable_data = other.m_writable_data;
-            m_slot_handle = other.m_slot_handle;
-            m_payload_destroyed = std::move(other.m_payload_destroyed);
-        }
-        return *this;
-    }
+    Payload_impl& operator=(Payload_impl&&) = default;
 
     /// \brief Retrieves the payload data.
     /// \return Span of payload data.
@@ -85,9 +164,15 @@ class Payload_impl final {
         return Writable_span{m_writable_data, m_data.size()};
     }
 
-    /// \brief Retrieves the slot handle associated with this payload.
-    /// \return The slot handle, or kNoSlotHandle if not associated with a slot.
-    [[nodiscard]] std::size_t get_slot_handle() const noexcept { return m_slot_handle; }
+    template <typename T>
+    [[nodiscard]] T* get_user_data() noexcept {
+        return m_user_data.get<T>();
+    }
+
+    template <typename T>
+    [[nodiscard]] T const* get_user_data() const noexcept {
+        return m_user_data.get<T>();
+    }
 
     /// \brief Reduces the data size.
     /// \param size The new data size. Must not exceed the current data size.
@@ -105,17 +190,10 @@ class Payload_impl final {
     bool operator==(Payload_impl const& other) const noexcept;
 
    private:
-    void call_payload_destroyed() noexcept {
-        if (!m_payload_destroyed.empty()) {
-            m_payload_destroyed();
-        }
-    }
-
     Span m_data;
     /// Start of m_data if the buffer is writable, nullptr for a read-only payload.
     Byte* m_writable_data{nullptr};
-    std::size_t m_slot_handle{kNoSlotHandle};
-    Payload_destroyed m_payload_destroyed;
+    Payload_user_data m_user_data;
 };
 }  // namespace detail
 
@@ -123,7 +201,9 @@ class Payload_impl final {
 /// \details The payload itself must be representable by a continuous Span of bytes.
 ///
 /// data() is read-only; a sender writes it via Writable_payload::wdata(). In the SOME/IP gateway,
-/// data() holds the full SOME/IP message (header + payload).
+/// data() holds the full SOME/IP message (header + payload). Optional user data is owned inline by
+/// the payload and follows it through moves. It must fit in the 128-byte inline storage, be
+/// max_align_t-aligned or less, and be nothrow move constructible and destructible.
 class Payload {
    public:
     /// \brief Alias for a data byte.
@@ -135,15 +215,13 @@ class Payload {
     /// \brief Alias for writable payload data.
     using Writable_span = detail::Payload_impl::Writable_span;
 
-    /// \brief Called when Payload and memory is released. Can own the memory if it is heap
-    /// allocated.
-    using Payload_destroyed = detail::Payload_impl::Payload_destroyed;
-
     Payload() = default;
 
     /// \brief Construct new instance.
-    Payload(Span data, std::size_t slot_handle, Payload_destroyed payload_destroyed) noexcept
-        : m_impl(data, slot_handle, std::move(payload_destroyed)) {}
+    explicit Payload(Span data) noexcept : m_impl(data) {}
+
+    template <typename T>
+    Payload(Span data, T&& user_data) noexcept : m_impl(data, std::forward<T>(user_data)) {}
 
     ~Payload() = default;
     Payload(Payload const&) = delete;
@@ -155,9 +233,20 @@ class Payload {
     /// \return Span of payload data.
     [[nodiscard]] Span data() const noexcept { return m_impl.data(); }
 
-    /// \brief Retrieves the slot handle associated with this payload.
-    /// \return The slot handle, or kNoSlotHandle if not associated with a slot.
-    [[nodiscard]] std::size_t get_slot_handle() const noexcept { return m_impl.get_slot_handle(); }
+    /// \brief Retrieves user data stored with this payload.
+    /// \return A pointer to the stored value, or nullptr if it has a different type or is absent.
+    template <typename T>
+    [[nodiscard]] T* get_user_data() noexcept {
+        return m_impl.get_user_data<T>();
+    }
+
+    /// \brief Retrieves user data stored with this payload.
+    /// \return A const pointer to the stored value, or nullptr if it has a different type or is
+    ///         absent.
+    template <typename T>
+    [[nodiscard]] T const* get_user_data() const noexcept {
+        return m_impl.get_user_data<T>();
+    }
 
     /// \brief Operator == for Payload.
     /// \param lhs Left-hand side of operator.
@@ -195,9 +284,11 @@ class Payload {
 class Writable_payload : public Payload {
    public:
     /// \brief Construct new instance.
-    Writable_payload(Writable_span data, std::size_t slot_handle,
-                     Payload_destroyed payload_destroyed) noexcept
-        : Payload(detail::Payload_impl{data, slot_handle, std::move(payload_destroyed)}) {}
+    explicit Writable_payload(Writable_span data) noexcept : Payload(detail::Payload_impl{data}) {}
+
+    template <typename T>
+    Writable_payload(Writable_span data, T&& user_data) noexcept
+        : Payload(detail::Payload_impl{data, std::forward<T>(user_data)}) {}
 
     /// \brief Retrieves the writable payload data.
     /// \return Span of payload data, empty if a read-only Payload was move-assigned into this.
