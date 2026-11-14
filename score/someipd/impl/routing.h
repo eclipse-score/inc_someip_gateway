@@ -17,47 +17,56 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <thread>
 #include <vector>
+
+#if !defined(SOMEIPD_STACK_OPENSOMEIP)
+#include <thread>
 #include <vsomeip/vsomeip.hpp>
+#endif
 
 #include "score/config/mw_someip_config_generated.h"
 #include "score/result/result.h"
 
 namespace score::someipd {
 
-/// Manages the vsomeip application lifecycle and SOME/IP service registrations.
+#if defined(SOMEIPD_STACK_OPENSOMEIP)
+class OpensomeipHost;
+#endif
+
+/// Manages the SOME/IP stack lifecycle and service registrations.
 ///
-/// Owns a vsomeip application instance, offers the services that gatewayds add at runtime,
-/// and dispatches incoming SOME/IP messages. IPC forwarding to/from gatewayd is handled via
-/// SOCom connectors that are wired in externally (see GatewaydServices).
+/// The stack is selected at build time (`--//score/someipd:stack=vsomeip|opensomeip`).
+/// vsomeip is the default. opensomeip is composed in-process: someipd creates the sockets.
+/// IPC forwarding to and from gatewayd is handled via SOCom connectors that are wired in
+/// externally (see GatewaydServices).
 class Routing {
    public:
     /// @brief Creates a Routing instance.
     ///
-    /// Initialises a vsomeip application and registers it with the vsomeip runtime.
-    /// Nothing is offered until AddServices() is called and the application has registered
-    /// with the vsomeip routing daemon.
+    /// Nothing is offered until AddServices() is called and the stack is running.
     ///
-    /// @return A fully initialised Routing instance, or an error if the vsomeip application
-    ///         could not be created or initialised.
+    /// @return A Routing instance, or an error if the stack could not be created.
     static Result<std::unique_ptr<Routing>> Create();
 
-    ~Routing() = default;
+    ~Routing();
 
     Routing(const Routing&) = delete;
     Routing& operator=(const Routing&) = delete;
     Routing(Routing&&) = delete;
     Routing& operator=(Routing&&) = delete;
 
+#if defined(SOMEIPD_STACK_OPENSOMEIP)
+    /// \brief In-process opensomeip host. Valid after Create().
+    OpensomeipHost& host() noexcept;
+#else
     /// Returns the vsomeip application instance.
     std::shared_ptr<vsomeip::application> get_application() const noexcept { return application_; }
+#endif
 
-    /// \brief Offers the local service instances of @p config, then calls @p on_registered
-    /// \details Both run now if vsomeip is registered, and again on every ST_REGISTERED.
+    /// \brief Offers the local service instances of @p config, then calls @p on_registered.
+    /// \details Both run now if the stack is up, and again when it becomes registered.
     ///          Thread safe.
-    /// \param on_registered MUST NOT be empty. Use it to call setup_vsomeip() on
-    ///        RemoteNetworkService instances.
+    /// \param on_registered MUST NOT be empty. Use it to call Setup() on RemoteNetworkService.
     void AddServices(std::shared_ptr<const score::mw_someip_config::Root> config,
                      std::function<void()> on_registered);
 
@@ -74,10 +83,15 @@ class Routing {
     Routing() = default;
     void SetupOfferings(score::mw_someip_config::Root const& config);
 
+#if defined(SOMEIPD_STACK_OPENSOMEIP)
+    std::unique_ptr<OpensomeipHost> host_{};
+#else
     std::shared_ptr<vsomeip::application> application_{};
     std::shared_ptr<vsomeip::payload> payload_{};
     std::thread processing_thread_{};
-    /// Guards registered_ and services_. The vsomeip state handler and AddServices() use them.
+#endif
+    /// Guards registered_ and services_. AddServices() and the stack's registered callback use
+    /// them.
     std::mutex mutex_{};
     bool registered_{false};
     std::vector<Services> services_{};
