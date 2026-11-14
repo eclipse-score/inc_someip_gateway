@@ -404,6 +404,17 @@ http_archive(
     ],
 )
 
+# Opt-in stack (--//score/someipd:stack=opensomeip). vsomeip above stays the default.
+# Pinned to the published v0.2.1 tag. That tag's MODULE.bazel still declares 0.2.0,
+# so the bazel_dep version matches the module file.
+bazel_dep(name = "opensomeip", version = "0.2.0")
+
+git_override(
+    module_name = "opensomeip",
+    remote = "https://github.com/vtz/opensomeip.git",
+    tag = "v0.2.1",
+)
+
 # ============================================================================
 # Integration Testing
 # ============================================================================

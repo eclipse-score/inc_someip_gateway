@@ -15,11 +15,39 @@
 This daemon contains the SOME/IP communication stack and is QM
 """
 
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+
+# vsomeip stays the default so the existing TC8 job is unchanged.
+# opensomeip is opt-in: --//score/someipd:stack=opensomeip
+string_flag(
+    name = "stack",
+    build_setting_default = "vsomeip",
+    values = [
+        "vsomeip",
+        "opensomeip",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "stack_opensomeip",
+    flag_values = {":stack": "opensomeip"},
+)
+
+STACK_DEFINES = select({
+    ":stack_opensomeip": ["SOMEIPD_STACK_OPENSOMEIP"],
+    "//conditions:default": [],
+})
+
+STACK_DEPS = select({
+    ":stack_opensomeip": ["@opensomeip//:opensomeip"],
+    "//conditions:default": ["@vsomeip"],
+})
 
 exports_files(
     [
@@ -33,6 +61,7 @@ exports_files(
 cc_binary(
     name = "someipd",
     srcs = ["main.cpp"],
+    defines = STACK_DEFINES,
     visibility = ["//visibility:public"],
     deps = [
         ":gatewayd_services",
@@ -50,9 +79,18 @@ cc_binary(
 # Libraries
 # ============================================================================
 cc_library(
+    name = "gateway_sd_settings",
+    srcs = ["impl/gateway_sd_settings.cpp"],
+    hdrs = ["impl/gateway_sd_settings.h"],
+    visibility = ["//score/someipd/test:__pkg__"],
+    deps = ["@score_baselibs//score/mw/log"],
+)
+
+cc_library(
     name = "gatewayd_services",
     srcs = ["impl/gatewayd_services.cpp"],
     hdrs = ["impl/gatewayd_services.h"],
+    defines = STACK_DEFINES,
     visibility = ["//score/someipd/test:__pkg__"],
     deps = [
         ":local_network_service",
@@ -71,42 +109,51 @@ cc_library(
     name = "local_network_service",
     srcs = ["impl/local_network_service.cpp"],
     hdrs = ["impl/local_network_service.h"],
+    defines = STACK_DEFINES,
     visibility = ["//score/someipd/test:__pkg__"],
     deps = [
+        ":routing",
         "//score/config:config_flatbuffers",
         "//score/socom",
         "//score/someip",
         "@score_baselibs//score/mw/log",
-        "@vsomeip",
-    ],
+    ] + STACK_DEPS,
 )
 
 cc_library(
     name = "remote_network_service",
     srcs = ["impl/remote_network_service.cpp"],
     hdrs = ["impl/remote_network_service.h"],
+    defines = STACK_DEFINES,
     deps = [
+        ":routing",
         "//score/config:config_flatbuffers",
         "//score/socom",
         "//score/someip",
         "@score_baselibs//score/mw/log",
-        "@vsomeip",
-    ],
+    ] + STACK_DEPS,
 )
 
 cc_library(
     name = "routing",
-    srcs = ["impl/routing.cpp"],
-    hdrs = ["impl/routing.h"],
+    srcs = select({
+        ":stack_opensomeip": ["impl/routing_opensomeip.cpp"],
+        "//conditions:default": ["impl/routing.cpp"],
+    }),
+    hdrs = [
+        "impl/opensomeip_host.h",
+        "impl/routing.h",
+    ],
+    defines = STACK_DEFINES,
     visibility = ["//score/someipd/test:__pkg__"],
     deps = [
+        ":gateway_sd_settings",
         "//score/config:config_flatbuffers",
         "//score/someip",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
-        "@vsomeip",
-    ],
+    ] + STACK_DEPS,
 )
 
 validate_json_schema_test(
