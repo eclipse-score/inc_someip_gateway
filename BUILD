@@ -122,6 +122,7 @@ docs(
             "attach_to": "components",
         },
     ],
+    external_needs = ["@score_platform//:docs"],
     source_dir = "docs",
 )
 
