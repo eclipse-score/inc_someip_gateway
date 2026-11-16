@@ -56,6 +56,8 @@ std::size_t letters(std::string_view const service_type_name, std::string_view c
 }
 
 TEST_F(Bridged_service_configs_test, gatewayd_provides_local_and_consumes_remote_service_types) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const services = bridged_service_configs(gateway_config(), Daemon::gatewayd);
 
     ASSERT_EQ(services.size(), 2U);
@@ -76,6 +78,8 @@ TEST_F(Bridged_service_configs_test, gatewayd_provides_local_and_consumes_remote
 }
 
 TEST_F(Bridged_service_configs_test, someipd_takes_the_other_role_of_each_service_type) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const services = bridged_service_configs(gateway_config(), Daemon::someipd);
 
     ASSERT_EQ(services.size(), 2U);
@@ -84,6 +88,8 @@ TEST_F(Bridged_service_configs_test, someipd_takes_the_other_role_of_each_servic
 }
 
 TEST_F(Bridged_service_configs_test, an_event_has_its_someip_id_and_the_size_of_the_strategy) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const services = bridged_service_configs(gateway_config(), Daemon::gatewayd, letters);
 
     ASSERT_EQ(services.back().events.size(), 1U);
@@ -94,6 +100,8 @@ TEST_F(Bridged_service_configs_test, an_event_has_its_someip_id_and_the_size_of_
 }
 
 TEST_F(Bridged_service_configs_test, without_a_strategy_every_size_comes_from_the_peer) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const services = bridged_service_configs(gateway_config(), Daemon::someipd);
 
     ASSERT_EQ(services.size(), 2U);

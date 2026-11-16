@@ -19,6 +19,8 @@ namespace score::gateway_ipc_binding {
 namespace {
 
 TEST(Event_transmission_benchmark_context_test, transmits_events_for_each_payload_size) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (std::size_t const payload_size : {64U, 256U, 1024U, 1024U * 1024U}) {
         Event_transmission_benchmark_context context{payload_size};
         for (std::size_t iteration = 0U; iteration < 10U; ++iteration) {

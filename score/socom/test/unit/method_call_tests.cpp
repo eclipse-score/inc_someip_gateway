@@ -38,6 +38,8 @@ Input_expected create_results(T result, U expected_result) {
 }
 
 TEST(Method_type_test, method_result_equality_and_inequality_operators) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "equivalence-classes");
     // Create Method_result objects
     auto const ar = Method_result{Application_return{}};
     auto const ae = Method_result{Application_error{}};
@@ -87,6 +89,8 @@ class MethodCallTest : public SingleConnectionTest, public WithParamInterface<In
 };
 
 TEST_P(MethodCallTest, ClientSendsFireAndForgetMethodCallToServer) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const& call_received =
         server.expect_and_respond_method_calls(1, method_id, input_data(), input_result);
 
@@ -95,6 +99,8 @@ TEST_P(MethodCallTest, ClientSendsFireAndForgetMethodCallToServer) {
 }
 
 TEST_P(MethodCallTest, ClientCallsMethodAndReceivesResponseFromServer) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     server.expect_and_respond_method_calls(1, method_id, input_data(), input_result);
     client.expect_and_call_method(method_id, input_data(), expected_result);
 }
@@ -110,6 +116,8 @@ INSTANTIATE_TEST_SUITE_P(
 using AllocateMethodPayloadTest = SingleConnectionTest;
 
 TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithOutOfBoundsMethodIdReturnsLogicError) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
@@ -120,6 +128,8 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithOutOfBoundsMethodIdRe
 
 TEST_F(AllocateMethodPayloadTest,
        AllocateMethodPayloadWithoutConnectedServerReturnsServiceNotAvailableError) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Client_data client{connector_factory, Client_data::no_connect};
 
     auto payload = client.allocate_method_call_payload(method_id);
@@ -128,6 +138,8 @@ TEST_F(AllocateMethodPayloadTest,
 }
 
 TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturnsPayload) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
@@ -144,6 +156,8 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturn
 }
 
 TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodCall) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 

@@ -50,6 +50,8 @@ class ServerConnectorTest : public SingleConnectionTest {
 };
 
 TEST_F(ServerConnectorTest, ConstructDestruct) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto scd = connector_factory.create_server_connector_with_result(callbacks);
 
     StaticAssertTypeEq<decltype(scd), Result<Disabled_server_connector::Uptr>>();
@@ -57,6 +59,8 @@ TEST_F(ServerConnectorTest, ConstructDestruct) {
 }
 
 TEST_F(ServerConnectorTest, ConfigurationAndInstanceIsAsExpected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Disabled_server_connector::Uptr scd{connector_factory.create_server_connector(callbacks)};
 
     auto const& service_cfg_disabled = scd->get_configuration();
@@ -91,6 +95,8 @@ TEST_F(ServerConnectorTest, ConfigurationAndInstanceIsAsExpected) {
 }
 
 TEST_F(ServerConnectorTest, DisabledServerConnectorMoveConstructorWorks) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Disabled_server_connector::Uptr from{connector_factory.create_server_connector(callbacks)};
     Disabled_server_connector::Uptr to{std::move(from)};
 
@@ -99,6 +105,8 @@ TEST_F(ServerConnectorTest, DisabledServerConnectorMoveConstructorWorks) {
 }
 
 TEST_F(ServerConnectorTest, DisabledServerConnectorMoveAssignmentWorks) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Disabled_server_connector::Uptr from{connector_factory.create_server_connector(callbacks)};
     Disabled_server_connector::Uptr to{nullptr};
     to = std::move(from);
@@ -108,6 +116,8 @@ TEST_F(ServerConnectorTest, DisabledServerConnectorMoveAssignmentWorks) {
 }
 
 TEST_F(ServerConnectorTest, Enable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto scd = connector_factory.create_server_connector(callbacks);
 
     auto sce = Disabled_server_connector::enable(std::move(scd));
@@ -116,6 +126,8 @@ TEST_F(ServerConnectorTest, Enable) {
 }
 
 TEST_F(ServerConnectorTest, ConstructDestructNoCallbacksReturnsCallbackMissing) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto scd = connector_factory.create_server_connector_with_result(
         Optional_reference<Server_connector_callbacks_mock>{});
 
@@ -125,6 +137,8 @@ TEST_F(ServerConnectorTest, ConstructDestructNoCallbacksReturnsCallbackMissing) 
 }
 
 TEST_F(ServerConnectorTest, WhenCallbackMissingCreationReturnsCallbackMissing) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     std::array<Disabled_server_connector::Callbacks, 4> server_callbacks_array = {
         Disabled_server_connector::Callbacks{nullptr, esccb.as_function(), eruc.as_function(),
                                              mpacb.as_function()},
@@ -145,6 +159,8 @@ TEST_F(ServerConnectorTest, WhenCallbackMissingCreationReturnsCallbackMissing) {
 }
 
 TEST_F(ServerConnectorTest, NoSubscribedClientReturnsUpdate) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -173,6 +189,8 @@ class ServerConnectorDeathTest : public ServerConnectorTest {
 
 TEST_F(ServerConnectorDeathTest,
        ServerDeletionByOnEventSubscriptionChangeResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         auto const self_destruct = [this](Enabled_server_connector& /* server */, Event_id /* id */,
                                           Event_state /* state */) { server.reset(); };
@@ -186,6 +204,8 @@ TEST_F(ServerConnectorDeathTest,
 
 TEST_F(ServerConnectorDeathTest,
        ServerDeletionByOnEventSubscriptionChangeAtUnsubscriptionResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         auto const self_destruct = [this](Enabled_server_connector& /* server */, Event_id /* id */,
                                           Event_state /* state */) { server.reset(); };
@@ -200,6 +220,8 @@ TEST_F(ServerConnectorDeathTest,
 
 TEST_F(ServerConnectorDeathTest,
        ServerDeletionByOnEventSubscriptionChangeWithInitialDataResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         auto const self_destruct = [this](Enabled_server_connector& /* server */,
                                           Event_id /* id */) { server.reset(); };
@@ -212,6 +234,8 @@ TEST_F(ServerConnectorDeathTest,
 
 TEST_F(ServerConnectorDeathTest,
        ServerDeletionByOnEventUpdateRequestResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         EXPECT_CALL(callbacks, on_event_subscription_change(_, _, _));
         auto const subscription = client0.create_event_subscription(event_id);
@@ -226,6 +250,8 @@ TEST_F(ServerConnectorDeathTest,
 }
 
 TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         auto const self_destruct = [this](Enabled_server_connector& /*server*/,
                                           Method_id /*method_id*/, Payload const& /*payload*/,
@@ -241,6 +267,8 @@ TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallResultsInLoggingAnd
 }
 
 TEST_F(ServerConnectorDeathTest, ServerDeletionByOnMethodCallReplyResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         auto const empty_reply = [](Enabled_server_connector& /*server*/, Method_id /*method_id*/,
                                     Payload const& /*payload*/, Method_call_reply_data_opt reply) {
@@ -275,6 +303,8 @@ class ServerConnectorGetEventModeTest : public SingleConnectionTest {
 };
 
 TEST_F(ServerConnectorGetEventModeTest, SubscribedClientReturnsUpdate) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const sub = client0.create_event_subscription(event_id);
 
     wait_for_atomics(wait_subscribed);
@@ -283,6 +313,8 @@ TEST_F(ServerConnectorGetEventModeTest, SubscribedClientReturnsUpdate) {
 }
 
 TEST_F(ServerConnectorGetEventModeTest, SubscribedClientReturnsUpdateAndInitialValue) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const sub = client0.create_event_subscription(
         server, event_id, Temporary_event_subscription::Brokenness::no_server_reponse);
 
@@ -301,14 +333,20 @@ class ServerConnectorOutOfBoundsTest : public SingleConnectionTest {
 };
 
 TEST_F(ServerConnectorOutOfBoundsTest, UpdateEventWithOutOfBoundsIndexReturnsOutOfRange) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     EXPECT_EQ(out_of_range, (server->update_event(max_event_id + 1, empty_payload())));
 }
 
 TEST_F(ServerConnectorOutOfBoundsTest, UpdateRequestedEventWithOutOfBoundsIndexReturnsOutOfRange) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     EXPECT_EQ(out_of_range, (server->update_requested_event(max_event_id + 1, empty_payload())));
 }
 
 TEST_F(ServerConnectorOutOfBoundsTest, OutOfBoundsIndexReturnsOutOfRange) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     auto const out_of_range =
         score::MakeUnexpected(Server_connector_error::logic_error_id_out_of_range);
     EXPECT_EQ(out_of_range, (server->get_event_mode(max_event_id + 1)));

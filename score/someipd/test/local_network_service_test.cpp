@@ -112,6 +112,8 @@ class LocalNetworkServiceTest : public ::testing::Test {
 // callback must still subscribe to all events (and must not dereference the not yet stored
 // connector).
 TEST_F(LocalNetworkServiceTest, SubscribesAllEventsWhenServiceIsAlreadyAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto server_connector = make_server_connector();
     ASSERT_NE(server_connector, nullptr);
     auto const server = socom::Disabled_server_connector::enable(std::move(server_connector));
@@ -124,6 +126,8 @@ TEST_F(LocalNetworkServiceTest, SubscribesAllEventsWhenServiceIsAlreadyAvailable
 }
 
 TEST_F(LocalNetworkServiceTest, SubscribesAllEventsWhenServiceBecomesAvailableLater) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const service = LocalNetworkService::Create(service_instance_config_, service_type_config_,
                                                      nullptr, *runtime_);
     ASSERT_TRUE(service.has_value());

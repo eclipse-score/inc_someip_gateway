@@ -197,6 +197,8 @@ INSTANTIATE_TEST_SUITE_P(
     many_services_test_name);
 
 TEST_P(Gateway_ipc_binding_many_services_param_integration_test, clients_connect_to_service) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_connector_with_callbacks alpha_observer;
     Client_connector_with_callbacks beta_observer;
     Client_connector_with_callbacks gamma_observer;
@@ -226,6 +228,8 @@ TEST_P(Gateway_ipc_binding_many_services_param_integration_test, clients_connect
 
 TEST_P(Gateway_ipc_binding_many_services_param_integration_test,
        server_sends_event_update_to_subscribed_clients) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Server_connector_with_callbacks alpha_server_connector(*runtime_server, server_config_alpha,
                                                            instance);
     Server_connector_with_callbacks beta_server_connector(*runtime_server, server_config_beta,

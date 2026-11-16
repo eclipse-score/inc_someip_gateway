@@ -70,18 +70,24 @@ class Gateway_ipc_binding_mw_com_test : public ::testing::Test {
 };
 
 TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_is_prefix_plus_payload) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Event_config const event{"an_event", Mw_com_event_id{1U}, 1024U};
 
     EXPECT_EQ(sample_size(event), kSample_prefix_size + 1024U);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_of_an_empty_event_is_the_prefix) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     Event_config const event{"an_event", Mw_com_event_id{1U}, 0U};
 
     EXPECT_EQ(sample_size(event), kSample_prefix_size);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_is_a_multiple_of_the_sample_alignment) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     // A mw::com DataTypeMetaInfo::size must be an integer multiple of its alignment, so an odd
     // payload size is rounded up rather than rejected.
     Event_config const event{"an_event", Mw_com_event_id{1U}, 1U};
@@ -91,6 +97,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_is_a_multiple_of_the_sample_
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_server_succeeds) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const server =
         create_server(*m_server_runtime, kSomeipd_specifier_second_pair, accept_without_services);
 
@@ -98,12 +106,16 @@ TEST_F(Gateway_ipc_binding_mw_com_test, create_server_succeeds) {
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_server_without_instance_specifier_fails) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const server = create_server(*m_server_runtime, "", accept_without_services);
 
     EXPECT_EQ(server, nullptr);
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_client_succeeds_before_the_server_exists) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair);
 
     ASSERT_NE(client, nullptr);
@@ -112,6 +124,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, create_client_succeeds_before_the_server
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_client_with_invalid_instance_specifier_fails) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // A specifier that is not in mw_com_config.json cannot be resolved.
     auto const client = create_client(*m_client_runtime, "no/such/instance");
 
@@ -119,6 +133,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, create_client_with_invalid_instance_spec
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, start_on_an_unconfigured_instance_specifier_fails) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // create_server() only checks that a specifier was given; a specifier that mw::com cannot
     // resolve is reported by start().
     auto const server =
@@ -129,6 +145,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, start_on_an_unconfigured_instance_specif
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, starting_the_server_twice_fails) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const server =
         create_server(*m_server_runtime, kSomeipd_specifier_second_pair, accept_without_services);
     ASSERT_NE(server, nullptr);
@@ -138,6 +156,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, starting_the_server_twice_fails) {
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_once_the_server_is_started) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const server =
         create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
@@ -152,6 +172,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_once_the_server
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server_started_first) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const server =
         create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
@@ -164,6 +186,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_disconnected_when_the_server_goes_away) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto server = create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
@@ -178,6 +202,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_disconnected_when_the_ser
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reconnects_when_the_server_comes_back) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier);
     ASSERT_NE(client, nullptr);
 
@@ -224,6 +250,8 @@ bool is_deployed(std::string const& instance_specifier) {
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, the_server_adds_the_bridged_services_of_a_call_to_mw_com) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     ASSERT_FALSE(is_deployed("bridged_ipc/added_by_the_server"));
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
@@ -243,6 +271,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, the_server_adds_the_bridged_services_of_
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_client_adds_its_bridged_services_to_mw_com) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     ASSERT_FALSE(is_deployed("bridged_ipc/added_by_the_client"));
 
     auto const client = create_client(
@@ -256,6 +286,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, create_client_adds_its_bridged_services_
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
        an_instance_specifier_without_the_bridged_prefix_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                                       bridged_services("ipc/bridged", Role::consumer));
 
@@ -263,6 +295,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_bridged_service_without_events_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                                       bridged_services("bridged_ipc/bridged", Role::provider, {}));
 
@@ -270,6 +304,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_bridged_service_without_events_is_reje
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_name_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const client =
         create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                       bridged_services("bridged_ipc/bridged", Role::provider,
@@ -280,6 +316,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_name_is_rejected) {
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_id_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // mw::com terminates the process on a duplicate event ID.
     auto const client =
         create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
@@ -291,6 +329,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_duplicate_event_id_is_rejected) {
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_service_id_used_twice_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // AddServiceConfiguration identifies the services by it.
     auto services = bridged_services("bridged_ipc/bridged", Role::consumer);
     services.push_back(bridged_services("bridged_ipc/shared_test", Role::consumer).front());
@@ -302,6 +342,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_service_id_used_twice_is_rejected) {
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_consumer_without_sample_budget_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // Subscribe(0) would succeed but never hand a sample to the application.
     auto const client =
         create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
@@ -312,6 +354,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_consumer_without_sample_budget_is_reje
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, a_sample_budget_beyond_the_sample_slots_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const client =
         create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
                       bridged_services("bridged_ipc/bridged", Role::consumer,
@@ -322,6 +366,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, a_sample_budget_beyond_the_sample_slots_
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_a_listed_deployment_is_rejected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // Deployed in mw_com_config.json, so the binding doesn't add it.
     auto const client =
         create_client(*m_client_runtime, kSomeipd_specifier_second_pair,
@@ -332,6 +378,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_a_listed_deploymen
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_service_is_offered_before_the_bridged_services) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier,
         [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
@@ -352,6 +400,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_service_is_offered_before_the_br
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
        the_client_rejects_more_events_than_add_service_configuration_carries) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     std::vector<Event_config> events{};
     for (std::size_t index = 0U; index <= Bridged_event_sizes::max_size; ++index) {
         events.push_back(Event_config{"event_" + std::to_string(index),
@@ -367,6 +417,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
        the_client_rejects_a_gateway_config_larger_than_add_service_configuration_carries) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     std::vector<std::byte> const largest(kMax_service_configuration_size);
     std::vector<std::byte> const too_large(kMax_service_configuration_size + 1U);
 
@@ -448,6 +500,8 @@ class Bridged_offer_watcher {
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
        add_service_configuration_takes_exactly_one_size_per_provider_event) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     // The providers only offer while the network side's SOCom service is available.
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
@@ -513,6 +567,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 
 TEST_F(Gateway_ipc_binding_mw_com_test,
        gatewayd_sends_its_configuration_again_when_someipd_restarts) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     // Belongs to the someipd runtime, which outlives both someipd instances.
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
@@ -553,6 +609,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_the_services_when_gatewayd_restarts) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     std::atomic<int> handler_calls{0};
     auto server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
@@ -608,6 +666,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_the_services_when_gatewayd
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_offers_the_services_of_two_gatewayds) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     // SOCom allows one client per service instance and runtime.
     socom::Service_instance const second_instance{std::string_view{"2"}};
     Server_connector_with_callbacks first_network{*m_server_runtime, kBridged_definition,
@@ -661,6 +721,8 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_offers_the_services_of_two_gatew
 }
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_removes_the_bridged_services_of_a_rejected_call) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
     std::atomic<int> handler_calls{0};

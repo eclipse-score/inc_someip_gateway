@@ -193,6 +193,8 @@ class ConstructionClientConnectorTest : public ::testing::TestWithParam<test_val
 };
 
 TEST_P(ConstructionClientConnectorTest, ConstructCallbackMissing) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     std::vector<Client_connector::Callbacks> input;
     input.emplace_back(Client_connector::Callbacks{
         nullptr,
@@ -246,6 +248,8 @@ class UnconnectedClientConnectorTest : public ::testing::TestWithParam<test_valu
 };
 
 TEST_P(UnconnectedClientConnectorTest, CreationOfSecondClientConnectorReturnsDuplicateError) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // Creation fails when Client_connector already exists for the same service instance and
     // interface
     auto second_cc = connector_factory.create_client_connector_with_result(
@@ -262,12 +266,16 @@ TEST_P(UnconnectedClientConnectorTest, CreationOfSecondClientConnectorReturnsDup
 }
 
 TEST_P(UnconnectedClientConnectorTest, SubscribeEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->subscribe_event(input.client_id, Event_mode::update));
     }
 }
 
 TEST_P(UnconnectedClientConnectorTest, UnsubscribeEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->unsubscribe_event(input.client_id));
     }
@@ -275,6 +283,8 @@ TEST_P(UnconnectedClientConnectorTest, UnsubscribeEventReturnsServiceNotAvailabl
 
 TEST_P(UnconnectedClientConnectorTest,
        UnsubscribeEventIgnoreSubscribedEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->subscribe_event(input.client_id, Event_mode::update));
 
@@ -284,6 +294,8 @@ TEST_P(UnconnectedClientConnectorTest,
 
 TEST_P(UnconnectedClientConnectorTest,
        RequestEventUpdateIgnoreSubscribedEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->subscribe_event(input.client_id, Event_mode::update));
 
@@ -292,6 +304,8 @@ TEST_P(UnconnectedClientConnectorTest,
 }
 
 TEST_P(UnconnectedClientConnectorTest, CallMethodReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Method_reply_callback_mock mrcb;
     auto const no_connection_method =
         score::MakeUnexpected(Error::runtime_error_service_not_available);
@@ -329,12 +343,16 @@ class UnavailableServerConnectorClientConnectorTest
 };
 
 TEST_P(UnavailableServerConnectorClientConnectorTest, SubscribeEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->subscribe_event(input.client_id, Event_mode::update));
     }
 }
 
 TEST_P(UnavailableServerConnectorClientConnectorTest, UnsubscribeEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->unsubscribe_event(input.client_id));
     }
@@ -342,6 +360,8 @@ TEST_P(UnavailableServerConnectorClientConnectorTest, UnsubscribeEventReturnsSer
 
 TEST_P(UnavailableServerConnectorClientConnectorTest,
        UnsubscribeEventIgnoreSubscribedEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->subscribe_event(input.client_id, Event_mode::update));
 
@@ -351,6 +371,8 @@ TEST_P(UnavailableServerConnectorClientConnectorTest,
 
 TEST_P(UnavailableServerConnectorClientConnectorTest,
        RequestEventUpdateIgnoreSubscribedEventReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         EXPECT_EQ(service_not_available, cc->subscribe_event(input.client_id, Event_mode::update));
 
@@ -359,6 +381,8 @@ TEST_P(UnavailableServerConnectorClientConnectorTest,
 }
 
 TEST_P(UnavailableServerConnectorClientConnectorTest, CallMethodReturnsServiceNotAvailable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Method_reply_callback_mock mrcb;
     auto const no_connection_method =
         score::MakeUnexpected(Error::runtime_error_service_not_available);
@@ -412,6 +436,8 @@ class ConnectedClientConnectorTest : public ::testing::TestWithParam<test_values
 };
 
 TEST_P(ConnectedClientConnectorTest, CallMethodWithoutReply) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_method_ids) {
         auto reply_future =
             server.expect_and_return_method_call(input.server_id, test_values::real_payload);
@@ -424,6 +450,8 @@ TEST_P(ConnectedClientConnectorTest, CallMethodWithoutReply) {
 }
 
 TEST_P(ConnectedClientConnectorTest, CallMethodWithReply) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_method_ids) {
         auto reply_future =
             server.expect_and_return_method_call(input.server_id, test_values::real_payload);
@@ -440,6 +468,8 @@ TEST_P(ConnectedClientConnectorTest, CallMethodWithReply) {
 }
 
 TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     if (GetParam().test_method_ids.empty()) {
         return;
     }
@@ -459,6 +489,8 @@ TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
 }
 
 TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto const& wait_subscribed =
             server.expect_on_event_subscription_change(input.server_id, Event_state::subscribed);
@@ -471,6 +503,8 @@ TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
 }
 
 TEST_P(ConnectedClientConnectorTest, ClientWithEventSubscriptionUnsubscribes) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto const& wait_subscribed =
             server.expect_on_event_subscription_change(input.server_id, Event_state::subscribed);
@@ -487,6 +521,8 @@ TEST_P(ConnectedClientConnectorTest, ClientWithEventSubscriptionUnsubscribes) {
 }
 
 TEST_P(ConnectedClientConnectorTest, UnsubscribeEvent) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto subscription = create_event_subscription(input);
 
@@ -499,6 +535,8 @@ TEST_P(ConnectedClientConnectorTest, UnsubscribeEvent) {
 }
 
 TEST_P(ConnectedClientConnectorTest, RequestEventUpdate) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto subscription = create_event_subscription(input);
 
@@ -512,6 +550,8 @@ TEST_P(ConnectedClientConnectorTest, RequestEventUpdate) {
 }
 
 TEST_P(ConnectedClientConnectorTest, OnEventUpdate) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         server.update_event(input.server_id, test_values::real_payload);
 
@@ -530,6 +570,8 @@ TEST_P(ConnectedClientConnectorTest, OnEventUpdate) {
 }
 
 TEST_P(ConnectedClientConnectorTest, OnRequestedEventUpdate) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         server.update_event(input.server_id, test_values::real_payload);
 
@@ -561,6 +603,8 @@ class ClientConnectorTest : public SingleConnectionTest {
 };
 
 TEST_F(ClientConnectorTest, ConfigurationAndInstanceIsAsExpected) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_connector_callbacks_mock callbacks;
     Client_connector::Uptr cc{connector_factory.create_client_connector(callbacks)};
 
@@ -586,6 +630,8 @@ TEST_F(ClientConnectorTest, ConfigurationAndInstanceIsAsExpected) {
 }
 
 TEST_F(ClientConnectorTest, ServiceStateIsRetrievable) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_connector_callbacks_mock callbacks;
     Client_connector::Uptr cc{connector_factory.create_client_connector(callbacks)};
 
@@ -601,6 +647,8 @@ TEST_F(ClientConnectorTest, ServiceStateIsRetrievable) {
 }
 
 TEST_F(ClientConnectorTest, RetrieveServerConnectorConfig) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     Client_data client0{connector_factory, Client_data::no_connect};
 
     auto const& available = client0.expect_service_state_change(
@@ -705,6 +753,8 @@ TEST_F(ClientConnectorTest, SmallerServiceInterfaceMinorVersion) {
 }
 
 TEST_F(ClientConnectorTest, OnStateChangeDoMethodCall) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     std::atomic_bool available{false};
     std::atomic_bool method_call{false};
 
@@ -731,6 +781,8 @@ TEST_F(ClientConnectorTest, OnStateChangeDoMethodCall) {
 }
 
 TEST_F(ClientConnectorTest, OnStateChangeRequestEventUpdate) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     std::atomic<bool> available{false};
     std::atomic<bool> event_update_request{false};
 
@@ -762,6 +814,8 @@ using ClientConnectorStartingConnectionDeathTest = ClientConnectorTest;
 
 TEST_F(ClientConnectorStartingConnectionDeathTest,
        ClientDeletionByOnStateChangeResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto el_failure = [this]() {
         Client_connector::Uptr client0;
 
@@ -792,6 +846,8 @@ class ClientConnectorDeathTest : public ClientConnectorTest {
 using ClientConnectorUnsubscribeTest = ClientConnectorDeathTest;
 
 TEST_F(ClientConnectorUnsubscribeTest, ClientUnsubscribesInEventCallbackSuccessfully) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     EXPECT_CALL(cc_callbacks, on_event_update(_, _, _)).WillOnce([this]() {
         EXPECT_TRUE(client0->unsubscribe_event(event_id));
     });
@@ -800,6 +856,8 @@ TEST_F(ClientConnectorUnsubscribeTest, ClientUnsubscribesInEventCallbackSuccessf
 }
 
 TEST_F(ClientConnectorDeathTest, ClientDeletionByOnStateChangeResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         EXPECT_CALL(cc_callbacks, on_service_state_change(_, Service_state::not_available, _))
             .WillOnce(delete_client_state_change(client0));
@@ -810,6 +868,8 @@ TEST_F(ClientConnectorDeathTest, ClientDeletionByOnStateChangeResultsInLoggingAn
 }
 
 TEST_F(ClientConnectorDeathTest, ClientDeletionByOnEventUpdateResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         EXPECT_CALL(cc_callbacks, on_event_update(_, _, _)).WillOnce(delete_client(client0));
 
@@ -820,6 +880,8 @@ TEST_F(ClientConnectorDeathTest, ClientDeletionByOnEventUpdateResultsInLoggingAn
 
 TEST_F(ClientConnectorDeathTest,
        ClientDeletionByOnRequestedEventUpdateResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         auto const& update_requested = server.expect_update_event_request(event_id);
         EXPECT_TRUE(client0->request_event_update(event_id));
@@ -834,6 +896,8 @@ TEST_F(ClientConnectorDeathTest,
 }
 
 TEST_F(ClientConnectorDeathTest, ClientDeletionByOnMethodReplyResultsInLoggingAndTermination) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const el_failure = [this]() {
         auto reply_callback = server.expect_and_return_method_call(method_id, empty_payload());
         auto const delete_client = [this](Method_result const& /*eid*/) { client0.reset(); };
@@ -854,6 +918,8 @@ class ClientConnectorOutOfBoundsTest : public SingleConnectionTest {
 };
 
 TEST_F(ClientConnectorOutOfBoundsTest, SubscribeEventWithOutOfBoundsIndexReturnsOutOfRange) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     Server_data server{connector_factory};
     Client_connector_callbacks_mock callbacks;
     auto const client0 = connector_factory.create_and_connect(callbacks);
@@ -862,6 +928,8 @@ TEST_F(ClientConnectorOutOfBoundsTest, SubscribeEventWithOutOfBoundsIndexReturns
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, UnsubscribeEventWithOutOfBoundsIndexReturnsOutOfRange) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     Server_data server{connector_factory};
     Client_connector_callbacks_mock callbacks;
     auto const client0 = connector_factory.create_and_connect(callbacks);
@@ -870,6 +938,8 @@ TEST_F(ClientConnectorOutOfBoundsTest, UnsubscribeEventWithOutOfBoundsIndexRetur
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, RequestEventUpdateWithOutOfBoundsIndexReturnsOutOfRange) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     Server_data server{connector_factory};
     Client_connector_callbacks_mock callbacks;
     auto const client0 = connector_factory.create_and_connect(callbacks);
@@ -878,6 +948,8 @@ TEST_F(ClientConnectorOutOfBoundsTest, RequestEventUpdateWithOutOfBoundsIndexRet
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, CallMethodWithOutOfBoundsIndexReturnsOutOfRange) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     auto const mr = Method_result{Application_return{}};
 
     Server_data server{connector_factory};
@@ -892,6 +964,8 @@ TEST_F(ClientConnectorOutOfBoundsTest, CallMethodWithOutOfBoundsIndexReturnsOutO
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, ResultCompareOperator) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "equivalence-classes");
     auto const result_value = score::Result<std::uint8_t>(42U);
     auto const result_error = score::MakeUnexpected(Error::logic_error_id_out_of_range);
 
@@ -902,6 +976,8 @@ TEST_F(ClientConnectorOutOfBoundsTest, ResultCompareOperator) {
 }
 
 TEST_F(ClientConnectorOutOfBoundsTest, ResultCompareOperatorWithVoid) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "equivalence-classes");
     auto const result_error_void = score::MakeUnexpected(Error::logic_error_id_out_of_range);
     auto const result_value_void = score::Result<void>();
 

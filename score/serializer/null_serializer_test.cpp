@@ -113,6 +113,8 @@ class NullSerializer_test : public ::testing::Test {
 // --- Init / Deinit ---
 
 TEST_F(NullSerializer_test, init_with_nonexistent_file_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     ASSERT_EQ(score_com_serializer_deinit(), score_com_serializer_result_ok);
     const std::string bad_path = "/nonexistent/path.bin";
     auto result = score_com_serializer_init(bad_path.c_str(), bad_path.size());
@@ -120,6 +122,8 @@ TEST_F(NullSerializer_test, init_with_nonexistent_file_fails) {
 }
 
 TEST_F(NullSerializer_test, init_with_empty_file_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     ASSERT_EQ(score_com_serializer_deinit(), score_com_serializer_result_ok);
     std::string path = testing::TempDir() + "empty_config.bin";
     std::ofstream file(path, std::ios::binary | std::ios::out);
@@ -131,6 +135,8 @@ TEST_F(NullSerializer_test, init_with_empty_file_fails) {
 // --- score_com_serializer_get ---
 
 TEST_F(NullSerializer_test, get_event_serializer_succeeds) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const score_com_serializer* serializer = nullptr;
     std::string service(kTestServiceTypeName);
     std::string element(kTestEventName);
@@ -142,6 +148,8 @@ TEST_F(NullSerializer_test, get_event_serializer_succeeds) {
 }
 
 TEST_F(NullSerializer_test, get_method_call_serializer_succeeds) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const score_com_serializer* serializer = nullptr;
     std::string service(kTestServiceTypeName);
     std::string element(kTestMethodName);
@@ -153,6 +161,8 @@ TEST_F(NullSerializer_test, get_method_call_serializer_succeeds) {
 }
 
 TEST_F(NullSerializer_test, get_method_response_serializer_succeeds) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const score_com_serializer* serializer = nullptr;
     std::string service(kTestServiceTypeName);
     std::string element(kTestMethodName);
@@ -164,6 +174,8 @@ TEST_F(NullSerializer_test, get_method_response_serializer_succeeds) {
 }
 
 TEST_F(NullSerializer_test, get_with_unknown_service_type_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const score_com_serializer* serializer = nullptr;
     std::string service("nonexistent_service");
     std::string element(kTestEventName);
@@ -174,6 +186,8 @@ TEST_F(NullSerializer_test, get_with_unknown_service_type_fails) {
 }
 
 TEST_F(NullSerializer_test, get_with_unknown_element_name_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const score_com_serializer* serializer = nullptr;
     std::string service(kTestServiceTypeName);
     std::string element("nonexistent_event");
@@ -184,6 +198,8 @@ TEST_F(NullSerializer_test, get_with_unknown_element_name_fails) {
 }
 
 TEST_F(NullSerializer_test, get_with_null_serializer_output_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     std::string service(kTestServiceTypeName);
     std::string element(kTestEventName);
     auto result = score_com_serializer_get(service.c_str(), service.size(),
@@ -195,11 +211,15 @@ TEST_F(NullSerializer_test, get_with_null_serializer_output_fails) {
 // --- max_serialized_size ---
 
 TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for_event) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const auto* serializer = get_event_serializer();
     EXPECT_EQ(score_com_serializer_get_max_serialized_size(serializer), kTestMaxMessageSize);
 }
 
 TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for_method_call) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const score_com_serializer* serializer = nullptr;
     std::string service(kTestServiceTypeName);
     std::string element(kTestMethodName);
@@ -211,6 +231,8 @@ TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for
 }
 
 TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for_method_response) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const score_com_serializer* serializer = nullptr;
     std::string service(kTestServiceTypeName);
     std::string element(kTestMethodName);
@@ -222,22 +244,30 @@ TEST_F(NullSerializer_test, get_max_serialized_size_returns_configured_value_for
 }
 
 TEST_F(NullSerializer_test, get_max_serialized_size_returns_zero_for_null) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     EXPECT_EQ(score_com_serializer_get_max_serialized_size(nullptr), 0U);
 }
 
 // --- sizeof_object / alignof_object ---
 
 TEST_F(NullSerializer_test, get_sizeof_object_returns_expected_size) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const auto* serializer = get_event_serializer();
     EXPECT_EQ(score_com_serializer_get_sizeof_type(serializer),
               get_size_of_pre_serialized_data(kTestMaxMessageSize));
 }
 
 TEST_F(NullSerializer_test, get_sizeof_object_returns_zero_for_null) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     EXPECT_EQ(score_com_serializer_get_sizeof_type(nullptr), 0U);
 }
 
 TEST_F(NullSerializer_test, get_alignof_object_returns_preserialized_alignment) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const auto* serializer = get_event_serializer();
     EXPECT_EQ(score_com_serializer_get_alignof_type(serializer), alignof(PreSerializedData<0>));
 }
@@ -245,6 +275,8 @@ TEST_F(NullSerializer_test, get_alignof_object_returns_preserialized_alignment) 
 // --- Serialize ---
 
 TEST_F(NullSerializer_test, serialize_copies_data_to_buffer) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const auto* serializer = get_event_serializer();
 
     PreSerializedData<kTestMaxMessageSize> object{};
@@ -263,6 +295,8 @@ TEST_F(NullSerializer_test, serialize_copies_data_to_buffer) {
 }
 
 TEST_F(NullSerializer_test, serialize_with_null_buffer_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const auto* serializer = get_event_serializer();
     PreSerializedData<kTestMaxMessageSize> object{};
     object.size = 4;
@@ -272,6 +306,8 @@ TEST_F(NullSerializer_test, serialize_with_null_buffer_fails) {
 }
 
 TEST_F(NullSerializer_test, serialize_with_null_object_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const auto* serializer = get_event_serializer();
     std::vector<uint8_t> buffer(kTestMaxMessageSize);
     std::size_t written_bytes = 0;
@@ -281,6 +317,8 @@ TEST_F(NullSerializer_test, serialize_with_null_object_fails) {
 }
 
 TEST_F(NullSerializer_test, serialize_with_insufficient_buffer_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const auto* serializer = get_event_serializer();
 
     PreSerializedData<kTestMaxMessageSize> object{};
@@ -294,6 +332,8 @@ TEST_F(NullSerializer_test, serialize_with_insufficient_buffer_fails) {
 }
 
 TEST_F(NullSerializer_test, serialize_with_null_written_bytes_succeeds) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const auto* serializer = get_event_serializer();
 
     PreSerializedData<kTestMaxMessageSize> object{};
@@ -310,6 +350,8 @@ TEST_F(NullSerializer_test, serialize_with_null_written_bytes_succeeds) {
 // --- Deserialize ---
 
 TEST_F(NullSerializer_test, deserialize_copies_buffer_to_object) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const auto* serializer = get_event_serializer();
 
     const uint8_t test_data[] = {0xAA, 0xBB, 0xCC, 0xDD};
@@ -324,6 +366,8 @@ TEST_F(NullSerializer_test, deserialize_copies_buffer_to_object) {
 }
 
 TEST_F(NullSerializer_test, deserialize_with_oversized_buffer_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const auto* serializer = get_event_serializer();
 
     std::vector<uint8_t> large_buffer(kTestMaxMessageSize + 1);
@@ -335,6 +379,8 @@ TEST_F(NullSerializer_test, deserialize_with_oversized_buffer_fails) {
 }
 
 TEST_F(NullSerializer_test, deserialize_with_null_serializer_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const uint8_t test_data[] = {0x01};
     PreSerializedData<kTestMaxMessageSize> object{};
     auto result = score_com_serializer_deserialize(nullptr, test_data, sizeof(test_data), &object);
@@ -342,6 +388,8 @@ TEST_F(NullSerializer_test, deserialize_with_null_serializer_fails) {
 }
 
 TEST_F(NullSerializer_test, deserialize_with_null_buffer_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const auto* serializer = get_event_serializer();
     PreSerializedData<kTestMaxMessageSize> object{};
     auto result = score_com_serializer_deserialize(serializer, nullptr, 4, &object);
@@ -349,6 +397,8 @@ TEST_F(NullSerializer_test, deserialize_with_null_buffer_fails) {
 }
 
 TEST_F(NullSerializer_test, deserialize_with_null_object_fails) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     const auto* serializer = get_event_serializer();
     const uint8_t test_data[] = {0x01};
     auto result =
@@ -359,6 +409,8 @@ TEST_F(NullSerializer_test, deserialize_with_null_object_fails) {
 // --- Round-trip ---
 
 TEST_F(NullSerializer_test, serialize_then_deserialize_preserves_data) {
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "design-analysis");
     const auto* serializer = get_event_serializer();
 
     PreSerializedData<kTestMaxMessageSize> original{};

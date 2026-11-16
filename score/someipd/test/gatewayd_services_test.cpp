@@ -77,6 +77,8 @@ class GatewaydServicesTest : public ::testing::Test {
 };
 
 TEST_F(GatewaydServicesTest, RejectsBytesThatAreNoGatewayConfig) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     GatewaydServices services{routing(), *runtime_};
     std::vector<std::byte> const garbage{std::byte{1}, std::byte{2}, std::byte{3}};
 
@@ -85,6 +87,8 @@ TEST_F(GatewaydServicesTest, RejectsBytesThatAreNoGatewayConfig) {
 }
 
 TEST_F(GatewaydServicesTest, RejectsAServiceTypeWithoutName) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     GatewaydServices services{routing(), *runtime_};
     flatbuffers::FlatBufferBuilder builder;
     std::vector<flatbuffers::Offset<mw_someip_config::Event>> events{
@@ -102,6 +106,8 @@ TEST_F(GatewaydServicesTest, RejectsAServiceTypeWithoutName) {
 }
 
 TEST_F(GatewaydServicesTest, RejectsAServiceTypeWithoutEvents) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     GatewaydServices services{routing(), *runtime_};
     flatbuffers::FlatBufferBuilder builder;
     std::vector<flatbuffers::Offset<mw_someip_config::ServiceInstance>> instances{
@@ -117,6 +123,8 @@ TEST_F(GatewaydServicesTest, RejectsAServiceTypeWithoutEvents) {
 }
 
 TEST_F(GatewaydServicesTest, AddsTheServicesOfTwoGatewayds) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     GatewaydServices services{routing(), *runtime_};
     auto const first = gateway_config({{"two_first", 0x1001U, true, 1U}});
     auto const second = gateway_config({{"two_second", 0x1002U, false, 1U}});
@@ -134,6 +142,8 @@ TEST_F(GatewaydServicesTest, AddsTheServicesOfTwoGatewayds) {
 }
 
 TEST_F(GatewaydServicesTest, RejectsOtherContentForAnAddedService) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     GatewaydServices services{routing(), *runtime_};
     auto const added = gateway_config({{"changed", 0x1011U, true, 1U}});
     auto const changed = gateway_config({{"changed", 0x1011U, true, 2U}});
@@ -144,6 +154,8 @@ TEST_F(GatewaydServicesTest, RejectsOtherContentForAnAddedService) {
 }
 
 TEST_F(GatewaydServicesTest, RejectsASecondGatewaydWithATakenService) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     GatewaydServices services{routing(), *runtime_};
     auto const first = gateway_config({{"taken", 0x1021U, true, 1U}});
     auto const second =
@@ -157,6 +169,8 @@ TEST_F(GatewaydServicesTest, RejectsASecondGatewaydWithATakenService) {
 }
 
 TEST_F(GatewaydServicesTest, AddsNothingWhenTheBridgedServicesFail) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     GatewaydServices services{routing(), *runtime_};
     auto const config = gateway_config({{"bridge_fails", 0x1031U, true, 1U}});
 
@@ -166,6 +180,8 @@ TEST_F(GatewaydServicesTest, AddsNothingWhenTheBridgedServicesFail) {
 }
 
 TEST_F(GatewaydServicesTest, AddsNothingWhenANetworkServiceFails) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     GatewaydServices services{routing(), *runtime_};
     auto const config = gateway_config(
         {{"created_first", 0x1041U, true, 1U}, {"already_provided", 0x1042U, false, 1U}});
@@ -193,6 +209,8 @@ TEST_F(GatewaydServicesTest, AddsNothingWhenANetworkServiceFails) {
 }
 
 TEST_F(GatewaydServicesTest, AddsAServiceTypeWithMultipleLocalInstances) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     GatewaydServices services{routing(), *runtime_};
     flatbuffers::FlatBufferBuilder builder;
     std::vector<flatbuffers::Offset<mw_someip_config::Event>> events{
