@@ -39,6 +39,18 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    of the SOME/IP configuration file is covered by
    :need:`aou_req__gatewayd__someip_config_integrity`.
 
+.. comp_req:: gatewayd prints usage on request
+   :id: comp_req__gatewayd__prints_usage
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Interface
+   :satisfied_by: comp__gatewayd
+
+   When started with the ``--help`` command-line argument, gatewayd shall
+   print its usage text and exit with a success exit code.
+
 .. aou_req:: Integrity of the SOME/IP configuration file
    :id: aou_req__gatewayd__someip_config_integrity
    :status: valid
