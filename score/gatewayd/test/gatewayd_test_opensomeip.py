@@ -38,19 +38,20 @@ class GatewaydOpensomeipTest(unittest.TestCase):
         self.assertIn("Syntax: gatewayd -h/--help", result.stdout)
 
     def test_creates_local_network_instance(self) -> None:
-        # window_control is service 0x0001. opensomeip logs the offer with the endpoint and " udp".
-        # LogHex16 prints the value with a trailing space, so "0x1" is followed by whitespace.
+        # window_control is service 1, instance 1. mw::log inserts a space between streamed
+        # fragments, so the offer line is "0x 1" and "at <ip>:<port> udp".
         self._assert_creates_network_instance(
             "Creating local service instance: window_control*Gateway started, waiting for shutdown signal...",
-            "[someipd] Offering service 0x1 *at * udp",
+            "[someipd] Offering service 0x 1  instance 0x 1 *at*udp",
         )
 
     def test_creates_remote_network_instance(self) -> None:
-        # echo_response is service 0x4321 instance 0x5678. The same gatewayd session also offers the
-        # local services, and the opensomeip offer line includes the endpoint ("at") and "udp".
+        # echo_response is service 0x4321 instance 0x5678. The same session also offers the local
+        # services, and that offer line includes the endpoint and "udp".
         self._assert_creates_network_instance(
             "Creating remote service instance: echo_response*Gateway started, waiting for shutdown signal...",
-            "[someipd] Creating RemoteNetworkService: echo_response*0x4321*0x5678*[someipd] Offering service*at * udp",
+            "[someipd] Creating RemoteNetworkService:*echo_response*0x 4321*0x 5678*"
+            "[someipd] Offering service*at*udp",
         )
 
     def _assert_creates_network_instance(self, expected_gatewayd_output: str, expected_someipd_output: str) -> None:
