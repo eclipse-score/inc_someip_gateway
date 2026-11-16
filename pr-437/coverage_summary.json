@@ -32,7 +32,7 @@
     },
     {
       "branches": {
-        "percent": 82,
+        "percent": 81,
         "total": 118
       },
       "files": {
@@ -40,7 +40,7 @@
         "total": 5
       },
       "lines": {
-        "percent": 89,
+        "percent": 88,
         "total": 575
       },
       "primary_need_id": "comp__gatewayd"
@@ -62,7 +62,7 @@
     },
     {
       "branches": {
-        "percent": 83,
+        "percent": 84,
         "total": 220
       },
       "files": {
