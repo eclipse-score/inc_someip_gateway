@@ -23,6 +23,15 @@
 #include "platform/buffer_pool.h"
 #include "score/config/mw_someip_config_generated.h"
 
+namespace someip::events {
+class EventPublisher;
+}
+namespace someip::transport {
+class ServiceDemux;
+class TcpTransport;
+class UdpTransport;
+}  // namespace someip::transport
+
 namespace score::someipd {
 
 /// \brief Sender the opensomeip transport already reported.
@@ -105,6 +114,16 @@ class OpensomeipHost {
     void arm_remote(RemoteServiceRequest& request);
     void on_remote_found(RemoteServiceRequest& request, std::string const& address,
                          std::uint16_t port);
+
+    struct UdpBinding {
+        ::someip::transport::ServiceDemux* demux{nullptr};
+        std::uint16_t port{0};
+    };
+
+    UdpBinding udp_binding_for(std::uint16_t requested_port);
+    ::someip::transport::TcpTransport* ensure_tcp(std::uint16_t port, bool publisher_owned);
+    ::someip::transport::UdpTransport* make_event_udp();
+    void stop_extra_listeners();
 
     std::unique_ptr<Objects> objects_;
 };

@@ -17,8 +17,41 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace score::someipd {
+
+/// \brief One event from a service object in the gateway vsomeip JSON.
+/// \details Absent flags stay false. vsomeip encodes booleans as the strings "true" and "false".
+struct GatewayEventSettings {
+    std::uint16_t event_id{0};
+    bool has_is_field{false};
+    bool is_field{false};
+    bool has_is_reliable{false};
+    bool is_reliable{false};
+};
+
+/// \brief One eventgroup from a service object in the gateway vsomeip JSON.
+/// \details multicast_port 0 and an empty address mean the group has no multicast endpoint.
+///          has_threshold distinguishes a missing threshold from an explicit 0.
+struct GatewayEventgroupSettings {
+    std::uint16_t eventgroup_id{0};
+    std::string multicast_address;
+    std::uint16_t multicast_port{0};
+    bool has_threshold{false};
+    std::uint16_t threshold{0};
+};
+
+/// \brief One service entry from the gateway vsomeip JSON.
+/// \details Ports are 0 when that key is absent. Ids are the hex or decimal values vsomeip uses.
+struct GatewayServiceSettings {
+    std::uint16_t service_id{0};
+    std::uint16_t instance_id{0};
+    std::uint16_t unreliable_port{0};
+    std::uint16_t reliable_port{0};
+    std::vector<GatewayEventSettings> events;
+    std::vector<GatewayEventgroupSettings> eventgroups;
+};
 
 /// \brief Service-discovery timing and addresses from the gateway's vsomeip JSON.
 /// \details The numbers stay in that file. The defaults match
@@ -37,6 +70,8 @@ struct GatewaySdSettings {
     int repetitions{3};
     int ttl_seconds{3};
     int cyclic_offer_ms{2000};
+    /// Service, event, and eventgroup entries. Empty when the file has none that parse.
+    std::vector<GatewayServiceSettings> services;
 };
 
 /// \brief Defaults used when the gateway file is missing a key.

@@ -37,6 +37,7 @@
 #include "someip/types.h"
 #include "transport/endpoint.h"
 #include "transport/service_demux.h"
+#include "transport/tcp_transport.h"
 #include "transport/udp_transport.h"
 
 namespace score::someipd {
@@ -129,7 +130,138 @@ struct OpensomeipHost::Objects {
     std::map<InstanceKey, std::unique_ptr<osi::rpc::RpcClient>> clients;
     std::map<InstanceKey, std::unique_ptr<osi::events::EventSubscriber>> subscribers;
     std::vector<std::unique_ptr<RemoteServiceRequest>> remotes;
+    /// Event ids registered with is_field, so publish_event stores the initial value.
+    std::map<InstanceKey, std::set<std::uint16_t>> field_events;
+    /// UDP sockets injected into publishers that send eventgroup multicast.
+    std::vector<std::unique_ptr<osi::transport::UdpTransport>> event_udp;
+
+    struct UdpListener {
+        std::uint16_t port{0};
+        std::unique_ptr<osi::transport::UdpTransport> transport;
+        std::unique_ptr<osi::transport::ServiceDemux> demux;
+    };
+    /// Unreliable ports other than the primary service socket.
+    std::vector<UdpListener> extra_udp;
+
+    struct TcpListener {
+        std::uint16_t port{0};
+        std::unique_ptr<osi::transport::TcpTransport> transport;
+        /// Set when this listener is shared. Null when an EventPublisher owns the socket.
+        std::unique_ptr<osi::transport::ServiceDemux> demux;
+    };
+    std::vector<TcpListener> tcp_listeners;
 };
+
+namespace {
+
+GatewayServiceSettings const* find_service(GatewaySdSettings const& settings,
+                                           std::uint16_t service_id, std::uint16_t instance_id) {
+    for (auto const& service : settings.services) {
+        if ((service.service_id == service_id) && (service.instance_id == instance_id)) {
+            return &service;
+        }
+    }
+    return nullptr;
+}
+
+GatewayEventSettings const* find_event(GatewayServiceSettings const& service,
+                                       std::uint16_t event_id) {
+    for (auto const& event : service.events) {
+        if (event.event_id == event_id) {
+            return &event;
+        }
+    }
+    return nullptr;
+}
+
+bool event_is_field(GatewayServiceSettings const* service, std::uint16_t event_id) {
+    if (service == nullptr) {
+        return false;
+    }
+    auto const* const event = find_event(*service, event_id);
+    return (event != nullptr) && event->has_is_field && event->is_field;
+}
+
+bool event_is_reliable(GatewayServiceSettings const* service, std::uint16_t event_id) {
+    if (service == nullptr) {
+        return false;
+    }
+    auto const* const event = find_event(*service, event_id);
+    if ((event != nullptr) && event->has_is_reliable) {
+        return event->is_reliable;
+    }
+    return (service->reliable_port != 0) && (service->unreliable_port == 0);
+}
+
+bool service_has_multicast(GatewayServiceSettings const* service) {
+    if (service == nullptr) {
+        return false;
+    }
+    for (auto const& group : service->eventgroups) {
+        if (!group.multicast_address.empty() && (group.multicast_port != 0)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string multicast_offer_endpoint(GatewayServiceSettings const* service) {
+    if (service == nullptr) {
+        return {};
+    }
+    for (auto const& group : service->eventgroups) {
+        if (!group.multicast_address.empty() && (group.multicast_port != 0)) {
+            // SdServer stores one multicast endpoint and attaches it to every
+            // SubscribeEventgroupAck for the service.
+            return group.multicast_address + ":" + std::to_string(group.multicast_port);
+        }
+    }
+    return {};
+}
+
+std::uint16_t publisher_eventgroup(std::vector<std::uint16_t> const& groups,
+                                   GatewayServiceSettings const* service, std::uint16_t event_id) {
+    // EventConfig stores one eventgroup id. Publish selects the multicast
+    // threshold and the subscriber list from that id, so an event that belongs
+    // to a multicast eventgroup has to name it. Other events keep the first id.
+    if (service != nullptr) {
+        for (auto const group_id : groups) {
+            for (auto const& configured : service->eventgroups) {
+                if ((configured.eventgroup_id == group_id) &&
+                    !configured.multicast_address.empty() && (configured.multicast_port != 0)) {
+                    return group_id;
+                }
+            }
+        }
+    }
+    if (groups.empty()) {
+        return event_id;
+    }
+    return groups.front();
+}
+
+void configure_eventgroups(osi::events::EventPublisher& publisher,
+                           GatewayServiceSettings const* service) {
+    if (service == nullptr) {
+        return;
+    }
+    for (auto const& group : service->eventgroups) {
+        if (group.multicast_address.empty() && !group.has_threshold) {
+            continue;
+        }
+        osi::events::EventgroupConfig config;
+        config.eventgroup_id = group.eventgroup_id;
+        config.multicast_threshold = group.threshold;
+        config.multicast_address = group.multicast_address;
+        config.multicast_port = group.multicast_port;
+        if (!publisher.configure_eventgroup(config)) {
+            score::mw::log::LogError() << "[someipd] Failed to configure eventgroup 0x"
+                                       << score::mw::log::LogHex16{group.eventgroup_id};
+        }
+    }
+}
+
+}  // namespace
 
 OpensomeipHost::OpensomeipHost() : objects_(std::make_unique<Objects>()) {
     objects_->settings = load_gateway_sd_settings();
@@ -217,11 +349,13 @@ void OpensomeipHost::stop() {
         servers.swap(objects_->servers);
         clients.swap(objects_->clients);
         subscribers.swap(objects_->subscribers);
+        objects_->field_events.clear();
     }
     subscribers.clear();
     clients.clear();
     publishers.clear();
     servers.clear();
+    stop_extra_listeners();
     if (objects_->sd_client) {
         objects_->sd_client->shutdown();
     }
@@ -266,9 +400,104 @@ void OpensomeipHost::on_subscription(std::uint16_t service_id, std::uint16_t ins
                                                              send_initial));
 }
 
+OpensomeipHost::UdpBinding OpensomeipHost::udp_binding_for(std::uint16_t requested_port) {
+    std::lock_guard const lock{objects_->mutex};
+    auto const primary_port = objects_->service_udp->get_local_endpoint().get_port();
+    if ((requested_port == 0) || (requested_port == primary_port)) {
+        return UdpBinding{objects_->demux.get(), primary_port};
+    }
+    for (auto& extra : objects_->extra_udp) {
+        if (extra.port == requested_port) {
+            return UdpBinding{extra.demux.get(), extra.port};
+        }
+    }
+    osi::transport::UdpTransportConfig config;
+    config.reuse_address = true;
+    auto transport = std::make_unique<osi::transport::UdpTransport>(
+        osi::transport::Endpoint("0.0.0.0", requested_port), config);
+    auto demux = std::make_unique<osi::transport::ServiceDemux>(*transport);
+    if (demux->start() != osi::Result::SUCCESS) {
+        score::mw::log::LogError()
+            << "[someipd] Failed to bind UDP service port " << requested_port;
+        return UdpBinding{objects_->demux.get(), primary_port};
+    }
+    OpensomeipHost::Objects::UdpListener listener;
+    listener.port = transport->get_local_endpoint().get_port();
+    listener.transport = std::move(transport);
+    listener.demux = std::move(demux);
+    objects_->extra_udp.push_back(std::move(listener));
+    auto& stored = objects_->extra_udp.back();
+    return UdpBinding{stored.demux.get(), stored.port};
+}
+
+osi::transport::TcpTransport* OpensomeipHost::ensure_tcp(std::uint16_t port, bool publisher_owned) {
+    std::lock_guard const lock{objects_->mutex};
+    for (auto const& existing : objects_->tcp_listeners) {
+        if (existing.port == port) {
+            if (!publisher_owned && (existing.demux == nullptr)) {
+                score::mw::log::LogError()
+                    << "[someipd] TCP port " << port << " is owned by an event publisher";
+            }
+            return existing.transport.get();
+        }
+    }
+    auto transport = std::make_unique<osi::transport::TcpTransport>();
+    osi::transport::Endpoint const endpoint("0.0.0.0", port,
+                                            osi::transport::TransportProtocol::TCP);
+    if (transport->initialize(endpoint) != osi::Result::SUCCESS) {
+        score::mw::log::LogError() << "[someipd] Failed to bind TCP port " << port;
+        return nullptr;
+    }
+    if (transport->enable_server_mode() != osi::Result::SUCCESS) {
+        score::mw::log::LogError() << "[someipd] Failed to listen on TCP port " << port;
+        return nullptr;
+    }
+    std::unique_ptr<osi::transport::ServiceDemux> demux;
+    if (!publisher_owned) {
+        demux = std::make_unique<osi::transport::ServiceDemux>(*transport);
+        if (demux->start() != osi::Result::SUCCESS) {
+            score::mw::log::LogError()
+                << "[someipd] Failed to start the TCP demux on port " << port;
+            return nullptr;
+        }
+    }
+    OpensomeipHost::Objects::TcpListener listener;
+    listener.port = transport->get_local_endpoint().get_port();
+    listener.transport = std::move(transport);
+    listener.demux = std::move(demux);
+    objects_->tcp_listeners.push_back(std::move(listener));
+    return objects_->tcp_listeners.back().transport.get();
+}
+
+osi::transport::UdpTransport* OpensomeipHost::make_event_udp() {
+    std::lock_guard const lock{objects_->mutex};
+    osi::transport::UdpTransportConfig config;
+    config.reuse_address = true;
+    if (!objects_->settings.unicast_address.empty() &&
+        (objects_->settings.unicast_address != "0.0.0.0")) {
+        config.multicast_interface = objects_->settings.unicast_address;
+    }
+    auto transport = std::make_unique<osi::transport::UdpTransport>(
+        osi::transport::Endpoint("0.0.0.0", 0), config);
+    auto* const raw = transport.get();
+    objects_->event_udp.push_back(std::move(transport));
+    return raw;
+}
+
+void OpensomeipHost::stop_extra_listeners() {
+    for (auto& extra : objects_->extra_udp) {
+        if (extra.demux) {
+            static_cast<void>(extra.demux->stop());
+        }
+    }
+    for (auto& tcp : objects_->tcp_listeners) {
+        if (tcp.demux) {
+            static_cast<void>(tcp.demux->stop());
+        }
+    }
+}
+
 void OpensomeipHost::offer(mw_someip_config::Root const& config) {
-    auto const port = objects_->service_udp->get_local_endpoint().get_port();
-    auto const unicast = objects_->advertise_address + ":" + std::to_string(port);
     for (auto const* const service_type : *config.service_types()) {
         auto const* const instances = service_type->local_service_instances();
         if ((instances == nullptr) || instances->empty()) {
@@ -276,11 +505,13 @@ void OpensomeipHost::offer(mw_someip_config::Root const& config) {
         }
         auto const service_id = service_type->service_id();
         auto const major = service_type->service_version_major();
+        auto const* const first_json =
+            find_service(objects_->settings, service_id, instances->Get(0)->instance_id());
+        auto const udp = udp_binding_for((first_json == nullptr) ? 0 : first_json->unreliable_port);
         {
             std::lock_guard const lock{objects_->mutex};
             if (objects_->servers.find(service_id) == objects_->servers.end()) {
-                auto server =
-                    std::make_unique<osi::rpc::RpcServer>(service_id, *objects_->demux, major);
+                auto server = std::make_unique<osi::rpc::RpcServer>(service_id, *udp.demux, major);
                 if (!server->initialize()) {
                     score::mw::log::LogError()
                         << "[someipd] Failed to register service 0x"
@@ -302,43 +533,109 @@ void OpensomeipHost::offer(mw_someip_config::Root const& config) {
         }
         for (auto const* const instance : *instances) {
             auto const instance_id = instance->instance_id();
-            osi::platform::Vector<std::uint16_t> groups;
-            std::set<std::uint16_t> unique_groups;
+            auto const key = InstanceKey{service_id, instance_id};
             {
                 std::lock_guard const lock{objects_->mutex};
-                auto publisher =
-                    std::make_unique<osi::events::EventPublisher>(service_id, instance_id, major);
-                if (!publisher->initialize()) {
-                    score::mw::log::LogError()
-                        << "[someipd] Failed to start event publisher for service 0x"
-                        << score::mw::log::LogHex16{service_id};
+                if (objects_->publishers.find(key) != objects_->publishers.end()) {
                     continue;
                 }
-                if (service_type->events() != nullptr) {
-                    for (auto const* const event : *service_type->events()) {
-                        auto const event_groups = eventgroups_of(*event);
-                        osi::events::EventConfig event_config;
-                        event_config.event_id = event->event_id();
-                        event_config.eventgroup_id =
-                            event_groups.empty() ? event->event_id() : event_groups.front();
-                        event_config.reliability = osi::events::Reliability::UNRELIABLE;
-                        event_config.is_field = false;
-                        static_cast<void>(publisher->register_event(event_config));
-                        for (auto const group_id : event_groups) {
-                            unique_groups.insert(group_id);
-                        }
+            }
+            auto const* const json_service =
+                find_service(objects_->settings, service_id, instance_id);
+            bool const tcp_only = (json_service != nullptr) && (json_service->reliable_port != 0) &&
+                                  (json_service->unreliable_port == 0);
+            bool const has_reliable =
+                (json_service != nullptr) && (json_service->reliable_port != 0);
+            // TcpTransport::initialize + enable_server_mode, then either ServiceDemux
+            // (shared listener) or EventPublisher (the library's injected-transport pattern).
+            // A TCP-only service gives the socket to the publisher so notifications and
+            // field initial events leave on that connection. A service that also has UDP
+            // keeps the publisher on UDP and starts a demux on the reliable port.
+            osi::transport::TcpTransport* tcp = nullptr;
+            if (has_reliable) {
+                tcp = ensure_tcp(json_service->reliable_port, tcp_only);
+            }
+            if (tcp_only && (tcp == nullptr)) {
+                score::mw::log::LogError()
+                    << "[someipd] Not offering service 0x" << score::mw::log::LogHex16{service_id}
+                    << ": TCP port " << json_service->reliable_port << " did not listen";
+                continue;
+            }
+            std::uint8_t protocol = 0x11;
+            auto const instance_udp =
+                udp_binding_for((json_service == nullptr) ? 0 : json_service->unreliable_port);
+            std::uint16_t advertised_port = instance_udp.port;
+            std::unique_ptr<osi::events::EventPublisher> publisher;
+            if (tcp_only && (tcp != nullptr)) {
+                publisher = std::make_unique<osi::events::EventPublisher>(service_id, instance_id,
+                                                                          *tcp, major);
+                protocol = 0x06;
+                advertised_port = tcp->get_local_endpoint().get_port();
+            } else if (service_has_multicast(json_service)) {
+                publisher = std::make_unique<osi::events::EventPublisher>(service_id, instance_id,
+                                                                          *make_event_udp(), major);
+            } else {
+                publisher =
+                    std::make_unique<osi::events::EventPublisher>(service_id, instance_id, major);
+            }
+            std::set<std::uint16_t> field_ids;
+            std::set<std::uint16_t> unique_groups;
+            if (service_type->events() != nullptr) {
+                for (auto const* const event : *service_type->events()) {
+                    auto const event_groups = eventgroups_of(*event);
+                    osi::events::EventConfig event_config;
+                    event_config.event_id = event->event_id();
+                    event_config.eventgroup_id =
+                        publisher_eventgroup(event_groups, json_service, event->event_id());
+                    event_config.is_field = event_is_field(json_service, event->event_id());
+                    event_config.reliability = event_is_reliable(json_service, event->event_id())
+                                                   ? osi::events::Reliability::RELIABLE
+                                                   : osi::events::Reliability::UNRELIABLE;
+                    if (!publisher->register_event(event_config)) {
+                        score::mw::log::LogError()
+                            << "[someipd] Failed to register event 0x"
+                            << score::mw::log::LogHex16{event->event_id()} << " on service 0x"
+                            << score::mw::log::LogHex16{service_id};
+                    } else if (event_config.is_field) {
+                        field_ids.insert(event->event_id());
+                    }
+                    for (auto const group_id : event_groups) {
+                        unique_groups.insert(group_id);
                     }
                 }
-                objects_->publishers.insert_or_assign(InstanceKey{service_id, instance_id},
-                                                      std::move(publisher));
             }
+            configure_eventgroups(*publisher, json_service);
+            if (!publisher->initialize()) {
+                score::mw::log::LogError()
+                    << "[someipd] Failed to start event publisher for service 0x"
+                    << score::mw::log::LogHex16{service_id};
+                continue;
+            }
+            {
+                std::lock_guard const lock{objects_->mutex};
+                if (objects_->publishers.find(key) != objects_->publishers.end()) {
+                    continue;
+                }
+                objects_->field_events.insert_or_assign(key, std::move(field_ids));
+                objects_->publishers.emplace(key, std::move(publisher));
+            }
+            osi::platform::Vector<std::uint16_t> groups;
             for (auto const group_id : unique_groups) {
                 groups.push_back(group_id);
             }
+            // offer_service stores one IPv4 endpoint and ServiceInstance::protocol.
+            // 0x06 is TCP (TcpOfferAdvertisesInstanceProtocol). 0x11 is UDP.
+            // A second offer of the same service and instance is rejected, so a
+            // service with both ports cannot emit two endpoint options. Advertise
+            // UDP when an unreliable port is present, and TCP when the service is
+            // TCP-only. The TCP listener is still started when a reliable port is set.
             osi::sd::ServiceInstance offered(service_id, instance_id, major,
                                              service_type->service_version_minor());
-            offered.protocol = 0x11;
-            if (!objects_->sd_server->offer_service(offered, unicast, "", groups)) {
+            offered.protocol = protocol;
+            auto const unicast =
+                objects_->advertise_address + ":" + std::to_string(advertised_port);
+            auto const multicast = multicast_offer_endpoint(json_service);
+            if (!objects_->sd_server->offer_service(offered, unicast, multicast, groups)) {
                 score::mw::log::LogError() << "[someipd] Failed to offer service 0x"
                                            << score::mw::log::LogHex16{service_id} << " instance 0x"
                                            << score::mw::log::LogHex16{instance_id};
@@ -346,7 +643,8 @@ void OpensomeipHost::offer(mw_someip_config::Root const& config) {
             }
             score::mw::log::LogInfo()
                 << "[someipd] Offering service 0x" << score::mw::log::LogHex16{service_id}
-                << " instance 0x" << score::mw::log::LogHex16{instance_id} << " at " << unicast;
+                << " instance 0x" << score::mw::log::LogHex16{instance_id} << " at " << unicast
+                << (protocol == 0x06 ? " tcp" : " udp");
         }
     }
 }
@@ -358,11 +656,19 @@ void OpensomeipHost::publish_event(std::uint16_t service_id, std::uint16_t insta
     if (!objects_->running) {
         return;
     }
-    auto const publisher = objects_->publishers.find(InstanceKey{service_id, instance_id});
+    auto const key = InstanceKey{service_id, instance_id};
+    auto const publisher = objects_->publishers.find(key);
     if (publisher == objects_->publishers.end()) {
         score::mw::log::LogError()
             << "[someipd] Dropping event 0x" << score::mw::log::LogHex16{event_id} << ": service 0x"
             << score::mw::log::LogHex16{service_id} << " is not offered";
+        return;
+    }
+    auto const fields = objects_->field_events.find(key);
+    bool const is_field =
+        (fields != objects_->field_events.end()) && (fields->second.count(event_id) != 0);
+    if (is_field) {
+        static_cast<void>(publisher->second->publish_field(event_id, payload));
         return;
     }
     static_cast<void>(publisher->second->publish_event(event_id, payload));
