@@ -106,7 +106,7 @@ jobs:
         run: |
           source=bazel-out/k8-fastbuild/testlogs/tests/tc8_conformance
           if [ -d "$source" ]; then
-            find "$source" -mindepth 1 -maxdepth 1 -type d -print0 | while IFS= read -r -d '' test_dir; do
+            find "$source" "$source/qemu" -mindepth 1 -maxdepth 1 -type d ! -path "$source/qemu" -print0 | while IFS= read -r -d '' test_dir; do
               test_name="$(basename "$test_dir")"
               dest="tc8-test-reports/$test_name"
               mkdir -p "$dest"

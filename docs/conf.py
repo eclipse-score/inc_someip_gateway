@@ -17,7 +17,7 @@ version = "0.1"
 
 extensions = ["score_sphinx_bundle"]
 
-required_in_id = ["gatewayd", "socom", "gib"]
+required_in_id = ["gatewayd", "socom", "gib", "serializer"]
 
 # Component requirements link upward to communication-module feature
 # requirements (``feat_req__com__*``) owned by eclipse-score/communication.
