@@ -21,7 +21,7 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
-load("//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
 load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
 exports_files([
