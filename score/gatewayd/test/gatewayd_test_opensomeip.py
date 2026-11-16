@@ -50,8 +50,7 @@ class GatewaydOpensomeipTest(unittest.TestCase):
         # services, and that offer line includes the endpoint and "udp".
         self._assert_creates_network_instance(
             "Creating remote service instance: echo_response*Gateway started, waiting for shutdown signal...",
-            "[someipd] Creating RemoteNetworkService:*echo_response*0x 4321*0x 5678*"
-            "[someipd] Offering service*at*udp",
+            "[someipd] Creating RemoteNetworkService:*echo_response*0x 4321*0x 5678*[someipd] Offering service*at*udp",
         )
 
     def _assert_creates_network_instance(self, expected_gatewayd_output: str, expected_someipd_output: str) -> None:
