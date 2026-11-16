@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-import os
 from pathlib import Path
 import subprocess
 import unittest
@@ -24,12 +23,11 @@ from quality.pytest.process import wait_for_output
 
 
 class GatewaydTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.gatewayd = Path(os.environ["GATEWAYD"])
-        self.someipd = Path(os.environ["SOMEIPD"])
-        self.configuration = Path(os.environ["CONFIGURATION"])
-        self.service_instance_manifest = Path(os.environ["SERVICE_INSTANCE_MANIFEST"])
-        self.someipd_service_instance_manifest = Path(os.environ["SOMEIPD_SERVICE_INSTANCE_MANIFEST"])
+    gatewayd: Path
+    someipd: Path
+    configuration: Path
+    service_instance_manifest: Path
+    someipd_service_instance_manifest: Path
 
     @add_test_properties(
         fully_verifies=["comp_req__gatewayd__prints_usage"],

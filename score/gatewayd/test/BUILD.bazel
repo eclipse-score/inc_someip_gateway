@@ -99,7 +99,17 @@ cc_test(
 
 score_py_pytest(
     name = "gatewayd_test",
-    srcs = ["gatewayd_test.py"],
+    srcs = [
+        "conftest.py",
+        "gatewayd_test.py",
+    ],
+    args = [
+        "--configuration=$(location //score/config:config_file)",
+        "--gatewayd=$(location //score/gatewayd:gatewayd)",
+        "--service-instance-manifest=$(location //score/gatewayd:etc/mw_com_config.json)",
+        "--someipd=$(location //score/someipd:someipd)",
+        "--someipd-service-instance-manifest=$(location //score/someipd:etc/mw_com_config.json)",
+    ],
     data = [
         "//score/config:config_file",
         "//score/gatewayd",
@@ -108,13 +118,6 @@ score_py_pytest(
         "//score/someipd",
         "//score/someipd:etc/mw_com_config.json",
     ],
-    env = {
-        "CONFIGURATION": "$(location //score/config:config_file)",
-        "GATEWAYD": "$(location //score/gatewayd:gatewayd)",
-        "SERVICE_INSTANCE_MANIFEST": "$(location //score/gatewayd:etc/mw_com_config.json)",
-        "SOMEIPD": "$(location //score/someipd:someipd)",
-        "SOMEIPD_SERVICE_INSTANCE_MANIFEST": "$(location //score/someipd:etc/mw_com_config.json)",
-    },
     tags = [
         "block-network",
         "unit",

@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-import os
 from pathlib import Path
 import signal
 import subprocess
@@ -23,9 +22,8 @@ from quality.pytest.process import stop_process, wait_for_output
 
 
 class SomeipdTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.binary = Path(os.environ["SOMEIPD"])
-        self.service_instance_manifest = Path(os.environ["SERVICE_INSTANCE_MANIFEST"])
+    binary: Path
+    service_instance_manifest: Path
 
     @add_test_properties(
         fully_verifies=["comp_req__someipd__prints_usage"],

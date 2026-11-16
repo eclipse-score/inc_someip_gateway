@@ -16,15 +16,18 @@ load("@score_tooling//:defs.bzl", "score_py_pytest")
 
 score_py_pytest(
     name = "someipd_test",
-    srcs = ["someipd_test.py"],
+    srcs = [
+        "conftest.py",
+        "someipd_test.py",
+    ],
+    args = [
+        "--someipd=$(location //score/someipd:someipd)",
+        "--service-instance-manifest=$(location //score/someipd:etc/mw_com_config.json)",
+    ],
     data = [
         "//score/someipd",
         "//score/someipd:etc/mw_com_config.json",
     ],
-    env = {
-        "SERVICE_INSTANCE_MANIFEST": "$(location //score/someipd:etc/mw_com_config.json)",
-        "SOMEIPD": "$(location //score/someipd:someipd)",
-    },
     tags = [
         "block-network",
         "unit",
