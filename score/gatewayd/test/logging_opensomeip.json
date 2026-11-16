@@ -1,0 +1,5 @@
+{
+    "logMode": "kConsole",
+    "logLevel": "kInfo",
+    "logLevelThresholdConsole": "kInfo"
+}

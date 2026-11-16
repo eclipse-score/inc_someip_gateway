@@ -14,36 +14,43 @@
 #include "local_network_service.h"
 
 #include <cstddef>
+#include <cstring>
 #include <iostream>
 #include <memory>
 
 #include "score/mw/log/logging.h"
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
+#include "score/someipd/impl/routing.h"
+
+#if defined(SOMEIPD_STACK_OPENSOMEIP)
+#include "opensomeip_host.h"
+#else
+#include <vsomeip/vsomeip.hpp>
+#endif
 
 namespace score::someipd {
 
 LocalNetworkService::LocalNetworkService(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
-    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app,
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config, Routing& routing,
     socom::Client_connector::Uptr client_connector)
     : service_instance_config_(std::move(service_instance_config)),
       service_type_config_(std::move(service_type_config)),
-      vsomeip_app_(std::move(vsomeip_app)),
+      routing_(routing),
       client_connector_(std::move(client_connector)) {}
 
 Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
-    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime) {
+    std::shared_ptr<const mw_someip_config::ServiceType> service_type_config, Routing& routing,
+    socom::Runtime& socom_runtime) {
     // Create instance first with null connector - needed because callbacks capture the instance
     // pointer. SOCom may invoke on_service_state_change before client_connector_ is assigned:
     // from the IPC thread when the service becomes available, or synchronously inside
     // make_client_connector() if a matching server is already registered (as in the unit test).
     // Callbacks must therefore use the connector passed to them.
-    auto instance = std::unique_ptr<LocalNetworkService>(new LocalNetworkService(
-        service_instance_config, service_type_config, std::move(vsomeip_app), nullptr));
+    auto instance = std::unique_ptr<LocalNetworkService>(
+        new LocalNetworkService(service_instance_config, service_type_config, routing, nullptr));
 
     socom::Service_interface_identifier const iface{
         service_type_config->service_type_name()->string_view(),
@@ -85,7 +92,7 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
             .on_event_update =
                 [instance_ptr = instance.get()](socom::Client_connector const&,
                                                 socom::Event_id event_id, socom::Payload payload) {
-                    instance_ptr->forward_to_vsomeip(event_id, std::move(payload));
+                    instance_ptr->forward_event(event_id, std::move(payload));
                 },
             .on_event_requested_update =
                 [](socom::Client_connector const&, socom::Event_id, socom::Payload) {
@@ -111,7 +118,7 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
     return instance;
 }
 
-void LocalNetworkService::forward_to_vsomeip(socom::Event_id event_id, socom::Payload payload) {
+void LocalNetworkService::forward_event(socom::Event_id event_id, socom::Payload payload) {
     auto const event_index = static_cast<std::size_t>(event_id);
     auto const* const events = service_type_config_->events();
     if (event_index >= events->size()) {
@@ -122,17 +129,28 @@ void LocalNetworkService::forward_to_vsomeip(socom::Event_id event_id, socom::Pa
     auto const* const event_config = (*events)[event_index];
 
     auto const full_msg = payload.data();
-    // Drop the SOME/IP header part, fields are set via config lookup
+    // Drop the SOME/IP header part, fields are set via config lookup.
+    // The event payload bytes that remain are forwarded unchanged.
     auto const event_data = full_msg.subspan(someip::kSomeipFullHeaderSize,
                                              full_msg.size() - someip::kSomeipFullHeaderSize);
 
+#if defined(SOMEIPD_STACK_OPENSOMEIP)
+    ::someip::platform::ByteBuffer bytes(event_data.size());
+    if (!event_data.empty()) {
+        std::memcpy(bytes.data(), event_data.data(), event_data.size());
+    }
+    routing_.host().publish_event(service_type_config_->service_id(),
+                                  service_instance_config_->instance_id(), event_config->event_id(),
+                                  bytes);
+#else
     auto vsomeip_payload = vsomeip::runtime::get()->create_payload();
     vsomeip_payload->set_data(reinterpret_cast<const vsomeip_v3::byte_t*>(event_data.data()),
                               static_cast<vsomeip_v3::length_t>(event_data.size()));
 
-    vsomeip_app_->notify(service_type_config_->service_id(),
-                         service_instance_config_->instance_id(), event_config->event_id(),
-                         vsomeip_payload);
+    routing_.get_application()->notify(service_type_config_->service_id(),
+                                       service_instance_config_->instance_id(),
+                                       event_config->event_id(), vsomeip_payload);
+#endif
 }
 
 }  // namespace score::someipd

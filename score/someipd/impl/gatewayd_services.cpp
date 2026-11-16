@@ -82,9 +82,8 @@ bool GatewaydServices::Add(
                 << service_type_config->service_type_name()->string_view() << " service_id=0x"
                 << score::mw::log::LogHex16{service_type_config->service_id()} << " instance_id=0x"
                 << score::mw::log::LogHex16{service_instance_config->instance_id()};
-            auto created =
-                LocalNetworkService::Create({config, service_instance_config}, service_type,
-                                            routing_.get_application(), socom_runtime_);
+            auto created = LocalNetworkService::Create({config, service_instance_config},
+                                                       service_type, routing_, socom_runtime_);
             if (!created.has_value()) {
                 score::mw::log::LogError()
                     << "[someipd] Failed to create LocalNetworkService for "
@@ -102,9 +101,8 @@ bool GatewaydServices::Add(
                     << score::mw::log::LogHex16{service_type_config->service_id()}
                     << " instance_id=0x"
                     << score::mw::log::LogHex16{service_instance_config->instance_id()};
-                auto created =
-                    RemoteNetworkService::Create({config, service_instance_config}, service_type,
-                                                 routing_.get_application(), socom_runtime_);
+                auto created = RemoteNetworkService::Create({config, service_instance_config},
+                                                            service_type, routing_, socom_runtime_);
                 if (!created.has_value()) {
                     score::mw::log::LogError()
                         << "[someipd] Failed to create RemoteNetworkService for "
@@ -122,7 +120,7 @@ bool GatewaydServices::Add(
     }
     routing_.AddServices(config, [remote]() {
         for (auto* const service : remote) {
-            service->setup_vsomeip();
+            service->Setup();
         }
     });
 

@@ -16,7 +16,6 @@
 
 #include <memory>
 #include <vector>
-#include <vsomeip/vsomeip.hpp>
 
 #include "score/config/mw_someip_config_generated.h"
 #include "score/result/result.h"
@@ -28,21 +27,23 @@ class Runtime;
 
 namespace score::someipd {
 
+class Routing;
+
 /// \brief Represents a service offered locally (by an app behind gatewayd) on the SOME/IP network.
 /// \details Owns a SOCom client connector that receives event updates from gatewayd's server
-///          connector and forwards them to the SOME/IP network via vsomeip notify().
+///          connector and forwards the event payload bytes onto the SOME/IP network.
 class LocalNetworkService {
    public:
     /// \brief Creates a LocalNetworkService
     /// \param service_instance_config Configuration for the service instance to create
     /// \param service_type_config Configuration for the service type of the instance to create
-    /// \param vsomeip_app vsomeip application used to notify events on the SOME/IP network
+    /// \param routing Stack that publishes the event
     /// \param socom_runtime SOCom runtime used to create the client connector
     /// \return Result containing the created instance on success, or an error on failure
     static Result<std::unique_ptr<LocalNetworkService>> Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
-        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime);
+        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config, Routing& routing,
+        socom::Runtime& socom_runtime);
 
     LocalNetworkService(const LocalNetworkService&) = delete;
     LocalNetworkService& operator=(const LocalNetworkService&) = delete;
@@ -53,15 +54,14 @@ class LocalNetworkService {
     /// \brief Private constructor
     LocalNetworkService(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
-        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-        std::shared_ptr<vsomeip::application> vsomeip_app,
+        std::shared_ptr<const mw_someip_config::ServiceType> service_type_config, Routing& routing,
         socom::Client_connector::Uptr client_connector);
 
-    void forward_to_vsomeip(socom::Event_id event_id, socom::Payload payload);
+    void forward_event(socom::Event_id event_id, socom::Payload payload);
 
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config_;
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_;
-    std::shared_ptr<vsomeip::application> vsomeip_app_;
+    Routing& routing_;
     /// Declared last so it is destroyed first, ensuring no callbacks fire after the other members.
     socom::Client_connector::Uptr client_connector_;
 };

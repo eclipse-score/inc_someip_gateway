@@ -22,6 +22,8 @@
 
 namespace score::someipd {
 
+Routing::~Routing() = default;
+
 Result<std::unique_ptr<Routing>> Routing::Create() {
     // Not make_unique: the constructor is private.
     std::unique_ptr<Routing> routing{new Routing{}};

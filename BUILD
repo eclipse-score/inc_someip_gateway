@@ -62,6 +62,7 @@ test_suite(
         "//score/gateway_ipc_binding/test/unit:service_binding_test",
         "//score/gateway_ipc_binding/test/unit:someipd_service_binding_test",
         "//score/gatewayd/test:gatewayd_test",
+        "//score/gatewayd/test:gatewayd_test_opensomeip",
         "//score/gatewayd/test:local_service_instance_test",
         "//score/gatewayd/test:remote_service_instance_test",
         "//score/serializer:null_serializer_test",

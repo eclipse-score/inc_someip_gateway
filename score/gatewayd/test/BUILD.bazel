@@ -15,6 +15,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+load(":opensomeip_stack.bzl", "someipd_opensomeip")
 
 cc_library(
     name = "service_instance_test_fixture",
@@ -113,6 +114,44 @@ py_test(
         "//score/gatewayd:etc/mw_com_config.json",
         "//score/serializer:null_serializer",
         "//score/someipd",
+        "//score/someipd:etc/mw_com_config.json",
+    ],
+    tags = [
+        "block-network",
+        "unit",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+    visibility = ["//:__pkg__"],
+    deps = [
+        "//quality/pytest:process",
+    ],
+)
+
+# someipd rebuilt with --//score/someipd:stack=opensomeip. gatewayd is not under this transition.
+someipd_opensomeip(
+    name = "someipd_opensomeip",
+    testonly = True,
+    binary = "//score/someipd",
+)
+
+py_test(
+    name = "gatewayd_test_opensomeip",
+    srcs = ["gatewayd_test_opensomeip.py"],
+    args = [
+        "$(location //score/gatewayd:gatewayd)",
+        "$(location :someipd_opensomeip)",
+        "$(location //score/config:config_file)",
+        "$(location //score/gatewayd:etc/mw_com_config.json)",
+        "$(location //score/someipd:etc/mw_com_config.json)",
+        "$(location :logging_opensomeip.json)",
+    ],
+    data = [
+        ":logging_opensomeip.json",
+        ":someipd_opensomeip",
+        "//score/config:config_file",
+        "//score/gatewayd",
+        "//score/gatewayd:etc/mw_com_config.json",
+        "//score/serializer:null_serializer",
         "//score/someipd:etc/mw_com_config.json",
     ],
     tags = [

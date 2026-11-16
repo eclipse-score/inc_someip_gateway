@@ -25,6 +25,7 @@
 #include "score/config/mw_someip_config_generated.h"
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/runtime.hpp"
+#include "score/someipd/impl/routing.h"
 
 using ::testing::_;
 
@@ -106,6 +107,12 @@ class LocalNetworkServiceTest : public ::testing::Test {
     socom::Method_call_payload_allocate_callback_mock method_payload_allocate_mock_;
 };
 
+/// \brief One stack per process. The test never starts it.
+Routing& routing() {
+    static auto created = Routing::Create();
+    return *created.value();
+}
+
 // Regression test for the race behind issue #305: if the server connector is already available,
 // SOCom invokes on_service_state_change(available) synchronously inside make_client_connector(),
 // i.e. before LocalNetworkService::Create() could store the returned client connector. The
@@ -118,14 +125,14 @@ TEST_F(LocalNetworkServiceTest, SubscribesAllEventsWhenServiceIsAlreadyAvailable
     expect_all_events_subscribed();
 
     auto const service = LocalNetworkService::Create(service_instance_config_, service_type_config_,
-                                                     nullptr, *runtime_);
+                                                     routing(), *runtime_);
 
     ASSERT_TRUE(service.has_value());
 }
 
 TEST_F(LocalNetworkServiceTest, SubscribesAllEventsWhenServiceBecomesAvailableLater) {
     auto const service = LocalNetworkService::Create(service_instance_config_, service_type_config_,
-                                                     nullptr, *runtime_);
+                                                     routing(), *runtime_);
     ASSERT_TRUE(service.has_value());
     auto server_connector = make_server_connector();
     ASSERT_NE(server_connector, nullptr);
