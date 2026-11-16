@@ -51,6 +51,44 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    When started with the ``--help`` command-line argument, gatewayd shall
    print its usage text and exit with a success exit code.
 
+.. comp_req:: gatewayd forwards local events to someipd
+   :id: comp_req__gatewayd__forwards_local_events
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Functional
+   :satisfied_by: comp__gatewayd
+
+   When a local application sends a sample of a bridged event, gatewayd shall
+   serialize it into a SOME/IP message and pass it to someipd.
+
+.. comp_req:: gatewayd offers remote events locally
+   :id: comp_req__gatewayd__offers_remote_events
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Functional
+   :satisfied_by: comp__gatewayd
+
+   When someipd passes a SOME/IP event message for a bridged remote service,
+   gatewayd shall deserialize it and send the result as a sample of the
+   matching local service event.
+
+.. comp_req:: gatewayd drops events it cannot process
+   :id: comp_req__gatewayd__drops_failed_events
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Functional
+   :satisfied_by: comp__gatewayd
+
+   If gatewayd cannot set up a bridged service instance, or cannot allocate,
+   serialize, deserialize or send an event sample, it shall report the error
+   and shall not forward that sample.
+
 .. aou_req:: Integrity of the SOME/IP configuration file
    :id: aou_req__gatewayd__someip_config_integrity
    :status: valid

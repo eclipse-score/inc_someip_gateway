@@ -58,3 +58,16 @@ transport. They do not claim method-call transport, which is not implemented.
    When an event is updated on a bridged SOCom server connector, the binding
    shall deliver the same payload bytes to subscribed clients on the remote
    peer.
+
+.. comp_req:: IPC binding rejects invalid or failed setup
+   :id: comp_req__gib__rejects_invalid_setup
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Functional
+   :satisfied_by: comp__gateway_ipc_binding
+
+   If a bridged service configuration is invalid, or a service binding cannot
+   be created or started, the binding shall return an error and shall not make
+   the service available.

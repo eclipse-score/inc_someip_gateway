@@ -358,3 +358,18 @@ Component Requirements: Event Notification
    4.2.4 (Notification Events), and AUTOSAR SOME/IP Service Discovery
    Protocol Specification R24-11, section 5.1.3.1.1 (Subscribe
    Eventgroup Entry).
+
+.. comp_req:: TC8 Test Helpers Are Checked on Their Own
+   :id: comp_req__tc8_conformance__harness_selfcheck
+   :status: valid
+   :version: 1
+   :tags: tc8, conformance, test_infrastructure
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
+   :safety: QM
+   :security: NO
+   :reqtype: Functional
+
+   The conformance test suite shall include tests that check its own helper
+   code, such as message builders, SD senders and packet capture, without
+   needing a running ``someipd``.
