@@ -13,8 +13,8 @@
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("@rules_python//python:defs.bzl", "py_test")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+load("@score_tooling//:defs.bzl", "score_py_pytest")
 
 cc_library(
     name = "service_instance_test_fixture",
@@ -97,16 +97,9 @@ cc_test(
     ],
 )
 
-py_test(
+score_py_pytest(
     name = "gatewayd_test",
     srcs = ["gatewayd_test.py"],
-    args = [
-        "$(location //score/gatewayd:gatewayd)",
-        "$(location //score/someipd:someipd)",
-        "$(location //score/config:config_file)",
-        "$(location //score/gatewayd:etc/mw_com_config.json)",
-        "$(location //score/someipd:etc/mw_com_config.json)",
-    ],
     data = [
         "//score/config:config_file",
         "//score/gatewayd",
@@ -115,6 +108,13 @@ py_test(
         "//score/someipd",
         "//score/someipd:etc/mw_com_config.json",
     ],
+    env = {
+        "CONFIGURATION": "$(location //score/config:config_file)",
+        "GATEWAYD": "$(location //score/gatewayd:gatewayd)",
+        "SERVICE_INSTANCE_MANIFEST": "$(location //score/gatewayd:etc/mw_com_config.json)",
+        "SOMEIPD": "$(location //score/someipd:someipd)",
+        "SOMEIPD_SERVICE_INSTANCE_MANIFEST": "$(location //score/someipd:etc/mw_com_config.json)",
+    },
     tags = [
         "block-network",
         "unit",

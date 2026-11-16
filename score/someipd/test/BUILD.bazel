@@ -12,19 +12,19 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("@rules_python//python:defs.bzl", "py_test")
+load("@score_tooling//:defs.bzl", "score_py_pytest")
 
-py_test(
+score_py_pytest(
     name = "someipd_test",
     srcs = ["someipd_test.py"],
-    args = [
-        "$(location //score/someipd:someipd)",
-        "$(location //score/someipd:etc/mw_com_config.json)",
-    ],
     data = [
         "//score/someipd",
         "//score/someipd:etc/mw_com_config.json",
     ],
+    env = {
+        "SERVICE_INSTANCE_MANIFEST": "$(location //score/someipd:etc/mw_com_config.json)",
+        "SOMEIPD": "$(location //score/someipd:someipd)",
+    },
     tags = [
         "block-network",
         "unit",
