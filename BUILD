@@ -24,6 +24,7 @@ exports_files(["MODULE.bazel"])
 exports_files([
     ".clang-tidy",
     ".ruff.toml",
+    "docs/conf.py",
 ])
 
 # ==============================================================================

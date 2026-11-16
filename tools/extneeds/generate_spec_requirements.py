@@ -54,7 +54,7 @@ BLOCK = """
    :reqtype: {reqtype}
    :security: {security}
    :safety: {safety}
-   :status: valid
+   :status: {status}
    :version: 1
    :valid_from: {valid_from}
    :rationale: This mirrored source requirement is retained at the stakeholder level; see the linked upstream source line.
@@ -92,6 +92,7 @@ def main() -> None:
                 reqtype=REQTYPE[need["reqtype"]],
                 security="NO" if need.get("security") == "TBD" else need.get("security", "NO"),
                 safety="QM" if need.get("safety") == "TBD" else need.get("safety", "QM"),
+                status=need["status"],
                 valid_from=args.valid_from,
                 docname=need["docname"],
                 lineno=need["lineno"],

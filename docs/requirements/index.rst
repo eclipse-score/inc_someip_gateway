@@ -28,12 +28,8 @@ following the S-CORE docs-as-code requirements process.
 Organization
 ------------
 
-Requirements follow the S-CORE requirements engineering process where local
-parent-child relationships are maintained. Open SOME/IP source requirements
-are imported as metadata-only stakeholder needs and cross-referenced from
-applicable requirements. Their source locations link to the pinned upstream
-specification; they provide supporting protocol context, while OA TC8 remains
-the primary conformance basis.
+Requirements are structured in a three-level hierarchy following the
+S-CORE requirements engineering process:
 
 .. list-table:: Requirements Hierarchy
    :widths: 20 30 50
@@ -50,7 +46,7 @@ the primary conformance basis.
      - Derived from stakeholder requirements, scoped to a gateway feature
    * - Component
      - ``requirements/component/``
-     - Scoped to a specific component; external sources are linked by URL
+     - Derived from feature requirements, scoped to a specific component
 
 Component Names
 ^^^^^^^^^^^^^^^
@@ -126,7 +122,7 @@ Every requirement directive must include these attributes:
 - ``:safety:`` — ``QM`` or ``ASIL_B``
 - ``:security:`` — ``YES`` or ``NO``
 - ``:reqtype:`` — ``Functional``, ``Interface``, ``Process``, or ``Non-Functional``
-- ``:derived_from:`` — parent requirement ID when a local parent requirement exists
+- ``:derived_from:`` — parent requirement ID (mandatory for feature and component levels, used for upward requirement links)
 - ``:satisfied_by:`` — component ID that implements a component requirement
 - ``:rationale:`` — justification text (mandatory for stakeholder level only)
 

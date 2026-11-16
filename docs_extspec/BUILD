@@ -17,7 +17,7 @@ load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 # deliberately omits requirement titles and prose from its output.
 genrule(
     name = "spec_needs_json",
-    srcs = ["@open_someip_spec//:rst_sources"],
+    srcs = ["@open_someip_spec//:srcs"],
     outs = ["needs.json"],
     cmd = "$(execpath //tools/extneeds:generate_spec_needs) --output $@ $(SRCS)",
     tools = ["//tools/extneeds:generate_spec_needs"],
@@ -38,3 +38,6 @@ docs_bundle(
     srcs = [":spec_requirements_rst"],
     visibility = ["//visibility:public"],
 )
+
+# The generated needs are metadata-only; see the root README for licensing,
+# ID mapping, allowed links, and pin-update guidance.

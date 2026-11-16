@@ -37,10 +37,24 @@ py_test(
 )
 
 py_test(
+    name = "generate_spec_requirements_test",
+    srcs = [
+        "generate_spec_requirements.py",
+        "test_generate_spec_requirements.py",
+    ],
+    imports = ["."],
+    main = "test_generate_spec_requirements.py",
+)
+
+py_test(
     name = "update_open_someip_spec_test",
     srcs = [
         "test_update_open_someip_spec.py",
         "update_open_someip_spec.py",
+    ],
+    data = [
+        "//:MODULE.bazel",
+        "//:docs/conf.py",
     ],
     imports = ["."],
     main = "test_update_open_someip_spec.py",

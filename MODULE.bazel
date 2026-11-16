@@ -228,23 +228,21 @@ exports_files(["flamegraph.pl", "stackcollapse-perf.pl"])
     remote = "https://github.com/brendangregg/FlameGraph.git",
 )
 
-git_repository(
-    name = "open_someip_spec",
-    build_file_content = """
-filegroup(
-    name = "rst_sources",
-    srcs = glob(["src/*.rst"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    commit = "4860461802c23f41c6227befcb25cc80e7d68771",
-    remote = "https://github.com/some-ip-com/open-someip-spec.git",
-)
-
 # ============================================================================
 # Documentation
 # ============================================================================
 bazel_dep(name = "score_docs_as_code", version = "8.7.0")
+
+download_archive(
+    name = "open_someip_spec",
+    srcs = ["src/*.rst"],
+    dev_dependency = True,
+    integrity = "sha256-qDoeHSqOOhqDlv0oinUrTnJQtLMhBLh856cW5Kg1stA=",
+    strip_prefix = "open-someip-spec-4860461802c23f41c6227befcb25cc80e7d68771",
+    urls = [
+        "https://github.com/some-ip-com/open-someip-spec/archive/4860461802c23f41c6227befcb25cc80e7d68771.tar.gz",
+    ],
+)
 
 # ============================================================================
 # Communication Framework

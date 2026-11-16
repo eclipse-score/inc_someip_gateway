@@ -14,21 +14,22 @@
 """Update the pinned Open SOME/IP commit and validate the documentation build."""
 
 import argparse
+import base64
+import hashlib
 import json
 import re
 import subprocess
 from pathlib import Path
-from typing import Callable
-from urllib import error, parse, request
+from urllib import error, request
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULE_BAZEL = ROOT / "MODULE.bazel"
 DOCS_CONF = ROOT / "docs" / "conf.py"
-MODULE_PIN_PATTERN = re.compile(
-    r'(?m)^git_repository\(\n    name = "open_someip_spec",\n'
-    r'(?:(?!^git_repository\().)*?^    commit = "(?P<commit>[0-9a-f]{40})",$',
-    re.DOTALL,
-)
+ARCHIVE_BLOCK_PATTERN = re.compile(r"(?ms)^download_archive\(\n.*?^\)$")
+ARCHIVE_NAME_PATTERN = re.compile(r'(?m)^\s*name\s*=\s*"open_someip_spec"\s*,?\s*$')
+BLOCK_COMMIT_PATTERN = re.compile(r"(?<![0-9A-Za-z])[0-9a-f]{40}(?![0-9A-Za-z])")
+INTEGRITY_ATTRIBUTE_PATTERN = re.compile(r'(?m)^(\s*integrity\s*=\s*")[^"]*(")')
+INTEGRITY_PATTERN = re.compile(r"sha256-[A-Za-z0-9+/]{43}=")
 DOCS_PIN_PATTERN = re.compile(r'(?m)^SPEC_COMMIT = "(?P<commit>[0-9a-f]{40})"$')
 SPEC_REPO_PATTERN = re.compile(r'(?m)^SPEC_REPO = "(?P<repo>https://github\.com/[^\"]+)"$')
 COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
@@ -50,6 +51,57 @@ def replace_commit_pin(content: str, pattern: re.Pattern[str], commit: str, file
     return f"{content[:start]}{commit}{content[end:]}"
 
 
+def _find_archive_block(content: str) -> re.Match[str]:
+    matches = [m for m in ARCHIVE_BLOCK_PATTERN.finditer(content) if ARCHIVE_NAME_PATTERN.search(m.group(0))]
+    if len(matches) != 1:
+        raise ValueError(f"expected exactly one Open SOME/IP archive pin in MODULE.bazel; found {len(matches)}")
+    return matches[0]
+
+
+def extract_module_commit(content: str) -> str:
+    """Return the commit used by the archive URL and strip_prefix in MODULE.bazel."""
+    commits = set(BLOCK_COMMIT_PATTERN.findall(_find_archive_block(content).group(0)))
+    if len(commits) != 1:
+        raise ValueError(f"expected one consistent commit in the Open SOME/IP archive pin; found {len(commits)}")
+    return commits.pop()
+
+
+def extract_docs_commit(content: str) -> str:
+    matches = list(DOCS_PIN_PATTERN.finditer(content))
+    if len(matches) != 1:
+        raise ValueError(f"expected exactly one Open SOME/IP commit pin in docs/conf.py; found {len(matches)}")
+    return matches[0].group("commit")
+
+
+def check_pins_consistent(module_content: str, docs_content: str) -> str:
+    """Ensure the Bazel archive and the Sphinx source links use the same commit."""
+    module_commit = extract_module_commit(module_content)
+    docs_commit = extract_docs_commit(docs_content)
+    if module_commit != docs_commit:
+        raise ValueError(
+            f"Open SOME/IP pins differ: MODULE.bazel uses {module_commit}, docs/conf.py uses {docs_commit}"
+        )
+    return module_commit
+
+
+def validate_integrity(integrity: str) -> None:
+    if INTEGRITY_PATTERN.fullmatch(integrity) is None:
+        raise ValueError("integrity must have the form sha256-<44-character base64 digest>")
+
+
+def replace_module_pin(content: str, commit: str, integrity: str) -> str:
+    """Update the archive commit (URL and strip_prefix) and integrity."""
+    validate_commit(commit)
+    validate_integrity(integrity)
+    match = _find_archive_block(content)
+    old_commit = extract_module_commit(content)
+    block = match.group(0).replace(old_commit, commit)
+    if len(INTEGRITY_ATTRIBUTE_PATTERN.findall(block)) != 1:
+        raise ValueError("expected exactly one integrity attribute in the Open SOME/IP archive pin")
+    block = INTEGRITY_ATTRIBUTE_PATTERN.sub(lambda m: f"{m.group(1)}{integrity}{m.group(2)}", block)
+    return f"{content[: match.start()]}{block}{content[match.end() :]}"
+
+
 def extract_spec_repo(content: str) -> str:
     matches = list(SPEC_REPO_PATTERN.finditer(content))
     if len(matches) != 1:
@@ -57,13 +109,13 @@ def extract_spec_repo(content: str) -> str:
     return matches[0].group("repo").rstrip("/")
 
 
-def _fetch_source_file(url: str) -> bytes:
-    http_request = request.Request(url, headers={"User-Agent": "open-someip-source-link-check"})
+def _fetch_upstream_file(url: str) -> bytes:
+    http_request = request.Request(url, headers={"User-Agent": "open-someip-spec-pin-updater"})
     try:
-        with request.urlopen(http_request, timeout=15) as response:
+        with request.urlopen(http_request, timeout=60) as response:
             return response.read()
     except (error.URLError, TimeoutError) as exc:
-        raise ValueError(f"could not fetch upstream source file {url}: {exc}") from exc
+        raise ValueError(f"could not fetch upstream file {url}: {exc}") from exc
 
 
 def _requirement_id_at_line(source_lines: list[str], line: int) -> str | None:
@@ -81,11 +133,8 @@ def _requirement_id_at_line(source_lines: list[str], line: int) -> str | None:
 
 def validate_source_locations(
     needs: dict[str, dict[str, object]],
-    repo: str,
-    commit: str,
-    fetch_source: Callable[[str], bytes] | None = None,
+    source_dir: Path,
 ) -> None:
-    validate_commit(commit)
     if not needs:
         raise ValueError("generated metadata contains no source requirements to validate")
 
@@ -99,19 +148,15 @@ def validate_source_locations(
             raise ValueError(f"{need_id}: invalid source line number {line!r}")
         lines_by_document.setdefault(docname, {})[line] = need_id
 
-    repo_path = repo.removeprefix("https://github.com/").strip("/")
-    if len(repo_path.split("/")) != 2:
-        raise ValueError(f"expected a GitHub owner/repository URL, got {repo!r}")
-
-    fetch = fetch_source or _fetch_source_file
     for docname, needs_by_line in sorted(lines_by_document.items()):
-        filename = parse.quote(f"{docname}.rst", safe="-")
-        url = f"https://raw.githubusercontent.com/{repo_path}/{commit}/src/{filename}"
-        source_lines = fetch(url).decode("utf-8").splitlines()
+        source_path = source_dir / f"{docname}.rst"
+        source_lines = source_path.read_text(encoding="utf-8").splitlines()
         for line, need_id in sorted(needs_by_line.items()):
             actual_id = _requirement_id_at_line(source_lines, line)
             if actual_id != need_id:
-                raise ValueError(f"{url}: line {line} maps to {actual_id!r}, expected requirement {need_id!r}")
+                raise ValueError(
+                    f"{source_path}: line {line} maps to {actual_id!r}, expected requirement {need_id!r}"
+                )
 
     print(
         f"Validated {sum(len(needs_by_line) for needs_by_line in lines_by_document.values())} source location(s) "
@@ -120,18 +165,58 @@ def validate_source_locations(
     )
 
 
-def _update_pins(commit: str) -> None:
+def _bazel_source_dir(bazel_args: list[str]) -> Path:
+    source_files = subprocess.run(
+        ["bazel", "cquery", *bazel_args, "@open_someip_spec//:srcs", "--output=files"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if source_files.returncode:
+        raise SystemExit(source_files.returncode)
+
+    source_paths = [Path(line) for line in source_files.stdout.splitlines() if line.endswith(".rst")]
+    source_dirs = {path.parent for path in source_paths}
+    if len(source_dirs) != 1:
+        raise ValueError(f"expected RST files from one Bazel source directory; found {len(source_dirs)}")
+
+    output_base = subprocess.run(
+        ["bazel", "info", *bazel_args, "output_base"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if output_base.returncode:
+        raise SystemExit(output_base.returncode)
+
+    source_dir = Path(output_base.stdout.strip()) / next(iter(source_dirs))
+    if not source_dir.is_dir():
+        raise ValueError(f"Bazel source directory does not exist: {source_dir}")
+    return source_dir
+
+
+def _archive_integrity(commit: str, docs_content: str) -> str:
+    archive = _fetch_upstream_file(f"{extract_spec_repo(docs_content)}/archive/{commit}.tar.gz")
+    return "sha256-" + base64.b64encode(hashlib.sha256(archive).digest()).decode()
+
+
+def _update_pins(commit: str, integrity: str | None) -> None:
     module_content = MODULE_BAZEL.read_text(encoding="utf-8")
     docs_content = DOCS_CONF.read_text(encoding="utf-8")
 
-    updated_module = replace_commit_pin(module_content, MODULE_PIN_PATTERN, commit, "MODULE.bazel")
+    if integrity is None:
+        integrity = _archive_integrity(commit, docs_content)
+        print(f"Computed archive integrity {integrity}; review it in the MODULE.bazel diff.", flush=True)
+    updated_module = replace_module_pin(module_content, commit, integrity)
     updated_docs = replace_commit_pin(docs_content, DOCS_PIN_PATTERN, commit, "docs/conf.py")
 
     MODULE_BAZEL.write_text(updated_module, encoding="utf-8")
     DOCS_CONF.write_text(updated_docs, encoding="utf-8")
 
 
-def _run_validation(bazel_args: list[str], commit: str, verify_source_links: bool) -> None:
+def _run_validation(bazel_args: list[str], verify_source_links: bool) -> None:
     commands = (
         (
             "Generate metadata and requirements",
@@ -165,8 +250,8 @@ def _run_validation(bazel_args: list[str], commit: str, verify_source_links: boo
                 raise SystemExit(bazel_bin.returncode)
             metadata_path = Path(bazel_bin.stdout.strip()) / "docs_extspec" / "needs.json"
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-            repo = extract_spec_repo(DOCS_CONF.read_text(encoding="utf-8"))
-            validate_source_locations(metadata["needs"], repo, commit)
+            source_dir = _bazel_source_dir(bazel_args)
+            validate_source_locations(metadata["needs"], source_dir)
 
 
 def main() -> None:
@@ -182,18 +267,32 @@ def main() -> None:
     parser.add_argument(
         "--verify-source-links",
         action="store_true",
-        help="fetch pinned raw RST files and verify generated requirement locations and IDs (requires network access)",
+        help="verify generated requirement locations and IDs against the RST files fetched by Bazel",
+    )
+    parser.add_argument(
+        "--integrity",
+        metavar="SRI",
+        help="sha256-<base64> digest of the archive; skips downloading it to compute the digest",
     )
     args = parser.parse_args()
 
     try:
         validate_commit(args.commit)
-        _update_pins(args.commit)
+        if args.integrity is not None:
+            validate_integrity(args.integrity)
+        _update_pins(args.commit, args.integrity)
+        check_pins_consistent(
+            MODULE_BAZEL.read_text(encoding="utf-8"),
+            DOCS_CONF.read_text(encoding="utf-8"),
+        )
     except ValueError as error:
         parser.error(str(error))
 
     print(f"Updated the Open SOME/IP pin to {args.commit} in MODULE.bazel and docs/conf.py.", flush=True)
-    _run_validation(args.bazel_arg, args.commit, args.verify_source_links)
+    try:
+        _run_validation(args.bazel_arg, args.verify_source_links)
+    except ValueError as error:
+        parser.exit(1, f"{parser.prog}: error: {error}\n")
 
 
 if __name__ == "__main__":
