@@ -321,12 +321,14 @@ single_version_override(
 # Base Libraries
 # ============================================================================
 bazel_dep(name = "score_baselibs", version = "0.2.18")
-single_version_override(
+git_override(
     module_name = "score_baselibs",
+    commit = "19371d08a8542582dda33dfcc22a84506660b17a",
     patch_strip = 1,
     # Patch baselibs with a QNX8 workaround for poll
     # until a fix is provided by the QNX SDP
     patches = ["//third_party/score_baselibs:restore_qnx8_poll_workaround.patch"],
+    remote = "https://github.com/eclipse-score/baselibs.git",
 )
 
 # Upgrade grpc-java to 1.70.0 for compatibility with newer grpc (1.70.1).
