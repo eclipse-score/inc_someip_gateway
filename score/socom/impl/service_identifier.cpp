@@ -21,4 +21,14 @@ bool operator<(Service_instance_identifier const& lhs, Service_instance_identifi
     return std::tie(lhs.instance, lhs.interface) < std::tie(rhs.instance, rhs.interface);
 }
 
+utils::string_registry::StringRegistry& service_id_registry() noexcept {
+    static utils::string_registry::StringRegistry registry;
+    return registry;
+}
+
+utils::string_registry::StringRegistry& instance_id_registry() noexcept {
+    static utils::string_registry::StringRegistry registry;
+    return registry;
+}
+
 }  // namespace score::socom

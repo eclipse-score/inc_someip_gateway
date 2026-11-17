@@ -39,6 +39,8 @@ cc_library(
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
         "@score_baselibs//score/scope_exit",
+        "@score_baselibs//score/utils/string_registry",
+        "@score_baselibs//score/utils/string_registry:registry_string_view",
     ],
 )
 

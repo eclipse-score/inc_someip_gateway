@@ -19,15 +19,21 @@
 #include <string>
 #include <tuple>
 
-#include "score/socom/registry_string_view.hpp"
-#include "score/socom/string_registry.hpp"
+#include "score/utils/string_registry/registry_string_view.h"
+#include "score/utils/string_registry/string_registry.h"
 
 namespace score::socom {
+
+// Global Singleton registries for service and instance identifiers.
+utils::string_registry::StringRegistry& service_id_registry() noexcept;
+utils::string_registry::StringRegistry& instance_id_registry() noexcept;
+
+using utils::string_registry::LiteralTag;
 
 /// Service instance identification information
 class Service_instance final {
    public:
-    using Id = Registry_string_view;
+    using Id = utils::string_registry::RegistryStringView;
 
     /// String-based service instance identifier.
     Id id;
@@ -39,19 +45,19 @@ class Service_instance final {
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     explicit Service_instance(std::string_view new_id)
-        : id{score::socom::instance_id_registry().insert(new_id).first} {}
+        : id{score::socom::instance_id_registry().Insert(new_id).first} {}
 
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     /// \param is_static_string_literal Tag to indicate that the provided string is a static string
     ///                                 literal.
-    Service_instance(std::string_view new_id, Literal_tag is_static_string_literal)
-        : id{score::socom::instance_id_registry().insert(new_id, is_static_string_literal).first} {}
+    Service_instance(std::string_view new_id, LiteralTag is_static_string_literal)
+        : id{score::socom::instance_id_registry().Insert(new_id, is_static_string_literal).first} {}
 
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     explicit Service_instance(std::string&& new_id)
-        : id{score::socom::instance_id_registry().insert(std::move(new_id)).first} {}
+        : id{score::socom::instance_id_registry().Insert(std::move(new_id)).first} {}
 };
 
 /// \brief Operator == for Service_instance.
@@ -74,7 +80,7 @@ inline bool operator<(Service_instance const& lhs, Service_instance const& rhs) 
 struct Service_interface_identifier {
    public:
     /// \brief Alias for a service interface identifier.
-    using Id = Registry_string_view;
+    using Id = utils::string_registry::RegistryStringView;
 
     /// \brief Service interface version type.
     struct Version {
@@ -103,23 +109,23 @@ struct Service_interface_identifier {
     /// \param new_id ID of the service interface.
     /// \param new_version Version of the service interface.
     Service_interface_identifier(std::string_view new_id, Version new_version)
-        : id{score::socom::service_id_registry().insert(new_id).first}, version{new_version} {}
+        : id{score::socom::service_id_registry().Insert(new_id).first}, version{new_version} {}
 
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     /// \param is_static_string_literal Tag to indicate that the provided string is a static string
     ///                                 literal.
     /// \param new_version Version of the service interface.
-    Service_interface_identifier(std::string_view new_id, Literal_tag is_static_string_literal,
+    Service_interface_identifier(std::string_view new_id, LiteralTag is_static_string_literal,
                                  Version new_version)
-        : id{score::socom::service_id_registry().insert(new_id, is_static_string_literal).first},
+        : id{score::socom::service_id_registry().Insert(new_id, is_static_string_literal).first},
           version{new_version} {}
 
     /// \brief Constructor.
     /// \param new_id ID of the service interface.
     /// \param new_version Version of the service interface.
     Service_interface_identifier(std::string&& new_id, Version new_version)
-        : id{score::socom::service_id_registry().insert(std::move(new_id)).first},
+        : id{score::socom::service_id_registry().Insert(std::move(new_id)).first},
           version{new_version} {}
 };
 
@@ -170,7 +176,7 @@ inline bool operator<(Service_interface_identifier const& lhs,
 template <>
 struct std::hash<score::socom::Service_instance> {
     std::size_t operator()(score::socom::Service_instance const& s) const noexcept {
-        return std::hash<score::socom::Registry_string_view>{}(s.id);
+        return std::hash<score::utils::string_registry::RegistryStringView>{}(s.id);
     }
 };
 
@@ -181,7 +187,7 @@ struct std::hash<score::socom::Service_instance> {
 template <>
 struct std::hash<score::socom::Service_interface_identifier> {
     std::size_t operator()(score::socom::Service_interface_identifier const& s) const noexcept {
-        std::size_t const h1 = std::hash<score::socom::Registry_string_view>{}(s.id);
+        std::size_t const h1 = std::hash<score::utils::string_registry::RegistryStringView>{}(s.id);
         std::size_t const h2 = std::hash<std::uint16_t>{}(s.version.major);
         std::size_t const h3 = std::hash<std::uint16_t>{}(s.version.minor);
         auto const hash = h1 ^ (h2 << 1) ^ (h3 << 2);

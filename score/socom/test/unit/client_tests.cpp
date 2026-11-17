@@ -617,7 +617,7 @@ TEST_F(ClientConnectorTest, DifferentServiceInterfaceId) {
     RecordProperty("TestType", "requirements-based");
     RecordProperty("DerivationTechnique", "requirements-analysis");
     auto modified_interface_id =
-        connector_factory.get_configuration().get_interface().id.data() + std::to_string(1);
+        connector_factory.get_configuration().get_interface().id.Data() + std::to_string(1);
     auto const conf = Server_service_interface_definition{
         Service_interface_identifier{std::move(modified_interface_id),
                                      connector_factory.get_configuration().get_interface().version},
@@ -635,7 +635,7 @@ TEST_F(ClientConnectorTest, DifferentServiceInstanceId) {
     RecordProperty("TestType", "requirements-based");
     RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const modified_instance_id =
-        Service_instance{connector_factory.get_instance().id.data() + std::to_string(1)};
+        Service_instance{connector_factory.get_instance().id.Data() + std::to_string(1)};
     Server_data server{connector_factory, connector_factory.get_configuration(),
                        modified_instance_id};
 

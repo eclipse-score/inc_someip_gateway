@@ -21,6 +21,7 @@
 #include "score/socom/utilities.hpp"
 
 using namespace std::chrono_literals;
+using score::utils::string_registry::LiteralTag;
 
 namespace score::socom {
 
@@ -32,8 +33,8 @@ TEST(RuntimeFactoryTest, DefaultConstructorWorks) {
 class RuntimeTest : public SingleConnectionTest {
    protected:
     std::vector<Service_instance> const input_find_result{
-        Service_instance{"first instance", Literal_tag{}},
-        Service_instance{"second instance", Literal_tag{}}, connector_factory.get_instance()};
+        Service_instance{"first instance", LiteralTag{}},
+        Service_instance{"second instance", LiteralTag{}}, connector_factory.get_instance()};
     Service_instance const expected_find_result{connector_factory.get_instance()};
 };
 
