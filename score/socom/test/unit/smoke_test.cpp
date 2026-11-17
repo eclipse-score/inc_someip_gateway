@@ -17,8 +17,8 @@
 #include "score/socom/callback_mocks.hpp"
 #include "score/socom/runtime.hpp"
 
-using ::testing::_;
 using score::utils::string_registry::LiteralTag;
+using ::testing::_;
 
 namespace score::socom {
 

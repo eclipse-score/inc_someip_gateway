@@ -44,8 +44,8 @@ class ServiceInterfaceIdentifierTest : public Test {
 };
 
 using ServiceInterfaceConfigurationDeathTest = ServiceInterfaceIdentifierTest;
-using score::utils::string_registry::StringRegistry;
 using score::utils::string_registry::LiteralTag;
+using score::utils::string_registry::StringRegistry;
 
 TEST_F(ServiceInterfaceIdentifierTest, ConfigurationEqual) {
     ASSERT_TRUE(interface_config_1 == interface_config_1);
@@ -83,8 +83,8 @@ TEST_F(ServiceInterfaceIdentifierTest, StringViewConstructorUsesStringView) {
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringViewLiteralConstructorUsesStringView) {
-    auto const interface = Service_interface_identifier{service_interface_id, LiteralTag{},
-                                                        service_interface_version};
+    auto const interface =
+        Service_interface_identifier{service_interface_id, LiteralTag{}, service_interface_version};
     EXPECT_EQ(interface.id.StringView(), service_interface_id);
 
     auto const registry_string_view = service_id_registry().Insert(service_interface_id).first;

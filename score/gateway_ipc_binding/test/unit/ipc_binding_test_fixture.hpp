@@ -53,7 +53,8 @@ inline Service_config MakeServiceConfig(Role const role = Role::consumer,
         kDefaultServiceInterfacePath,
         utils::string_registry::LiteralTag{},
         {kDefaultMajorVersion, kDefaultMinorVersion}};
-    socom::Service_instance const instance{kDefaultServiceInstanceName, utils::string_registry::LiteralTag{}};
+    socom::Service_instance const instance{kDefaultServiceInstanceName,
+                                           utils::string_registry::LiteralTag{}};
     return Service_config{
         interface,
         instance,
