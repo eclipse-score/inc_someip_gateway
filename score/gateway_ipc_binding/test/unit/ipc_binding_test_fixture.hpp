@@ -51,9 +51,10 @@ inline Service_config MakeServiceConfig(Role const role = Role::consumer,
                                         std::string_view const specifier = kValidBridgedSpecifier) {
     socom::Service_interface_identifier const interface{
         kDefaultServiceInterfacePath,
-        socom::Literal_tag{},
+        utils::string_registry::LiteralTag{},
         {kDefaultMajorVersion, kDefaultMinorVersion}};
-    socom::Service_instance const instance{kDefaultServiceInstanceName, socom::Literal_tag{}};
+    socom::Service_instance const instance{kDefaultServiceInstanceName,
+                                           utils::string_registry::LiteralTag{}};
     return Service_config{
         interface,
         instance,

@@ -110,7 +110,7 @@ class Gateway_ipc_binding_many_services_integration_test
         std::string{"bridged_com.test.service.beta"}, {1, 0}};
     socom::Service_interface_identifier const service_interface_gamma{
         std::string{"bridged_com.test.service.gamma"}, {1, 0}};
-    socom::Service_instance const instance{"1", socom::Literal_tag{}};
+    socom::Service_instance const instance{"1", utils::string_registry::LiteralTag{}};
 
     socom::Server_service_interface_definition const server_config_alpha{
         service_interface_alpha, socom::to_num_of_methods(0), socom::to_num_of_events(1)};

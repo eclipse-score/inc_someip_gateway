@@ -111,8 +111,9 @@ class Client_to_connect {
 class RuntimeMultiThreadingTest : public SingleConnectionTest {
    protected:
     std::vector<Service_instance> const input_find_result{
-        Service_instance{"first instance", Literal_tag{}},
-        Service_instance{"second instance", Literal_tag{}}, connector_factory.get_instance()};
+        Service_instance{"first instance", utils::string_registry::LiteralTag{}},
+        Service_instance{"second instance", utils::string_registry::LiteralTag{}},
+        connector_factory.get_instance()};
 
     Loop_function_t create_servers_thread_main() {
         return [this]() { Server_data server{connector_factory}; };
