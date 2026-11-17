@@ -15,13 +15,13 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 
 exports_files(
     ["config/tc8_ets_stub_mw_com_config.json"],
-    visibility = ["//tests/tc8_conformance:__pkg__"],
+    visibility = ["//visibility:public"],
 )
 
 cc_binary(
     name = "tc8_ets_stub",
     srcs = ["tc8_ets_stub.cpp"],
-    visibility = ["//tests/tc8_conformance:__pkg__"],
+    visibility = ["//visibility:public"],
     deps = [
         "//score/serializer:pre_serialized_data",
         "//tests/tc8_conformance/application/shared:tc8_ets_service",

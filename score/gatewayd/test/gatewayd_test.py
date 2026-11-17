@@ -13,8 +13,9 @@
 
 from pathlib import Path
 import subprocess
-import sys
 import unittest
+
+from attribute_plugin import add_test_properties
 
 from quality.pytest.process import assert_process_creates_network_instance
 from quality.pytest.process import stop_process
@@ -22,26 +23,43 @@ from quality.pytest.process import wait_for_output
 
 
 class GatewaydTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.gatewayd = Path(sys.argv[1])
-        self.someipd = Path(sys.argv[2])
-        self.configuration = Path(sys.argv[3])
-        self.service_instance_manifest = Path(sys.argv[4])
-        self.someipd_service_instance_manifest = Path(sys.argv[5])
+    gatewayd: Path
+    someipd: Path
+    configuration: Path
+    service_instance_manifest: Path
+    someipd_service_instance_manifest: Path
 
+    @add_test_properties(
+        fully_verifies=["comp_req__gatewayd__prints_usage"],
+        test_type="interface-test",
+        derivation_technique="design-analysis",
+    )
     def test_help_returns_success_and_prints_usage(self) -> None:
+        """Gatewayd prints its usage and exits successfully when called with --help."""
         result = subprocess.run([self.gatewayd, "--help"], capture_output=True, check=False, text=True)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Syntax: gatewayd -h/--help", result.stdout)
 
+    @add_test_properties(
+        partially_verifies=["comp_req__gatewayd__starts_from_config"],
+        test_type="interface-test",
+        derivation_technique="design-analysis",
+    )
     def test_creates_local_network_instance(self) -> None:
+        """Gatewayd creates a local bridge for a configured local service instance."""
         self._assert_creates_network_instance(
             "Creating local service instance: window_control*Gateway started, waiting for shutdown signal...",
             "OFFER(0100): [0001.0001",
         )
 
+    @add_test_properties(
+        partially_verifies=["comp_req__gatewayd__starts_from_config"],
+        test_type="interface-test",
+        derivation_technique="design-analysis",
+    )
     def test_creates_remote_network_instance(self) -> None:
+        """Gatewayd creates a remote bridge for a configured remote service instance."""
         self._assert_creates_network_instance(
             "Creating remote service instance: echo_response*Gateway started, waiting for shutdown signal...",
             "REQUEST(0100): [4321.5678",
@@ -83,4 +101,4 @@ class GatewaydTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    _ = unittest.main(argv=[sys.argv[0]])
+    _ = unittest.main()

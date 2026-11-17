@@ -41,13 +41,13 @@ tests tagged `exclusive` without other tests running concurrently.
 bazel test --config=qemu-integration //tests/tc8_conformance/...
 
 # Run a specific target
-bazel test --config=qemu-integration //tests/tc8_conformance:test_tc8_service_discovery
+bazel test --config=qemu-integration //tests/tc8_conformance/qemu:test_tc8_service_discovery
 
 # Run only the timing-sensitive tests
 bazel test --config=qemu-integration \
-  //tests/tc8_conformance:test_tc8_sd_find \
-  //tests/tc8_conformance:test_tc8_sd_phases_timing \
-  //tests/tc8_conformance:test_tc8_sd_session_wrap
+  //tests/tc8_conformance/qemu:test_tc8_sd_find \
+  //tests/tc8_conformance/qemu:test_tc8_sd_phases_timing \
+  //tests/tc8_conformance/qemu:test_tc8_sd_session_wrap
 ```
 
 ### QNX x86_64
@@ -58,9 +58,9 @@ bazel test --config=x86_64-qnx //tests/tc8_conformance/...
 
 # Run only the timing-sensitive tests
 bazel test --config=x86_64-qnx \
-  //tests/tc8_conformance:test_tc8_sd_find \
-  //tests/tc8_conformance:test_tc8_sd_phases_timing \
-  //tests/tc8_conformance:test_tc8_sd_session_wrap
+  //tests/tc8_conformance/qemu:test_tc8_sd_find \
+  //tests/tc8_conformance/qemu:test_tc8_sd_phases_timing \
+  //tests/tc8_conformance/qemu:test_tc8_sd_session_wrap
 ```
 
 Timing-sensitive tests are selected by wildcard runs (`/...`) like the other
