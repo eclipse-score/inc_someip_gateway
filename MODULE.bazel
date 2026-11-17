@@ -242,11 +242,55 @@ use_repo(
 )
 
 # ============================================================================
+# Hermetic Ubuntu 24.04 sysroot configuration.
+# ============================================================================
+
+bazel_dep(name = "rules_distroless", version = "0.8.0", dev_dependency = True)
+single_version_override(
+    module_name = "rules_distroless",
+    patch_strip = 1,
+    # Keep the resolver repository used by sysroot_from_lock in bazel mod tidy.
+    patches = ["//:third_party/rules_distroless-export-resolve.patch"],
+)
+
+apt = use_extension(
+    "@rules_distroless//apt:extensions.bzl",
+    "apt",
+    dev_dependency = True,
+)
+apt.install(
+    name = "ubuntu24_04_sysroot",
+    manifest = "//third_party/ubuntu24_04_sysroot:manifest.yaml",
+    mergedusr = True,
+    nolock = True,
+)
+use_repo(apt, "ubuntu24_04_sysroot", "ubuntu24_04_sysroot_resolve")
+
+sysroot_from_lock = use_repo_rule(
+    "@score_tooling//bazel/rules/sysroot_from_lock:sysroot_from_lock.bzl",
+    "sysroot_from_lock",
+)
+
+sysroot_from_lock(
+    name = "ubuntu24_04_sysroot_amd64",
+    architecture = "amd64",
+    dev_dependency = True,
+    lock = "@ubuntu24_04_sysroot_resolve//:lock.json",
+)
+
+sysroot_from_lock(
+    name = "ubuntu24_04_sysroot_arm64",
+    architecture = "arm64",
+    dev_dependency = True,
+    lock = "@ubuntu24_04_sysroot_resolve//:lock.json",
+)
+
+# ============================================================================
 # LLVM C/C++ Toolchain Configuration
 # ============================================================================
 
 # LLVM Toolchain: C/C++ cross-compilation support for x86_64 and aarch64
-# Integrates with LLVM and Debian Bullseye sysroots
+# Integrates with LLVM and Ubuntu 24.04 sysroots.
 bazel_dep(name = "toolchains_llvm", version = "1.12.0", dev_dependency = True)
 
 # Configures LLVM for C/C++ compilation with cross-architecture support.
@@ -269,6 +313,16 @@ llvm.toolchain(
     ],
     llvm_version = "23.1.4",
     stdlib = {"": "stdc++"},
+)
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@ubuntu24_04_sysroot_amd64//sysroot",
+    targets = ["linux-x86_64"],
+)
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@ubuntu24_04_sysroot_arm64//sysroot",
+    targets = ["linux-aarch64"],
 )
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 
