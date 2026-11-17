@@ -23,10 +23,18 @@
 namespace score::socom {
 
 namespace detail {
+/// \brief Stores optional, type-erased user data owned by a payload.
+/// \details The value is stored inline and must fit in 128 bytes, have alignment no greater than
+///          std::max_align_t, and be nothrow move constructible and destructible. This type is
+///          move-only; moving it transfers ownership and leaves the source empty.
 class Payload_user_data final {
    public:
+    /// \brief Constructs an empty user-data container.
     Payload_user_data() = default;
 
+    /// \brief Constructs the container with a user-data value.
+    /// \param user_data Value to store. It must be passed as an rvalue and satisfy the storage
+    ///                  requirements described for this class.
     template <typename T>
     explicit Payload_user_data(T&& user_data) noexcept {
         using User_data_type = std::remove_cv_t<std::remove_reference_t<T>>;
@@ -45,13 +53,19 @@ class Payload_user_data final {
         m_ops = operations<User_data_type>();
     }
 
+    /// \brief Destroys the stored value, if present.
     ~Payload_user_data() { reset(); }
 
     Payload_user_data(Payload_user_data const&) = delete;
     Payload_user_data& operator=(Payload_user_data const&) = delete;
 
+    /// \brief Transfers the stored value from another container.
+    /// \param other Container to move from; it is empty after the move.
     Payload_user_data(Payload_user_data&& other) noexcept { move_from(other); }
 
+    /// \brief Replaces the stored value by moving from another container.
+    /// \param other Container to move from; it is empty after the move.
+    /// \return Reference to this container.
     Payload_user_data& operator=(Payload_user_data&& other) noexcept {
         if (this != &other) {
             reset();
@@ -60,6 +74,10 @@ class Payload_user_data final {
         return *this;
     }
 
+    /// \brief Retrieves the stored value if it has the requested type.
+    /// \tparam T Type to retrieve.
+    /// \return Pointer to the stored value, or nullptr if the container is empty or the type does
+    ///         not match.
     template <typename T>
     [[nodiscard]] T* get() noexcept {
         using User_data_type = std::remove_cv_t<T>;
@@ -69,6 +87,10 @@ class Payload_user_data final {
         return std::launder(reinterpret_cast<User_data_type*>(m_storage));
     }
 
+    /// \brief Retrieves the stored value if it has the requested type.
+    /// \tparam T Type to retrieve.
+    /// \return Const pointer to the stored value, or nullptr if the container is empty or the type
+    ///         does not match.
     template <typename T>
     [[nodiscard]] T const* get() const noexcept {
         using User_data_type = std::remove_cv_t<T>;
@@ -116,6 +138,8 @@ class Payload_user_data final {
     Operations const* m_ops{nullptr};
 };
 
+/// \brief Implementation of a payload container.
+/// It is shared between read-only and writable payload, which delegate all calls into it.
 class Payload_impl final {
    public:
     /// \brief Alias for a data byte.
