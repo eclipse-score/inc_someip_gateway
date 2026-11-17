@@ -182,7 +182,8 @@ def _parse_sd_datagram(packet: bytes) -> list[_SdEntry]:
             eventgroup_id = 0
             eventgroup_counter = 0
             if entry_type in (SD_SUBSCRIBE, SD_SUBSCRIBE_ACK):
-                eventgroup_counter = payload[offset + 13] & 0x0F
+                counter_and_reserved = struct.unpack_from("!H", payload, offset + 12)[0]
+                eventgroup_counter = (counter_and_reserved >> 12) & 0x0F
                 eventgroup_id = struct.unpack_from("!H", payload, offset + 14)[0]
             result.append(
                 _SdEntry(
@@ -226,7 +227,7 @@ def _build_sd_entry(
     if entry_type == SD_OFFER_SERVICE:
         entry += struct.pack("!I", 0)
     else:
-        entry += struct.pack("!HH", eventgroup_counter & 0x0F, eventgroup_id)
+        entry += struct.pack("!HH", (eventgroup_counter & 0x0F) << 12, eventgroup_id)
     return entry
 
 
