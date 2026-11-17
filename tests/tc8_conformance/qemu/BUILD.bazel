@@ -70,6 +70,7 @@ integration_test(
         "conformance",
         "exclusive",
         "tc8",
+        "tc8_time_sensitive",
     ],
     deps = _ITF_DEPS,
 )
@@ -147,6 +148,7 @@ integration_test(
         "conformance",
         "exclusive",
         "tc8",
+        "tc8_time_sensitive",
     ],
     deps = _ITF_DEPS,
 )
@@ -165,6 +167,7 @@ integration_test(
         "conformance",
         "exclusive",
         "tc8",
+        "tc8_time_sensitive",
     ],
     deps = _ITF_DEPS,
 )
