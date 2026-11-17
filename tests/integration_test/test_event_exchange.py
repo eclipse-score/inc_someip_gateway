@@ -44,9 +44,9 @@ _DUT_IP = os.environ.get("EVENT_EXCHANGE_DUT_IP", "169.254.158.190")
 _READY_FILE = "/tmp/event_exchange_ready"
 _GO_FILE = "/tmp/event_exchange_go"
 
-_TX_COUNT = 20                 # samples the DUT publishes on TX (0..TX_COUNT-1)
-_RX_COUNT = 5                  # distinct RX samples the DUT must observe
-_RX_SENDER_COUNT = 20          # samples the peer publishes on RX (0..RX_SENDER_COUNT-1)
+_TX_COUNT = 20  # samples the DUT publishes on TX (0..TX_COUNT-1)
+_RX_COUNT = 5  # distinct RX samples the DUT must observe
+_RX_SENDER_COUNT = 20  # samples the peer publishes on RX (0..RX_SENDER_COUNT-1)
 
 # Linux QEMU under TSAN/ASAN is slow; keep the app's deadline inside the
 # target timeout but generous enough to absorb SD backoff + sanitizer cost.
@@ -124,8 +124,7 @@ def test_event_exchange(gatewayd_with_someipd):
     assert peer.dut_to_host_subscribe_ack, "peer never received SubscribeAck from DUT for the TX direction"
     expected_tx_counters = list(range(peer_cfg.tx_expected_samples))
     assert peer.dut_to_host_valid_samples == expected_tx_counters, (
-        f"peer received TX counters {peer.dut_to_host_valid_samples} "
-        f"(expected {expected_tx_counters})"
+        f"peer received TX counters {peer.dut_to_host_valid_samples} (expected {expected_tx_counters})"
     )
     assert peer.host_to_dut_subscribed, "DUT never subscribed to the host's RX service on the wire"
     assert not peer.errors, f"peer reported errors: {peer.errors}"
