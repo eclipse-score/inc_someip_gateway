@@ -183,8 +183,8 @@ defines the following layout for every event sample it exchanges::
   ``data()`` and E2E protection can run over it in place.
 - **Length framing**: ``payload_length`` is the only piece of binding metadata on the link. It is required
   because LoLa samples are fixed size while SOME/IP payloads are not. The producer shrinks its
-  ``Writable_payload``; the binding writes ``payload.data().size()`` into the prefix just before ``Send()``;
-  the consumer side reads it back and sizes the ``socom::Payload`` accordingly.
+  ``Writable_payload``; the binding writes ``payload.data().size()`` as a host-endian ``uint32_t`` into prefix bytes ``[0..3]`` and zeroes reserved bytes ``[4..7]`` just before ``Send()``;
+  the consumer side reads ``[0..3]`` back and sizes the ``socom::Payload`` accordingly. Both ``sample_size()`` and ``addressed_sample_size()`` saturate to ``SIZE_MAX`` if sizing arithmetic overflows ``std::size_t``.
 
 .. _event-sizes:
 
@@ -228,9 +228,9 @@ Each ``gatewayd`` registers its bridged services with ``someipd`` at runtime via
   already registered with ``runtime::AddConfiguration`` stays in ``someipd`` until ``someipd`` restarts, because
   ``mw::com`` cannot remove a configuration.
 - **Restarts and ownership**: ``someipd`` keeps a ``gatewayd``'s services alive when that ``gatewayd`` stops.
-  When a restarted ``gatewayd`` reconnects and sends the exact same configuration bytes and event sizes,
+  When a restarted ``gatewayd`` reconnects and sends the exact same configuration bytes and the same set of event sizes in any order,
   ``someipd`` accepts the call immediately without recreating the services. Any *different* call that reuses a
-  ``service_id`` from an already-accepted call is rejected: each service belongs to one ``gatewayd`` and cannot
+  ``service_id`` or ``instance_specifier`` from an already-accepted call, or calls ``add_bridged_services`` more than once, is rejected: each service belongs to one ``gatewayd`` and cannot
   change while ``someipd`` runs.
 - **Starting service discovery for consumer services**: every ``Role::consumer`` service starts ``GenericProxy``
   discovery to detect when the peer daemon offers its ``GenericSkeleton``. In ``gatewayd``, consumer discovery
@@ -242,7 +242,7 @@ Availability propagation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``Provider_service_binding`` creates its ``GenericSkeleton`` eagerly at startup and calls ``OfferService()`` or
-``StopOfferService()`` on ``Client_connector::on_service_state_change``, while ``Consumer_service_binding``
+``StopOfferService()`` on ``Client_connector::on_service_state_change``, rolling back availability cleanly if skeleton recreation or ``OfferService()`` fails, while ``Consumer_service_binding``
 creates or destroys its ``GenericProxy`` and enables or disables its SOCom server connector from its
 ``StartFindService`` callback. When the local SOCom service becomes unavailable and no peer holds a
 subscription, ``Provider_service_binding`` also destroys the ``GenericSkeleton`` and recreates it on the next
@@ -266,9 +266,8 @@ Payload lifetime and flow control
 LoLa owns the shared-memory sample slots:
 
 - **provider side**: ``Provider_service_binding::on_event_payload_allocate()`` allocates a LoLa sample slot and
-  stores the ``SampleAllocateePtr<void>`` in ``Allocations`` keyed by its ``slot_handle`` until
-  ``on_event_update()`` writes the payload-length prefix and sends it, or releases the slot back to LoLa if the
-  ``Writable_payload`` is dropped unsent. If all sample slots of an event are in use
+  stores the ``SampleAllocateePtr<void>`` in ``Allocations`` keyed by its ``slot_handle`` for that ``event_id``.
+  ``on_event_update()`` verifies ``slot_handle`` ownership and ``payload.data().size() <= max_payload_size``, writes the payload-length prefix, and sends it; dropped or rejected payloads release the slot back to LoLa. If all sample slots of an event are in use
   (``kNumber_of_sample_slots = 20``, shared between allocated samples awaiting ``Send()`` on the provider and
   received samples up to ``max_sample_count`` held by the consumer), ``GenericSkeletonEvent::Allocate()`` fails
   and ``on_event_payload_allocate()`` logs a warning and returns ``runtime_error_sample_allocation_failed``.
@@ -502,7 +501,7 @@ mw::com configuration types and the mw::com-specific free factory functions.
    :status: valid
    :included_by: real_arc_int__gib_arch__server
 
-   Creates the server-side IPC binding for ``someipd`` with the handler invoked when a ``gatewayd`` peer registers its configuration.
+   Creates the server-side IPC binding for ``someipd`` with the handler invoked when a ``gatewayd`` peer registers its configuration, returning ``nullptr`` if ``someipd_service_specifier`` or ``handler`` is empty.
 
 .. real_arc_int_op:: Gateway_ipc_binding_server::start
    :id: real_arc_int_op__gib_arch__start_server

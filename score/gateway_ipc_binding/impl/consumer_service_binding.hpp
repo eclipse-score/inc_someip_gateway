@@ -14,7 +14,9 @@
 #ifndef SCORE_GATEWAY_IPC_BINDING_IMPL_CONSUMER_SERVICE_BINDING_HPP
 #define SCORE_GATEWAY_IPC_BINDING_IMPL_CONSUMER_SERVICE_BINDING_HPP
 
+#include <condition_variable>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -30,23 +32,36 @@ namespace score::gateway_ipc_binding::mw_com {
 
 /// \brief Consumer half of a bridged service: receives it via mw::com, offers it via SOCom.
 ///
-/// \details This peer is the data sink for the peer daemon. It owns a `GenericProxy` and is a
-///          SOCom `Server_connector` for the same service. See `docs/mw_com_binding.rst`, section
-///          "Role assignment".
-///
-///          The SOCom connector is created disabled and only enabled while the peer's
-///          `GenericSkeleton` is offered, so that local applications see the service exactly as
-///          long as the peer provides it. Local subscriptions are forwarded as
-///          `GenericProxyEvent::Subscribe()` plus a receive handler, so no data is produced
-///          across the link while nobody wants it.
+/// \details Owns a `GenericProxy` and a SOCom `Server_connector` for the same service:
+///          - Discovery handle transitions (serialized across concurrent notifications):
+///            - Empty `handles` detaches from the active peer and disables the SOCom connector.
+///            - Duplicate notification for the already-attached handle (`handles.front() ==
+///              active_handle`) is ignored without disabling the connector or recreating the proxy.
+///            - Notification with a distinct handle (`!(handles.front() == active_handle)`) while
+///              attached detaches from the old handle first and then attaches to `handles.front()`.
+///          - Enables the SOCom connector only while the peer's `GenericSkeleton` is offered and
+///            every configured event exists on the proxy with
+///            `peer_sample_size >= kSample_prefix_size + configured_max_payload_size`, adopting
+///            `peer_sample_size - kSample_prefix_size` as `max_payload_size`.
+///          - Propagates local SOCom event subscriptions (including those requested synchronously
+///            inside `enable()`) to `GenericProxyEvent::Subscribe(max_sample_count)` and registers
+///            a receive handler.
+///          - Reads the 8-byte prefix on received samples and forwards payloads up to
+///            `max_payload_size` via `update_event()`, dropping null samples or samples whose
+///            encoded length exceeds `max_payload_size`.
+///          - Stops discovery, disables the SOCom connector, and unsets/unsubscribes active proxy
+///            events on destruction.
 class Consumer_service_binding final : public Service_binding {
    public:
-    /// \brief Create the SOCom server connector without starting mw::com service discovery yet.
-    /// \details Separated from start() because someipd creates bindings on the mw::com handler
-    ///          thread inside AddServiceConfiguration, then runs start() on its worker thread.
-    /// \param runtime SOCom runtime used to create the server connector
-    /// \param config Bridged service instance, must have `role == Role::consumer`
-    /// \return The binding, or the first error encountered
+    /// \brief Creates the disabled SOCom server connector without starting mw::com discovery.
+    /// \pre `config.role == Role::consumer` and `validate(config).has_value()`.
+    /// \param runtime SOCom runtime used to create the server connector.
+    /// \param config Validated bridged consumer service instance configuration.
+    /// \retval std::unique_ptr<Consumer_service_binding> Created binding with disabled connector.
+    /// \retval Mw_com_binding_error::logic_error_invalid_instance_specifier `instance_specifier`
+    ///         is malformed or not deployed in the mw::com runtime.
+    /// \retval Mw_com_binding_error::runtime_error_service_setup_failed Creating the SOCom server
+    ///         connector failed.
     [[nodiscard]] static Result<std::unique_ptr<Consumer_service_binding>> create(
         score::socom::Runtime& runtime, Service_config const& config) noexcept;
 
@@ -57,10 +72,12 @@ class Consumer_service_binding final : public Service_binding {
     Consumer_service_binding(Consumer_service_binding&&) = delete;
     Consumer_service_binding& operator=(Consumer_service_binding&&) = delete;
 
-    /// \brief Start mw::com service discovery (GenericProxy::StartFindService) for the peer's
-    ///        GenericSkeleton
-    /// \details Discovery runs until this object is destroyed. The find-service handler may
-    ///          already fire before this function returns.
+    /// \brief Starts mw::com service discovery for the peer's GenericSkeleton.
+    /// \details Discovery runs until this object is destroyed; the handler may fire before this
+    ///          call returns.
+    /// \retval void Discovery started.
+    /// \retval Mw_com_binding_error::logic_error_already_started `start()` was already called.
+    /// \retval Mw_com_binding_error::runtime_error_service_find_failed Starting discovery failed.
     [[nodiscard]] Result<void> start() noexcept override;
 
    private:
@@ -82,7 +99,8 @@ class Consumer_service_binding final : public Service_binding {
         bool subscribed{false};
     };
 
-    Consumer_service_binding(std::vector<Event> events, std::string instance_specifier) noexcept;
+    Consumer_service_binding(std::vector<Event> events, std::string instance_specifier,
+                             score::mw::com::InstanceSpecifier specifier) noexcept;
 
     /// \brief Create the SOCom server connector, left disabled
     [[nodiscard]] Result<void> create_server_connector(score::socom::Runtime& runtime,
@@ -92,7 +110,7 @@ class Consumer_service_binding final : public Service_binding {
         score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept;
 
     /// \brief Build the proxy for a discovered handle and enable the SOCom connector
-    void attach_to_peer(score::mw::com::HandleType handle) noexcept;
+    void attach_to_peer(score::mw::com::HandleType handle, std::uint64_t expected_epoch) noexcept;
 
     /// \brief Point every configured event at the matching event of #m_proxy and read its
     ///        max_payload_size from the peer
@@ -109,6 +127,11 @@ class Consumer_service_binding final : public Service_binding {
     /// \brief Tear the enabled connector and the proxy down
     /// \details Also used by the destructor, hence the separate function.
     void detach_from_peer() noexcept;
+
+    /// \brief Detach the enabled connector and subscribed events while #m_lifecycle_mutex is held,
+    ///        returning any active proxy so the caller destroys it after releasing binding locks
+    /// \pre m_lifecycle_mutex is held
+    [[nodiscard]] std::optional<score::mw::com::GenericProxy> detach_from_peer_locked() noexcept;
 
     void on_event_subscription_change(score::socom::Event_id event_id, bool subscribed) noexcept;
     void on_samples_available(score::socom::Event_id event_id) noexcept;
@@ -154,11 +177,21 @@ class Consumer_service_binding final : public Service_binding {
     std::recursive_mutex m_mutex;
     std::vector<Event> m_events;
     std::string m_instance_specifier;
+    score::mw::com::InstanceSpecifier m_specifier;
+    bool m_started{false};
+    bool m_stopping{false};
+    std::uint64_t m_discovery_epoch{0U};
     std::optional<score::mw::com::FindServiceHandle> m_find_handle{};
+    std::optional<score::mw::com::HandleType> m_active_handle{};
     std::optional<score::mw::com::GenericProxy> m_proxy{};
-    /// \brief Exactly one of the two is set at any time
+    /// \brief Exactly one of the two is set except while detaching from a peer
     score::socom::Disabled_server_connector::Uptr m_disabled_connector{};
     score::socom::Enabled_server_connector::Uptr m_enabled_connector{};
+    /// \brief Count of active `update_event()` calls using #m_enabled_connector, guarded by
+    ///        #m_mutex
+    std::size_t m_in_flight_updates{0U};
+    /// \brief Notified under #m_mutex when #m_in_flight_updates drops to zero
+    std::condition_variable_any m_updates_drained_cv{};
 };
 
 }  // namespace score::gateway_ipc_binding::mw_com

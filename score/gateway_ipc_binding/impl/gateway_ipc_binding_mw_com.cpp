@@ -15,9 +15,12 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <optional>
+#include <set>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -135,6 +138,22 @@ std::optional<Service_configs> with_event_sizes(Service_configs configs,
     return configs;
 }
 
+/// \brief Order-insensitive equivalence check for reconnecting gatewayd configurations
+bool is_same_configuration(Service_configuration const& lhs,
+                           Service_configuration const& rhs) noexcept {
+    if (!(lhs.gateway_config == rhs.gateway_config)) {
+        return false;
+    }
+    if ((lhs.event_sizes.size > lhs.event_sizes.max_size) ||
+        (rhs.event_sizes.size > rhs.event_sizes.max_size) ||
+        (lhs.event_sizes.size != rhs.event_sizes.size)) {
+        return false;
+    }
+    auto const lhs_begin = lhs.event_sizes.data.cbegin();
+    auto const lhs_end = lhs_begin + static_cast<std::ptrdiff_t>(lhs.event_sizes.size);
+    return std::is_permutation(lhs_begin, lhs_end, rhs.event_sizes.data.cbegin());
+}
+
 /// \brief Client flavour of the mw::com binding
 /// \details Consumes SomeipdService and reports it through is_connected(). The bridged services
 ///          are symmetric to the server flavour and live for as long as this object does.
@@ -204,32 +223,72 @@ class Server_adapter final : public Gateway_ipc_binding_server {
         }
 
         std::lock_guard const lock{m_mutex};
-        bool const already_accepted = std::any_of(
-            m_accepted_configs.cbegin(), m_accepted_configs.cend(),
-            [&configuration](auto const& accepted) { return *accepted == *configuration; });
+        bool const already_accepted =
+            std::any_of(m_accepted_configs.cbegin(), m_accepted_configs.cend(),
+                        [&configuration](auto const& accepted) {
+                            return is_same_configuration(*accepted, *configuration);
+                        });
         if (already_accepted) {
             // A restarted gatewayd sends the same configuration again.
             return true;
         }
 
+        bool add_called{false};
+        bool add_failed{false};
         Service_bindings new_bindings{};
+        Service_configs candidate_services{};
         Add_bridged_services const add_bridged_services =
-            [this, &configuration, &new_bindings](Service_configs const& services) noexcept {
-                auto const sized = with_event_sizes(services, configuration->event_sizes);
+            [this, &configuration, &new_bindings, &candidate_services, &add_called,
+             &add_failed](Service_configs const& services) noexcept {
+                if (add_called) {
+                    score::mw::log::LogError()
+                        << kLog_tag
+                        << "add_bridged_services called more than once in one handler invocation";
+                    new_bindings.clear();
+                    candidate_services.clear();
+                    add_failed = true;
+                    return false;
+                }
+                add_called = true;
+
+                for (auto const& service : services) {
+                    if ((m_owned_service_ids.find(service.service_id) !=
+                         m_owned_service_ids.cend()) ||
+                        (m_owned_instance_specifiers.find(service.instance_specifier) !=
+                         m_owned_instance_specifiers.cend())) {
+                        score::mw::log::LogError()
+                            << kLog_tag << "Bridged service" << service.instance_specifier
+                            << "(service_id" << service.service_id
+                            << ") is already owned by an accepted configuration";
+                        add_failed = true;
+                        return false;
+                    }
+                }
+
+                auto sized = with_event_sizes(services, configuration->event_sizes);
                 if (!sized.has_value() || !add_to_mw_com_runtime(sized.value()).has_value()) {
+                    add_failed = true;
                     return false;
                 }
                 auto bindings = make_service_bindings(m_runtime, sized.value());
                 if (!bindings.has_value()) {
+                    add_failed = true;
                     return false;
                 }
                 new_bindings = std::move(bindings).value();
+                candidate_services = std::move(sized).value();
                 return true;
             };
         if (!m_handler(
                 score::cpp::span<std::byte const>{gateway_config.data.data(), gateway_config.size},
-                add_bridged_services)) {
+                add_bridged_services) ||
+            add_failed) {
             return false;
+        }
+
+        for (auto const& service : candidate_services) {
+            m_owned_service_ids.insert(service.service_id);
+            m_owned_instance_specifiers.insert(service.instance_specifier);
         }
 
         std::vector<Service_binding*> bindings_to_start{};
@@ -252,10 +311,12 @@ class Server_adapter final : public Gateway_ipc_binding_server {
     score::socom::Runtime& m_runtime;
     std::string m_someipd_service_specifier;
     Gateway_config_handler m_handler;
-    /// \brief Guards m_accepted_configs and m_services
+    /// \brief Guards m_accepted_configs, m_owned_*, and m_services
     std::mutex m_mutex;
     /// \brief Every accepted AddServiceConfiguration argument
     std::vector<std::unique_ptr<Service_configuration const>> m_accepted_configs{};
+    std::set<std::uint16_t> m_owned_service_ids{};
+    std::set<std::string> m_owned_instance_specifiers{};
     Service_bindings m_services{};
     /// \brief Starts consumer service discovery off the AddServiceConfiguration handler thread.
     ///        Declared after m_services so its destructor stops the worker thread before m_services
@@ -268,9 +329,16 @@ class Server_adapter final : public Gateway_ipc_binding_server {
 }  // namespace
 
 std::size_t sample_size(Event_config const& event) noexcept {
+    constexpr std::size_t kMax_aligned_size =
+        (std::numeric_limits<std::size_t>::max() / kSample_alignment) * kSample_alignment;
+    constexpr std::size_t kMax_alignable_payload = kMax_aligned_size - kSample_prefix_size;
+    if (event.max_payload_size > kMax_alignable_payload) {
+        return std::numeric_limits<std::size_t>::max();
+    }
     auto const unaligned_size = kSample_prefix_size + event.max_payload_size;
+    auto const remainder = unaligned_size % kSample_alignment;
     // Round up: a mw::com DataTypeMetaInfo::size must be an integer multiple of its alignment.
-    return ((unaligned_size + kSample_alignment) - 1U) / kSample_alignment * kSample_alignment;
+    return (remainder == 0U) ? unaligned_size : (unaligned_size + (kSample_alignment - remainder));
 }
 
 std::unique_ptr<Gateway_ipc_binding_client> create_client(
@@ -323,6 +391,12 @@ std::unique_ptr<Gateway_ipc_binding_server> create_server(score::socom::Runtime&
         score::mw::log::LogError() << kLog_tag
                                    << "Failed to create mw::com server binding: empty "
                                       "SomeipdService instance specifier";
+        return nullptr;
+    }
+    if (!handler) {
+        score::mw::log::LogError() << kLog_tag
+                                   << "Failed to create mw::com server binding: empty "
+                                      "gateway configuration handler";
         return nullptr;
     }
 

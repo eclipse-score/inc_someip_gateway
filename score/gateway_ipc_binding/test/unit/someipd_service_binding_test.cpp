@@ -17,19 +17,19 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <future>
 #include <memory>
-#include <score/span.hpp>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 #include "score/gateway_ipc_binding/error.hpp"
-#include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
-#include "score/gateway_ipc_binding/impl/someipd_service.hpp"
 #include "score/gateway_ipc_binding/test/unit/ipc_binding_test_fixture.hpp"
 #include "score/mw/com/impl/com_error.h"
 #include "score/mw/com/impl/configuration/quality_type.h"
@@ -39,367 +39,615 @@
 #include "score/mw/com/impl/instance_specifier.h"
 #include "score/mw/com/impl/methods/skeleton_method_binding.h"
 #include "score/result/result.h"
-#include "score/socom/error.hpp"
-#include "score/socom/server_connector.hpp"
 
 namespace score::gateway_ipc_binding::mw_com {
 namespace {
 
 using ::testing::_;
-using ::testing::A;
-using ::testing::ByMove;
-using ::testing::NiceMock;
+using ::testing::An;
 using ::testing::Return;
+using ::testing::TypedEq;
 
-constexpr std::string_view kEmptySpecifier{""};
-constexpr std::string_view kClientIdentifier{"client0"};
-constexpr std::size_t kEmptyConfigSize{0U};
-constexpr std::size_t kFirstEventIndex{0U};
-constexpr std::size_t kSingleEventSizeCount{1U};
-constexpr std::size_t kExtraBytes{1U};
-constexpr std::size_t kOversizedConfigBytes{kMax_service_configuration_size + kExtraBytes};
-constexpr std::size_t kSmallGatewayConfigSize{4U};
-constexpr std::byte kConfigByte0{0x01U};
-constexpr std::byte kConfigByte1{0x02U};
-constexpr std::byte kConfigByte2{0x03U};
-constexpr std::byte kConfigByte3{0x04U};
+constexpr std::size_t kFindHandleUid{7U};
+constexpr std::uint16_t kFirstPeerInstanceId{1U};
+constexpr std::uint16_t kSecondPeerInstanceId{2U};
+constexpr std::uint16_t kSampleServiceIdA{0x1234U};
+constexpr std::uint16_t kSampleServiceIdB{0x8001U};
+constexpr std::uint16_t kSampleEventIdA{0x0001U};
+constexpr std::uint16_t kSampleEventIdB{0xFFFFU};
+constexpr std::uint32_t kSamplePayloadSizeA{64U};
+constexpr std::uint32_t kSamplePayloadSizeB{4096U};
+constexpr std::size_t kExpectedMethodNameIndex{0U};
+constexpr std::chrono::milliseconds kReentrantCallbackTimeout{1500};
+constexpr std::byte kMutatedGatewayConfigByte{0x81U};
 
-constexpr std::uint16_t kSampleServiceId{1U};
-constexpr std::uint16_t kSampleEventId{2U};
-constexpr std::uint32_t kSampleMaxPayloadSize{16U};
-constexpr std::uint16_t kAlternateServiceId{999U};
-constexpr std::uint16_t kAlternateEventId{3U};
-constexpr std::uint32_t kAlternateMaxPayloadSize{32U};
-constexpr std::uint16_t kUnknownServiceId{999U};
-constexpr std::uint16_t kUnknownEventId{999U};
-
-constexpr std::uint32_t kServerFindServiceUid{5U};
-constexpr std::uint32_t kBridgedConsumerFindServiceUid{10U};
-constexpr std::uint32_t kSomeipdFindServiceUid{11U};
-
-template <typename T>
-score::cpp::span<std::byte> AsWritableBytes(T& value) noexcept {
-    static_assert(std::is_trivially_copyable_v<T>);
-    return score::cpp::span<std::byte>{reinterpret_cast<std::byte*>(&value), sizeof(T)};
-}
-
-bool AcceptAllConfigurations(Service_configuration const&) noexcept { return true; }
-
-bool AcceptAllGatewayConfigs(score::cpp::span<std::byte const>,
-                             Add_bridged_services const&) noexcept {
-    return true;
-}
-
-class SomeipdServiceBindingTest : public IpcBindingTestFixture {
-   protected:
-    void ExpectSomeipdSkeletonOfferSuccess() {
-        auto const mocks = ExpectSkeletonWithMethod();
-        EXPECT_CALL(*mocks.method, RegisterHandler(_))
-            .WillOnce([this](score::mw::com::impl::SkeletonMethodBinding::TypeErasedHandler&& cb)
-                          -> score::Result<void> {
-                captured_method_handler_ = std::move(cb);
-                return {};
-            });
-    }
-
-    bool InvokeAddServiceConfiguration(Service_configuration& cfg) {
-        bool result{false};
-        captured_method_handler_(score::mw::com::impl::QualityType::kASIL_QM, AsWritableBytes(cfg),
-                                 AsWritableBytes(result));
-        return result;
-    }
-
-    std::unique_ptr<Gateway_ipc_binding_client> CreateTestClient() {
-        (void)ExpectServerConnectorCreated();
-        EXPECT_CALL(service_discovery_mock(),
-                    StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
-            .WillOnce(Return(
-                score::mw::com::impl::make_FindServiceHandle(kBridgedConsumerFindServiceUid)))
-            .WillOnce(
-                [this](
-                    score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> cb,
-                    score::mw::com::impl::InstanceSpecifier)
-                    -> score::Result<score::mw::com::impl::FindServiceHandle> {
-                    someipd_find_handler_ = std::move(cb);
-                    return score::mw::com::impl::make_FindServiceHandle(kSomeipdFindServiceUid);
-                });
-        constexpr std::array<std::byte, kSmallGatewayConfigSize> kSmallGwCfg{
-            kConfigByte0, kConfigByte1, kConfigByte2, kConfigByte3};
-        return create_client(socom_runtime_, std::string{kSomeipdSpecifier},
-                             {MakeServiceConfig(Role::consumer)}, kClientIdentifier, kSmallGwCfg);
-    }
-
-    void NotifySomeipdFound() {
-        score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const
-            handles{MakeHandle()};
-        someipd_find_handler_(handles,
-                              score::mw::com::impl::make_FindServiceHandle(kSomeipdFindServiceUid));
-    }
-
-    void NotifySomeipdLost() {
-        someipd_find_handler_(
-            score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType>{},
-            score::mw::com::impl::make_FindServiceHandle(kSomeipdFindServiceUid));
-    }
-
-    void ExpectSomeipdProxyCallResult(bool const accepted) {
-        auto proxy_mock = std::make_unique<NiceMock<testing::Proxy>>();
-        auto method_mock = std::make_unique<NiceMock<testing::ProxyMethod>>();
-        ON_CALL(*method_mock, GetInArgsBuffer(_))
-            .WillByDefault(Return(AsWritableBytes(*in_arg_buffer_)));
-        ON_CALL(*method_mock, GetReturnValueBuffer(_))
-            .WillByDefault(Return(AsWritableBytes(return_value_buffer_)));
-        EXPECT_CALL(*method_mock, DoCall(_))
-            .WillOnce([this, accepted](std::size_t) -> score::Result<void> {
-                return_value_buffer_ = accepted;
-                return {};
-            });
-        EXPECT_CALL(proxy_binding_factory_mock(), Create(_))
-            .WillOnce(Return(ByMove(std::move(proxy_mock))));
-        EXPECT_CALL(proxy_method_factory_mock(), Create(_, _, _, _, _, _))
-            .WillOnce(Return(ByMove(std::move(method_mock))));
-    }
-
-   private:
-    score::mw::com::impl::SkeletonMethodBinding::TypeErasedHandler captured_method_handler_{};
-    score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType>
-        someipd_find_handler_{};
-    std::unique_ptr<Service_configuration> in_arg_buffer_{
-        std::make_unique<Service_configuration>()};
-    bool return_value_buffer_{false};
+constexpr std::array<std::byte, 5U> kGatewayConfigBytes{
+    std::byte{0x00U}, std::byte{0x7FU}, std::byte{0x80U}, std::byte{0xFFU}, std::byte{0x5AU},
 };
 
-// C++17 requires a hand-written operator==; verifies service_id, event_id, and max_payload_size
-// are all compared.
-TEST(BridgedEventSizeTest, EqualityComparesAllFields) {
-    constexpr Bridged_event_size kBaseline{kSampleServiceId, kSampleEventId, kSampleMaxPayloadSize};
-    constexpr Bridged_event_size kIdentical{kSampleServiceId, kSampleEventId,
-                                            kSampleMaxPayloadSize};
-    constexpr Bridged_event_size kDifferentServiceId{kAlternateServiceId, kSampleEventId,
-                                                     kSampleMaxPayloadSize};
-    constexpr Bridged_event_size kDifferentEventId{kSampleServiceId, kAlternateEventId,
-                                                   kSampleMaxPayloadSize};
-    constexpr Bridged_event_size kDifferentPayloadSize{kSampleServiceId, kSampleEventId,
-                                                       kAlternateMaxPayloadSize};
+template <typename C, typename = void>
+struct HasInequalityOperator : std::false_type {};
 
-    EXPECT_TRUE(kBaseline == kIdentical);
-    EXPECT_FALSE(kBaseline == kDifferentServiceId);
-    EXPECT_FALSE(kBaseline == kDifferentEventId);
-    EXPECT_FALSE(kBaseline == kDifferentPayloadSize);
+template <typename C>
+struct HasInequalityOperator<
+    C, std::void_t<decltype(std::declval<C const&>() != std::declval<C const&>())>>
+    : std::true_type {};
+
+template <typename C>
+void ExpectNeWhenAvailable(C const& lhs, C const& rhs, bool const expected) {
+    if constexpr (HasInequalityOperator<C>::value) {
+        EXPECT_EQ(lhs != rhs, expected);
+    }
 }
 
-// Returns nullptr when someipd_service_specifier is empty.
-TEST_F(SomeipdServiceBindingTest, CreateServerReturnsNullptrOnEmptySpecifier) {
-    EXPECT_EQ(create_server(socom_runtime_, std::string{kEmptySpecifier}, &AcceptAllGatewayConfigs),
-              nullptr);
+template <typename C>
+void ExpectEqNoexcept(C const& lhs, C const& rhs) {
+    EXPECT_TRUE(noexcept(lhs == rhs));
+    if constexpr (HasInequalityOperator<C>::value) {
+        EXPECT_TRUE(noexcept(lhs != rhs));
+    }
 }
 
-// Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a generic creation
-// error.
-TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsInvalidSpecifier) {
-    auto const result =
-        Someipd_service_provider::create(std::string{kInvalidSpecifier}, &AcceptAllConfigurations);
+void PopulateConfiguration(Service_configuration& cfg) noexcept {
+    cfg.gateway_config.size = kGatewayConfigBytes.size();
+    for (std::size_t i = 0U; i < kGatewayConfigBytes.size(); ++i) {
+        cfg.gateway_config.data[i] = kGatewayConfigBytes[i];
+    }
+    cfg.event_sizes.size = 2U;
+    cfg.event_sizes.data[0U] =
+        Bridged_event_size{kSampleServiceIdA, kSampleEventIdA, kSamplePayloadSizeA};
+    cfg.event_sizes.data[1U] =
+        Bridged_event_size{kSampleServiceIdB, kSampleEventIdB, kSamplePayloadSizeB};
+}
+
+std::unique_ptr<Service_configuration> MakePopulatedConfiguration() {
+    auto cfg = std::make_unique<Service_configuration>();
+    PopulateConfiguration(*cfg);
+    return cfg;
+}
+
+std::unique_ptr<std::array<Service_configuration, 2U>> MakePaddedConfigurationArena() {
+    auto arena = std::make_unique<std::array<Service_configuration, 2U>>();
+    PopulateConfiguration((*arena)[0U]);
+    return arena;
+}
+
+std::weak_ptr<int> AttachProxyLifetimeCanary(::testing::NiceMock<score::testing::Proxy>& proxy) {
+    auto canary = std::make_shared<int>(1);
+    std::weak_ptr<int> const weak_canary{canary};
+    ON_CALL(proxy, IsEventProvided(_))
+        .WillByDefault([owned_canary = std::move(canary)](std::string_view) {
+            (void)owned_canary;
+            return false;
+        });
+    return weak_canary;
+}
+
+using SomeipdServiceBindingTest = IpcBindingTestFixture;
+
+TEST_F(SomeipdServiceBindingTest, WireTypesEnforceFieldEqualityInequalityAndCorruptedSizeBounds) {
+    static_assert(std::is_trivially_copyable_v<Bridged_event_size>);
+    static_assert(std::is_trivially_copyable_v<Service_configuration>);
+
+    Bridged_event_size const base{kSampleServiceIdA, kSampleEventIdA, kSamplePayloadSizeA};
+    Bridged_event_size const same{kSampleServiceIdA, kSampleEventIdA, kSamplePayloadSizeA};
+    Bridged_event_size const diff_service{kSampleServiceIdB, kSampleEventIdA, kSamplePayloadSizeA};
+    Bridged_event_size const diff_event{kSampleServiceIdA, kSampleEventIdB, kSamplePayloadSizeA};
+    Bridged_event_size const diff_payload{kSampleServiceIdA, kSampleEventIdA, kSamplePayloadSizeB};
+
+    EXPECT_TRUE((HasInequalityOperator<Bridged_event_size>::value));
+    ExpectEqNoexcept(base, same);
+    EXPECT_TRUE(base == same);
+    ExpectNeWhenAvailable(base, same, false);
+    EXPECT_FALSE(base == diff_service);
+    ExpectNeWhenAvailable(base, diff_service, true);
+    EXPECT_FALSE(base == diff_event);
+    ExpectNeWhenAvailable(base, diff_event, true);
+    EXPECT_FALSE(base == diff_payload);
+    ExpectNeWhenAvailable(base, diff_payload, true);
+
+    auto const lhs_arena = MakePaddedConfigurationArena();
+    auto const rhs_arena = MakePaddedConfigurationArena();
+    auto& cfg_lhs = (*lhs_arena)[0U];
+    auto& cfg_rhs = (*rhs_arena)[0U];
+    EXPECT_TRUE((HasInequalityOperator<Service_configuration>::value));
+    ExpectEqNoexcept(cfg_lhs, cfg_rhs);
+    EXPECT_TRUE(cfg_lhs == cfg_rhs);
+    ExpectNeWhenAvailable(cfg_lhs, cfg_rhs, false);
+
+    cfg_rhs.gateway_config.data[2U] = kMutatedGatewayConfigByte;
+    EXPECT_FALSE(cfg_lhs == cfg_rhs);
+    ExpectNeWhenAvailable(cfg_lhs, cfg_rhs, true);
+    cfg_rhs.gateway_config.data[2U] = kGatewayConfigBytes[2U];
+
+    cfg_rhs.event_sizes.data[1U].max_payload_size = kSamplePayloadSizeA;
+    EXPECT_FALSE(cfg_lhs == cfg_rhs);
+    ExpectNeWhenAvailable(cfg_lhs, cfg_rhs, true);
+    cfg_rhs.event_sizes.data[1U].max_payload_size = kSamplePayloadSizeB;
+    ASSERT_TRUE(cfg_lhs == cfg_rhs);
+
+    cfg_lhs.gateway_config.size = kMax_service_configuration_size + 1U;
+    cfg_rhs.gateway_config.size = kMax_service_configuration_size + 1U;
+    EXPECT_FALSE(cfg_lhs == cfg_rhs);
+    ExpectNeWhenAvailable(cfg_lhs, cfg_rhs, true);
+    cfg_lhs.gateway_config.size = kGatewayConfigBytes.size();
+    cfg_rhs.gateway_config.size = kGatewayConfigBytes.size();
+
+    cfg_lhs.event_sizes.size = Bridged_event_sizes::max_size + 1U;
+    cfg_rhs.event_sizes.size = Bridged_event_sizes::max_size + 1U;
+    EXPECT_FALSE(cfg_lhs == cfg_rhs);
+    ExpectNeWhenAvailable(cfg_lhs, cfg_rhs, true);
+}
+
+TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsEmptyHandlerBeforeTouchingSkeletonFactory) {
+    StubSomeipdInstanceResolved();
+    EXPECT_CALL(skeleton_binding_factory_mock(), Create(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
+
+    auto result = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier},
+        Someipd_service_provider::Add_service_configuration_handler{});
+
     ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
+    EXPECT_EQ(result.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_service_configuration));
 }
 
-// Fails server->start() when the SomeipdService specifier is missing from mw_com_config.json.
-TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
-    StubInstanceNotResolved();
-    auto server =
-        create_server(socom_runtime_, std::string{kSomeipdSpecifier}, &AcceptAllGatewayConfigs);
-    ASSERT_NE(server, nullptr);
+TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsInvalidInstanceSpecifiers) {
+    EXPECT_CALL(skeleton_binding_factory_mock(), Create(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
 
-    auto const start_result = server->start();
-    ASSERT_FALSE(start_result.has_value());
-    EXPECT_EQ(start_result.error(),
-              Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
+    auto const empty_result = Someipd_service_provider::create(
+        "", [](Service_configuration const&) noexcept { return true; });
+    ASSERT_FALSE(empty_result.has_value());
+    EXPECT_EQ(empty_result.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier));
+
+    auto const malformed_result = Someipd_service_provider::create(
+        std::string{kInvalidSpecifier}, [](Service_configuration const&) noexcept { return true; });
+    ASSERT_FALSE(malformed_result.has_value());
+    EXPECT_EQ(malformed_result.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier));
 }
 
-// Fails Someipd_service_provider::create() if RegisterHandler() fails, since LoLa aborts
-// OfferService() when a method has no handler.
-TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
-    auto const mocks = ExpectSkeletonWithMethod();
-    EXPECT_CALL(*mocks.method, RegisterHandler(_))
+TEST_F(SomeipdServiceBindingTest, ProviderCreateReturnsCreationFailedWhenInstanceIsUndeployed) {
+    EXPECT_CALL(skeleton_binding_factory_mock(), Create(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
+
+    auto const undeployed_result = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier}, [](Service_configuration const&) noexcept { return true; });
+    ASSERT_FALSE(undeployed_result.has_value());
+    EXPECT_EQ(undeployed_result.error(),
+              MakeError(Mw_com_binding_error::runtime_error_someipd_service_creation_failed));
+}
+
+TEST_F(SomeipdServiceBindingTest, ProviderCreateReturnsCreationFailedWhenSkeletonFactoryFails) {
+    StubSomeipdInstanceResolved();
+    ExpectSkeletonCreationFailure();
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
+
+    auto const factory_failure_result = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier}, [](Service_configuration const&) noexcept { return true; });
+    ASSERT_FALSE(factory_failure_result.has_value());
+    EXPECT_EQ(factory_failure_result.error(),
+              MakeError(Mw_com_binding_error::runtime_error_someipd_service_creation_failed));
+}
+
+TEST_F(SomeipdServiceBindingTest, ProviderCreateReturnsCreationFailedWhenRegisterHandlerFails) {
+    StubSomeipdInstanceResolved();
+    auto const skel_mocks = ExpectSkeletonWithMethod("AddServiceConfiguration");
+    EXPECT_CALL(*skel_mocks.method, RegisterHandler(_))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_, _)).Times(0);
 
-    auto const result =
-        Someipd_service_provider::create(std::string{kSomeipdSpecifier}, &AcceptAllConfigurations);
+    auto const result = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier}, [](Service_configuration const&) noexcept { return true; });
+
     ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), Mw_com_binding_error::runtime_error_someipd_service_creation_failed);
+    EXPECT_EQ(result.error(),
+              MakeError(Mw_com_binding_error::runtime_error_someipd_service_creation_failed));
 }
 
-// Returns runtime_error_someipd_service_offer_failed when OfferService() fails in server->start().
-TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
-    auto const mocks = ExpectSkeletonWithMethod();
-    EXPECT_CALL(*mocks.skeleton, PrepareOffer(_, _, _))
-        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+TEST_F(SomeipdServiceBindingTest, ProviderDestructorDoesNotStopOfferWhenNeverOffered) {
+    StubSomeipdInstanceResolved();
+    auto const skel_mocks = ExpectSkeletonWithMethod("AddServiceConfiguration");
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_, _)).Times(0);
+    EXPECT_CALL(*skel_mocks.skeleton, PrepareStopOffer(_)).Times(0);
 
-    auto server =
-        create_server(socom_runtime_, std::string{kSomeipdSpecifier}, &AcceptAllGatewayConfigs);
-    auto const offer_result = server->start();
+    auto result = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier}, [](Service_configuration const&) noexcept { return true; });
+    ASSERT_TRUE(result.has_value());
+    result->reset();
+}
+
+TEST_F(SomeipdServiceBindingTest,
+       ProviderOfferReturnsOfferFailedAndSkipsStopOfferWhenPrepareOfferFails) {
+    StubSomeipdInstanceResolved();
+    auto const skel_mocks = ExpectSkeletonWithMethod("AddServiceConfiguration");
+    EXPECT_CALL(*skel_mocks.skeleton, PrepareOffer(_, _, _))
+        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_, _)).Times(0);
+    EXPECT_CALL(*skel_mocks.skeleton, PrepareStopOffer(_)).Times(0);
+
+    auto provider = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier}, [](Service_configuration const&) noexcept { return true; });
+    ASSERT_TRUE(provider.has_value());
+
+    auto const offer_result = (*provider)->offer();
     ASSERT_FALSE(offer_result.has_value());
     EXPECT_EQ(offer_result.error(),
-              Mw_com_binding_error::runtime_error_someipd_service_offer_failed);
+              MakeError(Mw_com_binding_error::runtime_error_someipd_service_offer_failed));
 }
 
-// Calling server->start() a second time returns logic_error_already_started without replacing the
-// active skeleton.
-TEST_F(SomeipdServiceBindingTest, ServerSecondStartReturnsAlreadyStartedError) {
-    ExpectSomeipdSkeletonOfferSuccess();
+TEST_F(SomeipdServiceBindingTest,
+       ProviderOfferReturnsOfferFailedAndSkipsStopOfferWhenServiceDiscoveryFails) {
+    StubSomeipdInstanceResolved();
+    (void)ExpectSkeletonWithMethod("AddServiceConfiguration");
+    EXPECT_CALL(service_discovery_mock(), OfferService(_))
+        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_, _)).Times(0);
 
-    auto server =
-        create_server(socom_runtime_, std::string{kSomeipdSpecifier}, &AcceptAllGatewayConfigs);
-    ASSERT_TRUE(server->start().has_value());
+    auto provider = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier}, [](Service_configuration const&) noexcept { return true; });
+    ASSERT_TRUE(provider.has_value());
 
-    auto const second_start = server->start();
-    ASSERT_FALSE(second_start.has_value());
-    EXPECT_EQ(second_start.error(), Mw_com_binding_error::logic_error_already_started);
+    auto const offer_result = (*provider)->offer();
+    ASSERT_FALSE(offer_result.has_value());
+    EXPECT_EQ(offer_result.error(),
+              MakeError(Mw_com_binding_error::runtime_error_someipd_service_offer_failed));
 }
 
-// Rejects gateway_config.size > max_size before reading past the SHM array, and returns false when
-// the configuration callback returns false.
-TEST_F(SomeipdServiceBindingTest, ServerRejectsOversizedAndHandlerRejectedConfigurations) {
-    ExpectSomeipdSkeletonOfferSuccess();
+TEST_F(SomeipdServiceBindingTest, ProviderOffersWithdrawsOnDestructionAndForwardsRpcResponses) {
+    StubSomeipdInstanceResolved();
+    auto const skel_mocks = ExpectSkeletonWithMethod("AddServiceConfiguration");
 
-    bool handler_accepts{false};
-    auto server =
-        create_server(socom_runtime_, std::string{kSomeipdSpecifier},
-                      [&handler_accepts](score::cpp::span<std::byte const>,
-                                         Add_bridged_services const&) { return handler_accepts; });
-    ASSERT_TRUE(server->start().has_value());
-
-    auto cfg = std::make_unique<Service_configuration>();
-    cfg->gateway_config.size = kOversizedConfigBytes;
-    EXPECT_FALSE(InvokeAddServiceConfiguration(*cfg));
-
-    cfg->gateway_config.size = kEmptyConfigSize;
-    EXPECT_FALSE(InvokeAddServiceConfiguration(*cfg));
-}
-
-// Rejects provider configurations when event_sizes has the wrong count or an unknown
-// (service_id, event_id) pair.
-TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEventSizes) {
-    ExpectSomeipdSkeletonOfferSuccess();
-
-    auto server = create_server(
-        socom_runtime_, std::string{kSomeipdSpecifier},
-        [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
-            return add_bridged_services({MakeServiceConfig(Role::provider)});
+    score::mw::com::impl::SkeletonMethodBinding::TypeErasedHandler registered_rpc_handler{};
+    EXPECT_CALL(*skel_mocks.method, RegisterHandler(_))
+        .WillOnce([&registered_rpc_handler](
+                      score::mw::com::impl::SkeletonMethodBinding::TypeErasedHandler&& handler)
+                      -> score::Result<void> {
+            registered_rpc_handler = std::move(handler);
+            return {};
         });
-    ASSERT_TRUE(server->start().has_value());
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).WillOnce(Return(score::Result<void>{}));
+    EXPECT_CALL(service_discovery_mock(), StopOfferService(_))
+        .WillOnce(Return(score::Result<void>{}));
+    EXPECT_CALL(*skel_mocks.skeleton, PrepareStopOffer(_)).Times(1);
 
-    auto cfg = std::make_unique<Service_configuration>();
-    cfg->event_sizes.size = kEmptyConfigSize;
-    EXPECT_FALSE(InvokeAddServiceConfiguration(*cfg));
+    bool next_handler_reply{true};
+    auto received_cfg = std::make_unique<Service_configuration>();
+    std::size_t handler_invocations{0U};
 
-    cfg->event_sizes.size = kSingleEventSizeCount;
-    cfg->event_sizes.data[kFirstEventIndex] =
-        Bridged_event_size{kUnknownServiceId, kUnknownEventId, kSampleMaxPayloadSize};
-    EXPECT_FALSE(InvokeAddServiceConfiguration(*cfg));
+    auto provider = Someipd_service_provider::create(
+        std::string{kSomeipdSpecifier}, [&received_cfg, &handler_invocations, &next_handler_reply](
+                                            Service_configuration const& cfg) noexcept {
+            *received_cfg = cfg;
+            ++handler_invocations;
+            return next_handler_reply;
+        });
+    ASSERT_TRUE(provider.has_value());
+    ASSERT_TRUE((*provider)->offer().has_value());
+
+    auto const expected_cfg = MakePopulatedConfiguration();
+    auto call_buffers = AllocateSomeipdCallBuffers();
+    *call_buffers.in_arg = *expected_cfg;
+
+    *call_buffers.return_value = false;
+    next_handler_reply = true;
+    registered_rpc_handler(score::mw::com::impl::QualityType::kASIL_QM, call_buffers.in_arg_bytes,
+                           call_buffers.return_bytes);
+    EXPECT_EQ(handler_invocations, 1U);
+    EXPECT_TRUE(*call_buffers.return_value);
+    ASSERT_EQ(received_cfg->gateway_config.size, kGatewayConfigBytes.size());
+    for (std::size_t i = 0U; i < kGatewayConfigBytes.size(); ++i) {
+        SCOPED_TRACE(i);
+        EXPECT_EQ(received_cfg->gateway_config.data[i], kGatewayConfigBytes[i]);
+    }
+    ASSERT_EQ(received_cfg->event_sizes.size, 2U);
+    EXPECT_EQ(received_cfg->event_sizes.data[0U], expected_cfg->event_sizes.data[0U]);
+    EXPECT_EQ(received_cfg->event_sizes.data[1U], expected_cfg->event_sizes.data[1U]);
+
+    *call_buffers.return_value = true;
+    next_handler_reply = false;
+    registered_rpc_handler(score::mw::com::impl::QualityType::kASIL_QM, call_buffers.in_arg_bytes,
+                           call_buffers.return_bytes);
+    EXPECT_EQ(handler_invocations, 2U);
+    EXPECT_FALSE(*call_buffers.return_value);
 }
 
-// Returns true without creating duplicate bindings when a restarted gatewayd sends the same
-// configuration again.
-TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircuitsDuplicate) {
-    ExpectSomeipdSkeletonOfferSuccess();
-
-    auto server = create_server(
-        socom_runtime_, std::string{kSomeipdSpecifier},
-        [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
-            return add_bridged_services({MakeServiceConfig(Role::consumer)});
-        });
-    ASSERT_TRUE(server->start().has_value());
-
-    (void)ExpectServerConnectorCreated();
+TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpecifiers) {
+    auto const cfg = MakePopulatedConfiguration();
     EXPECT_CALL(service_discovery_mock(),
-                StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
-        .WillRepeatedly(
-            Return(score::mw::com::impl::make_FindServiceHandle(kServerFindServiceUid)));
+                StartFindService(_, An<score::mw::com::impl::InstanceSpecifier>()))
+        .Times(0);
 
-    auto cfg = std::make_unique<Service_configuration>();
-    EXPECT_TRUE(InvokeAddServiceConfiguration(*cfg));
-    EXPECT_TRUE(InvokeAddServiceConfiguration(*cfg));
-}
+    auto const empty_result = Someipd_service_consumer::create("", *cfg);
+    ASSERT_FALSE(empty_result.has_value());
+    EXPECT_EQ(empty_result.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier));
 
-// Invalid or undeployed SomeipdService specifier fails immediately instead of waiting indefinitely
-// in StartFindService().
-TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpecifier) {
-    auto const cfg = std::make_unique<Service_configuration>();
+    auto const malformed_result =
+        Someipd_service_consumer::create(std::string{kInvalidSpecifier}, *cfg);
+    ASSERT_FALSE(malformed_result.has_value());
+    EXPECT_EQ(malformed_result.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier));
 
-    auto const invalid_res = Someipd_service_consumer::create(std::string{kInvalidSpecifier}, *cfg);
-    ASSERT_FALSE(invalid_res.has_value());
-    EXPECT_EQ(invalid_res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
-
-    StubInstanceNotResolved();
-    auto const undeployed_res =
+    auto const undeployed_result =
         Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
-    ASSERT_FALSE(undeployed_res.has_value());
-    EXPECT_EQ(undeployed_res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
+    ASSERT_FALSE(undeployed_result.has_value());
+    EXPECT_EQ(undeployed_result.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier));
 }
 
-// Returns runtime_error_someipd_service_find_failed when StartFindService() fails.
-TEST_F(SomeipdServiceBindingTest, ConsumerCreateFailsWhenStartFindServiceFails) {
-    auto const cfg = std::make_unique<Service_configuration>();
-    EXPECT_CALL(service_discovery_mock(),
-                StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
+TEST_F(SomeipdServiceBindingTest, ConsumerCreateReturnsFindFailedWhenStartFindServiceFails) {
+    StubSomeipdInstanceResolved();
+    auto const cfg = MakePopulatedConfiguration();
+    auto const expected_specifier =
+        score::mw::com::impl::InstanceSpecifier::Create(std::string{kSomeipdSpecifier}).value();
+
+    EXPECT_CALL(
+        service_discovery_mock(),
+        StartFindService(_, TypedEq<score::mw::com::impl::InstanceSpecifier>(expected_specifier)))
         .WillOnce(Return(
             score::MakeUnexpected(score::mw::com::impl::ComErrc::kFindServiceHandlerFailure)));
+    EXPECT_CALL(service_discovery_mock(), StopFindService(_)).Times(0);
 
-    auto const start_fail = Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
-    ASSERT_FALSE(start_fail.has_value());
-    EXPECT_EQ(start_fail.error(), Mw_com_binding_error::runtime_error_someipd_service_find_failed);
+    auto const result = Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(),
+              MakeError(Mw_com_binding_error::runtime_error_someipd_service_find_failed));
 }
 
-// Returns nullptr if a bridged service config is invalid, gateway_config exceeds the SHM array
-// capacity, or SOCom connector creation fails.
-TEST_F(SomeipdServiceBindingTest,
-       CreateClientRejectsInvalidConfigOversizedPayloadAndFailedBinding) {
-    auto bad_service = MakeServiceConfig();
-    bad_service.events.clear();
-    EXPECT_EQ(create_client(socom_runtime_, std::string{kSomeipdSpecifier}, {bad_service}),
-              nullptr);
+TEST_F(SomeipdServiceBindingTest, ConsumerConnectsSynchronouslyWhenDiscoveryFiresInsideCreate) {
+    StubSomeipdInstanceResolved();
+    auto const cfg = MakePopulatedConfiguration();
+    auto const handle = MakeSomeipdHandle(kSomeipdSpecifier, kFirstPeerInstanceId);
+    auto const find_handle = score::mw::com::impl::make_FindServiceHandle(kFindHandleUid);
+    auto const rpc = ExpectSomeipdProxyWithRpc(score::Result<bool>{true});
 
-    std::vector<std::byte> const huge_config(kOversizedConfigBytes);
-    EXPECT_EQ(create_client(socom_runtime_, std::string{kSomeipdSpecifier}, {}, kClientIdentifier,
-                            huge_config),
-              nullptr);
-
-    EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
-        .WillOnce(Return(ByMove(score::MakeUnexpected<socom::Disabled_server_connector::Uptr>(
-            socom::Construction_error::duplicate_service))));
-    EXPECT_EQ(create_client(socom_runtime_, std::string{kSomeipdSpecifier},
-                            {MakeServiceConfig(Role::consumer)}),
-              nullptr);
-}
-
-// is_connected() returns true only after AddServiceConfiguration returns true, and returns false
-// again when SomeipdService stops offering.
-TEST_F(SomeipdServiceBindingTest,
-       ClientConnectionStateTracksSomeipdDiscoveryAndConfigurationReply) {
-    auto client = CreateTestClient();
-    ASSERT_NE(client, nullptr);
-    EXPECT_FALSE(client->is_connected());
-
-    EXPECT_CALL(proxy_binding_factory_mock(), Create(_)).WillOnce(Return(ByMove(nullptr)));
-    NotifySomeipdFound();
-    EXPECT_FALSE(client->is_connected());
-
-    ExpectSomeipdProxyCallResult(false);
-    NotifySomeipdFound();
-    EXPECT_FALSE(client->is_connected());
-
-    ExpectSomeipdProxyCallResult(true);
-    NotifySomeipdFound();
-    EXPECT_TRUE(client->is_connected());
-
-    NotifySomeipdLost();
-    EXPECT_FALSE(client->is_connected());
-
-    EXPECT_CALL(service_discovery_mock(), StopFindService(_))
-        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kInvalidHandle)))
+    EXPECT_CALL(service_discovery_mock(),
+                StartFindService(_, An<score::mw::com::impl::InstanceSpecifier>()))
+        .WillOnce(
+            [&handle, find_handle](
+                score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> handler,
+                score::mw::com::impl::InstanceSpecifier) {
+                handler({handle}, find_handle);
+                return score::Result<score::mw::com::impl::FindServiceHandle>{find_handle};
+            });
+    EXPECT_CALL(service_discovery_mock(), StopFindService(find_handle))
         .WillOnce(Return(score::Result<void>{}));
-    client.reset();
+
+    auto consumer = Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
+    ASSERT_TRUE(consumer.has_value());
+    EXPECT_TRUE((*consumer)->is_connected());
+    EXPECT_TRUE(*rpc.buffers.in_arg == *cfg);
+}
+
+TEST_F(SomeipdServiceBindingTest,
+       ConsumerTracksDiscoveryTransitionsIgnoresDuplicateActiveHandleAndReconnects) {
+    StubSomeipdInstanceResolved();
+    auto const cfg = MakePopulatedConfiguration();
+    auto const h1 = MakeSomeipdHandle(kSomeipdSpecifier, kFirstPeerInstanceId);
+    auto const h2 = MakeSomeipdHandle(kSomeipdSpecifier, kSecondPeerInstanceId);
+    EXPECT_FALSE(h1 == h2);
+
+    auto const find_handle = score::mw::com::impl::make_FindServiceHandle(kFindHandleUid);
+    score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> find_handler{};
+
+    EXPECT_CALL(service_discovery_mock(),
+                StartFindService(_, An<score::mw::com::impl::InstanceSpecifier>()))
+        .WillOnce(
+            [&find_handler, find_handle](
+                score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> handler,
+                score::mw::com::impl::InstanceSpecifier) {
+                find_handler = std::move(handler);
+                return score::Result<score::mw::com::impl::FindServiceHandle>{find_handle};
+            });
+    EXPECT_CALL(service_discovery_mock(), StopFindService(find_handle))
+        .WillOnce(Return(score::Result<void>{}));
+
+    auto const rpc1 = ExpectSomeipdProxyWithRpc(score::Result<bool>{true});
+    auto const weak_proxy1 = AttachProxyLifetimeCanary(*rpc1.proxy);
+    auto const rpc2 = ExpectSomeipdProxyWithRpc(score::Result<bool>{true});
+    auto const weak_proxy2 = AttachProxyLifetimeCanary(*rpc2.proxy);
+    auto const rpc3 = ExpectSomeipdProxyWithRpc(score::Result<bool>{true});
+    auto const weak_proxy3 = AttachProxyLifetimeCanary(*rpc3.proxy);
+
+    auto consumer = Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
+    ASSERT_TRUE(consumer.has_value());
+    EXPECT_FALSE((*consumer)->is_connected());
+
+    // Empty discovery while disconnected stays false without creating any proxy.
+    find_handler({}, find_handle);
+    EXPECT_FALSE((*consumer)->is_connected());
+
+    // First handle connects and sends exact Service_configuration.
+    find_handler({h1}, find_handle);
+    EXPECT_TRUE((*consumer)->is_connected());
+    EXPECT_FALSE(weak_proxy1.expired());
+    ASSERT_EQ(rpc1.buffers.in_arg->gateway_config.size, kGatewayConfigBytes.size());
+    for (std::size_t i = 0U; i < kGatewayConfigBytes.size(); ++i) {
+        SCOPED_TRACE(i);
+        EXPECT_EQ(rpc1.buffers.in_arg->gateway_config.data[i], kGatewayConfigBytes[i]);
+    }
+    ASSERT_EQ(rpc1.buffers.in_arg->event_sizes.size, 2U);
+    EXPECT_EQ(rpc1.buffers.in_arg->event_sizes.data[0U], cfg->event_sizes.data[0U]);
+    EXPECT_EQ(rpc1.buffers.in_arg->event_sizes.data[1U], cfg->event_sizes.data[1U]);
+
+    // Duplicate notification for already-connected h1 keeps proxy1 alive without re-running RPC.
+    find_handler({h1}, find_handle);
+    EXPECT_TRUE((*consumer)->is_connected());
+    EXPECT_FALSE(weak_proxy1.expired());
+
+    // Distinct handle h2 directly replaces proxy1 and connects proxy2.
+    find_handler({h2}, find_handle);
+    EXPECT_TRUE((*consumer)->is_connected());
+    EXPECT_TRUE(weak_proxy1.expired());
+    EXPECT_FALSE(weak_proxy2.expired());
+    EXPECT_TRUE(*rpc2.buffers.in_arg == *cfg);
+
+    // Empty discovery drops connection and destroys active proxy2.
+    find_handler({}, find_handle);
+    EXPECT_FALSE((*consumer)->is_connected());
+    EXPECT_TRUE(weak_proxy2.expired());
+
+    // Subsequent discovery reconnects cleanly.
+    find_handler({h1}, find_handle);
+    EXPECT_TRUE((*consumer)->is_connected());
+    EXPECT_FALSE(weak_proxy3.expired());
+}
+
+TEST_F(SomeipdServiceBindingTest,
+       ConsumerDoesNotRetainProxyWhenCreateOrRpcFailsAndRetriesSameHandle) {
+    StubSomeipdInstanceResolved();
+    auto const cfg = MakePopulatedConfiguration();
+    auto const h1 = MakeSomeipdHandle(kSomeipdSpecifier, kFirstPeerInstanceId);
+    auto const find_handle = score::mw::com::impl::make_FindServiceHandle(kFindHandleUid);
+    score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> find_handler{};
+
+    EXPECT_CALL(service_discovery_mock(),
+                StartFindService(_, An<score::mw::com::impl::InstanceSpecifier>()))
+        .WillOnce(
+            [&find_handler, find_handle](
+                score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> handler,
+                score::mw::com::impl::InstanceSpecifier) {
+                find_handler = std::move(handler);
+                return score::Result<score::mw::com::impl::FindServiceHandle>{find_handle};
+            });
+    EXPECT_CALL(service_discovery_mock(), StopFindService(find_handle))
+        .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+
+    // Attempt 1: Proxy creation fails -> stays disconnected.
+    ExpectProxyCreationFailure();
+
+    // Attempt 2: RPC transport error -> stays disconnected and destroys rejected proxy immediately.
+    auto const rpc_transport_err = ExpectSomeipdProxyWithRpc(
+        score::MakeUnexpected<bool>(score::mw::com::impl::ComErrc::kBindingFailure));
+    auto const weak_transport_err_proxy = AttachProxyLifetimeCanary(*rpc_transport_err.proxy);
+
+    // Attempt 3: Peer rejects configuration (returns false) -> stays disconnected and destroys
+    // proxy.
+    auto const rpc_rejected = ExpectSomeipdProxyWithRpc(score::Result<bool>{false});
+    auto const weak_rejected_proxy = AttachProxyLifetimeCanary(*rpc_rejected.proxy);
+
+    // Attempt 4: Retry with the exact same handle h1 succeeds and retains active proxy until
+    // teardown.
+    auto const rpc_accepted = ExpectSomeipdProxyWithRpc(score::Result<bool>{true});
+    auto const weak_accepted_proxy = AttachProxyLifetimeCanary(*rpc_accepted.proxy);
+
+    auto consumer = Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
+    ASSERT_TRUE(consumer.has_value());
+
+    find_handler({h1}, find_handle);
+    EXPECT_FALSE((*consumer)->is_connected());
+
+    find_handler({h1}, find_handle);
+    EXPECT_FALSE((*consumer)->is_connected());
+    EXPECT_TRUE(weak_transport_err_proxy.expired());
+
+    find_handler({h1}, find_handle);
+    EXPECT_FALSE((*consumer)->is_connected());
+    EXPECT_TRUE(weak_rejected_proxy.expired());
+
+    find_handler({h1}, find_handle);
+    EXPECT_TRUE((*consumer)->is_connected());
+    EXPECT_FALSE(weak_accepted_proxy.expired());
+
+    // Destructor cleans up active proxy safely even when StopFindService returns an error.
+    consumer->reset();
+    EXPECT_TRUE(weak_accepted_proxy.expired());
+}
+
+TEST_F(SomeipdServiceBindingTest,
+       ConsumerReleasesInternalLocksAcrossProxyCreateAndAddServiceConfigurationRpc) {
+    StubSomeipdInstanceResolved();
+    auto const cfg = MakePopulatedConfiguration();
+    auto const h1 = MakeSomeipdHandle(kSomeipdSpecifier, kFirstPeerInstanceId);
+    auto const h2 = MakeSomeipdHandle(kSomeipdSpecifier, kSecondPeerInstanceId);
+    auto const find_handle = score::mw::com::impl::make_FindServiceHandle(kFindHandleUid);
+    score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> find_handler{};
+
+    EXPECT_CALL(service_discovery_mock(),
+                StartFindService(_, An<score::mw::com::impl::InstanceSpecifier>()))
+        .WillOnce(
+            [&find_handler, find_handle](
+                score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType> handler,
+                score::mw::com::impl::InstanceSpecifier) {
+                find_handler = std::move(handler);
+                return score::Result<score::mw::com::impl::FindServiceHandle>{find_handle};
+            });
+    EXPECT_CALL(service_discovery_mock(), StopFindService(find_handle))
+        .WillOnce(Return(score::Result<void>{}));
+
+    // 1) Re-entrant discovery callback during ProxyBindingFactory::Create must not deadlock.
+    std::thread deferred_create_worker{};
+    EXPECT_CALL(proxy_binding_factory_mock(), Create(_))
+        .InSequence(proxy_factory_sequence())
+        .WillOnce([&find_handler, find_handle,
+                   &deferred_create_worker](score::mw::com::impl::HandleType const&) {
+            auto done_promise = std::make_shared<std::promise<void>>();
+            auto done_future = done_promise->get_future();
+            deferred_create_worker = std::thread([&find_handler, find_handle, done_promise]() {
+                find_handler({}, find_handle);
+                done_promise->set_value();
+            });
+            auto const status = done_future.wait_for(kReentrantCallbackTimeout);
+            EXPECT_EQ(status, std::future_status::ready);
+            if (status == std::future_status::ready) {
+                deferred_create_worker.join();
+            }
+            return std::unique_ptr<score::mw::com::impl::ProxyBinding>{};
+        })
+        .RetiresOnSaturation();
+
+    // 2) Connect h1 cleanly so consumer holds an active connection before testing RPC lock scope.
+    auto const rpc_initial = ExpectSomeipdProxyWithRpc(score::Result<bool>{true});
+    (void)rpc_initial;
+
+    // 3) Re-entrant discovery callback during AddServiceConfiguration DoCall must not deadlock.
+    auto const rpc_reentrant = ExpectSomeipdProxyWithRpc(std::nullopt);
+    std::thread deferred_rpc_worker{};
+    EXPECT_CALL(*rpc_reentrant.method, DoCall(kExpectedMethodNameIndex))
+        .WillOnce([&find_handler, find_handle, &deferred_rpc_worker](std::size_t) {
+            auto done_promise = std::make_shared<std::promise<void>>();
+            auto done_future = done_promise->get_future();
+            deferred_rpc_worker = std::thread([&find_handler, find_handle, done_promise]() {
+                find_handler({}, find_handle);
+                done_promise->set_value();
+            });
+            auto const status = done_future.wait_for(kReentrantCallbackTimeout);
+            EXPECT_EQ(status, std::future_status::ready);
+            if (status == std::future_status::ready) {
+                deferred_rpc_worker.join();
+            }
+            return score::MakeUnexpected<void>(score::mw::com::impl::ComErrc::kBindingFailure);
+        })
+        .RetiresOnSaturation();
+
+    auto consumer = Someipd_service_consumer::create(std::string{kSomeipdSpecifier}, *cfg);
+    ASSERT_TRUE(consumer.has_value());
+
+    find_handler({h1}, find_handle);
+    if (deferred_create_worker.joinable()) {
+        deferred_create_worker.join();
+    }
+    EXPECT_FALSE((*consumer)->is_connected());
+
+    find_handler({h1}, find_handle);
+    EXPECT_TRUE((*consumer)->is_connected());
+
+    find_handler({h2}, find_handle);
+    if (deferred_rpc_worker.joinable()) {
+        deferred_rpc_worker.join();
+    }
+    EXPECT_FALSE((*consumer)->is_connected());
 }
 
 }  // namespace

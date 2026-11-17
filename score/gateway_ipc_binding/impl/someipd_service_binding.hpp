@@ -15,6 +15,7 @@
 #define SCORE_GATEWAY_IPC_BINDING_IMPL_SOMEIPD_SERVICE_BINDING_HPP
 
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -33,15 +34,21 @@ class Someipd_service_provider {
    public:
     using Add_service_configuration_handler = std::function<bool(Service_configuration const&)>;
 
-    /// \brief Create the skeleton for the given instance specifier without offering it yet
-    /// \details Destroying the provider waits for a running handler.
-    /// \param instance_specifier mw::com InstanceSpecifier of the SomeipdService instance
-    /// \return The provider, or an error if the specifier is invalid or the skeleton could not be
-    ///         created, e.g. because the instance is missing from mw_com_config.json
+    /// \brief Creates the SomeipdService skeleton without offering it yet.
+    /// \details Destroying the provider waits for any running handler to complete.
+    /// \pre `add_service_configuration_handler` is non-empty.
+    /// \param instance_specifier mw::com InstanceSpecifier of the SomeipdService instance.
+    /// \param add_service_configuration_handler Callback invoked on AddServiceConfiguration calls.
+    /// \retval std::unique_ptr<Someipd_service_provider> Created provider.
+    /// \retval Mw_com_binding_error::logic_error_invalid_service_configuration Handler is empty.
+    /// \retval Mw_com_binding_error::logic_error_invalid_instance_specifier Specifier is invalid.
+    /// \retval Mw_com_binding_error::runtime_error_someipd_service_creation_failed Skeleton
+    ///         creation or method handler registration failed.
     static Result<std::unique_ptr<Someipd_service_provider>> create(
         std::string const& instance_specifier,
         Add_service_configuration_handler add_service_configuration_handler) noexcept;
 
+    /// \brief Withdraws the service offer (`StopOfferService()`) iff `offer()` succeeded.
     ~Someipd_service_provider() noexcept;
 
     Someipd_service_provider(Someipd_service_provider const&) = delete;
@@ -49,8 +56,10 @@ class Someipd_service_provider {
     Someipd_service_provider(Someipd_service_provider&&) = delete;
     Someipd_service_provider& operator=(Someipd_service_provider&&) = delete;
 
-    /// \brief Offer the instance, making the peer's is_connected() go true
-    /// \return Success, or an error if OfferService() failed
+    /// \brief Offers the SomeipdService instance over mw::com.
+    /// \retval void Service offered.
+    /// \retval Mw_com_binding_error::runtime_error_someipd_service_offer_failed OfferService()
+    ///         failed.
     Result<void> offer() noexcept;
 
    private:
@@ -60,17 +69,27 @@ class Someipd_service_provider {
 };
 
 /// \brief Consumer half of the SomeipdService peer-liveness contract, owned by `gatewayd`.
-/// \details Runs `StartFindService` for the instance the peer provides and keeps a proxy for it
-///          while it is available. `is_connected()` is true while that proxy exists and the peer
-///          has accepted the service configuration.
+/// \details Runs `StartFindService` for the peer's `SomeipdService` instance:
+///          - On non-empty `handles`, creates a `Someipd_service_proxy` for `handles.front()` and
+///            calls `add_service_configuration(service_configuration)`. `is_connected()` becomes
+///            `true` iff the call succeeds and returns `true`; if proxy creation fails or
+///            `add_service_configuration` fails or returns `false`, `is_connected()` is `false` and
+///            no proxy is retained.
+///          - Duplicate discovery notifications for the already-connected handle (`handles.front()
+///            == active_handle`) are ignored, keeping `is_connected() == true` without dropping
+///            connectivity or recreating the proxy; a distinct handle replaces the connection.
+///          - Empty `handles` sets `is_connected()` to `false` and destroys any active proxy.
 class Someipd_service_consumer {
    public:
-    /// \brief Start service discovery for the given instance specifier
-    /// \details Discovery runs until this object is destroyed. The find-service handler may already
-    ///          fire before this function returns, so is_connected() can be true immediately.
-    /// \param instance_specifier mw::com InstanceSpecifier of the SomeipdService instance
-    /// \param service_configuration Sent with AddServiceConfiguration when a proxy is created
-    /// \return The consumer, or an error if the specifier is invalid or discovery failed to start
+    /// \brief Starts service discovery for the peer's SomeipdService instance.
+    /// \details Discovery runs until destruction; `is_connected()` may already be true on return.
+    /// \param instance_specifier mw::com InstanceSpecifier of the SomeipdService instance.
+    /// \param service_configuration Sent via AddServiceConfiguration whenever a proxy connects.
+    /// \retval std::unique_ptr<Someipd_service_consumer> Created consumer.
+    /// \retval Mw_com_binding_error::logic_error_invalid_instance_specifier Specifier is invalid
+    ///         or undeployed.
+    /// \retval Mw_com_binding_error::runtime_error_someipd_service_find_failed Starting discovery
+    ///         failed.
     static Result<std::unique_ptr<Someipd_service_consumer>> create(
         std::string const& instance_specifier,
         Service_configuration const& service_configuration) noexcept;
@@ -88,17 +107,21 @@ class Someipd_service_consumer {
     [[nodiscard]] bool is_connected() const noexcept;
 
    private:
-    explicit Someipd_service_consumer(Service_configuration const& service_configuration) noexcept;
+    explicit Someipd_service_consumer(
+        std::unique_ptr<Service_configuration const> service_configuration) noexcept;
 
     void on_find_service(
         score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept;
 
-    /// \brief Guards m_proxy against concurrent find-service handler invocations and teardown
+    /// \brief Guards discovery state and m_proxy against concurrent handler calls and teardown
     std::mutex m_mutex;
-    std::optional<Someipd_service_proxy> m_proxy;
+    bool m_stopping{false};
+    std::uint64_t m_discovery_epoch{0U};
+    std::optional<score::mw::com::FindServiceHandle> m_find_handle{};
+    std::optional<score::mw::com::HandleType> m_active_handle{};
+    std::optional<Someipd_service_proxy> m_proxy{};
     std::atomic<bool> m_connected{false};
-    std::optional<score::mw::com::FindServiceHandle> m_find_handle;
-    Service_configuration m_service_configuration;
+    std::unique_ptr<Service_configuration const> m_service_configuration;
 };
 
 }  // namespace score::gateway_ipc_binding::mw_com

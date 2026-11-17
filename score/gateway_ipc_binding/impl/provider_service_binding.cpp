@@ -31,24 +31,39 @@ constexpr std::string_view kLog_tag{"[gateway_ipc_binding]"};
 }  // namespace
 
 std::size_t Provider_service_binding::Allocations::insert(
+    score::socom::Event_id const event_id,
     score::mw::com::SampleAllocateePtr<void> sample) noexcept {
     std::lock_guard const lock{m_mutex};
+    if (m_next_slot_handle == score::socom::kNoSlotHandle) {
+        m_next_slot_handle = 0U;
+    }
     auto const slot_handle = m_next_slot_handle;
     ++m_next_slot_handle;
-    m_in_flight.emplace(slot_handle, std::move(sample));
+    m_in_flight.emplace(slot_handle, Entry{event_id, std::move(sample)});
     return slot_handle;
 }
 
 std::optional<score::mw::com::SampleAllocateePtr<void>> Provider_service_binding::Allocations::take(
-    std::size_t const slot_handle) noexcept {
+    score::socom::Event_id const event_id, std::size_t const slot_handle) noexcept {
     std::lock_guard const lock{m_mutex};
     auto const entry = m_in_flight.find(slot_handle);
     if (entry == m_in_flight.end()) {
         return std::nullopt;
     }
-    auto sample = std::move(entry->second);
+    if (entry->second.event_id != event_id) {
+        // Destroy cross-event SampleAllocateePtr inside m_mutex so clear() cannot finish before
+        // ~SampleAllocateePtr() returns its guard to LoLa's SampleAllocateeTracker.
+        m_in_flight.erase(entry);
+        return std::nullopt;
+    }
+    auto sample = std::move(entry->second.sample);
     m_in_flight.erase(entry);
     return sample;
+}
+
+void Provider_service_binding::Allocations::release(std::size_t const slot_handle) noexcept {
+    std::lock_guard const lock{m_mutex};
+    m_in_flight.erase(slot_handle);
 }
 
 void Provider_service_binding::Allocations::clear() noexcept {
@@ -57,25 +72,47 @@ void Provider_service_binding::Allocations::clear() noexcept {
 }
 
 Provider_service_binding::Provider_service_binding(Service_config config) noexcept
-    : m_config{std::move(config)} {}
+    : m_config{std::move(config)} {
+    m_events.reserve(m_config.events.size());
+    for (auto const& event : m_config.events) {
+        m_events.push_back(Event{nullptr, event.max_payload_size, addressed_sample_size(event)});
+    }
+}
 
 Provider_service_binding::~Provider_service_binding() noexcept {
-    // Teardown order matters, LoLa terminates the process if a SampleAllocateePtr outlives its
-    // event. See docs/mw_com_binding.rst, section "Teardown".
+    // Teardown order matters: LoLa terminates the process if a SampleAllocateePtr outlives its
+    // event. See score/gateway_ipc_binding/docs/architecture/index.rst, section "Teardown".
 
-    // 1. Stop the mw::com callbacks. Not under the lock: unsetting synchronizes with a handler
-    //    that may currently be waiting for exactly that lock.
-    for (auto& event : m_events) {
-        auto const unset = event.skeleton_event->UnsetReceiveHandlerRegistrationChangedHandler();
-        if (!unset.has_value()) {
-            score::mw::log::LogWarn()
-                << kLog_tag
-                << "Failed to unset the receive handler registration handler:" << unset.error();
+    // 1. Detach and stop the mw::com callbacks. Hold m_offer_mutex across unsetting so a
+    //    concurrent on_service_state_change() cannot destroy or recreate m_skeleton, but release
+    //    both m_mutex (needed by running mw::com handlers) and m_offer_mutex before resetting
+    //    m_client_connector in step 2.
+    {
+        std::lock_guard const offer_lock{m_offer_mutex};
+        std::vector<score::mw::com::GenericSkeletonEvent*> events_to_unset{};
+        {
+            std::lock_guard const lock{m_mutex};
+            m_stopping = true;
+            events_to_unset.reserve(m_events.size());
+            for (auto& event : m_events) {
+                if (event.skeleton_event != nullptr) {
+                    events_to_unset.push_back(event.skeleton_event);
+                    event.skeleton_event = nullptr;
+                }
+            }
+        }
+        for (auto* const skeleton_event : events_to_unset) {
+            auto const unset = skeleton_event->UnsetReceiveHandlerRegistrationChangedHandler();
+            if (!unset.has_value()) {
+                score::mw::log::LogWarn()
+                    << kLog_tag
+                    << "Failed to unset the receive handler registration handler:" << unset.error();
+            }
         }
     }
 
     // 2. Stop the SOCom callbacks. The destructor blocks until running callbacks are done, so it
-    //    must not run while this object's lock is held.
+    //    must not run while this object's locks are held.
     score::socom::Client_connector::Uptr connector{};
     {
         std::lock_guard const lock{m_mutex};
@@ -83,11 +120,23 @@ Provider_service_binding::~Provider_service_binding() noexcept {
     }
     connector.reset();
 
-    // 3. Nothing calls back anymore. Release the slots, then the skeleton that owns them, if any.
+    // 3. Release parked sample slots before withdrawing and destroying the skeleton that owns them.
     m_allocations->clear();
-    if (m_skeleton.has_value()) {
-        m_skeleton->StopOfferService();
+
+    // 4. Withdraw any active offer and destroy the skeleton outside m_mutex.
+    bool was_offered{false};
+    std::optional<score::mw::com::GenericSkeleton> skeleton_to_destroy{};
+    {
+        std::lock_guard const offer_lock{m_offer_mutex};
+        std::lock_guard const lock{m_mutex};
+        was_offered = m_service_available;
+        m_service_available = false;
+        std::swap(skeleton_to_destroy, m_skeleton);
     }
+    if (was_offered && skeleton_to_destroy.has_value()) {
+        skeleton_to_destroy->StopOfferService();
+    }
+    skeleton_to_destroy.reset();
 }
 
 Result<std::unique_ptr<Provider_service_binding>> Provider_service_binding::create(
@@ -131,61 +180,71 @@ Result<void> Provider_service_binding::create_skeleton() noexcept {
                                    << m_config.instance_specifier << ":" << skeleton.error();
         return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
     }
-    m_skeleton.emplace(std::move(skeleton).value());
-    m_events.clear();
 
-    auto resolved = resolve_events(m_config);
-    if (!resolved.has_value()) {
-        return resolved;
+    // Validate event presence and laid-out sample sizes before committing m_skeleton.
+    {
+        auto skeleton_events = skeleton->GetEvents();
+        for (auto const& event : m_config.events) {
+            auto const entry = skeleton_events.find(event.name);
+            if (entry == skeleton_events.cend()) {
+                score::mw::log::LogError()
+                    << kLog_tag << "Event" << event.name << "of" << m_config.instance_specifier
+                    << "is missing from the GenericSkeleton";
+                return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
+            }
+            auto const size_info = entry->second.GetSizeInfo();
+            if (size_info.size != sample_size(event)) {
+                score::mw::log::LogError()
+                    << kLog_tag << "Event" << event.name << "of" << m_config.instance_specifier
+                    << "has sample size" << size_info.size << "but" << sample_size(event)
+                    << "was configured";
+                return MakeUnexpected(Mw_com_binding_error::runtime_error_sample_size_mismatch);
+            }
+        }
     }
 
-    return register_subscription_handlers();
-}
-
-Result<void> Provider_service_binding::resolve_events(Service_config const& config) noexcept {
-    // Not const: the const find() overload would only hand out a const event.
-    auto skeleton_events = m_skeleton->GetEvents();
-    m_events.reserve(config.events.size());
-
-    for (auto const& event : config.events) {
-        auto const entry = skeleton_events.find(event.name);
-        if (entry == skeleton_events.cend()) {
-            score::mw::log::LogError()
-                << kLog_tag << "Event" << event.name << "of" << config.instance_specifier
-                << "is missing from the GenericSkeleton";
-            return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
-        }
-
-        // The size that LoLa actually laid out has to match what the deployment was sized for,
-        // otherwise a full-size payload would be written or read past the end of a sample.
-        auto const size_info = entry->second.GetSizeInfo();
-        if (size_info.size != sample_size(event)) {
-            score::mw::log::LogError()
-                << kLog_tag << "Event" << event.name << "of" << config.instance_specifier
-                << "has sample size" << size_info.size << "but" << sample_size(event)
-                << "was configured";
-            return MakeUnexpected(Mw_com_binding_error::runtime_error_sample_size_mismatch);
-        }
-
-        m_events.push_back(Event{&entry->second, addressed_sample_size(event)});
+    {
+        std::lock_guard const lock{m_mutex};
+        m_skeleton.emplace(std::move(skeleton).value());
     }
 
-    return {};
-}
+    std::vector<score::mw::com::GenericSkeletonEvent*> resolved_events(m_config.events.size(),
+                                                                       nullptr);
+    {
+        auto skeleton_events = m_skeleton->GetEvents();
+        for (std::size_t index = 0U; index < m_config.events.size(); ++index) {
+            auto const entry = skeleton_events.find(m_config.events[index].name);
+            resolved_events[index] = &entry->second;
+        }
+    }
 
-Result<void> Provider_service_binding::register_subscription_handlers() noexcept {
-    for (std::size_t index = 0U; index < m_events.size(); ++index) {
+    for (std::size_t index = 0U; index < resolved_events.size(); ++index) {
         auto const event_id = static_cast<score::socom::Event_id>(index);
-        auto const registered =
-            m_events[index].skeleton_event->SetReceiveHandlerRegistrationChangedHandler(
-                [this, event_id](bool const wanted) noexcept {
-                    on_peer_interest_change(event_id, wanted);
-                });
+        auto const registered = resolved_events[index]->SetReceiveHandlerRegistrationChangedHandler(
+            [this, event_id](bool const wanted) noexcept {
+                on_peer_interest_change(event_id, wanted);
+            });
         if (!registered.has_value()) {
             score::mw::log::LogError()
                 << kLog_tag << "Failed to register the receive handler registration handler:"
                 << registered.error();
+            for (std::size_t prev = 0U; prev < index; ++prev) {
+                (void)resolved_events[prev]->UnsetReceiveHandlerRegistrationChangedHandler();
+            }
+            std::optional<score::mw::com::GenericSkeleton> failed_skeleton{};
+            {
+                std::lock_guard const lock{m_mutex};
+                std::swap(failed_skeleton, m_skeleton);
+            }
+            failed_skeleton.reset();
             return MakeUnexpected(Mw_com_binding_error::runtime_error_service_setup_failed);
+        }
+    }
+
+    {
+        std::lock_guard const lock{m_mutex};
+        for (std::size_t index = 0U; index < m_events.size(); ++index) {
+            m_events[index].skeleton_event = resolved_events[index];
         }
     }
     return {};
@@ -241,59 +300,80 @@ void Provider_service_binding::on_service_state_change(
     // the header. This mutex serializes the two transitions against each other instead.
     std::lock_guard const offer_lock{m_offer_mutex};
 
-    bool no_peer_holds_a_subscription{false};
-    {
-        std::lock_guard const lock{m_mutex};
-        if (available == m_service_available) {
-            return;
-        }
-        m_service_available = available;
-
-        if (!available) {
+    if (!available) {
+        {
+            std::lock_guard const lock{m_mutex};
+            if (m_stopping || !m_service_available) {
+                return;
+            }
+            m_service_available = false;
             // SOCom drops all subscriptions when the service leaves the available state, so the
             // flags are cleared without calling SOCom back.
             for (auto& event : m_events) {
                 event.subscribed = false;
             }
-            no_peer_holds_a_subscription =
+            // Release all parked SampleAllocateePtrs before StopOfferService(): LoLa's
+            // PrepareStopOffer() resets the event data control composite that SampleAllocateePtr
+            // dereferences on destruction.
+            m_allocations->clear();
+        }
+
+        if (!m_skeleton.has_value()) {
+            return;
+        }
+        m_skeleton->StopOfferService();
+
+        std::vector<score::mw::com::GenericSkeletonEvent*> events_to_unset{};
+        {
+            std::lock_guard const lock{m_mutex};
+            bool const no_peer_holds_a_subscription =
                 std::none_of(m_events.cbegin(), m_events.cend(),
                              [](Event const& event) { return event.wanted_by_peer; });
-        }
-    }
-
-    if (!available) {
-        m_skeleton->StopOfferService();
-        // TODO this needs further inspection if the skeleton can delete shared memory while proxies
-        // might still access it
-        if (no_peer_holds_a_subscription) {
-            // No peer holds a reference into the shared memory, so the skeleton can be fully torn
-            // down and recreated on the next offer instead of being re-offered as-is, which LoLa
-            // does not support, see docs/mw_com_binding.rst, section "Known gaps". Withdraw the
-            // offer first: skipping it would leave the peer's service discovery unaware that this
-            // service went away. Same teardown order as the destructor otherwise: unset handlers
-            // before releasing what they capture.
+            if (!no_peer_holds_a_subscription) {
+                // Keep the skeleton alive while any peer still holds a subscription so the
+                // shared-memory subscription control block stays valid.
+                return;
+            }
+            events_to_unset.reserve(m_events.size());
             for (auto& event : m_events) {
-                auto const unset =
-                    event.skeleton_event->UnsetReceiveHandlerRegistrationChangedHandler();
-                if (!unset.has_value()) {
-                    score::mw::log::LogWarn() << kLog_tag
-                                              << "Failed to unset the receive handler "
-                                                 "registration handler:"
-                                              << unset.error();
+                if (event.skeleton_event != nullptr) {
+                    events_to_unset.push_back(event.skeleton_event);
+                    event.skeleton_event = nullptr;
                 }
             }
-            m_allocations->clear();
-            m_events.clear();
-            m_skeleton.reset();
-        } else {
-            // The skeleton object stays alive on purpose: destroying it would zero the
-            // shared-memory subscription control block underneath a peer that still holds a
-            // subscription.
         }
+
+        for (auto* const skeleton_event : events_to_unset) {
+            auto const unset = skeleton_event->UnsetReceiveHandlerRegistrationChangedHandler();
+            if (!unset.has_value()) {
+                score::mw::log::LogWarn()
+                    << kLog_tag
+                    << "Failed to unset the receive handler registration handler:" << unset.error();
+            }
+        }
+
+        // Move m_skeleton out under m_mutex so ~GenericSkeleton() runs outside m_mutex after
+        // every in-flight operation and parked SampleAllocateePtr is gone.
+        std::optional<score::mw::com::GenericSkeleton> skeleton_to_destroy{};
+        {
+            std::lock_guard const lock{m_mutex};
+            m_allocations->clear();
+            std::swap(skeleton_to_destroy, m_skeleton);
+        }
+        skeleton_to_destroy.reset();
         return;
     }
 
-    if (!m_skeleton.has_value()) {
+    bool has_skeleton{false};
+    {
+        std::lock_guard const lock{m_mutex};
+        if (m_stopping || m_service_available) {
+            return;
+        }
+        has_skeleton = m_skeleton.has_value();
+    }
+
+    if (!has_skeleton) {
         auto const recreated = create_skeleton();
         if (!recreated.has_value()) {
             score::mw::log::LogError()
@@ -309,10 +389,10 @@ void Provider_service_binding::on_service_state_change(
         return;
     }
 
-    // The interest callbacks that fired from within OfferService()/create_skeleton() already
-    // reconciled what they saw. Catch up on everything they could not, and on what arrived before
-    // the offer.
+    // Commit availability only after skeleton setup and OfferService() both succeeded, then catch
+    // up on peer interest that arrived before or during the offer.
     std::lock_guard const lock{m_mutex};
+    m_service_available = true;
     for (std::size_t index = 0U; index < m_events.size(); ++index) {
         reconcile_subscription(static_cast<score::socom::Event_id>(index));
     }
@@ -321,7 +401,7 @@ void Provider_service_binding::on_service_state_change(
 void Provider_service_binding::on_peer_interest_change(score::socom::Event_id const event_id,
                                                        bool const wanted) noexcept {
     std::lock_guard const lock{m_mutex};
-    if (event_id >= m_events.size()) {
+    if (m_stopping || (event_id >= m_events.size())) {
         return;
     }
     m_events[event_id].wanted_by_peer = wanted;
@@ -367,6 +447,9 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
         return MakeUnexpected(Mw_com_binding_error::logic_error_unknown_event);
     }
     auto& event = m_events[event_id];
+    if (!m_service_available || (event.skeleton_event == nullptr)) {
+        return MakeUnexpected(Mw_com_binding_error::runtime_error_sample_allocation_failed);
+    }
 
     auto sample = event.skeleton_event->Allocate();
     if (!sample.has_value()) {
@@ -377,7 +460,13 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
     }
 
     auto* const sample_base = static_cast<std::byte*>(sample.value().Get());
-    auto const slot_handle = m_allocations->insert(std::move(sample).value());
+    if (sample_base == nullptr) {
+        score::mw::log::LogError()
+            << kLog_tag << "Allocated a null sample pointer for event" << event_id;
+        return MakeUnexpected(Mw_com_binding_error::runtime_error_sample_allocation_failed);
+    }
+
+    auto const slot_handle = m_allocations->insert(event_id, std::move(sample).value());
 
     return score::socom::Writable_payload{
         score::socom::Writable_payload::Writable_span{sample_base, event.addressed_sample_size}
@@ -389,7 +478,7 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
             // the binding.
             auto const locked = allocations.lock();
             if (locked != nullptr) {
-                (void)locked->take(slot_handle);
+                locked->release(slot_handle);
             }
         }};
 }
@@ -399,27 +488,36 @@ void Provider_service_binding::on_event_update(score::socom::Event_id const even
     std::lock_guard const lock{m_mutex};
 
     if (event_id >= m_events.size()) {
+        m_allocations->release(payload.get_slot_handle());
         return;
     }
 
-    auto sample = m_allocations->take(payload.get_slot_handle());
+    auto const& event = m_events[event_id];
+    if (!m_service_available || (event.skeleton_event == nullptr)) {
+        m_allocations->release(payload.get_slot_handle());
+        return;
+    }
+
+    auto sample = m_allocations->take(event_id, payload.get_slot_handle());
     if (!sample.has_value()) {
-        // The payload was not allocated through this binding, so it is not backed by a LoLa slot
-        // and there is nothing that could be sent.
+        // The payload was not allocated for this event through this binding, so it is not backed
+        // by a matching LoLa slot and cannot be sent.
         score::mw::log::LogWarn() << kLog_tag << "Dropping the update of event" << event_id
-                                  << ": the payload is not backed by a mw::com sample";
+                                  << ": the payload is not backed by a matching mw::com sample";
         return;
     }
 
     auto const length = payload.data().size();
-    if (length > kMax_payload_length) {
-        score::mw::log::LogError() << kLog_tag << "Dropping the update of event" << event_id
-                                   << ": payload length" << length << "is not representable";
+    if ((length > event.max_payload_size) || (length > kMax_payload_length)) {
+        score::mw::log::LogError()
+            << kLog_tag << "Dropping the update of event" << event_id << ": payload length"
+            << length << "exceeds maximum" << event.max_payload_size;
         return;
     }
+
     write_payload_length(static_cast<std::byte*>(sample.value().Get()), length);
 
-    auto const sent = m_events[event_id].skeleton_event->Send(std::move(sample).value());
+    auto const sent = event.skeleton_event->Send(std::move(sample).value());
     if (!sent.has_value()) {
         score::mw::log::LogWarn() << kLog_tag << "Failed to send event" << event_id << ":"
                                   << sent.error();

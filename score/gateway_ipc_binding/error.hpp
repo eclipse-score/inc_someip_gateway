@@ -32,8 +32,6 @@ enum class Mw_com_binding_error : score::result::ErrorCode {
     runtime_error_someipd_service_offer_failed,
     /// StartFindService() for the SomeipdService instance failed
     runtime_error_someipd_service_find_failed,
-    /// The SomeipdService proxy could not be created from a discovered handle
-    runtime_error_someipd_service_proxy_creation_failed,
     /// start() was called more than once
     logic_error_already_started,
     /// A Service_config cannot describe a working bridge, e.g. it has duplicate event names
@@ -50,6 +48,11 @@ enum class Mw_com_binding_error : score::result::ErrorCode {
     runtime_error_sample_allocation_failed,
 };
 
+/// \brief Construct a score::result::Error in the mw::com binding error domain.
+/// \param code Binding error condition enumerator.
+/// \param user_message Optional caller-supplied diagnostic context preserved in UserMessage().
+/// \return Error whose Message() returns a non-empty description for every defined enumerator and
+///         "Unknown error" for out-of-range ErrorCode values.
 score::result::Error MakeError(Mw_com_binding_error code,
                                std::string_view user_message = "") noexcept;
 

@@ -23,10 +23,12 @@
 
 namespace score::gateway_ipc_binding::mw_com {
 
-/// \brief Largest gateway configuration AddServiceConfiguration carries.
+/// \brief Largest gateway configuration AddServiceConfiguration carries (65536 bytes).
 inline constexpr std::size_t kMax_service_configuration_size = 64U * 1024U;
 
-/// \brief Payload size of one bridged event.
+/// \brief Payload size of one bridged event sent from gatewayd to someipd.
+/// \details Trivially copyable wire entry pairing the bridged service's `service_id` and
+///          `Mw_com_event_id` (`event_id`) with its configured `max_payload_size`.
 struct Bridged_event_size {
     std::uint16_t service_id;
     std::uint16_t event_id;
@@ -38,19 +40,30 @@ constexpr bool operator==(Bridged_event_size const& lhs, Bridged_event_size cons
            (lhs.max_payload_size == rhs.max_payload_size);
 }
 
-/// \brief One entry per consumer event of gatewayd.
+constexpr bool operator!=(Bridged_event_size const& lhs, Bridged_event_size const& rhs) noexcept {
+    return !(lhs == rhs);
+}
+
+/// \brief One entry per consumer event of gatewayd (capacity 1024 entries).
 using Bridged_event_sizes = Fixed_size_container<Bridged_event_size, 1024U>;
 
 /// \brief AddServiceConfiguration argument: the services of one gatewayd.
+/// \details Trivially copyable aggregate carrying raw gateway configuration bytes and consumer
+///          event payload sizes across LoLa method shared memory.
 struct Service_configuration {
     /// \brief The gateway configuration of gatewayd. The binding doesn't read it.
     Fixed_size_container<std::byte, kMax_service_configuration_size> gateway_config;
     Bridged_event_sizes event_sizes;
 };
 
-inline bool operator==(Service_configuration const& lhs,
-                       Service_configuration const& rhs) noexcept {
+constexpr bool operator==(Service_configuration const& lhs,
+                          Service_configuration const& rhs) noexcept {
     return (lhs.gateway_config == rhs.gateway_config) && (lhs.event_sizes == rhs.event_sizes);
+}
+
+constexpr bool operator!=(Service_configuration const& lhs,
+                          Service_configuration const& rhs) noexcept {
+    return !(lhs == rhs);
 }
 
 /// \brief `mw::com` service interface representing the `someipd` daemon itself.
