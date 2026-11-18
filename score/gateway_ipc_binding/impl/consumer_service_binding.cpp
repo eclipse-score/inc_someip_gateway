@@ -13,6 +13,7 @@
 
 #include "consumer_service_binding.hpp"
 
+#include <algorithm>
 #include <condition_variable>
 #include <cstddef>
 #include <memory>
@@ -33,42 +34,20 @@ namespace {
 /// \brief Log prefix shared by the whole binding
 constexpr std::string_view kLog_tag{"[gateway_ipc_binding]"};
 
-/// \brief Decrements the in-flight `update_event()` counter under `m_mutex` on scope exit.
-class In_flight_update_guard final {
-   public:
-    explicit In_flight_update_guard(std::recursive_mutex& mutex, std::size_t& in_flight_updates,
-                                    std::condition_variable_any& updates_drained_cv) noexcept
-        : m_mutex{mutex},
-          m_in_flight_updates{in_flight_updates},
-          m_updates_drained_cv{updates_drained_cv} {}
-
-    ~In_flight_update_guard() noexcept {
-        std::lock_guard const lock{m_mutex};
-        --m_in_flight_updates;
-        if (m_in_flight_updates == 0U) {
-            m_updates_drained_cv.notify_all();
-        }
-    }
-
-    In_flight_update_guard(In_flight_update_guard const&) = delete;
-    In_flight_update_guard& operator=(In_flight_update_guard const&) = delete;
-    In_flight_update_guard(In_flight_update_guard&&) = delete;
-    In_flight_update_guard& operator=(In_flight_update_guard&&) = delete;
-
-   private:
-    std::recursive_mutex& m_mutex;
-    std::size_t& m_in_flight_updates;
-    std::condition_variable_any& m_updates_drained_cv;
-};
+/// \brief Nesting depth of active `on_samples_available()` calls on the current thread across all
+///        `Consumer_service_binding` instances, matching LoLa's process-wide receive-handler flag.
+thread_local std::size_t g_receive_handler_depth{0U};
 
 }  // namespace
 
 Consumer_service_binding::Consumer_service_binding(
-    std::vector<Event> events, std::string instance_specifier,
-    score::mw::com::InstanceSpecifier specifier) noexcept
-    : m_events{std::move(events)},
-      m_instance_specifier{std::move(instance_specifier)},
-      m_specifier{std::move(specifier)} {}
+    std::vector<Event_config> const& events, std::size_t const max_sample_count,
+    std::string instance_specifier, score::mw::com::InstanceSpecifier specifier) noexcept
+    : m_instance_specifier{std::move(instance_specifier)}, m_specifier{std::move(specifier)} {
+    for (auto const& event : events) {
+        m_events.emplace_back(event.name, event.max_payload_size, max_sample_count);
+    }
+}
 
 Consumer_service_binding::~Consumer_service_binding() noexcept {
     // See score/gateway_ipc_binding/docs/architecture/index.rst, section "Teardown". Stop
@@ -89,6 +68,7 @@ Consumer_service_binding::~Consumer_service_binding() noexcept {
     }
 
     detach_from_peer();
+    m_reconcile_worker.Shutdown();
 
     // The disabled connector never calls back, so it can be dropped last.
     m_disabled_connector.reset();
@@ -108,15 +88,10 @@ Result<std::unique_ptr<Consumer_service_binding>> Consumer_service_binding::crea
             std::move(deployed).error());
     }
 
-    std::vector<Event> events{};
-    events.reserve(config.events.size());
-    for (auto const& event : config.events) {
-        events.push_back(Event{event.name, event.max_payload_size, config.max_sample_count});
-    }
-
     // Not make_unique: the constructor is private.
-    std::unique_ptr<Consumer_service_binding> binding{new Consumer_service_binding{
-        std::move(events), config.instance_specifier, std::move(specifier).value()}};
+    std::unique_ptr<Consumer_service_binding> binding{
+        new Consumer_service_binding{config.events, config.max_sample_count,
+                                     config.instance_specifier, std::move(specifier).value()}};
 
     auto created = binding->create_server_connector(runtime, config);
     if (!created.has_value()) {
@@ -133,7 +108,7 @@ Result<void> Consumer_service_binding::create_server_connector(
         [](score::socom::Enabled_server_connector&, score::socom::Method_id, score::socom::Payload,
            score::socom::Method_call_reply_data_opt) -> score::socom::Method_invocation::Uptr {
             // GenericProxy and GenericSkeleton are event only, so bridged methods are not
-            // representable. Known gap, see docs/mw_com_binding.rst.
+            // representable. Known gap, see score/gateway_ipc_binding/docs/architecture/index.rst.
             return nullptr;
         },
         [this](score::socom::Enabled_server_connector&, score::socom::Event_id const event_id,
@@ -141,7 +116,8 @@ Result<void> Consumer_service_binding::create_server_connector(
             on_event_subscription_change(event_id, state == score::socom::Event_state::subscribed);
         },
         [](score::socom::Enabled_server_connector&, score::socom::Event_id const event_id) {
-            // LoLa has no pull API on the proxy side. Known gap, see docs/mw_com_binding.rst.
+            // LoLa has no pull API on the proxy side. Known gap, see
+            // score/gateway_ipc_binding/docs/architecture/index.rst.
             score::mw::log::LogWarn()
                 << kLog_tag << "Ignoring the update request for event" << event_id
                 << ": mw::com cannot serve requested event updates";
@@ -247,7 +223,15 @@ void Consumer_service_binding::attach_to_peer(score::mw::com::HandleType handle,
         return;
     }
 
-    // A proxy that turns out to be unusable or superseded is carried out of the locked region here
+    // Validate and resolve event pointers before taking any binding lock; GenericProxy owns its
+    // event map on the heap so event addresses remain stable when created.value() moves into
+    // m_proxy.
+    auto const resolved_events = resolve_proxy_events(created.value());
+    if (!resolved_events.has_value()) {
+        return;
+    }
+
+    // A proxy superseded while locks were released is carried out of the locked region here
     // because destroying it takes the mw::com discovery lock as well.
     std::optional<score::mw::com::GenericProxy> rejected{};
     bool enabled{false};
@@ -256,7 +240,6 @@ void Consumer_service_binding::attach_to_peer(score::mw::com::HandleType handle,
 
         score::socom::Disabled_server_connector::Uptr disabled{};
         {
-            std::lock_guard const subscription_lock{m_subscription_mutex};
             std::lock_guard const lock{m_mutex};
 
             if (m_stopping || (m_discovery_epoch != expected_epoch) || m_proxy.has_value() ||
@@ -264,29 +247,24 @@ void Consumer_service_binding::attach_to_peer(score::mw::com::HandleType handle,
                 rejected.emplace(std::move(created).value());
             } else {
                 m_proxy.emplace(std::move(created).value());
-
-                if (bind_proxy_events()) {
-                    m_active_handle.emplace(peer_handle);
-                    disabled = std::move(m_disabled_connector);
-                } else {
-                    std::swap(rejected, m_proxy);
+                for (std::size_t index = 0U; index < m_events.size(); ++index) {
+                    m_events[index].proxy_event = (*resolved_events)[index].first;
+                    m_events[index].max_payload_size = (*resolved_events)[index].second;
                 }
+                m_active_handle.emplace(peer_handle);
+                disabled = std::move(m_disabled_connector);
             }
         }
 
         if (disabled != nullptr) {
             // Only under m_lifecycle_mutex: enable() makes local applications connect and
-            // subscribe, so it takes SOCom locks that SOCom also holds while it calls
-            // on_event_subscription_change() from other threads. Holding a mutex that callback
-            // needs across enable() would invert the lock order.
-            //
-            // Those callbacks therefore run to completion here. They only record the local
-            // demand, because m_enabled_connector is not in place yet, and the reconcile loop
-            // below acts on it.
+            // subscribe, so it takes SOCom locks that SOCom also holds while invoking
+            // on_event_subscription_change(). Callbacks firing inside enable() only record
+            // wanted_locally under m_mutex because m_enabled_connector is still null, and the
+            // reconcile loop below acts on that state once m_enabled_connector is stored.
             auto enabled_connector =
                 score::socom::Disabled_server_connector::enable(std::move(disabled));
 
-            std::lock_guard const subscription_lock{m_subscription_mutex};
             {
                 std::lock_guard const lock{m_mutex};
                 m_enabled_connector = std::move(enabled_connector);
@@ -307,17 +285,20 @@ void Consumer_service_binding::attach_to_peer(score::mw::com::HandleType handle,
     }
 }
 
-bool Consumer_service_binding::bind_proxy_events() noexcept {
+std::optional<std::vector<std::pair<score::mw::com::GenericProxyEvent*, std::size_t>>>
+Consumer_service_binding::resolve_proxy_events(
+    score::mw::com::GenericProxy const& proxy) const noexcept {
     // Not const: the const find() overload would only hand out a const event.
-    auto proxy_events = m_proxy->GetEvents();
-    for (auto& event : m_events) {
+    auto proxy_events = proxy.GetEvents();
+    std::vector<std::pair<score::mw::com::GenericProxyEvent*, std::size_t>> resolved{};
+    resolved.reserve(m_events.size());
+    for (auto const& event : m_events) {
         auto const entry = proxy_events.find(event.name);
         if (entry == proxy_events.cend()) {
             score::mw::log::LogError()
                 << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
                 << "is missing from the GenericProxy, the service stays unavailable";
-            clear_proxy_events();
-            return false;
+            return std::nullopt;
         }
 
         // Check that the provider's sample size covers our configured minimum (0 in someipd)
@@ -331,20 +312,21 @@ bool Consumer_service_binding::bind_proxy_events() noexcept {
                 << kLog_tag << "Event" << event.name << "of" << m_instance_specifier
                 << "has peer sample size" << peer_sample_size << "but at least" << expected
                 << "was configured, the service stays unavailable";
-            clear_proxy_events();
-            return false;
+            return std::nullopt;
         }
 
-        event.max_payload_size = peer_sample_size - kSample_prefix_size;
-        event.proxy_event = &entry->second;
+        resolved.emplace_back(&entry->second, peer_sample_size - kSample_prefix_size);
     }
-    return true;
+    return resolved;
 }
 
-void Consumer_service_binding::clear_proxy_events() noexcept {
-    for (auto& event : m_events) {
-        event.proxy_event = nullptr;
-    }
+bool Consumer_service_binding::is_subscription_desired(Event const& event) const noexcept {
+    return event.wanted_locally && (event.proxy_event != nullptr) &&
+           (m_enabled_connector != nullptr);
+}
+
+bool Consumer_service_binding::can_receive_samples(Event const& event) const noexcept {
+    return event.subscribed && is_subscription_desired(event);
 }
 
 void Consumer_service_binding::detach_from_peer() noexcept {
@@ -368,15 +350,34 @@ std::optional<score::mw::com::GenericProxy>
 Consumer_service_binding::detach_from_peer_locked() noexcept {
     std::optional<score::mw::com::GenericProxy> proxy{};
 
-    // Move m_enabled_connector out under m_mutex so no new update_event() can start, then wait
-    // with m_mutex released until every in-flight update_event() has finished before calling
-    // disable(). Disabling blocks until running SOCom callbacks finish, and those callbacks take
-    // m_subscription_mutex and m_mutex, so disable() runs only under m_lifecycle_mutex.
+    std::vector<score::mw::com::GenericProxyEvent*> subscribed{};
+    subscribed.reserve(m_events.size());
+    {
+        std::unique_lock<std::mutex> lock{m_mutex};
+        m_detaching = true;
+        m_reconcile_cv.wait(lock, [this]() noexcept {
+            return std::none_of(m_events.cbegin(), m_events.cend(),
+                                [](Event const& event) noexcept { return event.reconciling; });
+        });
+        for (auto& event : m_events) {
+            if (event.subscribed && (event.proxy_event != nullptr)) {
+                subscribed.push_back(event.proxy_event);
+            }
+            event.subscribed = false;
+        }
+    }
+
+    // Stop receive handlers before disabling the connector: UnsetReceiveHandler() blocks until
+    // all running on_samples_available() calls (including update_event()) have returned, while
+    // m_enabled_connector is still alive and no SOCom lock is held yet.
+    for (auto* const proxy_event : subscribed) {
+        (void)proxy_event->UnsetReceiveHandler();
+    }
+
     score::socom::Enabled_server_connector::Uptr enabled{};
     {
-        std::unique_lock<std::recursive_mutex> lock{m_mutex};
+        std::lock_guard const lock{m_mutex};
         enabled = std::move(m_enabled_connector);
-        m_updates_drained_cv.wait(lock, [this]() noexcept { return m_in_flight_updates == 0U; });
     }
     if (enabled != nullptr) {
         auto disabled = score::socom::Enabled_server_connector::disable(std::move(enabled));
@@ -384,29 +385,22 @@ Consumer_service_binding::detach_from_peer_locked() noexcept {
         m_disabled_connector = std::move(disabled);
     }
 
-    std::lock_guard const subscription_lock{m_subscription_mutex};
+    // Unsubscribe only after disable() has disconnected local SOCom clients and released any
+    // SamplePtr-backed payloads; LoLa aborts if a subscription outlives its event or is dropped
+    // while SamplePtrs are still held.
+    for (auto* const proxy_event : subscribed) {
+        proxy_event->Unsubscribe();
+    }
 
-    std::vector<score::mw::com::GenericProxyEvent*> subscribed{};
     {
         std::lock_guard const lock{m_mutex};
         std::swap(proxy, m_proxy);
         m_active_handle.reset();
         for (auto& event : m_events) {
-            if (event.subscribed && (event.proxy_event != nullptr)) {
-                subscribed.push_back(event.proxy_event);
-            }
             event.proxy_event = nullptr;
             event.wanted_locally = false;
-            event.subscribed = false;
         }
-    }
-
-    // Not under m_mutex: both block until a running receive handler has finished, and that
-    // handler needs m_mutex. Unlike a generated proxy, a GenericProxy does not unsubscribe
-    // its events when it is destroyed, and LoLa aborts if a subscription outlives its event.
-    for (auto* const proxy_event : subscribed) {
-        (void)proxy_event->UnsetReceiveHandler();
-        proxy_event->Unsubscribe();
+        m_detaching = false;
     }
 
     return proxy;
@@ -414,169 +408,184 @@ Consumer_service_binding::detach_from_peer_locked() noexcept {
 
 void Consumer_service_binding::on_event_subscription_change(score::socom::Event_id const event_id,
                                                             bool const subscribed) noexcept {
-    std::lock_guard const subscription_lock{m_subscription_mutex};
     {
         std::lock_guard const lock{m_mutex};
-        if (event_id >= m_events.size()) {
+        if (m_stopping || (event_id >= m_events.size())) {
             return;
         }
-        m_events[event_id].wanted_locally = subscribed;
+        auto& event = m_events[event_id];
+        event.wanted_locally = subscribed;
+        if (is_subscription_desired(event) == event.subscribed) {
+            return;
+        }
     }
+
+    // LoLa holds its per-event handler lock and thread-local handler context across the entire
+    // receive callback, so any subscription change triggered synchronously inside update_event()
+    // must reconcile on a separate worker thread.
+    if (g_receive_handler_depth > 0U) {
+        m_reconcile_worker.Post([this, event_id](score::cpp::stop_token const&) noexcept {
+            reconcile_subscription(event_id);
+        });
+        return;
+    }
+
     reconcile_subscription(event_id);
 }
 
 void Consumer_service_binding::reconcile_subscription(
     score::socom::Event_id const event_id) noexcept {
-    score::mw::com::GenericProxyEvent* proxy_event{nullptr};
-    std::size_t max_sample_count{0U};
-    bool desired{false};
-    {
-        std::lock_guard const lock{m_mutex};
-        if ((m_enabled_connector == nullptr) && (m_in_flight_updates > 0U)) {
-            // Detach is draining in-flight updates before disable() and will tear down all event
-            // subscriptions once disable() returns.
-            return;
-        }
-        auto const& event = m_events[event_id];
-        // While the connector is not enabled yet, attach_to_peer() has not finished and will
-        // reconcile again once it has.
-        desired = event.wanted_locally && (event.proxy_event != nullptr) &&
-                  (m_enabled_connector != nullptr);
-        if (desired == event.subscribed) {
-            return;
-        }
-        proxy_event = event.proxy_event;
-        max_sample_count = event.max_sample_count;
-    }
-
-    if (proxy_event == nullptr) {
+    std::unique_lock<std::mutex> lock{m_mutex};
+    auto& event = m_events[event_id];
+    if (m_stopping || m_detaching || event.reconciling ||
+        (is_subscription_desired(event) == event.subscribed)) {
         return;
     }
 
-    if (desired) {
-        auto const result = proxy_event->Subscribe(max_sample_count);
-        if (!result.has_value()) {
-            score::mw::log::LogError()
-                << kLog_tag << "Failed to subscribe to event" << m_events[event_id].name << "of"
-                << m_instance_specifier << ":" << result.error();
-            return;
+    event.reconciling = true;
+    while (!m_stopping && !m_detaching) {
+        auto const desired = is_subscription_desired(event);
+        if (desired == event.subscribed) {
+            break;
         }
-        {
-            std::lock_guard const lock{m_mutex};
-            m_events[event_id].subscribed = true;
-        }
-        auto const handler_set = proxy_event->SetReceiveHandler(
-            [this, event_id]() noexcept { on_samples_available(event_id); });
-        if (!handler_set.has_value()) {
-            score::mw::log::LogError() << kLog_tag << "Failed to set the receive handler for event"
-                                       << m_events[event_id].name << "of" << m_instance_specifier
-                                       << ":" << handler_set.error();
-            {
-                std::lock_guard const lock{m_mutex};
-                m_events[event_id].subscribed = false;
+
+        auto* const proxy_event = event.proxy_event;
+        auto const max_sample_count = event.max_sample_count;
+        if (desired) {
+            lock.unlock();
+            auto const result = proxy_event->Subscribe(max_sample_count);
+            if (!result.has_value()) {
+                score::mw::log::LogError()
+                    << kLog_tag << "Failed to subscribe to event" << event.name << "of"
+                    << m_instance_specifier << ":" << result.error();
+                lock.lock();
+                break;
             }
+            lock.lock();
+            if (m_stopping || m_detaching || !is_subscription_desired(event)) {
+                lock.unlock();
+                proxy_event->Unsubscribe();
+                lock.lock();
+                continue;
+            }
+            event.subscribed = true;
+            lock.unlock();
+
+            auto const handler_set = proxy_event->SetReceiveHandler(
+                [this, event_id]() noexcept { on_samples_available(event_id); });
+            if (!handler_set.has_value()) {
+                score::mw::log::LogError()
+                    << kLog_tag << "Failed to set the receive handler for event" << event.name
+                    << "of" << m_instance_specifier << ":" << handler_set.error();
+                lock.lock();
+                event.subscribed = false;
+                lock.unlock();
+                proxy_event->Unsubscribe();
+                lock.lock();
+                break;
+            }
+            lock.lock();
+        } else {
+            event.subscribed = false;
+            lock.unlock();
+            (void)proxy_event->UnsetReceiveHandler();
             proxy_event->Unsubscribe();
-            return;
+            lock.lock();
         }
-    } else {
-        {
-            std::lock_guard const lock{m_mutex};
-            m_events[event_id].subscribed = false;
-        }
-        (void)proxy_event->UnsetReceiveHandler();
-        proxy_event->Unsubscribe();
     }
+    event.reconciling = false;
+    m_reconcile_cv.notify_all();
 }
 
 void Consumer_service_binding::on_samples_available(
     score::socom::Event_id const event_id) noexcept {
-    score::mw::com::GenericProxyEvent* proxy_event{nullptr};
-    std::size_t max_sample_count{0U};
+    Event* event_ptr{nullptr};
     {
         std::lock_guard const lock{m_mutex};
         if (event_id >= m_events.size()) {
             return;
         }
-        auto const& event = m_events[event_id];
-        if (!event.subscribed || (event.proxy_event == nullptr) ||
-            (m_enabled_connector == nullptr)) {
-            // Torn down or unsubscribed while this handler was waiting for the lock.
+        if (!can_receive_samples(m_events[event_id])) {
+            return;
+        }
+        event_ptr = &m_events[event_id];
+    }
+
+    auto& event = *event_ptr;
+    std::lock_guard<std::mutex> const rx_lock{event.rx_mutex};
+
+    score::mw::com::GenericProxyEvent* proxy_event{nullptr};
+    std::size_t max_sample_count{0U};
+    {
+        std::lock_guard const lock{m_mutex};
+        if (!can_receive_samples(event)) {
             return;
         }
         proxy_event = event.proxy_event;
         max_sample_count = event.max_sample_count;
     }
 
-    // Release m_mutex before GetNewSamples() and update_event(): SOCom callbacks triggered inside
-    // update_event() acquire m_subscription_mutex before m_mutex, so holding m_mutex here would
-    // invert the lock hierarchy across threads. UnsetReceiveHandler() blocks detach_from_peer()
-    // before m_proxy is destroyed, keeping proxy_event valid across GetNewSamples(). Each
-    // update_event() call increments m_in_flight_updates under m_mutex so detach_from_peer_locked()
-    // waits on m_updates_drained_cv before calling Enabled_server_connector::disable(), keeping
-    // target_connector alive and enabled until update_event() returns.
+    ++g_receive_handler_depth;
+
+    // Step 1: drain all available samples from LoLa into the pre-reserved batch so
+    // GetNewSamples() returns and ~TrackerGuardFactory() releases unused slot guards before any
+    // SOCom callback can fire.
+    event.sample_batch.clear();
     auto const received = proxy_event->GetNewSamples(
-        [this, event_id](score::mw::com::SamplePtr<void> sample) noexcept {
-            auto const* const sample_base = static_cast<std::byte const*>(sample.get());
-            if (sample_base == nullptr) {
-                return;
-            }
-
-            auto const length = read_payload_length(sample_base);
-
-            score::socom::Enabled_server_connector* target_connector{nullptr};
-            std::size_t max_payload_size{0U};
-            bool length_exceeded{false};
-            {
-                std::lock_guard const lock{m_mutex};
-                auto const& event = m_events[event_id];
-                if (!event.subscribed || (event.proxy_event == nullptr) ||
-                    (m_enabled_connector == nullptr)) {
-                    return;
-                }
-                max_payload_size = event.max_payload_size;
-                if (length > max_payload_size) {
-                    length_exceeded = true;
-                } else {
-                    target_connector = m_enabled_connector.get();
-                    ++m_in_flight_updates;
-                }
-            }
-
-            if (length_exceeded) {
-                score::mw::log::LogError()
-                    << kLog_tag << "Dropping a sample of event" << m_events[event_id].name << "of"
-                    << m_instance_specifier << ": payload length" << length
-                    << "exceeds the peer's maximum of" << max_payload_size;
-                return;
-            }
-
-            In_flight_update_guard const update_guard{m_mutex, m_in_flight_updates,
-                                                      m_updates_drained_cv};
-
-            score::socom::Payload payload{
-                score::socom::Payload::Span{sample_base, kSample_prefix_size + length}.subspan(
-                    kSample_prefix_size),
-                score::socom::kNoSlotHandle,
-                // Owning the SamplePtr here is what returns the slot to LoLa once the receiving
-                // application is done with the payload. It is boxed because a SamplePtr does not
-                // fit into the inline storage of socom::Payload::Payload_destroyed.
-                [sample = std::make_unique<score::mw::com::SamplePtr<void>>(
-                     std::move(sample))]() noexcept {}};
-
-            auto const updated = target_connector->update_event(event_id, std::move(payload));
-            if (!updated.has_value()) {
-                score::mw::log::LogWarn()
-                    << kLog_tag << "Failed to forward event" << m_events[event_id].name << "of"
-                    << m_instance_specifier << ":" << updated.error();
+        [&batch = event.sample_batch](score::mw::com::SamplePtr<void> sample) noexcept {
+            if (sample.get() != nullptr) {
+                batch.emplace_back(std::move(sample));
             }
         },
         max_sample_count);
-
     if (!received.has_value()) {
-        score::mw::log::LogWarn() << kLog_tag << "Failed to get new samples of event"
-                                  << m_events[event_id].name << "of" << m_instance_specifier << ":"
-                                  << received.error();
+        score::mw::log::LogWarn() << kLog_tag << "Failed to get new samples of event" << event.name
+                                  << "of" << m_instance_specifier << ":" << received.error();
     }
+
+    // Step 2: forward drained samples via update_event() with m_mutex unlocked.
+    for (auto& slot : event.sample_batch) {
+        auto sample = std::move(slot);
+        auto const* const sample_base = static_cast<std::byte const*>(sample.get());
+        auto const length = read_payload_length(sample_base);
+
+        score::socom::Enabled_server_connector* target_connector{nullptr};
+        std::size_t max_payload_size{0U};
+        {
+            std::lock_guard const lock{m_mutex};
+            if (!can_receive_samples(event)) {
+                break;
+            }
+            max_payload_size = event.max_payload_size;
+            target_connector = m_enabled_connector.get();
+        }
+
+        if (length > max_payload_size) {
+            score::mw::log::LogError()
+                << kLog_tag << "Dropping a sample of event" << event.name << "of"
+                << m_instance_specifier << ": payload length" << length
+                << "exceeds the peer's maximum of" << max_payload_size;
+            continue;
+        }
+
+        score::socom::Payload payload{
+            score::socom::Payload::Span{sample_base, kSample_prefix_size + length}.subspan(
+                kSample_prefix_size),
+            score::socom::kNoSlotHandle,
+            // Owning the SamplePtr here returns the slot to LoLa once the receiving application is
+            // done with the payload. Boxed because SamplePtr exceeds the inline storage of
+            // socom::Payload::Payload_destroyed.
+            [sample = std::make_unique<score::mw::com::SamplePtr<void>>(
+                 std::move(sample))]() noexcept {}};
+
+        auto const updated = target_connector->update_event(event_id, std::move(payload));
+        if (!updated.has_value()) {
+            score::mw::log::LogWarn() << kLog_tag << "Failed to forward event" << event.name << "of"
+                                      << m_instance_specifier << ":" << updated.error();
+        }
+    }
+    event.sample_batch.clear();
+    --g_receive_handler_depth;
 }
 
 }  // namespace score::gateway_ipc_binding::mw_com

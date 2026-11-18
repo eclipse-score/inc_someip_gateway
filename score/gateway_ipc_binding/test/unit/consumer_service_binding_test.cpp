@@ -18,12 +18,17 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -76,9 +81,14 @@ constexpr std::size_t kEvent0Index{0U};
 constexpr std::size_t kEvent1Index{1U};
 constexpr std::size_t kZeroDeliveredSamples{0U};
 constexpr std::size_t kSingleDeliveredSampleCount{1U};
+constexpr std::size_t kTwoDeliveredSampleCount{2U};
 constexpr std::size_t kDroppedBatchSampleCount{4U};
 constexpr std::size_t kExpectedForwardedSampleCount{4U};
 constexpr std::size_t kReceiveNotificationBurstCount{6U};
+constexpr std::size_t kExpectedMaxConcurrentGetNewSamples{1U};
+constexpr std::size_t kConcurrentCollisionThreshold{2U};
+constexpr std::chrono::milliseconds kContentionObservationWindow{20};
+constexpr std::chrono::seconds kSynchronizationTimeout{5};
 constexpr std::uint16_t kFirstPeerInstanceId{1U};
 constexpr std::uint16_t kSecondPeerInstanceId{2U};
 constexpr std::uint32_t kFindHandleUid{11U};
@@ -181,22 +191,27 @@ AlignedSampleBuffer<BufferSize> MakeFramedSample(
 
 class ScopedSampleDeleterCounter {
    public:
-    explicit ScopedSampleDeleterCounter(std::size_t& counter) noexcept {
-        active_counter_ = &counter;
+    explicit ScopedSampleDeleterCounter(std::atomic<std::size_t>& counter) noexcept {
+        active_counter_.store(&counter, std::memory_order_release);
     }
-    ~ScopedSampleDeleterCounter() noexcept { active_counter_ = nullptr; }
+    ~ScopedSampleDeleterCounter() noexcept {
+        active_counter_.store(nullptr, std::memory_order_release);
+    }
 
     ScopedSampleDeleterCounter(ScopedSampleDeleterCounter const&) = delete;
     ScopedSampleDeleterCounter& operator=(ScopedSampleDeleterCounter const&) = delete;
+    ScopedSampleDeleterCounter(ScopedSampleDeleterCounter&&) = delete;
+    ScopedSampleDeleterCounter& operator=(ScopedSampleDeleterCounter&&) = delete;
 
     static void OnDelete(void*) noexcept {
-        if (active_counter_ != nullptr) {
-            ++(*active_counter_);
+        if (auto* const counter = active_counter_.load(std::memory_order_acquire);
+            counter != nullptr) {
+            (void)counter->fetch_add(1U, std::memory_order_acq_rel);
         }
     }
 
    private:
-    inline static std::size_t* active_counter_{nullptr};
+    inline static std::atomic<std::atomic<std::size_t>*> active_counter_{nullptr};
 };
 
 class ConsumerServiceBindingTest : public IpcBindingTestFixture {
@@ -286,6 +301,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
         ReceiveHandlerWeakPtr* const out_receive_handler = nullptr,
         std::size_t* const out_subscribe_calls = nullptr,
         std::size_t* const out_unsubscribe_calls = nullptr) {
+        ::testing::InSequence const subscription_seq{};
         EXPECT_CALL(event_mock, Subscribe(max_sample_count))
             .Times(1)
             .WillOnce([out_subscribe_calls](std::size_t) {
@@ -314,13 +330,19 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
             });
     }
 
-    static void ExpectEventSubscriptionLifecycleAfterDisable(
-        MockProxyEvent& event_mock, ::testing::Expectation const& disable_expectation,
-        std::size_t const max_sample_count = kDefaultMaxSampleCount,
+    static void ExpectPeerSessionWithSubscribedEvent(
+        ::testing::NiceMock<socom::Server_connector_mock>& server_connector,
+        MockProxyEvent& event_mock, ::testing::Sequence& lifecycle_seq,
         ReceiveHandlerWeakPtr* const out_receive_handler = nullptr,
-        std::size_t* const out_subscribe_calls = nullptr) {
-        EXPECT_CALL(event_mock, Subscribe(max_sample_count))
-            .Times(1)
+        std::size_t* const out_subscribe_calls = nullptr,
+        socom::Disabled_server_connector::Callbacks const* const disable_unsubscribe_callbacks =
+            nullptr) {
+        auto const in_disable = std::make_shared<std::atomic<bool>>(false);
+        EXPECT_CALL(server_connector, enable())
+            .InSequence(lifecycle_seq)
+            .WillOnce(Return(&server_connector));
+        EXPECT_CALL(event_mock, Subscribe(kDefaultMaxSampleCount))
+            .InSequence(lifecycle_seq)
             .WillOnce([out_subscribe_calls](std::size_t) {
                 if (out_subscribe_calls != nullptr) {
                     ++(*out_subscribe_calls);
@@ -328,7 +350,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
                 return score::Result<void>{};
             });
         EXPECT_CALL(event_mock, SetReceiveHandler(_))
-            .Times(1)
+            .InSequence(lifecycle_seq)
             .WillOnce([out_receive_handler](ReceiveHandlerWeakPtr handler) {
                 if (out_receive_handler != nullptr) {
                     *out_receive_handler = std::move(handler);
@@ -336,10 +358,24 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
                 return score::Result<void>{};
             });
         EXPECT_CALL(event_mock, UnsetReceiveHandler())
-            .Times(1)
-            .After(disable_expectation)
+            .InSequence(lifecycle_seq)
             .WillOnce(Return(score::Result<void>{}));
-        EXPECT_CALL(event_mock, Unsubscribe()).Times(1).After(disable_expectation);
+        EXPECT_CALL(server_connector, disable())
+            .InSequence(lifecycle_seq)
+            .WillOnce([&server_connector, disable_unsubscribe_callbacks, in_disable]() {
+                in_disable->store(true, std::memory_order_release);
+                if (disable_unsubscribe_callbacks != nullptr) {
+                    disable_unsubscribe_callbacks->on_event_subscription_change(
+                        server_connector, kSocomEvent0, socom::Event_state::unsubscribed);
+                }
+                in_disable->store(false, std::memory_order_release);
+                return &server_connector;
+            });
+        EXPECT_CALL(event_mock, Unsubscribe())
+            .InSequence(lifecycle_seq)
+            .WillOnce([in_disable]() noexcept {
+                EXPECT_FALSE(in_disable->load(std::memory_order_acquire));
+            });
     }
 
     static void ExpectCapturedEventUpdates(
@@ -378,17 +414,25 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
         };
     }
 
+    static score::mw::com::impl::SamplePtr<void> MakeTrackedMockSample(
+        std::byte* const sample_base, score::mw::com::impl::TrackerGuardFactory& tracker) {
+        auto guard = tracker.TakeGuard();
+        if (!guard.has_value()) {
+            return score::mw::com::impl::SamplePtr<void>{};
+        }
+        return score::mw::com::impl::SamplePtr<void>{
+            score::mw::com::impl::mock_binding::SamplePtr{sample_base,
+                                                          &ScopedSampleDeleterCounter::OnDelete},
+            std::move(*guard)};
+    }
+
     static auto DeliverTrackedMockSample(std::byte* const sample_base) {
         return [sample_base](score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
                              score::mw::com::impl::TrackerGuardFactory& tracker) {
-            auto guard = tracker.TakeGuard();
-            if (!guard.has_value()) {
+            auto tracked_sample = MakeTrackedMockSample(sample_base, tracker);
+            if (tracked_sample.get() == nullptr) {
                 return score::Result<std::size_t>{kZeroDeliveredSamples};
             }
-            score::mw::com::impl::SamplePtr<void> tracked_sample{
-                score::mw::com::impl::mock_binding::SamplePtr{
-                    sample_base, &ScopedSampleDeleterCounter::OnDelete},
-                std::move(*guard)};
             DeliverSample(cb, std::move(tracked_sample));
             return score::Result<std::size_t>{kSingleDeliveredSampleCount};
         };
@@ -658,15 +702,21 @@ TEST_F(ConsumerServiceBindingTest,
 
     socom::Disabled_server_connector::Callbacks server_callbacks{};
     auto* const server_connector = ExpectServerConnectorCreated(&server_callbacks);
-    StubEnableSubscribesEvents(*server_connector, server_callbacks, {kSocomEvent1});
-    EXPECT_CALL(*server_connector, enable()).Times(1);
+    std::size_t ev1_subscribe_calls{0U};
+    std::size_t ev1_unsubscribe_calls{0U};
+    EXPECT_CALL(*server_connector, enable())
+        .Times(1)
+        .WillOnce([&server_callbacks, server_connector, &ev1_subscribe_calls]() {
+            server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent1,
+                                                          socom::Event_state::subscribed);
+            EXPECT_EQ(ev1_subscribe_calls, 0U);
+            return server_connector;
+        });
     EXPECT_CALL(*server_connector, disable()).Times(1).WillOnce(Return(server_connector));
 
     auto proxy_mocks = ExpectTwoEventProxy(kMinPeerSampleSize24, kLargerPeerSampleSize40);
     ExpectEventNeverSubscribed(*proxy_mocks.events[kEvent0Index]);
 
-    std::size_t ev1_subscribe_calls{0U};
-    std::size_t ev1_unsubscribe_calls{0U};
     ExpectEventSubscriptionLifecycle(*proxy_mocks.events[kEvent1Index], kCustomSampleCount, nullptr,
                                      &ev1_subscribe_calls, &ev1_unsubscribe_calls);
 
@@ -807,7 +857,7 @@ TEST_F(ConsumerServiceBindingTest, ForwardsExactPayloadBytesAndDropsOutOfBoundsO
 }
 
 TEST_F(ConsumerServiceBindingTest, RetainsZeroCopySampleGuardUntilSocomPayloadIsDestroyed) {
-    std::size_t sample_deleter_calls{0U};
+    std::atomic<std::size_t> sample_deleter_calls{0U};
     ScopedSampleDeleterCounter const deleter_scope{sample_deleter_calls};
 
     auto cfg = MakeServiceConfig(Role::consumer);
@@ -856,21 +906,21 @@ TEST_F(ConsumerServiceBindingTest, RetainsZeroCopySampleGuardUntilSocomPayloadIs
     EXPECT_EQ(held_payload->data().data(), raw_sample.bytes.data() + kSample_prefix_size);
     ASSERT_EQ(held_payload->data().size(), kFourBytePayloadSize);
     EXPECT_THAT(held_payload->data(), ElementsAreArray(kSignBitBytes));
-    EXPECT_EQ(sample_deleter_calls, 0U);
+    EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), 0U);
 
     // Single SampleReferenceGuard is still held -> second slot acquisition yields 0 samples.
     (*locked_handler)();
     EXPECT_EQ(forwarded_count, 1U);
-    EXPECT_EQ(sample_deleter_calls, 0U);
+    EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), 0U);
 
     held_payload.reset();
-    EXPECT_EQ(sample_deleter_calls, 1U);
+    EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), 1U);
 
     (*locked_handler)();
     EXPECT_EQ(forwarded_count, 2U);
-    EXPECT_EQ(sample_deleter_calls, 1U);
+    EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), 1U);
     held_payload.reset();
-    EXPECT_EQ(sample_deleter_calls, 2U);
+    EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), 2U);
 }
 
 TEST_F(ConsumerServiceBindingTest,
@@ -881,29 +931,12 @@ TEST_F(ConsumerServiceBindingTest,
     auto* const ev0_second = ExpectSizedProxyEvent(kEvent0, kMinPeerSampleSize24);
 
     ::testing::Sequence connector_lifecycle_seq{};
-    EXPECT_CALL(*server_connector, enable())
-        .InSequence(connector_lifecycle_seq)
-        .WillOnce(Return(server_connector));
-    ::testing::Expectation const first_disable =
-        EXPECT_CALL(*server_connector, disable())
-            .InSequence(connector_lifecycle_seq)
-            .WillOnce([&server_callbacks, server_connector]() {
-                server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
-                                                              socom::Event_state::unsubscribed);
-                return server_connector;
-            });
-    EXPECT_CALL(*server_connector, enable())
-        .InSequence(connector_lifecycle_seq)
-        .WillOnce(Return(server_connector));
-    ::testing::Expectation const final_disable = EXPECT_CALL(*server_connector, disable())
-                                                     .InSequence(connector_lifecycle_seq)
-                                                     .WillOnce(Return(server_connector));
-
-    ExpectEventSubscriptionLifecycleAfterDisable(*ev0_first, first_disable);
+    ExpectPeerSessionWithSubscribedEvent(*server_connector, *ev0_first, connector_lifecycle_seq,
+                                         nullptr, nullptr, &server_callbacks);
     std::size_t ev0_second_subscribe_calls{0U};
     ReceiveHandlerWeakPtr ev0_second_handler{};
-    ExpectEventSubscriptionLifecycleAfterDisable(*ev0_second, final_disable, kDefaultMaxSampleCount,
-                                                 &ev0_second_handler, &ev0_second_subscribe_calls);
+    ExpectPeerSessionWithSubscribedEvent(*server_connector, *ev0_second, connector_lifecycle_seq,
+                                         &ev0_second_handler, &ev0_second_subscribe_calls);
 
     auto reconnect_sample = MakeFramedSample<kMinPeerSampleSize24>(kPrefixLength4, kReconnectBytes);
     EXPECT_CALL(*ev0_second, GetNewSamples(_, _))
@@ -949,24 +982,11 @@ TEST_F(ConsumerServiceBindingTest, IgnoresDuplicateHandleAndReplacesDistinctHand
     auto* const ev0_replacement = ExpectSizedProxyEvent(kEvent0, kMinPeerSampleSize24);
 
     ::testing::Sequence connector_lifecycle_seq{};
-    EXPECT_CALL(*server_connector, enable())
-        .InSequence(connector_lifecycle_seq)
-        .WillOnce(Return(server_connector));
-    ::testing::Expectation const replacement_disable = EXPECT_CALL(*server_connector, disable())
-                                                           .InSequence(connector_lifecycle_seq)
-                                                           .WillOnce(Return(server_connector));
-    EXPECT_CALL(*server_connector, enable())
-        .InSequence(connector_lifecycle_seq)
-        .WillOnce(Return(server_connector));
-    ::testing::Expectation const teardown_disable = EXPECT_CALL(*server_connector, disable())
-                                                        .InSequence(connector_lifecycle_seq)
-                                                        .WillOnce(Return(server_connector));
-
-    ExpectEventSubscriptionLifecycleAfterDisable(*ev0_first, replacement_disable);
+    ExpectPeerSessionWithSubscribedEvent(*server_connector, *ev0_first, connector_lifecycle_seq);
     std::size_t replacement_subscribe_calls{0U};
-    ExpectEventSubscriptionLifecycleAfterDisable(*ev0_replacement, teardown_disable,
-                                                 kDefaultMaxSampleCount, nullptr,
-                                                 &replacement_subscribe_calls);
+    ExpectPeerSessionWithSubscribedEvent(*server_connector, *ev0_replacement,
+                                         connector_lifecycle_seq, nullptr,
+                                         &replacement_subscribe_calls);
 
     FindHandler find_handler{};
     auto const find_handle = ExpectDiscoveryCapture(find_handler);
@@ -992,6 +1012,321 @@ TEST_F(ConsumerServiceBindingTest, IgnoresDuplicateHandleAndReplacesDistinctHand
     server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
                                                   socom::Event_state::subscribed);
     EXPECT_EQ(replacement_subscribe_calls, 1U);
+}
+
+TEST_F(ConsumerServiceBindingTest, SerializesConcurrentGetNewSamplesCallsForSameEvent) {
+    socom::Disabled_server_connector::Callbacks server_callbacks{};
+    auto* const server_connector = ExpectServerConnectorCreated(&server_callbacks);
+    EXPECT_CALL(*server_connector, enable()).Times(1).WillOnce(Return(server_connector));
+    EXPECT_CALL(*server_connector, disable()).Times(1).WillOnce(Return(server_connector));
+
+    auto* const ev0 = ExpectSizedProxyEvent(kEvent0, kMinPeerSampleSize24);
+    ReceiveHandlerWeakPtr ev0_receive_handler{};
+    ExpectEventSubscriptionLifecycle(*ev0, kDefaultMaxSampleCount, &ev0_receive_handler);
+
+    auto first_sample = MakeFramedSample<kMinPeerSampleSize24>(kPrefixLength4, kSignBitBytes);
+    auto second_sample = MakeFramedSample<kMinPeerSampleSize24>(kPrefixLength4, kReconnectBytes);
+
+    std::mutex gate_mutex{};
+    std::condition_variable gate_cv{};
+    bool first_call_entered{false};
+    bool second_thread_invoking{false};
+    bool release_first_call{false};
+    bool second_call_completed{false};
+    std::size_t active_get_new_samples{0U};
+    std::size_t max_concurrent_get_new_samples{0U};
+    std::size_t get_new_samples_invocations{0U};
+
+    EXPECT_CALL(*ev0, GetNewSamples(_, _))
+        .Times(kTwoDeliveredSampleCount)
+        .WillOnce([&first_sample, &gate_mutex, &gate_cv, &first_call_entered, &release_first_call,
+                   &active_get_new_samples, &max_concurrent_get_new_samples,
+                   &get_new_samples_invocations](
+                      score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
+                      score::mw::com::impl::TrackerGuardFactory& tracker) {
+            {
+                std::unique_lock<std::mutex> lock{gate_mutex};
+                ++get_new_samples_invocations;
+                ++active_get_new_samples;
+                max_concurrent_get_new_samples =
+                    std::max(max_concurrent_get_new_samples, active_get_new_samples);
+                first_call_entered = true;
+                gate_cv.notify_all();
+                EXPECT_TRUE(gate_cv.wait_until(
+                    lock, std::chrono::steady_clock::now() + kSynchronizationTimeout,
+                    [&release_first_call]() noexcept { return release_first_call; }));
+            }
+            DeliverSample(cb, testing::MakeMockSample(first_sample.bytes.data(), tracker));
+            {
+                std::lock_guard<std::mutex> const lock{gate_mutex};
+                --active_get_new_samples;
+            }
+            gate_cv.notify_all();
+            return score::Result<std::size_t>{kSingleDeliveredSampleCount};
+        })
+        .WillOnce([&second_sample, &gate_mutex, &gate_cv, &active_get_new_samples,
+                   &max_concurrent_get_new_samples, &get_new_samples_invocations](
+                      score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
+                      score::mw::com::impl::TrackerGuardFactory& tracker) {
+            {
+                std::lock_guard<std::mutex> const lock{gate_mutex};
+                ++get_new_samples_invocations;
+                ++active_get_new_samples;
+                max_concurrent_get_new_samples =
+                    std::max(max_concurrent_get_new_samples, active_get_new_samples);
+            }
+            gate_cv.notify_all();
+            DeliverSample(cb, testing::MakeMockSample(second_sample.bytes.data(), tracker));
+            {
+                std::lock_guard<std::mutex> const lock{gate_mutex};
+                --active_get_new_samples;
+            }
+            gate_cv.notify_all();
+            return score::Result<std::size_t>{kSingleDeliveredSampleCount};
+        });
+
+    std::mutex captured_mutex{};
+    std::vector<std::vector<std::byte>> captured_payloads{};
+    EXPECT_CALL(*server_connector, update_event(kSocomEvent0, _))
+        .Times(kTwoDeliveredSampleCount)
+        .WillRepeatedly(
+            [&captured_mutex, &captured_payloads](socom::Event_id, socom::Payload payload) {
+                auto const span = payload.data();
+                std::lock_guard<std::mutex> const lock{captured_mutex};
+                captured_payloads.emplace_back(span.begin(), span.end());
+                return score::Result<void>{};
+            });
+
+    FindHandler find_handler{};
+    auto const find_handle = ExpectDiscoveryCapture(find_handler);
+
+    auto binding_res =
+        Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
+    ASSERT_TRUE(binding_res.has_value());
+    ASSERT_TRUE((*binding_res)->start().has_value());
+    find_handler({MakeHandle({kEvent0})}, find_handle);
+    server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
+                                                  socom::Event_state::subscribed);
+
+    auto const locked_handler = ev0_receive_handler.lock();
+    ASSERT_NE(locked_handler, nullptr);
+
+    struct ScopedWorkerCleanup final {
+        ScopedWorkerCleanup(std::mutex& mtx, std::condition_variable& cond, bool& release) noexcept
+            : gate_mutex{mtx}, gate_cv{cond}, release_first_call{release} {}
+        ~ScopedWorkerCleanup() noexcept { ReleaseAndJoin(); }
+        ScopedWorkerCleanup(ScopedWorkerCleanup const&) = delete;
+        ScopedWorkerCleanup& operator=(ScopedWorkerCleanup const&) = delete;
+        ScopedWorkerCleanup(ScopedWorkerCleanup&&) = delete;
+        ScopedWorkerCleanup& operator=(ScopedWorkerCleanup&&) = delete;
+
+        void ReleaseAndJoin() noexcept {
+            {
+                std::lock_guard<std::mutex> const lock{gate_mutex};
+                release_first_call = true;
+            }
+            gate_cv.notify_all();
+            if (second.joinable()) {
+                second.join();
+            }
+            if (first.joinable()) {
+                first.join();
+            }
+        }
+
+        std::mutex& gate_mutex;
+        std::condition_variable& gate_cv;
+        bool& release_first_call;
+        std::thread first{};
+        std::thread second{};
+    } workers{gate_mutex, gate_cv, release_first_call};
+
+    workers.first = std::thread{[&locked_handler]() { (*locked_handler)(); }};
+    {
+        std::unique_lock<std::mutex> lock{gate_mutex};
+        ASSERT_TRUE(
+            gate_cv.wait_until(lock, std::chrono::steady_clock::now() + kSynchronizationTimeout,
+                               [&first_call_entered]() noexcept { return first_call_entered; }));
+    }
+
+    workers.second = std::thread{[&locked_handler, &gate_mutex, &gate_cv, &second_thread_invoking,
+                                  &second_call_completed]() {
+        {
+            std::lock_guard<std::mutex> const lock{gate_mutex};
+            second_thread_invoking = true;
+        }
+        gate_cv.notify_all();
+        (*locked_handler)();
+        {
+            std::lock_guard<std::mutex> const lock{gate_mutex};
+            second_call_completed = true;
+        }
+        gate_cv.notify_all();
+    }};
+    {
+        std::unique_lock<std::mutex> lock{gate_mutex};
+        ASSERT_TRUE(gate_cv.wait_until(
+            lock, std::chrono::steady_clock::now() + kSynchronizationTimeout,
+            [&second_thread_invoking]() noexcept { return second_thread_invoking; }));
+        EXPECT_FALSE(gate_cv.wait_for(
+            lock, kContentionObservationWindow,
+            [&max_concurrent_get_new_samples, &second_call_completed]() noexcept {
+                return (max_concurrent_get_new_samples >= kConcurrentCollisionThreshold) ||
+                       second_call_completed;
+            }));
+        EXPECT_FALSE(second_call_completed);
+    }
+
+    workers.ReleaseAndJoin();
+
+    {
+        std::lock_guard<std::mutex> const lock{gate_mutex};
+        EXPECT_EQ(max_concurrent_get_new_samples, kExpectedMaxConcurrentGetNewSamples);
+        EXPECT_EQ(get_new_samples_invocations, kTwoDeliveredSampleCount);
+    }
+    ASSERT_EQ(captured_payloads.size(), kTwoDeliveredSampleCount);
+    EXPECT_THAT(captured_payloads[0], ElementsAreArray(kSignBitBytes));
+    EXPECT_THAT(captured_payloads[1], ElementsAreArray(kReconnectBytes));
+}
+
+TEST_F(ConsumerServiceBindingTest,
+       DrainsGetNewSamplesBeforeForwardingAndDefersReentrantUnsubscribeUntilSamplesRelease) {
+    std::atomic<std::size_t> sample_deleter_calls{0U};
+    ScopedSampleDeleterCounter const deleter_scope{sample_deleter_calls};
+
+    socom::Disabled_server_connector::Callbacks server_callbacks{};
+    auto* const server_connector = ExpectServerConnectorCreated(&server_callbacks);
+    EXPECT_CALL(*server_connector, enable()).Times(1).WillOnce(Return(server_connector));
+    EXPECT_CALL(*server_connector, disable()).Times(1).WillOnce(Return(server_connector));
+
+    auto* const ev0 = ExpectSizedProxyEvent(kEvent0, kMinPeerSampleSize24);
+    ReceiveHandlerWeakPtr ev0_receive_handler{};
+
+    EXPECT_CALL(*ev0, Subscribe(kDefaultMaxSampleCount))
+        .Times(1)
+        .WillOnce(Return(score::Result<void>{}));
+    EXPECT_CALL(*ev0, SetReceiveHandler(_))
+        .Times(1)
+        .WillOnce([&ev0_receive_handler](ReceiveHandlerWeakPtr handler) {
+            ev0_receive_handler = std::move(handler);
+            return score::Result<void>{};
+        });
+
+    std::mutex sync_mutex{};
+    std::condition_variable sync_cv{};
+    bool in_get_new_samples{false};
+    bool get_new_samples_returned{false};
+    bool in_update_event{false};
+    bool unsubscribe_completed{false};
+    std::size_t unset_calls{0U};
+    std::size_t unsubscribe_calls{0U};
+    ::testing::Sequence unsubscribe_seq{};
+    EXPECT_CALL(*ev0, UnsetReceiveHandler())
+        .Times(1)
+        .InSequence(unsubscribe_seq)
+        .WillOnce([&sync_mutex, &in_get_new_samples, &in_update_event, &sample_deleter_calls,
+                   &unset_calls]() {
+            std::lock_guard<std::mutex> const lock{sync_mutex};
+            EXPECT_FALSE(in_get_new_samples);
+            EXPECT_FALSE(in_update_event);
+            EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire),
+                      kTwoDeliveredSampleCount);
+            ++unset_calls;
+            return score::Result<void>{};
+        });
+    EXPECT_CALL(*ev0, Unsubscribe())
+        .Times(1)
+        .InSequence(unsubscribe_seq)
+        .WillOnce([&sync_mutex, &sync_cv, &in_get_new_samples, &in_update_event,
+                   &sample_deleter_calls, &unsubscribe_calls, &unsubscribe_completed]() noexcept {
+            {
+                std::lock_guard<std::mutex> const lock{sync_mutex};
+                EXPECT_FALSE(in_get_new_samples);
+                EXPECT_FALSE(in_update_event);
+                EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire),
+                          kTwoDeliveredSampleCount);
+                ++unsubscribe_calls;
+                unsubscribe_completed = true;
+            }
+            sync_cv.notify_all();
+        });
+
+    auto first_sample = MakeFramedSample<kMinPeerSampleSize24>(kPrefixLength4, kSignBitBytes);
+    auto second_sample = MakeFramedSample<kMinPeerSampleSize24>(kPrefixLength4, kReconnectBytes);
+    EXPECT_CALL(*ev0, GetNewSamples(_, _))
+        .Times(1)
+        .WillOnce([&sync_mutex, &in_get_new_samples, &get_new_samples_returned, &first_sample,
+                   &second_sample](score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
+                                   score::mw::com::impl::TrackerGuardFactory& tracker) {
+            {
+                std::lock_guard<std::mutex> const lock{sync_mutex};
+                in_get_new_samples = true;
+            }
+            auto sample0 = MakeTrackedMockSample(first_sample.bytes.data(), tracker);
+            auto sample1 = MakeTrackedMockSample(second_sample.bytes.data(), tracker);
+            EXPECT_NE(sample0.get(), nullptr);
+            EXPECT_NE(sample1.get(), nullptr);
+            DeliverSample(cb, std::move(sample0));
+            DeliverSample(cb, std::move(sample1));
+            {
+                std::lock_guard<std::mutex> const lock{sync_mutex};
+                in_get_new_samples = false;
+                get_new_samples_returned = true;
+            }
+            return score::Result<std::size_t>{kTwoDeliveredSampleCount};
+        });
+
+    std::vector<std::vector<std::byte>> forwarded_payloads{};
+    EXPECT_CALL(*server_connector, update_event(kSocomEvent0, _))
+        .Times(kSingleDeliveredSampleCount)
+        .WillOnce([&sync_mutex, &in_get_new_samples, &get_new_samples_returned, &in_update_event,
+                   &sample_deleter_calls, &forwarded_payloads, &server_callbacks,
+                   server_connector](socom::Event_id, socom::Payload payload) {
+            {
+                std::lock_guard<std::mutex> const lock{sync_mutex};
+                in_update_event = true;
+                EXPECT_FALSE(in_get_new_samples);
+                EXPECT_TRUE(get_new_samples_returned);
+            }
+            EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), kZeroDeliveredSamples);
+            auto const span = payload.data();
+            forwarded_payloads.emplace_back(span.begin(), span.end());
+            server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
+                                                          socom::Event_state::unsubscribed);
+            {
+                std::lock_guard<std::mutex> const lock{sync_mutex};
+                in_update_event = false;
+            }
+            return score::Result<void>{};
+        });
+
+    FindHandler find_handler{};
+    auto const find_handle = ExpectDiscoveryCapture(find_handler);
+
+    auto binding_res =
+        Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
+    ASSERT_TRUE(binding_res.has_value());
+    ASSERT_TRUE((*binding_res)->start().has_value());
+    find_handler({MakeHandle({kEvent0})}, find_handle);
+    server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
+                                                  socom::Event_state::subscribed);
+
+    auto const locked_handler = ev0_receive_handler.lock();
+    ASSERT_NE(locked_handler, nullptr);
+    (*locked_handler)();
+
+    {
+        std::unique_lock<std::mutex> lock{sync_mutex};
+        ASSERT_TRUE(sync_cv.wait_until(
+            lock, std::chrono::steady_clock::now() + kSynchronizationTimeout,
+            [&unsubscribe_completed]() noexcept { return unsubscribe_completed; }));
+        EXPECT_EQ(unset_calls, 1U);
+        EXPECT_EQ(unsubscribe_calls, 1U);
+    }
+
+    ASSERT_EQ(forwarded_payloads.size(), kSingleDeliveredSampleCount);
+    EXPECT_THAT(forwarded_payloads.front(), ElementsAreArray(kSignBitBytes));
+    EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), kTwoDeliveredSampleCount);
 }
 
 }  // namespace

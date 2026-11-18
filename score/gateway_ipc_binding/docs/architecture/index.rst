@@ -408,7 +408,7 @@ Teardown
 On destruction, each service binding tears down its endpoints in order so no callback or shared-memory sample outlives its owner:
 
 - ``Provider_service_binding``: Unsets ``GenericSkeletonEvent`` receive-handler registration callbacks, resets the ``socom::Client_connector``, clears ``Allocations`` (before skeleton destruction, as LoLa aborts if a ``SampleAllocateePtr`` outlives its event), and stops and destroys the ``GenericSkeleton``.
-- ``Consumer_service_binding``: Calls ``GenericProxy::StopFindService``, disables the ``socom`` server connector, unsets receive handlers and unsubscribes active ``GenericProxyEvent`` instances, and destroys the ``GenericProxy`` and disabled connector.
+- ``Consumer_service_binding``: Calls ``GenericProxy::StopFindService``, unsets active ``GenericProxyEvent`` receive handlers, disables the ``socom`` server connector, unsubscribes those events, destroys the ``GenericProxy``, shuts down the subscription-reconcile worker, and resets the disabled connector.
 
 Threading and concurrency
 -------------------------
@@ -434,9 +434,10 @@ Threading and concurrency
 - Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O and no allocation
   beyond the in-flight table inside them. The ``AddServiceConfiguration`` handler is the exception: it sets
   up services, but never waits for a reply, see :ref:`gatewayd-services`.
-- ``GetNewSamples`` must not run concurrently for the same ``GenericProxyEvent``. Because the only caller is
-  the receive handler registered for that event, and ``mw::com`` serialises those, this holds without extra
-  locking; the mutex is still taken for the SOCom-visible state.
+- ``GetNewSamples`` must not run concurrently for the same ``GenericProxyEvent``. LoLa dispatches receive
+  notifications onto a worker pool, so ``Consumer_service_binding`` serializes ``GetNewSamples`` per event
+  under a per-event mutex, keeps ``m_mutex`` a leaf lock for shared state, and posts re-entrant subscription
+  changes to its reconcile worker so LoLa subscription calls never run inside a receive handler.
 - The SOCom deadlock detector terminates the process if a connector is destroyed from inside one of its own
   callbacks. Teardown therefore never runs from a callback; the ``mw::com`` find-service handler schedules
   the disable and destroys the connector outside the handler.
