@@ -302,6 +302,7 @@ class SomeIpHostPeer:
         self._subscribe_acks: queue.Queue[_SdEntry] = queue.Queue()
         self._subscriptions: queue.Queue[_SdEntry] = queue.Queue()
         self._subscribe_ack_event = threading.Event()
+        self._start_rx_notifications = threading.Event()
 
         # Sockets (owned by the threads; closed in stop()).
         self._sd_mcast_sock: Optional[socket.socket] = None  # recv SD on multicast
@@ -353,6 +354,7 @@ class SomeIpHostPeer:
 
     def stop(self) -> None:
         self._stop.set()
+        self._start_rx_notifications.set()
         for t in self._threads:
             t.join(timeout=5.0)
         for sock in (self._sd_mcast_sock, self._sd_unicast_sock, self._rx_notif_sock, self._tx_notif_sock):
@@ -469,6 +471,10 @@ class SomeIpHostPeer:
         """Wait until the DUT acknowledges the host's TX event subscription."""
         return self._subscribe_ack_event.wait(timeout_s)
 
+    def release_rx_notifications(self) -> None:
+        """Allow host-to-DUT notifications after the guest app is ready."""
+        self._start_rx_notifications.set()
+
     def _collect_dut_notifications(self) -> None:
         deadline = time.monotonic() + 20.0
         next_expected_counter = 0
@@ -506,6 +512,9 @@ class SomeIpHostPeer:
             self.host_to_dut_subscribed = True
             subscriber_ip, subscriber_port, eventgroup_counter = dut_subscriber
             self._send_subscribe_ack(eventgroup_counter)
+            self._start_rx_notifications.wait()
+            if self._stop.is_set():
+                return
             self._send_notifications_to_dut((subscriber_ip, subscriber_port))
         except Exception as exc:  # pragma: no cover - diagnostic only
             self.errors.append(f"host_to_dut_loop crashed: {exc}")

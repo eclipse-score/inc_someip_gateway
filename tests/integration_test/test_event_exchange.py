@@ -119,6 +119,13 @@ def test_event_exchange(gatewayd_with_someipd):
             assert peer.wait_for_subscribe_ack(timeout_s=35.0), (
                 "peer never received SubscribeAck from DUT for the TX direction"
             )
+            ready_rc, ready_output = target.execute(
+                f'i=0; while [ ! -e {_READY_FILE} ] && [ "$i" -lt 200 ]; do '
+                "sleep 0.1; i=$((i + 1)); "
+                f"done; test -e {_READY_FILE}"
+            )
+            assert ready_rc == 0, f"guest RX proxy did not become ready: {ready_output!r}"
+            peer.release_rx_notifications()
             signal_rc, signal_output = target.execute(f"touch {_GO_FILE}")
             assert signal_rc == 0, f"could not signal guest event app: {signal_output!r}"
 
