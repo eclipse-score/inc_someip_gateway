@@ -35,7 +35,7 @@ jobs:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
       score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
-    uses: elektrobit-contrib/eclipse-score_cicd-workflows/.github/workflows/cache-maintenance.yml@6a814af87b4e088eb9acbd863a06fe36e5cd7243 # TODO release
+    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@200f97be787848974e55d1f4ef5615efbaa97ff8 # 2026-11-17 shared release commit
     with:
       variants: |
         //...
