@@ -30,32 +30,6 @@ constexpr std::string_view kLog_tag{"[gateway_ipc_binding]"};
 
 }  // namespace
 
-std::size_t Provider_service_binding::Allocations::insert(
-    score::mw::com::SampleAllocateePtr<void> sample) noexcept {
-    std::lock_guard const lock{m_mutex};
-    auto const slot_handle = m_next_slot_handle;
-    ++m_next_slot_handle;
-    m_in_flight.emplace(slot_handle, std::move(sample));
-    return slot_handle;
-}
-
-std::optional<score::mw::com::SampleAllocateePtr<void>> Provider_service_binding::Allocations::take(
-    std::size_t const slot_handle) noexcept {
-    std::lock_guard const lock{m_mutex};
-    auto const entry = m_in_flight.find(slot_handle);
-    if (entry == m_in_flight.end()) {
-        return std::nullopt;
-    }
-    auto sample = std::move(entry->second);
-    m_in_flight.erase(entry);
-    return sample;
-}
-
-void Provider_service_binding::Allocations::clear() noexcept {
-    std::lock_guard const lock{m_mutex};
-    m_in_flight.clear();
-}
-
 Provider_service_binding::Provider_service_binding(Service_config config) noexcept
     : m_config{std::move(config)} {}
 
@@ -83,8 +57,7 @@ Provider_service_binding::~Provider_service_binding() noexcept {
     }
     connector.reset();
 
-    // 3. Nothing calls back anymore. Release the slots, then the skeleton that owns them, if any.
-    m_allocations->clear();
+    // 3. Nothing calls back anymore. Stop the skeleton offer, if any.
     if (m_skeleton.has_value()) {
         m_skeleton->StopOfferService();
     }
@@ -282,7 +255,6 @@ void Provider_service_binding::on_service_state_change(
                                               << unset.error();
                 }
             }
-            m_allocations->clear();
             m_events.clear();
             m_skeleton.reset();
         } else {
@@ -377,21 +349,11 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
     }
 
     auto* const sample_base = static_cast<std::byte*>(sample.value().Get());
-    auto const slot_handle = m_allocations->insert(std::move(sample).value());
 
     return score::socom::Writable_payload{
         score::socom::Writable_payload::Writable_span{sample_base, event.addressed_sample_size}
             .subspan(kSample_prefix_size),
-        slot_handle,
-        [allocations = std::weak_ptr<Allocations>{m_allocations}, slot_handle]() noexcept {
-            // Runs when the producer drops the payload without sending it, and again, as a no-op,
-            // after on_event_update() took the sample out. Weak, because the producer may outlive
-            // the binding.
-            auto const locked = allocations.lock();
-            if (locked != nullptr) {
-                (void)locked->take(slot_handle);
-            }
-        }};
+        std::move(sample).value()};
 }
 
 void Provider_service_binding::on_event_update(score::socom::Event_id const event_id,
@@ -402,10 +364,8 @@ void Provider_service_binding::on_event_update(score::socom::Event_id const even
         return;
     }
 
-    auto sample = m_allocations->take(payload.get_slot_handle());
-    if (!sample.has_value()) {
-        // The payload was not allocated through this binding, so it is not backed by a LoLa slot
-        // and there is nothing that could be sent.
+    auto* const sample = payload.get_user_data<score::mw::com::SampleAllocateePtr<void>>();
+    if (sample == nullptr) {
         score::mw::log::LogWarn() << kLog_tag << "Dropping the update of event" << event_id
                                   << ": the payload is not backed by a mw::com sample";
         return;
@@ -417,9 +377,9 @@ void Provider_service_binding::on_event_update(score::socom::Event_id const even
                                    << ": payload length" << length << "is not representable";
         return;
     }
-    write_payload_length(static_cast<std::byte*>(sample.value().Get()), length);
+    write_payload_length(static_cast<std::byte*>(sample->Get()), length);
 
-    auto const sent = m_events[event_id].skeleton_event->Send(std::move(sample).value());
+    auto const sent = m_events[event_id].skeleton_event->Send(std::move(*sample));
     if (!sent.has_value()) {
         score::mw::log::LogWarn() << kLog_tag << "Failed to send event" << event_id << ":"
                                   << sent.error();

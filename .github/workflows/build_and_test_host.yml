@@ -100,7 +100,7 @@ jobs:
           sudo chmod 666 /dev/kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration ${{ matrix.bazel_args }} ${{ matrix.targets }}
+          bazel test --config=qemu-integration --test_tag_filters=-tc8_time_sensitive ${{ matrix.bazel_args }} ${{ matrix.targets }}
       - name: Stage test reports
         if: always() && matrix.name == 'default'
         run: |

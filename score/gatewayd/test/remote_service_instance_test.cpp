@@ -82,7 +82,7 @@ std::array<std::byte, kWirePacketSize> MakeValidWireBytes() noexcept {
 }
 
 socom::Payload MakeSpanPayload(score::cpp::span<std::byte const> const bytes) {
-    return socom::Payload{bytes, socom::kNoSlotHandle, []() noexcept {}};
+    return socom::Payload{bytes};
 }
 
 class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
