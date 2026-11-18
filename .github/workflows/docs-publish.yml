@@ -30,6 +30,10 @@ jobs:
         github.event.workflow_run.event == 'pull_request'
       )
     uses: eclipse-score/cicd-workflows/.github/workflows/docs-publish.yml@200f97be787848974e55d1f4ef5615efbaa97ff8 # docs/v0.0.0
+    concurrency:
+      group: docs-publish
+      cancel-in-progress: false
+      queue: max
     permissions:
       actions: read
       pages: write
