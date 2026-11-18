@@ -43,6 +43,11 @@ class Provider_teardown_death_test : public Gateway_ipc_binding_unconnected_inte
 };
 
 TEST_F(Provider_teardown_death_test, provider_teardown_aborts_with_an_outstanding_event_payload) {
+#if defined(__QNX__)
+    GTEST_SKIP()
+        << "This death test aborts the entire test application on QNX and is therefore excluded.";
+#endif
+
     auto trigger_teardown = [this]() {
         auto gateway_server = create_mw_com_server(*runtime_server, "someipd/daemon",
                                                    mw_com_services(mw_com::Role::provider, 0U));
