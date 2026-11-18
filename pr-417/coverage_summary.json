@@ -63,15 +63,15 @@
     {
       "branches": {
         "percent": 83,
-        "total": 224
+        "total": 216
       },
       "files": {
-        "measured": 24,
-        "total": 32
+        "measured": 22,
+        "total": 29
       },
       "lines": {
         "percent": 97,
-        "total": 939
+        "total": 872
       },
       "primary_need_id": "comp__socom"
     },
