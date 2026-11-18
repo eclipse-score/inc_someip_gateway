@@ -107,7 +107,7 @@ PreSerializedData<kMaxMessageSize> MakeTestSample() noexcept {
 }
 
 socom::Writable_payload MakeWritablePayload(score::cpp::span<std::byte> const buffer) {
-    return socom::Writable_payload{buffer, socom::kNoSlotHandle, []() {}};
+    return socom::Writable_payload{buffer};
 }
 
 void ExpectSingleSampleDelivered(NiceMock<ipc_testing::GenericProxyEvent>& event_mock,
