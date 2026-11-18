@@ -483,7 +483,7 @@
 <h1>gatewayd Component Requirements<a class="headerlink" href="#gatewayd-component-requirements" title="Link to this heading">#</a></h1>
 <p>These requirements cover externally observable gateway daemon behavior.
 General service-instance and versioning semantics remain owned by <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>.</p>
-<div class="need_container docutils container" id="SNCB-52148a00">
+<div class="need_container docutils container" id="SNCB-b29ae8b7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gatewayd__starts_from_config">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -538,7 +538,7 @@ of the SOME/IP configuration file is covered by
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-60d6763f">
+<div class="need_container docutils container" id="SNCB-080530bf">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gatewayd__prints_usage">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -583,7 +583,7 @@ print its usage text and exit with a success exit code.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-373c0cb5">
+<div class="need_container docutils container" id="SNCB-aac135c7">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gatewayd__forwards_local_events">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -605,7 +605,8 @@ print its usage text and exit with a success exit code.</p></td>
 <div class="line"><span><span><div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gatewayd/index.html#comp__gatewayd" title="comp_req__gatewayd__forwards_local_events">comp__gatewayd</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/communication/requirements/index.html#feat_req__com__event_type">feat_req__com__event_type</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/communication/requirements/index.html#feat_req__com__producer_consumer">feat_req__com__producer_consumer</a></span></span></div>
+<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gatewayd/index.html#comp__gatewayd" title="comp_req__gatewayd__forwards_local_events">comp__gatewayd</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -628,7 +629,7 @@ serialize it into a SOME/IP message and pass it to someipd.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-4d8cb543">
+<div class="need_container docutils container" id="SNCB-3bb90428">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gatewayd__offers_remote_events">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -650,7 +651,8 @@ serialize it into a SOME/IP message and pass it to someipd.</p></td>
 <div class="line"><span><span><div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gatewayd/index.html#comp__gatewayd" title="comp_req__gatewayd__offers_remote_events">comp__gatewayd</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/communication/requirements/index.html#feat_req__com__event_type">feat_req__com__event_type</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/communication/requirements/index.html#feat_req__com__producer_consumer">feat_req__com__producer_consumer</a></span></span></div>
+<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gatewayd/index.html#comp__gatewayd" title="comp_req__gatewayd__offers_remote_events">comp__gatewayd</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -674,7 +676,7 @@ matching local service event.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3f1d15e9">
+<div class="need_container docutils container" id="SNCB-f0531931">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_comp_req table" id="comp_req__gatewayd__drops_failed_events">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -696,7 +698,8 @@ matching local service event.</p></td>
 <div class="line"><span><span><div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gatewayd/index.html#comp__gatewayd" title="comp_req__gatewayd__drops_failed_events">comp__gatewayd</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/communication/requirements/index.html#feat_req__com__event_type">feat_req__com__event_type</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/communication/requirements/index.html#feat_req__com__producer_consumer">feat_req__com__producer_consumer</a></span></span></div>
+<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../gatewayd/index.html#comp__gatewayd" title="comp_req__gatewayd__drops_failed_events">comp__gatewayd</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -720,7 +723,7 @@ and shall not forward that sample.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-7c087aa8">
+<div class="need_container docutils container" id="SNCB-6156a37f">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_aou_req table" id="aou_req__gatewayd__someip_config_integrity">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">

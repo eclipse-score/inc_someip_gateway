@@ -613,14 +613,28 @@ S-CORE requirements engineering process:</p>
 <p>Every requirement directive must include these attributes:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">:id:</span></code> — unique identifier per the scheme above</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">:status:</span></code> — <code class="docutils literal notranslate"><span class="pre">valid</span></code> or <code class="docutils literal notranslate"><span class="pre">draft</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:status:</span></code>: <code class="docutils literal notranslate"><span class="pre">valid</span></code>, <code class="docutils literal notranslate"><span class="pre">invalid</span></code>, or <code class="docutils literal notranslate"><span class="pre">valid_inspected</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:version:</span></code>: integer</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:safety:</span></code> — <code class="docutils literal notranslate"><span class="pre">QM</span></code> or <code class="docutils literal notranslate"><span class="pre">ASIL_B</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:security:</span></code> — <code class="docutils literal notranslate"><span class="pre">YES</span></code> or <code class="docutils literal notranslate"><span class="pre">NO</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">:reqtype:</span></code> — <code class="docutils literal notranslate"><span class="pre">Functional</span></code>, <code class="docutils literal notranslate"><span class="pre">Interface</span></code>, <code class="docutils literal notranslate"><span class="pre">Process</span></code>, or <code class="docutils literal notranslate"><span class="pre">Non-Functional</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">:derived_from:</span></code> — parent requirement ID (mandatory for feature and component levels, used for upward requirement links)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">:satisfied_by:</span></code> — component ID that implements a component requirement</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">:rationale:</span></code> — justification text (mandatory for stakeholder level only)</p></li>
 </ul>
+<p>Further mandatory attributes and links by level:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">:valid_from:</span></code>: release such as <code class="docutils literal notranslate"><span class="pre">v0.0.0</span></code>, mandatory for stakeholder and
+feature levels, optional for component level</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:rationale:</span></code>: justification text, mandatory for stakeholder level only</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:satisfied_by:</span></code>: mandatory for feature level (a <code class="docutils literal notranslate"><span class="pre">feat</span></code> element) and
+component level (a <code class="docutils literal notranslate"><span class="pre">comp</span></code> element)</p></li>
+</ul>
+<p>Optional links:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">:derived_from:</span></code>: parent requirement ID. A feature requirement may derive
+from a <code class="docutils literal notranslate"><span class="pre">stkh_req</span></code>. A component requirement may derive from a <code class="docutils literal notranslate"><span class="pre">feat_req</span></code>.
+Setting it is recommended for traceability.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:covers:</span></code>: <code class="docutils literal notranslate"><span class="pre">aou_req</span></code> ID covered by a feature or component requirement</p></li>
+</ul>
+<p>Assumption of use requirements have no links.</p>
 </section>
 <section id="cross-references">
 <h3>Cross-References<a class="headerlink" href="#cross-references" title="Link to this heading">#</a></h3>
