@@ -35,7 +35,7 @@ jobs:
       score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
       score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
       score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
-    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@200f97be787848974e55d1f4ef5615efbaa97ff8 # 2026-11-17 shared release commit
+    uses: eclipse-score/cicd-workflows/.github/workflows/cache-maintenance.yml@69812f9210f4f910e562a786dc56e199c3df5248 # 2026-11-18 with updated warm-bazel-repository-cache
     with:
       variants: |
         //...
