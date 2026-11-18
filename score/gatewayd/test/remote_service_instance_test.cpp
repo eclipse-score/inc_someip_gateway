@@ -166,9 +166,7 @@ socom::Payload MakePayloadFromBytes(score::cpp::span<const std::uint8_t> const r
     std::transform(raw_bytes.begin(), raw_bytes.end(), storage.begin(),
                    [](std::uint8_t const b) noexcept { return static_cast<std::byte>(b); });
     socom::Payload::Span const span{storage.data(), storage.size()};
-    socom::Payload::Payload_destroyed release{
-        [owned = std::move(storage)]() noexcept { (void)owned; }};
-    return socom::Payload{span, socom::kNoSlotHandle, std::move(release)};
+    return socom::Payload{span, std::move(storage)};
 }
 
 socom::Payload MakeFramedSomeipPayload(std::uint8_t const length_lsb,

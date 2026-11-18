@@ -15,11 +15,11 @@
 #define SCORE_GATEWAY_IPC_BINDING_IMPL_PROVIDER_SERVICE_BINDING_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <string>
-#include <unordered_map>
+#include <type_traits>
 #include <vector>
 
 #include "score/mw/com/types.h"
@@ -35,20 +35,21 @@ namespace score::gateway_ipc_binding::mw_com {
 /// \details Consumes a local SOCom service via `Client_connector` and publishes received events
 ///          through a `GenericSkeleton`:
 ///          - Availability: offers the skeleton while the local SOCom service is `available` and
-///            withdraws it on `not_available` (releasing parked sample slots before withdrawing
-///            the offer, and recreating the skeleton across unsubscribed cycles). Failed skeleton
-///            recreation or `OfferService()` rolls back cleanly so a subsequent `not_available` is
-///            a safe no-op and a later `available` retries.
+///            withdraws it on `not_available` (recreating the skeleton across unsubscribed cycles).
+///            Failed skeleton recreation or `OfferService()` rolls back cleanly so a subsequent
+///            `not_available` is a safe no-op and a later `available` retries.
 ///          - Subscription: reconciles local SOCom availability and peer receive-handler interest
 ///            into `Client_connector::subscribe_event(Event_mode::update)` / `unsubscribe_event()`.
-///          - Payload allocation & delivery: allocates LoLa slots bound to the requesting
+///          - Payload allocation & delivery: allocates LoLa slots tagged inline in
+///            `Writable_payload` with the owning binding, offer/skeleton epoch, and
 ///            `socom::Event_id` (`logic_error_unknown_event` for out-of-range `event_id`;
 ///            `runtime_error_sample_allocation_failed` when the service is not offered,
 ///            `Allocate()` fails, or returns null). Event updates drop out-of-range `event_id`s,
-///            updates arriving while unoffered, unknown, already-consumed, or cross-event
-///            `slot_handle`s, and payloads exceeding `max_payload_size` without calling `Send()`.
-///          - Teardown: unsets skeleton handlers, destroys the SOCom connector, releases parked
-///            sample slots, and withdraws any active offer on destruction.
+///            updates arriving while unoffered, unallocated, foreign-binding, stale-epoch, or
+///            cross-event payloads, and payloads exceeding `max_payload_size` without calling
+///            `Send()`.
+///          - Teardown: unsets skeleton handlers, destroys the SOCom connector, and withdraws any
+///            active offer and destroys the skeleton on destruction.
 class Provider_service_binding final : public Service_binding {
    public:
     /// \brief Creates the GenericSkeleton and SOCom client connector without offering the service.
@@ -75,38 +76,15 @@ class Provider_service_binding final : public Service_binding {
     [[nodiscard]] Result<void> start() noexcept override { return {}; }
 
    private:
-    /// \brief In-flight `Allocate()` results, keyed by the slot handle the binding mints.
-    /// \details SOCom only hands a `Writable_payload` back to the binding, so the
-    ///          `SampleAllocateePtr` has to be parked somewhere in between. It is held through a
-    ///          `shared_ptr` and referenced weakly by the payload destructor, so that a payload
-    ///          the producer drops after the binding is gone does not touch freed memory.
-    class Allocations {
-       public:
-        /// \brief Park a sample for `event_id` and mint the slot handle that identifies it
-        [[nodiscard]] std::size_t insert(score::socom::Event_id event_id,
-                                         score::mw::com::SampleAllocateePtr<void> sample) noexcept;
-
-        /// \brief Take a parked sample out iff it belongs to `event_id`; cross-event matches are
-        ///        released and rejected
-        [[nodiscard]] std::optional<score::mw::com::SampleAllocateePtr<void>> take(
-            score::socom::Event_id event_id, std::size_t slot_handle) noexcept;
-
-        /// \brief Release a single parked sample inside the allocation lock if still present
-        void release(std::size_t slot_handle) noexcept;
-
-        /// \brief Release every parked sample, returning the slots to LoLa
-        void clear() noexcept;
-
-       private:
-        struct Entry {
-            score::socom::Event_id event_id;
-            score::mw::com::SampleAllocateePtr<void> sample;
-        };
-
-        std::mutex m_mutex;
-        std::unordered_map<std::size_t, Entry> m_in_flight;
-        std::size_t m_next_slot_handle{0U};
+    /// \brief Ownership tag and LoLa sample slot stored inline in an allocated `Writable_payload`.
+    struct Allocated_sample {
+        Provider_service_binding const* owner;
+        std::uint64_t skeleton_epoch;
+        score::socom::Event_id event_id;
+        score::mw::com::SampleAllocateePtr<void> sample;
     };
+    static_assert(std::is_nothrow_move_constructible_v<Allocated_sample>);
+    static_assert(std::is_nothrow_destructible_v<Allocated_sample>);
 
     /// \brief Per-event state, indexed by socom::Event_id
     struct Event {
@@ -161,10 +139,10 @@ class Provider_service_binding final : public Service_binding {
     /// \brief Absent while no local SOCom service is available and no peer holds a subscription
     std::optional<score::mw::com::GenericSkeleton> m_skeleton;
     std::vector<Event> m_events;
+    std::uint64_t m_skeleton_epoch{0U};
     bool m_service_available{false};
     /// \brief Rejects state and peer-interest callbacks once destruction begins
     bool m_stopping{false};
-    std::shared_ptr<Allocations> m_allocations{std::make_shared<Allocations>()};
     score::socom::Client_connector::Uptr m_client_connector{};
 };
 

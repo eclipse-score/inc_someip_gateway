@@ -222,7 +222,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
 
     struct CapturedEventUpdates {
         std::vector<std::vector<std::byte>> payloads{};
-        std::vector<std::size_t> slot_handles{};
+        std::vector<bool> has_sample_user_data{};
     };
 
     static score::mw::com::impl::InstanceSpecifier MakeExpectedSpecifier(
@@ -385,7 +385,9 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
         EXPECT_CALL(connector, update_event(event_id, _))
             .Times(expected_count)
             .WillRepeatedly([&out_captured](socom::Event_id, socom::Payload payload) {
-                out_captured.slot_handles.push_back(payload.get_slot_handle());
+                auto const* const sample = payload.get_user_data<score::mw::com::SamplePtr<void>>();
+                out_captured.has_sample_user_data.push_back((sample != nullptr) &&
+                                                            (sample->get() != nullptr));
                 auto const span = payload.data();
                 out_captured.payloads.emplace_back(span.begin(), span.end());
                 return score::Result<void>{};
@@ -519,7 +521,7 @@ TEST_F(ConsumerServiceBindingTest, HandlesUnsupportedServerConnectorCallbacksSaf
     auto alloc_res = callbacks.on_method_call_payload_allocate(*server_connector, kDummyMethodId);
     ASSERT_TRUE(alloc_res.has_value());
     EXPECT_TRUE(alloc_res->wdata().empty());
-    EXPECT_EQ(alloc_res->get_slot_handle(), socom::kNoSlotHandle);
+    EXPECT_EQ(alloc_res->get_user_data<score::mw::com::SamplePtr<void>>(), nullptr);
 }
 
 TEST_F(ConsumerServiceBindingTest, ReturnsFindFailedWithoutLeakingHandleWhenDiscoveryFails) {
@@ -846,10 +848,8 @@ TEST_F(ConsumerServiceBindingTest, ForwardsExactPayloadBytesAndDropsOutOfBoundsO
     }
 
     ASSERT_EQ(captured.payloads.size(), kExpectedForwardedSampleCount);
-    ASSERT_EQ(captured.slot_handles.size(), kExpectedForwardedSampleCount);
-    for (auto const slot_handle : captured.slot_handles) {
-        EXPECT_EQ(slot_handle, socom::kNoSlotHandle);
-    }
+    ASSERT_EQ(captured.has_sample_user_data.size(), kExpectedForwardedSampleCount);
+    EXPECT_THAT(captured.has_sample_user_data, ::testing::Each(true));
     EXPECT_THAT(captured.payloads[0], ElementsAreArray(kSignBitBytes));
     EXPECT_TRUE(captured.payloads[1].empty());
     EXPECT_THAT(captured.payloads[2], ElementsAreArray(kExpected15bPayload));
@@ -902,7 +902,10 @@ TEST_F(ConsumerServiceBindingTest, RetainsZeroCopySampleGuardUntilSocomPayloadIs
     (*locked_handler)();
     ASSERT_EQ(forwarded_count, 1U);
     ASSERT_TRUE(held_payload.has_value());
-    EXPECT_EQ(held_payload->get_slot_handle(), socom::kNoSlotHandle);
+    auto const* const stored_sample =
+        held_payload->get_user_data<score::mw::com::SamplePtr<void>>();
+    ASSERT_NE(stored_sample, nullptr);
+    EXPECT_EQ(stored_sample->get(), raw_sample.bytes.data());
     EXPECT_EQ(held_payload->data().data(), raw_sample.bytes.data() + kSample_prefix_size);
     ASSERT_EQ(held_payload->data().size(), kFourBytePayloadSize);
     EXPECT_THAT(held_payload->data(), ElementsAreArray(kSignBitBytes));

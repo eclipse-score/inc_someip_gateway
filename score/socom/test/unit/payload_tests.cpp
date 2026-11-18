@@ -15,7 +15,9 @@
 
 #include <cstddef>
 #include <iterator>
+#include <memory>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "score/socom/payload.hpp"
@@ -47,15 +49,26 @@ TEST(Payload, NoPayloadMoveConstruct) {
     EXPECT_EQ(0, copy.data().size());
 }
 
-TEST(Payload, EmptyPayloadGetSlotHandleReturnsNoSlotHandle) {
-    EXPECT_EQ(kNoSlotHandle, empty_payload().get_slot_handle());
+TEST(Payload, UserDataCanBeRetrievedAfterMovingPayload) {
+    struct User_data {
+        std::unique_ptr<int> value;
+    };
+
+    Payload payload{Payload::Span{}, User_data{std::make_unique<int>(42)}};
+    ASSERT_NE(nullptr, payload.get_user_data<User_data>());
+    EXPECT_EQ(42, *payload.get_user_data<User_data>()->value);
+    EXPECT_EQ(nullptr, payload.get_user_data<int>());
+
+    Payload moved_payload{std::move(payload)};
+    ASSERT_NE(nullptr, moved_payload.get_user_data<User_data>());
+    EXPECT_EQ(42, *moved_payload.get_user_data<User_data>()->value);
+    EXPECT_EQ(nullptr, payload.get_user_data<User_data>());
 }
 
-TEST(Payload, DefaultConstructedPayloadHasNoDataAndNoSlotHandle) {
+TEST(Payload, DefaultConstructedPayloadHasNoData) {
     Payload const payload{};
 
     EXPECT_EQ(0U, payload.data().size());
-    EXPECT_EQ(kNoSlotHandle, payload.get_slot_handle());
 }
 
 TEST(Payload, VectorPayloadConstructInitializerList) {
@@ -90,43 +103,24 @@ TEST(Payload, OperatorEqual) {
     EXPECT_NE(payload2, payload3);
 }
 
-TEST(Payload, VectorPayloadGetSlotHandleReturnsNoSlotHandle) {
-    auto const payload = make_vector_payload(make_vector_buffer(1U, 2U, 3U));
-    EXPECT_EQ(kNoSlotHandle, payload.get_slot_handle());
-}
+TEST(Payload, UserDataDestructorRunsWhenPayloadIsDestroyed) {
+    struct User_data {
+        explicit User_data(std::size_t& destroyed_count) noexcept
+            : destroyed_count{&destroyed_count} {}
+        User_data(User_data&& other) noexcept
+            : destroyed_count{std::exchange(other.destroyed_count, nullptr)} {}
+        ~User_data() noexcept {
+            if (destroyed_count != nullptr) {
+                ++*destroyed_count;
+            }
+        }
 
-TEST(Payload, DestructorCallsOnPayloadDestroyed) {
-    std::size_t destroyed_count = 0;
+        std::size_t* destroyed_count;
+    };
+
+    std::size_t destroyed_count{0U};
     {
-        auto payload = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
-        EXPECT_EQ(0U, destroyed_count);
-    }
-    EXPECT_EQ(1U, destroyed_count);
-}
-
-TEST(Payload, DestructorCallsOnPayloadDestroyedForMoveAssignedAndAssignee) {
-    std::size_t destroyed_count = 0;
-    {
-        auto payload1 = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
-        auto payload2 = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
-        EXPECT_EQ(0U, destroyed_count);
-
-        payload1 = std::move(payload2);
-
-        // original payload1 destroyed, but payload1 now owns the payload2 destructor callback, so
-        // only one call expected
-        EXPECT_EQ(1U, destroyed_count);
-    }
-    EXPECT_EQ(2U, destroyed_count);
-}
-
-TEST(Payload, DestructorDoesNotCallOnPayloadDestroyedForMoveConstructed) {
-    std::size_t destroyed_count = 0;
-    {
-        auto payload1 = Payload{Payload::Span{}, 0, [&destroyed_count]() { ++destroyed_count; }};
-        EXPECT_EQ(0U, destroyed_count);
-
-        auto payload = std::move(payload1);
+        Payload payload{Payload::Span{}, User_data{destroyed_count}};
         EXPECT_EQ(0U, destroyed_count);
     }
     EXPECT_EQ(1U, destroyed_count);
@@ -139,6 +133,16 @@ TEST(Payload, WritablePayloadSetSizeReducesDataSize) {
     bool result = payload.shrink(50);
     EXPECT_TRUE(result);
     EXPECT_EQ(50U, payload.data().size());
+}
+
+TEST(Payload, WritablePayloadCanCarryUserData) {
+    struct User_data {
+        int value;
+    };
+
+    Writable_payload payload{Payload::Writable_span{}, User_data{42}};
+    ASSERT_NE(nullptr, payload.get_user_data<User_data>());
+    EXPECT_EQ(42, payload.get_user_data<User_data>()->value);
 }
 
 TEST(Payload, WritablePayloadSetSizeReturnsFalseWhenIncreasingSize) {

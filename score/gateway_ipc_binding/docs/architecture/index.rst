@@ -266,13 +266,15 @@ Payload lifetime and flow control
 LoLa owns the shared-memory sample slots:
 
 - **provider side**: ``Provider_service_binding::on_event_payload_allocate()`` allocates a LoLa sample slot and
-  stores the ``SampleAllocateePtr<void>`` in ``Allocations`` keyed by its ``slot_handle`` for that ``event_id``.
-  ``on_event_update()`` verifies ``slot_handle`` ownership and ``payload.data().size() <= max_payload_size``, writes the payload-length prefix, and sends it; dropped or rejected payloads release the slot back to LoLa. If all sample slots of an event are in use
+  stores the ``SampleAllocateePtr<void>`` (tagged with binding, offer epoch, and ``event_id`` ownership) as
+  inline user data in the ``Writable_payload``. ``on_event_update()`` verifies ownership and
+  ``payload.data().size() <= max_payload_size``, writes the payload-length prefix, and sends it; dropped or
+  rejected payloads release the slot back to LoLa when destroyed. If all sample slots of an event are in use
   (``kNumber_of_sample_slots = 20``, shared between allocated samples awaiting ``Send()`` on the provider and
   received samples up to ``max_sample_count`` held by the consumer), ``GenericSkeletonEvent::Allocate()`` fails
   and ``on_event_payload_allocate()`` logs a warning and returns ``runtime_error_sample_allocation_failed``.
 - **consumer side**: ``GetNewSamples`` yields a ``SamplePtr<void>`` per sample. The binding moves it into the
-  release callback of the ``socom::Payload`` it builds. When the consuming application destroys the payload,
+  user data of the ``socom::Payload`` it builds. When the consuming application destroys the payload,
   the ``SamplePtr<void>`` is destroyed and the slot is returned to LoLa.
 
 Configuration
@@ -407,7 +409,7 @@ Teardown
 
 On destruction, each service binding tears down its endpoints in order so no callback or shared-memory sample outlives its owner:
 
-- ``Provider_service_binding``: Unsets ``GenericSkeletonEvent`` receive-handler registration callbacks, resets the ``socom::Client_connector``, clears ``Allocations`` (before skeleton destruction, as LoLa aborts if a ``SampleAllocateePtr`` outlives its event), and stops and destroys the ``GenericSkeleton``.
+- ``Provider_service_binding``: Unsets ``GenericSkeletonEvent`` receive-handler registration callbacks, resets the ``socom::Client_connector``, and stops and destroys the ``GenericSkeleton``.
 - ``Consumer_service_binding``: Calls ``GenericProxy::StopFindService``, unsets active ``GenericProxyEvent`` receive handlers, disables the ``socom`` server connector, unsubscribes those events, destroys the ``GenericProxy``, shuts down the subscription-reconcile worker, and resets the disabled connector.
 
 Threading and concurrency
@@ -431,8 +433,8 @@ Threading and concurrency
 
   The outer mutexes exist purely to keep those transitions serialized against each other while the inner
   ones are released.
-- Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O and no allocation
-  beyond the in-flight table inside them. The ``AddServiceConfiguration`` handler is the exception: it sets
+- Neither a SOCom callback nor a ``mw::com`` handler may block. The binding does no I/O. The
+  ``AddServiceConfiguration`` handler is the exception: it sets
   up services, but never waits for a reply, see :ref:`gatewayd-services`.
 - ``GetNewSamples`` must not run concurrently for the same ``GenericProxyEvent``. LoLa dispatches receive
   notifications onto a worker pool, so ``Consumer_service_binding`` serializes ``GetNewSamples`` per event

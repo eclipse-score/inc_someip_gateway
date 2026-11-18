@@ -25,6 +25,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -84,7 +85,6 @@ constexpr std::size_t kTwoEvent1EmptyTailSize{8U};
 constexpr std::size_t kZeroPayloadCount{0U};
 constexpr std::size_t kSignBitVectorLength{4U};
 constexpr std::size_t kSignBitTailSize{20U};
-constexpr std::size_t kForgedUnknownSlotHandle{999U};
 constexpr std::size_t kConcurrentWorkerCount{3U};
 constexpr std::size_t kConcurrentIterations{64U};
 constexpr std::chrono::seconds kConcurrencyTimeout{5};
@@ -1261,7 +1261,8 @@ TEST_F(ProviderServiceBindingTest,
     EXPECT_EQ(payload0_res->wdata().size(), kTwoEvent0MaxPayload);
     EXPECT_EQ(payload0_res->data().data(), sample0.data() + kSample_prefix_size);
     EXPECT_EQ(payload0_res->data().size(), kTwoEvent0MaxPayload);
-    EXPECT_NE(payload0_res->get_slot_handle(), socom::kNoSlotHandle);
+    EXPECT_FALSE(payload0_res->shrink(kTwoEvent0OversizedPayload));
+    EXPECT_EQ(payload0_res->data().size(), kTwoEvent0MaxPayload);
 
     // Event 1: sample_size = 16, addressed = 12 -> wdata starts at sample1 + 8 with exact size 4
     // (excluding the 4 alignment-padding bytes [12..15]).
@@ -1269,8 +1270,7 @@ TEST_F(ProviderServiceBindingTest,
     ASSERT_TRUE(payload1_res.has_value());
     EXPECT_EQ(payload1_res->wdata().data(), sample1.data() + kSample_prefix_size);
     EXPECT_EQ(payload1_res->wdata().size(), kTwoEvent1MaxPayload);
-    EXPECT_NE(payload1_res->get_slot_handle(), socom::kNoSlotHandle);
-    EXPECT_NE(payload1_res->get_slot_handle(), payload0_res->get_slot_handle());
+    EXPECT_NE(payload1_res->wdata().data(), payload0_res->wdata().data());
 }
 
 TEST_F(ProviderServiceBindingTest,
@@ -1395,7 +1395,7 @@ TEST_F(ProviderServiceBindingTest,
     EXPECT_EQ(event1_sent_ptr, sample1_empty.data());
 }
 
-TEST_F(ProviderServiceBindingTest, EventUpdateDropsCrossEventSlotHandles) {
+TEST_F(ProviderServiceBindingTest, EventUpdateDropsCrossEventPayloads) {
     auto const config = MakeTwoEventProviderConfig();
     auto prepared = ExpectPreparedSkeleton(config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
     ASSERT_EQ(prepared.events.size(), 2U);
@@ -1427,7 +1427,7 @@ TEST_F(ProviderServiceBindingTest, EventUpdateDropsCrossEventSlotHandles) {
     callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available,
                                       MakeServerDefinition(config));
 
-    // 1. Cross-event slot confusion (allocated on event 0, shrunk to 4 B <= event 1's max 4 B,
+    // 1. Cross-event payload confusion (allocated on event 0, shrunk to 4 B <= event 1's max 4 B,
     //    then submitted to event 1): MUST be rejected without calling Send() on either event.
     {
         auto alloc0 = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
@@ -1435,30 +1435,42 @@ TEST_F(ProviderServiceBindingTest, EventUpdateDropsCrossEventSlotHandles) {
         ASSERT_TRUE(alloc0->shrink(kTwoEvent1MaxPayload));
         EXPECT_FALSE(cross_0_to_1_released);
         callbacks.on_event_update(*cc_ptr, kSocomEvent1, std::move(*alloc0));
+        EXPECT_TRUE(cross_0_to_1_released);
     }
-    EXPECT_TRUE(cross_0_to_1_released);
 
-    // 2. Reverse cross-event slot confusion (allocated on event 1, submitted to event 0).
+    // 2. Reverse cross-event payload confusion (allocated on event 1, submitted to event 0).
     {
         auto alloc1 = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent1);
         ASSERT_TRUE(alloc1.has_value());
         EXPECT_FALSE(cross_1_to_0_released);
         callbacks.on_event_update(*cc_ptr, kSocomEvent0, std::move(*alloc1));
+        EXPECT_TRUE(cross_1_to_0_released);
     }
-    EXPECT_TRUE(cross_1_to_0_released);
 }
 
-TEST_F(ProviderServiceBindingTest,
-       EventUpdateDropsUnallocatedUnknownHandleAndOutOfRangeEventPayloads) {
+TEST_F(ProviderServiceBindingTest, EventUpdateDropsUnallocatedForeignAndOutOfRangeEventPayloads) {
     auto const config = MakeTwoEventProviderConfig();
+    auto foreign_config = MakeTwoEventProviderConfig();
+    foreign_config.instance_specifier = std::string{kSecondBridgedSpecifier};
+    foreign_config.service_id = kSecondServiceId;
+
     auto prepared = ExpectPreparedSkeleton(config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
+    auto foreign_prepared =
+        ExpectPreparedSkeleton(foreign_config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
     ASSERT_EQ(prepared.events.size(), 2U);
+    ASSERT_EQ(foreign_prepared.events.size(), 2U);
 
     bool oob_event_released{false};
     TrackedSampleBuffer<kTwoEvent0SampleSize> oob_event_buf{{}, &oob_event_released, nullptr};
 
+    bool foreign_event_released{false};
+    TrackedSampleBuffer<kTwoEvent0SampleSize> foreign_event_buf{
+        {}, &foreign_event_released, nullptr};
+
     socom::Client_connector::Callbacks callbacks{};
     auto* const cc_ptr = ExpectClientConnectorCreated(&callbacks);
+    socom::Client_connector::Callbacks foreign_callbacks{};
+    auto* const foreign_cc_ptr = ExpectClientConnectorCreated(&foreign_callbacks);
 
     EXPECT_CALL(*prepared.events[0], Allocate(_))
         .WillOnce([&oob_event_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
@@ -1468,13 +1480,27 @@ TEST_F(ProviderServiceBindingTest,
     EXPECT_CALL(*prepared.events[0], Send(_, _)).Times(0);
     EXPECT_CALL(*prepared.events[1], Send(_, _)).Times(0);
 
+    EXPECT_CALL(*foreign_prepared.events[0], Allocate(_))
+        .WillOnce([&foreign_event_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(foreign_event_buf, std::move(guard));
+        });
+    EXPECT_CALL(*foreign_prepared.events[1], Allocate(_)).Times(0);
+    EXPECT_CALL(*foreign_prepared.events[0], Send(_, _)).Times(0);
+    EXPECT_CALL(*foreign_prepared.events[1], Send(_, _)).Times(0);
+
     auto binding_res = Provider_service_binding::create(socom_runtime_, config);
     ASSERT_TRUE(binding_res.has_value());
     auto binding = std::move(*binding_res);
+    auto foreign_binding_res = Provider_service_binding::create(socom_runtime_, foreign_config);
+    ASSERT_TRUE(foreign_binding_res.has_value());
+    auto foreign_binding = std::move(*foreign_binding_res);
+
     callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available,
                                       MakeServerDefinition(config));
+    foreign_callbacks.on_service_state_change(*foreign_cc_ptr, socom::Service_state::available,
+                                              MakeServerDefinition(foreign_config));
 
-    // 1. Out-of-range event_id on on_event_update drops and releases the parked slot.
+    // 1. Out-of-range event_id on on_event_update drops and releases the allocated slot.
     {
         auto alloc_oob = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
         ASSERT_TRUE(alloc_oob.has_value());
@@ -1482,10 +1508,20 @@ TEST_F(ProviderServiceBindingTest,
     }
     EXPECT_TRUE(oob_event_released);
 
-    // 2. Unallocated empty_payload() (kNoSlotHandle) and forged unknown slot_handle are dropped.
+    // 2. Unallocated empty_payload() and unallocated span payload without Allocated_sample drop.
     callbacks.on_event_update(*cc_ptr, kSocomEvent0, socom::empty_payload());
-    callbacks.on_event_update(*cc_ptr, kSocomEvent0,
-                              socom::Payload{kSignBitPayload, kForgedUnknownSlotHandle, {}});
+    callbacks.on_event_update(*cc_ptr, kSocomEvent0, socom::Payload{kSignBitPayload});
+
+    // 3. Foreign-binding payload (matching event_id, epoch, and size, but different owner) drops
+    //    without calling Send() on either binding and releases its sample slot.
+    {
+        auto foreign_alloc =
+            foreign_callbacks.on_event_payload_allocate(*foreign_cc_ptr, kSocomEvent0);
+        ASSERT_TRUE(foreign_alloc.has_value());
+        EXPECT_FALSE(foreign_event_released);
+        callbacks.on_event_update(*cc_ptr, kSocomEvent0, std::move(*foreign_alloc));
+        EXPECT_TRUE(foreign_event_released);
+    }
 }
 
 TEST_F(ProviderServiceBindingTest, EventUpdateDropsPayloadExceedingMaxPayloadSize) {
@@ -1493,15 +1529,20 @@ TEST_F(ProviderServiceBindingTest, EventUpdateDropsPayloadExceedingMaxPayloadSiz
     auto prepared = ExpectPreparedSkeleton(config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
     ASSERT_EQ(prepared.events.size(), 2U);
 
-    bool oversized_released{false};
-    TrackedSampleBuffer<kTwoEvent0SampleSize> oversized_buf{{}, &oversized_released, nullptr};
+    bool bounded_alloc_released{false};
+    TrackedSampleBuffer<kTwoEvent0SampleSize> bounded_alloc_buf{
+        {}, &bounded_alloc_released, nullptr};
+
+    bool spoofed_oversized_released{false};
+    TrackedSampleBuffer<kTwoEvent0SampleSize> spoofed_oversized_buf{
+        {}, &spoofed_oversized_released, nullptr};
 
     socom::Client_connector::Callbacks callbacks{};
     auto* const cc_ptr = ExpectClientConnectorCreated(&callbacks);
 
     EXPECT_CALL(*prepared.events[0], Allocate(_))
-        .WillOnce([&oversized_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeTrackedAllocatedSample(oversized_buf, std::move(guard));
+        .WillOnce([&bounded_alloc_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(bounded_alloc_buf, std::move(guard));
         });
     EXPECT_CALL(*prepared.events[1], Allocate(_)).Times(0);
     EXPECT_CALL(*prepared.events[0], Send(_, _)).Times(0);
@@ -1513,44 +1554,50 @@ TEST_F(ProviderServiceBindingTest, EventUpdateDropsPayloadExceedingMaxPayloadSiz
     callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available,
                                       MakeServerDefinition(config));
 
-    // Payload size == max_payload_size + 1 (21 B, strictly inside 32 B sample's padding!)
-    // carrying the real allocated slot_handle MUST be rejected and release the slot.
+    // 1. Allocated Writable_payload is capped at max_payload_size (20 B) and refuses to expand into
+    //    the 4-byte alignment padding [28..31].
     {
-        auto alloc_over = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
-        ASSERT_TRUE(alloc_over.has_value());
-        auto const handle = alloc_over->get_slot_handle();
-        std::array<std::byte, kTwoEvent0OversizedPayload> oversized_bytes{};
-        oversized_bytes.fill(kOversizedFillByte);
-        EXPECT_FALSE(oversized_released);
-        callbacks.on_event_update(*cc_ptr, kSocomEvent0,
-                                  socom::Payload{oversized_bytes, handle, {}});
+        auto alloc_bounded = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
+        ASSERT_TRUE(alloc_bounded.has_value());
+        EXPECT_FALSE(alloc_bounded->shrink(kTwoEvent0OversizedPayload));
+        EXPECT_EQ(alloc_bounded->data().size(), kTwoEvent0MaxPayload);
     }
-    EXPECT_TRUE(oversized_released);
+    EXPECT_TRUE(bounded_alloc_released);
+
+    // 2. Spoofed Payload carrying a raw SampleAllocateePtr<void> and a 21-byte span
+    //    (max_payload_size + 1) is rejected without calling Send() and releases the sample slot.
+    std::array<std::byte, kTwoEvent0OversizedPayload> oversized_bytes{};
+    oversized_bytes.fill(kOversizedFillByte);
+    auto spoofed_sample = MakeTrackedAllocatedSample(spoofed_oversized_buf, {});
+    ASSERT_TRUE(spoofed_sample.has_value());
+    EXPECT_FALSE(spoofed_oversized_released);
+    callbacks.on_event_update(*cc_ptr, kSocomEvent0,
+                              socom::Payload{oversized_bytes, std::move(*spoofed_sample)});
+    EXPECT_TRUE(spoofed_oversized_released);
 }
 
 TEST_F(ProviderServiceBindingTest,
-       AbandoningAllocatedPayloadReleasesSampleSlotBeforeAndAfterBindingDestruction) {
+       AbandoningOrMovingAllocatedPayloadTransfersAndReleasesSampleSlotExactlyOnce) {
     auto const config = MakeTwoEventProviderConfig();
     auto prepared = ExpectPreparedSkeleton(config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
     ASSERT_EQ(prepared.events.size(), 2U);
 
-    bool abandoned_while_alive_released{false};
-    TrackedSampleBuffer<kTwoEvent0SampleSize> buf_alive{
-        {}, &abandoned_while_alive_released, nullptr};
+    bool abandoned_released{false};
+    TrackedSampleBuffer<kTwoEvent0SampleSize> buf_abandoned{{}, &abandoned_released, nullptr};
 
-    bool outliving_binding_released{false};
-    TrackedSampleBuffer<kTwoEvent0SampleSize> buf_outliving{
-        {}, &outliving_binding_released, nullptr};
+    bool moved_released{false};
+    std::vector<std::string> moved_release_trace{};
+    TrackedSampleBuffer<kTwoEvent0SampleSize> buf_moved{{}, &moved_released, &moved_release_trace};
 
     socom::Client_connector::Callbacks callbacks{};
     auto* const cc_ptr = ExpectClientConnectorCreated(&callbacks);
 
     EXPECT_CALL(*prepared.events[0], Allocate(_))
-        .WillOnce([&buf_alive](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeTrackedAllocatedSample(buf_alive, std::move(guard));
+        .WillOnce([&buf_abandoned](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(buf_abandoned, std::move(guard));
         })
-        .WillOnce([&buf_outliving](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeTrackedAllocatedSample(buf_outliving, std::move(guard));
+        .WillOnce([&buf_moved](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(buf_moved, std::move(guard));
         });
     EXPECT_CALL(*prepared.events[0], Send(_, _)).Times(0);
     EXPECT_CALL(*prepared.events[1], Send(_, _)).Times(0);
@@ -1561,44 +1608,44 @@ TEST_F(ProviderServiceBindingTest,
     callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available,
                                       MakeServerDefinition(config));
 
-    // 1. Abandoning Writable_payload while binding is alive immediately returns the slot to LoLa.
+    // 1. Abandoning Writable_payload without sending immediately returns the slot to LoLa.
     {
         auto abandoned = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
         ASSERT_TRUE(abandoned.has_value());
-        EXPECT_FALSE(abandoned_while_alive_released);
+        EXPECT_FALSE(abandoned_released);
     }
-    EXPECT_TRUE(abandoned_while_alive_released);
+    EXPECT_TRUE(abandoned_released);
 
-    // 2. Destroying the binding while an allocated Writable_payload is still held clears the
-    //    parked SampleAllocateePtr during ~Provider_service_binding(), and subsequent payload
-    //    destruction is a safe no-op via weak_ptr.
+    // 2. Moving Writable_payload into Payload transfers inline slot ownership without premature
+    //    release on source destruction, and releases the slot once when Payload is destroyed.
     {
-        auto outliving = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
-        ASSERT_TRUE(outliving.has_value());
-        EXPECT_FALSE(outliving_binding_released);
+        std::optional<socom::Payload> moved_into_payload{};
+        {
+            auto source = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
+            ASSERT_TRUE(source.has_value());
+            moved_into_payload.emplace(std::move(*source));
+            EXPECT_FALSE(moved_released);
+        }
+        EXPECT_FALSE(moved_released);
+        EXPECT_TRUE(moved_release_trace.empty());
 
-        binding.reset();
-        EXPECT_TRUE(outliving_binding_released);
-
-        outliving_binding_released = false;
+        moved_into_payload.reset();
+        EXPECT_TRUE(moved_released);
+        ASSERT_EQ(moved_release_trace.size(), 1U);
+        EXPECT_EQ(moved_release_trace[0], "allocation_released");
     }
-    EXPECT_FALSE(outliving_binding_released);
 }
 
 // ============================================================================
 // 5. Destruction teardown order & multithreaded synchronization
 // ============================================================================
 
-TEST_F(ProviderServiceBindingTest,
-       DestructorTearsDownHandlersConnectorAllocationsAndActiveOfferInOrder) {
+TEST_F(ProviderServiceBindingTest, DestructorTearsDownHandlersConnectorAndActiveOfferInOrder) {
     auto const config = MakeServiceConfig(Role::provider);
     auto prepared = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
     ASSERT_EQ(prepared.events.size(), 1U);
 
     std::vector<std::string> teardown_trace{};
-    bool slot_released{false};
-    TrackedSampleBuffer<kDefaultEvent0SampleSize> in_flight_buf{
-        {}, &slot_released, &teardown_trace};
 
     socom::Client_connector::Callbacks callbacks{};
     auto cc_mock = std::make_unique<DestructorTrackingClientConnectorMock>(&teardown_trace);
@@ -1614,10 +1661,6 @@ TEST_F(ProviderServiceBindingTest,
         })
         .RetiresOnSaturation();
 
-    EXPECT_CALL(*prepared.events[0], Allocate(_))
-        .WillOnce([&in_flight_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeTrackedAllocatedSample(in_flight_buf, std::move(guard));
-        });
     EXPECT_CALL(*prepared.events[0], UnsetReceiveHandlerRegistrationChangedHandler())
         .WillOnce([&teardown_trace]() noexcept {
             teardown_trace.emplace_back("handler_unset");
@@ -1637,35 +1680,67 @@ TEST_F(ProviderServiceBindingTest,
 
     callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available,
                                       MakeServerDefinition(config));
-    auto in_flight_payload = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
-    ASSERT_TRUE(in_flight_payload.has_value());
     EXPECT_TRUE(teardown_trace.empty());
 
     binding.reset();
 
-    ASSERT_EQ(teardown_trace.size(), 4U);
-    EXPECT_THAT(teardown_trace, ElementsAre("handler_unset", "connector_destroyed",
-                                            "allocation_released", "stop_offer"));
-    EXPECT_TRUE(slot_released);
+    ASSERT_EQ(teardown_trace.size(), 3U);
+    EXPECT_THAT(teardown_trace, ElementsAre("handler_unset", "connector_destroyed", "stop_offer"));
 }
 
 TEST_F(ProviderServiceBindingTest,
-       NotAvailableWithoutPeerInterestClearsInFlightAllocationsBeforeSkeletonTeardown) {
+       NotAvailableAndReofferRejectStaleEpochPayloadsAcrossRecreatedAndRetainedSkeletons) {
     auto const config = MakeServiceConfig(Role::provider);
-    auto prepared = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
-    ASSERT_EQ(prepared.events.size(), 1U);
+    auto first_skeleton = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
+    auto second_skeleton = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
+    ASSERT_EQ(first_skeleton.events.size(), 1U);
+    ASSERT_EQ(second_skeleton.events.size(), 1U);
 
-    bool in_flight_released{false};
-    TrackedSampleBuffer<kDefaultEvent0SampleSize> in_flight_buf{{}, &in_flight_released, nullptr};
+    bool first_abandoned_released{false};
+    TrackedSampleBuffer<kDefaultEvent0SampleSize> first_abandoned_buf{
+        {}, &first_abandoned_released, nullptr};
+
+    bool stale_unavail_released{false};
+    TrackedSampleBuffer<kDefaultEvent0SampleSize> stale_unavail_buf{
+        {}, &stale_unavail_released, nullptr};
+
+    bool stale_retained_released{false};
+    TrackedSampleBuffer<kDefaultEvent0SampleSize> stale_retained_buf{
+        {}, &stale_retained_released, nullptr};
+
+    bool fresh_valid_released{false};
+    TrackedSampleBuffer<kDefaultEvent0SampleSize> fresh_valid_buf{
+        {}, &fresh_valid_released, nullptr};
 
     socom::Client_connector::Callbacks callbacks{};
     auto* const cc_ptr = ExpectClientConnectorCreated(&callbacks);
 
-    EXPECT_CALL(*prepared.events[0], Allocate(_))
-        .WillOnce([&in_flight_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
-            return MakeTrackedAllocatedSample(in_flight_buf, std::move(guard));
+    EXPECT_CALL(*first_skeleton.events[0], Allocate(_))
+        .WillOnce([&first_abandoned_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(first_abandoned_buf, std::move(guard));
         });
-    EXPECT_CALL(*prepared.events[0], Send(_, _)).Times(0);
+    EXPECT_CALL(*first_skeleton.events[0], Send(_, _)).Times(0);
+
+    EXPECT_CALL(*second_skeleton.events[0], Allocate(_))
+        .WillOnce([&stale_unavail_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(stale_unavail_buf, std::move(guard));
+        })
+        .WillOnce([&stale_retained_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(stale_retained_buf, std::move(guard));
+        })
+        .WillOnce([&fresh_valid_buf](score::mw::com::impl::SampleAllocateeGuard guard) {
+            return MakeTrackedAllocatedSample(fresh_valid_buf, std::move(guard));
+        });
+
+    void const* sent_sample_ptr{nullptr};
+    EXPECT_CALL(*second_skeleton.events[0], Send(_, _))
+        .WillOnce([&sent_sample_ptr](
+                      score::mw::com::impl::SampleAllocateePtr<void> sample,
+                      std::optional<
+                          score::mw::com::impl::GenericSkeletonEventBinding::SendTraceCallback>) {
+            sent_sample_ptr = sample.Get();
+            return score::Result<void>{};
+        });
 
     auto binding_res = Provider_service_binding::create(socom_runtime_, config);
     ASSERT_TRUE(binding_res.has_value());
@@ -1674,20 +1749,53 @@ TEST_F(ProviderServiceBindingTest,
 
     callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available, server_def);
 
+    // 1. Producer releases in-flight Writable_payload before disabling its SOCom server connector;
+    //    with wanted_by_peer == false, not_available destroys first_skeleton cleanly, and
+    //    subsequent allocate / update while unavailable fail / drop safely.
     {
-        auto in_flight = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
-        ASSERT_TRUE(in_flight.has_value());
-        EXPECT_FALSE(in_flight_released);
-
-        // With wanted_by_peer == false, not_available clears parked allocations before destroying
-        // GenericSkeleton, and later dropping or submitting the stale payload is a safe no-op.
-        callbacks.on_service_state_change(*cc_ptr, socom::Service_state::not_available, server_def);
-        EXPECT_TRUE(in_flight_released);
-
-        in_flight_released = false;
-        callbacks.on_event_update(*cc_ptr, kSocomEvent0, std::move(*in_flight));
+        auto first_alloc = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
+        ASSERT_TRUE(first_alloc.has_value());
+        EXPECT_FALSE(first_abandoned_released);
     }
-    EXPECT_FALSE(in_flight_released);
+    EXPECT_TRUE(first_abandoned_released);
+
+    callbacks.on_service_state_change(*cc_ptr, socom::Service_state::not_available, server_def);
+    auto unavail_alloc = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
+    ASSERT_FALSE(unavail_alloc.has_value());
+    EXPECT_EQ(unavail_alloc.error(), Mw_com_binding_error::runtime_error_sample_allocation_failed);
+    callbacks.on_event_update(*cc_ptr, kSocomEvent0, socom::Payload{kSignBitPayload});
+
+    // 2. Recreating second_skeleton on available offers under a new epoch. With wanted_by_peer ==
+    //    true, not_available retains second_skeleton; submitting a payload while unavailable or
+    //    after re-offering under the next epoch rejects both stale payloads and releases their
+    //    slots.
+    callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available, server_def);
+    auto stale_unavail = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
+    auto stale_retained = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
+    ASSERT_TRUE(stale_unavail.has_value());
+    ASSERT_TRUE(stale_retained.has_value());
+
+    ASSERT_FALSE(second_skeleton.peer_handlers->at(0).empty());
+    second_skeleton.peer_handlers->at(0)(true);
+    callbacks.on_service_state_change(*cc_ptr, socom::Service_state::not_available, server_def);
+
+    EXPECT_FALSE(stale_unavail_released);
+    callbacks.on_event_update(*cc_ptr, kSocomEvent0, std::move(*stale_unavail));
+    EXPECT_TRUE(stale_unavail_released);
+
+    callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available, server_def);
+    EXPECT_FALSE(stale_retained_released);
+    callbacks.on_event_update(*cc_ptr, kSocomEvent0, std::move(*stale_retained));
+    EXPECT_TRUE(stale_retained_released);
+    EXPECT_EQ(sent_sample_ptr, nullptr);
+
+    // 3. Fresh allocation under the active offer epoch succeeds (valid -> stale rejected -> valid).
+    auto fresh_valid = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
+    ASSERT_TRUE(fresh_valid.has_value());
+    ASSERT_TRUE(fresh_valid->shrink(kSignBitPayload.size()));
+    callbacks.on_event_update(*cc_ptr, kSocomEvent0, std::move(*fresh_valid));
+    EXPECT_EQ(sent_sample_ptr, fresh_valid_buf.bytes.data());
+    EXPECT_TRUE(fresh_valid_released);
 }
 
 TEST_F(ProviderServiceBindingTest, ConcurrentStateInterestAndPayloadOperationsSynchronizeSafely) {
@@ -1767,12 +1875,18 @@ TEST_F(ProviderServiceBindingTest, ConcurrentStateInterestAndPayloadOperationsSy
         return true;
     };
 
+    // Models SOCom's Enabled_server_connector::disable() contract: local producers complete or
+    // drop in-flight Writable_payloads before disable() delivers Service_state::not_available,
+    // because GenericSkeleton::~GenericSkeleton() aborts if a SampleAllocateePtr outlives it.
+    std::shared_mutex producer_session_mutex{};
+
     ScopedThread state_worker{};
     ScopedThread interest_worker{};
     ScopedThread payload_worker{};
     ScopedGateSignaler const unblock_workers_on_exit{start_gate};
 
-    state_worker = ScopedThread{std::thread{[&callbacks, cc_ptr, &server_def, &wait_for_start,
+    state_worker = ScopedThread{std::thread{[&callbacks, cc_ptr, &server_def,
+                                             &producer_session_mutex, &wait_for_start,
                                              start_future = start_gate.Future()]() {
         if (!wait_for_start(start_future)) {
             return;
@@ -1780,8 +1894,11 @@ TEST_F(ProviderServiceBindingTest, ConcurrentStateInterestAndPayloadOperationsSy
         for (std::size_t iter = 0U; iter < kConcurrentIterations; ++iter) {
             callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available, server_def);
             std::this_thread::yield();
-            callbacks.on_service_state_change(*cc_ptr, socom::Service_state::not_available,
-                                              server_def);
+            {
+                std::unique_lock<std::shared_mutex> const producer_lock{producer_session_mutex};
+                callbacks.on_service_state_change(*cc_ptr, socom::Service_state::not_available,
+                                                  server_def);
+            }
             std::this_thread::yield();
         }
     }}};
@@ -1807,13 +1924,15 @@ TEST_F(ProviderServiceBindingTest, ConcurrentStateInterestAndPayloadOperationsSy
             }
         }}};
 
-    payload_worker = ScopedThread{std::thread{[&callbacks, cc_ptr, &wait_for_start,
+    payload_worker = ScopedThread{std::thread{[&callbacks, cc_ptr, &producer_session_mutex,
+                                               &wait_for_start,
                                                start_future = start_gate.Future()]() {
         if (!wait_for_start(start_future)) {
             return;
         }
         for (std::size_t iter = 0U; iter < kConcurrentIterations; ++iter) {
             auto const target_event = ((iter % 2U) == 0U) ? kSocomEvent0 : kSocomEvent1;
+            std::shared_lock<std::shared_mutex> const producer_lock{producer_session_mutex};
             auto alloc = callbacks.on_event_payload_allocate(*cc_ptr, target_event);
             if (alloc.has_value()) {
                 std::copy(kSignBitPayload.begin(), kSignBitPayload.end(), alloc->wdata().begin());
@@ -1821,6 +1940,8 @@ TEST_F(ProviderServiceBindingTest, ConcurrentStateInterestAndPayloadOperationsSy
                 if ((iter % 4U) != 3U) {
                     callbacks.on_event_update(*cc_ptr, target_event, std::move(*alloc));
                 }
+            } else {
+                callbacks.on_event_update(*cc_ptr, target_event, socom::Payload{kSignBitPayload});
             }
         }
     }}};

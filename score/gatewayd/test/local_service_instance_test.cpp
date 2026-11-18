@@ -168,7 +168,7 @@ struct CanaryBackingBuffer {
 
     socom::Writable_payload MakePayload(std::size_t const writable_size) noexcept {
         socom::Payload::Writable_span const span{storage.data(), writable_size};
-        return socom::Writable_payload{span, socom::kNoSlotHandle, {}};
+        return socom::Writable_payload{span};
     }
 
     bool IsUnmodified(std::byte const expected_fill) const noexcept {
@@ -1339,8 +1339,7 @@ TEST_F(LocalServiceInstanceTest, DropsUndersizedWritablePayloadsWithoutWritingBu
                                           UndersizedCase const test_case) {
         return [&canary, test_case](socom::Event_id) noexcept {
             if (test_case.null_span) {
-                return socom::Writable_payload{
-                    socom::Payload::Writable_span{}, socom::kNoSlotHandle, {}};
+                return socom::Writable_payload{socom::Payload::Writable_span{}};
             }
             return canary.MakePayload(test_case.writable_size);
         };

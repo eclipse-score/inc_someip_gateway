@@ -30,47 +30,6 @@ constexpr std::string_view kLog_tag{"[gateway_ipc_binding]"};
 
 }  // namespace
 
-std::size_t Provider_service_binding::Allocations::insert(
-    score::socom::Event_id const event_id,
-    score::mw::com::SampleAllocateePtr<void> sample) noexcept {
-    std::lock_guard const lock{m_mutex};
-    if (m_next_slot_handle == score::socom::kNoSlotHandle) {
-        m_next_slot_handle = 0U;
-    }
-    auto const slot_handle = m_next_slot_handle;
-    ++m_next_slot_handle;
-    m_in_flight.emplace(slot_handle, Entry{event_id, std::move(sample)});
-    return slot_handle;
-}
-
-std::optional<score::mw::com::SampleAllocateePtr<void>> Provider_service_binding::Allocations::take(
-    score::socom::Event_id const event_id, std::size_t const slot_handle) noexcept {
-    std::lock_guard const lock{m_mutex};
-    auto const entry = m_in_flight.find(slot_handle);
-    if (entry == m_in_flight.end()) {
-        return std::nullopt;
-    }
-    if (entry->second.event_id != event_id) {
-        // Destroy cross-event SampleAllocateePtr inside m_mutex so clear() cannot finish before
-        // ~SampleAllocateePtr() returns its guard to LoLa's SampleAllocateeTracker.
-        m_in_flight.erase(entry);
-        return std::nullopt;
-    }
-    auto sample = std::move(entry->second.sample);
-    m_in_flight.erase(entry);
-    return sample;
-}
-
-void Provider_service_binding::Allocations::release(std::size_t const slot_handle) noexcept {
-    std::lock_guard const lock{m_mutex};
-    m_in_flight.erase(slot_handle);
-}
-
-void Provider_service_binding::Allocations::clear() noexcept {
-    std::lock_guard const lock{m_mutex};
-    m_in_flight.clear();
-}
-
 Provider_service_binding::Provider_service_binding(Service_config config) noexcept
     : m_config{std::move(config)} {
     m_events.reserve(m_config.events.size());
@@ -120,10 +79,7 @@ Provider_service_binding::~Provider_service_binding() noexcept {
     }
     connector.reset();
 
-    // 3. Release parked sample slots before withdrawing and destroying the skeleton that owns them.
-    m_allocations->clear();
-
-    // 4. Withdraw any active offer and destroy the skeleton outside m_mutex.
+    // 3. Withdraw any active offer and destroy the skeleton outside m_mutex.
     bool was_offered{false};
     std::optional<score::mw::com::GenericSkeleton> skeleton_to_destroy{};
     {
@@ -131,6 +87,7 @@ Provider_service_binding::~Provider_service_binding() noexcept {
         std::lock_guard const lock{m_mutex};
         was_offered = m_service_available;
         m_service_available = false;
+        ++m_skeleton_epoch;
         std::swap(skeleton_to_destroy, m_skeleton);
     }
     if (was_offered && skeleton_to_destroy.has_value()) {
@@ -205,6 +162,7 @@ Result<void> Provider_service_binding::create_skeleton() noexcept {
 
     {
         std::lock_guard const lock{m_mutex};
+        ++m_skeleton_epoch;
         m_skeleton.emplace(std::move(skeleton).value());
     }
 
@@ -307,15 +265,12 @@ void Provider_service_binding::on_service_state_change(
                 return;
             }
             m_service_available = false;
+            ++m_skeleton_epoch;
             // SOCom drops all subscriptions when the service leaves the available state, so the
             // flags are cleared without calling SOCom back.
             for (auto& event : m_events) {
                 event.subscribed = false;
             }
-            // Release all parked SampleAllocateePtrs before StopOfferService(): LoLa's
-            // PrepareStopOffer() resets the event data control composite that SampleAllocateePtr
-            // dereferences on destruction.
-            m_allocations->clear();
         }
 
         if (!m_skeleton.has_value()) {
@@ -353,11 +308,10 @@ void Provider_service_binding::on_service_state_change(
         }
 
         // Move m_skeleton out under m_mutex so ~GenericSkeleton() runs outside m_mutex after
-        // every in-flight operation and parked SampleAllocateePtr is gone.
+        // every in-flight operation under m_mutex has finished.
         std::optional<score::mw::com::GenericSkeleton> skeleton_to_destroy{};
         {
             std::lock_guard const lock{m_mutex};
-            m_allocations->clear();
             std::swap(skeleton_to_destroy, m_skeleton);
         }
         skeleton_to_destroy.reset();
@@ -466,48 +420,38 @@ Result<score::socom::Writable_payload> Provider_service_binding::on_event_payloa
         return MakeUnexpected(Mw_com_binding_error::runtime_error_sample_allocation_failed);
     }
 
-    auto const slot_handle = m_allocations->insert(event_id, std::move(sample).value());
-
     return score::socom::Writable_payload{
         score::socom::Writable_payload::Writable_span{sample_base, event.addressed_sample_size}
             .subspan(kSample_prefix_size),
-        slot_handle,
-        [allocations = std::weak_ptr<Allocations>{m_allocations}, slot_handle]() noexcept {
-            // Runs when the producer drops the payload without sending it, and again, as a no-op,
-            // after on_event_update() took the sample out. Weak, because the producer may outlive
-            // the binding.
-            auto const locked = allocations.lock();
-            if (locked != nullptr) {
-                locked->release(slot_handle);
-            }
-        }};
+        Allocated_sample{this, m_skeleton_epoch, event_id, std::move(sample).value()}};
 }
 
 void Provider_service_binding::on_event_update(score::socom::Event_id const event_id,
                                                score::socom::Payload payload) noexcept {
     std::lock_guard const lock{m_mutex};
+    // Move into a local scoped inside m_mutex so any dropped SampleAllocateePtr is destroyed
+    // before m_mutex releases, preventing a race against StopOfferService() / ~GenericSkeleton().
+    auto consumed_payload = std::move(payload);
 
     if (event_id >= m_events.size()) {
-        m_allocations->release(payload.get_slot_handle());
         return;
     }
 
     auto const& event = m_events[event_id];
     if (!m_service_available || (event.skeleton_event == nullptr)) {
-        m_allocations->release(payload.get_slot_handle());
         return;
     }
 
-    auto sample = m_allocations->take(event_id, payload.get_slot_handle());
-    if (!sample.has_value()) {
-        // The payload was not allocated for this event through this binding, so it is not backed
-        // by a matching LoLa slot and cannot be sent.
+    auto* const allocated = consumed_payload.get_user_data<Allocated_sample>();
+    if ((allocated == nullptr) || (allocated->owner != this) ||
+        (allocated->skeleton_epoch != m_skeleton_epoch) || (allocated->event_id != event_id) ||
+        (allocated->sample.Get() == nullptr)) {
         score::mw::log::LogWarn() << kLog_tag << "Dropping the update of event" << event_id
                                   << ": the payload is not backed by a matching mw::com sample";
         return;
     }
 
-    auto const length = payload.data().size();
+    auto const length = consumed_payload.data().size();
     if ((length > event.max_payload_size) || (length > kMax_payload_length)) {
         score::mw::log::LogError()
             << kLog_tag << "Dropping the update of event" << event_id << ": payload length"
@@ -515,9 +459,9 @@ void Provider_service_binding::on_event_update(score::socom::Event_id const even
         return;
     }
 
-    write_payload_length(static_cast<std::byte*>(sample.value().Get()), length);
+    write_payload_length(static_cast<std::byte*>(allocated->sample.Get()), length);
 
-    auto const sent = event.skeleton_event->Send(std::move(sample).value());
+    auto const sent = event.skeleton_event->Send(std::move(allocated->sample));
     if (!sent.has_value()) {
         score::mw::log::LogWarn() << kLog_tag << "Failed to send event" << event_id << ":"
                                   << sent.error();
