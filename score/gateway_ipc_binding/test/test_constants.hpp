@@ -40,8 +40,8 @@ struct Shared_memory_metadata {
 class Test_constants {
    protected:
     socom::Service_interface_identifier const interface{
-        "bridged_/test/ipc/BridgedService", socom::Literal_tag{}, {1, 0}};
-    socom::Service_instance const instance{"1", socom::Literal_tag{}};
+        "bridged_/test/ipc/BridgedService", utils::string_registry::LiteralTag{}, {1, 0}};
+    socom::Service_instance const instance{"1", utils::string_registry::LiteralTag{}};
     socom::Server_service_interface_definition const socom_server_config{
         interface, socom::to_num_of_methods(0), socom::to_num_of_events(2)};
 

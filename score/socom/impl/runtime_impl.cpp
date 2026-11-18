@@ -195,9 +195,9 @@ Result<Registration> Runtime_impl::register_connector(
         } else {
             score::mw::log::LogError()
                 << "SOCom error: Bind client to server - minor version incompatible:"
-                << " client=" << configuration.interface.id
-                << ", server=" << result->current_server->interface.id
-                << ", instance=" << instance.id;
+                << " client=" << configuration.interface.id.StringView()
+                << ", server=" << result->current_server->interface.id.StringView()
+                << ", instance=" << instance.id.StringView();
         }
     }
 
@@ -219,8 +219,9 @@ Registration Runtime_impl::register_connector(Service_interface_identifier const
         } else {
             score::mw::log::LogError()
                 << "SOCom error: Bind client to server - minor version incompatible:"
-                << " client=" << client.interface.id << ", server=" << interface.id
-                << ", instance=" << instance.id;
+                << " client=" << client.interface.id.StringView()
+                << ", server=" << interface.id.StringView()
+                << ", instance=" << instance.id.StringView();
         }
     };
 

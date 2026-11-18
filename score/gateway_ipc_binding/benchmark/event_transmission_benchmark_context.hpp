@@ -129,8 +129,9 @@ class Event_transmission_benchmark_context final {
     std::size_t payload_size_;
 
     score::socom::Service_interface_identifier const interface_{
-        "bridged_com.test.gateway.benchmark", score::socom::Literal_tag{}, {1, 0}};
-    score::socom::Service_instance const instance_{"instance1", score::socom::Literal_tag{}};
+        "bridged_com.test.gateway.benchmark", utils::string_registry::LiteralTag{}, {1, 0}};
+    score::socom::Service_instance const instance_{"instance1",
+                                                   utils::string_registry::LiteralTag{}};
     score::socom::Server_service_interface_definition const server_interface_definition_{
         interface_, score::socom::to_num_of_methods(1), score::socom::to_num_of_events(1)};
 
