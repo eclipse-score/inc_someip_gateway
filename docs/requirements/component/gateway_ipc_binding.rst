@@ -66,6 +66,7 @@ transport. They do not claim method-call transport, which is not implemented.
    :safety: ASIL_B
    :security: NO
    :reqtype: Functional
+   :derived_from: feat_req__com__service_discovery
    :satisfied_by: comp__gateway_ipc_binding
 
    If a bridged service configuration is invalid, or a service binding cannot

@@ -58,6 +58,7 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    :safety: ASIL_B
    :security: NO
    :reqtype: Functional
+   :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer
    :satisfied_by: comp__gatewayd
 
    When a local application sends a sample of a bridged event, gatewayd shall
@@ -70,6 +71,7 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    :safety: ASIL_B
    :security: NO
    :reqtype: Functional
+   :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer
    :satisfied_by: comp__gatewayd
 
    When someipd passes a SOME/IP event message for a bridged remote service,
@@ -83,6 +85,7 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    :safety: ASIL_B
    :security: NO
    :reqtype: Functional
+   :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer
    :satisfied_by: comp__gatewayd
 
    If gatewayd cannot set up a bridged service instance, or cannot allocate,
