@@ -63,6 +63,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
 
     linux_qemu_config = Label("@os_images//ubuntu_x86_64:qemu_config")
     linux_qemu_image = Label("@os_images//ubuntu_x86_64:image")
+    linux_qemu_ssh_key = Label("@os_images//ubuntu_x86_64:ssh_target_key")
 
     # --- QNX QEMU artifacts ---
     QNX_TARGET_COMPATIBLE_WITH = [
@@ -97,6 +98,7 @@ def integration_test(name, srcs, filesystem, **kwargs):
             filesystem_disk,
             linux_qemu_config,
             linux_qemu_image,
+            linux_qemu_ssh_key,
         ],
         "//conditions:default": [],
     }))
