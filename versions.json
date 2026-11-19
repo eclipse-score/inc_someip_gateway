@@ -58,5 +58,9 @@
   {
     "version": "pr-447",
     "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-447/"
+  },
+  {
+    "version": "pr-431",
+    "url": "https://eclipse-score.github.io/inc_someip_gateway/pr-431/"
   }
 ]
