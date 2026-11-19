@@ -39,6 +39,17 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "gateway_ipc_binding_mw_com_impl_headers",
+    testonly = True,
+    hdrs = glob(include = ["impl/*.hpp"]),
+    features = COMPILER_WARNING_FEATURES,
+    visibility = ["//score/gateway_ipc_binding/test/unit:__pkg__"],
+    deps = [
+        ":gateway_ipc_binding_mw_com",
+    ],
+)
+
 # Keep the bundle at the component package boundary so coverage includes local
 # implementation dependencies while excluding code owned by other components.
 docs_bundle(

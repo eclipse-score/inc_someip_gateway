@@ -34,9 +34,10 @@ Payload const& error_data();
 ///        in each test
 class SingleConnectionTest : public ::testing::Test {
    public:
-    Service_interface_identifier const service_interface{Service_interface_identifier{
-        "TestInterface1", Literal_tag{}, Service_interface_identifier::Version{1U, 2U}}};
-    Service_instance const service_instance{"TestInterface1", Literal_tag{}};
+    Service_interface_identifier const service_interface{
+        Service_interface_identifier{"TestInterface1", utils::string_registry::LiteralTag{},
+                                     Service_interface_identifier::Version{1U, 2U}}};
+    Service_instance const service_instance{"TestInterface1", utils::string_registry::LiteralTag{}};
     std::size_t num_methods{2U};
     std::size_t num_events{3U};
     Connector_factory connector_factory{service_interface, to_num_of_methods(num_methods),

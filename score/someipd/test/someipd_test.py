@@ -14,24 +14,36 @@
 from pathlib import Path
 import signal
 import subprocess
-import sys
 import unittest
+
+from attribute_plugin import add_test_properties
 
 from quality.pytest.process import stop_process, wait_for_output
 
 
 class SomeipdTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.binary = Path(sys.argv[1])
-        self.service_instance_manifest = Path(sys.argv[2])
+    binary: Path
+    service_instance_manifest: Path
 
+    @add_test_properties(
+        fully_verifies=["comp_req__someipd__prints_usage"],
+        test_type="interface-test",
+        derivation_technique="design-analysis",
+    )
     def test_help_returns_success_and_prints_usage(self) -> None:
+        """Someipd prints its usage and exits successfully when called with --help."""
         result = subprocess.run([self.binary, "--help"], capture_output=True, check=False, text=True)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Syntax: someipd -h/--help", result.stdout)
 
+    @add_test_properties(
+        fully_verifies=["comp_req__someipd__exits_on_signal"],
+        test_type="interface-test",
+        derivation_technique="design-analysis",
+    )
     def test_sigterm_and_sigint_exit_with_success(self) -> None:
+        """Someipd exits with success within 5 s after receiving SIGTERM or SIGINT."""
         for shutdown_signal in (signal.SIGTERM, signal.SIGINT):
             with self.subTest(signal=shutdown_signal.name):
                 process = subprocess.Popen(
@@ -59,4 +71,4 @@ class SomeipdTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    _ = unittest.main(argv=[sys.argv[0]])
+    _ = unittest.main()

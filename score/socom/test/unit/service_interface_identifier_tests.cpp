@@ -44,6 +44,8 @@ class ServiceInterfaceIdentifierTest : public Test {
 };
 
 using ServiceInterfaceConfigurationDeathTest = ServiceInterfaceIdentifierTest;
+using score::utils::string_registry::LiteralTag;
+using score::utils::string_registry::StringRegistry;
 
 TEST_F(ServiceInterfaceIdentifierTest, ConfigurationEqual) {
     ASSERT_TRUE(interface_config_1 == interface_config_1);
@@ -51,43 +53,43 @@ TEST_F(ServiceInterfaceIdentifierTest, ConfigurationEqual) {
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, LiteratorConstructorUsesStringView) {
-    String_registry registry;
-    auto const registry_string_view = registry.insert(service_interface_id).first;
+    StringRegistry registry;
+    auto const registry_string_view = registry.Insert(service_interface_id).first;
 
     auto const interface =
         Service_interface_identifier{registry_string_view, service_interface_version};
     EXPECT_EQ(interface.id, registry_string_view);
-    EXPECT_EQ(interface.id.data(), registry_string_view.data());
+    EXPECT_EQ(interface.id.Data(), registry_string_view.Data());
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringConstructorUsesStringView) {
     auto const interface =
         Service_interface_identifier{std::string(service_interface_id), service_interface_version};
-    EXPECT_EQ(interface.id.string_view(), service_interface_id);
+    EXPECT_EQ(interface.id.StringView(), service_interface_id);
 
-    auto const registry_string_view = service_id_registry().insert(service_interface_id).first;
+    auto const registry_string_view = service_id_registry().Insert(service_interface_id).first;
     EXPECT_EQ(interface.id, registry_string_view);
-    EXPECT_EQ(interface.id.data(), registry_string_view.data());
+    EXPECT_EQ(interface.id.Data(), registry_string_view.Data());
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringViewConstructorUsesStringView) {
     auto const interface =
         Service_interface_identifier{service_interface_id, service_interface_version};
-    EXPECT_EQ(interface.id.string_view(), service_interface_id);
+    EXPECT_EQ(interface.id.StringView(), service_interface_id);
 
-    auto const registry_string_view = service_id_registry().insert(service_interface_id).first;
+    auto const registry_string_view = service_id_registry().Insert(service_interface_id).first;
     EXPECT_EQ(interface.id, registry_string_view);
-    EXPECT_EQ(interface.id.data(), registry_string_view.data());
+    EXPECT_EQ(interface.id.Data(), registry_string_view.Data());
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringViewLiteralConstructorUsesStringView) {
-    auto const interface = Service_interface_identifier{service_interface_id, Literal_tag{},
-                                                        service_interface_version};
-    EXPECT_EQ(interface.id.string_view(), service_interface_id);
+    auto const interface =
+        Service_interface_identifier{service_interface_id, LiteralTag{}, service_interface_version};
+    EXPECT_EQ(interface.id.StringView(), service_interface_id);
 
-    auto const registry_string_view = service_id_registry().insert(service_interface_id).first;
+    auto const registry_string_view = service_id_registry().Insert(service_interface_id).first;
     EXPECT_EQ(interface.id, registry_string_view);
-    EXPECT_EQ(interface.id.data(), registry_string_view.data());
+    EXPECT_EQ(interface.id.Data(), registry_string_view.Data());
 }
 
 TEST_F(ServiceInterfaceConfigurationDeathTest, SameInterfaceDifferentNumMethodsAsserts) {
@@ -106,39 +108,39 @@ class ServiceInstanceTest : public Test {
 constexpr std::string_view ServiceInstanceTest::id_string;
 
 TEST_F(ServiceInstanceTest, LiteratorConstructorUsesStringView) {
-    String_registry registry;
-    auto const registry_string_view = registry.insert(id_string).first;
+    StringRegistry registry;
+    auto const registry_string_view = registry.Insert(id_string).first;
 
     auto const instance = Service_instance{registry_string_view};
     EXPECT_EQ(instance.id, registry_string_view);
-    EXPECT_EQ(instance.id.data(), registry_string_view.data());
+    EXPECT_EQ(instance.id.Data(), registry_string_view.Data());
 }
 
 TEST_F(ServiceInstanceTest, StringConstructorAddsStringToRegistry) {
     auto const instance = Service_instance{std::string(id_string)};
-    EXPECT_EQ(instance.id.string_view(), id_string);
+    EXPECT_EQ(instance.id.StringView(), id_string);
 
-    auto const registry_string_view = instance_id_registry().insert(id_string).first;
+    auto const registry_string_view = instance_id_registry().Insert(id_string).first;
     EXPECT_EQ(instance.id, registry_string_view);
-    EXPECT_EQ(instance.id.data(), registry_string_view.data());
+    EXPECT_EQ(instance.id.Data(), registry_string_view.Data());
 }
 
 TEST_F(ServiceInstanceTest, StringViewConstructorAddsStringToRegistry) {
     auto const instance = Service_instance{id_string};
-    EXPECT_EQ(instance.id.string_view(), id_string);
+    EXPECT_EQ(instance.id.StringView(), id_string);
 
-    auto const registry_string_view = instance_id_registry().insert(id_string).first;
+    auto const registry_string_view = instance_id_registry().Insert(id_string).first;
     EXPECT_EQ(instance.id, registry_string_view);
-    EXPECT_EQ(instance.id.data(), registry_string_view.data());
+    EXPECT_EQ(instance.id.Data(), registry_string_view.Data());
 }
 
 TEST_F(ServiceInstanceTest, StringViewLiteralConstructorAddsStringToRegistry) {
-    auto const instance = Service_instance{id_string, Literal_tag{}};
-    EXPECT_EQ(instance.id.string_view(), id_string);
+    auto const instance = Service_instance{id_string, LiteralTag{}};
+    EXPECT_EQ(instance.id.StringView(), id_string);
 
-    auto const registry_string_view = instance_id_registry().insert(id_string, Literal_tag{}).first;
+    auto const registry_string_view = instance_id_registry().Insert(id_string, LiteralTag{}).first;
     EXPECT_EQ(instance.id, registry_string_view);
-    EXPECT_EQ(instance.id.data(), registry_string_view.data());
+    EXPECT_EQ(instance.id.Data(), registry_string_view.Data());
 }
 
 }  // namespace score::socom
