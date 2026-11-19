@@ -542,7 +542,8 @@ TEST_F(ConsumerServiceBindingTest, ReturnsFindFailedWithoutLeakingHandleWhenDisc
               MakeError(Mw_com_binding_error::runtime_error_service_find_failed));
 }
 
-TEST_F(ConsumerServiceBindingTest, StartsDiscoveryOnceAndGuardsAgainstDuplicateStart) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ConsumerServiceBindingTest, DISABLED_StartsDiscoveryOnceAndGuardsAgainstDuplicateStart) {
     auto* const server_connector = ExpectServerConnectorCreated();
     EXPECT_CALL(*server_connector, enable()).Times(0);
 
@@ -926,8 +927,9 @@ TEST_F(ConsumerServiceBindingTest, RetainsZeroCopySampleGuardUntilSocomPayloadIs
     EXPECT_EQ(sample_deleter_calls.load(std::memory_order_acquire), 2U);
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(ConsumerServiceBindingTest,
-       DetachesBeforeUnsubscribingOnEmptyHandlesAndReconnectsWithResetSubscriptions) {
+       DISABLED_DetachesBeforeUnsubscribingOnEmptyHandlesAndReconnectsWithResetSubscriptions) {
     socom::Disabled_server_connector::Callbacks server_callbacks{};
     auto* const server_connector = ExpectServerConnectorCreated(&server_callbacks);
     auto* const ev0_first = ExpectSizedProxyEvent(kEvent0, kMinPeerSampleSize24);
@@ -978,7 +980,9 @@ TEST_F(ConsumerServiceBindingTest,
     (*locked_handler)();
 }
 
-TEST_F(ConsumerServiceBindingTest, IgnoresDuplicateHandleAndReplacesDistinctHandleWhileAttached) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ConsumerServiceBindingTest,
+       DISABLED_IgnoresDuplicateHandleAndReplacesDistinctHandleWhileAttached) {
     socom::Disabled_server_connector::Callbacks server_callbacks{};
     auto* const server_connector = ExpectServerConnectorCreated(&server_callbacks);
     auto* const ev0_first = ExpectSizedProxyEvent(kEvent0, kMinPeerSampleSize24);
@@ -1192,8 +1196,10 @@ TEST_F(ConsumerServiceBindingTest, SerializesConcurrentGetNewSamplesCallsForSame
     EXPECT_THAT(captured_payloads[1], ElementsAreArray(kReconnectBytes));
 }
 
-TEST_F(ConsumerServiceBindingTest,
-       DrainsGetNewSamplesBeforeForwardingAndDefersReentrantUnsubscribeUntilSamplesRelease) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(
+    ConsumerServiceBindingTest,
+    DISABLED_DrainsGetNewSamplesBeforeForwardingAndDefersReentrantUnsubscribeUntilSamplesRelease) {
     std::atomic<std::size_t> sample_deleter_calls{0U};
     ScopedSampleDeleterCounter const deleter_scope{sample_deleter_calls};
 

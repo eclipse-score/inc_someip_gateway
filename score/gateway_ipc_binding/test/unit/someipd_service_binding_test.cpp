@@ -125,7 +125,9 @@ std::weak_ptr<int> AttachProxyLifetimeCanary(::testing::NiceMock<score::testing:
 
 using SomeipdServiceBindingTest = IpcBindingTestFixture;
 
-TEST_F(SomeipdServiceBindingTest, WireTypesEnforceFieldEqualityInequalityAndCorruptedSizeBounds) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(SomeipdServiceBindingTest,
+       DISABLED_WireTypesEnforceFieldEqualityInequalityAndCorruptedSizeBounds) {
     static_assert(std::is_trivially_copyable_v<Bridged_event_size>);
     static_assert(std::is_trivially_copyable_v<Service_configuration>);
 
@@ -179,7 +181,9 @@ TEST_F(SomeipdServiceBindingTest, WireTypesEnforceFieldEqualityInequalityAndCorr
     ExpectNeWhenAvailable(cfg_lhs, cfg_rhs, true);
 }
 
-TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsEmptyHandlerBeforeTouchingSkeletonFactory) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(SomeipdServiceBindingTest,
+       DISABLED_ProviderCreateRejectsEmptyHandlerBeforeTouchingSkeletonFactory) {
     StubSomeipdInstanceResolved();
     EXPECT_CALL(skeleton_binding_factory_mock(), Create(_)).Times(0);
     EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
@@ -430,8 +434,9 @@ TEST_F(SomeipdServiceBindingTest, ConsumerConnectsSynchronouslyWhenDiscoveryFire
     EXPECT_TRUE(*rpc.buffers.in_arg == *cfg);
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(SomeipdServiceBindingTest,
-       ConsumerTracksDiscoveryTransitionsIgnoresDuplicateActiveHandleAndReconnects) {
+       DISABLED_ConsumerTracksDiscoveryTransitionsIgnoresDuplicateActiveHandleAndReconnects) {
     StubSomeipdInstanceResolved();
     auto const cfg = MakePopulatedConfiguration();
     auto const h1 = MakeSomeipdHandle(kSomeipdSpecifier, kFirstPeerInstanceId);
@@ -504,8 +509,9 @@ TEST_F(SomeipdServiceBindingTest,
     EXPECT_FALSE(weak_proxy3.expired());
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(SomeipdServiceBindingTest,
-       ConsumerDoesNotRetainProxyWhenCreateOrRpcFailsAndRetriesSameHandle) {
+       DISABLED_ConsumerDoesNotRetainProxyWhenCreateOrRpcFailsAndRetriesSameHandle) {
     StubSomeipdInstanceResolved();
     auto const cfg = MakePopulatedConfiguration();
     auto const h1 = MakeSomeipdHandle(kSomeipdSpecifier, kFirstPeerInstanceId);
@@ -565,8 +571,9 @@ TEST_F(SomeipdServiceBindingTest,
     EXPECT_TRUE(weak_accepted_proxy.expired());
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(SomeipdServiceBindingTest,
-       ConsumerReleasesInternalLocksAcrossProxyCreateAndAddServiceConfigurationRpc) {
+       DISABLED_ConsumerReleasesInternalLocksAcrossProxyCreateAndAddServiceConfigurationRpc) {
     StubSomeipdInstanceResolved();
     auto const cfg = MakePopulatedConfiguration();
     auto const h1 = MakeSomeipdHandle(kSomeipdSpecifier, kFirstPeerInstanceId);

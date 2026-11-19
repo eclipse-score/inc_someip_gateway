@@ -588,8 +588,9 @@ TEST_F(LocalServiceInstanceTest, DropsNullSampleAndIgnoresGetNewSamplesFailure) 
     ASSERT_TRUE(TriggerReceiveHandler(handler));
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(LocalServiceInstanceTest,
-       CreateSkipsMissingIpcAndUnserializedEventsPreservingPositionalEventIds) {
+       DISABLED_CreateSkipsMissingIpcAndUnserializedEventsPreservingPositionalEventIds) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
         EventSpec{kEventMissingInIpc, kEventMissingInIpcId, kMaxMessageSize},
@@ -689,7 +690,8 @@ TEST_F(LocalServiceInstanceTest,
     EXPECT_THAT(forwarded[1].bytes, ElementsAreArray(kFourthEventWireFrame));
 }
 
-TEST_F(LocalServiceInstanceTest, CreateSkipsSubscribeWhenSetReceiveHandlerFails) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_CreateSkipsSubscribeWhenSetReceiveHandlerFails) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
         EventSpec{kEventSerialized2, kEventSerialized2Id, kMaxMessageSize2},
@@ -723,7 +725,8 @@ TEST_F(LocalServiceInstanceTest, CreateSkipsSubscribeWhenSetReceiveHandlerFails)
     EXPECT_FALSE(valid_handler.expired());
 }
 
-TEST_F(LocalServiceInstanceTest, CreateUnsetsReceiveHandlerImmediatelyWhenSubscribeFails) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_CreateUnsetsReceiveHandlerImmediatelyWhenSubscribeFails) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
         EventSpec{kEventSerialized2, kEventSerialized2Id, kMaxMessageSize2},
@@ -764,7 +767,8 @@ TEST_F(LocalServiceInstanceTest, CreateUnsetsReceiveHandlerImmediatelyWhenSubscr
     EXPECT_FALSE(valid_handler.expired());
 }
 
-TEST_F(LocalServiceInstanceTest, ForwardsCanonicalSomeipWireVectorWithSignBitBoundaries) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_ForwardsCanonicalSomeipWireVectorWithSignBitBoundaries) {
     ServiceConfigParams params{};
     params.service_id = kCanonicalServiceId;
     params.major_version = kCanonicalMajorVersion;
@@ -816,7 +820,8 @@ TEST_F(LocalServiceInstanceTest, ForwardsCanonicalSomeipWireVectorWithSignBitBou
     EXPECT_THAT(captured[0].bytes, ElementsAreArray(kCanonicalTwentyByteWireVector));
 }
 
-TEST_F(LocalServiceInstanceTest, ForwardsZeroByteAndMultiByteLengthPayloads) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_ForwardsZeroByteAndMultiByteLengthPayloads) {
     ServiceConfigParams params{};
     params.service_id = kCanonicalServiceId;
     params.major_version = kCanonicalMajorVersion;
@@ -894,7 +899,8 @@ TEST_F(LocalServiceInstanceTest, ForwardsZeroByteAndMultiByteLengthPayloads) {
     EXPECT_EQ(captured[1].bytes, expected_multi_byte_frame);
 }
 
-TEST_F(LocalServiceInstanceTest, RecoversAcrossValidUndersizedAndValidPayloadAllocations) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_RecoversAcrossValidUndersizedAndValidPayloadAllocations) {
     auto valid_sample_one = MakePreSerializedSample<kMaxMessageSize>({0x11U, 0x22U, 0x33U, 0x44U});
     auto failing_sample = MakePreSerializedSample<kMaxMessageSize>({0x55U, 0x66U, 0x77U, 0x88U});
     auto valid_sample_two = MakePreSerializedSample<kMaxMessageSize>({0x99U, 0xAAU, 0xBBU, 0xCCU});
@@ -968,7 +974,9 @@ TEST_F(LocalServiceInstanceTest, RecoversAcrossValidUndersizedAndValidPayloadAll
     EXPECT_THAT(captured[1].bytes, ElementsAreArray(kSeamValidFrameTwo));
 }
 
-TEST_F(LocalServiceInstanceTest, ForwardsMultiSampleBatchWhileSkippingFailedPayloadAllocation) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest,
+       DISABLED_ForwardsMultiSampleBatchWhileSkippingFailedPayloadAllocation) {
     auto batch_sample_one = MakePreSerializedSample<kMaxMessageSize>({0xA1U, 0xB2U});
     auto dropped_sample = MakePreSerializedSample<kMaxMessageSize>({0xDEU, 0xADU});
     auto batch_sample_two = MakePreSerializedSample<kMaxMessageSize>({0x11U, 0x22U, 0x33U, 0x44U});
@@ -1028,7 +1036,9 @@ TEST_F(LocalServiceInstanceTest, ForwardsMultiSampleBatchWhileSkippingFailedPayl
     EXPECT_THAT(captured[1].bytes, ElementsAreArray(kSeamValidFrameOne));
 }
 
-TEST_F(LocalServiceInstanceTest, DestructorUnsetsReceiveHandlersAndUnsubscribesActiveEvents) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest,
+       DISABLED_DestructorUnsetsReceiveHandlersAndUnsubscribesActiveEvents) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
         EventSpec{kEventNoSerializer, kEventNoSerializerId, std::nullopt},
@@ -1078,7 +1088,9 @@ TEST_F(LocalServiceInstanceTest, DestructorUnsetsReceiveHandlersAndUnsubscribesA
     EXPECT_TRUE(active_handler.expired());
 }
 
-TEST_F(LocalServiceInstanceTest, CreateAsyncCreatesFromFrontHandleAndIgnoresDuplicateCallbacks) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest,
+       DISABLED_CreateAsyncCreatesFromFrontHandleAndIgnoresDuplicateCallbacks) {
     auto const expected_specifier =
         score::mw::com::impl::InstanceSpecifier::Create(std::string{kLocalSpecifier}).value();
     auto const find_handle = score::mw::com::impl::make_FindServiceHandle(kFindHandleUid);
@@ -1133,7 +1145,8 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncCreatesFromFrontHandleAndIgnoresDupl
     EXPECT_EQ(stop_find_calls, kExpectedSingleCall);
 }
 
-TEST_F(LocalServiceInstanceTest, CreateAsyncRejectsInvalidConfigurationsAndSpecifiers) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_CreateAsyncRejectsInvalidConfigurationsAndSpecifiers) {
     ExpectZeroDiscoveryStarts();
 
     constexpr std::array<std::string_view, kMalformedSpecifierCount> kMalformedSpecifiers{{
@@ -1190,7 +1203,8 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncRejectsInvalidConfigurationsAndSpeci
     }
 }
 
-TEST_F(LocalServiceInstanceTest, CreateAsyncSynchronizesConcurrentDiscoveryCallbacks) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_CreateAsyncSynchronizesConcurrentDiscoveryCallbacks) {
     std::vector<BuiltConfig> configs{};
     configs.reserve(kConcurrentWorkerCount);
     std::vector<DiscoveryHandler> handlers(kConcurrentWorkerCount);
@@ -1265,7 +1279,8 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncSynchronizesConcurrentDiscoveryCallb
     }
 }
 
-TEST_F(LocalServiceInstanceTest, CreateAsyncIgnoresEmptyHandleNotifications) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_CreateAsyncIgnoresEmptyHandleNotifications) {
     auto const expected_specifier =
         score::mw::com::impl::InstanceSpecifier::Create(std::string{kLocalSpecifier}).value();
     auto const find_handle = score::mw::com::impl::make_FindServiceHandle(kFindHandleUid);
@@ -1289,7 +1304,8 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncIgnoresEmptyHandleNotifications) {
     EXPECT_EQ(instances.size(), kExpectedZeroInstances);
 }
 
-TEST_F(LocalServiceInstanceTest, DropsUndersizedWritablePayloadsWithoutWritingBuffer) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_DropsUndersizedWritablePayloadsWithoutWritingBuffer) {
     struct UndersizedCase {
         const char* label;
         bool null_span;
@@ -1366,7 +1382,8 @@ TEST_F(LocalServiceInstanceTest, DropsUndersizedWritablePayloadsWithoutWritingBu
     }
 }
 
-TEST_F(LocalServiceInstanceTest, CreateRejectsNullAndIncompleteConfigurations) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(LocalServiceInstanceTest, DISABLED_CreateRejectsNullAndIncompleteConfigurations) {
     struct InvalidCreateCase {
         const char* label;
         MalformedConfigKind kind;

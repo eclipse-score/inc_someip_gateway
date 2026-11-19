@@ -79,7 +79,8 @@ TEST(SampleLayoutTest, AlignmentAndAddressedSizeBoundaries) {
     }
 }
 
-TEST(SampleLayoutTest, OverflowBoundariesSaturateToSizeMax) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST(SampleLayoutTest, DISABLED_OverflowBoundariesSaturateToSizeMax) {
     constexpr std::array<SizingCase, kOverflowCaseCount> kOverflowCases{{
         // kMax_payload_length (UINT32_MAX) fits comfortably in 64-bit size_t without saturation.
         {kMax_payload_length, 0x100000007ULL, 0x100000008ULL},

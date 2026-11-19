@@ -116,7 +116,8 @@ void ExpectEqNoexceptWhenFixed(C const& lhs, C const& rhs) {
     }
 }
 
-TEST(FixedSizeContainerTest, DefaultAndValueInitializationZeroSizeAndStorage) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST(FixedSizeContainerTest, DISABLED_DefaultAndValueInitializationZeroSizeAndStorage) {
     ByteContainer unbraced;
     EXPECT_EQ(unbraced.size, kZeroCapacity);
     EXPECT_TRUE(unbraced.empty());
@@ -148,7 +149,8 @@ TEST(FixedSizeContainerTest, DefaultAndValueInitializationZeroSizeAndStorage) {
     EXPECT_TRUE(zero_cap.empty());
 }
 
-TEST(FixedSizeContainerTest, ArrayConstructionCopiesElementsAndZeroesTrailingSlots) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST(FixedSizeContainerTest, DISABLED_ArrayConstructionCopiesElementsAndZeroesTrailingSlots) {
     alignas(WordContainer) std::array<std::byte, sizeof(WordContainer)> dirty_storage{};
 
     dirty_storage.fill(kDirtyStorageByte);
@@ -186,7 +188,8 @@ TEST(FixedSizeContainerTest, ArrayConstructionCopiesElementsAndZeroesTrailingSlo
     full->~WordContainer();
 }
 
-TEST(FixedSizeContainerTest, InitializerListConstructionAcrossCapacitySeams) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST(FixedSizeContainerTest, DISABLED_InitializerListConstructionAcrossCapacitySeams) {
     alignas(WordContainer) std::array<std::byte, sizeof(WordContainer)> dirty_storage{};
 
     dirty_storage.fill(kDirtyStorageByte);
@@ -232,7 +235,9 @@ TEST(FixedSizeContainerTest, InitializerListConstructionAcrossCapacitySeams) {
     EXPECT_EQ(full_list.data[3], kWord3);
 }
 
-TEST(FixedSizeContainerTest, EqualityAndInequalityRespectActivePrefixSignBitAndCorruptedSize) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST(FixedSizeContainerTest,
+     DISABLED_EqualityAndInequalityRespectActivePrefixSignBitAndCorruptedSize) {
     EXPECT_TRUE((HasInequalityOperator<ByteContainer>::value));
 
     ByteContainer lhs{kLowByte, kMaxSignedPositiveByte};

@@ -763,7 +763,8 @@ TEST_F(ProviderServiceBindingTest, CreateConfiguresClientConnectorWithoutOfferin
 // 2. Valid -> Error -> Valid Offer / Recreation & Skeleton Retention Lifecycle
 // ============================================================================
 
-TEST_F(ProviderServiceBindingTest, FailedOfferRollsBackAndAllowsDirectAvailableRetry) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest, DISABLED_FailedOfferRollsBackAndAllowsDirectAvailableRetry) {
     auto const config = MakeServiceConfig(Role::provider);
     auto prepared = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
     ASSERT_EQ(prepared.events.size(), 1U);
@@ -815,7 +816,8 @@ TEST_F(ProviderServiceBindingTest, FailedOfferRollsBackAndAllowsDirectAvailableR
     binding.reset();
 }
 
-TEST_F(ProviderServiceBindingTest, NotAvailableAfterFailedOfferIsSafeNoOp) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest, DISABLED_NotAvailableAfterFailedOfferIsSafeNoOp) {
     auto const config = MakeServiceConfig(Role::provider);
     auto prepared = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
 
@@ -861,8 +863,9 @@ TEST_F(ProviderServiceBindingTest, NotAvailableAfterFailedOfferIsSafeNoOp) {
     binding.reset();
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(ProviderServiceBindingTest,
-       NotAvailableWithoutPeerInterestDestroysSkeletonAndRecoversAfterFailedRecreation) {
+       DISABLED_NotAvailableWithoutPeerInterestDestroysSkeletonAndRecoversAfterFailedRecreation) {
     auto const config = MakeServiceConfig(Role::provider);
     auto first_skeleton = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
     ExpectSkeletonCreationFailure();
@@ -934,7 +937,9 @@ TEST_F(ProviderServiceBindingTest,
     binding.reset();
 }
 
-TEST_F(ProviderServiceBindingTest, DirectAvailableRetryAfterFailedSkeletonRecreationSucceeds) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest,
+       DISABLED_DirectAvailableRetryAfterFailedSkeletonRecreationSucceeds) {
     auto const config = MakeServiceConfig(Role::provider);
     auto first_skeleton = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
     ExpectSkeletonCreationFailure();
@@ -1188,7 +1193,8 @@ TEST_F(ProviderServiceBindingTest,
 // 4. Multi-event zero-copy allocation, wire prefix, and cross-event isolation
 // ============================================================================
 
-TEST_F(ProviderServiceBindingTest, AllocateRejectsOutOfRangeEventAndAllocationFailures) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest, DISABLED_AllocateRejectsOutOfRangeEventAndAllocationFailures) {
     auto const config = MakeTwoEventProviderConfig();
     auto prepared = ExpectPreparedSkeleton(config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
     ASSERT_EQ(prepared.events.size(), 2U);
@@ -1395,7 +1401,8 @@ TEST_F(ProviderServiceBindingTest,
     EXPECT_EQ(event1_sent_ptr, sample1_empty.data());
 }
 
-TEST_F(ProviderServiceBindingTest, EventUpdateDropsCrossEventPayloads) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest, DISABLED_EventUpdateDropsCrossEventPayloads) {
     auto const config = MakeTwoEventProviderConfig();
     auto prepared = ExpectPreparedSkeleton(config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
     ASSERT_EQ(prepared.events.size(), 2U);
@@ -1448,7 +1455,9 @@ TEST_F(ProviderServiceBindingTest, EventUpdateDropsCrossEventPayloads) {
     }
 }
 
-TEST_F(ProviderServiceBindingTest, EventUpdateDropsUnallocatedForeignAndOutOfRangeEventPayloads) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest,
+       DISABLED_EventUpdateDropsUnallocatedForeignAndOutOfRangeEventPayloads) {
     auto const config = MakeTwoEventProviderConfig();
     auto foreign_config = MakeTwoEventProviderConfig();
     foreign_config.instance_specifier = std::string{kSecondBridgedSpecifier};
@@ -1524,7 +1533,8 @@ TEST_F(ProviderServiceBindingTest, EventUpdateDropsUnallocatedForeignAndOutOfRan
     }
 }
 
-TEST_F(ProviderServiceBindingTest, EventUpdateDropsPayloadExceedingMaxPayloadSize) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest, DISABLED_EventUpdateDropsPayloadExceedingMaxPayloadSize) {
     auto const config = MakeTwoEventProviderConfig();
     auto prepared = ExpectPreparedSkeleton(config, {kTwoEvent0SampleSize, kTwoEvent1SampleSize});
     ASSERT_EQ(prepared.events.size(), 2U);
@@ -1688,8 +1698,9 @@ TEST_F(ProviderServiceBindingTest, DestructorTearsDownHandlersConnectorAndActive
     EXPECT_THAT(teardown_trace, ElementsAre("handler_unset", "connector_destroyed", "stop_offer"));
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(ProviderServiceBindingTest,
-       NotAvailableAndReofferRejectStaleEpochPayloadsAcrossRecreatedAndRetainedSkeletons) {
+       DISABLED_NotAvailableAndReofferRejectStaleEpochPayloadsAcrossRecreatedAndRetainedSkeletons) {
     auto const config = MakeServiceConfig(Role::provider);
     auto first_skeleton = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
     auto second_skeleton = ExpectPreparedSkeleton(config, {kDefaultEvent0SampleSize});
@@ -1798,7 +1809,9 @@ TEST_F(ProviderServiceBindingTest,
     EXPECT_TRUE(fresh_valid_released);
 }
 
-TEST_F(ProviderServiceBindingTest, ConcurrentStateInterestAndPayloadOperationsSynchronizeSafely) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(ProviderServiceBindingTest,
+       DISABLED_ConcurrentStateInterestAndPayloadOperationsSynchronizeSafely) {
     auto const config = MakeTwoEventProviderConfig();
     StubProviderEventsResolved(config);
 

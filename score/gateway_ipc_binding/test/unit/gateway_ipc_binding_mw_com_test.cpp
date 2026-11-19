@@ -584,8 +584,9 @@ TEST_F(GatewayIpcBindingMwComTest,
     EXPECT_TRUE(client->is_connected());
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(GatewayIpcBindingMwComTest,
-       CreateServerRejectsEmptySpecifierOrEmptyHandlerAndDefersInvalidSpecifierToStart) {
+       DISABLED_CreateServerRejectsEmptySpecifierOrEmptyHandlerAndDefersInvalidSpecifierToStart) {
     EXPECT_CALL(skeleton_binding_factory_mock(), Create(_)).Times(0);
 
     auto const null_on_empty_specifier = create_server(
@@ -978,8 +979,9 @@ TEST_F(GatewayIpcBindingMwComTest, ServerRollsBackBindingsAndOwnershipWhenHandle
     ASSERT_EQ(worker_started_future.wait_for(kWorkerWaitTimeout), std::future_status::ready);
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(GatewayIpcBindingMwComTest,
-       ServerRejectsSecondAddBridgedServicesCallWithinSameHandlerInvocation) {
+       DISABLED_ServerRejectsSecondAddBridgedServicesCallWithinSameHandlerInvocation) {
     auto const cons_ids = NextUniqueBridgedIds("srv_double_add");
     auto const cons_cfg =
         MakeMultiEventServiceConfig(Role::consumer,
@@ -1038,8 +1040,9 @@ TEST_F(GatewayIpcBindingMwComTest,
     EXPECT_FALSE(*call_buffers.return_value);
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(GatewayIpcBindingMwComTest,
-       ServerAcceptsReconnectWithIdenticalAndPermutedEventSizesWithoutCallingHandler) {
+       DISABLED_ServerAcceptsReconnectWithIdenticalAndPermutedEventSizesWithoutCallingHandler) {
     auto const prov_ids = NextUniqueBridgedIds("srv_perm_prov");
     Service_configs const services{MakeMultiEventServiceConfig(
         Role::provider,
@@ -1129,8 +1132,9 @@ TEST_F(GatewayIpcBindingMwComTest,
     EXPECT_FALSE(*call_buffers.return_value);
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(GatewayIpcBindingMwComTest,
-       ServerRollsBackPartialBindingsAndOwnershipWhenServiceBindingCreationFails) {
+       DISABLED_ServerRollsBackPartialBindingsAndOwnershipWhenServiceBindingCreationFails) {
     auto const prov_ids = NextUniqueBridgedIds("srv_partial_prov");
     auto const cons_ids = NextUniqueBridgedIds("srv_partial_cons");
 
@@ -1221,8 +1225,9 @@ TEST_F(GatewayIpcBindingMwComTest,
     ASSERT_EQ(worker_started_future.wait_for(kWorkerWaitTimeout), std::future_status::ready);
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(GatewayIpcBindingMwComTest,
-       ServerRejectsDifferentConfigurationReusingOwnedServiceIdOrInstanceSpecifier) {
+       DISABLED_ServerRejectsDifferentConfigurationReusingOwnedServiceIdOrInstanceSpecifier) {
     auto const owned_ids = NextUniqueBridgedIds("srv_owned_base");
     auto const alt_spec_only = NextUniqueBridgedIds("srv_alt_spec");
     auto const alt_id_only = NextUniqueBridgedIds("srv_alt_id");

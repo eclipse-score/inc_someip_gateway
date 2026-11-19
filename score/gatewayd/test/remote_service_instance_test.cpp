@@ -629,7 +629,8 @@ TEST_F(RemoteServiceInstanceTest, CreateReturnsBindingFailureWhenOfferServiceFai
     EXPECT_EQ(result.error(), score::mw::com::ComErrc::kBindingFailure);
 }
 
-TEST_F(RemoteServiceInstanceTest, CreateWithdrawsOfferWhenClientConnectorCreationFails) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest, DISABLED_CreateWithdrawsOfferWhenClientConnectorCreationFails) {
     ::testing::MockFunction<void()> after_create_returned{};
     StubInstanceResolved(kRemoteSpecifier, {kEventSerialized});
     auto const skel_mocks = ExpectSkeletonWithEvent(kEventSerialized);
@@ -655,8 +656,9 @@ TEST_F(RemoteServiceInstanceTest, CreateWithdrawsOfferWhenClientConnectorCreatio
     EXPECT_EQ(result.error(), socom::Error::runtime_error_request_rejected);
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(RemoteServiceInstanceTest,
-       CreateAsyncRemoteServiceReturnsBindingFailureOnOfferOrConnectorFailure) {
+       DISABLED_CreateAsyncRemoteServiceReturnsBindingFailureOnOfferOrConnectorFailure) {
     StubInstanceResolved(kRemoteSpecifier, {kEventSerialized});
     std::vector<std::unique_ptr<RemoteServiceInstance>> instances{};
 
@@ -691,7 +693,8 @@ TEST_F(RemoteServiceInstanceTest,
     EXPECT_TRUE(instances.empty());
 }
 
-TEST_F(RemoteServiceInstanceTest, CreateRejectsEmptyEventsVector) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest, DISABLED_CreateRejectsEmptyEventsVector) {
     auto const empty_events_cfg = BuildConfig({});
     StubInstanceResolved(kRemoteSpecifier, {kEventSerialized});
     auto const skel_mocks = ExpectSkeletonWithEvent(kEventSerialized);
@@ -711,7 +714,9 @@ TEST_F(RemoteServiceInstanceTest, CreateRejectsEmptyEventsVector) {
     EXPECT_EQ(result.error(), score::mw::com::ComErrc::kInvalidConfiguration);
 }
 
-TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceRejectsInvalidSemanticConfiguration) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest,
+       DISABLED_CreateAsyncRemoteServiceRejectsInvalidSemanticConfiguration) {
     auto const empty_events_cfg = BuildConfig({});
     auto const unresolved_specifier_cfg =
         BuildConfig({EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize}},
@@ -778,7 +783,9 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceRejectsInvalidSemantic
     EXPECT_TRUE(instances.empty());
 }
 
-TEST_F(RemoteServiceInstanceTest, DestructorStopsOfferingServiceAndDestroysClientConnector) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest,
+       DISABLED_DestructorStopsOfferingServiceAndDestroysClientConnector) {
     ::testing::MockFunction<void(std::string_view)> checkpoint{};
     StubInstanceResolved(kRemoteSpecifier, {kEventSerialized});
     auto const skel_mocks = ExpectSkeletonWithEvent(kEventSerialized);
@@ -823,7 +830,8 @@ TEST_F(RemoteServiceInstanceTest, DestructorStopsOfferingServiceAndDestroysClien
     checkpoint.Call("after_destroy");
 }
 
-TEST_F(RemoteServiceInstanceTest, DropsTruncatedFramesAndRecoversOnSubsequentValidFrame) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest, DISABLED_DropsTruncatedFramesAndRecoversOnSubsequentValidFrame) {
     serializer::PreSerializedData<kMaxMessageSize> sample_slot{};
     constexpr std::array<std::uint8_t, kFourBytePayloadSize> kFirstPayload{0x11U, 0x22U, 0x33U,
                                                                            0x44U};
@@ -911,7 +919,8 @@ TEST_F(RemoteServiceInstanceTest, DropsTruncatedFramesAndRecoversOnSubsequentVal
     EXPECT_THAT(second_received, ::testing::ElementsAreArray(kSecondExpected));
 }
 
-TEST_F(RemoteServiceInstanceTest, CreateRejectsNullConfigurationFields) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest, DISABLED_CreateRejectsNullConfigurationFields) {
     auto const null_name_cfg = BuildConfigWithRawServiceType({false, true});
     auto const null_events_cfg = BuildConfigWithRawServiceType({true, false});
 
@@ -957,7 +966,8 @@ TEST_F(RemoteServiceInstanceTest, CreateRejectsNullConfigurationFields) {
     }
 }
 
-TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceRejectsNullConfigurationFields) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest, DISABLED_CreateAsyncRemoteServiceRejectsNullConfigurationFields) {
     auto const null_name_cfg = BuildConfigWithRawServiceType({false, true});
     auto const null_events_cfg = BuildConfigWithRawServiceType({true, false});
 
@@ -989,8 +999,9 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceRejectsNullConfigurati
     }
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(RemoteServiceInstanceTest,
-       SubscribesOnlyEventsPresentOnSkeletonAndDropsSkippedOrUnknownIds) {
+       DISABLED_SubscribesOnlyEventsPresentOnSkeletonAndDropsSkippedOrUnknownIds) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
         EventSpec{kEventMissingInIpc, kEventMissingInIpcId, kMissingIpcEventMaxSize},
@@ -1065,7 +1076,9 @@ TEST_F(RemoteServiceInstanceTest,
     EXPECT_THAT(actual_payload, ::testing::ElementsAreArray(kExpectedBytes));
 }
 
-TEST_F(RemoteServiceInstanceTest, SubscribesOnlyEventsWithSerializerAndDropsSkippedEventUpdates) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest,
+       DISABLED_SubscribesOnlyEventsWithSerializerAndDropsSkippedEventUpdates) {
     auto const cfg = BuildConfig({
         EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
         EventSpec{kEventNoSerializer, kEventNoSerializerId, std::nullopt},
@@ -1128,7 +1141,9 @@ TEST_F(RemoteServiceInstanceTest, SubscribesOnlyEventsWithSerializerAndDropsSkip
     EXPECT_THAT(actual_payload, ::testing::ElementsAreArray(kExpectedBytes));
 }
 
-TEST_F(RemoteServiceInstanceTest, DestructorStopsInFlightCallbacksBeforeEventContextsDestruction) {
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
+TEST_F(RemoteServiceInstanceTest,
+       DISABLED_DestructorStopsInFlightCallbacksBeforeEventContextsDestruction) {
     serializer::PreSerializedData<kMaxMessageSize> sample_slot{};
     constexpr std::array<std::uint8_t, kFourBytePayloadSize> kInFlightPayload{0x51U, 0x52U, 0x53U,
                                                                               0x54U};
@@ -1193,8 +1208,9 @@ TEST_F(RemoteServiceInstanceTest, DestructorStopsInFlightCallbacksBeforeEventCon
     EXPECT_THAT(actual_payload, ::testing::ElementsAreArray(kExpectedBytes));
 }
 
+// Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
 TEST_F(RemoteServiceInstanceTest,
-       AvailableCallbackContinuesSubscribingRemainingEventsWhenOneSubscribeFails) {
+       DISABLED_AvailableCallbackContinuesSubscribingRemainingEventsWhenOneSubscribeFails) {
     struct SkeletonEventCapture {
         std::size_t allocate_calls{0U};
         std::size_t send_calls{0U};

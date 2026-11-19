@@ -31,7 +31,7 @@ class ForeignErrorDomain final : public score::result::ErrorDomain {
 
 constexpr ForeignErrorDomain kForeignDomain{};
 
-constexpr std::size_t kActiveEnumeratorCount = 11U;
+constexpr std::size_t kActiveEnumeratorCount = 12U;
 constexpr std::string_view kEmptyUserMessage{""};
 constexpr std::string_view kCustomUserMessage{"gateway_ipc_binding diagnostic context"};
 constexpr std::string_view kUnknownErrorMessage{"Unknown error"};
@@ -41,6 +41,7 @@ constexpr std::array<Mw_com_binding_error, kActiveEnumeratorCount> kActiveEnumer
     Mw_com_binding_error::runtime_error_someipd_service_creation_failed,
     Mw_com_binding_error::runtime_error_someipd_service_offer_failed,
     Mw_com_binding_error::runtime_error_someipd_service_find_failed,
+    Mw_com_binding_error::runtime_error_someipd_service_proxy_creation_failed,
     Mw_com_binding_error::logic_error_already_started,
     Mw_com_binding_error::logic_error_invalid_service_configuration,
     Mw_com_binding_error::logic_error_unknown_event,
