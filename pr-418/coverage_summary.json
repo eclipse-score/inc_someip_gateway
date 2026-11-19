@@ -18,7 +18,7 @@
     {
       "branches": {
         "percent": 93,
-        "total": 372
+        "total": 368
       },
       "files": {
         "measured": 13,
@@ -26,7 +26,7 @@
       },
       "lines": {
         "percent": 97,
-        "total": 1186
+        "total": 1153
       },
       "primary_need_id": "comp__gateway_ipc_binding"
     },
@@ -63,15 +63,15 @@
     {
       "branches": {
         "percent": 83,
-        "total": 220
+        "total": 216
       },
       "files": {
-        "measured": 24,
-        "total": 32
+        "measured": 22,
+        "total": 29
       },
       "lines": {
         "percent": 97,
-        "total": 898
+        "total": 872
       },
       "primary_need_id": "comp__socom"
     },
