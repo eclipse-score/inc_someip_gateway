@@ -413,10 +413,9 @@ git_override(
     remote = "https://github.com/eclipse-score/rules_imagefs.git",
 )
 
-# TODO: Switch back to a released version once the /opt mount and SSH key support are released.
 git_override(
     module_name = "os_images",
-    commit = "4a487744ade20e8b2e31a55d64e86a59a84109b4",
+    commit = "52b2dc38b6fdcb2ebf247a6effd44e068a42eb0c",
     remote = "https://github.com/eclipse-score/os_images.git",
 )
 
