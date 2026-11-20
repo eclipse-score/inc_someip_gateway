@@ -101,9 +101,10 @@ The docs build imports metadata-only stakeholder requirements from the pinned
 Open SOME/IP specification. The upstream license is Community-Spec-1.0, not
 Apache-2.0: do not copy its requirement titles or prose into this repository.
 
-- **IDs:** `stkh_req__extspec__<part>_<number>`, where `<part>` is the upstream
-  document and `<number>` the upstream requirement number. Browse them, with
-  links to the upstream source line, at `_build/requirements/extspec/index.html`
+- **IDs:** `stkh_req__extspec__<part>_<number>`, where `<part>` comes from the
+  upstream ID `feat_req_<part>_<number>` (e.g. `someip` or `someipsd`). Browse
+  them, with links to the upstream source line, at
+  `_build/requirements/extspec/index.html`
   after running `bazel run //:docs`.
 - **Allowed links:** feature requirements may reference an imported need with
   `:derived_from:`. Component requirements may only derive from feature
