@@ -206,7 +206,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -220,7 +220,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -234,7 +234,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -248,7 +248,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -262,7 +262,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -276,7 +276,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -920,7 +920,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -934,7 +934,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -948,7 +948,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -962,7 +962,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -976,7 +976,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -990,7 +990,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1004,7 +1004,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1018,7 +1018,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1032,7 +1032,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1046,7 +1046,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1060,7 +1060,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1074,7 +1074,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1088,7 +1088,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1102,7 +1102,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1116,7 +1116,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1130,7 +1130,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1144,7 +1144,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1158,7 +1158,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1172,7 +1172,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1186,7 +1186,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1200,7 +1200,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1214,7 +1214,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1228,7 +1228,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "requirements-analysis",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1242,7 +1242,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1256,7 +1256,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1270,7 +1270,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1284,7 +1284,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1298,7 +1298,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1312,7 +1312,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1326,7 +1326,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1340,7 +1340,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1354,7 +1354,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1368,7 +1368,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1382,7 +1382,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1396,7 +1396,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1410,7 +1410,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1424,7 +1424,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1438,7 +1438,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1452,7 +1452,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1466,7 +1466,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1480,7 +1480,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {
@@ -1494,7 +1494,7 @@
     "TestType": "interface-test",
     "DerivationTechnique": "error-guessing",
     "result_text": "",
-    "PartiallyVerifies": "comp_req__tc8_conformance__harness_selfcheck",
+    "PartiallyVerifies": "tool_req__tc8_harness_selfcheck",
     "FullyVerifies": null
   },
   {

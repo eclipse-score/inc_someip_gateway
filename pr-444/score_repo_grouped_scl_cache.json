@@ -401,7 +401,7 @@
         }
       },
       {
-        "need": "comp_req__tc8_conformance__harness_selfcheck",
+        "need": "tool_req__tc8_harness_selfcheck",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
@@ -409,7 +409,7 @@
               "name": "TestSdSessionIdWraparound__test_no_consecutive_duplicate_across_wraparound",
               "file": "tests/tc8_conformance/helpers/test_helper_regressions.py",
               "line": 37,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -418,7 +418,7 @@
               "name": "TestSdSessionIdWraparound__test_reserved_zero_never_emitted",
               "file": "tests/tc8_conformance/helpers/test_helper_regressions.py",
               "line": 51,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -427,7 +427,7 @@
               "name": "TestAssertOfferHasIpv4EndpointOptionMixedProtocol__test_tcp_before_udp_still_selects_udp",
               "file": "tests/tc8_conformance/helpers/test_helper_regressions.py",
               "line": 66,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -436,7 +436,7 @@
               "name": "TestTargetProcessPollAllHandles__test_stub_handle_stopped_is_detected",
               "file": "tests/tc8_conformance/helpers/test_helper_regressions.py",
               "line": 108,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -445,7 +445,7 @@
               "name": "TestTargetProcessPollAllHandles__test_secondary_handle_stopped_is_detected",
               "file": "tests/tc8_conformance/helpers/test_helper_regressions.py",
               "line": 125,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -454,7 +454,7 @@
               "name": "TestTargetProcessPollAllHandles__test_all_handles_running_reports_none",
               "file": "tests/tc8_conformance/helpers/test_helper_regressions.py",
               "line": 139,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -463,7 +463,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_request_empty_payload",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 78,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -472,7 +472,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_request_with_payload",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 96,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -481,7 +481,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_request_no_return",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 119,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -490,7 +490,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_truncated_message",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 140,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -499,7 +499,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_wrong_protocol_version_request",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 152,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -508,7 +508,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_oversized_message",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 165,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -517,7 +517,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_notification_as_request",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 176,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -526,7 +526,7 @@
               "name": "TestMessageBuilderGoldenVectors__test_build_request_with_return_code",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 199,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -535,7 +535,7 @@
               "name": "TestSdSenderGoldenVectors__test_send_find_service",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 238,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -544,7 +544,7 @@
               "name": "TestSdSenderGoldenVectors__test_send_subscribe_eventgroup_single_protocol",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 269,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -553,7 +553,7 @@
               "name": "TestSdSenderGoldenVectors__test_send_subscribe_eventgroup_mixed_protocol",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 311,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -562,7 +562,7 @@
               "name": "TestSdSenderGoldenVectors__test_send_subscribe_eventgroup_reserved_set",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 351,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -571,7 +571,7 @@
               "name": "TestSdSenderWireFormatParsing__test_parse_single_protocol_subscribe",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 404,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -580,7 +580,7 @@
               "name": "TestSdSenderWireFormatParsing__test_parse_mixed_protocol_subscribe",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 427,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -589,7 +589,7 @@
               "name": "TestSdMalformedPureBuilders__test_build_raw_sd_packet_empty",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 457,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -598,7 +598,7 @@
               "name": "TestSdMalformedPureBuilders__test_find_service_entry_bytes",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 468,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -607,7 +607,7 @@
               "name": "TestSdMalformedPureBuilders__test_subscribe_entry_bytes",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 478,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -616,7 +616,7 @@
               "name": "TestSdMalformedPureBuilders__test_endpoint_option_bytes",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 488,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -625,7 +625,7 @@
               "name": "TestSdMalformedPureBuilders__test_unknown_option_bytes",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 498,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -634,7 +634,7 @@
               "name": "TestSdMalformedPureBuilders__test_build_raw_sd_packet_with_length_override",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 509,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -643,7 +643,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_high_session_id",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 540,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -652,7 +652,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_empty_entries",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 556,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -661,7 +661,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_find_with_options",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 569,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -670,7 +670,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entries_length_wrong",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 586,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -679,7 +679,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entry_refs_more_options",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 601,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -688,7 +688,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entry_unknown_option_type",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 617,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -697,7 +697,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_entry_same_option_twice",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 632,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -706,7 +706,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_option_length_too_long",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 648,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -715,7 +715,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_option_length_too_short",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 664,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -724,7 +724,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_option_length_unaligned",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 680,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -733,7 +733,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_options_array_length_too_long",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 696,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -742,7 +742,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_options_array_length_too_short",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 713,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -751,7 +751,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_empty_options",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 730,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -760,7 +760,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_zero_ip",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 745,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -769,7 +769,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_wrong_l4proto",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 761,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -778,7 +778,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_reserved_option",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 779,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -787,7 +787,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_wrong_someip_length",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 795,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -796,7 +796,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_wrong_someip_message_id",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 810,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -805,7 +805,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_truncated_entry",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 825,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -814,7 +814,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_oversized_entries_length",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 838,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -823,7 +823,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_empty_option",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 853,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -832,7 +832,7 @@
               "name": "TestSdMalformedSendersGoldenVectors__test_send_sd_subscribe_nonexistent_service",
               "file": "tests/tc8_conformance/test_golden_vectors.py",
               "line": 869,
-              "need": "comp_req__tc8_conformance__harness_selfcheck",
+              "need": "tool_req__tc8_harness_selfcheck",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
