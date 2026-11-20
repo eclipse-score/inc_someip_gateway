@@ -18,6 +18,7 @@ packet structure. Session-id counters in those modules are reset before each
 call that depends on them, so the golden bytes stay reproducible.
 """
 
+from attribute_plugin import add_test_properties
 import itertools
 
 import helpers.sd_malformed as sd_malformed
@@ -74,7 +75,13 @@ def _reset_sd_malformed_counter() -> None:
 class TestMessageBuilderGoldenVectors:
     """Golden byte vectors for every public builder in ``message_builder.py``."""
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_build_request_empty_payload(self) -> None:
+        """Check build request empty payload."""
         raw = build_request(0x1234, 0x0421, client_id=0x0001, session_id=0x0001, interface_version=1, payload=b"")
         assert raw.hex() == "12340421000000080001000101010000"
         parsed, rest = SOMEIPHeader.parse(raw)
@@ -86,7 +93,13 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.message_type == SOMEIPMessageType.REQUEST
         assert parsed.payload == b""
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_build_request_with_payload(self) -> None:
+        """Check build request with payload."""
         raw = build_request(
             0x1234,
             0x0421,
@@ -103,7 +116,13 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.message_type == SOMEIPMessageType.REQUEST
         assert parsed.payload == b"\xde\xad\xbe\xef"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_build_request_no_return(self) -> None:
+        """Check build request no return."""
         raw = build_request_no_return(
             0x1234,
             0x0421,
@@ -118,25 +137,49 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.message_type == SOMEIPMessageType.REQUEST_NO_RETURN
         assert parsed.payload == b"\x01\x02"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_build_truncated_message(self) -> None:
+        """Check build truncated message."""
         raw = build_truncated_message()
         # Only 7 bytes are returned, one short of the minimum 8-byte SOME/IP header.
         assert raw.hex() == "12340421000000"
         assert len(raw) == 7
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_build_wrong_protocol_version_request(self) -> None:
+        """Check build wrong protocol version request."""
         raw = build_wrong_protocol_version_request(
             0x1234, 0x0421, client_id=0x0001, session_id=0x0001, interface_version=1
         )
         # Byte 12 (protocol_version) is patched to 0xff, which is not the valid value 0x01.
         assert raw.hex() == "123404210000000800010001ff010000"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_build_oversized_message(self) -> None:
+        """Check build oversized message."""
         raw = build_oversized_message(0x1234, 0x0421, client_id=0x0001, session_id=0x0001, interface_version=1)
         # The length field claims 0x7ff3 (32755) payload bytes, but the packet is only 16 bytes long.
         assert raw.hex() == "1234042100007ff30001000101010000"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_build_notification_as_request(self) -> None:
+        """Check build notification as request."""
         raw = build_notification_as_request(
             0x1234,
             0x0421,
@@ -153,7 +196,13 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.message_type == SOMEIPMessageType.NOTIFICATION
         assert parsed.payload == b"\xaa"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_build_request_with_return_code(self) -> None:
+        """Check build request with return code."""
         raw = build_request_with_return_code(
             0x1234,
             0x0421,
@@ -186,7 +235,13 @@ class TestSdSenderGoldenVectors:
     before the call instead.
     """
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_send_find_service(self) -> None:
+        """Check send find service."""
         sock = _FakeSocket()
         send_find_service(
             sock,
@@ -211,7 +266,13 @@ class TestSdSenderGoldenVectors:
         assert entry.major_version == 1
         assert entry.ttl == 3
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_send_subscribe_eventgroup_single_protocol(self) -> None:
+        """Check send subscribe eventgroup single protocol."""
         sock = _FakeSocket()
         send_subscribe_eventgroup(
             sock,
@@ -247,7 +308,13 @@ class TestSdSenderGoldenVectors:
         assert option.port == 30510
         assert option.l4proto == L4Protocols.UDP
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_send_subscribe_eventgroup_mixed_protocol(self) -> None:
+        """Check send subscribe eventgroup mixed protocol."""
         sock = _FakeSocket()
         send_subscribe_eventgroup(
             sock,
@@ -281,7 +348,13 @@ class TestSdSenderGoldenVectors:
         assert tcp_option.port == 30511
         assert tcp_option.l4proto == L4Protocols.TCP
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_subscribe_eventgroup_reserved_set(self) -> None:
+        """Check send subscribe eventgroup reserved set."""
         # Non-deterministic without this reset (finding 1). See module docstring.
         _reset_sd_sender_counter()
         sock = _FakeSocket()
@@ -328,7 +401,13 @@ class TestSdSenderWireFormatParsing:
         "000000100000001800090400c0a801320011773000090400c0a801320006772f"
     )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_parse_single_protocol_subscribe(self) -> None:
+        """Check parse single protocol subscribe."""
         entries = sd_sender._parse_sd_entries(  # noqa: SLF001
             bytes.fromhex(self._WIRE_SUBSCRIBE_SINGLE_HEX)
         )
@@ -345,7 +424,13 @@ class TestSdSenderWireFormatParsing:
         assert option.port == 30510
         assert option.l4proto == L4Protocols.UDP
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_parse_mixed_protocol_subscribe(self) -> None:
+        """Check parse mixed protocol subscribe."""
         entries = sd_sender._parse_sd_entries(  # noqa: SLF001
             bytes.fromhex(self._WIRE_SUBSCRIBE_MIXED_HEX)
         )
@@ -369,29 +454,65 @@ class TestSdSenderWireFormatParsing:
 class TestSdMalformedPureBuilders:
     """Golden byte vectors for the fully deterministic (no counter) builders."""
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_build_raw_sd_packet_empty(self) -> None:
+        """Check build raw sd packet empty."""
         # No entries and no options at all: the shortest possible SD packet.
         pkt = sd_malformed.build_raw_sd_packet(session_id=0x0042)
         assert pkt.hex() == "ffff8100000000140000004201010200c00000000000000000000000"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_find_service_entry_bytes(self) -> None:
+        """Check find service entry bytes."""
         entry = sd_malformed._find_service_entry_bytes(0x1234)  # noqa: SLF001
         assert entry.hex() == "000000001234ffffff000003ffffffff"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_subscribe_entry_bytes(self) -> None:
+        """Check subscribe entry bytes."""
         entry = sd_malformed._subscribe_entry_bytes(0x1234, 0x0001, 0x0010)  # noqa: SLF001
         assert entry.hex() == "06000010123400010000000300000010"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_endpoint_option_bytes(self) -> None:
+        """Check endpoint option bytes."""
         opt = sd_malformed._endpoint_option_bytes("192.168.1.50", 30510)  # noqa: SLF001
         assert opt.hex() == "00090400c0a801320011772e"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_unknown_option_bytes(self) -> None:
+        """Check unknown option bytes."""
         # Option type byte 0x77 is not a defined SD option type.
         opt = sd_malformed._unknown_option_bytes(0x77, 4)  # noqa: SLF001
         assert opt.hex() == "0005770000000000"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_build_raw_sd_packet_with_length_override(self) -> None:
+        """Check build raw sd packet with length override."""
         # The entries length field claims 999 bytes, but the actual entry is only 16 bytes.
         entry = sd_malformed._find_service_entry_bytes(0x1234)  # noqa: SLF001
         pkt = sd_malformed.build_raw_sd_packet(
@@ -416,7 +537,13 @@ class TestSdMalformedSendersGoldenVectors:
     each test resets it immediately before the call.
     """
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_high_session_id(self) -> None:
+        """Check send sd high session id."""
         # Session id is set close to the 16-bit maximum (0xfffe).
         sock = _FakeSocket()
         sd_malformed.send_sd_high_session_id(sock, _DEST, 0x1234, 0xFFFE)
@@ -426,14 +553,26 @@ class TestSdMalformedSendersGoldenVectors:
             "ffff8100000000240000fffe01010200c000000000000010000000001234ffffff000003ffffffff00000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_empty_entries(self) -> None:
+        """Check send sd empty entries."""
         # The entries array is empty: no service entries at all.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
         sd_malformed.send_sd_empty_entries(sock, _DEST)
         assert sock.sent[0].hex() == "ffff810000000014000000c801010200c00000000000000000000000"
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="requirements-analysis",
+    )
     def test_send_sd_find_with_options(self) -> None:
+        """Check send sd find with options."""
         # The FindService entry references an option, but the spec says options
         # attached to a FindService entry must be ignored.
         _reset_sd_malformed_counter()
@@ -444,7 +583,13 @@ class TestSdMalformedSendersGoldenVectors:
             "0000000c00090400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_entries_length_wrong(self) -> None:
+        """Check send sd entries length wrong."""
         # The entries array length field claims 999 bytes, but only one 16-byte entry is sent.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -453,7 +598,13 @@ class TestSdMalformedSendersGoldenVectors:
             "ffff810000000024000000c801010200c0000000000003e7000000001234ffffff000003ffffffff00000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_entry_refs_more_options(self) -> None:
+        """Check send sd entry refs more options."""
         # The entry claims it has 3 options, but only 1 option is actually in the packet.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -463,7 +614,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c00090400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_entry_unknown_option_type(self) -> None:
+        """Check send sd entry unknown option type."""
         # The option type byte is 0x77, which is not a known SD option type.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -472,7 +629,13 @@ class TestSdMalformedSendersGoldenVectors:
             "ffff81000000002c000000c801010200c00000000000001006000010123400010000000300000010000000080005770000000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_entry_same_option_twice(self) -> None:
+        """Check send sd entry same option twice."""
         # Both entries point at the same option instead of each having their own.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -482,7 +645,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000010060000101234000100000003000000100000000c00090400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_option_length_too_long(self) -> None:
+        """Check send sd option length too long."""
         # The option length field claims 0xff bytes, far more than the option itself carries.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -492,7 +661,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c00ff0400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_option_length_too_short(self) -> None:
+        """Check send sd option length too short."""
         # The option length field is set to 1, too small to hold even the type byte.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -502,7 +677,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c00010400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_option_length_unaligned(self) -> None:
+        """Check send sd option length unaligned."""
         # The option length field is 10 instead of the correct 9, one byte off.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -512,7 +693,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c000a0400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_options_array_length_too_long(self) -> None:
+        """Check send sd options array length too long."""
         # The options array length field claims 100 bytes, but only 12 bytes of option data
         # are actually sent.
         _reset_sd_malformed_counter()
@@ -523,7 +710,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000006400090400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_options_array_length_too_short(self) -> None:
+        """Check send sd options array length too short."""
         # The options array length field claims only 2 bytes, but 12 bytes of option data
         # are actually sent.
         _reset_sd_malformed_counter()
@@ -534,7 +727,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000200090400c0a801320011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_subscribe_empty_options(self) -> None:
+        """Check send sd subscribe empty options."""
         # The subscribe entry has empty Options Array.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -543,7 +742,13 @@ class TestSdMalformedSendersGoldenVectors:
             "ffff810000000024000000c801010200c0000000000000100600000012340001010000030000001000000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_subscribe_zero_ip(self) -> None:
+        """Check send sd subscribe zero ip."""
         # The endpoint option address is 0.0.0.0, which is not a usable address.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -553,7 +758,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c00090400000000000011772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_subscribe_wrong_l4proto(self) -> None:
+        """Check send sd subscribe wrong l4proto."""
         # The l4proto byte is 0x00, which is neither UDP (0x11) nor TCP (0x06).
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -565,7 +776,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c00090400c0a801320000772e"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_subscribe_reserved_option(self) -> None:
+        """Check send sd subscribe reserved option."""
         # The option type byte is 0x20, a reserved value the DUT should not see in practice.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -575,7 +792,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c000920000000000000000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_wrong_someip_length(self) -> None:
+        """Check send sd wrong someip length."""
         # The SOME/IP length field is patched to 999, which does not match the actual packet size.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -584,7 +807,13 @@ class TestSdMalformedSendersGoldenVectors:
             "ffff8100000003e7000000c801010200c000000000000010000000001234ffffff000003ffffffff00000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_wrong_someip_message_id(self) -> None:
+        """Check send sd wrong someip message id."""
         # A subscribe whose SOME/IP Method ID is changed from the SD value 0x8100 to 0x8101.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -593,14 +822,26 @@ class TestSdMalformedSendersGoldenVectors:
             "ffff810100000030000000c801010200c000000000000010060000101234567801000003000000020000000c00090400c0a8010a00117530"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_truncated_entry(self) -> None:
+        """Check send sd truncated entry."""
         # The entry is cut to 8 bytes, half of the required 16 bytes.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
         sd_malformed.send_sd_truncated_entry(sock, _DEST, 0x1234)
         assert sock.sent[0].hex() == ("ffff81000000001c000000c801010200c000000000000010000000001234ffff00000000")
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_oversized_entries_length(self) -> None:
+        """Check send sd oversized entries length."""
         # The entries length field claims 0xffff bytes, far more than the actual packet.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -609,7 +850,13 @@ class TestSdMalformedSendersGoldenVectors:
             "ffff810000000024000000c801010200c00000000000ffff000000001234ffffff000003ffffffff00000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_empty_option(self) -> None:
+        """Check send sd empty option."""
         # The option length field is set to 1, too short to be a valid option.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()
@@ -619,7 +866,13 @@ class TestSdMalformedSendersGoldenVectors:
             "000000100000000c000104000000000000000000"
         )
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_send_sd_subscribe_nonexistent_service(self) -> None:
+        """Check send sd subscribe nonexistent service."""
         # The subscribe is for service id 0x9999, which the DUT does not offer.
         _reset_sd_malformed_counter()
         sock = _FakeSocket()

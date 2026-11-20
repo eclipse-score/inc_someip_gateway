@@ -26,6 +26,8 @@ using score::utils::string_registry::LiteralTag;
 namespace score::socom {
 
 TEST(RuntimeFactoryTest, DefaultConstructorWorks) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Runtime::Uptr const rt = create_runtime();
     EXPECT_NE(nullptr, rt);
 }
@@ -48,6 +50,8 @@ MATCHER_P(Multi_set_equal, expected, "") {
 }
 
 TEST_F(RuntimeTest, ConstructDuplicateReturnsDuplicateServiceError) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Server_connector_callbacks_mock callbacks;
     auto const scd = connector_factory.create_server_connector_with_result(callbacks);
     ASSERT_TRUE(scd.has_value());
@@ -60,6 +64,8 @@ TEST_F(RuntimeTest, ConstructDuplicateReturnsDuplicateServiceError) {
 }
 
 TEST_F(RuntimeTest, ConstructDuplicateMultipleTimesReturnsDuplicateServiceError) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Server_connector_callbacks_mock callbacks;
     auto const scd = connector_factory.create_server_connector_with_result(callbacks);
     ASSERT_TRUE(scd.has_value());
@@ -78,6 +84,8 @@ TEST_F(RuntimeTest, ConstructDuplicateMultipleTimesReturnsDuplicateServiceError)
 }
 
 TEST_F(RuntimeTest, CreatingServerConnectorDeletingItAndRecreatingReturnsValidServerConnector) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_connector_callbacks_mock callbacks;
     {
         auto const scd = connector_factory.create_server_connector_with_result(callbacks);
@@ -96,6 +104,8 @@ TEST_F(RuntimeTest, CreatingServerConnectorDeletingItAndRecreatingReturnsValidSe
 }
 
 TEST_F(RuntimeTest, ConnectorDestroyedAfterRuntimeDoesNotCrash) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Disabled_server_connector::Uptr connector{nullptr};
     {
         Connector_factory factory{connector_factory};

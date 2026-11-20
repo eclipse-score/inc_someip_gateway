@@ -40,6 +40,8 @@ class ClientMultiThreadingTest : public SingleConnectionTest {
 };
 
 TEST_F(ClientMultiThreadingTest, SubscribeEventIsCalledByTwoThreadsWithoutRaceConditions) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     server.expect_event_subscription(event_id);
 
     auto const events_received = client.expect_event_updates_min_number(minimum_num_event_updates,
@@ -57,12 +59,16 @@ TEST_F(ClientMultiThreadingTest, SubscribeEventIsCalledByTwoThreadsWithoutRaceCo
 }
 
 TEST_F(ClientMultiThreadingTest, UnsubscribeEventIsCalledByTwoThreadsWithoutRaceConditions) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const unsubscribe_event = [this]() { client.unsubscribe_event(event_id); };
 
     multi_threaded_test_template({unsubscribe_event, unsubscribe_event}, always_successful);
 }
 
 TEST_F(ClientMultiThreadingTest, RequestEventUpdateIsCalledByTwoThreadsWithoutRaceConditions) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     server.expect_event_subscription(event_id);
     client.subscribe_event(event_id);
     server.expect_update_event_requests(event_id);
@@ -84,6 +90,8 @@ TEST_F(ClientMultiThreadingTest, RequestEventUpdateIsCalledByTwoThreadsWithoutRa
 }
 
 TEST_F(ClientMultiThreadingTest, CallMethodIsCalledByTwoThreadsWithoutRaceConditions) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const method_called =
         server.expect_method_calls(min_method_calls, method_id, empty_payload());
 

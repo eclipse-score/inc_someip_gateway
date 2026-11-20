@@ -111,6 +111,9 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
 
 // Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a setup error.
 TEST_F(ProviderServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const result = Provider_service_binding::create(
         socom_runtime_, MakeServiceConfig(Role::provider, kInvalidSpecifier));
     ASSERT_FALSE(result.has_value());
@@ -120,6 +123,9 @@ TEST_F(ProviderServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
 // Missing mw_com_config.json entry fails GenericSkeleton::Create() before creating a SOCom
 // Client_connector.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();
     auto const result = Provider_service_binding::create(socom_runtime_, provider_config_);
     ASSERT_FALSE(result.has_value());
@@ -128,6 +134,9 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
 
 // Fails create() if a configured event name is missing from GenericSkeleton::GetEvents().
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto skel_mock = std::make_unique<NiceMock<testing::Skeleton>>();
     EXPECT_CALL(skeleton_binding_factory_mock(), Create(_))
         .WillOnce(Return(ByMove(std::move(skel_mock))));
@@ -142,6 +151,9 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
 // Fails with runtime_error_sample_size_mismatch if LoLa's SHM slot size differs from
 // sample_size(event).
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatches) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     (void)ExpectSkeletonWithEvent(kMismatchedEventSize);
 
     auto const result = Provider_service_binding::create(socom_runtime_, provider_config_);
@@ -152,6 +164,9 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatc
 // Fails create() if LoLa rejects the subscription callback, and destructor cleanup does not abort
 // when unsetting that callback also fails.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandlerFails) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto* const event_mock = ExpectSkeletonWithEvent(
         ExpectedEventSampleSize(),
         score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure));
@@ -165,6 +180,9 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandler
 
 // Fails create() if SOCom make_client_connector() returns an error.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenMakingClientConnectorFails) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     (void)ExpectSkeletonWithEvent(ExpectedEventSampleSize());
     EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
         .WillOnce(Return(ByMove(score::MakeUnexpected<socom::Client_connector::Uptr>(
@@ -178,6 +196,8 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenMakingClientConnectorFails) {
 // Out-of-range event IDs return an error or are ignored without out-of-bounds access, and
 // on_event_requested_update is a no-op.
 TEST_F(ProviderServiceBindingTest, StartSucceedsAndOutOfRangeOrRequestedCallbacksAreIgnored) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const binding = CreateConnectedProvider();
     EXPECT_TRUE(binding->start().has_value());
 
@@ -197,6 +217,11 @@ TEST_F(ProviderServiceBindingTest, StartSucceedsAndOutOfRangeOrRequestedCallback
 // Subscribes on SOCom only after OfferService() succeeds (including when a LoLa proxy subscribed
 // earlier), and retries if subscribe_event() fails.
 TEST_F(ProviderServiceBindingTest, ServiceAvailabilityOffersServiceAndReconcilesPeerSubscription) {
+    RecordProperty(
+        "PartiallyVerifies",
+        "comp_req__gib__connects_service_connectors, comp_req__gib__propagates_subscriptions");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const binding = CreateConnectedProvider();
     interest_cb_(true);
 
@@ -224,6 +249,11 @@ TEST_F(ProviderServiceBindingTest, ServiceAvailabilityOffersServiceAndReconciles
 // subscribed, GenericSkeleton is destroyed and recreated on the next offer.
 TEST_F(ProviderServiceBindingTest,
        PeerUnsubscriptionAndServiceWithdrawalTearDownAndRecreateSkeleton) {
+    RecordProperty(
+        "PartiallyVerifies",
+        "comp_req__gib__connects_service_connectors, comp_req__gib__propagates_subscriptions");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const binding = CreateConnectedProvider();
     ExpectOfferServiceSucceeds();
     EXPECT_CALL(*client_connector_mock_, subscribe_event(kSocomEvent0Id, socom::Event_mode::update))
@@ -253,6 +283,8 @@ TEST_F(ProviderServiceBindingTest,
 // Returns runtime_error_sample_allocation_failed when LoLa has no free SHM slots, and releases the
 // slot if the caller destroys Writable_payload without sending it.
 TEST_F(ProviderServiceBindingTest, EventPayloadAllocationHandlesFailureAndDroppedPayloads) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const binding = CreateConnectedProvider();
     OfferService();
 
@@ -282,6 +314,9 @@ TEST_F(ProviderServiceBindingTest, EventPayloadAllocationHandlesFailureAndDroppe
 // Writes the payload length after shrink() (not max_payload_size) into the 8-byte SHM header
 // before calling GenericSkeletonEvent::Send().
 TEST_F(ProviderServiceBindingTest, EventUpdateWritesPayloadLengthAndSendsSampleToSkeletonEvent) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__forwards_event_payloads");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const binding = CreateConnectedProvider();
     OfferService();
     alignas(kSample_alignment) std::array<std::byte, kSampleBufferSize> sample_buf{};

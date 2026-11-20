@@ -172,6 +172,8 @@ class SomeipdServiceBindingTest : public IpcBindingTestFixture {
 // C++17 requires a hand-written operator==; verifies service_id, event_id, and max_payload_size
 // are all compared.
 TEST(BridgedEventSizeTest, EqualityComparesAllFields) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     constexpr Bridged_event_size kBaseline{kSampleServiceId, kSampleEventId, kSampleMaxPayloadSize};
     constexpr Bridged_event_size kIdentical{kSampleServiceId, kSampleEventId,
                                             kSampleMaxPayloadSize};
@@ -190,6 +192,9 @@ TEST(BridgedEventSizeTest, EqualityComparesAllFields) {
 
 // Returns nullptr when someipd_service_specifier is empty.
 TEST_F(SomeipdServiceBindingTest, CreateServerReturnsNullptrOnEmptySpecifier) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     EXPECT_EQ(create_server(socom_runtime_, std::string{kEmptySpecifier}, &AcceptAllGatewayConfigs),
               nullptr);
 }
@@ -197,6 +202,9 @@ TEST_F(SomeipdServiceBindingTest, CreateServerReturnsNullptrOnEmptySpecifier) {
 // Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a generic creation
 // error.
 TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsInvalidSpecifier) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const result =
         Someipd_service_provider::create(std::string{kInvalidSpecifier}, &AcceptAllConfigurations);
     ASSERT_FALSE(result.has_value());
@@ -205,6 +213,9 @@ TEST_F(SomeipdServiceBindingTest, ProviderCreateRejectsInvalidSpecifier) {
 
 // Fails server->start() when the SomeipdService specifier is missing from mw_com_config.json.
 TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();
     auto server =
         create_server(socom_runtime_, std::string{kSomeipdSpecifier}, &AcceptAllGatewayConfigs);
@@ -219,6 +230,9 @@ TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenInstanceNotResolved) {
 // Fails Someipd_service_provider::create() if RegisterHandler() fails, since LoLa aborts
 // OfferService() when a method has no handler.
 TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const mocks = ExpectSkeletonWithMethod();
     EXPECT_CALL(*mocks.method, RegisterHandler(_))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
@@ -231,6 +245,9 @@ TEST_F(SomeipdServiceBindingTest, ProviderCreateFailsWhenRegisterHandlerFails) {
 
 // Returns runtime_error_someipd_service_offer_failed when OfferService() fails in server->start().
 TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const mocks = ExpectSkeletonWithMethod();
     EXPECT_CALL(*mocks.skeleton, PrepareOffer(_, _, _))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
@@ -246,6 +263,8 @@ TEST_F(SomeipdServiceBindingTest, ServerStartFailsWhenOfferServiceFails) {
 // Calling server->start() a second time returns logic_error_already_started without replacing the
 // active skeleton.
 TEST_F(SomeipdServiceBindingTest, ServerSecondStartReturnsAlreadyStartedError) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     ExpectSomeipdSkeletonOfferSuccess();
 
     auto server =
@@ -260,6 +279,9 @@ TEST_F(SomeipdServiceBindingTest, ServerSecondStartReturnsAlreadyStartedError) {
 // Rejects gateway_config.size > max_size before reading past the SHM array, and returns false when
 // the configuration callback returns false.
 TEST_F(SomeipdServiceBindingTest, ServerRejectsOversizedAndHandlerRejectedConfigurations) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     ExpectSomeipdSkeletonOfferSuccess();
 
     bool handler_accepts{false};
@@ -280,6 +302,9 @@ TEST_F(SomeipdServiceBindingTest, ServerRejectsOversizedAndHandlerRejectedConfig
 // Rejects provider configurations when event_sizes has the wrong count or an unknown
 // (service_id, event_id) pair.
 TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEventSizes) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     ExpectSomeipdSkeletonOfferSuccess();
 
     auto server = create_server(
@@ -302,6 +327,8 @@ TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEvent
 // Returns true without creating duplicate bindings when a restarted gatewayd sends the same
 // configuration again.
 TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircuitsDuplicate) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     ExpectSomeipdSkeletonOfferSuccess();
 
     auto server = create_server(
@@ -325,6 +352,9 @@ TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircui
 // Invalid or undeployed SomeipdService specifier fails immediately instead of waiting indefinitely
 // in StartFindService().
 TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpecifier) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const cfg = std::make_unique<Service_configuration>();
 
     auto const invalid_res = Someipd_service_consumer::create(std::string{kInvalidSpecifier}, *cfg);
@@ -340,6 +370,9 @@ TEST_F(SomeipdServiceBindingTest, ConsumerCreateRejectsInvalidAndUndeployedSpeci
 
 // Returns runtime_error_someipd_service_find_failed when StartFindService() fails.
 TEST_F(SomeipdServiceBindingTest, ConsumerCreateFailsWhenStartFindServiceFails) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const cfg = std::make_unique<Service_configuration>();
     EXPECT_CALL(service_discovery_mock(),
                 StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
@@ -355,6 +388,10 @@ TEST_F(SomeipdServiceBindingTest, ConsumerCreateFailsWhenStartFindServiceFails) 
 // capacity, or SOCom connector creation fails.
 TEST_F(SomeipdServiceBindingTest,
        CreateClientRejectsInvalidConfigOversizedPayloadAndFailedBinding) {
+    RecordProperty("PartiallyVerifies",
+                   "comp_req__gib__rejects_invalid_config, comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto bad_service = MakeServiceConfig();
     bad_service.events.clear();
     EXPECT_EQ(create_client(socom_runtime_, std::string{kSomeipdSpecifier}, {bad_service}),
@@ -377,6 +414,8 @@ TEST_F(SomeipdServiceBindingTest,
 // again when SomeipdService stops offering.
 TEST_F(SomeipdServiceBindingTest,
        ClientConnectionStateTracksSomeipdDiscoveryAndConfigurationReply) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto client = CreateTestClient();
     ASSERT_NE(client, nullptr);
     EXPECT_FALSE(client->is_connected());

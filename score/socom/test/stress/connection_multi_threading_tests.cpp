@@ -130,6 +130,8 @@ class ConnectionMultiThreadingTest : public SingleConnectionTest {
 
 TEST_F(ConnectionMultiThreadingTest,
        ClientSubscribesEventsAndCallsMethodsInStateChangeCallbackWithoutRace) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
                                   Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
@@ -149,6 +151,8 @@ TEST_F(ConnectionMultiThreadingTest,
 }
 
 TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsServerThreadAndCallsMethodsInOwnThread) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
                                   Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
@@ -168,6 +172,8 @@ TEST_F(ConnectionMultiThreadingTest, ClientSubscribesEventsServerThreadAndCallsM
 
 TEST_F(ConnectionMultiThreadingTest,
        ClientCallsMethodsInServerThreadAndSubscribesEventsInOwnThreadWithoutRace) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto on_state_change = [this](Client_connector const& cc, Service_state const& state,
                                   Service_interface_definition const& /*conf*/) {
         if (Service_state::available == state) {
@@ -186,6 +192,8 @@ TEST_F(ConnectionMultiThreadingTest,
 }
 
 TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnThreadWithoutRace) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto on_state_change = [](Client_connector const& /* cc */, Service_state const& /* state */,
                               Service_interface_definition const& /*conf*/) {};
 
@@ -202,6 +210,8 @@ TEST_F(ConnectionMultiThreadingTest, ClientCallsMethodsAndSubscribesEventsInOwnT
 
 TEST_F(ConnectionMultiThreadingTest,
        ServerConnectsToClientWhileClientDtorIsRunningWithoutDeadlock) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     std::mutex mtx_client_destroyed;
     std::condition_variable cv_client_destroyed;
     std::atomic<bool> client_destroyed{true};
