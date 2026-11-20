@@ -17,7 +17,7 @@ version = "0.1"
 
 extensions = ["score_sphinx_bundle"]
 
-required_in_id = ["gatewayd", "socom", "gib", "serializer"]
+required_in_id = ["gatewayd", "socom", "gib", "serializer", "someipd"]
 
 # Link source-only Open SOME/IP references to the pinned upstream revision.
 SPEC_REPO = "https://github.com/some-ip-com/open-someip-spec"

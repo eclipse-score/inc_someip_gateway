@@ -17,6 +17,7 @@ score_coverage_scope(
     name = "coverage_scope",
     testonly = True,
     deps = [
+        "//score/bridged_services",
         "//score/config:config_flatbuffers",
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
         "//score/gatewayd",

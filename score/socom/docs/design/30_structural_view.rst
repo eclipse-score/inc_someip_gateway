@@ -32,7 +32,7 @@ SOCom separates connection setup and service matching from steady-state message 
 
 - **Central matching vs direct data path** (``Runtime`` vs connectors): ``Runtime`` handles service registration and interface and version compatibility checks (``Service_interface_definition``) during setup; once connected, ``Client_connector`` and ``Enabled_server_connector`` invoke each other's endpoints directly without central broker contention on data-path calls.
 - **Compile-time provider state** (``Disabled_server_connector`` / ``Enabled_server_connector``): Encoding disabled and enabled server states as distinct move-only C++ types prevents a provider from allocating or publishing events while its service is not offered.
-- **Zero-copy buffer ownership** (``Payload`` / ``Writable_payload``): Separating buffer lifetime (release callback and optional shared-memory ``slot_handle``) from connector routing lets bridges such as ``gateway_ipc_binding`` pass LoLa shared-memory sample slots across connectors without copying.
+- **Zero-copy buffer ownership** (``Payload`` / ``Writable_payload``): Separating the buffer lifetime (including the release callback and optional inline user data) from connector routing allows bridges such as ``gateway_ipc_binding`` to pass LoLa shared-memory samples across connectors without copying.
 
 Static Architecture
 -------------------
@@ -210,9 +210,9 @@ It can send event updates and respond to method calls.
    :language: cpp
    :fulfils: comp_req__socom__event_delivery
 
-   Move-only message buffer interfaces (``score::socom::Payload`` and ``score::socom::Writable_payload``) providing contiguous byte-span access, RAII memory release, and shared-memory slot identification.
+   Move-only message buffer interfaces (``score::socom::Payload`` and ``score::socom::Writable_payload``) providing contiguous byte-span access, RAII memory release, and optional inline user data.
 
-.. real_arc_int_op:: data, wdata, shrink, and get_slot_handle
+.. real_arc_int_op:: data, wdata, shrink, and get_user_data
    :id: real_arc_int_op__socom_design__payload_span
    :version: 1
    :security: NO
@@ -220,4 +220,4 @@ It can send event updates and respond to method calls.
    :status: valid
    :included_by: real_arc_int__socom_design__payload
 
-   Provides read-only and writable byte-span access to the contiguous message buffer, payload size adjustment after writing, and shared-memory slot handle lookup.
+   Provides read-only and writable byte-span access to the contiguous message buffer and payload size adjustment after writing.

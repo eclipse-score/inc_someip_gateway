@@ -1,0 +1,29 @@
+diff --git a/third_party/json_schema_validator/BUILD b/third_party/json_schema_validator/BUILD
+--- a/third_party/json_schema_validator/BUILD
++++ b/third_party/json_schema_validator/BUILD
+@@ -12,1 +12,2 @@
+ # *******************************************************************************
++exports_files(["json_schema_validator.BUILD"])
+diff --git a/bazel/tools/BUILD b/bazel/tools/BUILD
+--- a/bazel/tools/BUILD
++++ b/bazel/tools/BUILD
+@@ -3,1 +3,2 @@
+ json_schema_validator_tests(name = "json_validator_tests")
++exports_files(["json_schema_validator.bzl"])
+diff --git a/bazel/tools/json_schema_validator.bzl b/bazel/tools/json_schema_validator.bzl
+--- a/bazel/tools/json_schema_validator.bzl
++++ b/bazel/tools/json_schema_validator.bzl
+@@ -3,1 +3,1 @@
+-visibility(["//..."])
++visibility("public")
+diff --git a/MODULE.bazel b/MODULE.bazel
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -330,7 +330,6 @@
+ download_archive(
+     name = "json_schema_validator",
+     build = "//third_party/json_schema_validator:json_schema_validator.BUILD",
+-    dev_dependency = True,
+     integrity = "sha256-g/YdgRL0heDT8ectUWELo5JLF5kmqDdq7zwDh3D68gI=",
+     strip_prefix = "json-schema-validator-2.1.0",
+     urls = ["https://github.com/pboettch/json-schema-validator/archive/refs/tags/2.1.0.tar.gz"],

@@ -37,7 +37,7 @@ Consumer_service_binding::Consumer_service_binding(std::vector<Event> events,
     : m_events{std::move(events)}, m_instance_specifier{std::move(instance_specifier)} {}
 
 Consumer_service_binding::~Consumer_service_binding() noexcept {
-    // See docs/mw_com_binding.rst, section "Teardown". Stop discovery first, so that no handler
+    // See docs/architecture/index.rst, section "Teardown". Stop discovery first, so that no handler
     // can race with the teardown below.
     std::optional<score::mw::com::FindServiceHandle> find_handle{};
     {
@@ -112,8 +112,7 @@ Result<void> Consumer_service_binding::create_server_connector(
         },
         [](score::socom::Enabled_server_connector&,
            score::socom::Method_id) -> Result<score::socom::Writable_payload> {
-            return score::socom::Writable_payload{score::socom::Writable_payload::Writable_span{},
-                                                  score::socom::kNoSlotHandle, []() {}};
+            return score::socom::Writable_payload{score::socom::Writable_payload::Writable_span{}};
         }};
 
     score::socom::Server_service_interface_definition const definition{
@@ -416,12 +415,7 @@ void Consumer_service_binding::on_samples_available(
             score::socom::Payload payload{
                 score::socom::Payload::Span{sample_base, kSample_prefix_size + length}.subspan(
                     kSample_prefix_size),
-                score::socom::kNoSlotHandle,
-                // Owning the SamplePtr here is what returns the slot to LoLa once the receiving
-                // application is done with the payload. It is boxed because a SamplePtr does not
-                // fit into the inline storage of socom::Payload::Payload_destroyed.
-                [sample = std::make_unique<score::mw::com::SamplePtr<void>>(
-                     std::move(sample))]() noexcept {}};
+                std::move(sample)};
 
             auto const updated = m_enabled_connector->update_event(event_id, std::move(payload));
             if (!updated.has_value()) {

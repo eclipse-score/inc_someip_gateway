@@ -21,7 +21,7 @@ filegroup(
 
 exports_files(
     ["qemu_config.json"],
-    visibility = ["//:__subpackages__"],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(

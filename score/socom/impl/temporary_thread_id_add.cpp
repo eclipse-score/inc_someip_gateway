@@ -45,14 +45,7 @@ void Deadlock_detector::check_deadlock(
         std::find(std::begin(m_thread_ids), std::end(m_thread_ids), std::this_thread::get_id());
     if (std::end(m_thread_ids) != thread_id) {
         // destruction from within callback detected
-        // death tests cannot contribute to code coverage
         on_deadlock_detected();
-        // Here we need to use
-        //   std::abort() due to robustness requirements,
-        //   ID: AdaptiveCore.ResourceRobustness.FatalSyscall
-        // Note: This used to be std::exit(EXIT_FAILURE), but the current DLT implementation
-        //  is not fork() compatible. This is explicitly done in unit tests which expect a
-        //  fatal log message, e.g. via EXPECT_EXIT().
         std::abort();
     }
 }

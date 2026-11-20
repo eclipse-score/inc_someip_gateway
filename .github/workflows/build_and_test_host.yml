@@ -45,9 +45,9 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@d8f1ca7808fe21b755ef3277d3581a1d57dec15f # setup-bazel-cache/v0.2.0
         with:
-          unique-cache-name: ${{ github.job }}
+          disk-cache-key: ${{ github.job }}
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
       - name: Bazel build targets
@@ -85,9 +85,9 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@d8f1ca7808fe21b755ef3277d3581a1d57dec15f # setup-bazel-cache/v0.2.0
         with:
-          unique-cache-name: ${{ github.job }}
+          disk-cache-key: ${{ github.job }}
       - name: Install tools needed for ITF tests
         run: |
           sudo apt-get update
@@ -100,13 +100,13 @@ jobs:
           sudo chmod 666 /dev/kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration ${{ matrix.bazel_args }} ${{ matrix.targets }}
+          bazel test --config=qemu-integration --test_tag_filters=-tc8_time_sensitive ${{ matrix.bazel_args }} ${{ matrix.targets }}
       - name: Stage TC8 test reports
         if: always() && matrix.name == 'default'
         run: |
           source=bazel-out/k8-fastbuild/testlogs/tests/tc8_conformance
           if [ -d "$source" ]; then
-            find "$source" -mindepth 1 -maxdepth 1 -type d -print0 | while IFS= read -r -d '' test_dir; do
+            find "$source" "$source/qemu" -mindepth 1 -maxdepth 1 -type d ! -path "$source/qemu" -print0 | while IFS= read -r -d '' test_dir; do
               test_name="$(basename "$test_dir")"
               dest="tc8-test-reports/$test_name"
               mkdir -p "$dest"
@@ -137,9 +137,9 @@ jobs:
       - name: Create config indicator file
         run: echo "host" > .bazel_config
       - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@d8f1ca7808fe21b755ef3277d3581a1d57dec15f # setup-bazel-cache/v0.2.0
         with:
-          unique-cache-name: ${{ github.job }}
+          disk-cache-key: ${{ github.job }}
       - name: Allow linux-sandbox
         uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
       - name: Allow perf

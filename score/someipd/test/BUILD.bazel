@@ -12,14 +12,17 @@
 # *******************************************************************************
 
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("@rules_python//python:defs.bzl", "py_test")
+load("@score_tooling//:defs.bzl", "score_py_pytest")
 
-py_test(
+score_py_pytest(
     name = "someipd_test",
-    srcs = ["someipd_test.py"],
+    srcs = [
+        "conftest.py",
+        "someipd_test.py",
+    ],
     args = [
-        "$(location //score/someipd:someipd)",
-        "$(location //score/someipd:etc/mw_com_config.json)",
+        "--someipd=$(location //score/someipd:someipd)",
+        "--service-instance-manifest=$(location //score/someipd:etc/mw_com_config.json)",
     ],
     data = [
         "//score/someipd",

@@ -18,8 +18,6 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "score/mw/com/types.h"
@@ -66,29 +64,6 @@ class Provider_service_binding final : public Service_binding {
     [[nodiscard]] Result<void> start() noexcept override { return {}; }
 
    private:
-    /// \brief In-flight `Allocate()` results, keyed by the slot handle the binding mints.
-    /// \details SOCom only hands a `Writable_payload` back to the binding, so the
-    ///          `SampleAllocateePtr` has to be parked somewhere in between. It is held through a
-    ///          `shared_ptr` and referenced weakly by the payload destructor, so that a payload
-    ///          the producer drops after the binding is gone does not touch freed memory.
-    class Allocations {
-       public:
-        /// \brief Park a sample and mint the slot handle that identifies it
-        [[nodiscard]] std::size_t insert(score::mw::com::SampleAllocateePtr<void> sample) noexcept;
-
-        /// \brief Take a parked sample out, if it is still there
-        [[nodiscard]] std::optional<score::mw::com::SampleAllocateePtr<void>> take(
-            std::size_t slot_handle) noexcept;
-
-        /// \brief Release every parked sample, returning the slots to LoLa
-        void clear() noexcept;
-
-       private:
-        std::mutex m_mutex;
-        std::unordered_map<std::size_t, score::mw::com::SampleAllocateePtr<void>> m_in_flight;
-        std::size_t m_next_slot_handle{0U};
-    };
-
     /// \brief Per-event state, indexed by socom::Event_id
     struct Event {
         /// \brief Owned by m_skeleton, invalidated whenever the skeleton is destroyed/recreated
@@ -148,7 +123,6 @@ class Provider_service_binding final : public Service_binding {
     std::optional<score::mw::com::GenericSkeleton> m_skeleton;
     std::vector<Event> m_events;
     bool m_service_available{false};
-    std::shared_ptr<Allocations> m_allocations{std::make_shared<Allocations>()};
     score::socom::Client_connector::Uptr m_client_connector{};
 };
 

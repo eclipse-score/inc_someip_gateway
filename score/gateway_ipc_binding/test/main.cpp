@@ -15,6 +15,7 @@
 
 #include <cerrno>
 #include <csignal>
+#include <cstdlib>
 #include <cstring>
 #include <stdexcept>
 #include <string>
@@ -57,7 +58,17 @@ std::string manifest_path(int& argc, char** argv) {
         argv[argc] = nullptr;
     }
     if (manifest.empty()) {
+        auto const* const configured_manifest = std::getenv("SCORE_MW_COM_CONFIG");
+        if (configured_manifest != nullptr) {
+            manifest = configured_manifest;
+        }
+    }
+    if (manifest.empty()) {
         throw std::invalid_argument("Missing required argument --mw-com-config <path>");
+    }
+    // Google Test's threadsafe death tests re-exec without the custom config argument.
+    if (setenv("SCORE_MW_COM_CONFIG", manifest.c_str(), 1) != 0) {
+        throw std::runtime_error("Failed to preserve the mw::com test configuration");
     }
     return manifest;
 }

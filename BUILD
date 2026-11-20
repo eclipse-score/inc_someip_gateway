@@ -44,36 +44,6 @@ use_format_targets(
 # Documentation
 # ==============================================================================
 
-# ==============================================================================
-# Quality-pack aggregate test suites
-# ==============================================================================
-# Unit tests (tagged `unit`). A test_suite in a top-level BUILD file cannot use
-# a package wildcard like `//score/...` in its `tests` attribute, so unit tests
-# are aggregated by explicit label. Run with:
-#   bazel test //:unit_tests
-test_suite(
-    name = "unit_tests",
-    tests = [
-        "//score/bridged_services/test:bridged_service_configs_test",
-        "//score/serializer:null_serializer_test",
-        "//score/socom/test/unit:socom_test",
-        "//score/someipd/test:gatewayd_services_test",
-        "//score/someipd/test:local_network_service_test",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# Component-level tests (integration / stress, tagged `component`). Run with:
-#   bazel test //:component_tests
-test_suite(
-    name = "component_tests",
-    tests = [
-        "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
-        "//score/socom/test/stress:socom_stress_test",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 docs(
     bundles = [
         {
@@ -117,7 +87,53 @@ docs(
             "attach_to": "components",
         },
     ],
+    external_needs = [
+        "@score_platform//:needs_json_file",
+        "@score_process_description//:needs_json_file",
+    ],
     source_dir = "docs",
+)
+
+# ==============================================================================
+# Quality-pack aggregate test suites
+# ==============================================================================
+
+# Unit tests (tagged `unit`). A test_suite in a top-level BUILD file cannot use
+# a package wildcard like `//score/...` in its `tests` attribute, so unit tests
+# are aggregated by explicit label. Run with:
+#   bazel test //:unit_tests
+test_suite(
+    name = "unit_tests",
+    tests = [
+        "//score/bridged_services/test:bridged_service_configs_test",
+        "//score/gateway_ipc_binding/test/unit:consumer_service_binding_test",
+        "//score/gateway_ipc_binding/test/unit:error_test",
+        "//score/gateway_ipc_binding/test/unit:fixed_size_container_test",
+        "//score/gateway_ipc_binding/test/unit:provider_service_binding_test",
+        "//score/gateway_ipc_binding/test/unit:sample_layout_test",
+        "//score/gateway_ipc_binding/test/unit:service_binding_test",
+        "//score/gateway_ipc_binding/test/unit:someipd_service_binding_test",
+        "//score/gatewayd/test:gatewayd_test",
+        "//score/gatewayd/test:local_service_instance_test",
+        "//score/gatewayd/test:remote_service_instance_test",
+        "//score/serializer:null_serializer_test",
+        "//score/socom/test/unit:socom_test",
+        "//score/someipd/test:gatewayd_services_test",
+        "//score/someipd/test:local_network_service_test",
+        "//score/someipd/test:someipd_test",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Component-level tests (integration / stress, tagged `component`). Run with:
+#   bazel test //:component_tests
+test_suite(
+    name = "component_tests",
+    tests = [
+        "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
+        "//score/socom/test/stress:socom_stress_test",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 # ==============================================================================

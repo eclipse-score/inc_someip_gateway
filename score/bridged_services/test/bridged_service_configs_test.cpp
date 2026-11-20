@@ -60,8 +60,8 @@ TEST_F(Bridged_service_configs_test, gatewayd_provides_local_and_consumes_remote
 
     ASSERT_EQ(services.size(), 2U);
     auto const& provided = services.front();
-    EXPECT_EQ(provided.interface.id.string_view(), "app_service");
-    EXPECT_EQ(provided.instance.id.string_view(), "app_service");
+    EXPECT_EQ(provided.interface.id.StringView(), "app_service");
+    EXPECT_EQ(provided.instance.id.StringView(), "app_service");
     EXPECT_EQ(provided.instance_specifier, "bridged_ipc/app_service");
     EXPECT_EQ(provided.service_id, 0x1234U);
     EXPECT_EQ(provided.instance_id, 7U);
