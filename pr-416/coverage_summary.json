@@ -17,22 +17,22 @@
     },
     {
       "branches": {
-        "percent": 76,
-        "total": 372
+        "percent": 93,
+        "total": 368
       },
       "files": {
         "measured": 13,
         "total": 19
       },
       "lines": {
-        "percent": 80,
-        "total": 1182
+        "percent": 97,
+        "total": 1153
       },
       "primary_need_id": "comp__gateway_ipc_binding"
     },
     {
       "branches": {
-        "percent": 46,
+        "percent": 82,
         "total": 118
       },
       "files": {
@@ -40,7 +40,7 @@
         "total": 5
       },
       "lines": {
-        "percent": 44,
+        "percent": 89,
         "total": 575
       },
       "primary_need_id": "comp__gatewayd"
@@ -62,16 +62,16 @@
     },
     {
       "branches": {
-        "percent": 84,
-        "total": 220
+        "percent": 83,
+        "total": 216
       },
       "files": {
-        "measured": 24,
-        "total": 32
+        "measured": 22,
+        "total": 29
       },
       "lines": {
         "percent": 97,
-        "total": 898
+        "total": 872
       },
       "primary_need_id": "comp__socom"
     },
