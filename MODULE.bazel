@@ -284,7 +284,8 @@ exports_files(["flamegraph.pl", "stackcollapse-perf.pl"])
 # ============================================================================
 # Documentation
 # ============================================================================
-bazel_dep(name = "download_utils", version = "1.2.2")
+bazel_dep(name = "download_utils", version = "1.2.2", dev_dependency = True)
+
 bazel_dep(name = "score_docs_as_code", version = "9.1.1")
 bazel_dep(name = "score_platform", version = "0.7.6")
 bazel_dep(name = "score_process_description", version = "2.2.5")
