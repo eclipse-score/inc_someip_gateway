@@ -92,7 +92,7 @@ class Connection_test : public Runtime_test {
 
 TEST_F(Runtime_test, client_connector_construction_works) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const client_connector_result =
         runtime->make_client_connector(config, instance, make_client_callbacks());
     EXPECT_TRUE(client_connector_result);
@@ -100,7 +100,7 @@ TEST_F(Runtime_test, client_connector_construction_works) {
 
 TEST_F(Runtime_test, server_connector_construction_works) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const server_connector_result =
         runtime->make_server_connector(config, instance, make_server_callbacks());
     EXPECT_TRUE(server_connector_result);
@@ -108,7 +108,7 @@ TEST_F(Runtime_test, server_connector_construction_works) {
 
 TEST_F(Runtime_test, connection_setup_works) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const client_connector_result =
         runtime->make_client_connector(config, instance, make_client_callbacks());
     auto server_connector_result =
@@ -127,7 +127,7 @@ TEST_F(Runtime_test, connection_setup_works) {
 
 TEST_F(Connection_test, server_sends_event_which_is_received_by_the_client) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     EXPECT_CALL(m_event_update_mock, Call(_, _, _)).Times(1);
     EXPECT_CALL(m_event_subscription_change_mock, Call(_, 0, Event_state::subscribed)).Times(1);
     ASSERT_TRUE(client_connector->subscribe_event(0, Event_mode::update));
@@ -136,7 +136,7 @@ TEST_F(Connection_test, server_sends_event_which_is_received_by_the_client) {
 
 TEST_F(Connection_test, client_calls_method_and_gets_response) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Method_call_reply_data_opt pointer;
     EXPECT_CALL(m_method_call_mock, Call(_, 0, _, _))
         .WillOnce([&pointer](auto&, auto, auto, auto cb_data) {

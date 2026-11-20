@@ -19,7 +19,7 @@ namespace score::socom {
 namespace {
 
 TEST(Error, MakeErrorMapsServiceNotAvailable) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(Error::runtime_error_service_not_available)};
     EXPECT_EQ(*err, static_cast<int>(Error::runtime_error_service_not_available));
@@ -28,7 +28,7 @@ TEST(Error, MakeErrorMapsServiceNotAvailable) {
 }
 
 TEST(Error, MakeErrorMapsRequestRejected) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(Error::runtime_error_request_rejected)};
     EXPECT_EQ(*err, static_cast<int>(Error::runtime_error_request_rejected));
@@ -36,7 +36,7 @@ TEST(Error, MakeErrorMapsRequestRejected) {
 }
 
 TEST(Error, MakeErrorMapsIdOutOfRange) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "boundary-values");
     const score::result::Error err{MakeError(Error::logic_error_id_out_of_range)};
     EXPECT_EQ(*err, static_cast<int>(Error::logic_error_id_out_of_range));
@@ -44,7 +44,7 @@ TEST(Error, MakeErrorMapsIdOutOfRange) {
 }
 
 TEST(Error, MakeErrorMapsMalformedPayload) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     const score::result::Error err{MakeError(Error::runtime_error_malformed_payload)};
     EXPECT_EQ(*err, static_cast<int>(Error::runtime_error_malformed_payload));
@@ -52,7 +52,7 @@ TEST(Error, MakeErrorMapsMalformedPayload) {
 }
 
 TEST(Error, MakeErrorMapsPermissionNotAllowed) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     const score::result::Error err{MakeError(Error::runtime_error_permission_not_allowed)};
     EXPECT_EQ(*err, static_cast<int>(Error::runtime_error_permission_not_allowed));
@@ -60,14 +60,14 @@ TEST(Error, MakeErrorMapsPermissionNotAllowed) {
 }
 
 TEST(Error, MakeErrorFallsBackToUnknownMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(static_cast<Error>(-1))};
     EXPECT_EQ(err.Message(), "Unknown Error");
 }
 
 TEST(Error, MakeErrorPreservesUserMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     constexpr std::string_view kUserMessage{"test user message"};
     const score::result::Error err{MakeError(Error::runtime_error_request_rejected, kUserMessage)};
@@ -75,7 +75,7 @@ TEST(Error, MakeErrorPreservesUserMessage) {
 }
 
 TEST(ServerConnectorError, MakeErrorMapsIdOutOfRange) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "boundary-values");
     const score::result::Error err{MakeError(Server_connector_error::logic_error_id_out_of_range)};
     EXPECT_EQ(*err, static_cast<int>(Server_connector_error::logic_error_id_out_of_range));
@@ -84,7 +84,7 @@ TEST(ServerConnectorError, MakeErrorMapsIdOutOfRange) {
 }
 
 TEST(ServerConnectorError, MakeErrorMapsNoClientSubscribedForEvent) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     const score::result::Error err{
         MakeError(Server_connector_error::runtime_error_no_client_subscribed_for_event)};
@@ -94,14 +94,14 @@ TEST(ServerConnectorError, MakeErrorMapsNoClientSubscribedForEvent) {
 }
 
 TEST(ServerConnectorError, MakeErrorFallsBackToUnknownMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(static_cast<Server_connector_error>(-1))};
     EXPECT_EQ(err.Message(), "Unknown Error");
 }
 
 TEST(ServerConnectorError, MakeErrorPreservesUserMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     constexpr std::string_view kUserMessage{"test user message"};
     const score::result::Error err{
@@ -110,7 +110,7 @@ TEST(ServerConnectorError, MakeErrorPreservesUserMessage) {
 }
 
 TEST(ConstructionError, MakeErrorMapsDuplicateService) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(Construction_error::duplicate_service)};
     EXPECT_EQ(*err, static_cast<int>(Construction_error::duplicate_service));
@@ -119,7 +119,7 @@ TEST(ConstructionError, MakeErrorMapsDuplicateService) {
 }
 
 TEST(ConstructionError, MakeErrorMapsDuplicateClient) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(Construction_error::duplicate_client)};
     EXPECT_EQ(*err, static_cast<int>(Construction_error::duplicate_client));
@@ -127,7 +127,7 @@ TEST(ConstructionError, MakeErrorMapsDuplicateClient) {
 }
 
 TEST(ConstructionError, MakeErrorMapsCallbackMissing) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(Construction_error::callback_missing)};
     EXPECT_EQ(*err, static_cast<int>(Construction_error::callback_missing));
@@ -135,14 +135,14 @@ TEST(ConstructionError, MakeErrorMapsCallbackMissing) {
 }
 
 TEST(ConstructionError, MakeErrorFallsBackToUnknownMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "error-guessing");
     const score::result::Error err{MakeError(static_cast<Construction_error>(-1))};
     EXPECT_EQ(err.Message(), "Unknown Error");
 }
 
 TEST(ConstructionError, MakeErrorPreservesUserMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     constexpr std::string_view kUserMessage{"test user message"};
     const score::result::Error err{MakeError(Construction_error::duplicate_client, kUserMessage)};

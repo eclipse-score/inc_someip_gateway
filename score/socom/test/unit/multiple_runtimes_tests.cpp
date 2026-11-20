@@ -52,28 +52,28 @@ constexpr std::string_view MultipleRuntimesTest::test_instance_id;
 
 TEST_F(MultipleRuntimesTest, StartingTwoServers) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server0{factory0};
     Server_data server1{factory1};
 }
 
 TEST_F(MultipleRuntimesTest, StartingTwoClients) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_data client0{factory0, Client_data::no_connect};
     Client_data client1{factory1, Client_data::no_connect};
 }
 
 TEST_F(MultipleRuntimesTest, ConnectingTwoTimesServerAndClient) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_server pair0{factory0};
     Client_server pair1{factory1};
 }
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndLastPairExchangesAnEvent) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_server pair0{factory0};
     Client_server pair1{factory1};
 
@@ -88,7 +88,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndLastPairExchan
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairExchangesAnEvent) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_server pair0{factory0};
     Client_server pair1{factory1};
 
@@ -103,7 +103,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairExcha
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreSendingEvents) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_server pair0{factory0};
     Client_server pair1{factory1};
 
@@ -124,7 +124,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreSendingEvents) {
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairHasAMethodCall) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
     auto const result0 = Method_result{Application_return{clone_payload(real_payload)}};
 
@@ -137,7 +137,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndFirstPairHasAM
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndSecondPairHasAMethodCall) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const method1 = Method_id{1};
     auto const result1 = Method_result{Application_return{clone_payload(real_payload)}};
 
@@ -150,7 +150,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAreCreatedAndSecondPairHasA
 
 TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAndBothHaveMethodCalls) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
     auto const result0 = Method_result{Application_return{clone_payload(real_payload)}};
 
@@ -169,7 +169,7 @@ TEST_F(MultipleRuntimesTest, MultipleServerAndClientsAndBothHaveMethodCalls) {
 
 TEST_F(MultipleRuntimesTest, BothRuntimesHaveSameInstanceIdAndConfigurationButAreStillSeparated) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const method0 = static_cast<Event_id>(factory0.get_num_methods() / 2);
     auto const result0 = Method_result{Application_return{clone_payload(real_payload)}};
     auto const result1 = Method_result{Application_return{clone_payload(more_payload)}};

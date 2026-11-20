@@ -37,14 +37,14 @@ constexpr int kDifferentElement{99};
 using TestContainer = Fixed_size_container<int, kContainerCapacity>;
 
 TEST(FixedSizeContainerTest, StaticMaxSizeMatchesTemplateParameter) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     static_assert(TestContainer::max_size == kContainerCapacity);
     EXPECT_EQ(TestContainer::max_size, kContainerCapacity);
 }
 
 TEST(FixedSizeContainerTest, ContainerWithZeroSizeReportsEmpty) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     TestContainer empty_container{};
     empty_container.size = kEmptySize;
@@ -55,7 +55,7 @@ TEST(FixedSizeContainerTest, ContainerWithZeroSizeReportsEmpty) {
 }
 
 TEST(FixedSizeContainerTest, CArrayConstructorCopiesElementsAndSetsSize) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     constexpr int kRawElements[] = {kFirstElement, kSecondElement};
     TestContainer const partial_container{kRawElements};
@@ -76,7 +76,7 @@ TEST(FixedSizeContainerTest, CArrayConstructorCopiesElementsAndSetsSize) {
 }
 
 TEST(FixedSizeContainerTest, InitializerListConstructorCopiesElementsAndMatchesArrayConstructed) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     constexpr int kRawElements[] = {kFirstElement, kSecondElement};
     TestContainer const from_array{kRawElements};
@@ -90,7 +90,7 @@ TEST(FixedSizeContainerTest, InitializerListConstructorCopiesElementsAndMatchesA
 }
 
 TEST(FixedSizeContainerTest, EqualityComparesSizeAndActiveElementsWhileIgnoringTrailingStorage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     TestContainer const baseline{kFirstElement, kSecondElement};
     TestContainer const identical{kFirstElement, kSecondElement};

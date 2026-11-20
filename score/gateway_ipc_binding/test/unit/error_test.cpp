@@ -41,7 +41,7 @@ constexpr std::array kKnownErrorCodes{
 };
 
 TEST(ErrorTest, KnownErrorCodesMapToExpectedMessagesAndDefaultEmptyUserMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const err : kKnownErrorCodes) {
         auto const code = MakeError(err);
@@ -53,7 +53,7 @@ TEST(ErrorTest, KnownErrorCodesMapToExpectedMessagesAndDefaultEmptyUserMessage) 
 }
 
 TEST(ErrorTest, MakeErrorPreservesCustomUserMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     constexpr auto err = Mw_com_binding_error::logic_error_invalid_instance_specifier;
     auto const code = MakeError(err, kCustomUserDetail);
@@ -62,7 +62,7 @@ TEST(ErrorTest, MakeErrorPreservesCustomUserMessage) {
 }
 
 TEST(ErrorTest, UnmappedErrorCodeReturnsUnknownErrorMessage) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const code =
         MakeError(static_cast<Mw_com_binding_error>(kUnmappedErrorCodeValue), kCustomUserDetail);

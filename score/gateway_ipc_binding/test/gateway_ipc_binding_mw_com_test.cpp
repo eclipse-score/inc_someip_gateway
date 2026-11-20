@@ -71,7 +71,7 @@ class Gateway_ipc_binding_mw_com_test : public ::testing::Test {
 
 TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_is_prefix_plus_payload) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Event_config const event{"an_event", Mw_com_event_id{1U}, 1024U};
 
     EXPECT_EQ(sample_size(event), kSample_prefix_size + 1024U);
@@ -87,7 +87,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_of_an_empty_event_is_the_pre
 
 TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_is_a_multiple_of_the_sample_alignment) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     // A mw::com DataTypeMetaInfo::size must be an integer multiple of its alignment, so an odd
     // payload size is rounded up rather than rejected.
     Event_config const event{"an_event", Mw_com_event_id{1U}, 1U};
@@ -98,7 +98,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, sample_size_is_a_multiple_of_the_sample_
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_server_succeeds) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const server =
         create_server(*m_server_runtime, kSomeipd_specifier_second_pair, accept_without_services);
 
@@ -115,7 +115,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, create_server_without_instance_specifier
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_client_succeeds_before_the_server_exists) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier_second_pair);
 
     ASSERT_NE(client, nullptr);
@@ -157,7 +157,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, starting_the_server_twice_fails) {
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_once_the_server_is_started) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const server =
         create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
@@ -173,7 +173,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_once_the_server
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server_started_first) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const server =
         create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
@@ -187,7 +187,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_disconnected_when_the_server_goes_away) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto server = create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
@@ -203,7 +203,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_disconnected_when_the_ser
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reconnects_when_the_server_comes_back) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier);
     ASSERT_NE(client, nullptr);
 
@@ -251,7 +251,7 @@ bool is_deployed(std::string const& instance_specifier) {
 
 TEST_F(Gateway_ipc_binding_mw_com_test, the_server_adds_the_bridged_services_of_a_call_to_mw_com) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     ASSERT_FALSE(is_deployed("bridged_ipc/added_by_the_server"));
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
@@ -272,7 +272,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, the_server_adds_the_bridged_services_of_
 
 TEST_F(Gateway_ipc_binding_mw_com_test, create_client_adds_its_bridged_services_to_mw_com) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     ASSERT_FALSE(is_deployed("bridged_ipc/added_by_the_client"));
 
     auto const client = create_client(
@@ -379,7 +379,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, an_event_missing_from_a_listed_deploymen
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_service_is_offered_before_the_bridged_services) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const server = create_server(
         *m_server_runtime, kSomeipd_specifier,
         [](score::cpp::span<std::byte const>, Add_bridged_services const& add_bridged_services) {
@@ -501,7 +501,7 @@ class Bridged_offer_watcher {
 TEST_F(Gateway_ipc_binding_mw_com_test,
        add_service_configuration_takes_exactly_one_size_per_provider_event) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     // The providers only offer while the network side's SOCom service is available.
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
@@ -568,7 +568,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 TEST_F(Gateway_ipc_binding_mw_com_test,
        gatewayd_sends_its_configuration_again_when_someipd_restarts) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // Belongs to the someipd runtime, which outlives both someipd instances.
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
@@ -610,7 +610,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_the_services_when_gatewayd_restarts) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     std::atomic<int> handler_calls{0};
     auto server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
@@ -667,7 +667,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_the_services_when_gatewayd
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_offers_the_services_of_two_gatewayds) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     // SOCom allows one client per service instance and runtime.
     socom::Service_instance const second_instance{std::string_view{"2"}};
     Server_connector_with_callbacks first_network{*m_server_runtime, kBridged_definition,

@@ -51,7 +51,7 @@ class ServerConnectorTest : public SingleConnectionTest {
 
 TEST_F(ServerConnectorTest, ConstructDestruct) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto scd = connector_factory.create_server_connector_with_result(callbacks);
 
     StaticAssertTypeEq<decltype(scd), Result<Disabled_server_connector::Uptr>>();
@@ -60,7 +60,7 @@ TEST_F(ServerConnectorTest, ConstructDestruct) {
 
 TEST_F(ServerConnectorTest, ConfigurationAndInstanceIsAsExpected) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Disabled_server_connector::Uptr scd{connector_factory.create_server_connector(callbacks)};
 
     auto const& service_cfg_disabled = scd->get_configuration();
@@ -96,7 +96,7 @@ TEST_F(ServerConnectorTest, ConfigurationAndInstanceIsAsExpected) {
 
 TEST_F(ServerConnectorTest, DisabledServerConnectorMoveConstructorWorks) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Disabled_server_connector::Uptr from{connector_factory.create_server_connector(callbacks)};
     Disabled_server_connector::Uptr to{std::move(from)};
 
@@ -106,7 +106,7 @@ TEST_F(ServerConnectorTest, DisabledServerConnectorMoveConstructorWorks) {
 
 TEST_F(ServerConnectorTest, DisabledServerConnectorMoveAssignmentWorks) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Disabled_server_connector::Uptr from{connector_factory.create_server_connector(callbacks)};
     Disabled_server_connector::Uptr to{nullptr};
     to = std::move(from);
@@ -117,7 +117,7 @@ TEST_F(ServerConnectorTest, DisabledServerConnectorMoveAssignmentWorks) {
 
 TEST_F(ServerConnectorTest, Enable) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto scd = connector_factory.create_server_connector(callbacks);
 
     auto sce = Disabled_server_connector::enable(std::move(scd));
@@ -304,7 +304,7 @@ class ServerConnectorGetEventModeTest : public SingleConnectionTest {
 
 TEST_F(ServerConnectorGetEventModeTest, SubscribedClientReturnsUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const sub = client0.create_event_subscription(event_id);
 
     wait_for_atomics(wait_subscribed);
@@ -314,7 +314,7 @@ TEST_F(ServerConnectorGetEventModeTest, SubscribedClientReturnsUpdate) {
 
 TEST_F(ServerConnectorGetEventModeTest, SubscribedClientReturnsUpdateAndInitialValue) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const sub = client0.create_event_subscription(
         server, event_id, Temporary_event_subscription::Brokenness::no_server_reponse);
 

@@ -44,7 +44,7 @@ class ServiceBindingTest : public IpcBindingTestFixture {};
 
 // Preserves the exact instance specifier string when parsing succeeds.
 TEST_F(ServiceBindingTest, MakeInstanceSpecifierAcceptsValidSpecifier) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
     ASSERT_TRUE(valid.has_value());
@@ -80,7 +80,7 @@ TEST_F(ServiceBindingTest, CheckInstanceIsDeployedRejectsUndeployedSpecifier) {
 
 // Succeeds when ResolveInstanceIDs() returns at least one InstanceIdentifier.
 TEST_F(ServiceBindingTest, CheckInstanceIsDeployedAcceptsDeployedSpecifier) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
     ASSERT_TRUE(valid.has_value());
@@ -91,7 +91,7 @@ TEST_F(ServiceBindingTest, CheckInstanceIsDeployedAcceptsDeployedSpecifier) {
 
 // Accepts a complete Service_config that satisfies all identifier, event, and sample limits.
 TEST_F(ServiceBindingTest, ValidateAcceptsValidServiceConfig) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const valid_cfg = MakeServiceConfig();
     EXPECT_TRUE(validate(valid_cfg).has_value());
@@ -250,7 +250,7 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsMalformedBridgedInstanceSpeci
 // Skips AddConfiguration() when the service is already in mw_com_config.json because re-adding a
 // deployed service aborts LoLa.
 TEST_F(ServiceBindingTest, AddToMwComRuntimeSucceedsWhenServiceAlreadyDeployed) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const valid_cfg = MakeServiceConfig();
     EXPECT_TRUE(add_to_mw_com_runtime({valid_cfg}).has_value());
@@ -293,7 +293,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedProvider) {
 
 // Role is named from mw::com's perspective, so Role::consumer creates a SOCom Server_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     (void)ExpectServerConnectorCreated();
 
@@ -304,7 +304,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
 
 // Role::provider creates a LoLa GenericSkeleton and a SOCom Client_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingCreatesProviderBinding) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const cfg = MakeServiceConfig(Role::provider);
     auto const mocks = ExpectSkeletonWithEvent(kEvent0);

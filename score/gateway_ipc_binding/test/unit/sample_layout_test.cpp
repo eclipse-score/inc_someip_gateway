@@ -37,7 +37,7 @@ constexpr std::byte kNonZeroFillByte{0xFFU};
 constexpr std::byte kExpectedReservedByte{0x00U};
 
 TEST(SampleLayoutTest, ZeroPayloadSampleSizeEqualsPrefixSize) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     Event_config const zero_event{"zero", kZeroEventId, kZeroPayloadSize};
     EXPECT_EQ(sample_size(zero_event), kSample_prefix_size);
@@ -45,7 +45,7 @@ TEST(SampleLayoutTest, ZeroPayloadSampleSizeEqualsPrefixSize) {
 }
 
 TEST(SampleLayoutTest, UnalignedPayloadSampleSizeRoundsUpToAlignment) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     Event_config const unaligned_event{"unaligned", kUnalignedEventId, kUnalignedPayloadSize};
     EXPECT_EQ(addressed_sample_size(unaligned_event), kExpectedUnalignedAddressedSize);
@@ -53,7 +53,7 @@ TEST(SampleLayoutTest, UnalignedPayloadSampleSizeRoundsUpToAlignment) {
 }
 
 TEST(SampleLayoutTest, SampleMetaInfoUsesAlignedSampleSizeAndAlignment) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     Event_config const unaligned_event{"unaligned", kUnalignedEventId, kUnalignedPayloadSize};
     auto const meta = sample_meta_info(unaligned_event);

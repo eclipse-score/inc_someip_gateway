@@ -29,7 +29,7 @@ using EventTest = SingleConnectionTest;
 
 TEST(Event_test, data_types) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     EXPECT_TRUE((std::is_same_v<Event_id, std::uint16_t>));
 
     EXPECT_EQ(std::is_enum_v<Event_mode>, true);
@@ -43,7 +43,7 @@ TEST(Event_test, data_types) {
 
 TEST_F(EventTest, FirstEventSubscriptionCallsOnEventSubscriptionChange) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -86,7 +86,7 @@ TEST_F(EventTest, ServerSendsEventWhichIsReceivedBySubscribedClient) {
 
 TEST_F(EventTest, ClientRequestsEventUpdateAndReceivesEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -100,7 +100,7 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndReceivesEventUpdate) {
 
 TEST_F(EventTest, ClientRequestsEventUpdateAndServerRespondsWithUpdateRequestedEvent) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -122,7 +122,7 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndServerRespondsWithUpdateRequestedE
 
 TEST_F(EventTest, ClientRequestsEventUpdateAndServerConnectorRespondsWithUpdateEvent) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_connector_callbacks_mock callbacks;
     Enabled_server_connector::Uptr server = connector_factory.create_and_enable(callbacks);
     Client_data client{connector_factory};
@@ -148,7 +148,7 @@ TEST_F(EventTest, ClientRequestsEventUpdateAndServerConnectorRespondsWithUpdateE
 
 TEST_F(EventTest, ClientRequestsEventUpdateWithDataAndReceivesEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     server.expect_event_subscription(event_id);
     Client_data client0{connector_factory};
@@ -180,7 +180,7 @@ TEST_F(EventTest, ServerUpdatesRequestedEventWithoutRequestAndClientReceivesNoUp
 
 TEST_F(EventTest, ClientRequestsManyEventUpdatesAndReceivesEventUpdates) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -201,7 +201,7 @@ TEST_F(EventTest, ClientRequestsManyEventUpdatesAndReceivesEventUpdates) {
 TEST_F(EventTest,
        ClientRequestsManyEventUpdatesWhichAreCachedByTheMiddlewareAndClientReceivesOneEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -225,7 +225,7 @@ TEST_F(EventTest,
 
 TEST_F(EventTest, ClientSubscribesEventWithUpdateAndInitialValue) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -236,7 +236,7 @@ TEST_F(EventTest, ClientSubscribesEventWithUpdateAndInitialValue) {
 
 TEST_F(EventTest, ClientSubscribesEventWithUpdateAndInitialValueFollowedByRequestEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -249,7 +249,7 @@ TEST_F(EventTest, ClientSubscribesEventWithUpdateAndInitialValueFollowedByReques
 
 TEST_F(EventTest, MiddlewareCachesEventUpdateRequestsUntilServerAnswers) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -291,7 +291,7 @@ TEST_F(EventTest,
 
 TEST_F(EventTest, AllocateEventPayloadWithSubscribedClientReturnsPayload) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 

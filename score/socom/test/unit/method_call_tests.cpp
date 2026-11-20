@@ -90,7 +90,7 @@ class MethodCallTest : public SingleConnectionTest, public WithParamInterface<In
 
 TEST_P(MethodCallTest, ClientSendsFireAndForgetMethodCallToServer) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const& call_received =
         server.expect_and_respond_method_calls(1, method_id, input_data(), input_result);
 
@@ -100,7 +100,7 @@ TEST_P(MethodCallTest, ClientSendsFireAndForgetMethodCallToServer) {
 
 TEST_P(MethodCallTest, ClientCallsMethodAndReceivesResponseFromServer) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     server.expect_and_respond_method_calls(1, method_id, input_data(), input_result);
     client.expect_and_call_method(method_id, input_data(), expected_result);
 }
@@ -139,7 +139,7 @@ TEST_F(AllocateMethodPayloadTest,
 
 TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturnsPayload) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 
@@ -157,7 +157,7 @@ TEST_F(AllocateMethodPayloadTest, AllocateMethodPayloadWithConnectedServerReturn
 
 TEST_F(AllocateMethodPayloadTest, ServerReceivesReplyPayloadAndRespondsToMethodCall) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client{connector_factory};
 

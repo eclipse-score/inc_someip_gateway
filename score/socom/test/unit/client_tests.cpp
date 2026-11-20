@@ -451,7 +451,7 @@ TEST_P(ConnectedClientConnectorTest, CallMethodWithoutReply) {
 
 TEST_P(ConnectedClientConnectorTest, CallMethodWithReply) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const& input : GetParam().test_method_ids) {
         auto reply_future =
             server.expect_and_return_method_call(input.server_id, test_values::real_payload);
@@ -469,7 +469,7 @@ TEST_P(ConnectedClientConnectorTest, CallMethodWithReply) {
 
 TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     if (GetParam().test_method_ids.empty()) {
         return;
     }
@@ -490,7 +490,7 @@ TEST_P(ConnectedClientConnectorTest, DestroyClientConnectorPendingMethod) {
 
 TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto const& wait_subscribed =
             server.expect_on_event_subscription_change(input.server_id, Event_state::subscribed);
@@ -504,7 +504,7 @@ TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
 
 TEST_P(ConnectedClientConnectorTest, ClientWithEventSubscriptionUnsubscribes) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         auto const& wait_subscribed =
             server.expect_on_event_subscription_change(input.server_id, Event_state::subscribed);
@@ -522,7 +522,7 @@ TEST_P(ConnectedClientConnectorTest, ClientWithEventSubscriptionUnsubscribes) {
 
 TEST_P(ConnectedClientConnectorTest, UnsubscribeEvent) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     for (auto const& input : GetParam().test_event_ids) {
         auto subscription = create_event_subscription(input);
 
@@ -536,7 +536,7 @@ TEST_P(ConnectedClientConnectorTest, UnsubscribeEvent) {
 
 TEST_P(ConnectedClientConnectorTest, RequestEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto subscription = create_event_subscription(input);
 
@@ -551,7 +551,7 @@ TEST_P(ConnectedClientConnectorTest, RequestEventUpdate) {
 
 TEST_P(ConnectedClientConnectorTest, OnEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         server.update_event(input.server_id, test_values::real_payload);
 
@@ -571,7 +571,7 @@ TEST_P(ConnectedClientConnectorTest, OnEventUpdate) {
 
 TEST_P(ConnectedClientConnectorTest, OnRequestedEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         server.update_event(input.server_id, test_values::real_payload);
 
@@ -604,7 +604,7 @@ class ClientConnectorTest : public SingleConnectionTest {
 
 TEST_F(ClientConnectorTest, ConfigurationAndInstanceIsAsExpected) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_connector_callbacks_mock callbacks;
     Client_connector::Uptr cc{connector_factory.create_client_connector(callbacks)};
 
@@ -631,7 +631,7 @@ TEST_F(ClientConnectorTest, ConfigurationAndInstanceIsAsExpected) {
 
 TEST_F(ClientConnectorTest, ServiceStateIsRetrievable) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_connector_callbacks_mock callbacks;
     Client_connector::Uptr cc{connector_factory.create_client_connector(callbacks)};
 
@@ -648,7 +648,7 @@ TEST_F(ClientConnectorTest, ServiceStateIsRetrievable) {
 
 TEST_F(ClientConnectorTest, RetrieveServerConnectorConfig) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Client_data client0{connector_factory, Client_data::no_connect};
 
     auto const& available = client0.expect_service_state_change(
@@ -754,7 +754,7 @@ TEST_F(ClientConnectorTest, SmallerServiceInterfaceMinorVersion) {
 
 TEST_F(ClientConnectorTest, OnStateChangeDoMethodCall) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     std::atomic_bool available{false};
     std::atomic_bool method_call{false};
 
@@ -782,7 +782,7 @@ TEST_F(ClientConnectorTest, OnStateChangeDoMethodCall) {
 
 TEST_F(ClientConnectorTest, OnStateChangeRequestEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     std::atomic<bool> available{false};
     std::atomic<bool> event_update_request{false};
 
@@ -847,7 +847,7 @@ using ClientConnectorUnsubscribeTest = ClientConnectorDeathTest;
 
 TEST_F(ClientConnectorUnsubscribeTest, ClientUnsubscribesInEventCallbackSuccessfully) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     EXPECT_CALL(cc_callbacks, on_event_update(_, _, _)).WillOnce([this]() {
         EXPECT_TRUE(client0->unsubscribe_event(event_id));
     });

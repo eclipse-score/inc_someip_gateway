@@ -27,7 +27,7 @@ namespace score::socom {
 
 TEST(RuntimeFactoryTest, DefaultConstructorWorks) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Runtime::Uptr const rt = create_runtime();
     EXPECT_NE(nullptr, rt);
 }
@@ -85,7 +85,7 @@ TEST_F(RuntimeTest, ConstructDuplicateMultipleTimesReturnsDuplicateServiceError)
 
 TEST_F(RuntimeTest, CreatingServerConnectorDeletingItAndRecreatingReturnsValidServerConnector) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_connector_callbacks_mock callbacks;
     {
         auto const scd = connector_factory.create_server_connector_with_result(callbacks);

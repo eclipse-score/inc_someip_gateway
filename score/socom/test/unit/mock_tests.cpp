@@ -21,19 +21,19 @@
 namespace score::socom {
 
 TEST(mock_test, runtime_mock) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     Runtime_mock runtime;
 }
 
 TEST(mock_test, client_connector_mock) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     Client_connector_mock client_connector;
 }
 
 TEST(mock_test, server_connector_mock) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     Server_connector_mock server_connector;
 }

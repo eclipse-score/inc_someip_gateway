@@ -293,7 +293,7 @@ TEST_F(LocalServiceInstanceTest,
 // Skips configured events missing from GenericProxy::GetEvents() or missing a registered
 // serializer without failing service creation.
 TEST_F(LocalServiceInstanceTest, CreateSkipsMissingIpcEventAndUnconfiguredSerializerEvent) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const cfg = BuildConfig({
         EventSpec{kEventMissingInIpc, kEventMissingInIpcId, kMaxMessageSize},
@@ -340,7 +340,7 @@ TEST_F(LocalServiceInstanceTest, CreateLogsErrorsWhenSetReceiveHandlerAndSubscri
 // calls and ignore event subscription or update-request callbacks.
 TEST_F(LocalServiceInstanceTest,
        DefaultServerConnectorCallbacksRejectMethodCallsAndIgnoreEventNotifications) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto* const event_mock = ExpectProxyWithEvent(kEventSerialized);
     EXPECT_CALL(*event_mock, SetReceiveHandler(_)).WillOnce(Return(score::Result<void>{}));

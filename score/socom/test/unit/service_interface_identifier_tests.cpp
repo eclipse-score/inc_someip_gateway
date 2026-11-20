@@ -48,14 +48,14 @@ using score::utils::string_registry::LiteralTag;
 using score::utils::string_registry::StringRegistry;
 
 TEST_F(ServiceInterfaceIdentifierTest, ConfigurationEqual) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "equivalence-classes");
     ASSERT_TRUE(interface_config_1 == interface_config_1);
     ASSERT_FALSE(interface_config_1 == interface_config_2);
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, LiteratorConstructorUsesStringView) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     StringRegistry registry;
     auto const registry_string_view = registry.Insert(service_interface_id).first;
@@ -67,7 +67,7 @@ TEST_F(ServiceInterfaceIdentifierTest, LiteratorConstructorUsesStringView) {
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringConstructorUsesStringView) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const interface =
         Service_interface_identifier{std::string(service_interface_id), service_interface_version};
@@ -79,7 +79,7 @@ TEST_F(ServiceInterfaceIdentifierTest, StringConstructorUsesStringView) {
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringViewConstructorUsesStringView) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const interface =
         Service_interface_identifier{service_interface_id, service_interface_version};
@@ -91,7 +91,7 @@ TEST_F(ServiceInterfaceIdentifierTest, StringViewConstructorUsesStringView) {
 }
 
 TEST_F(ServiceInterfaceIdentifierTest, StringViewLiteralConstructorUsesStringView) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const interface =
         Service_interface_identifier{service_interface_id, LiteralTag{}, service_interface_version};
@@ -122,7 +122,7 @@ class ServiceInstanceTest : public Test {
 constexpr std::string_view ServiceInstanceTest::id_string;
 
 TEST_F(ServiceInstanceTest, LiteratorConstructorUsesStringView) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     StringRegistry registry;
     auto const registry_string_view = registry.Insert(id_string).first;
@@ -133,7 +133,7 @@ TEST_F(ServiceInstanceTest, LiteratorConstructorUsesStringView) {
 }
 
 TEST_F(ServiceInstanceTest, StringConstructorAddsStringToRegistry) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const instance = Service_instance{std::string(id_string)};
     EXPECT_EQ(instance.id.StringView(), id_string);
@@ -144,7 +144,7 @@ TEST_F(ServiceInstanceTest, StringConstructorAddsStringToRegistry) {
 }
 
 TEST_F(ServiceInstanceTest, StringViewConstructorAddsStringToRegistry) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const instance = Service_instance{id_string};
     EXPECT_EQ(instance.id.StringView(), id_string);
@@ -155,7 +155,7 @@ TEST_F(ServiceInstanceTest, StringViewConstructorAddsStringToRegistry) {
 }
 
 TEST_F(ServiceInstanceTest, StringViewLiteralConstructorAddsStringToRegistry) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto const instance = Service_instance{id_string, LiteralTag{}};
     EXPECT_EQ(instance.id.StringView(), id_string);

@@ -172,7 +172,7 @@ class SomeipdServiceBindingTest : public IpcBindingTestFixture {
 // C++17 requires a hand-written operator==; verifies service_id, event_id, and max_payload_size
 // are all compared.
 TEST(BridgedEventSizeTest, EqualityComparesAllFields) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     constexpr Bridged_event_size kBaseline{kSampleServiceId, kSampleEventId, kSampleMaxPayloadSize};
     constexpr Bridged_event_size kIdentical{kSampleServiceId, kSampleEventId,
@@ -328,7 +328,7 @@ TEST_F(SomeipdServiceBindingTest, ServerRejectsMismatchedAndUnknownProviderEvent
 // Returns true without creating duplicate bindings when a restarted gatewayd sends the same
 // configuration again.
 TEST_F(SomeipdServiceBindingTest, ServerAcceptsValidConsumerConfigAndShortCircuitsDuplicate) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     ExpectSomeipdSkeletonOfferSuccess();
 
@@ -414,7 +414,7 @@ TEST_F(SomeipdServiceBindingTest,
 // again when SomeipdService stops offering.
 TEST_F(SomeipdServiceBindingTest,
        ClientConnectionStateTracksSomeipdDiscoveryAndConfigurationReply) {
-    RecordProperty("TestType", "requirements-based");
+    RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "design-analysis");
     auto client = CreateTestClient();
     ASSERT_NE(client, nullptr);

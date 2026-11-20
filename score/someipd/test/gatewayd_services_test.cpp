@@ -124,7 +124,7 @@ TEST_F(GatewaydServicesTest, RejectsAServiceTypeWithoutEvents) {
 
 TEST_F(GatewaydServicesTest, AddsTheServicesOfTwoGatewayds) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     GatewaydServices services{routing(), *runtime_};
     auto const first = gateway_config({{"two_first", 0x1001U, true, 1U}});
     auto const second = gateway_config({{"two_second", 0x1002U, false, 1U}});
@@ -210,7 +210,7 @@ TEST_F(GatewaydServicesTest, AddsNothingWhenANetworkServiceFails) {
 
 TEST_F(GatewaydServicesTest, AddsAServiceTypeWithMultipleLocalInstances) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     GatewaydServices services{routing(), *runtime_};
     flatbuffers::FlatBufferBuilder builder;
     std::vector<flatbuffers::Offset<mw_someip_config::Event>> events{

@@ -43,6 +43,8 @@ class Provider_teardown_death_test : public Gateway_ipc_binding_unconnected_inte
 };
 
 TEST_F(Provider_teardown_death_test, provider_teardown_aborts_with_an_outstanding_event_payload) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
 #if defined(__QNX__)
     GTEST_SKIP()
         << "This death test aborts the entire test application on QNX and is therefore excluded.";
@@ -78,7 +80,7 @@ TEST_F(Provider_teardown_death_test, provider_teardown_aborts_with_an_outstandin
 
 TEST_F(Gateway_ipc_binding_unconnected_integration_test, connect) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     // This test verifies that a client connects to the server.
     auto start_result = server->start();
     ASSERT_TRUE(start_result);
@@ -164,7 +166,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_subs
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_allocates_event_payload) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     auto payload_handle = server->connector->allocate_event_payload(event_id);
@@ -187,7 +189,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        exhausted_event_payload_slots_return_error) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::vector<std::optional<socom::Writable_payload>> payload_handles;
@@ -238,7 +240,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_send
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_sends_event_update_with_shrunk_payload) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
@@ -273,7 +275,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_keeps_event_payloads_until_server_receives_consumed_notification) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "design-analysis");
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     std::vector<socom::Payload> payload_handles;
@@ -318,7 +320,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // misuse Event subscription notification to detect client disconnect
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
@@ -338,7 +340,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disc
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_disconnects_and_reconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // misuse Event subscription notification to detect client disconnect
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
@@ -376,7 +378,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_disconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     server->connector.reset();
     EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
@@ -385,7 +387,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_disc
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_disconnects_while_client_is_subscribed) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     // With a live subscription, tearing the offer down cannot fully release the underlying
     // binding: something on the other side still references the subscribed event.
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
@@ -399,7 +401,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_disconnects_and_reconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "requirements-analysis");
+    RecordProperty("DerivationTechnique", "error-guessing");
     server->connector.reset();
     EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
