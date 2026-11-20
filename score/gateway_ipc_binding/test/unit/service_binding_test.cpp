@@ -18,241 +18,431 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #include "score/gateway_ipc_binding/error.hpp"
 #include "score/gateway_ipc_binding/gateway_ipc_binding_mw_com.hpp"
 #include "score/gateway_ipc_binding/impl/sample_layout.hpp"
 #include "score/gateway_ipc_binding/test/unit/ipc_binding_test_fixture.hpp"
 #include "score/memory/data_type_size_info.h"
+#include "score/mw/com/impl/find_service_handle.h"
+#include "score/mw/com/impl/instance_identifier.h"
+#include "score/mw/com/impl/instance_specifier.h"
 
 namespace score::gateway_ipc_binding::mw_com {
 namespace {
 
+using ::testing::_;
+using ::testing::An;
 using ::testing::Return;
 
-constexpr std::string_view kMissingPrefixSpecifier{"not_bridged/service"};
-constexpr std::string_view kInvalidPrefixedSpecifier{"bridged_//invalid_spec"};
-constexpr std::string_view kSecondBridgedSpecifier{"bridged_ipc/second"};
-constexpr std::string_view kSecondEventName{"ev1"};
-constexpr std::uint16_t kSecondEventId{2U};
-constexpr std::size_t kSecondEventMaxPayload{8U};
-constexpr std::size_t kZeroMaxSampleCount{0U};
+constexpr std::size_t kZeroPayloadSize{0U};
+constexpr std::size_t kOverMaxPayloadSize{kMax_payload_length + 1U};
+constexpr std::size_t kZeroSampleCount{0U};
+constexpr std::size_t kMinConsumerSampleCount{1U};
+constexpr std::size_t kMaxValidSampleCount{kNumber_of_sample_slots};
+constexpr std::size_t kOverMaxSampleCount{kNumber_of_sample_slots + 1U};
+constexpr std::size_t kExpectedEvent0SampleSize{24U};
+constexpr std::size_t kExpectedValidConfigCaseCount{5U};
+constexpr std::size_t kExpectedInvalidConfigCaseCount{14U};
+constexpr std::size_t kSingleResolvedInstanceCount{1U};
+constexpr std::size_t kTwoDeployedEvents{2U};
+constexpr std::uint32_t kExpectedShmMajorVersion{1U};
+constexpr std::uint32_t kExpectedShmMinorVersion{0U};
+constexpr std::uint8_t kExpectedShmMaxSubscribers{1U};
+constexpr std::uint16_t kCustomInstanceId{0xFFFFU};
+constexpr std::uint16_t kFirstArbitraryEventId{0x1234U};
+constexpr std::uint16_t kSecondArbitraryEventId{0x5678U};
+constexpr std::uint32_t kDummyFindHandleUid{7U};
 
-class ServiceBindingTest : public IpcBindingTestFixture {};
+struct ServiceConfigCase {
+    std::string_view description;
+    Service_config config;
+};
 
-// Preserves the exact instance specifier string when parsing succeeds.
-TEST_F(ServiceBindingTest, MakeInstanceSpecifierAcceptsValidSpecifier) {
-    auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
-    ASSERT_TRUE(valid.has_value());
-    EXPECT_EQ(valid->ToString(), kValidBridgedSpecifier);
+Service_config MakeCustomConfig(std::string_view const specifier, Role const role,
+                                std::vector<Event_config> events,
+                                std::size_t const max_sample_count,
+                                std::uint16_t const service_id = kDefaultServiceId,
+                                std::uint16_t const instance_id = kDefaultInstanceId) {
+    auto cfg = MakeMultiEventServiceConfig(role, std::move(events), specifier, service_id,
+                                           max_sample_count);
+    cfg.instance_id = instance_id;
+    return cfg;
 }
 
-// Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a generic setup
-// error.
-TEST_F(ServiceBindingTest, MakeInstanceSpecifierRejectsInvalidSpecifier) {
-    auto const invalid = make_instance_specifier(std::string{kInvalidSpecifier});
-    ASSERT_FALSE(invalid.has_value());
-    EXPECT_EQ(invalid.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
+Service_config MakeSingleEventConfig(std::string_view const specifier, Role const role,
+                                     std::size_t const max_sample_count,
+                                     std::size_t const max_payload_size = kEvent0MaxPayload,
+                                     std::uint16_t const service_id = kDefaultServiceId,
+                                     std::uint16_t const instance_id = kDefaultInstanceId) {
+    return MakeCustomConfig(
+        specifier, role,
+        {Event_config{std::string{kEvent0}, Mw_com_event_id{kEvent0Id}, max_payload_size}},
+        max_sample_count, service_id, instance_id);
 }
 
-// Fails immediately when the specifier is missing from mw_com_config.json instead of letting LoLa
-// StartFindService() wait indefinitely.
-TEST_F(ServiceBindingTest, CheckInstanceIsDeployedRejectsUndeployedSpecifier) {
-    auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
-    ASSERT_TRUE(valid.has_value());
-
-    StubInstanceNotResolved();
-    auto const not_deployed =
-        check_instance_is_deployed(*valid, std::string{kValidBridgedSpecifier});
-    ASSERT_FALSE(not_deployed.has_value());
-    EXPECT_EQ(not_deployed.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
+Service_config MakeTwoEventConsumerConfig(Event_config first_event, Event_config second_event) {
+    return MakeCustomConfig(kValidBridgedSpecifier, Role::consumer,
+                            {std::move(first_event), std::move(second_event)},
+                            kMinConsumerSampleCount);
 }
 
-// Succeeds when ResolveInstanceIDs() returns at least one InstanceIdentifier.
-TEST_F(ServiceBindingTest, CheckInstanceIsDeployedAcceptsDeployedSpecifier) {
-    auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
-    ASSERT_TRUE(valid.has_value());
+void AssertLolaShmTwoEventDeployment(score::mw::com::impl::InstanceIdentifier const& resolved_id,
+                                     std::string const& expected_specifier,
+                                     std::uint16_t const expected_service_id,
+                                     std::uint16_t const expected_instance_id) {
+    score::mw::com::impl::InstanceIdentifierView const view{resolved_id};
+    auto const& instance_dep = view.GetServiceInstanceDeployment();
+    EXPECT_EQ(instance_dep.asilLevel_, score::mw::com::impl::QualityType::kASIL_QM);
+    EXPECT_EQ(instance_dep.instance_specifier_.ToString(), expected_specifier);
+    EXPECT_EQ(instance_dep.service_,
+              score::mw::com::impl::make_ServiceIdentifierType(
+                  expected_specifier, kExpectedShmMajorVersion, kExpectedShmMinorVersion));
 
-    auto const deployed = check_instance_is_deployed(*valid, std::string{kValidBridgedSpecifier});
-    EXPECT_TRUE(deployed.has_value());
+    auto const* const lola_inst_dep =
+        std::get_if<score::mw::com::impl::LolaServiceInstanceDeployment>(
+            &instance_dep.bindingInfo_);
+    ASSERT_NE(lola_inst_dep, nullptr);
+    ASSERT_TRUE(lola_inst_dep->instance_id_.has_value());
+    EXPECT_EQ(lola_inst_dep->instance_id_->GetId(), expected_instance_id);
+    ASSERT_EQ(lola_inst_dep->events_.size(), kTwoDeployedEvents);
+    ASSERT_NE(lola_inst_dep->events_.find(std::string{kEvent0}), lola_inst_dep->events_.end());
+    ASSERT_NE(lola_inst_dep->events_.find(std::string{kEvent1}), lola_inst_dep->events_.end());
+    EXPECT_EQ(lola_inst_dep->events_.at(std::string{kEvent0}).GetNumberOfSampleSlots(),
+              kNumber_of_sample_slots);
+    EXPECT_EQ(lola_inst_dep->events_.at(std::string{kEvent0}).max_subscribers_,
+              kExpectedShmMaxSubscribers);
+    EXPECT_EQ(lola_inst_dep->events_.at(std::string{kEvent1}).GetNumberOfSampleSlots(),
+              kNumber_of_sample_slots);
+    EXPECT_EQ(lola_inst_dep->events_.at(std::string{kEvent1}).max_subscribers_,
+              kExpectedShmMaxSubscribers);
+
+    auto const& type_dep = view.GetServiceTypeDeployment();
+    auto const* const lola_type_dep =
+        std::get_if<score::mw::com::impl::LolaServiceTypeDeployment>(&type_dep.binding_info_);
+    ASSERT_NE(lola_type_dep, nullptr);
+    EXPECT_EQ(lola_type_dep->service_id_, expected_service_id);
+    ASSERT_EQ(lola_type_dep->events_.size(), kTwoDeployedEvents);
+    EXPECT_EQ(lola_type_dep->events_.at(std::string{kEvent0}), kFirstArbitraryEventId);
+    EXPECT_EQ(lola_type_dep->events_.at(std::string{kEvent1}), kSecondArbitraryEventId);
 }
 
-// Accepts a complete Service_config that satisfies all identifier, event, and sample limits.
-TEST_F(ServiceBindingTest, ValidateAcceptsValidServiceConfig) {
-    auto const valid_cfg = MakeServiceConfig();
-    EXPECT_TRUE(validate(valid_cfg).has_value());
+using ServiceBindingTest = IpcBindingTestFixture;
+
+TEST_F(ServiceBindingTest, AcceptsValidServiceConfigBoundaries) {
+    std::vector<ServiceConfigCase> const valid_cases{
+        {
+            "consumer_min_sample_count_and_zero_payload",
+            MakeSingleEventConfig(kValidBridgedSpecifier, Role::consumer, kMinConsumerSampleCount,
+                                  kZeroPayloadSize),
+        },
+        {
+            "consumer_max_sample_count_and_max_payload_length",
+            MakeSingleEventConfig(kValidBridgedSpecifier, Role::consumer, kMaxValidSampleCount,
+                                  kMax_payload_length),
+        },
+        {
+            "provider_zero_sample_count_allowed",
+            MakeSingleEventConfig(kValidBridgedSpecifier, Role::provider, kZeroSampleCount),
+        },
+        {
+            "provider_max_sample_count_and_multiple_distinct_events",
+            MakeCustomConfig("bridged_x", Role::provider,
+                             {
+                                 Event_config{std::string{kEvent0}, Mw_com_event_id{kEvent0Id},
+                                              kZeroPayloadSize},
+                                 Event_config{std::string{kEvent1}, Mw_com_event_id{kEvent1Id},
+                                              kMax_payload_length},
+                             },
+                             kMaxValidSampleCount),
+        },
+        {
+            "exact_eight_byte_bridged_prefix_passes_validation",
+            MakeSingleEventConfig("bridged_", Role::consumer, kMinConsumerSampleCount),
+        },
+    };
+
+    ASSERT_EQ(valid_cases.size(), kExpectedValidConfigCaseCount);
+    for (auto const& test_case : valid_cases) {
+        SCOPED_TRACE(test_case.description);
+        auto const result = validate(test_case.config);
+        EXPECT_TRUE(result.has_value());
+    }
 }
 
-// Requires the "bridged_" prefix so gateway specifiers remain distinct from application specifiers
-// in mw::com.
-TEST_F(ServiceBindingTest, ValidateRejectsMissingBridgedPrefix) {
-    auto const no_prefix = MakeServiceConfig(Role::consumer, kMissingPrefixSpecifier);
-    auto const res = validate(no_prefix);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
+TEST_F(ServiceBindingTest, RejectsInvalidServiceConfigBoundaries) {
+    Event_config const valid_ev0{std::string{kEvent0}, Mw_com_event_id{kEvent0Id},
+                                 kEvent0MaxPayload};
+    std::vector<ServiceConfigCase> const invalid_cases{
+        {"empty_instance_specifier",
+         MakeSingleEventConfig("", Role::consumer, kMinConsumerSampleCount)},
+        {"truncated_seven_byte_bridged_prefix",
+         MakeSingleEventConfig("bridged", Role::consumer, kMinConsumerSampleCount)},
+        {"eight_byte_char_mismatch_bridge_prefix",
+         MakeSingleEventConfig("bridge_x", Role::consumer, kMinConsumerSampleCount)},
+        {"case_mismatched_bridged_prefix",
+         MakeSingleEventConfig("Bridged_x", Role::consumer, kMinConsumerSampleCount)},
+        {"non_zero_offset_before_bridged_prefix",
+         MakeSingleEventConfig("_bridged_x", Role::consumer, kMinConsumerSampleCount)},
+        {"empty_events_vector",
+         MakeCustomConfig(kValidBridgedSpecifier, Role::consumer, {}, kMinConsumerSampleCount)},
+        {"empty_event_name_on_second_event",
+         MakeTwoEventConsumerConfig(
+             valid_ev0, Event_config{"", Mw_com_event_id{kEvent1Id}, kEvent1MaxPayload})},
+        {"duplicate_event_name_with_distinct_ids",
+         MakeTwoEventConsumerConfig(
+             valid_ev0,
+             Event_config{std::string{kEvent0}, Mw_com_event_id{kEvent1Id}, kEvent1MaxPayload})},
+        {"duplicate_event_id_with_distinct_names",
+         MakeTwoEventConsumerConfig(
+             valid_ev0,
+             Event_config{std::string{kEvent1}, Mw_com_event_id{kEvent0Id}, kEvent1MaxPayload})},
+        {"payload_size_one_above_uint32_max",
+         MakeTwoEventConsumerConfig(
+             valid_ev0,
+             Event_config{std::string{kEvent1}, Mw_com_event_id{kEvent1Id}, kOverMaxPayloadSize})},
+        {"payload_size_at_size_max",
+         MakeSingleEventConfig(kValidBridgedSpecifier, Role::provider, kZeroSampleCount,
+                               std::numeric_limits<std::size_t>::max())},
+        {"consumer_zero_sample_count_rejected",
+         MakeSingleEventConfig(kValidBridgedSpecifier, Role::consumer, kZeroSampleCount)},
+        {"consumer_sample_count_above_slot_limit",
+         MakeSingleEventConfig(kValidBridgedSpecifier, Role::consumer, kOverMaxSampleCount)},
+        {"provider_sample_count_above_slot_limit",
+         MakeSingleEventConfig(kValidBridgedSpecifier, Role::provider, kOverMaxSampleCount)},
+    };
+
+    ASSERT_EQ(invalid_cases.size(), kExpectedInvalidConfigCaseCount);
+    auto const expected_error =
+        MakeError(Mw_com_binding_error::logic_error_invalid_service_configuration);
+    for (auto const& test_case : invalid_cases) {
+        SCOPED_TRACE(test_case.description);
+        auto const result = validate(test_case.config);
+        ASSERT_FALSE(result.has_value());
+        EXPECT_EQ(result.error(), expected_error);
+    }
 }
 
-// Rejects a service with zero events because GenericProxy and GenericSkeleton only forward events,
-// not methods.
-TEST_F(ServiceBindingTest, ValidateRejectsEmptyEvents) {
-    auto no_events = MakeServiceConfig();
-    no_events.events.clear();
-    auto const res = validate(no_events);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
+TEST_F(ServiceBindingTest, ParsesAndVerifiesDeployedInstanceSpecifiers) {
+    StubInstanceNotResolved(kSecondBridgedSpecifier);
+
+    auto const valid_spec = make_instance_specifier(std::string{kValidBridgedSpecifier});
+    ASSERT_TRUE(valid_spec.has_value());
+    EXPECT_EQ(
+        *valid_spec,
+        score::mw::com::InstanceSpecifier::Create(std::string{kValidBridgedSpecifier}).value());
+
+    auto const expected_spec_error =
+        MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier);
+
+    auto const empty_spec = make_instance_specifier("");
+    ASSERT_FALSE(empty_spec.has_value());
+    EXPECT_EQ(empty_spec.error(), expected_spec_error);
+
+    auto const malformed_spec = make_instance_specifier(std::string{kInvalidBridgedSpecifier});
+    ASSERT_FALSE(malformed_spec.has_value());
+    EXPECT_EQ(malformed_spec.error(), expected_spec_error);
+
+    EXPECT_TRUE(
+        check_instance_is_deployed(*valid_spec, std::string{kValidBridgedSpecifier}).has_value());
+
+    auto const undeployed_spec = make_instance_specifier(std::string{kSecondBridgedSpecifier});
+    ASSERT_TRUE(undeployed_spec.has_value());
+    auto const undeployed_check =
+        check_instance_is_deployed(*undeployed_spec, std::string{kSecondBridgedSpecifier});
+    ASSERT_FALSE(undeployed_check.has_value());
+    EXPECT_EQ(undeployed_check.error(), expected_spec_error);
 }
 
-// Rejects an empty event name before LoLa's JSON configuration parser aborts on "".
-TEST_F(ServiceBindingTest, ValidateRejectsEmptyEventName) {
-    auto empty_name = MakeServiceConfig();
-    empty_name.events.front().name.clear();
-    auto const res = validate(empty_name);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
+TEST_F(ServiceBindingTest, AddsUndeployedServicesToRuntimeAndSkipsDeployedOnes) {
+    EXPECT_TRUE(add_to_mw_com_runtime({}).has_value());
+
+    auto const first_ids = NextUniqueBridgedIds("runtime_first");
+    auto const second_ids = NextUniqueBridgedIds("runtime_second");
+    ASSERT_TRUE(ResolveInRealRuntime(first_ids.specifier).empty());
+    ASSERT_TRUE(ResolveInRealRuntime(second_ids.specifier).empty());
+
+    auto const first_cfg = MakeCustomConfig(
+        first_ids.specifier, Role::consumer,
+        {
+            Event_config{std::string{kEvent0}, Mw_com_event_id{kFirstArbitraryEventId},
+                         kEvent0MaxPayload},
+            Event_config{std::string{kEvent1}, Mw_com_event_id{kSecondArbitraryEventId},
+                         kEvent1MaxPayload},
+        },
+        kDefaultMaxSampleCount, first_ids.service_id, kCustomInstanceId);
+    auto const second_cfg = MakeCustomConfig(
+        second_ids.specifier, Role::provider,
+        {Event_config{std::string{kEvent2}, Mw_com_event_id{kEvent2Id}, kEvent2MaxPayload}},
+        kZeroSampleCount, second_ids.service_id, kDefaultInstanceId);
+
+    ASSERT_TRUE(add_to_mw_com_runtime({first_cfg, second_cfg}).has_value());
+
+    auto const first_resolved = ResolveInRealRuntime(first_ids.specifier);
+    ASSERT_EQ(first_resolved.size(), kSingleResolvedInstanceCount);
+    ASSERT_NO_FATAL_FAILURE(AssertLolaShmTwoEventDeployment(
+        first_resolved.front(), first_ids.specifier, first_ids.service_id, kCustomInstanceId));
+
+    ASSERT_EQ(ResolveInRealRuntime(second_ids.specifier).size(), kSingleResolvedInstanceCount);
+
+    auto const first_spec = make_instance_specifier(first_ids.specifier);
+    ASSERT_TRUE(first_spec.has_value());
+    EXPECT_TRUE(check_instance_is_deployed(*first_spec, first_ids.specifier).has_value());
+
+    // Idempotent repeat call + mix of already-deployed and newly undeployed services skips
+    // already-deployed services without calling AddConfiguration twice for them.
+    auto const third_ids = NextUniqueBridgedIds("runtime_third");
+    ASSERT_TRUE(ResolveInRealRuntime(third_ids.specifier).empty());
+    auto const third_cfg =
+        MakeSingleEventConfig(third_ids.specifier, Role::consumer, kDefaultMaxSampleCount,
+                              kEvent0MaxPayload, third_ids.service_id);
+    auto const pre_stubbed_cfg = MakeServiceConfig(Role::consumer, kValidBridgedSpecifier);
+
+    ASSERT_TRUE(
+        add_to_mw_com_runtime({pre_stubbed_cfg, first_cfg, second_cfg, third_cfg}).has_value());
+    EXPECT_EQ(ResolveInRealRuntime(third_ids.specifier).size(), kSingleResolvedInstanceCount);
 }
 
-// Rejects two events with the same LoLa eventName before AddConfiguration() aborts.
-TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventName) {
-    auto dup_name = MakeServiceConfig();
-    dup_name.events.push_back(Event_config{std::string{kEvent0}, Mw_com_event_id{kSecondEventId},
-                                           kSecondEventMaxPayload});
-    auto const res = validate(dup_name);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
+TEST_F(ServiceBindingTest, RejectsInvalidOrDuplicateBatchWithoutMutatingRuntime) {
+    auto const invalid_cfg_error =
+        MakeError(Mw_com_binding_error::logic_error_invalid_service_configuration);
+    auto const invalid_spec_error =
+        MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier);
+
+    auto const shared_ids = NextUniqueBridgedIds("dup_spec");
+    auto const dup_spec_res = add_to_mw_com_runtime({
+        MakeSingleEventConfig(shared_ids.specifier, Role::consumer, kDefaultMaxSampleCount,
+                              kEvent0MaxPayload, shared_ids.service_id),
+        MakeSingleEventConfig(shared_ids.specifier, Role::provider, kZeroSampleCount,
+                              kEvent0MaxPayload, NextUniqueBridgedIds("dup_spec_b").service_id),
+    });
+    ASSERT_FALSE(dup_spec_res.has_value());
+    EXPECT_EQ(dup_spec_res.error(), invalid_cfg_error);
+    EXPECT_TRUE(ResolveInRealRuntime(shared_ids.specifier).empty());
+
+    auto const ids_a = NextUniqueBridgedIds("dup_id_a");
+    auto const ids_b = NextUniqueBridgedIds("dup_id_b");
+    auto const dup_id_res = add_to_mw_com_runtime({
+        MakeSingleEventConfig(ids_a.specifier, Role::consumer, kDefaultMaxSampleCount,
+                              kEvent0MaxPayload, ids_a.service_id),
+        MakeSingleEventConfig(ids_b.specifier, Role::provider, kZeroSampleCount, kEvent0MaxPayload,
+                              ids_a.service_id),
+    });
+    ASSERT_FALSE(dup_id_res.has_value());
+    EXPECT_EQ(dup_id_res.error(), invalid_cfg_error);
+    EXPECT_TRUE(ResolveInRealRuntime(ids_a.specifier).empty());
+    EXPECT_TRUE(ResolveInRealRuntime(ids_b.specifier).empty());
+
+    auto const valid_before_bad_cfg = NextUniqueBridgedIds("valid_before_invalid_cfg");
+    auto const bad_cfg_res = add_to_mw_com_runtime({
+        MakeSingleEventConfig(valid_before_bad_cfg.specifier, Role::consumer,
+                              kDefaultMaxSampleCount, kEvent0MaxPayload,
+                              valid_before_bad_cfg.service_id),
+        MakeSingleEventConfig("unprefixed/spec", Role::consumer, kDefaultMaxSampleCount,
+                              kEvent0MaxPayload, NextUniqueBridgedIds("bad_cfg").service_id),
+    });
+    ASSERT_FALSE(bad_cfg_res.has_value());
+    EXPECT_EQ(bad_cfg_res.error(), invalid_cfg_error);
+    EXPECT_TRUE(ResolveInRealRuntime(valid_before_bad_cfg.specifier).empty());
+
+    auto const valid_before_bad_spec = NextUniqueBridgedIds("valid_before_bad_spec");
+    auto const bad_spec_res = add_to_mw_com_runtime({
+        MakeSingleEventConfig(valid_before_bad_spec.specifier, Role::consumer,
+                              kDefaultMaxSampleCount, kEvent0MaxPayload,
+                              valid_before_bad_spec.service_id),
+        MakeSingleEventConfig(kInvalidBridgedSpecifier, Role::consumer, kDefaultMaxSampleCount,
+                              kEvent0MaxPayload, NextUniqueBridgedIds("malformed_spec").service_id),
+    });
+    ASSERT_FALSE(bad_spec_res.has_value());
+    EXPECT_EQ(bad_spec_res.error(), invalid_spec_error);
+    EXPECT_TRUE(ResolveInRealRuntime(valid_before_bad_spec.specifier).empty());
 }
 
-// Rejects two events with the same LoLa eventId before AddConfiguration() aborts.
-TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventId) {
-    auto dup_id = MakeServiceConfig();
-    dup_id.events.push_back(Event_config{std::string{kSecondEventName}, Mw_com_event_id{kEvent0Id},
-                                         kSecondEventMaxPayload});
-    auto const res = validate(dup_id);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
+TEST_F(ServiceBindingTest, RejectsInvalidOrUndeployedConfigInMakeServiceBinding) {
+    EXPECT_CALL(service_discovery_mock(),
+                StartFindService(_, An<score::mw::com::impl::InstanceSpecifier>()))
+        .Times(0);
+    StubInstanceNotResolved(kSecondBridgedSpecifier);
+    ExpectServerConnectorCreationFailure();
+    ExpectSkeletonCreationFailure();
+
+    auto const invalid_cfg = MakeServiceConfig(Role::consumer, "missing_prefix/service");
+    auto const invalid_res = make_service_binding(socom_runtime_, invalid_cfg);
+    ASSERT_FALSE(invalid_res.has_value());
+    EXPECT_EQ(invalid_res.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_service_configuration));
+
+    auto undeployed_cfg = MakeServiceConfig(Role::consumer, kSecondBridgedSpecifier);
+    undeployed_cfg.service_id = kSecondServiceId;
+    auto const undeployed_res = make_service_binding(socom_runtime_, undeployed_cfg);
+    ASSERT_FALSE(undeployed_res.has_value());
+    EXPECT_EQ(undeployed_res.error(),
+              MakeError(Mw_com_binding_error::logic_error_invalid_instance_specifier));
+
+    auto const setup_fail_res =
+        make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
+    ASSERT_FALSE(setup_fail_res.has_value());
+    EXPECT_EQ(setup_fail_res.error(),
+              MakeError(Mw_com_binding_error::runtime_error_service_setup_failed));
+
+    auto const provider_fail_res =
+        make_service_binding(socom_runtime_, MakeServiceConfig(Role::provider));
+    ASSERT_FALSE(provider_fail_res.has_value());
+    EXPECT_EQ(provider_fail_res.error(),
+              MakeError(Mw_com_binding_error::runtime_error_service_setup_failed));
 }
 
-// Rejects max_payload_size > UINT32_MAX because the SHM sample header stores length in 4 bytes.
-TEST_F(ServiceBindingTest, ValidateRejectsOversizedEventPayload) {
-    auto oversized = MakeServiceConfig();
-    oversized.events.front().max_payload_size = kMax_payload_length + 1U;
-    auto const res = validate(oversized);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
+TEST_F(ServiceBindingTest, CreatesConsumerServiceBindingAndDefersDiscoveryUntilStart) {
+    auto* const server_connector = ExpectServerConnectorCreated();
+    EXPECT_CALL(*server_connector, enable()).Times(0);
+
+    auto const expected_specifier =
+        score::mw::com::impl::InstanceSpecifier::Create(std::string{kValidBridgedSpecifier})
+            .value();
+    auto const expected_find_handle =
+        score::mw::com::impl::make_FindServiceHandle(kDummyFindHandleUid);
+
+    std::size_t start_find_calls{0U};
+    EXPECT_CALL(service_discovery_mock(), StartFindService(_, expected_specifier))
+        .WillOnce([&start_find_calls, expected_find_handle](auto, auto) {
+            ++start_find_calls;
+            return score::Result<score::mw::com::impl::FindServiceHandle>{expected_find_handle};
+        });
+    EXPECT_CALL(service_discovery_mock(), StopFindService(expected_find_handle))
+        .WillOnce(Return(score::Result<void>{}));
+
+    auto consumer_res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
+    ASSERT_TRUE(consumer_res.has_value());
+    ASSERT_NE(*consumer_res, nullptr);
+    EXPECT_EQ(start_find_calls, 0U);
+
+    EXPECT_TRUE((*consumer_res)->start().has_value());
+    EXPECT_EQ(start_find_calls, 1U);
 }
 
-// Rejects max_sample_count == 0 on a consumer because LoLa Subscribe(0) succeeds without error and
-// delivers no events.
-TEST_F(ServiceBindingTest, ValidateRejectsConsumerWithZeroMaxSampleCount) {
-    auto zero_samples = MakeServiceConfig(Role::consumer);
-    zero_samples.max_sample_count = kZeroMaxSampleCount;
-    auto const res = validate(zero_samples);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
-}
-
-// Rejects max_sample_count > kNumber_of_sample_slots so Subscribe() will not fail for lack of SHM
-// sample slots.
-TEST_F(ServiceBindingTest, ValidateRejectsExcessiveMaxSampleCount) {
-    auto too_many_samples = MakeServiceConfig(Role::provider);
-    too_many_samples.max_sample_count = kNumber_of_sample_slots + 1U;
-    auto const res = validate(too_many_samples);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
-}
-
-// Runs validate() in add_to_mw_com_runtime() before passing generated JSON to LoLa
-// AddConfiguration().
-TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsInvalidServiceConfig) {
-    auto no_events = MakeServiceConfig();
-    no_events.events.clear();
-    auto const res = add_to_mw_com_runtime({no_events});
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
-}
-
-// Rejects duplicate instance_specifier values across services before LoLa AddConfiguration()
-// aborts.
-TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateInstanceSpecifier) {
-    auto const valid_cfg = MakeServiceConfig();
-    auto const res = add_to_mw_com_runtime({valid_cfg, valid_cfg});
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
-}
-
-// Rejects two services configured with the same LoLa service_id.
-TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateServiceId) {
-    auto const valid_cfg = MakeServiceConfig();
-    auto second_cfg = MakeServiceConfig(Role::consumer, kSecondBridgedSpecifier);
-    second_cfg.service_id = valid_cfg.service_id;
-    auto const res = add_to_mw_com_runtime({valid_cfg, second_cfg});
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
-}
-
-// Rejects a "bridged_" specifier whose remaining path syntax fails InstanceSpecifier::Create().
-TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsMalformedBridgedInstanceSpecifier) {
-    auto const bad_syntax = MakeServiceConfig(Role::consumer, kInvalidPrefixedSpecifier);
-    auto const res = add_to_mw_com_runtime({bad_syntax});
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
-}
-
-// Skips AddConfiguration() when the service is already in mw_com_config.json because re-adding a
-// deployed service aborts LoLa.
-TEST_F(ServiceBindingTest, AddToMwComRuntimeSucceedsWhenServiceAlreadyDeployed) {
-    auto const valid_cfg = MakeServiceConfig();
-    EXPECT_TRUE(add_to_mw_com_runtime({valid_cfg}).has_value());
-}
-
-// Runs validate() in make_service_binding() even when static mw_com_config.json was used without
-// calling add_to_mw_com_runtime().
-TEST_F(ServiceBindingTest, MakeServiceBindingRejectsInvalidServiceConfig) {
-    auto no_events = MakeServiceConfig();
-    no_events.events.clear();
-    auto const res = make_service_binding(socom_runtime_, no_events);
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_service_configuration);
-}
-
-// Rejects an undeployed consumer specifier before creating a SOCom Server_connector.
-TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedConsumer) {
-    StubInstanceNotResolved();
-    auto const res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::logic_error_invalid_instance_specifier);
-}
-
-// Rejects an undeployed provider specifier before creating a SOCom Client_connector.
-TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedProvider) {
-    StubInstanceNotResolved();
-    auto const res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::provider));
-    ASSERT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), Mw_com_binding_error::runtime_error_service_setup_failed);
-}
-
-// Role is named from mw::com's perspective, so Role::consumer creates a SOCom Server_connector.
-TEST_F(ServiceBindingTest, MakeServiceBindingCreatesConsumerBinding) {
-    (void)ExpectServerConnectorCreated();
-
-    auto const res = make_service_binding(socom_runtime_, MakeServiceConfig(Role::consumer));
-    ASSERT_TRUE(res.has_value());
-    EXPECT_NE(*res, nullptr);
-}
-
-// Role::provider creates a LoLa GenericSkeleton and a SOCom Client_connector.
-TEST_F(ServiceBindingTest, MakeServiceBindingCreatesProviderBinding) {
-    auto const cfg = MakeServiceConfig(Role::provider);
-    auto const mocks = ExpectSkeletonWithEvent(kEvent0);
-    ON_CALL(*mocks.event, GetEventDataTypeSizeInfo())
-        .WillByDefault(Return(
-            score::memory::DataTypeSizeInfo{sample_size(cfg.events.front()), kSample_alignment}));
+TEST_F(ServiceBindingTest, CreatesProviderServiceBindingWithNoOpStart) {
+    auto skel_mocks = ExpectSkeletonWithEvent(kEvent0);
+    ON_CALL(*skel_mocks.event, GetEventDataTypeSizeInfo())
+        .WillByDefault(
+            Return(score::memory::DataTypeSizeInfo{kExpectedEvent0SampleSize, kSample_alignment}));
     (void)ExpectClientConnectorCreated();
+    EXPECT_CALL(service_discovery_mock(), OfferService(_)).Times(0);
+    EXPECT_CALL(service_discovery_mock(),
+                StartFindService(_, An<score::mw::com::impl::InstanceSpecifier>()))
+        .Times(0);
 
-    auto const res = make_service_binding(socom_runtime_, cfg);
-    ASSERT_TRUE(res.has_value());
-    EXPECT_NE(*res, nullptr);
+    auto provider_cfg = MakeServiceConfig(Role::provider);
+    provider_cfg.max_sample_count = kZeroSampleCount;
+    auto provider_res = make_service_binding(socom_runtime_, provider_cfg);
+    ASSERT_TRUE(provider_res.has_value());
+    ASSERT_NE(*provider_res, nullptr);
+    EXPECT_TRUE((*provider_res)->start().has_value());
 }
 
 }  // namespace

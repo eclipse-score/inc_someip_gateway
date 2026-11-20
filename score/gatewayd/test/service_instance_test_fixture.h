@@ -16,12 +16,13 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <initializer_list>
 #include <iterator>
@@ -29,6 +30,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -48,6 +50,7 @@ inline constexpr std::uint32_t kServiceMinorVersion{0U};
 inline constexpr std::string_view kLocalSpecifier{"gatewayd/local_echo"};
 inline constexpr std::string_view kRemoteSpecifier{"gatewayd/remote_echo"};
 inline constexpr std::uint16_t kInstanceId{1U};
+inline constexpr std::uint16_t kDefaultGatewaydSampleSlots{20U};
 
 inline constexpr std::string_view kEventSerialized{"ev_serialized"};
 inline constexpr std::uint16_t kEventSerializedId{0x8001U};
@@ -59,6 +62,10 @@ inline constexpr std::uint16_t kEventNoSerializerId{0x8002U};
 inline constexpr std::string_view kEventMissingInIpc{"ev_missing_in_ipc"};
 inline constexpr std::uint16_t kEventMissingInIpcId{0x8003U};
 
+inline constexpr std::string_view kEventSerialized2{"ev_serialized_2"};
+inline constexpr std::uint16_t kEventSerialized2Id{0x8004U};
+inline constexpr std::uint32_t kMaxMessageSize2{64U};
+
 inline constexpr flatbuffers::uoffset_t kFirstElementIndex{0U};
 inline constexpr std::size_t kSingleElementCount{1U};
 
@@ -68,6 +75,16 @@ struct EventSpec {
     std::optional<std::uint32_t> null_serializer_max_size{};
 };
 
+struct ServiceConfigParams {
+    std::string_view service_type_name{kServiceTypeName};
+    std::uint16_t service_id{kServiceId};
+    std::uint8_t major_version{kServiceMajorVersion};
+    std::uint32_t minor_version{kServiceMinorVersion};
+    std::string_view local_specifier{kLocalSpecifier};
+    std::string_view remote_specifier{kRemoteSpecifier};
+    std::uint16_t instance_id{kInstanceId};
+};
+
 struct BuiltConfig {
     std::shared_ptr<std::vector<std::uint8_t>> buffer{};
     std::shared_ptr<mw_someip_config::ServiceType const> service_type{};
@@ -75,7 +92,8 @@ struct BuiltConfig {
     std::shared_ptr<mw_someip_config::ServiceInstance const> remote_instance{};
 };
 
-inline BuiltConfig BuildConfig(std::vector<EventSpec> const& event_specs) {
+inline BuiltConfig BuildConfig(std::vector<EventSpec> const& event_specs,
+                               ServiceConfigParams const& params = {}) {
     flatbuffers::FlatBufferBuilder fbb{};
 
     std::vector<flatbuffers::Offset<mw_someip_config::Event>> fb_events{};
@@ -96,18 +114,22 @@ inline BuiltConfig BuildConfig(std::vector<EventSpec> const& event_specs) {
     }
 
     auto const local_inst = mw_someip_config::CreateServiceInstance(
-        fbb, fbb.CreateString(kLocalSpecifier.data(), kLocalSpecifier.size()), kInstanceId);
+        fbb, fbb.CreateString(params.local_specifier.data(), params.local_specifier.size()),
+        params.instance_id);
     auto const local_instances_offset = fbb.CreateVector(&local_inst, kSingleElementCount);
 
     auto const remote_inst = mw_someip_config::CreateServiceInstance(
-        fbb, fbb.CreateString(kRemoteSpecifier.data(), kRemoteSpecifier.size()), kInstanceId);
+        fbb, fbb.CreateString(params.remote_specifier.data(), params.remote_specifier.size()),
+        params.instance_id);
     auto const remote_instances_offset = fbb.CreateVector(&remote_inst, kSingleElementCount);
 
     auto const service_type_name =
-        fbb.CreateString(kServiceTypeName.data(), kServiceTypeName.size());
-    auto const events_offset = fbb.CreateVectorOfSortedTables<mw_someip_config::Event>(&fb_events);
+        fbb.CreateString(params.service_type_name.data(), params.service_type_name.size());
+    // Preserve caller event order rather than sorting by event_id so positional socom::Event_id
+    // scenarios with arbitrary event_id orderings are faithfully represented.
+    auto const events_offset = fbb.CreateVector(fb_events);
     auto const service_type = mw_someip_config::CreateServiceType(
-        fbb, service_type_name, kServiceId, kServiceMajorVersion, kServiceMinorVersion,
+        fbb, service_type_name, params.service_id, params.major_version, params.minor_version,
         events_offset, {}, local_instances_offset, remote_instances_offset);
 
     auto const service_types_offset = fbb.CreateVector(&service_type, kSingleElementCount);
@@ -129,44 +151,87 @@ inline BuiltConfig BuildConfig(std::vector<EventSpec> const& event_specs) {
     };
 }
 
-class ServiceInstanceTestFixture : public score::testing::MwComTestFixture {
+class ScopedTempDir final {
    public:
-    static void SetUpTestSuite() {
+    ScopedTempDir() {
+        static std::atomic<std::uint64_t> counter{0U};
+        auto const id = counter.fetch_add(1U, std::memory_order_relaxed);
+        auto const dir_name = "gatewayd_ut_" + std::to_string(static_cast<long>(::getpid())) + "_" +
+                              std::to_string(id);
+        path_ = std::filesystem::temp_directory_path() / dir_name;
+        std::error_code ec{};
+        (void)std::filesystem::create_directories(path_, ec);
+    }
+
+    ~ScopedTempDir() noexcept {
+        if (!path_.empty()) {
+            std::error_code ec{};
+            (void)std::filesystem::remove_all(path_, ec);
+        }
+    }
+
+    ScopedTempDir(ScopedTempDir const&) = delete;
+    ScopedTempDir& operator=(ScopedTempDir const&) = delete;
+    ScopedTempDir(ScopedTempDir&& other) noexcept : path_{std::move(other.path_)} {
+        other.path_.clear();
+    }
+    ScopedTempDir& operator=(ScopedTempDir&& other) noexcept {
+        if (this != &other) {
+            if (!path_.empty()) {
+                std::error_code ec{};
+                (void)std::filesystem::remove_all(path_, ec);
+            }
+            path_ = std::move(other.path_);
+            other.path_.clear();
+        }
+        return *this;
+    }
+
+    std::filesystem::path const& path() const noexcept { return path_; }
+
+   private:
+    std::filesystem::path path_{};
+};
+
+class ServiceInstanceTestFixture : public score::testing::MwComTestFixture {
+   protected:
+    void SetUp() override {
         auto const serializer_cfg = BuildConfig({
             EventSpec{kEventSerialized, kEventSerializedId, kMaxMessageSize},
             EventSpec{kEventNoSerializer, kEventNoSerializerId, std::nullopt},
+            EventSpec{kEventSerialized2, kEventSerialized2Id, kMaxMessageSize2},
         });
-        std::string dir_template = ::testing::TempDir() + "gatewayd_test_XXXXXX";
-        ASSERT_NE(::mkdtemp(dir_template.data()), nullptr);
-        config_dir_ = std::move(dir_template);
-        config_path_ = config_dir_ + "/service_instance_test_config.bin";
+        ReinitSerializer(serializer_cfg);
+    }
+
+    void TearDown() override { DeinitSerializer(); }
+
+    void ReinitSerializer(BuiltConfig const& cfg) {
+        ASSERT_NE(cfg.buffer, nullptr);
+        DeinitSerializer();
+
+        auto const file_path =
+            temp_dir_.path() / ("serializer_config_" + std::to_string(reinit_index_++) + ".bin");
+        auto const file_str = file_path.string();
         {
-            std::ofstream file{config_path_, std::ios::binary | std::ios::out};
-            (void)std::copy(serializer_cfg.buffer->cbegin(), serializer_cfg.buffer->cend(),
+            std::ofstream file{file_path, std::ios::binary | std::ios::out | std::ios::trunc};
+            ASSERT_TRUE(file.is_open());
+            (void)std::copy(cfg.buffer->cbegin(), cfg.buffer->cend(),
                             std::ostreambuf_iterator<char>{file});
         }
-
-        ASSERT_EQ(score_com_serializer_init(config_path_.c_str(), config_path_.size()),
+        ASSERT_EQ(score_com_serializer_init(file_str.c_str(), file_str.size()),
                   score_com_serializer_result_ok);
         serializer_initialized_ = true;
     }
 
-    static void TearDownTestSuite() {
+    void DeinitSerializer() {
         if (serializer_initialized_) {
             EXPECT_EQ(score_com_serializer_deinit(), score_com_serializer_result_ok);
             serializer_initialized_ = false;
         }
-        if (!config_path_.empty()) {
-            (void)std::remove(config_path_.c_str());
-            config_path_.clear();
-        }
-        if (!config_dir_.empty()) {
-            (void)std::remove(config_dir_.c_str());
-            config_dir_.clear();
-        }
     }
 
-   protected:
+    using MwComTestFixture::StubInstanceNotResolved;
     using MwComTestFixture::StubInstanceResolved;
 
     void StubInstanceResolved(std::string_view const specifier,
@@ -175,15 +240,17 @@ class ServiceInstanceTestFixture : public score::testing::MwComTestFixture {
             specifier, events,
             score::testing::ServiceDeploymentSpec{kServiceTypeName, kServiceId,
                                                   kServiceMajorVersion, kServiceMinorVersion,
-                                                  kInstanceId});
+                                                  kInstanceId, kDefaultGatewaydSampleSlots});
     }
 
     score::mw::com::impl::HandleType MakeHandle(
-        std::string_view const specifier, std::initializer_list<std::string_view> const events) {
-        return instance_holder().MakeHandle(specifier, events,
-                                            score::testing::ServiceDeploymentSpec{
-                                                kServiceTypeName, kServiceId, kServiceMajorVersion,
-                                                kServiceMinorVersion, kInstanceId});
+        std::string_view const specifier, std::initializer_list<std::string_view> const events,
+        std::uint16_t const instance_id = kInstanceId) {
+        return instance_holder().MakeHandle(
+            specifier, events,
+            score::testing::ServiceDeploymentSpec{kServiceTypeName, kServiceId,
+                                                  kServiceMajorVersion, kServiceMinorVersion,
+                                                  instance_id, kDefaultGatewaydSampleSlots});
     }
 
     BuiltConfig default_cfg_{BuildConfig({
@@ -191,9 +258,9 @@ class ServiceInstanceTestFixture : public score::testing::MwComTestFixture {
     })};
 
    private:
-    static inline std::string config_dir_{};
-    static inline std::string config_path_{};
-    static inline bool serializer_initialized_{false};
+    ScopedTempDir temp_dir_{};
+    std::size_t reinit_index_{0U};
+    bool serializer_initialized_{false};
 };
 
 }  // namespace score::someip_gateway::gatewayd
