@@ -87,24 +87,6 @@ bounded storage access. The snapshot can become
 stale after the method returns; discovery does not reserve a connector or
 promise continued availability.
 
-Source migration
-----------------
-
-The former versioned ``Service_interface_identifier`` is renamed to
-``Service_interface``. Connector configurations, compatibility tests, gateway
-callers, IPC conversion functions and benchmark callers use that descriptor. The IPC
-conversion method is renamed from ``to_socom_identifier`` to
-``to_socom_interface`` to describe its full-version result.
-Use ``Service_interface::Version`` for the full major/minor pair. Code indexing
-services should instead use ``Service_interface_identifier`` and
-``major_version``, or call ``contract.get_identifier()``.
-
-The former internal ``Service_instance_identifier`` is renamed to
-``Service_registration_key``. The new public instance identifier includes
-minor version and must not be used to enforce single-server registration.
-``Runtime`` implementations and mocks must implement the new discovery method.
-This is a source API migration; rebuilding downstream users is required.
-
 Verification and acceptance
 ---------------------------
 
@@ -117,26 +99,3 @@ integration evidence are recorded against the submitted revision in the review
 packet. Measurements do not replace committer design review, required IP review
 or CI acceptance.
 
-Requirement to design mapping
------------------------------
-
-* :need:`comp_req__socom__canonical_identity`: canonical identity and database key.
-* :need:`comp_req__socom__instance_identity`: offered-instance result model.
-* :need:`comp_req__socom__connector_compatibility`: full connector contracts and
-  existing client/server compatibility rule.
-* :need:`comp_req__socom__registration_identity`: internal registration key and
-  lifetime, distinct from the public offered-instance identifier.
-* :need:`comp_req__socom__discovery_filters`: typed optional filters and ordinary
-  numeric version boundaries.
-* :need:`comp_req__socom__available_offers`: enabled local offers and actual minors.
-* :need:`comp_req__socom__bounded_discovery`: total count, caller storage bounds,
-  clearing and output preconditions.
-* :need:`comp_req__socom__discovery_synchronization`: mutex scope, allocation and
-  callback constraints, setup IDs and snapshot/caller lifetime obligations.
-
-The first five behaviors follow the issue's version model and preserved
-compatibility behavior. Synchronous snapshots, enabled-only enumeration,
-bounded caller storage and minimum-minor interpretation are the implementation's
-explicit design choices; acceptance of these choices remains with committers.
-The eight existing ``comp_req__tc8_conformance__*`` requirements concern network
-protocol verification and are not claimed as satisfied by these local tests.

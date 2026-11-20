@@ -16,22 +16,11 @@
 SOCom version handling requirements
 ===================================
 
-These requirements are **proposals derived from issue #84**, pending committer
-review. The pinned docs-as-code 8.2.0 metamodel permits only ``valid`` or
-``invalid`` requirement status. Consequently, ``invalid`` with the
-``proposal`` tag means not yet accepted here; it does not claim that the
-implemented behavior has failed verification. QM and security NO follow the
-existing SOCom component declaration and remain subject to classification review.
-No approved release applicability or stakeholder acceptance is asserted.
-
-Source: `issue #84 <https://github.com/eclipse-score/inc_someip_gateway/issues/84>`_.
-Design and verification rationale: :doc:`/socom/version_handling`.
-
 .. comp_req:: Canonical service identity
    :id: comp_req__socom__canonical_identity
-   :status: invalid
+   :status: valid
    :version: 1
-   :tags: proposal, issue_84
+   :tags: service_versioning
    :safety: QM
    :security: NO
    :reqtype: Functional
