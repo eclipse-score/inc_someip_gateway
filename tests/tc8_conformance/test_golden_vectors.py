@@ -76,7 +76,7 @@ class TestMessageBuilderGoldenVectors:
     """Golden byte vectors for every public builder in ``message_builder.py``."""
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -94,7 +94,7 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.payload == b""
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -117,7 +117,7 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.payload == b"\xde\xad\xbe\xef"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -138,7 +138,7 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.payload == b"\x01\x02"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -150,7 +150,7 @@ class TestMessageBuilderGoldenVectors:
         assert len(raw) == 7
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -163,7 +163,7 @@ class TestMessageBuilderGoldenVectors:
         assert raw.hex() == "123404210000000800010001ff010000"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -174,7 +174,7 @@ class TestMessageBuilderGoldenVectors:
         assert raw.hex() == "1234042100007ff30001000101010000"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -197,7 +197,7 @@ class TestMessageBuilderGoldenVectors:
         assert parsed.payload == b"\xaa"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -236,7 +236,7 @@ class TestSdSenderGoldenVectors:
     """
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -267,7 +267,7 @@ class TestSdSenderGoldenVectors:
         assert entry.ttl == 3
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -309,7 +309,7 @@ class TestSdSenderGoldenVectors:
         assert option.l4proto == L4Protocols.UDP
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -349,7 +349,7 @@ class TestSdSenderGoldenVectors:
         assert tcp_option.l4proto == L4Protocols.TCP
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -402,7 +402,7 @@ class TestSdSenderWireFormatParsing:
     )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -425,7 +425,7 @@ class TestSdSenderWireFormatParsing:
         assert option.l4proto == L4Protocols.UDP
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -455,7 +455,7 @@ class TestSdMalformedPureBuilders:
     """Golden byte vectors for the fully deterministic (no counter) builders."""
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -466,7 +466,7 @@ class TestSdMalformedPureBuilders:
         assert pkt.hex() == "ffff8100000000140000004201010200c00000000000000000000000"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -476,7 +476,7 @@ class TestSdMalformedPureBuilders:
         assert entry.hex() == "000000001234ffffff000003ffffffff"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -486,7 +486,7 @@ class TestSdMalformedPureBuilders:
         assert entry.hex() == "06000010123400010000000300000010"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -496,7 +496,7 @@ class TestSdMalformedPureBuilders:
         assert opt.hex() == "00090400c0a801320011772e"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -507,7 +507,7 @@ class TestSdMalformedPureBuilders:
         assert opt.hex() == "0005770000000000"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -538,7 +538,7 @@ class TestSdMalformedSendersGoldenVectors:
     """
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -554,7 +554,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -567,7 +567,7 @@ class TestSdMalformedSendersGoldenVectors:
         assert sock.sent[0].hex() == "ffff810000000014000000c801010200c00000000000000000000000"
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="requirements-analysis",
     )
@@ -584,7 +584,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -599,7 +599,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -615,7 +615,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -630,7 +630,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -646,7 +646,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -662,7 +662,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -678,7 +678,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -694,7 +694,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -711,7 +711,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -728,7 +728,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -743,7 +743,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -759,7 +759,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -777,7 +777,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -793,7 +793,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -808,7 +808,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -823,7 +823,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -836,7 +836,7 @@ class TestSdMalformedSendersGoldenVectors:
         assert sock.sent[0].hex() == ("ffff81000000001c000000c801010200c000000000000010000000001234ffff00000000")
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -851,7 +851,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -867,7 +867,7 @@ class TestSdMalformedSendersGoldenVectors:
         )
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )

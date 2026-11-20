@@ -100,6 +100,9 @@ IDs follow the pattern ``<type>__<scope>__<title_snake_case>``:
    * - ``aou_req``
      - ``aou_req__<component>__<title>``
      - ``aou_req__gatewayd__valid_config``
+   * - ``tool_req``
+     - ``tool_req__<scope>_<title>`` (one ``__`` only)
+     - ``tool_req__tc8_harness_selfcheck``
 
 Document Heading Standards
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -140,6 +143,10 @@ Optional links:
 - ``:covers:``: ``aou_req`` ID covered by a feature or component requirement
 
 Assumption of use requirements have no links.
+
+Tool requirements (``tool_req``) cover test tooling, not the product. They
+need ``:satisfies:`` (a ``stkh_req``, ``feat_req``, ``comp_req`` or
+``gd_req``) and take no ``:reqtype:``, ``:derived_from:`` or ``:satisfied_by:``.
 
 Cross-References
 ^^^^^^^^^^^^^^^^

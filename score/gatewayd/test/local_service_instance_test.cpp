@@ -210,7 +210,7 @@ class LocalServiceInstanceTest : public ServiceInstanceTestFixture {
 
 // Returns ComErrc::kInvalidConfiguration when service_instance_config is null.
 TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesFailsWhenInstanceConfigIsNull) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const null_res = LocalServiceInstance::CreateAsyncLocalServices(
@@ -221,7 +221,7 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesFailsWhenInstanceConfig
 
 // Returns the error from GenericProxy::StartFindService() when service discovery fails to start.
 TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesPropagatesStartFindServiceFailure) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     EXPECT_CALL(service_discovery_mock(),
@@ -237,7 +237,7 @@ TEST_F(LocalServiceInstanceTest, CreateAsyncLocalServicesPropagatesStartFindServ
 // Does not create a SOCom Server_connector or LocalServiceInstance when GenericProxy::Create()
 // fails in the discovery callback.
 TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenProxyCreationFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto find_handler = StartAsyncDiscoveryAndCaptureHandler();
@@ -252,7 +252,7 @@ TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenProxyCreatio
 // Does not store a LocalServiceInstance when SOCom make_server_connector() fails in the discovery
 // callback.
 TEST_F(LocalServiceInstanceTest, FindServiceCallbackReturnsEarlyWhenServerConnectorCreationFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto find_handler = StartAsyncDiscoveryAndCaptureHandler();
@@ -316,7 +316,6 @@ TEST_F(LocalServiceInstanceTest, CreateSkipsMissingIpcEventAndUnconfiguredSerial
 // Logs SetReceiveHandler() and Subscribe() errors on an event without failing
 // LocalServiceInstance::Create() for the whole service.
 TEST_F(LocalServiceInstanceTest, CreateLogsErrorsWhenSetReceiveHandlerAndSubscribeFail) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto* const event_mock = ExpectProxyWithEvent(kEventSerialized);
@@ -372,7 +371,7 @@ TEST_F(LocalServiceInstanceTest,
 
 // Logs and returns without aborting when GetNewSamples() fails inside the LoLa receive handler.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenGetNewSamplesFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const ctx = CreateInstanceWithReceiveHandler();
@@ -385,7 +384,7 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenGetNewSamplesFails) 
 
 // Skips serialization and update_event() when SOCom allocate_event_payload() returns an error.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerSkipsUpdateWhenPayloadAllocationFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const ctx = CreateInstanceWithReceiveHandler();
@@ -405,7 +404,7 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerSkipsUpdateWhenPayloadAllocationF
 // update_event() when serialization fails.
 TEST_F(LocalServiceInstanceTest,
        ReceiveHandlerSkipsUpdateWhenAllocatedBufferIsTooSmallForSerializer) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const ctx = CreateInstanceWithReceiveHandler();
@@ -424,7 +423,7 @@ TEST_F(LocalServiceInstanceTest,
 
 // Logs and returns without aborting when SOCom update_event() returns an error.
 TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenUpdateEventFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const ctx = CreateInstanceWithReceiveHandler();
@@ -447,7 +446,7 @@ TEST_F(LocalServiceInstanceTest, ReceiveHandlerLogsErrorWhenUpdateEventFails) {
 // and calls shrink() with the written byte count.
 TEST_F(LocalServiceInstanceTest,
        ReceiveHandlerSerializesSampleIntoSomeipPacketAndUpdatesServerConnector) {
-    RecordProperty("FullyVerifies", "comp_req__gatewayd__forwards_local_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__forwards_local_events");
     RecordProperty("TestType", "requirements-based");
     RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const ctx = CreateInstanceWithReceiveHandler();

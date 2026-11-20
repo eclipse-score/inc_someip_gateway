@@ -161,7 +161,7 @@ class RemoteServiceInstanceTest : public ServiceInstanceTestFixture {
 
 // Returns ComErrc::kInvalidConfiguration when service_instance_config is null.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenInstanceConfigIsNull) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const res = RemoteServiceInstance::CreateAsyncRemoteService(
@@ -172,7 +172,7 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenInstanceConfi
 
 // Returns ComErrc::kInvalidConfiguration when any configured event has no registered serializer.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenEventLacksSerializer) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const bad_ser_cfg = BuildConfig({
@@ -188,7 +188,7 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenEventLacksSer
 // Returns ComErrc::kInvalidConfiguration when GenericSkeleton::Create() fails for an unresolved
 // InstanceSpecifier.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenIpcSkeletonCreationFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();
@@ -202,7 +202,7 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenIpcSkeletonCr
 // Returns ComErrc::kBindingFailure without creating a SOCom Client_connector when
 // GenericSkeleton::OfferService() fails.
 TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceFailsWhenSkeletonOfferFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const mocks = ExpectSkeletonWithEvent(kEventSerialized);
@@ -232,7 +232,7 @@ TEST_F(RemoteServiceInstanceTest, CreateAsyncRemoteServiceAppendsCreatedInstance
 
 // Returns runtime_error_request_rejected when SOCom make_client_connector() fails.
 TEST_F(RemoteServiceInstanceTest, CreateFailsWhenMakeClientConnectorFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__reports_failed_setup");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const cfg = BuildConfig({
@@ -291,7 +291,7 @@ TEST_F(RemoteServiceInstanceTest, ServiceStateTransitionSubscribesEventsOnlyWhen
 
 // Skips deserialization and Send() when LoLa Allocate() fails because no sample slot is free.
 TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenSampleAllocationFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const connected = CreateConnectedInstance();
@@ -310,7 +310,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenSampleAllocationFails) {
 
 // Skips Send() when the deserializer rejects an invalid or oversized SOME/IP payload.
 TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenPayloadDeserializationFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const connected = CreateConnectedInstance();
@@ -330,7 +330,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateSkipsWhenPayloadDeserializationFail
 
 // Logs and returns without aborting when GenericSkeletonEvent::Send() returns an error.
 TEST_F(RemoteServiceInstanceTest, EventUpdateHandlesSkeletonSendFailureGracefully) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const connected = CreateConnectedInstance();
@@ -352,7 +352,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateHandlesSkeletonSendFailureGracefull
 // Skips the 16-byte SOME/IP header in the SOCom payload so only the event payload body is written
 // into the LoLa sample.
 TEST_F(RemoteServiceInstanceTest, EventUpdateDeserializesSomeipPacketAndSendsSample) {
-    RecordProperty("FullyVerifies", "comp_req__gatewayd__offers_remote_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__offers_remote_events");
     RecordProperty("TestType", "requirements-based");
     RecordProperty("DerivationTechnique", "requirements-analysis");
     auto const connected = CreateConnectedInstance();
@@ -377,7 +377,7 @@ TEST_F(RemoteServiceInstanceTest, EventUpdateDeserializesSomeipPacketAndSendsSam
 // Skips Allocate() and Send() when the incoming event's name is absent from
 // GenericSkeleton::GetEvents().
 TEST_F(RemoteServiceInstanceTest, EventUpdateDropsEventWhenMissingFromIpcSkeleton) {
-    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_events");
+    RecordProperty("PartiallyVerifies", "comp_req__gatewayd__drops_failed_samples");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const connected = CreateConnectedInstance();

@@ -51,7 +51,7 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    When started with the ``--help`` command-line argument, gatewayd shall
    print its usage text and exit with a success exit code.
 
-.. comp_req:: gatewayd forwards local events to someipd
+.. comp_req:: gatewayd publishes local event samples as SOME/IP notifications
    :id: comp_req__gatewayd__forwards_local_events
    :status: valid
    :version: 1
@@ -61,8 +61,16 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer
    :satisfied_by: comp__gatewayd
 
-   When a local application sends a sample of a bridged event, gatewayd shall
-   serialize it into a SOME/IP message and pass it to someipd.
+   When gatewayd receives a new sample of a bridged local event, it shall
+   publish a SOME/IP notification for it as an update of the matching event on
+   the SOCom server connector of that service.
+
+   The published payload is a 16-byte SOME/IP header followed by the serialized
+   sample, with no bytes after it. The header holds the configured service ID,
+   the configured event ID as method ID, client ID ``0xFFFF``, session ID ``0``,
+   protocol version ``1``, the service major version as interface version,
+   message type NOTIFICATION (``0x02``) and return code ``0``. This requirement
+   does not cover the length field.
 
 .. comp_req:: gatewayd offers remote events locally
    :id: comp_req__gatewayd__offers_remote_events
@@ -78,8 +86,8 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    gatewayd shall deserialize it and send the result as a sample of the
    matching local service event.
 
-.. comp_req:: gatewayd drops events it cannot process
-   :id: comp_req__gatewayd__drops_failed_events
+.. comp_req:: gatewayd drops event samples it cannot process
+   :id: comp_req__gatewayd__drops_failed_samples
    :status: valid
    :version: 1
    :safety: ASIL_B
@@ -88,9 +96,28 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer
    :satisfied_by: comp__gatewayd
 
-   If gatewayd cannot set up a bridged service instance, or cannot allocate,
-   serialize, deserialize or send an event sample, it shall report the error
-   and shall not forward that sample.
+   If a step fails while gatewayd handles an event sample, gatewayd shall drop
+   that sample without forwarding it. The steps are: finding the matching
+   local event, allocating the payload or sample, serializing or deserializing
+   it, and sending it. If reading new samples from mw::com fails, gatewayd
+   shall forward no sample from that read.
+
+.. comp_req:: gatewayd does not create a service instance whose setup fails
+   :id: comp_req__gatewayd__reports_failed_setup
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Functional
+   :derived_from: feat_req__com__event_type, feat_req__com__producer_consumer
+   :satisfied_by: comp__gatewayd
+
+   If a step fails while gatewayd sets up a bridged service instance, gatewayd
+   shall report the error and shall not create that instance. The steps are:
+   checking that the instance configuration is present, finding a serializer
+   for each event of a remote service, starting service discovery, creating
+   the mw::com proxy or skeleton, offering the skeleton, and creating the SOCom
+   connector.
 
 .. aou_req:: Integrity of the SOME/IP configuration file
    :id: aou_req__gatewayd__someip_config_integrity

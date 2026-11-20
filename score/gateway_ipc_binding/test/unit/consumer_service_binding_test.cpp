@@ -146,7 +146,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
 
 // Invalid specifier syntax fails in create() before creating a SOCom Server_connector.
 TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const result = Consumer_service_binding::create(
@@ -157,7 +157,7 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
 
 // Undeployed specifier fails in create() instead of waiting indefinitely in StartFindService().
 TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();
@@ -169,7 +169,7 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
 
 // Returns runtime_error_service_setup_failed when SOCom make_server_connector() fails.
 TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
@@ -207,7 +207,7 @@ TEST_F(ConsumerServiceBindingTest,
 
 // Returns runtime_error_service_find_failed when LoLa StartFindService() fails.
 TEST_F(ConsumerServiceBindingTest, StartFailsWhenStartFindServiceFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto created = CreateConsumer();
@@ -255,7 +255,7 @@ TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProx
 // callback can create a new GenericProxy.
 TEST_F(ConsumerServiceBindingTest,
        FindServiceCallbackRejectsProxyWithMissingEventOrUndersizedSample) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_mismatched_peer");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto started = CreateAndStartConsumer();

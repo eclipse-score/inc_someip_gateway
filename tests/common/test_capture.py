@@ -42,7 +42,7 @@ from capture import (
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -52,7 +52,7 @@ def test_as_text_decodes_bytes() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -62,7 +62,7 @@ def test_as_text_passes_str_through() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -72,7 +72,7 @@ def test_as_text_converts_other_types() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -88,7 +88,7 @@ def test_as_text_handles_invalid_utf8() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -98,7 +98,7 @@ def test_get_content_of_file_object_none_returns_empty() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -120,7 +120,7 @@ def test_get_content_of_file_object_reads_pipe() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -138,7 +138,7 @@ def test_get_output_includes_stdout_and_stderr() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -160,7 +160,7 @@ def test_get_output_empty_process() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -175,7 +175,7 @@ def test_is_process_alive_true_for_running_process() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -186,7 +186,7 @@ def test_is_process_alive_false_for_missing_pid() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -222,7 +222,7 @@ def test_is_process_alive_false_for_zombie() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -239,7 +239,7 @@ def test_wait_until_process_exits_returns_output() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -264,7 +264,7 @@ def test_wait_until_process_exits_raises_on_timeout() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -287,7 +287,7 @@ def test_tcpdump_capture_output_file_without_packet_count_does_not_raise(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -315,7 +315,7 @@ def test_tcpdump_capture_pcap_mode_includes_dash_u_flag(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -343,7 +343,7 @@ def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -385,7 +385,7 @@ def test_tcpdump_capture_includes_z_flag_with_current_user(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -421,7 +421,7 @@ def test_tcpdump_capture_pcap_written_under_tmp(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -438,7 +438,7 @@ def test_stop_capture_returns_true_for_already_exited_process() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -471,7 +471,7 @@ def test_stop_capture_handles_permission_error() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -504,7 +504,7 @@ def test_stop_capture_handles_process_lookup_error() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -521,7 +521,7 @@ def test_stop_capture_graceful_sigint_returns_true() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -559,7 +559,7 @@ def test_stop_capture_kills_on_timeout_returns_false() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -614,7 +614,7 @@ def test_stop_capture_sweeps_orphans_with_pkill(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -626,7 +626,7 @@ def test_close_pipes_and_wait_returns_true_for_already_exited_process() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -653,7 +653,7 @@ def test_close_pipes_and_wait_terminates_process_writing_to_stdout() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -706,7 +706,7 @@ def test_close_pipes_and_wait_logs_slow_teardown_and_reaps_without_kill(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -733,7 +733,7 @@ def test_capture_process_text_mode_uses_pipe_close_not_sigint(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -765,7 +765,7 @@ def test_capture_process_pcap_mode_uses_stop_capture(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -787,7 +787,7 @@ def test_tcpdump_capture_raises_on_immediate_exit(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="design-analysis",
 )
@@ -820,7 +820,7 @@ def test_force_stop_closes_pipes_runs_stimulus_and_reaps(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -840,7 +840,7 @@ def test_force_stop_raises_for_pcap_mode() -> None:
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )
@@ -868,7 +868,7 @@ def test_force_stop_returns_false_if_process_survives_stimulus(
 
 
 @add_test_properties(
-    partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
     test_type="interface-test",
     derivation_technique="error-guessing",
 )

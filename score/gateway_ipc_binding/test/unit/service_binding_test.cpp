@@ -54,7 +54,7 @@ TEST_F(ServiceBindingTest, MakeInstanceSpecifierAcceptsValidSpecifier) {
 // Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a generic setup
 // error.
 TEST_F(ServiceBindingTest, MakeInstanceSpecifierRejectsInvalidSpecifier) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const invalid = make_instance_specifier(std::string{kInvalidSpecifier});
@@ -65,7 +65,7 @@ TEST_F(ServiceBindingTest, MakeInstanceSpecifierRejectsInvalidSpecifier) {
 // Fails immediately when the specifier is missing from mw_com_config.json instead of letting LoLa
 // StartFindService() wait indefinitely.
 TEST_F(ServiceBindingTest, CheckInstanceIsDeployedRejectsUndeployedSpecifier) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const valid = make_instance_specifier(std::string{kValidBridgedSpecifier});
@@ -100,7 +100,7 @@ TEST_F(ServiceBindingTest, ValidateAcceptsValidServiceConfig) {
 // Requires the "bridged_" prefix so gateway specifiers remain distinct from application specifiers
 // in mw::com.
 TEST_F(ServiceBindingTest, ValidateRejectsMissingBridgedPrefix) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const no_prefix = MakeServiceConfig(Role::consumer, kMissingPrefixSpecifier);
@@ -112,7 +112,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsMissingBridgedPrefix) {
 // Rejects a service with zero events because GenericProxy and GenericSkeleton only forward events,
 // not methods.
 TEST_F(ServiceBindingTest, ValidateRejectsEmptyEvents) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto no_events = MakeServiceConfig();
@@ -124,7 +124,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsEmptyEvents) {
 
 // Rejects an empty event name before LoLa's JSON configuration parser aborts on "".
 TEST_F(ServiceBindingTest, ValidateRejectsEmptyEventName) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto empty_name = MakeServiceConfig();
@@ -136,7 +136,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsEmptyEventName) {
 
 // Rejects two events with the same LoLa eventName before AddConfiguration() aborts.
 TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventName) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto dup_name = MakeServiceConfig();
@@ -149,7 +149,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventName) {
 
 // Rejects two events with the same LoLa eventId before AddConfiguration() aborts.
 TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventId) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto dup_id = MakeServiceConfig();
@@ -162,7 +162,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsDuplicateEventId) {
 
 // Rejects max_payload_size > UINT32_MAX because the SHM sample header stores length in 4 bytes.
 TEST_F(ServiceBindingTest, ValidateRejectsOversizedEventPayload) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "boundary-values");
     auto oversized = MakeServiceConfig();
@@ -175,7 +175,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsOversizedEventPayload) {
 // Rejects max_sample_count == 0 on a consumer because LoLa Subscribe(0) succeeds without error and
 // delivers no events.
 TEST_F(ServiceBindingTest, ValidateRejectsConsumerWithZeroMaxSampleCount) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "boundary-values");
     auto zero_samples = MakeServiceConfig(Role::consumer);
@@ -188,7 +188,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsConsumerWithZeroMaxSampleCount) {
 // Rejects max_sample_count > kNumber_of_sample_slots so Subscribe() will not fail for lack of SHM
 // sample slots.
 TEST_F(ServiceBindingTest, ValidateRejectsExcessiveMaxSampleCount) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "boundary-values");
     auto too_many_samples = MakeServiceConfig(Role::provider);
@@ -201,7 +201,7 @@ TEST_F(ServiceBindingTest, ValidateRejectsExcessiveMaxSampleCount) {
 // Runs validate() in add_to_mw_com_runtime() before passing generated JSON to LoLa
 // AddConfiguration().
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsInvalidServiceConfig) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto no_events = MakeServiceConfig();
@@ -214,7 +214,7 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsInvalidServiceConfig) {
 // Rejects duplicate instance_specifier values across services before LoLa AddConfiguration()
 // aborts.
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateInstanceSpecifier) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const valid_cfg = MakeServiceConfig();
@@ -225,7 +225,7 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateInstanceSpecifier) {
 
 // Rejects two services configured with the same LoLa service_id.
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateServiceId) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const valid_cfg = MakeServiceConfig();
@@ -238,7 +238,7 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsDuplicateServiceId) {
 
 // Rejects a "bridged_" specifier whose remaining path syntax fails InstanceSpecifier::Create().
 TEST_F(ServiceBindingTest, AddToMwComRuntimeRejectsMalformedBridgedInstanceSpecifier) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const bad_syntax = MakeServiceConfig(Role::consumer, kInvalidPrefixedSpecifier);
@@ -259,7 +259,7 @@ TEST_F(ServiceBindingTest, AddToMwComRuntimeSucceedsWhenServiceAlreadyDeployed) 
 // Runs validate() in make_service_binding() even when static mw_com_config.json was used without
 // calling add_to_mw_com_runtime().
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsInvalidServiceConfig) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto no_events = MakeServiceConfig();
@@ -271,7 +271,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingRejectsInvalidServiceConfig) {
 
 // Rejects an undeployed consumer specifier before creating a SOCom Server_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedConsumer) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();
@@ -282,7 +282,7 @@ TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedConsumer) {
 
 // Rejects an undeployed provider specifier before creating a SOCom Client_connector.
 TEST_F(ServiceBindingTest, MakeServiceBindingRejectsUndeployedProvider) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();

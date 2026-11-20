@@ -111,7 +111,7 @@ class ProviderServiceBindingTest : public IpcBindingTestFixture {
 
 // Invalid specifier syntax returns logic_error_invalid_instance_specifier, not a setup error.
 TEST_F(ProviderServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto const result = Provider_service_binding::create(
@@ -123,7 +123,7 @@ TEST_F(ProviderServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
 // Missing mw_com_config.json entry fails GenericSkeleton::Create() before creating a SOCom
 // Client_connector.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();
@@ -134,7 +134,7 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenInstanceIsNotDeployed) {
 
 // Fails create() if a configured event name is missing from GenericSkeleton::GetEvents().
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto skel_mock = std::make_unique<NiceMock<testing::Skeleton>>();
@@ -151,7 +151,7 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenEventIsMissingFromSkeleton) {
 // Fails with runtime_error_sample_size_mismatch if LoLa's SHM slot size differs from
 // sample_size(event).
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatches) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     (void)ExpectSkeletonWithEvent(kMismatchedEventSize);
@@ -164,7 +164,7 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenSkeletonEventSampleSizeMismatc
 // Fails create() if LoLa rejects the subscription callback, and destructor cleanup does not abort
 // when unsetting that callback also fails.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandlerFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     auto* const event_mock = ExpectSkeletonWithEvent(
@@ -180,7 +180,7 @@ TEST_F(ProviderServiceBindingTest, CreateFailsWhenRegisteringSubscriptionHandler
 
 // Fails create() if SOCom make_client_connector() returns an error.
 TEST_F(ProviderServiceBindingTest, CreateFailsWhenMakingClientConnectorFails) {
-    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_setup");
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
     RecordProperty("TestType", "fault-injection");
     RecordProperty("DerivationTechnique", "error-guessing");
     (void)ExpectSkeletonWithEvent(ExpectedEventSampleSize());

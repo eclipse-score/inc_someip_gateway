@@ -35,7 +35,7 @@ class TestSdSessionIdWraparound:
     """Regression for item 7: session-id must wrap from 0xFFFF to 1, never emit 0x0000."""
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -49,7 +49,7 @@ class TestSdSessionIdWraparound:
             assert a != b
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -64,7 +64,7 @@ class TestAssertOfferHasIpv4EndpointOptionMixedProtocol:
     """Regression for item 9: must pick the UDP option, not just the first one."""
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -106,7 +106,7 @@ class TestTargetProcessPollAllHandles:
             return self._running
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -123,7 +123,7 @@ class TestTargetProcessPollAllHandles:
         assert proc.poll() == 0
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
@@ -137,7 +137,7 @@ class TestTargetProcessPollAllHandles:
         assert proc.poll() == 0
 
     @add_test_properties(
-        partially_verifies=["comp_req__tc8_conformance__harness_selfcheck"],
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
         test_type="interface-test",
         derivation_technique="error-guessing",
     )
