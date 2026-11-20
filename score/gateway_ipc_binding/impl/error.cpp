@@ -27,8 +27,6 @@ class Mw_com_binding_error_domain final : public score::result::ErrorDomain {
                 return "Failed to offer the SomeipdService instance";
             case Mw_com_binding_error::runtime_error_someipd_service_find_failed:
                 return "Failed to start service discovery for the SomeipdService instance";
-            case Mw_com_binding_error::runtime_error_someipd_service_proxy_creation_failed:
-                return "Failed to create the SomeipdService proxy";
             case Mw_com_binding_error::logic_error_already_started:
                 return "Server has already been started";
             case Mw_com_binding_error::logic_error_invalid_service_configuration:

@@ -24,42 +24,62 @@
 
 namespace score::gateway_ipc_binding {
 
-/// \brief Fixed-size container with explicit length for POD wire format
-/// \tparam T Type of elements in the container
-/// \tparam Max_size Maximum number of bytes available in data
+/// \brief Trivially copyable fixed-capacity container with explicit element count for IPC wire
+/// data.
+/// \tparam T Element type stored in data (must be trivially copyable for shared-memory transport).
+/// \tparam Max_size Maximum number of elements of type T that data can hold.
 ///
+/// \details Invariants:
+///          - Both default initialization and value initialization set `size` to `0` and
+///            value-initialize all `Max_size` elements of `data`.
+///          - Array and `std::initializer_list` (`initializer_list.size() <= Max_size`)
+///            constructors copy the input elements into `data[0..size-1]` and value-initialize
+///            trailing elements `data[size..Max_size-1]`.
+///          - `operator==` and `operator!=` guard against corrupted shared-memory headers: if
+///            `lhs.size > Max_size || rhs.size > Max_size`, `operator==` returns `false` (and
+///            `operator!=` returns `true`) without reading past `data[Max_size - 1]`; otherwise
+///            elements `[0..size-1]` are compared.
 /// \note A similar data structure is score::cpp::inplace_vector, but that fails to be trivially
 /// copyable due to its non-trivial destructor, copy and move operations, which makes it unsuitable
 /// for IPC payloads. See https://github.com/eclipse-score/baselibs/issues/168 for details.
 template <typename T, std::size_t Max_size>
 struct Fixed_size_container {
-    std::size_t size;
-    std::array<T, Max_size> data;
+    std::size_t size{0U};
+    std::array<T, Max_size> data{};
     static constexpr std::size_t max_size = Max_size;
 
-    Fixed_size_container() = default;
+    constexpr Fixed_size_container() noexcept = default;
 
     template <std::size_t N, typename = std::enable_if_t<N <= Max_size>>
-    Fixed_size_container(T const (&arr)[N]) : size{N} {
+    Fixed_size_container(T const (&arr)[N]) noexcept(std::is_nothrow_copy_assignable_v<T>)
+        : size{N}, data{} {
         std::copy_n(arr, N, data.begin());
     }
 
     Fixed_size_container(std::initializer_list<T> initializer_list)
-        : size(initializer_list.size()) {
+        : size{std::min(initializer_list.size(), Max_size)}, data{} {
         SCORE_LANGUAGE_FUTURECPP_ASSERT(initializer_list.size() <= Max_size);
-        std::copy_n(initializer_list.begin(), std::min(initializer_list.size(), Max_size),
-                    data.begin());
+        std::copy_n(initializer_list.begin(), size, data.begin());
     }
 
-    bool empty() const noexcept { return size == 0; }
+    [[nodiscard]] constexpr bool empty() const noexcept { return size == 0U; }
 };
 
 template <typename T, std::size_t Max_size>
 bool operator==(Fixed_size_container<T, Max_size> const& lhs,
-                Fixed_size_container<T, Max_size> const& rhs) {
-    return lhs.size == rhs.size &&
-           std::equal(std::begin(lhs.data), std::next(std::begin(lhs.data), lhs.size),
-                      std::begin(rhs.data), std::next(std::begin(rhs.data), rhs.size));
+                Fixed_size_container<T, Max_size> const& rhs) noexcept {
+    if ((lhs.size > Max_size) || (rhs.size > Max_size) || (lhs.size != rhs.size)) {
+        return false;
+    }
+    return std::equal(lhs.data.cbegin(),
+                      std::next(lhs.data.cbegin(), static_cast<std::ptrdiff_t>(lhs.size)),
+                      rhs.data.cbegin());
+}
+
+template <typename T, std::size_t Max_size>
+bool operator!=(Fixed_size_container<T, Max_size> const& lhs,
+                Fixed_size_container<T, Max_size> const& rhs) noexcept {
+    return !(lhs == rhs);
 }
 
 }  // namespace score::gateway_ipc_binding
