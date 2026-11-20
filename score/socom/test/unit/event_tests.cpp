@@ -201,7 +201,7 @@ TEST_F(EventTest, ClientRequestsManyEventUpdatesAndReceivesEventUpdates) {
 TEST_F(EventTest,
        ClientRequestsManyEventUpdatesWhichAreCachedByTheMiddlewareAndClientReceivesOneEventUpdate) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -249,7 +249,7 @@ TEST_F(EventTest, ClientSubscribesEventWithUpdateAndInitialValueFollowedByReques
 
 TEST_F(EventTest, MiddlewareCachesEventUpdateRequestsUntilServerAnswers) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 

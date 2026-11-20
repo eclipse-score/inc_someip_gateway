@@ -240,7 +240,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_send
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_sends_event_update_with_shrunk_payload) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
     auto payload_handle = create_payload(*server->connector, event_id, expected_payload);
@@ -320,7 +320,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     // misuse Event subscription notification to detect client disconnect
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
@@ -340,7 +340,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, client_disc
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        client_disconnects_and_reconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     // misuse Event subscription notification to detect client disconnect
     client->subscribe_event(server->mock_event_subscription_change_cb, event_id);
 
@@ -378,7 +378,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test, server_disconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     server->connector.reset();
     EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);
@@ -401,7 +401,7 @@ TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
 TEST_P(Gateway_ipc_binding_connected_bidirectional_integration_test,
        server_disconnects_and_reconnects) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     server->connector.reset();
     EXPECT_EQ(client->client_disconnected_promise.get_future().wait_for(very_long_timeout),
               std::future_status::ready);

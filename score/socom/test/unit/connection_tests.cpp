@@ -48,7 +48,7 @@ TEST_F(SingleConnectionTest, OfferSC) {
 
 TEST_F(SingleConnectionTest, StopOfferSC) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -61,7 +61,7 @@ TEST_F(SingleConnectionTest, StopOfferSC) {
 
 TEST_F(SingleConnectionTest, ReOfferSC) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     Client_data client0{connector_factory};
 
@@ -77,7 +77,7 @@ TEST_F(SingleConnectionTest, ReOfferSC) {
 
 TEST_F(SingleConnectionTest, DestroyingConnectedClientConnectorWorks) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Server_data server{connector_factory};
     auto client0 = std::make_unique<Client_data>(connector_factory);
 
@@ -86,7 +86,7 @@ TEST_F(SingleConnectionTest, DestroyingConnectedClientConnectorWorks) {
 
 TEST_F(SingleConnectionTest, ServerIsDestroyedBeforeClient) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto server = std::make_unique<Server_data>(connector_factory);
     Client_data client0{connector_factory};
 

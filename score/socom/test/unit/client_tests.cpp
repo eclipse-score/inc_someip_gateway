@@ -504,7 +504,7 @@ TEST_P(ConnectedClientConnectorTest, SubscribeEvent) {
 
 TEST_P(ConnectedClientConnectorTest, ClientWithEventSubscriptionUnsubscribes) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto const& wait_subscribed =
             server.expect_on_event_subscription_change(input.server_id, Event_state::subscribed);
@@ -522,7 +522,7 @@ TEST_P(ConnectedClientConnectorTest, ClientWithEventSubscriptionUnsubscribes) {
 
 TEST_P(ConnectedClientConnectorTest, UnsubscribeEvent) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     for (auto const& input : GetParam().test_event_ids) {
         auto subscription = create_event_subscription(input);
 
@@ -847,7 +847,7 @@ using ClientConnectorUnsubscribeTest = ClientConnectorDeathTest;
 
 TEST_F(ClientConnectorUnsubscribeTest, ClientUnsubscribesInEventCallbackSuccessfully) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     EXPECT_CALL(cc_callbacks, on_event_update(_, _, _)).WillOnce([this]() {
         EXPECT_TRUE(client0->unsubscribe_event(event_id));
     });

@@ -187,7 +187,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_connected_when_the_server
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_disconnected_when_the_server_goes_away) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto server = create_server(*m_server_runtime, kSomeipd_specifier, accept_without_services);
     ASSERT_NE(server, nullptr);
     ASSERT_TRUE(server->start().has_value());
@@ -203,7 +203,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test, client_reports_disconnected_when_the_ser
 
 TEST_F(Gateway_ipc_binding_mw_com_test, client_reconnects_when_the_server_comes_back) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const client = create_client(*m_client_runtime, kSomeipd_specifier);
     ASSERT_NE(client, nullptr);
 
@@ -568,7 +568,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 TEST_F(Gateway_ipc_binding_mw_com_test,
        gatewayd_sends_its_configuration_again_when_someipd_restarts) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     // Belongs to the someipd runtime, which outlives both someipd instances.
     Server_connector_with_callbacks network{*m_server_runtime, kBridged_definition,
                                             kBridged_instance};
@@ -610,7 +610,7 @@ TEST_F(Gateway_ipc_binding_mw_com_test,
 
 TEST_F(Gateway_ipc_binding_mw_com_test, someipd_keeps_the_services_when_gatewayd_restarts) {
     RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "error-guessing");
+    RecordProperty("DerivationTechnique", "design-analysis");
     std::atomic<int> handler_calls{0};
     auto server = create_server(
         *m_server_runtime, kSomeipd_specifier_second_pair,
