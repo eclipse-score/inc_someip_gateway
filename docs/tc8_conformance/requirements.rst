@@ -330,10 +330,35 @@ Component Requirements: SOME/IP Message Format
    ``E_UNKNOWN_SERVICE`` (0x02) for requests to non-existent services,
    ``E_UNKNOWN_METHOD`` (0x03) for invalid method IDs, and
    ``E_WRONG_INTERFACE_VERSION`` for interface version mismatches.
+   The OA test SOMEIPSRV_ONWIRE_10 requires the ERROR for an unknown Service
+   ID. The OA test SOMEIP_ETS_077 also accepts that the request is ignored.
 
    Note: Traces to AUTOSAR SOME/IP Protocol Specification R24-11, section
    4.1.2.8 (Return Code) and section 4.2.6.1 (Return Codes,
    requirement PRS_SOMEIP_00191).
+
+.. comp_req:: TC8 SOME/IP Malformed Message Handling
+   :id: comp_req__tc8_conformance__msg_malformed
+   :status: valid
+   :version: 1
+   :tags: tc8, conformance, message_format, robustness
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
+   :safety: QM
+   :security: NO
+   :reqtype: Functional
+
+   The conformance test suite shall verify that ``someipd`` answers with an
+   ERROR message carrying the matching return code, or ignores the message,
+   for a message with a Length field much longer than its payload
+   (``E_MALFORMED_MESSAGE``), a wrong Message Type
+   (``E_WRONG_MESSAGE_TYPE``) or a wrong Protocol Version
+   (``E_WRONG_PROTOCOL_VERSION``). It shall also verify that ``someipd``
+   answers a valid REQUEST after the message with the oversized Length.
+
+   Note: Traces to AUTOSAR SOME/IP Protocol Specification R24-11, sections
+   4.1.2.5 (Protocol Version), 4.1.2.7 (Message Type), 4.2.6 (Error
+   Handling) and 4.2.6.1 (Return Code).
 
 Component Requirements: Event Notification
 -------------------------------------------
@@ -358,3 +383,46 @@ Component Requirements: Event Notification
    4.2.4 (Notification Events), and AUTOSAR SOME/IP Service Discovery
    Protocol Specification R24-11, section 5.1.3.1.1 (Subscribe
    Eventgroup Entry).
+
+Component Requirements: TCP Transport Binding
+----------------------------------------------
+
+.. comp_req:: TC8 TCP Transport Binding
+   :id: comp_req__tc8_conformance__tcp_transport
+   :status: valid
+   :version: 1
+   :tags: tc8, conformance, tcp, transport
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
+   :safety: QM
+   :security: NO
+   :reqtype: Functional
+
+   The conformance test suite shall verify that ``someipd`` answers SOME/IP
+   REQUEST messages received over a TCP connection, including three
+   REQUESTs sent in one TCP segment where the third message starts at an
+   offset that is not a multiple of 4 bytes.
+
+   Note: Traces to AUTOSAR SOME/IP Protocol Specification R24-11, sections
+   4.2.1 (Transport Protocol Bindings) and 4.2.1.2 (TCP Binding).
+
+Component Requirements: UDP Transport Binding
+----------------------------------------------
+
+.. comp_req:: TC8 UDP Transport Binding
+   :id: comp_req__tc8_conformance__udp_transport
+   :status: valid
+   :version: 1
+   :tags: tc8, conformance, udp, transport
+   :derived_from: feat_req__tc8_conformance__conformance
+   :satisfied_by: comp__someipd
+   :safety: QM
+   :security: NO
+   :reqtype: Functional
+
+   The conformance test suite shall verify that ``someipd`` answers each of
+   three SOME/IP REQUEST messages sent in one UDP datagram, where the third
+   message starts at an offset that is not a multiple of 4 bytes.
+
+   Note: Traces to AUTOSAR SOME/IP Protocol Specification R24-11, sections
+   4.2.1 (Transport Protocol Bindings) and 4.2.1.1 (UDP Binding).
