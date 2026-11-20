@@ -1,0 +1,47 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# URLs originally were snapshots from snapshot.ubuntu.com:
+#   https://snapshot.ubuntu.com/ubuntu/20260401T104001Z
+# Bazel itself recommends using snapshot.ubuntu.com for reproducible builds.
+# But the communication team reported that this server is not reliable.
+# On top of that it is slow.
+# We use other toolchains than LLVM for production binaries and stable CI is more important to us.
+# Additionally Ubuntu promises only to support snapshots of up to 2 years.
+
+version: 1
+sources:
+  - channel: noble main universe
+    urls:
+      - https://archive.ubuntu.com/ubuntu/ # Main archive for amd64
+      - https://ports.ubuntu.com/ubuntu-ports/ # Main archive for non-amd64 architectures
+  - channel: noble-security main universe
+    urls:
+      - https://security.ubuntu.com/ubuntu/
+      - https://ports.ubuntu.com/ubuntu-ports/
+  - channel: noble-updates main universe
+    urls:
+      - https://archive.ubuntu.com/ubuntu/
+      - https://ports.ubuntu.com/ubuntu-ports/
+archs:
+  - amd64
+  - arm64
+packages:
+  - base-files # mergedusr symlinks
+  - libatomic1 # Non-lock-free atomics support
+  - libc6 # Core C/POSIX
+  - libc6-dev # Core C/POSIX
+  - libgcc-s1 # Exception unwinding
+  - libstdc++-13-dev # C++ standard library headers
+  - libstdc++6 # C++ standard library runtime
+  - linux-libc-dev # Core C/POSIX

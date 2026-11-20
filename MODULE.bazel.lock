@@ -1706,8 +1706,8 @@
     },
     "@@rules_distroless+//apt:extensions.bzl%apt": {
       "general": {
-        "bzlTransitiveDigest": "EYqwrWTf+Nndo6ZxeXudgJLr8BkUNiO4I+ep4G7KD/c=",
-        "usagesDigest": "7ZnmQyqAD1aoVOr9TYIBL2UxJDiwI3PtJ31PvMCRDT4=",
+        "bzlTransitiveDigest": "ijcTjEcDQU3I3/WnECJfIi1HIS8nEDQ6wDAsdLNC0xA=",
+        "usagesDigest": "H8l1e121DIGHCW9B8VegQ0EeTHaIz1uxayXgGSMQjk8=",
         "recordedInputs": [
           "REPO_MAPPING:bazel_features+,bazel_features_globals bazel_features++version_extension+bazel_features_globals",
           "REPO_MAPPING:bazel_features+,bazel_features_version bazel_features++version_extension+bazel_features_version",
@@ -1716,10 +1716,542 @@
           "REPO_MAPPING:rules_distroless+,bazel_skylib bazel_skylib+",
           "REPO_MAPPING:rules_distroless+,bazel_tools bazel_tools",
           "REPO_MAPPING:rules_distroless+,yq_linux_amd64 yq.bzl++yq+yq_linux_amd64",
+          "FILE:@@//third_party/ubuntu24_04_sysroot/manifest.yaml 8786fc53350e07c79fc9df31eaab489b0f17d136c0fe743ef1ca00e190105e95",
           "FILE:@@score_tooling+//third_party/docs_runtime/manifest.yaml f8bd762e0dcaf3150504eca8dfd60819fc3be428d3a8b58d1d9cc52d68e16a45",
           "FILE:@@score_tooling+//third_party/tooling_sysroot/manifest.yaml ef1e4af34dbf67a9e332c69ccad0b12b2e295849c33e98658c6ccd69e363c4cd"
         ],
         "generatedRepoSpecs": {
+          "ubuntu24_04_sysroot_base-files_13ubuntu10.5_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/b/base-files/base-files_13ubuntu10.5_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/base-files/base-files_13ubuntu10.5_amd64.deb"
+              ],
+              "sha256": "87e8c41e62f61625fb78a982d0bc0a70f40ef8375bc313b154914d1b3759c823"
+            }
+          },
+          "ubuntu24_04_sysroot_libcrypt1_1-4.4.36-4build1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb"
+              ],
+              "sha256": "9474785cd6f398512bf8c305c3901dbb111569dccb6f5832002373c0a8ac5832"
+            }
+          },
+          "ubuntu24_04_sysroot_libc6_2.39-0ubuntu8.12_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_amd64.deb"
+              ],
+              "sha256": "d821b41fc59cb4978ecd53bc83e5c964ac15d305c8d2ac4c8a35aebe55010fb9"
+            }
+          },
+          "ubuntu24_04_sysroot_libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "aa7fadbe33b78bcf99885318040601c550c208929565b179891d9a3cc2aa68cd"
+            }
+          },
+          "ubuntu24_04_sysroot_gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "b95c172411a7fdae70307cf33a9f5320ba5e056b556454543dd5b679d5ce1c4f"
+            }
+          },
+          "ubuntu24_04_sysroot_mawk_1.3.4.20240123-1build1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_amd64.deb"
+              ],
+              "sha256": "dc7f7f4dad4b48f6012ea65de3198d8376604afef39f06d65ec6167740e203c9"
+            }
+          },
+          "ubuntu24_04_sysroot_libatomic1_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "fe49cbbc7be753528380c724a8eef5f1e31dffa9221f692c5069048d81c7449d"
+            }
+          },
+          "ubuntu24_04_sysroot_libc6-dev_2.39-0ubuntu8.12_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_amd64.deb"
+              ],
+              "sha256": "d81dd6dc9d515762cc93f338efa6219252acf3e2e87b5b89dd7dc517741e6eed"
+            }
+          },
+          "ubuntu24_04_sysroot_rpcsvc-proto_1.4.2-0ubuntu7_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb"
+              ],
+              "sha256": "7eb710fe148d224c159ddec1ceb0ba53ead52a80a6793dcdae1474acf20d8f71"
+            }
+          },
+          "ubuntu24_04_sysroot_libcrypt-dev_1-4.4.36-4build1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb"
+              ],
+              "sha256": "2edff420ef80b4a3f3751e65c33423ef30e563122a58b759e4854ea8d84ba1b1"
+            }
+          },
+          "ubuntu24_04_sysroot_linux-libc-dev_6.8.0-149.149_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_amd64.deb"
+              ],
+              "sha256": "e4b7b9c5023ba727908868661e1113d28ed9b68e47aed00e314723dad4b2b31d"
+            }
+          },
+          "ubuntu24_04_sysroot_libc-dev-bin_2.39-0ubuntu8.12_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_amd64.deb"
+              ],
+              "sha256": "74ac21dab2a0a6524a2cf9de623adf1bb1f7d9b672e6b0f70adec0c40452bae3"
+            }
+          },
+          "ubuntu24_04_sysroot_libstdc-p--p--13-dev_13.3.0-6ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "ee5633e863e19c3381ed97842ce35ed32ede96a3d1ae4e94c051d3036fe21347"
+            }
+          },
+          "ubuntu24_04_sysroot_libstdc-p--p-6_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "a51f8de7829211db961a31f02158058ad1a95f92ac6d0a5dff6350e2821c54c0"
+            }
+          },
+          "ubuntu24_04_sysroot_libgcc-13-dev_13.3.0-6ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "cd689db2691edaa10f37329307292796bb599e722e0505c79e14caaa1fe9a93a"
+            }
+          },
+          "ubuntu24_04_sysroot_libquadmath0_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libquadmath0_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libquadmath0_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "dc8f0ca542e09d662f29370c8393c016440dd4bc5c996c5fcc19f632b63ce3b0"
+            }
+          },
+          "ubuntu24_04_sysroot_libhwasan0_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "2195318cfe68fe16b601913ef7b33c9a900372f57861643fdc9ae6fef84534cd"
+            }
+          },
+          "ubuntu24_04_sysroot_libubsan1_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "a16dea3abe2dcac99bcfae27e7e5672fde64573c3c170dcb0cd55631238f9814"
+            }
+          },
+          "ubuntu24_04_sysroot_libtsan2_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "8cbcc9b3ae5ef23b449383d47a9035b27596e307d7dce7df9b83d47a7acd1d91"
+            }
+          },
+          "ubuntu24_04_sysroot_liblsan0_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "dc0c2a1a053e833ba4d71e1ec2ba4244fe301761ad4a91d6725f927a52d86a14"
+            }
+          },
+          "ubuntu24_04_sysroot_libasan8_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "8321aac6230fa1da320e76eb6288b7436164624aec449ed3933ea6c4cc86daac"
+            }
+          },
+          "ubuntu24_04_sysroot_libitm1_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "1fca498129dd3510294809d77ee754f72a9de281111200e9b7b9a5adf37faa9f"
+            }
+          },
+          "ubuntu24_04_sysroot_libgomp1_14.2.0-4ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "e8a95ec58125b4933597f30ff56c2ae10edf90f287262e366d4b6edea3019144"
+            }
+          },
+          "ubuntu24_04_sysroot_gcc-13-base_13.3.0-6ubuntu2_24.04.1_amd64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_amd64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_amd64.deb"
+              ],
+              "sha256": "e859aca26585bb91113a451f1e66bc0e5283cb08797d679aacc1d936ae6dff8e"
+            }
+          },
+          "ubuntu24_04_sysroot_base-files_13ubuntu10.5_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/b/base-files/base-files_13ubuntu10.5_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/b/base-files/base-files_13ubuntu10.5_arm64.deb"
+              ],
+              "sha256": "acae0c7e25255782c62e14c65e58a3390bf18c660b5ece85a75c7e3449034765"
+            }
+          },
+          "ubuntu24_04_sysroot_libcrypt1_1-4.4.36-4build1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_arm64.deb"
+              ],
+              "sha256": "5cd73ba112507dabd8e43b528ca9f530719a370e014b8e3e797770e6e940cccf"
+            }
+          },
+          "ubuntu24_04_sysroot_libc6_2.39-0ubuntu8.12_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_arm64.deb"
+              ],
+              "sha256": "2578bc27d4e077f5e93c283d2502bc693c516d9590a20a27840b548a4d436820"
+            }
+          },
+          "ubuntu24_04_sysroot_libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "5b191f79ad985a9a653dbba45214619f729f9178a9bdf92f7c68db06c50d070b"
+            }
+          },
+          "ubuntu24_04_sysroot_gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "bddbe21061fdc73a23e7de79ece91693bf61aa22d634d1c69c5048385c114968"
+            }
+          },
+          "ubuntu24_04_sysroot_mawk_1.3.4.20240123-1build1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_arm64.deb"
+              ],
+              "sha256": "a6fa75e49de6327ccdbf664e905cde229df77116a966c310e81c778eba756dca"
+            }
+          },
+          "ubuntu24_04_sysroot_libatomic1_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "fdeab74e7ad8572cf69c7024e8040c7ac851f6e667d35f0d429e7a0352840f73"
+            }
+          },
+          "ubuntu24_04_sysroot_libc6-dev_2.39-0ubuntu8.12_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_arm64.deb"
+              ],
+              "sha256": "b8411b504a468c19a2acf4ff38a2015997853d078138afac76ff89c9599794b2"
+            }
+          },
+          "ubuntu24_04_sysroot_rpcsvc-proto_1.4.2-0ubuntu7_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_arm64.deb"
+              ],
+              "sha256": "ae527152fc2bf9c1a645c2620d802b0849db32c8aa48328b4ae94c59cc57bcc9"
+            }
+          },
+          "ubuntu24_04_sysroot_libcrypt-dev_1-4.4.36-4build1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_arm64.deb"
+              ],
+              "sha256": "cadcc00021aa1082a8cb5cd1c2686b25b7a4d396f2029eaa1b12159ca46f1766"
+            }
+          },
+          "ubuntu24_04_sysroot_linux-libc-dev_6.8.0-149.149_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_arm64.deb"
+              ],
+              "sha256": "7ab70f6ebc55fe9ea6ceb9bb087cc7df252b62b9f1b14df46e825052206d7cff"
+            }
+          },
+          "ubuntu24_04_sysroot_libc-dev-bin_2.39-0ubuntu8.12_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_arm64.deb"
+              ],
+              "sha256": "ecc2636c0d5cee59dc90ffb174807675f4f4c92b8fe6a2b745670682716ab48c"
+            }
+          },
+          "ubuntu24_04_sysroot_libstdc-p--p--13-dev_13.3.0-6ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "e4911c9281d73b318ca47cb7976011a7dc13e299a91a06bc6d3e2d174cc2ce51"
+            }
+          },
+          "ubuntu24_04_sysroot_libstdc-p--p-6_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "f84a05ac45a6884109b6527e911081a38263b89e042fc94a338cf975f61a330c"
+            }
+          },
+          "ubuntu24_04_sysroot_libgcc-13-dev_13.3.0-6ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "609a9410d9a1f25a1cb7847de92ee9f438336a0a3a82d282c3686f52ddd61526"
+            }
+          },
+          "ubuntu24_04_sysroot_libhwasan0_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "44851293eede488ad89fd12db1bd8bfcb2b732f68ad4c13b83d6e0ce5d7b4bfa"
+            }
+          },
+          "ubuntu24_04_sysroot_libubsan1_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "a5b4383f70f41cd949315c89e99e6416a0ee48037f7c5ea6b33f88f3c733757a"
+            }
+          },
+          "ubuntu24_04_sysroot_libtsan2_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "00beb501f4979c7fd3a978b52a489ea7dbfc1203e5c56936e4c0ea5c2032fb3d"
+            }
+          },
+          "ubuntu24_04_sysroot_liblsan0_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "21bb80325192b0cce6ccd041a8d823609c5e656bdda43368db6cdfe501593188"
+            }
+          },
+          "ubuntu24_04_sysroot_libasan8_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "0b7957bc5bbc5d30eabe8b71bab06e624ac530be7b1b1315d2bd54629cf2559f"
+            }
+          },
+          "ubuntu24_04_sysroot_libitm1_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "7f7d7c5a26888e5e34eb62a193762eb6a8d5805c5d6f22248f638193d1804993"
+            }
+          },
+          "ubuntu24_04_sysroot_libgomp1_14.2.0-4ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "cd49d2e8834d41a6618f097b678980defeebc47271bc7c5aa8ea2c2f1a53b7a6"
+            }
+          },
+          "ubuntu24_04_sysroot_gcc-13-base_13.3.0-6ubuntu2_24.04.1_arm64": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file_content": "\nload(\"@rules_distroless//apt/private:deb_postfix.bzl\", \"deb_postfix\")\n\ndeb_postfix(\n    name = \"data\",\n    srcs = glob([\"data.tar*\"]),\n    outs = [\"layer.tar.gz\"],\n    mergedusr = True,\n\n    visibility = [\"//visibility:public\"],\n)\n\nfilegroup(\n    name = \"control\",\n    srcs = glob([\"control.tar.*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "urls": [
+                "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_arm64.deb",
+                "https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_arm64.deb"
+              ],
+              "sha256": "1c1ca489da0d48237036318189a9b6525abe7703b75495f257f68bccae8c45a7"
+            }
+          },
+          "ubuntu24_04_sysroot_resolve": {
+            "repoRuleId": "@@rules_distroless+//apt/private:deb_resolve.bzl%deb_resolve",
+            "attributes": {
+              "manifest": "@@//third_party/ubuntu24_04_sysroot:manifest.yaml",
+              "resolve_transitive": true
+            }
+          },
+          "ubuntu24_04_sysroot": {
+            "repoRuleId": "@@rules_distroless+//apt/private:deb_translate_lock.bzl%deb_translate_lock",
+            "attributes": {
+              "lock_content": "{\n\t\"packages\": [\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_amd64\",\n\t\t\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"mawk_1.3.4.20240123-1build1_amd64\",\n\t\t\t\t\t\"name\": \"mawk\",\n\t\t\t\t\t\"version\": \"1.3.4.20240123-1build1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"base-files_13ubuntu10.5_amd64\",\n\t\t\t\"name\": \"base-files\",\n\t\t\t\"sha256\": \"87e8c41e62f61625fb78a982d0bc0a70f40ef8375bc313b154914d1b3759c823\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/b/base-files/base-files_13ubuntu10.5_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/b/base-files/base-files_13ubuntu10.5_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13ubuntu10.5\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_amd64\",\n\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\"sha256\": \"9474785cd6f398512bf8c305c3901dbb111569dccb6f5832002373c0a8ac5832\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_amd64\",\n\t\t\t\"name\": \"libc6\",\n\t\t\t\"sha256\": \"d821b41fc59cb4978ecd53bc83e5c964ac15d305c8d2ac4c8a35aebe55010fb9\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\"sha256\": \"aa7fadbe33b78bcf99885318040601c550c208929565b179891d9a3cc2aa68cd\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\"sha256\": \"b95c172411a7fdae70307cf33a9f5320ba5e056b556454543dd5b679d5ce1c4f\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"mawk_1.3.4.20240123-1build1_amd64\",\n\t\t\t\"name\": \"mawk\",\n\t\t\t\"sha256\": \"dc7f7f4dad4b48f6012ea65de3198d8376604afef39f06d65ec6167740e203c9\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1.3.4.20240123-1build1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libatomic1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libatomic1\",\n\t\t\t\"sha256\": \"fe49cbbc7be753528380c724a8eef5f1e31dffa9221f692c5069048d81c7449d\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"rpcsvc-proto_1.4.2-0ubuntu7_amd64\",\n\t\t\t\t\t\"name\": \"rpcsvc-proto\",\n\t\t\t\t\t\"version\": \"1.4.2-0ubuntu7\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt-dev_1-4.4.36-4build1_amd64\",\n\t\t\t\t\t\"name\": \"libcrypt-dev\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_amd64\",\n\t\t\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"linux-libc-dev_6.8.0-149.149_amd64\",\n\t\t\t\t\t\"name\": \"linux-libc-dev\",\n\t\t\t\t\t\"version\": \"6.8.0-149.149\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc-dev-bin_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc-dev-bin\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libc6-dev_2.39-0ubuntu8.12_amd64\",\n\t\t\t\"name\": \"libc6-dev\",\n\t\t\t\"sha256\": \"d81dd6dc9d515762cc93f338efa6219252acf3e2e87b5b89dd7dc517741e6eed\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"rpcsvc-proto_1.4.2-0ubuntu7_amd64\",\n\t\t\t\"name\": \"rpcsvc-proto\",\n\t\t\t\"sha256\": \"7eb710fe148d224c159ddec1ceb0ba53ead52a80a6793dcdae1474acf20d8f71\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1.4.2-0ubuntu7\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libcrypt-dev_1-4.4.36-4build1_amd64\",\n\t\t\t\"name\": \"libcrypt-dev\",\n\t\t\t\"sha256\": \"2edff420ef80b4a3f3751e65c33423ef30e563122a58b759e4854ea8d84ba1b1\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"linux-libc-dev_6.8.0-149.149_amd64\",\n\t\t\t\"name\": \"linux-libc-dev\",\n\t\t\t\"sha256\": \"e4b7b9c5023ba727908868661e1113d28ed9b68e47aed00e314723dad4b2b31d\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"6.8.0-149.149\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libc-dev-bin_2.39-0ubuntu8.12_amd64\",\n\t\t\t\"name\": \"libc-dev-bin\",\n\t\t\t\"sha256\": \"74ac21dab2a0a6524a2cf9de623adf1bb1f7d9b672e6b0f70adec0c40452bae3\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6-dev_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc6-dev\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"rpcsvc-proto_1.4.2-0ubuntu7_amd64\",\n\t\t\t\t\t\"name\": \"rpcsvc-proto\",\n\t\t\t\t\t\"version\": \"1.4.2-0ubuntu7\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt-dev_1-4.4.36-4build1_amd64\",\n\t\t\t\t\t\"name\": \"libcrypt-dev\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_amd64\",\n\t\t\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"linux-libc-dev_6.8.0-149.149_amd64\",\n\t\t\t\t\t\"name\": \"linux-libc-dev\",\n\t\t\t\t\t\"version\": \"6.8.0-149.149\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc-dev-bin_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc-dev-bin\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libstdc-p--p-6_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libstdc++6\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-13-dev_13.3.0-6ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgcc-13-dev\",\n\t\t\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libquadmath0_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libquadmath0\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libhwasan0_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libhwasan0\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libubsan1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libubsan1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libtsan2_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libtsan2\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"liblsan0_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"liblsan0\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libasan8_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libasan8\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libatomic1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libatomic1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libitm1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libitm1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgomp1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgomp1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-13-base_13.3.0-6ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-13-base\",\n\t\t\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libstdc-p--p--13-dev_13.3.0-6ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libstdc++-13-dev\",\n\t\t\t\"sha256\": \"ee5633e863e19c3381ed97842ce35ed32ede96a3d1ae4e94c051d3036fe21347\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_amd64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libstdc-p--p-6_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libstdc++6\",\n\t\t\t\"sha256\": \"a51f8de7829211db961a31f02158058ad1a95f92ac6d0a5dff6350e2821c54c0\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libgcc-13-dev_13.3.0-6ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libgcc-13-dev\",\n\t\t\t\"sha256\": \"cd689db2691edaa10f37329307292796bb599e722e0505c79e14caaa1fe9a93a\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libquadmath0_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libquadmath0\",\n\t\t\t\"sha256\": \"dc8f0ca542e09d662f29370c8393c016440dd4bc5c996c5fcc19f632b63ce3b0\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libquadmath0_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libquadmath0_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libhwasan0_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libhwasan0\",\n\t\t\t\"sha256\": \"2195318cfe68fe16b601913ef7b33c9a900372f57861643fdc9ae6fef84534cd\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libubsan1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libubsan1\",\n\t\t\t\"sha256\": \"a16dea3abe2dcac99bcfae27e7e5672fde64573c3c170dcb0cd55631238f9814\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libtsan2_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libtsan2\",\n\t\t\t\"sha256\": \"8cbcc9b3ae5ef23b449383d47a9035b27596e307d7dce7df9b83d47a7acd1d91\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"liblsan0_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"liblsan0\",\n\t\t\t\"sha256\": \"dc0c2a1a053e833ba4d71e1ec2ba4244fe301761ad4a91d6725f927a52d86a14\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libasan8_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libasan8\",\n\t\t\t\"sha256\": \"8321aac6230fa1da320e76eb6288b7436164624aec449ed3933ea6c4cc86daac\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libitm1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libitm1\",\n\t\t\t\"sha256\": \"1fca498129dd3510294809d77ee754f72a9de281111200e9b7b9a5adf37faa9f\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libgomp1_14.2.0-4ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"libgomp1\",\n\t\t\t\"sha256\": \"e8a95ec58125b4933597f30ff56c2ae10edf90f287262e366d4b6edea3019144\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"amd64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"gcc-13-base_13.3.0-6ubuntu2_24.04.1_amd64\",\n\t\t\t\"name\": \"gcc-13-base\",\n\t\t\t\"sha256\": \"e859aca26585bb91113a451f1e66bc0e5283cb08797d679aacc1d936ae6dff8e\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_amd64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_amd64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_arm64\",\n\t\t\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"mawk_1.3.4.20240123-1build1_arm64\",\n\t\t\t\t\t\"name\": \"mawk\",\n\t\t\t\t\t\"version\": \"1.3.4.20240123-1build1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"base-files_13ubuntu10.5_arm64\",\n\t\t\t\"name\": \"base-files\",\n\t\t\t\"sha256\": \"acae0c7e25255782c62e14c65e58a3390bf18c660b5ece85a75c7e3449034765\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/b/base-files/base-files_13ubuntu10.5_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/b/base-files/base-files_13ubuntu10.5_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13ubuntu10.5\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_arm64\",\n\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\"sha256\": \"5cd73ba112507dabd8e43b528ca9f530719a370e014b8e3e797770e6e940cccf\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt1_4.4.36-4build1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_arm64\",\n\t\t\t\"name\": \"libc6\",\n\t\t\t\"sha256\": \"2578bc27d4e077f5e93c283d2502bc693c516d9590a20a27840b548a4d436820\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6_2.39-0ubuntu8.12_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\"sha256\": \"5b191f79ad985a9a653dbba45214619f729f9178a9bdf92f7c68db06c50d070b\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgcc-s1_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\"sha256\": \"bddbe21061fdc73a23e7de79ece91693bf61aa22d634d1c69c5048385c114968\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/gcc-14-base_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"mawk_1.3.4.20240123-1build1_arm64\",\n\t\t\t\"name\": \"mawk\",\n\t\t\t\"sha256\": \"a6fa75e49de6327ccdbf664e905cde229df77116a966c310e81c778eba756dca\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/m/mawk/mawk_1.3.4.20240123-1build1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1.3.4.20240123-1build1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libatomic1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libatomic1\",\n\t\t\t\"sha256\": \"fdeab74e7ad8572cf69c7024e8040c7ac851f6e667d35f0d429e7a0352840f73\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libatomic1_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"rpcsvc-proto_1.4.2-0ubuntu7_arm64\",\n\t\t\t\t\t\"name\": \"rpcsvc-proto\",\n\t\t\t\t\t\"version\": \"1.4.2-0ubuntu7\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt-dev_1-4.4.36-4build1_arm64\",\n\t\t\t\t\t\"name\": \"libcrypt-dev\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_arm64\",\n\t\t\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"linux-libc-dev_6.8.0-149.149_arm64\",\n\t\t\t\t\t\"name\": \"linux-libc-dev\",\n\t\t\t\t\t\"version\": \"6.8.0-149.149\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc-dev-bin_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc-dev-bin\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libc6-dev_2.39-0ubuntu8.12_arm64\",\n\t\t\t\"name\": \"libc6-dev\",\n\t\t\t\"sha256\": \"b8411b504a468c19a2acf4ff38a2015997853d078138afac76ff89c9599794b2\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc6-dev_2.39-0ubuntu8.12_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"rpcsvc-proto_1.4.2-0ubuntu7_arm64\",\n\t\t\t\"name\": \"rpcsvc-proto\",\n\t\t\t\"sha256\": \"ae527152fc2bf9c1a645c2620d802b0849db32c8aa48328b4ae94c59cc57bcc9\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu7_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1.4.2-0ubuntu7\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libcrypt-dev_1-4.4.36-4build1_arm64\",\n\t\t\t\"name\": \"libcrypt-dev\",\n\t\t\t\"sha256\": \"cadcc00021aa1082a8cb5cd1c2686b25b7a4d396f2029eaa1b12159ca46f1766\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/libx/libxcrypt/libcrypt-dev_4.4.36-4build1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"linux-libc-dev_6.8.0-149.149_arm64\",\n\t\t\t\"name\": \"linux-libc-dev\",\n\t\t\t\"sha256\": \"7ab70f6ebc55fe9ea6ceb9bb087cc7df252b62b9f1b14df46e825052206d7cff\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/l/linux/linux-libc-dev_6.8.0-149.149_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"6.8.0-149.149\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libc-dev-bin_2.39-0ubuntu8.12_arm64\",\n\t\t\t\"name\": \"libc-dev-bin\",\n\t\t\t\"sha256\": \"ecc2636c0d5cee59dc90ffb174807675f4f4c92b8fe6a2b745670682716ab48c\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/glibc/libc-dev-bin_2.39-0ubuntu8.12_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6-dev_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc6-dev\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"rpcsvc-proto_1.4.2-0ubuntu7_arm64\",\n\t\t\t\t\t\"name\": \"rpcsvc-proto\",\n\t\t\t\t\t\"version\": \"1.4.2-0ubuntu7\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt-dev_1-4.4.36-4build1_arm64\",\n\t\t\t\t\t\"name\": \"libcrypt-dev\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libcrypt1_1-4.4.36-4build1_arm64\",\n\t\t\t\t\t\"name\": \"libcrypt1\",\n\t\t\t\t\t\"version\": \"1:4.4.36-4build1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"linux-libc-dev_6.8.0-149.149_arm64\",\n\t\t\t\t\t\"name\": \"linux-libc-dev\",\n\t\t\t\t\t\"version\": \"6.8.0-149.149\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc-dev-bin_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc-dev-bin\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libstdc-p--p-6_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libstdc++6\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-13-dev_13.3.0-6ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgcc-13-dev\",\n\t\t\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libhwasan0_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libhwasan0\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libubsan1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libubsan1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libtsan2_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libtsan2\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"liblsan0_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"liblsan0\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libasan8_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libasan8\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libatomic1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libatomic1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libitm1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libitm1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgomp1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgomp1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-13-base_13.3.0-6ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-13-base\",\n\t\t\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libstdc-p--p--13-dev_13.3.0-6ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libstdc++-13-dev\",\n\t\t\t\"sha256\": \"e4911c9281d73b318ca47cb7976011a7dc13e299a91a06bc6d3e2d174cc2ce51\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libstdc++-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libgcc-s1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"libgcc-s1\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"libc6_2.39-0ubuntu8.12_arm64\",\n\t\t\t\t\t\"name\": \"libc6\",\n\t\t\t\t\t\"version\": \"2.39-0ubuntu8.12\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"key\": \"gcc-14-base_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\t\t\"name\": \"gcc-14-base\",\n\t\t\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"key\": \"libstdc-p--p-6_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libstdc++6\",\n\t\t\t\"sha256\": \"f84a05ac45a6884109b6527e911081a38263b89e042fc94a338cf975f61a330c\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libstdc++6_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libgcc-13-dev_13.3.0-6ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libgcc-13-dev\",\n\t\t\t\"sha256\": \"609a9410d9a1f25a1cb7847de92ee9f438336a0a3a82d282c3686f52ddd61526\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libhwasan0_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libhwasan0\",\n\t\t\t\"sha256\": \"44851293eede488ad89fd12db1bd8bfcb2b732f68ad4c13b83d6e0ce5d7b4bfa\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libhwasan0_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libubsan1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libubsan1\",\n\t\t\t\"sha256\": \"a5b4383f70f41cd949315c89e99e6416a0ee48037f7c5ea6b33f88f3c733757a\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libubsan1_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libtsan2_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libtsan2\",\n\t\t\t\"sha256\": \"00beb501f4979c7fd3a978b52a489ea7dbfc1203e5c56936e4c0ea5c2032fb3d\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libtsan2_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"liblsan0_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"liblsan0\",\n\t\t\t\"sha256\": \"21bb80325192b0cce6ccd041a8d823609c5e656bdda43368db6cdfe501593188\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/liblsan0_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libasan8_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libasan8\",\n\t\t\t\"sha256\": \"0b7957bc5bbc5d30eabe8b71bab06e624ac530be7b1b1315d2bd54629cf2559f\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libasan8_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libitm1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libitm1\",\n\t\t\t\"sha256\": \"7f7d7c5a26888e5e34eb62a193762eb6a8d5805c5d6f22248f638193d1804993\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libitm1_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"libgomp1_14.2.0-4ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"libgomp1\",\n\t\t\t\"sha256\": \"cd49d2e8834d41a6618f097b678980defeebc47271bc7c5aa8ea2c2f1a53b7a6\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"14.2.0-4ubuntu2~24.04.1\"\n\t\t},\n\t\t{\n\t\t\t\"arch\": \"arm64\",\n\t\t\t\"dependencies\": [],\n\t\t\t\"key\": \"gcc-13-base_13.3.0-6ubuntu2_24.04.1_arm64\",\n\t\t\t\"name\": \"gcc-13-base\",\n\t\t\t\"sha256\": \"1c1ca489da0d48237036318189a9b6525abe7703b75495f257f68bccae8c45a7\",\n\t\t\t\"urls\": [\n\t\t\t\t\"https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_arm64.deb\",\n\t\t\t\t\"https://ports.ubuntu.com/ubuntu-ports/pool/main/g/gcc-13/gcc-13-base_13.3.0-6ubuntu2~24.04.1_arm64.deb\"\n\t\t\t],\n\t\t\t\"version\": \"13.3.0-6ubuntu2~24.04.1\"\n\t\t}\n\t],\n\t\"version\": 1\n}",
+              "package_template": "@@rules_distroless+//apt/private:package.BUILD.tmpl"
+            }
+          },
           "docs_runtime_base-files_13ubuntu10.4_amd64": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
@@ -2911,7 +3443,10 @@
         },
         "moduleExtensionMetadata": {
           "explicitRootModuleDirectDeps": [],
-          "explicitRootModuleDirectDevDeps": [],
+          "explicitRootModuleDirectDevDeps": [
+            "ubuntu24_04_sysroot",
+            "ubuntu24_04_sysroot_resolve"
+          ],
           "useAllRepos": "NO",
           "reproducible": false
         }

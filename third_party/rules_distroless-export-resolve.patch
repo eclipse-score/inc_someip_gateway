@@ -1,0 +1,14 @@
+diff --git a/apt/extensions.bzl b/apt/extensions.bzl
+--- a/apt/extensions.bzl
++++ b/apt/extensions.bzl
+@@ -63,8 +63,10 @@ def _distroless_extension(module_ctx):
+             if mod.is_root:
+                 if module_ctx.is_dev_dependency(install):
+                     root_direct_dev_deps.append(install.name)
++                    root_direct_dev_deps.append(install.name + "_resolve")
+                 else:
+                     root_direct_deps.append(install.name)
++                    root_direct_deps.append(install.name + "_resolve")
+ 
+     metadata_kwargs = {}
+     if bazel_features.external_deps.extension_metadata_has_reproducible:
