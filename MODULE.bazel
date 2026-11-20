@@ -284,9 +284,24 @@ exports_files(["flamegraph.pl", "stackcollapse-perf.pl"])
 # ============================================================================
 # Documentation
 # ============================================================================
+bazel_dep(name = "download_utils", version = "1.2.2", dev_dependency = True)
+
 bazel_dep(name = "score_docs_as_code", version = "9.1.1")
 bazel_dep(name = "score_platform", version = "0.7.6")
 bazel_dep(name = "score_process_description", version = "2.2.5")
+
+download_archive = use_repo_rule("@download_utils//download/archive:defs.bzl", "download_archive")
+
+download_archive(
+    name = "open_someip_spec",
+    srcs = ["src/*.rst"],
+    dev_dependency = True,
+    integrity = "sha256-qDoeHSqOOhqDlv0oinUrTnJQtLMhBLh856cW5Kg1stA=",
+    strip_prefix = "open-someip-spec-4860461802c23f41c6227befcb25cc80e7d68771",
+    urls = [
+        "https://github.com/some-ip-com/open-someip-spec/archive/4860461802c23f41c6227befcb25cc80e7d68771.tar.gz",
+    ],
+)
 
 # ============================================================================
 # Communication Framework

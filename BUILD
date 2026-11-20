@@ -24,6 +24,7 @@ exports_files(["MODULE.bazel"])
 exports_files([
     ".clang-tidy",
     ".ruff.toml",
+    "docs/conf.py",
 ])
 
 # ==============================================================================
@@ -45,6 +46,11 @@ use_format_targets(
 
 docs(
     bundles = [
+        {
+            "bundle": "//docs_extspec:docs_bundle",
+            "mount_at": "requirements/extspec",
+            "attach_to": "requirements/index",
+        },
         {
             "bundle": "//score/config:docs_bundle",
             "mount_at": "config",
