@@ -62,7 +62,7 @@ Dynamic Architecture
    :safety: ASIL_B
    :status: valid
    :belongs_to: comp__gatewayd
-   :fulfils: comp_req__gatewayd__starts_from_config
+   :fulfils: comp_req__gatewayd__starts_from_config, comp_req__gatewayd__forwards_local_events, comp_req__gatewayd__forwards_remote_events
 
    Runtime sequence for local service event forwarding (Application to ``gatewayd`` to ``someipd``) and remote service event forwarding (``someipd`` to ``gatewayd`` to Application).
 

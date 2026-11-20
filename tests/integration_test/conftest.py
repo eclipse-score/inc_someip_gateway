@@ -20,7 +20,12 @@ import logging
 import os
 import pytest
 from typing import Generator
-from util import ShellProcess, tcpdump_capture, check_environment_and_mark
+from util import (
+    ShellProcess,
+    check_environment_and_mark,
+    tcpdump_capture,
+    wait_for_opt_ready,
+)
 from score.itf.plugins.core import Target
 
 pytest_plugins = ["attribute_plugin"]
@@ -35,6 +40,7 @@ def clean_state(target: Target) -> Generator[Target, None, None]:
     Lastly the output pcap file name should contain the test name, if we want to support multiple tests per run.
     """
 
+    wait_for_opt_ready(target)
     check_environment_and_mark(target)
     yield target
 
