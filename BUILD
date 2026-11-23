@@ -15,7 +15,6 @@ load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//:defs.bzl", "dash_license_checker")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
-load("//tools/lint:linters.bzl", "use_clang_tidy_targets", "use_ruff_targets")
 
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
@@ -129,15 +128,6 @@ test_suite(
     ],
     visibility = ["//visibility:public"],
 )
-
-# ==============================================================================
-# Clang-Tidy and Ruff Linting
-# ==============================================================================
-# Same code and interface like https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy
-
-use_clang_tidy_targets()
-
-use_ruff_targets()
 
 # ==============================================================================
 # Python Dependencies
