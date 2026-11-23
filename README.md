@@ -187,4 +187,9 @@ If you use a license server then add the following in in your `~/.bazelrc`:
 ## Static code analysis
 
 clang-tidy and ruff are used for static code analysis. clang-tidy is used for C/C++ code and ruff is used for Python code.
-We use the same code and interface like [Eclipse SCORE Communication](https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy).
+We use the same code as [Eclipse SCORE Communication](https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy), but the targets are in `//tools/lint`:
+
+    bazel run //tools/lint:clang-tidy.check
+    bazel run //tools/lint:ruff.check
+
+The `.fix` variants (`clang-tidy.fix`, `ruff.fix`) apply the fixes.

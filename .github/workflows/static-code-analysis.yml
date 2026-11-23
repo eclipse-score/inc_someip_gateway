@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ["//:clang-tidy.check", "//:ruff.check"]
+        target: ["//tools/lint:clang-tidy.check", "//tools/lint:ruff.check"]
     steps:
       - uses: eclipse-score/more-disk-space@v1
       - name: Checkout repository
