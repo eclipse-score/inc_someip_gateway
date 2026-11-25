@@ -36,7 +36,7 @@ build:ruff --aspects=//tools/lint:linters.bzl%ruff
 # Ruff autofix configuration
 # Inherits all ruff flags above and additionally enables fix mode so that
 # aspect_rules_lint runs `ruff check --fix` in a sandbox and collects the
-# edits as a unified-diff patch. Use `bazel run //:ruff.fix` to apply those
+# edits as a unified-diff patch. Use `bazel run //tools/lint:ruff.fix` to apply those
 # patches back to the workspace.
 build:ruff-fix --config=ruff
 build:ruff-fix --@aspect_rules_lint//lint:fix
