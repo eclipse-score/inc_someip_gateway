@@ -18,16 +18,19 @@
 #include <unistd.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <initializer_list>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -278,6 +281,91 @@ class IpcBindingTestFixture : public testing::MwComTestFixture {
 
    private:
     inline static score::mw::com::impl::IRuntime* real_runtime_{nullptr};
+};
+
+class ScopedThread final {
+   public:
+    ScopedThread() noexcept = default;
+    explicit ScopedThread(std::thread thread) noexcept : thread_{std::move(thread)} {}
+    ~ScopedThread() noexcept { Join(); }
+
+    ScopedThread(ScopedThread const&) = delete;
+    ScopedThread& operator=(ScopedThread const&) = delete;
+
+    ScopedThread(ScopedThread&& other) noexcept : thread_{std::move(other.thread_)} {}
+    ScopedThread& operator=(ScopedThread&& other) noexcept {
+        if (this != &other) {
+            Join();
+            thread_ = std::move(other.thread_);
+        }
+        return *this;
+    }
+
+    void Join() noexcept {
+        if (thread_.joinable()) {
+            thread_.join();
+        }
+    }
+
+   private:
+    std::thread thread_{};
+};
+
+class PromiseGate final {
+   public:
+    PromiseGate() : future_{promise_.get_future().share()} {}
+    ~PromiseGate() noexcept = default;
+
+    PromiseGate(PromiseGate const&) = delete;
+    PromiseGate& operator=(PromiseGate const&) = delete;
+    PromiseGate(PromiseGate&&) = delete;
+    PromiseGate& operator=(PromiseGate&&) = delete;
+
+    void Signal() noexcept {
+        std::call_once(once_, [this]() { promise_.set_value(); });
+    }
+
+    [[nodiscard]] std::shared_future<void> Future() const noexcept { return future_; }
+
+    template <typename Rep, typename Period>
+    [[nodiscard]] bool WaitFor(std::chrono::duration<Rep, Period> const timeout) const {
+        auto future_copy = future_;
+        return future_copy.wait_for(timeout) == std::future_status::ready;
+    }
+
+   private:
+    std::promise<void> promise_{};
+    std::shared_future<void> const future_;
+    std::once_flag once_{};
+};
+
+class ScopedGateSignaler final {
+   public:
+    explicit ScopedGateSignaler(PromiseGate& gate) noexcept : gate_{gate} {}
+    ~ScopedGateSignaler() noexcept { gate_.Signal(); }
+
+    ScopedGateSignaler(ScopedGateSignaler const&) = delete;
+    ScopedGateSignaler& operator=(ScopedGateSignaler const&) = delete;
+    ScopedGateSignaler(ScopedGateSignaler&&) = delete;
+    ScopedGateSignaler& operator=(ScopedGateSignaler&&) = delete;
+
+   private:
+    PromiseGate& gate_;
+};
+
+template <typename Fn>
+class ScopeExit final {
+   public:
+    explicit ScopeExit(Fn fn) noexcept : fn_{std::move(fn)} {}
+    ~ScopeExit() noexcept { fn_(); }
+
+    ScopeExit(ScopeExit const&) = delete;
+    ScopeExit& operator=(ScopeExit const&) = delete;
+    ScopeExit(ScopeExit&&) = delete;
+    ScopeExit& operator=(ScopeExit&&) = delete;
+
+   private:
+    Fn fn_;
 };
 
 }  // namespace score::gateway_ipc_binding::mw_com

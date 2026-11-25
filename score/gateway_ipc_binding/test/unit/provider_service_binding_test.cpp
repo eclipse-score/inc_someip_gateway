@@ -199,76 +199,6 @@ class DestructorTrackingClientConnectorMock final
     std::vector<std::string>* m_trace;
 };
 
-class ScopedThread final {
-   public:
-    ScopedThread() noexcept = default;
-    explicit ScopedThread(std::thread thread) noexcept : m_thread{std::move(thread)} {}
-
-    ~ScopedThread() noexcept { Join(); }
-
-    ScopedThread(ScopedThread const&) = delete;
-    ScopedThread& operator=(ScopedThread const&) = delete;
-
-    ScopedThread(ScopedThread&& other) noexcept : m_thread{std::move(other.m_thread)} {}
-    ScopedThread& operator=(ScopedThread&& other) noexcept {
-        if (this != &other) {
-            Join();
-            m_thread = std::move(other.m_thread);
-        }
-        return *this;
-    }
-
-    void Join() noexcept {
-        if (m_thread.joinable()) {
-            m_thread.join();
-        }
-    }
-
-   private:
-    std::thread m_thread{};
-};
-
-class PromiseGate final {
-   public:
-    PromiseGate() : m_future{m_promise.get_future().share()} {}
-
-    PromiseGate(PromiseGate const&) = delete;
-    PromiseGate& operator=(PromiseGate const&) = delete;
-    PromiseGate(PromiseGate&&) = delete;
-    PromiseGate& operator=(PromiseGate&&) = delete;
-
-    void Signal() noexcept {
-        std::call_once(m_once, [this]() { m_promise.set_value(); });
-    }
-
-    [[nodiscard]] std::shared_future<void> Future() const noexcept { return m_future; }
-
-    template <typename Rep, typename Period>
-    [[nodiscard]] bool WaitFor(std::chrono::duration<Rep, Period> const timeout) const {
-        auto future_copy = m_future;
-        return future_copy.wait_for(timeout) == std::future_status::ready;
-    }
-
-   private:
-    std::promise<void> m_promise{};
-    std::shared_future<void> m_future;
-    std::once_flag m_once{};
-};
-
-class ScopedGateSignaler final {
-   public:
-    explicit ScopedGateSignaler(PromiseGate& gate) noexcept : m_gate{gate} {}
-    ~ScopedGateSignaler() noexcept { m_gate.Signal(); }
-
-    ScopedGateSignaler(ScopedGateSignaler const&) = delete;
-    ScopedGateSignaler& operator=(ScopedGateSignaler const&) = delete;
-    ScopedGateSignaler(ScopedGateSignaler&&) = delete;
-    ScopedGateSignaler& operator=(ScopedGateSignaler&&) = delete;
-
-   private:
-    PromiseGate& m_gate;
-};
-
 class ConcurrentSampleArena final {
    public:
     static constexpr std::size_t kMaxSlotBytes{kTwoEvent0SampleSize};
@@ -348,27 +278,14 @@ class ConcurrentFakeSkeleton final : public score::mw::com::impl::SkeletonBindin
     bool VerifyAllMethodHandlersRegistered() const override { return true; }
 };
 
-class ConcurrentFakeSkeletonEvent final : public score::mw::com::impl::GenericSkeletonEventBinding {
+class FakeSkeletonEventBase : public score::mw::com::impl::GenericSkeletonEventBinding {
    public:
-    ConcurrentFakeSkeletonEvent(
-        std::size_t const sample_bytes, std::shared_ptr<ConcurrentSampleArena> sample_arena,
-        std::shared_ptr<std::mutex> callback_mutex,
-        std::shared_ptr<score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback>
-            shared_callback,
-        std::atomic<std::size_t>* const sent_count) noexcept
-        : m_sample_bytes{sample_bytes},
-          m_sample_arena{std::move(sample_arena)},
-          m_callback_mutex{std::move(callback_mutex)},
-          m_shared_callback{std::move(shared_callback)},
-          m_sent_count{sent_count} {}
+    ~FakeSkeletonEventBase() noexcept override = default;
 
-    score::Result<void> Send(score::mw::com::impl::SampleAllocateePtr<void> sample,
-                             std::optional<SendTraceCallback>) override {
-        if (sample.Get() != nullptr && m_sent_count != nullptr) {
-            m_sent_count->fetch_add(1U, std::memory_order_relaxed);
-        }
-        return {};
-    }
+    FakeSkeletonEventBase(FakeSkeletonEventBase const&) = delete;
+    FakeSkeletonEventBase& operator=(FakeSkeletonEventBase const&) = delete;
+    FakeSkeletonEventBase(FakeSkeletonEventBase&&) = delete;
+    FakeSkeletonEventBase& operator=(FakeSkeletonEventBase&&) = delete;
 
     score::Result<score::mw::com::impl::SampleAllocateePtr<void>> Allocate(
         score::mw::com::impl::SampleAllocateeGuard guard) override {
@@ -401,6 +318,46 @@ class ConcurrentFakeSkeletonEvent final : public score::mw::com::impl::GenericSk
     score::Result<void> Notify() override { return {}; }
 
     score::Result<void> SetReceiveHandlerRegistrationChangedHandler(
+        score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback) noexcept override {
+        return {};
+    }
+
+    score::Result<void> UnsetReceiveHandlerRegistrationChangedHandler() noexcept override {
+        return {};
+    }
+
+   protected:
+    FakeSkeletonEventBase(std::size_t const sample_bytes,
+                          std::shared_ptr<ConcurrentSampleArena> sample_arena) noexcept
+        : m_sample_bytes{sample_bytes}, m_sample_arena{std::move(sample_arena)} {}
+
+   private:
+    std::size_t m_sample_bytes;
+    std::shared_ptr<ConcurrentSampleArena> m_sample_arena;
+};
+
+class ConcurrentFakeSkeletonEvent final : public FakeSkeletonEventBase {
+   public:
+    ConcurrentFakeSkeletonEvent(
+        std::size_t const sample_bytes, std::shared_ptr<ConcurrentSampleArena> sample_arena,
+        std::shared_ptr<std::mutex> callback_mutex,
+        std::shared_ptr<score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback>
+            shared_callback,
+        std::atomic<std::size_t>* const sent_count) noexcept
+        : FakeSkeletonEventBase{sample_bytes, std::move(sample_arena)},
+          m_callback_mutex{std::move(callback_mutex)},
+          m_shared_callback{std::move(shared_callback)},
+          m_sent_count{sent_count} {}
+
+    score::Result<void> Send(score::mw::com::impl::SampleAllocateePtr<void> sample,
+                             std::optional<SendTraceCallback>) override {
+        if (sample.Get() != nullptr && m_sent_count != nullptr) {
+            m_sent_count->fetch_add(1U, std::memory_order_relaxed);
+        }
+        return {};
+    }
+
+    score::Result<void> SetReceiveHandlerRegistrationChangedHandler(
         score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback callback) noexcept
         override {
         std::lock_guard<std::mutex> const lock{*m_callback_mutex};
@@ -415,12 +372,72 @@ class ConcurrentFakeSkeletonEvent final : public score::mw::com::impl::GenericSk
     }
 
    private:
-    std::size_t m_sample_bytes;
-    std::shared_ptr<ConcurrentSampleArena> m_sample_arena;
     std::shared_ptr<std::mutex> m_callback_mutex;
     std::shared_ptr<score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback>
         m_shared_callback;
     std::atomic<std::size_t>* m_sent_count;
+};
+
+// Plain C++ fake instead of MOCK_METHOD: GoogleMock cannot hook ~GenericSkeletonEvent(), and
+// destroying even a subclassed mock while Send() is paused in .WillOnce(...) frees gMock's
+// expectations and running closure, causing heap-use-after-free instead of a clean failure.
+class BlockingSendSkeletonEvent final : public FakeSkeletonEventBase {
+   public:
+    BlockingSendSkeletonEvent(std::size_t const sample_bytes,
+                              std::shared_ptr<ConcurrentSampleArena> sample_arena,
+                              PromiseGate& entered_send, std::shared_future<void> withdraw_invoking,
+                              PromiseGate& release_send_gate, std::atomic<bool>& destroyed,
+                              std::atomic<bool>& destroyed_during_send) noexcept
+        : FakeSkeletonEventBase{sample_bytes, std::move(sample_arena)},
+          m_entered_send{entered_send},
+          m_withdraw_invoking{std::move(withdraw_invoking)},
+          m_release_send_gate{release_send_gate},
+          m_release_send{release_send_gate.Future()},
+          m_destroyed{destroyed},
+          m_destroyed_during_send{destroyed_during_send} {}
+
+    ~BlockingSendSkeletonEvent() noexcept override {
+        // Store destroyed before signaling release_send_gate so waking Send() on premature
+        // destruction guarantees visibility of destroyed == true.
+        m_destroyed.store(true, std::memory_order_release);
+        m_release_send_gate.Signal();
+    }
+
+    BlockingSendSkeletonEvent(BlockingSendSkeletonEvent const&) = delete;
+    BlockingSendSkeletonEvent& operator=(BlockingSendSkeletonEvent const&) = delete;
+    BlockingSendSkeletonEvent(BlockingSendSkeletonEvent&&) = delete;
+    BlockingSendSkeletonEvent& operator=(BlockingSendSkeletonEvent&&) = delete;
+
+    score::Result<void> Send(score::mw::com::impl::SampleAllocateePtr<void> sample,
+                             std::optional<SendTraceCallback>) override {
+        // SkeletonEventBase destroys sample_allocatee_tracker_ before binding_, so release the
+        // guard up front to fail cleanly on destroyed_during_send instead of SIGABRT in tracker.
+        sample.reset();
+        // Copy members to stack locals before signaling: if serialization is broken,
+        // withdraw_thread can destroy *this as soon as entered_send wakes it.
+        auto withdraw_invoking = m_withdraw_invoking;
+        auto release_send = m_release_send;
+        auto& destroyed = m_destroyed;
+        auto& destroyed_during_send = m_destroyed_during_send;
+        auto& entered_send = m_entered_send;
+        entered_send.Signal();
+        // Wait until withdraw_thread reaches the on_service_state_change call site before
+        // starting the overlap window so thread-scheduling delay cannot mask a race.
+        EXPECT_EQ(withdraw_invoking.wait_for(kConcurrencyTimeout), std::future_status::ready);
+        (void)release_send.wait_for(kInFlightSendOverlapWindow);
+        if (destroyed.load(std::memory_order_acquire)) {
+            destroyed_during_send.store(true, std::memory_order_release);
+        }
+        return {};
+    }
+
+   private:
+    PromiseGate& m_entered_send;
+    std::shared_future<void> m_withdraw_invoking;
+    PromiseGate& m_release_send_gate;
+    std::shared_future<void> m_release_send;
+    std::atomic<bool>& m_destroyed;
+    std::atomic<bool>& m_destroyed_during_send;
 };
 
 class ConcurrentFakeClientConnector final : public socom::Client_connector {
@@ -1981,102 +1998,22 @@ TEST_F(ProviderServiceBindingTest,
     EXPECT_EQ(sample_arena->active_slots(), 0U);
 }
 
+// Verifies that if SOCom reports not_available (with no subscribed mw::com peer) while
+// on_event_update is mid-Send(), the binding waits for Send() and its sample allocation to
+// finish before destroying the skeleton and its events, preventing use-after-free in Send().
 TEST_F(ProviderServiceBindingTest,
        ConcurrentNotAvailableWaitsForInFlightSendBeforeDestroyingSkeleton) {
-    class BlockingSendSkeletonEvent final
-        : public score::mw::com::impl::GenericSkeletonEventBinding {
-       public:
-        BlockingSendSkeletonEvent(std::size_t const sample_bytes,
-                                  std::shared_ptr<ConcurrentSampleArena> sample_arena,
-                                  PromiseGate* const entered_send,
-                                  std::shared_future<void> release_send,
-                                  std::atomic<bool>* const destroyed,
-                                  std::atomic<bool>* const destroyed_during_send) noexcept
-            : m_sample_bytes{sample_bytes},
-              m_sample_arena{std::move(sample_arena)},
-              m_entered_send{entered_send},
-              m_release_send{std::move(release_send)},
-              m_destroyed{destroyed},
-              m_destroyed_during_send{destroyed_during_send} {}
-
-        ~BlockingSendSkeletonEvent() noexcept override {
-            if (m_destroyed != nullptr) {
-                m_destroyed->store(true, std::memory_order_release);
-            }
-        }
-
-        score::Result<void> Send(score::mw::com::impl::SampleAllocateePtr<void> sample,
-                                 std::optional<SendTraceCallback>) override {
-            (void)sample;
-            auto release_send = m_release_send;
-            auto* const destroyed = m_destroyed;
-            auto* const destroyed_during_send = m_destroyed_during_send;
-            auto* const entered_send = m_entered_send;
-            if (entered_send != nullptr) {
-                entered_send->Signal();
-            }
-            (void)release_send.wait_for(kInFlightSendOverlapWindow);
-            if (destroyed != nullptr && destroyed_during_send != nullptr &&
-                destroyed->load(std::memory_order_acquire)) {
-                destroyed_during_send->store(true, std::memory_order_release);
-            }
-            return {};
-        }
-
-        score::Result<score::mw::com::impl::SampleAllocateePtr<void>> Allocate(
-            score::mw::com::impl::SampleAllocateeGuard guard) override {
-            return m_sample_arena->Allocate(m_sample_bytes, std::move(guard));
-        }
-
-        score::Result<score::mw::com::impl::SamplePtr<void>> GetLatestSample(
-            score::mw::com::impl::QualityType) override {
-            return score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure);
-        }
-
-        score::Result<void> PrepareOffer(
-            std::optional<score::mw::com::impl::InitializeSampleCallback> const&) override {
-            return {};
-        }
-
-        void PrepareStopOffer() override {}
-
-        score::memory::DataTypeSizeInfo GetEventDataTypeSizeInfo() const override {
-            return score::memory::DataTypeSizeInfo{m_sample_bytes, kSample_alignment};
-        }
-
-        score::mw::com::impl::BindingType GetBindingType() const noexcept override {
-            return score::mw::com::impl::BindingType::kLoLa;
-        }
-
-        void SetSkeletonEventTracingData(
-            score::mw::com::impl::tracing::SkeletonEventTracingData) noexcept override {}
-
-        score::Result<void> Notify() override { return {}; }
-
-        score::Result<void> SetReceiveHandlerRegistrationChangedHandler(
-            score::mw::com::impl::ReceiveHandlerRegistrationChangedCallback) noexcept override {
-            return {};
-        }
-
-        score::Result<void> UnsetReceiveHandlerRegistrationChangedHandler() noexcept override {
-            return {};
-        }
-
-       private:
-        std::size_t m_sample_bytes;
-        std::shared_ptr<ConcurrentSampleArena> m_sample_arena;
-        PromiseGate* m_entered_send;
-        std::shared_future<void> m_release_send;
-        std::atomic<bool>* m_destroyed;
-        std::atomic<bool>* m_destroyed_during_send;
-    };
-
     auto const config = MakeServiceConfig(Role::provider);
     StubProviderEventsResolved(config);
 
+    // Shared arena outlives the binding and tracks live SampleAllocateePtr slots so we can
+    // verify the in-flight sample is released rather than leaked across concurrent withdrawal.
     auto sample_arena = std::make_shared<ConcurrentSampleArena>();
+    PromiseGate withdraw_ready_gate{};
     PromiseGate entered_send_gate{};
+    PromiseGate withdraw_invoking_gate{};
     PromiseGate release_send_gate{};
+    std::atomic<bool> cancel_withdraw{false};
     std::atomic<bool> event_destroyed{false};
     std::atomic<bool> destroyed_during_send{false};
 
@@ -2087,47 +2024,64 @@ TEST_F(ProviderServiceBindingTest,
         })
         .RetiresOnSaturation();
     EXPECT_CALL(generic_skeleton_event_factory_mock(), Create(_, _, kEvent0, _))
-        .WillOnce([sample_arena, &entered_send_gate, release_future = release_send_gate.Future(),
+        .WillOnce([sample_arena, &entered_send_gate,
+                   withdraw_invoking_future = withdraw_invoking_gate.Future(), &release_send_gate,
                    &event_destroyed,
                    &destroyed_during_send](score::mw::com::impl::InstanceIdentifier const&,
                                            score::mw::com::impl::SkeletonBinding&, std::string_view,
                                            score::memory::DataTypeSizeInfo) {
             return std::make_unique<BlockingSendSkeletonEvent>(
-                kDefaultEvent0SampleSize, sample_arena, &entered_send_gate, release_future,
-                &event_destroyed, &destroyed_during_send);
+                kDefaultEvent0SampleSize, sample_arena, entered_send_gate, withdraw_invoking_future,
+                release_send_gate, event_destroyed, destroyed_during_send);
         })
         .RetiresOnSaturation();
 
     socom::Client_connector::Callbacks callbacks{};
-    socom::Client_connector* cc_ptr{nullptr};
-    EXPECT_CALL(socom_runtime_, make_client_connector(_, _, _))
-        .InSequence(client_connector_sequence())
-        .WillOnce([&callbacks, &cc_ptr](socom::Service_interface_definition definition,
-                                        socom::Service_instance instance,
-                                        socom::Client_connector::Callbacks cb)
-                      -> score::Result<socom::Client_connector::Uptr> {
-            auto fake_cc = std::make_unique<ConcurrentFakeClientConnector>(std::move(definition),
-                                                                           std::move(instance));
-            cc_ptr = fake_cc.get();
-            callbacks = std::move(cb);
-            return fake_cc;
-        })
-        .RetiresOnSaturation();
+    auto* const cc_ptr = ExpectClientConnectorCreated(&callbacks);
+    ASSERT_NE(cc_ptr, nullptr);
 
     auto binding_res = Provider_service_binding::create(socom_runtime_, config);
     ASSERT_TRUE(binding_res.has_value());
     auto binding = std::move(*binding_res);
-    ASSERT_NE(cc_ptr, nullptr);
     auto const server_def = MakeServerDefinition(config);
 
+    // Leave mw::com peer interest unsubscribed so not_available actually destroys the skeleton
+    // instead of retaining it, and pre-allocate before spawning threads to isolate the race to
+    // in-flight Send() vs skeleton teardown.
     callbacks.on_service_state_change(*cc_ptr, socom::Service_state::available, server_def);
     auto alloc = callbacks.on_event_payload_allocate(*cc_ptr, kSocomEvent0);
     ASSERT_TRUE(alloc.has_value());
     ASSERT_TRUE(alloc->shrink(kZeroPayloadCount));
 
+    // Declare unblock_on_exit after the threads so reverse destruction order cancels withdrawal
+    // and unblocks every gate before ~ScopedThread() joins on an early ASSERT_* failure.
     ScopedThread send_thread{};
     ScopedThread withdraw_thread{};
-    ScopedGateSignaler const unblock_send_on_exit{release_send_gate};
+    ScopeExit const unblock_on_exit{[&cancel_withdraw, &entered_send_gate, &withdraw_invoking_gate,
+                                     &release_send_gate]() noexcept {
+        cancel_withdraw.store(true, std::memory_order_release);
+        entered_send_gate.Signal();
+        withdraw_invoking_gate.Signal();
+        release_send_gate.Signal();
+    }};
+
+    // Pre-spawn withdraw_thread and wait until it is running so thread-creation latency
+    // cannot delay withdrawal past the in-flight Send() window.
+    withdraw_thread = ScopedThread{std::thread{
+        [&callbacks, cc_ptr, &server_def, &withdraw_ready_gate,
+         entered_future = entered_send_gate.Future(), &cancel_withdraw, &withdraw_invoking_gate]() {
+            withdraw_ready_gate.Signal();
+            if (entered_future.wait_for(kConcurrencyTimeout) != std::future_status::ready ||
+                cancel_withdraw.load(std::memory_order_acquire)) {
+                return;
+            }
+            // Signal immediately before on_service_state_change because the binding's lock is
+            // private, making call entry the closest observable point before withdrawal blocks.
+            withdraw_invoking_gate.Signal();
+            callbacks.on_service_state_change(*cc_ptr, socom::Service_state::not_available,
+                                              server_def);
+        }}};
+    ASSERT_TRUE(withdraw_ready_gate.WaitFor(kConcurrencyTimeout));
 
     send_thread =
         ScopedThread{std::thread{[&callbacks, cc_ptr, payload = std::move(*alloc)]() mutable {
@@ -2135,16 +2089,13 @@ TEST_F(ProviderServiceBindingTest,
         }}};
 
     ASSERT_TRUE(entered_send_gate.WaitFor(kConcurrencyTimeout));
-
-    // Concurrent not_available (with wanted_by_peer == false) must wait for in-flight Send() and
-    // its SampleAllocateePtr to finish before destroying m_skeleton.
-    withdraw_thread = ScopedThread{std::thread{[&callbacks, cc_ptr, &server_def]() {
-        callbacks.on_service_state_change(*cc_ptr, socom::Service_state::not_available, server_def);
-    }}};
+    ASSERT_TRUE(withdraw_invoking_gate.WaitFor(kConcurrencyTimeout));
 
     send_thread.Join();
     withdraw_thread.Join();
 
+    // Both flags together prove skeleton destruction was deferred until Send() finished
+    // rather than skipped, and zero active slots confirms the sample buffer was released.
     EXPECT_FALSE(destroyed_during_send.load(std::memory_order_acquire));
     EXPECT_TRUE(event_destroyed.load(std::memory_order_acquire));
     binding.reset();

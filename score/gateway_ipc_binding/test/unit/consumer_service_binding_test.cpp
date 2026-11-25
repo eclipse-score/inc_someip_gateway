@@ -214,13 +214,24 @@ class ScopedSampleDeleterCounter {
     inline static std::atomic<std::atomic<std::size_t>*> active_counter_{nullptr};
 };
 
+void UpdateAtomicMax(std::atomic<std::size_t>& target, std::size_t const candidate) noexcept {
+    auto prev = target.load(std::memory_order_relaxed);
+    while ((prev < candidate) &&
+           !target.compare_exchange_weak(prev, candidate, std::memory_order_acq_rel,
+                                         std::memory_order_relaxed)) {
+    }
+}
+
 class ConsumerServiceBindingTest : public IpcBindingTestFixture {
    protected:
     using FindHandler = score::mw::com::impl::FindServiceHandler<score::mw::com::impl::HandleType>;
     using ReceiveHandlerWeakPtr = std::weak_ptr<score::mw::com::impl::ScopedEventReceiveHandler>;
     using MockProxyEvent = ::testing::NiceMock<score::testing::GenericProxyEvent>;
+    using ProxySampleCallback = score::mw::com::impl::GenericProxyEventBinding::Callback;
+    using SampleTrackerFactory = score::mw::com::impl::TrackerGuardFactory;
 
     struct CapturedEventUpdates {
+        std::mutex mutex{};
         std::vector<std::vector<std::byte>> payloads{};
         std::vector<bool> has_sample_user_data{};
     };
@@ -386,17 +397,45 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
             .Times(expected_count)
             .WillRepeatedly([&out_captured](socom::Event_id, socom::Payload payload) {
                 auto const* const sample = payload.get_user_data<score::mw::com::SamplePtr<void>>();
-                out_captured.has_sample_user_data.push_back((sample != nullptr) &&
-                                                            (sample->get() != nullptr));
+                auto const has_sample = (sample != nullptr) && (sample->get() != nullptr);
                 auto const span = payload.data();
+                std::lock_guard<std::mutex> const lock{out_captured.mutex};
+                out_captured.has_sample_user_data.push_back(has_sample);
                 out_captured.payloads.emplace_back(span.begin(), span.end());
                 return score::Result<void>{};
             });
     }
 
+    std::unique_ptr<Consumer_service_binding> StartAndSubscribeSingleEvent(
+        socom::Disabled_server_connector::Callbacks const& server_callbacks,
+        socom::Server_connector_mock& server_connector,
+        Service_config const& config = MakeServiceConfig(Role::consumer)) {
+        FindHandler find_handler{};
+        auto const find_handle = ExpectDiscoveryCapture(find_handler, config.instance_specifier);
+        auto binding_res = Consumer_service_binding::create(socom_runtime_, config);
+        EXPECT_TRUE(binding_res.has_value());
+        if (!binding_res.has_value()) {
+            return nullptr;
+        }
+        EXPECT_NE(*binding_res, nullptr);
+        if (*binding_res == nullptr) {
+            return nullptr;
+        }
+        auto const start_res = (*binding_res)->start();
+        EXPECT_TRUE(start_res.has_value());
+        if (!start_res.has_value()) {
+            return nullptr;
+        }
+        find_handler({MakeHandle(config.instance_specifier, {kEvent0}, config.service_id,
+                                 config.instance_id)},
+                     find_handle);
+        server_callbacks.on_event_subscription_change(server_connector, kSocomEvent0,
+                                                      socom::Event_state::subscribed);
+        return std::move(*binding_res);
+    }
+
     static auto DeliverSingleMockSample(std::byte* const sample_base) {
-        return [sample_base](score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
-                             score::mw::com::impl::TrackerGuardFactory& tracker) {
+        return [sample_base](ProxySampleCallback&& cb, SampleTrackerFactory& tracker) {
             DeliverSample(cb, testing::MakeMockSample(sample_base, tracker));
             return score::Result<std::size_t>{kSingleDeliveredSampleCount};
         };
@@ -405,9 +444,8 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
     static auto DeliverDroppedSampleBatch(std::byte* const over_max_base,
                                           std::byte* const high_bit_base,
                                           std::byte* const uint32_max_base) {
-        return [over_max_base, high_bit_base, uint32_max_base](
-                   score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
-                   score::mw::com::impl::TrackerGuardFactory& tracker) {
+        return [over_max_base, high_bit_base, uint32_max_base](ProxySampleCallback&& cb,
+                                                               SampleTrackerFactory& tracker) {
             DeliverSample(cb, score::mw::com::impl::SamplePtr<void>{});
             DeliverSample(cb, testing::MakeMockSample(over_max_base, tracker));
             DeliverSample(cb, testing::MakeMockSample(high_bit_base, tracker));
@@ -417,7 +455,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
     }
 
     static score::mw::com::impl::SamplePtr<void> MakeTrackedMockSample(
-        std::byte* const sample_base, score::mw::com::impl::TrackerGuardFactory& tracker) {
+        std::byte* const sample_base, SampleTrackerFactory& tracker) {
         auto guard = tracker.TakeGuard();
         if (!guard.has_value()) {
             return score::mw::com::impl::SamplePtr<void>{};
@@ -429,8 +467,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
     }
 
     static auto DeliverTrackedMockSample(std::byte* const sample_base) {
-        return [sample_base](score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
-                             score::mw::com::impl::TrackerGuardFactory& tracker) {
+        return [sample_base](ProxySampleCallback&& cb, SampleTrackerFactory& tracker) {
             auto tracked_sample = MakeTrackedMockSample(sample_base, tracker);
             if (tracked_sample.get() == nullptr) {
                 return score::Result<std::size_t>{kZeroDeliveredSamples};
@@ -887,15 +924,8 @@ TEST_F(ConsumerServiceBindingTest, RetainsZeroCopySampleGuardUntilSocomPayloadIs
             return score::Result<void>{};
         });
 
-    FindHandler find_handler{};
-    auto const find_handle = ExpectDiscoveryCapture(find_handler);
-
-    auto binding_res = Consumer_service_binding::create(socom_runtime_, cfg);
-    ASSERT_TRUE(binding_res.has_value());
-    ASSERT_TRUE((*binding_res)->start().has_value());
-    find_handler({MakeHandle({kEvent0})}, find_handle);
-    server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
-                                                  socom::Event_state::subscribed);
+    auto const binding = StartAndSubscribeSingleEvent(server_callbacks, *server_connector, cfg);
+    ASSERT_NE(binding, nullptr);
 
     auto locked_handler = ev0_receive_handler.lock();
     ASSERT_NE(locked_handler, nullptr);
@@ -1021,179 +1051,101 @@ TEST_F(ConsumerServiceBindingTest,
     EXPECT_EQ(replacement_subscribe_calls, 1U);
 }
 
+// mw::com can invoke an event's ScopedEventReceiveHandler concurrently across threads.
+// Serializing concurrent notifications prevents GetNewSamples() calls from racing or dropping
+// reads.
 TEST_F(ConsumerServiceBindingTest, SerializesConcurrentGetNewSamplesCallsForSameEvent) {
     socom::Disabled_server_connector::Callbacks server_callbacks{};
     auto* const server_connector = ExpectServerConnectorCreated(&server_callbacks);
     EXPECT_CALL(*server_connector, enable()).Times(1).WillOnce(Return(server_connector));
     EXPECT_CALL(*server_connector, disable()).Times(1).WillOnce(Return(server_connector));
-
     auto* const ev0 = ExpectSizedProxyEvent(kEvent0, kMinPeerSampleSize24);
     ReceiveHandlerWeakPtr ev0_receive_handler{};
     ExpectEventSubscriptionLifecycle(*ev0, kDefaultMaxSampleCount, &ev0_receive_handler);
 
+    // Distinct payloads prove Sample 2 runs after Sample 1 instead of dropping or reordering.
     auto first_sample = MakeFramedSample<kMinPeerSampleSize24>(kPrefixLength4, kSignBitBytes);
     auto second_sample = MakeFramedSample<kMinPeerSampleSize24>(kPrefixLength4, kReconnectBytes);
 
-    std::mutex gate_mutex{};
-    std::condition_variable gate_cv{};
-    bool first_call_entered{false};
-    bool second_thread_invoking{false};
-    bool release_first_call{false};
-    bool second_call_completed{false};
-    std::size_t active_get_new_samples{0U};
-    std::size_t max_concurrent_get_new_samples{0U};
-    std::size_t get_new_samples_invocations{0U};
+    PromiseGate first_call_entered{};
+    PromiseGate release_first_call{};
+    PromiseGate second_thread_invoking{};
+    PromiseGate overlap_or_early_exit{};
+    std::atomic<bool> second_call_completed{false};
+    std::atomic<std::size_t> active_get_new_samples{0U};
+    std::atomic<std::size_t> max_concurrent_get_new_samples{0U};
+    std::atomic<std::size_t> get_new_samples_invocations{0U};
 
+    auto const make_get_new_samples_action =
+        [&first_call_entered, &release_first_call, &overlap_or_early_exit, &active_get_new_samples,
+         &max_concurrent_get_new_samples, &get_new_samples_invocations](
+            AlignedSampleBuffer<kMinPeerSampleSize24>& sample, bool const hold_until_released) {
+            return [&sample, hold_until_released, &first_call_entered, &release_first_call,
+                    &overlap_or_early_exit, &active_get_new_samples,
+                    &max_concurrent_get_new_samples, &get_new_samples_invocations](
+                       ProxySampleCallback&& cb, SampleTrackerFactory& tracker) {
+                (void)get_new_samples_invocations.fetch_add(1U, std::memory_order_acq_rel);
+                auto const active =
+                    active_get_new_samples.fetch_add(1U, std::memory_order_acq_rel) + 1U;
+                UpdateAtomicMax(max_concurrent_get_new_samples, active);
+                if (active >= kConcurrentCollisionThreshold) {
+                    overlap_or_early_exit.Signal();
+                }
+                if (hold_until_released) {
+                    first_call_entered.Signal();
+                    EXPECT_TRUE(release_first_call.WaitFor(kSynchronizationTimeout));
+                }
+                DeliverSample(cb, testing::MakeMockSample(sample.bytes.data(), tracker));
+                (void)active_get_new_samples.fetch_sub(1U, std::memory_order_acq_rel);
+                return score::Result<std::size_t>{kSingleDeliveredSampleCount};
+            };
+        };
     EXPECT_CALL(*ev0, GetNewSamples(_, _))
         .Times(kTwoDeliveredSampleCount)
-        .WillOnce([&first_sample, &gate_mutex, &gate_cv, &first_call_entered, &release_first_call,
-                   &active_get_new_samples, &max_concurrent_get_new_samples,
-                   &get_new_samples_invocations](
-                      score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
-                      score::mw::com::impl::TrackerGuardFactory& tracker) {
-            {
-                std::unique_lock<std::mutex> lock{gate_mutex};
-                ++get_new_samples_invocations;
-                ++active_get_new_samples;
-                max_concurrent_get_new_samples =
-                    std::max(max_concurrent_get_new_samples, active_get_new_samples);
-                first_call_entered = true;
-                gate_cv.notify_all();
-                EXPECT_TRUE(gate_cv.wait_until(
-                    lock, std::chrono::steady_clock::now() + kSynchronizationTimeout,
-                    [&release_first_call]() noexcept { return release_first_call; }));
-            }
-            DeliverSample(cb, testing::MakeMockSample(first_sample.bytes.data(), tracker));
-            {
-                std::lock_guard<std::mutex> const lock{gate_mutex};
-                --active_get_new_samples;
-            }
-            gate_cv.notify_all();
-            return score::Result<std::size_t>{kSingleDeliveredSampleCount};
-        })
-        .WillOnce([&second_sample, &gate_mutex, &gate_cv, &active_get_new_samples,
-                   &max_concurrent_get_new_samples, &get_new_samples_invocations](
-                      score::mw::com::impl::GenericProxyEventBinding::Callback&& cb,
-                      score::mw::com::impl::TrackerGuardFactory& tracker) {
-            {
-                std::lock_guard<std::mutex> const lock{gate_mutex};
-                ++get_new_samples_invocations;
-                ++active_get_new_samples;
-                max_concurrent_get_new_samples =
-                    std::max(max_concurrent_get_new_samples, active_get_new_samples);
-            }
-            gate_cv.notify_all();
-            DeliverSample(cb, testing::MakeMockSample(second_sample.bytes.data(), tracker));
-            {
-                std::lock_guard<std::mutex> const lock{gate_mutex};
-                --active_get_new_samples;
-            }
-            gate_cv.notify_all();
-            return score::Result<std::size_t>{kSingleDeliveredSampleCount};
-        });
+        .WillOnce(make_get_new_samples_action(first_sample, /*hold_until_released=*/true))
+        .WillOnce(make_get_new_samples_action(second_sample, /*hold_until_released=*/false));
 
-    std::mutex captured_mutex{};
-    std::vector<std::vector<std::byte>> captured_payloads{};
-    EXPECT_CALL(*server_connector, update_event(kSocomEvent0, _))
-        .Times(kTwoDeliveredSampleCount)
-        .WillRepeatedly(
-            [&captured_mutex, &captured_payloads](socom::Event_id, socom::Payload payload) {
-                auto const span = payload.data();
-                std::lock_guard<std::mutex> const lock{captured_mutex};
-                captured_payloads.emplace_back(span.begin(), span.end());
-                return score::Result<void>{};
-            });
-
-    FindHandler find_handler{};
-    auto const find_handle = ExpectDiscoveryCapture(find_handler);
-
-    auto binding_res =
-        Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
-    ASSERT_TRUE(binding_res.has_value());
-    ASSERT_TRUE((*binding_res)->start().has_value());
-    find_handler({MakeHandle({kEvent0})}, find_handle);
-    server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
-                                                  socom::Event_state::subscribed);
-
+    CapturedEventUpdates captured{};
+    ExpectCapturedEventUpdates(*server_connector, kSocomEvent0, kTwoDeliveredSampleCount, captured);
+    auto const binding = StartAndSubscribeSingleEvent(server_callbacks, *server_connector);
+    ASSERT_NE(binding, nullptr);
     auto const locked_handler = ev0_receive_handler.lock();
     ASSERT_NE(locked_handler, nullptr);
 
-    struct ScopedWorkerCleanup final {
-        ScopedWorkerCleanup(std::mutex& mtx, std::condition_variable& cond, bool& release) noexcept
-            : gate_mutex{mtx}, gate_cv{cond}, release_first_call{release} {}
-        ~ScopedWorkerCleanup() noexcept { ReleaseAndJoin(); }
-        ScopedWorkerCleanup(ScopedWorkerCleanup const&) = delete;
-        ScopedWorkerCleanup& operator=(ScopedWorkerCleanup const&) = delete;
-        ScopedWorkerCleanup(ScopedWorkerCleanup&&) = delete;
-        ScopedWorkerCleanup& operator=(ScopedWorkerCleanup&&) = delete;
+    // Unblock Worker 1 before joining threads if an early ASSERT_* aborts the test, and park
+    // Worker 1 inside GetNewSamples() so Worker 2 contends with an in-flight sample read.
+    ScopedThread first_worker{std::thread{[&locked_handler]() { (*locked_handler)(); }}};
+    ScopedThread second_worker{};
+    ScopedGateSignaler const unblock_first_on_exit{release_first_call};
+    ASSERT_TRUE(first_call_entered.WaitFor(kSynchronizationTimeout));
 
-        void ReleaseAndJoin() noexcept {
-            {
-                std::lock_guard<std::mutex> const lock{gate_mutex};
-                release_first_call = true;
-            }
-            gate_cv.notify_all();
-            if (second.joinable()) {
-                second.join();
-            }
-            if (first.joinable()) {
-                first.join();
-            }
-        }
-
-        std::mutex& gate_mutex;
-        std::condition_variable& gate_cv;
-        bool& release_first_call;
-        std::thread first{};
-        std::thread second{};
-    } workers{gate_mutex, gate_cv, release_first_call};
-
-    workers.first = std::thread{[&locked_handler]() { (*locked_handler)(); }};
-    {
-        std::unique_lock<std::mutex> lock{gate_mutex};
-        ASSERT_TRUE(
-            gate_cv.wait_until(lock, std::chrono::steady_clock::now() + kSynchronizationTimeout,
-                               [&first_call_entered]() noexcept { return first_call_entered; }));
-    }
-
-    workers.second = std::thread{[&locked_handler, &gate_mutex, &gate_cv, &second_thread_invoking,
-                                  &second_call_completed]() {
-        {
-            std::lock_guard<std::mutex> const lock{gate_mutex};
-            second_thread_invoking = true;
-        }
-        gate_cv.notify_all();
+    second_worker = ScopedThread{std::thread{[&locked_handler, &second_thread_invoking,
+                                              &second_call_completed, &overlap_or_early_exit]() {
+        second_thread_invoking.Signal();
         (*locked_handler)();
-        {
-            std::lock_guard<std::mutex> const lock{gate_mutex};
-            second_call_completed = true;
-        }
-        gate_cv.notify_all();
-    }};
-    {
-        std::unique_lock<std::mutex> lock{gate_mutex};
-        ASSERT_TRUE(gate_cv.wait_until(
-            lock, std::chrono::steady_clock::now() + kSynchronizationTimeout,
-            [&second_thread_invoking]() noexcept { return second_thread_invoking; }));
-        EXPECT_FALSE(gate_cv.wait_for(
-            lock, kContentionObservationWindow,
-            [&max_concurrent_get_new_samples, &second_call_completed]() noexcept {
-                return (max_concurrent_get_new_samples >= kConcurrentCollisionThreshold) ||
-                       second_call_completed;
-            }));
-        EXPECT_FALSE(second_call_completed);
-    }
+        second_call_completed.store(true, std::memory_order_release);
+        overlap_or_early_exit.Signal();
+    }}};
+    ASSERT_TRUE(second_thread_invoking.WaitFor(kSynchronizationTimeout));
 
-    workers.ReleaseAndJoin();
+    // Fails immediately if Worker 2 enters GetNewSamples() concurrently or returns early before
+    // Worker 1 is released.
+    EXPECT_FALSE(overlap_or_early_exit.WaitFor(kContentionObservationWindow));
+    EXPECT_FALSE(second_call_completed.load(std::memory_order_acquire));
 
-    {
-        std::lock_guard<std::mutex> const lock{gate_mutex};
-        EXPECT_EQ(max_concurrent_get_new_samples, kExpectedMaxConcurrentGetNewSamples);
-        EXPECT_EQ(get_new_samples_invocations, kTwoDeliveredSampleCount);
-    }
-    ASSERT_EQ(captured_payloads.size(), kTwoDeliveredSampleCount);
-    EXPECT_THAT(captured_payloads[0], ElementsAreArray(kSignBitBytes));
-    EXPECT_THAT(captured_payloads[1], ElementsAreArray(kReconnectBytes));
+    release_first_call.Signal();
+    second_worker.Join();
+    first_worker.Join();
+
+    EXPECT_EQ(max_concurrent_get_new_samples.load(std::memory_order_acquire),
+              kExpectedMaxConcurrentGetNewSamples);
+    EXPECT_EQ(get_new_samples_invocations.load(std::memory_order_acquire),
+              kTwoDeliveredSampleCount);
+    ASSERT_EQ(captured.payloads.size(), kTwoDeliveredSampleCount);
+    ASSERT_EQ(captured.has_sample_user_data.size(), kTwoDeliveredSampleCount);
+    EXPECT_THAT(captured.has_sample_user_data, ::testing::Each(true));
+    EXPECT_THAT(captured.payloads[0], ElementsAreArray(kSignBitBytes));
+    EXPECT_THAT(captured.payloads[1], ElementsAreArray(kReconnectBytes));
 }
 
 // Disabled: enable once https://github.com/eclipse-score/inc_someip_gateway/issues/451 is fixed.
@@ -1309,16 +1261,8 @@ TEST_F(
             return score::Result<void>{};
         });
 
-    FindHandler find_handler{};
-    auto const find_handle = ExpectDiscoveryCapture(find_handler);
-
-    auto binding_res =
-        Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
-    ASSERT_TRUE(binding_res.has_value());
-    ASSERT_TRUE((*binding_res)->start().has_value());
-    find_handler({MakeHandle({kEvent0})}, find_handle);
-    server_callbacks.on_event_subscription_change(*server_connector, kSocomEvent0,
-                                                  socom::Event_state::subscribed);
+    auto const binding = StartAndSubscribeSingleEvent(server_callbacks, *server_connector);
+    ASSERT_NE(binding, nullptr);
 
     auto const locked_handler = ev0_receive_handler.lock();
     ASSERT_NE(locked_handler, nullptr);
