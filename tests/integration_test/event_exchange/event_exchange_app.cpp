@@ -218,8 +218,8 @@ int main(int argc, const char* argv[]) {
         }
 
         const auto get_res = rx_proxy.ping_.GetNewSamples(
-            [&rx_seen_counters, &rx_next_expected_counter, &rx_samples_valid](
-                score::mw::com::SamplePtr<PingPayload> sample) {
+            [&rx_seen_counters, &rx_next_expected_counter,
+             &rx_samples_valid](score::mw::com::SamplePtr<PingPayload> sample) {
                 if (const auto counter =
                         matched_expected_counter(*sample, rx_next_expected_counter)) {
                     rx_seen_counters.insert(*counter);

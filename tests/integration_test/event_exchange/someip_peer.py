@@ -120,13 +120,7 @@ def _parse_someip(packet: bytes) -> tuple[int, int, int, bytes]:
     service_id, method_id, length, _, _, protocol, interface_version, message_type, return_code = struct.unpack_from(
         "!HHIHHBBBB", packet
     )
-    if (
-        protocol != 1
-        or interface_version != 1
-        or return_code != 0
-        or length < 8
-        or len(packet) != length + 8
-    ):
+    if protocol != 1 or interface_version != 1 or return_code != 0 or length < 8 or len(packet) != length + 8:
         raise ValueError("malformed SOME/IP packet")
     return service_id, method_id, message_type, packet[16:]
 
@@ -545,10 +539,7 @@ class SomeIpHostPeer:
             self.dut_to_host_valid_samples.append(counter)
             next_expected_counter += 1
 
-        if (
-            not self._stop.is_set()
-            and len(self.dut_to_host_valid_samples) < self._cfg.tx_expected_samples
-        ):
+        if not self._stop.is_set() and len(self.dut_to_host_valid_samples) < self._cfg.tx_expected_samples:
             self.errors.append(
                 f"received {len(self.dut_to_host_valid_samples)}/"
                 f"{self._cfg.tx_expected_samples} DUT notifications before deadline"

@@ -117,9 +117,7 @@ def test_event_exchange(gatewayd_with_someipd):
             exit_code = app.wait(timeout_s=_WAIT_FOR_APP_EXIT_S)
             assert exit_code == 0, f"event_exchange_app exit {exit_code}. See stdout/stderr."
 
-        assert peer.wait_for_dut_to_host_complete(timeout_s=35.0), (
-            "peer did not finish collecting DUT notifications"
-        )
+        assert peer.wait_for_dut_to_host_complete(timeout_s=35.0), "peer did not finish collecting DUT notifications"
 
     logging.info("app stdout:\n%s", app.get_output())
     logging.info(
