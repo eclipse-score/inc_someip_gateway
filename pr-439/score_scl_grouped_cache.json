@@ -1,15 +1,15 @@
 [
   {
-    "need": "comp_req__gatewayd__starts_from_config",
+    "need": "feat_req__some_ip_gateway__event_forwarding",
     "links": {
       "CodeLinks": [],
       "TestLinks": [
         {
-          "name": "test_start_gatewayd",
-          "file": "tests/integration_test/gatewayd_startup.py",
-          "line": 23,
-          "need": "comp_req__gatewayd__starts_from_config",
-          "verify_type": "fully",
+          "name": "test_event_exchange",
+          "file": "tests/integration_test/test_event_exchange.py",
+          "line": 56,
+          "need": "feat_req__some_ip_gateway__event_forwarding",
+          "verify_type": "partially",
           "result": "passed",
           "result_text": "",
           "repo_name": "local_repo",
@@ -20,16 +20,36 @@
     }
   },
   {
-    "need": "feat_req__some_ip_gateway__event_forwarding",
+    "need": "comp_req__gatewayd__forwards_local_events",
     "links": {
       "CodeLinks": [],
       "TestLinks": [
         {
           "name": "test_event_exchange",
           "file": "tests/integration_test/test_event_exchange.py",
-          "line": 79,
-          "need": "feat_req__some_ip_gateway__event_forwarding",
-          "verify_type": "fully",
+          "line": 56,
+          "need": "comp_req__gatewayd__forwards_local_events",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ]
+    }
+  },
+  {
+    "need": "comp_req__gatewayd__forwards_remote_events",
+    "links": {
+      "CodeLinks": [],
+      "TestLinks": [
+        {
+          "name": "test_event_exchange",
+          "file": "tests/integration_test/test_event_exchange.py",
+          "line": 56,
+          "need": "comp_req__gatewayd__forwards_remote_events",
+          "verify_type": "partially",
           "result": "passed",
           "result_text": "",
           "repo_name": "local_repo",
@@ -44,6 +64,30 @@
     "links": {
       "CodeLinks": [],
       "TestLinks": [
+        {
+          "name": "TestEts086__test_ets_086_events_and_fields_all_2",
+          "file": "tests/tc8_conformance/test_sd_initial_fields.py",
+          "line": 131,
+          "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+          "verify_type": "partially",
+          "result": "skipped",
+          "result_text": "TC8-SDI-001 / OA ETS_086: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application.",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "name": "TestEts087__test_ets_087_events_and_fields_unreliable_5",
+          "file": "tests/tc8_conformance/test_sd_initial_fields.py",
+          "line": 157,
+          "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+          "verify_type": "fully",
+          "result": "skipped",
+          "result_text": "TC8-SDI-002 / OA ETS_087: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application.",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
         {
           "name": "TestSDSubscribeEndpointOptions__test_ets_109_no_port_in_endpoint_option",
           "file": "tests/tc8_conformance/test_sd_subscribe_options.py",
@@ -511,27 +555,59 @@
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
-        },
+        }
+      ]
+    }
+  },
+  {
+    "need": "comp_req__tc8_conformance__sd_reboot",
+    "links": {
+      "CodeLinks": [],
+      "TestLinks": [
         {
-          "name": "TestEts086__test_ets_086_events_and_fields_all_2",
+          "name": "TestEts093__test_ets_093_reboot_detection_multicast_and_unicast",
           "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-          "line": 131,
-          "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
-          "verify_type": "partially",
+          "line": 186,
+          "need": "comp_req__tc8_conformance__sd_reboot",
+          "verify_type": "fully",
           "result": "skipped",
-          "result_text": "TC8-SDI-001 / OA ETS_086: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application.",
+          "result_text": "TC8-SDI-003 / OA ETS_093: the initial event 0x8005 is expected after a new subscription and again after the client reboot (Session ID 1). Observed: 0x8005 is received only after the first subscription of part A, not after Session ID 1 in part A, nor after Session IDs 4 and 1 in part B.",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
         },
         {
-          "name": "TestEts087__test_ets_087_events_and_fields_unreliable_5",
+          "name": "TestEts094__test_ets_094_reboot_detection_server_side",
           "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-          "line": 157,
-          "need": "comp_req__tc8_conformance__sd_sub_lifecycle",
+          "line": 243,
+          "need": "comp_req__tc8_conformance__sd_reboot",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_first_restart",
+          "file": "tests/tc8_conformance/test_sd_client.py",
+          "line": 105,
+          "need": "comp_req__tc8_conformance__sd_reboot",
           "verify_type": "fully",
-          "result": "skipped",
-          "result_text": "TC8-SDI-002 / OA ETS_087: after SubscribeEventgroupAck the DUT sends the initial events 0x8005, 0x8006 and 0x8007 to the subscriber. Observed: they are not received when the subscription follows their one-time publication by the DUT application.",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
+          "file": "tests/tc8_conformance/test_sd_client.py",
+          "line": 172,
+          "need": "comp_req__tc8_conformance__sd_reboot",
+          "verify_type": "fully",
+          "result": "passed",
+          "result_text": "",
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
@@ -712,52 +788,16 @@
     }
   },
   {
-    "need": "comp_req__tc8_conformance__sd_reboot",
+    "need": "comp_req__gatewayd__starts_from_config",
     "links": {
       "CodeLinks": [],
       "TestLinks": [
         {
-          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_first_restart",
-          "file": "tests/tc8_conformance/test_sd_client.py",
-          "line": 105,
-          "need": "comp_req__tc8_conformance__sd_reboot",
+          "name": "test_start_gatewayd",
+          "file": "tests/integration_test/gatewayd_startup.py",
+          "line": 23,
+          "need": "comp_req__gatewayd__starts_from_config",
           "verify_type": "fully",
-          "result": "passed",
-          "result_text": "",
-          "repo_name": "local_repo",
-          "hash": "",
-          "url": ""
-        },
-        {
-          "name": "TestSDClientReboot__test_format_07_reboot_flag_set_after_second_restart",
-          "file": "tests/tc8_conformance/test_sd_client.py",
-          "line": 172,
-          "need": "comp_req__tc8_conformance__sd_reboot",
-          "verify_type": "fully",
-          "result": "passed",
-          "result_text": "",
-          "repo_name": "local_repo",
-          "hash": "",
-          "url": ""
-        },
-        {
-          "name": "TestEts093__test_ets_093_reboot_detection_multicast_and_unicast",
-          "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-          "line": 186,
-          "need": "comp_req__tc8_conformance__sd_reboot",
-          "verify_type": "fully",
-          "result": "skipped",
-          "result_text": "TC8-SDI-003 / OA ETS_093: the initial event 0x8005 is expected after a new subscription and again after the client reboot (Session ID 1). Observed: 0x8005 is received only after the first subscription of part A, not after Session ID 1 in part A, nor after Session IDs 4 and 1 in part B.",
-          "repo_name": "local_repo",
-          "hash": "",
-          "url": ""
-        },
-        {
-          "name": "TestEts094__test_ets_094_reboot_detection_server_side",
-          "file": "tests/tc8_conformance/test_sd_initial_fields.py",
-          "line": 243,
-          "need": "comp_req__tc8_conformance__sd_reboot",
-          "verify_type": "partially",
           "result": "passed",
           "result_text": "",
           "repo_name": "local_repo",

@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
-    <link rel="stylesheet" type="text/css" href="../../_static/css/score.css?v=d7d4a875" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/score.css?v=5737673c" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/score_needs.css?v=6a6a7ab0" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/score_design.css?v=f381fa98" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
@@ -528,14 +528,14 @@ html[data-theme="dark"] .score-testcase-result--disabled {
 <section id="application-event-forwarding">
 <h1>Application Event Forwarding<a class="headerlink" href="#application-event-forwarding" title="Link to this heading">#</a></h1>
 <p>This feature requirement covers the end-to-end application-level event path
-that the SOME/IP Gateway exists to provide: an event published by an
-<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> application on one side of the gateway reaches a subscribing
-<code class="docutils literal notranslate"><span class="pre">mw::com</span></code> application on the other side, transported over SOME/IP by
-<code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and <code class="docutils literal notranslate"><span class="pre">someipd</span></code>, with the same payload bytes.</p>
+that the SOME/IP Gateway provides: an event published by a local <code class="docutils literal notranslate"><span class="pre">mw::com</span></code>
+application reaches a subscribing remote SOME/IP peer via <code class="docutils literal notranslate"><span class="pre">gatewayd</span></code> and
+<code class="docutils literal notranslate"><span class="pre">someipd</span></code>, and an event published by a remote SOME/IP peer reaches a
+subscribing local <code class="docutils literal notranslate"><span class="pre">mw::com</span></code> application, with the payload bytes unchanged.</p>
 <p>It is distinct from the TC8 feature requirement (see
 <a class="reference internal" href="../../tc8_conformance/requirements.html"><span class="doc">TC8 Conformance Test Requirements</span></a>), which covers SOME/IP wire-level
 conformance without application processes.</p>
-<div class="need_container docutils container" id="SNCB-40af2736">
+<div class="need_container docutils container" id="SNCB-40c17ba0">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_req table" id="feat_req__some_ip_gateway__event_forwarding">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -545,7 +545,7 @@ conformance without application processes.</p>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
 <div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
-<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">QM</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
 <td class="head_right" colspan="2"><div class="needs_head_right line-block">
@@ -556,13 +556,13 @@ conformance without application processes.</p>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
 <div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">event</span><span class="needs_spacer">, </span><span class="needs_data">forwarding</span><span class="needs_spacer">, </span><span class="needs_data">mw_com</span><span class="needs_spacer">, </span><span class="needs_data">someip</span><span class="needs_spacer">, </span><span class="needs_data">end-to-end</span></span></span></div>
 <div class="line"><span class="needs_reqtype"><span class="needs_label">reqtype: </span><span class="needs_data">Functional</span></span></div>
-<div class="line"><span class="needs_testlink"><span class="needs_label">testlink: </span><span class="needs_data"><a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/0af456b7a5f96af7877c1cc86257e89ce8c0eb57/tests/integration_test/test_event_exchange.py#L79">test_event_exchange<span class="score-testcase-result score-testcase-result--passed"> (passed)</span></a></span></span></div>
+<div class="line"><span class="needs_testlink"><span class="needs_label">testlink: </span><span class="needs_data"><a class="reference external" href="https://github.com/eclipse-score/inc_someip_gateway/blob/ec322fee06992f6dc140aa56e63774052a37399f/tests/integration_test/test_event_exchange.py#L56">test_event_exchange<span class="score-testcase-result score-testcase-result--passed"> (passed)</span></a></span></span></div>
 <div class="line"><span class="needs_valid_from"><span class="needs_label">valid_from: </span><span class="needs_data">v0.0.0</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="reference internal" href="../stakeholder.html#stkh_req__someip_gw__interoperability" title="feat_req__some_ip_gateway__event_forwarding">stkh_req__someip_gw__interoperability</a></span></span></div>
+<div class="line"><span><div class="line">derived from: <span class="derived_from"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/requirements/stakeholder/index.html#stkh_req__communication__safe">stkh_req__communication__safe</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/requirements/stakeholder/index.html#stkh_req__communication__supported_net">stkh_req__communication__supported_net</a></span></span></div>
 <div class="line">derives: <span class="derived_from"><span><a class="reference internal" href="../component/gatewayd.html#comp_req__gatewayd__forwards_local_events" title="feat_req__some_ip_gateway__event_forwarding">comp_req__gatewayd__forwards_local_events</a>, <a class="reference internal" href="../component/gatewayd.html#comp_req__gatewayd__forwards_remote_events" title="feat_req__some_ip_gateway__event_forwarding">comp_req__gatewayd__forwards_remote_events</a></span></span></div>
-<div class="line">satisfied by: <span class="satisfied_by"><span><a class="reference internal" href="../../architecture/features.html#feat__someip_gateway" title="feat_req__some_ip_gateway__event_forwarding">feat__someip_gateway</a></span></span></div>
+<div class="line">satisfied by: <span class="satisfied_by"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/communication/architecture/index.html#feat__com_communication">feat__com_communication</a></span></span></div>
 </span></div>
 </div>
 </td>
