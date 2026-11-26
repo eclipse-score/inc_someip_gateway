@@ -63,7 +63,8 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
 
    For every ``local_service_instances`` entry in the SOME/IP configuration,
    gatewayd shall subscribe to the ``mw::com`` skeleton offered by the local
-   application and forward each received sample's payload bytes unchanged to
+   application, serialize each received sample via ``score_com_serializer``,
+   frame it with the 16-byte SOME/IP header, and forward the framed message to
    ``someipd`` via the gateway IPC binding for transmission on the SOME/IP
    network as a notification of the configured event.
 
@@ -79,8 +80,9 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
 
    For every ``remote_service_instances`` entry in the SOME/IP configuration,
    gatewayd shall offer a local ``mw::com`` skeleton and, for each event
-   notification received from ``someipd`` via the gateway IPC binding,
-   publish the payload bytes unchanged to local subscribers.
+   notification received from ``someipd`` via the gateway IPC binding, strip
+   the 16-byte SOME/IP header, deserialize the remaining payload via
+   ``score_com_serializer``, and publish the sample to local subscribers.
 
 .. aou_req:: Integrity of the SOME/IP configuration file
    :id: aou_req__gatewayd__someip_config_integrity

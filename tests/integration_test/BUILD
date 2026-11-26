@@ -155,7 +155,7 @@ integration_test(
 )
 
 # ---------------------------------------------------------------------------
-# Feature end-to-end integration test (WI 103704, feat_req__some_ip_gateway__event_forwarding).
+# Feature end-to-end integration test for feat_req__some_ip_gateway__event_forwarding.
 # Single-stack guest (someipd + gatewayd + event_exchange_app) talks to a
 # host-side Python SOME/IP+SD peer over the tap interface; both directions
 # (TX and RX) run concurrently in one test.
@@ -179,15 +179,6 @@ pkg_files(
     attributes = pkg_attributes(
         mode = "0777",
     ),
-    # Rename event-exchange configs to the canonical /opt/ names that the
-    # shared gatewayd_with_someipd conftest fixture and ShellProcess expect.
-    renames = {
-        "//tests/integration_test/event_exchange:mw_someip_config_bin": "mw_someip_config.bin",
-        "//tests/integration_test/event_exchange:config/app_mw_com_config.json": "app_mw_com_config.json",
-        "//tests/integration_test/event_exchange:config/gatewayd_mw_com_config.json": "gatewayd_mw_com_config.json",
-        "//tests/integration_test/event_exchange:config/someipd_mw_com_config.json": "someipd_mw_com_config.json",
-        "//tests/integration_test/event_exchange:config/vsomeip.json": "vsomeip.json",
-    },
 )
 
 integration_test(

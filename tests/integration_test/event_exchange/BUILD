@@ -11,17 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# Portable mw::com event exchange application. The sources (header + main)
-# depend only on mw::com public API and the serializer PreSerializedData
-# helper; no dependency on someipd, gatewayd, socom, gateway_ipc_binding, or
-# @vsomeip. Lifting this binary into the communication module requires only
-# copying the directory and writing a new BUILD file that points at that
-# module's mw::com target.
+# Bidirectional SOME/IP gateway event-exchange integration-test package.
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
 load("@score_communication//bazel/tools:json_schema_validator.bzl", "validate_json_schema_test")
+load("@score_tooling//:defs.bzl", "score_py_pytest")
 load("//bazel/tools:someip_config.bzl", "generate_someip_config_bin")
 
 exports_files([
@@ -87,15 +83,11 @@ validate_json_schema_test(
     tags = ["lint"],
 )
 
-# The vsomeip schema is a package-local copy of
-# tests/tc8_conformance/config/tc8_vsomeip_config.schema.json. tc8_conformance
-# does not export its schema and is frozen under the active plan, so a local
-# copy avoids editing a frozen package. Update both if the schema evolves.
 validate_json_schema_test(
     name = "vsomeip_config_schema_valid",
     size = "small",
     json = "config/vsomeip.json",
-    schema = "config/vsomeip_config.schema.json",
+    schema = "//tests/tc8_conformance:config/tc8_vsomeip_config.schema.json",
     tags = ["lint"],
 )
 
@@ -110,4 +102,12 @@ py_library(
     ],
     imports = [".."],
     visibility = ["//tests/integration_test:__subpackages__"],
+)
+
+score_py_pytest(
+    name = "test_someip_peer",
+    size = "small",
+    srcs = ["test_someip_peer.py"],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [":someip_peer"],
 )

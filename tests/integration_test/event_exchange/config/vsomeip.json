@@ -35,25 +35,6 @@
                     ]
                 }
             ]
-        },
-        {
-            "service": "0x1235",
-            "instance": "0x0001",
-            "unreliable": "31235",
-            "events": [
-                {
-                    "event": "0x8002",
-                    "is_field": "false"
-                }
-            ],
-            "eventgroups": [
-                {
-                    "eventgroup": "0x8002",
-                    "events": [
-                        "0x8002"
-                    ]
-                }
-            ]
         }
     ],
     "routing": "someipd",

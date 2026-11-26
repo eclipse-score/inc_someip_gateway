@@ -16,10 +16,10 @@ Application Event Forwarding
 ============================
 
 This feature requirement covers the end-to-end application-level event path
-that the SOME/IP Gateway exists to provide: an event published by an
-``mw::com`` application on one side of the gateway reaches a subscribing
-``mw::com`` application on the other side, transported over SOME/IP by
-``gatewayd`` and ``someipd``, with the same payload bytes.
+that the SOME/IP Gateway provides: an event published by a local ``mw::com``
+application reaches a subscribing remote SOME/IP peer via ``gatewayd`` and
+``someipd``, and an event published by a remote SOME/IP peer reaches a
+subscribing local ``mw::com`` application, with the payload bytes unchanged.
 
 It is distinct from the TC8 feature requirement (see
 :doc:`/tc8_conformance/requirements`), which covers SOME/IP wire-level
@@ -30,9 +30,9 @@ conformance without application processes.
    :status: valid
    :version: 1
    :tags: event, forwarding, mw_com, someip, end-to-end
-   :derived_from: stkh_req__someip_gw__interoperability
-   :satisfied_by: feat__someip_gateway
-   :safety: QM
+   :derived_from: stkh_req__communication__supported_net, stkh_req__communication__safe
+   :satisfied_by: feat__com_communication
+   :safety: ASIL_B
    :security: NO
    :reqtype: Functional
    :valid_from: v0.0.0

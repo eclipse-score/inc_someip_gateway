@@ -13,10 +13,7 @@
 #ifndef TESTS_INTEGRATION_TEST_EVENT_EXCHANGE_SERVICE_INTERFACE_H
 #define TESTS_INTEGRATION_TEST_EVENT_EXCHANGE_SERVICE_INTERFACE_H
 
-// Types and constants shared by the C++ event_exchange application and the
-// test fixture. The application depends only on mw::com and the serializer
-// PreSerializedData helper; nothing in this header pulls in someipd, gatewayd,
-// socom, gateway_ipc_binding, or vsomeip.
+// The PingBody layout is mirrored by event_exchange/someip_peer.py.
 
 #include <array>
 #include <cstddef>
