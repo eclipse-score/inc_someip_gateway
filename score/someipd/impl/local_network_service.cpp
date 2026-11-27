@@ -26,24 +26,33 @@ namespace score::someipd {
 LocalNetworkService::LocalNetworkService(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app,
+    std::shared_ptr<vsomeip::application> vsomeip_app, Set_offered set_offered,
     socom::Client_connector::Uptr client_connector)
     : service_instance_config_(std::move(service_instance_config)),
       service_type_config_(std::move(service_type_config)),
       vsomeip_app_(std::move(vsomeip_app)),
+      set_offered_(std::move(set_offered)),
       client_connector_(std::move(client_connector)) {}
+
+LocalNetworkService::~LocalNetworkService() {
+    // First stop the SOCom callbacks: the destructor of the connector waits for running ones.
+    client_connector_.reset();
+    set_offered_(false);
+}
 
 Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    std::shared_ptr<vsomeip::application> vsomeip_app, socom::Runtime& socom_runtime) {
+    std::shared_ptr<vsomeip::application> vsomeip_app, Set_offered set_offered,
+    socom::Runtime& socom_runtime) {
     // Create instance first with null connector - needed because callbacks capture the instance
     // pointer. SOCom may invoke on_service_state_change before client_connector_ is assigned:
     // from the IPC thread when the service becomes available, or synchronously inside
     // make_client_connector() if a matching server is already registered (as in the unit test).
     // Callbacks must therefore use the connector passed to them.
-    auto instance = std::unique_ptr<LocalNetworkService>(new LocalNetworkService(
-        service_instance_config, service_type_config, std::move(vsomeip_app), nullptr));
+    auto instance = std::unique_ptr<LocalNetworkService>(
+        new LocalNetworkService(service_instance_config, service_type_config,
+                                std::move(vsomeip_app), std::move(set_offered), nullptr));
 
     socom::Service_interface_identifier const iface{
         service_type_config->service_type_name()->string_view(),
@@ -67,6 +76,10 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
                     std::cout << "[someipd] LocalNetworkService - on_service_state_change called"
                               << std::endl;
                     if (state != socom::Service_state::available) {
+                        // The provider or its gatewayd is gone: stop the SOME/IP offer, so
+                        // that remote clients don't stay subscribed to a silent service.
+                        // SOCom has dropped the event subscriptions already.
+                        instance_ptr->set_offered_(false);
                         return;
                     }
                     // Subscribe to all events
@@ -81,6 +94,8 @@ Result<std::unique_ptr<LocalNetworkService>> LocalNetworkService::Create(
                         (void)connector.subscribe_event(socom_event_id, socom::Event_mode::update);
                         ++socom_event_id;
                     }
+                    // Offer only now that events can flow.
+                    instance_ptr->set_offered_(true);
                 },
             .on_event_update =
                 [instance_ptr = instance.get()](socom::Client_connector const&,
