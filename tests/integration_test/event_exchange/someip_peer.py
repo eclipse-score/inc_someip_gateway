@@ -283,6 +283,9 @@ def _unicast_sd_socket(local_ip: str) -> socket.socket:
 # -----------------------------------------------------------------------------
 
 
+SD_TTL_SECONDS = 120
+
+
 @dataclass
 class PeerConfig:
     host_ip: str
@@ -293,16 +296,19 @@ class PeerConfig:
     tx_instance_id: int = 0x0001
     tx_eventgroup_id: int = 0x8001
     tx_event_id: int = 0x8001
-    tx_expected_samples: int = 3
+    tx_expected_samples: int = 10
+    tx_collect_timeout_s: float = 60.0
     # Peer offers rx_service; DUT subscribes and the peer sends notifications.
     rx_service_id: int = 0x1235
     rx_instance_id: int = 0x0001
     rx_eventgroup_id: int = 0x8002
     rx_event_id: int = 0x8002
-    rx_notification_count: int = 20
+    rx_notification_count: int = 10
     rx_notification_interval_s: float = 0.05
-    # SD cadence and listening ports.
+    # SD cadence, timeouts, and listening ports.
     offer_cycle_s: float = 1.0
+    subscribe_retry_s: float = 1.0
+    sd_timeout_s: float = 30.0
     rx_notification_port: int = 31334
     tx_notification_port: int = 31335
 
@@ -322,11 +328,12 @@ class SomeIpHostPeer:
         self._threads: List[threading.Thread] = []
         self._session_id = 0
         self._session_lock = threading.Lock()
+        self._errors_lock = threading.Lock()
         self._subscribe_acks: queue.Queue[_SdEntry] = queue.Queue()
         self._subscriptions: queue.Queue[_SdEntry] = queue.Queue()
         self._subscribe_ack_event = threading.Event()
-        self._rx_subscription_event = threading.Event()
-        self._dut_to_host_complete = threading.Event()
+        self._rx_subscribed_event = threading.Event()
+        self._tx_done_event = threading.Event()
         self._start_rx_notifications = threading.Event()
 
         # Sockets (owned by the threads; closed in stop()).
@@ -343,6 +350,10 @@ class SomeIpHostPeer:
         self.host_to_dut_sent: int = 0
         self.errors: List[str] = []
 
+    def _record_error(self, message: str) -> None:
+        with self._errors_lock:
+            self.errors.append(message)
+
     # ---------------------------------------------------------------- lifecycle
 
     def __enter__(self) -> "SomeIpHostPeer":
@@ -353,6 +364,7 @@ class SomeIpHostPeer:
         self.stop()
 
     def start(self) -> None:
+        self._stop.clear()
         try:
             self._sd_mcast_sock = _multicast_socket(self._cfg.host_ip)
             self._sd_mcast_sock.settimeout(0.5)
@@ -368,13 +380,13 @@ class SomeIpHostPeer:
             self._tx_notif_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self._tx_notif_sock.bind((self._cfg.host_ip, self._cfg.tx_notification_port))
 
-            for thread in (
+            self._threads = [
                 threading.Thread(target=self._sd_dispatch_loop, daemon=True),
                 threading.Thread(target=self._dut_to_host_loop, daemon=True),
                 threading.Thread(target=self._host_to_dut_loop, daemon=True),
-            ):
-                thread.start()
-                self._threads.append(thread)
+            ]
+            for t in self._threads:
+                t.start()
         except BaseException:
             self.stop()
             raise
@@ -382,19 +394,22 @@ class SomeIpHostPeer:
     def stop(self) -> None:
         self._stop.set()
         self._start_rx_notifications.set()
-        for thread in self._threads:
-            if thread.is_alive():
-                thread.join(timeout=5.0)
-        for socket_name in ("_sd_mcast_sock", "_sd_unicast_sock", "_rx_notif_sock", "_tx_notif_sock"):
-            sock = getattr(self, socket_name)
+        threads = self._threads
+        self._threads = []
+        for t in threads:
+            if t.ident is not None:
+                t.join(timeout=5.0)
+        for attr in ("_sd_mcast_sock", "_sd_unicast_sock", "_rx_notif_sock", "_tx_notif_sock"):
+            sock = getattr(self, attr)
+            setattr(self, attr, None)
             if sock is not None:
                 try:
                     sock.close()
                 except OSError:
                     pass
-                finally:
-                    setattr(self, socket_name, None)
-        for note in self.errors:
+        with self._errors_lock:
+            errors_snapshot = list(self.errors)
+        for note in errors_snapshot:
             _log.warning("peer error: %s", note)
 
     def _next_session_id(self) -> int:
