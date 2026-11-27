@@ -432,43 +432,56 @@ class SomeIpHostPeer:
 
     # ------------------------------------------------------------- DUT -> host
 
+    def _send_tx_subscribe(self) -> None:
+        subscribe = _build_sd_entry(
+            SD_SUBSCRIBE,
+            self._cfg.tx_service_id,
+            self._cfg.tx_instance_id,
+            self._cfg.major_version,
+            SD_TTL_SECONDS,
+            self._cfg.tx_eventgroup_id,
+            has_endpoint_option=True,
+        )
+        self._sd_unicast_sock.sendto(
+            self._build_sd_packet(
+                subscribe,
+                _endpoint_option(self._cfg.host_ip, self._cfg.rx_notification_port),
+            ),
+            (self._cfg.dut_ip, SD_PORT),
+        )
+
     def _dut_to_host_loop(self) -> None:
         try:
             dut_endpoint = self._await_dut_offer()
             if dut_endpoint is None:
-                self.errors.append("no DUT OfferService within deadline")
+                self._record_error("no DUT OfferService within deadline")
                 return
             dut_ip, dut_port = dut_endpoint
             _log.info("peer: DUT TX offer at %s:%d, subscribing", dut_ip, dut_port)
 
-            subscribe = _build_sd_entry(
-                SD_SUBSCRIBE,
-                self._cfg.tx_service_id,
-                self._cfg.tx_instance_id,
-                self._cfg.major_version,
-                120,
-                self._cfg.tx_eventgroup_id,
-                has_endpoint_option=True,
-            )
-            subscribe_packet = self._build_sd_packet(
-                subscribe,
-                _endpoint_option(self._cfg.host_ip, self._cfg.rx_notification_port),
-            )
-            self.dut_to_host_subscribed = True
+            subscribe_deadline = time.monotonic() + self._cfg.sd_timeout_s
+            while not self._stop.is_set():
+                remaining = subscribe_deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                self._send_tx_subscribe()
+                self.dut_to_host_subscribed = True
+                if self._await_subscribe_ack(timeout_s=min(self._cfg.subscribe_retry_s, remaining)):
+                    self.dut_to_host_subscribe_ack = True
+                    break
 
-            if not self._await_subscribe_ack(subscribe_packet):
-                self.errors.append("no SubscribeAck from DUT within deadline")
+            if not self.dut_to_host_subscribe_ack:
+                self._record_error("no SubscribeAck from DUT within deadline")
                 return
-            self.dut_to_host_subscribe_ack = True
             self._collect_dut_notifications()
         except Exception as exc:  # pragma: no cover - diagnostic only
-            self.errors.append(f"dut_to_host_loop crashed: {exc}")
+            self._record_error(f"dut_to_host_loop crashed: {exc}")
         finally:
-            self._dut_to_host_complete.set()
+            self._tx_done_event.set()
 
     def _await_dut_offer(self) -> Optional[tuple]:
         """Capture SD datagrams until an OfferService for the DUT's TX service arrives."""
-        deadline = time.monotonic() + 30.0
+        deadline = time.monotonic() + self._cfg.sd_timeout_s
         while not self._stop.is_set() and time.monotonic() < deadline:
             try:
                 data, _ = self._sd_mcast_sock.recvfrom(65535)
@@ -487,17 +500,12 @@ class SomeIpHostPeer:
                             return address, port
         return None
 
-    def _await_subscribe_ack(self, subscribe_packet: bytes) -> bool:
-        deadline = time.monotonic() + 30.0
-        next_retry = time.monotonic()
+    def _await_subscribe_ack(self, timeout_s: float = 5.0) -> bool:
+        deadline = time.monotonic() + timeout_s
         while not self._stop.is_set():
-            now = time.monotonic()
-            remaining = deadline - now
+            remaining = deadline - time.monotonic()
             if remaining <= 0:
                 break
-            if now >= next_retry:
-                self._sd_unicast_sock.sendto(subscribe_packet, (self._cfg.dut_ip, SD_PORT))
-                next_retry = now + 1.0
             try:
                 entry = self._subscribe_acks.get(timeout=min(0.5, remaining))
             except queue.Empty:
@@ -516,56 +524,77 @@ class SomeIpHostPeer:
         return self._subscribe_ack_event.wait(timeout_s)
 
     def wait_for_rx_subscription(self, timeout_s: float) -> bool:
-        """Wait until the DUT subscribes to the host-offered RX service."""
-        return self._rx_subscription_event.wait(timeout_s)
+        """Wait until the DUT subscribes to the host's RX service and receives SubscribeAck."""
+        return self._rx_subscribed_event.wait(timeout_s)
 
-    def wait_for_dut_to_host_complete(self, timeout_s: float) -> bool:
-        """Wait until collection of DUT-to-host notifications has finished."""
-        return self._dut_to_host_complete.wait(timeout_s)
+    def wait_for_tx_samples(self, timeout_s: float) -> bool:
+        """Wait until the peer finishes collecting expected TX samples or stops on error."""
+        return self._tx_done_event.wait(timeout_s)
 
     def release_rx_notifications(self) -> None:
         """Allow host-to-DUT notifications after the guest app is ready."""
         self._start_rx_notifications.set()
 
     def _collect_dut_notifications(self) -> None:
-        deadline = time.monotonic() + 60.0
-        next_expected_counter = 0
-        while (
-            not self._stop.is_set()
-            and time.monotonic() < deadline
-            and len(self.dut_to_host_valid_samples) < self._cfg.tx_expected_samples
-        ):
-            try:
-                data, _ = self._rx_notif_sock.recvfrom(65535)
-            except socket.timeout:
-                continue
-            try:
-                service_id, method_id, message_type, payload = _parse_someip(data)
-            except ValueError as exc:
-                self.errors.append(f"invalid DUT SOME/IP notification: {exc}")
-                return
-            if (
-                service_id != self._cfg.tx_service_id
-                or method_id != self._cfg.tx_event_id
-                or message_type != SOMEIP_NOTIFICATION
+        try:
+            deadline = time.monotonic() + self._cfg.tx_collect_timeout_s
+            next_expected_counter = 0
+            while (
+                not self._stop.is_set()
+                and time.monotonic() < deadline
+                and len(self.dut_to_host_valid_samples) < self._cfg.tx_expected_samples
             ):
-                self.errors.append(
-                    "unexpected DUT SOME/IP notification header: "
-                    f"service=0x{service_id:04x}, method=0x{method_id:04x}, type={message_type}"
-                )
-                return
-            counter = parse_ping_body(payload, next_expected_counter)
-            if counter is None:
-                self.errors.append(f"invalid DUT payload for counter {next_expected_counter}")
-                return
-            self.dut_to_host_valid_samples.append(counter)
-            next_expected_counter += 1
+                try:
+                    data, _ = self._rx_notif_sock.recvfrom(65535)
+                except socket.timeout:
+                    continue
+                except OSError as exc:
+                    if not self._stop.is_set():
+                        self._record_error(f"TX notification recv failed: {exc}")
+                    return
+                try:
+                    (
+                        service_id,
+                        method_id,
+                        message_type,
+                        interface_version,
+                        return_code,
+                        payload,
+                    ) = _parse_someip(data, expected_interface_version=self._cfg.major_version)
+                except ValueError as exc:
+                    self._record_error(f"invalid TX SOME/IP notification frame: {exc}")
+                    return
+                if (
+                    service_id != self._cfg.tx_service_id
+                    or method_id != self._cfg.tx_event_id
+                    or message_type != SOMEIP_NOTIFICATION
+                    or interface_version != self._cfg.major_version
+                    or return_code != 0
+                ):
+                    self._record_error(
+                        "unexpected TX notification header: "
+                        f"service=0x{service_id:04x} method=0x{method_id:04x} "
+                        f"type=0x{message_type:02x} iface_ver={interface_version} "
+                        f"return_code=0x{return_code:02x}"
+                    )
+                    return
+                counter = parse_ping_body(payload, next_expected_counter)
+                if counter is None:
+                    self._record_error(
+                        f"corrupted or out-of-sequence TX payload for expected counter "
+                        f"{next_expected_counter} (len={len(payload)})"
+                    )
+                    return
+                self.dut_to_host_valid_samples.append(counter)
+                next_expected_counter += 1
 
-        if not self._stop.is_set() and len(self.dut_to_host_valid_samples) < self._cfg.tx_expected_samples:
-            self.errors.append(
-                f"received {len(self.dut_to_host_valid_samples)}/"
-                f"{self._cfg.tx_expected_samples} DUT notifications before deadline"
-            )
+            if not self._stop.is_set() and len(self.dut_to_host_valid_samples) < self._cfg.tx_expected_samples:
+                self._record_error(
+                    f"only collected {len(self.dut_to_host_valid_samples)}/"
+                    f"{self._cfg.tx_expected_samples} DUT notifications before deadline"
+                )
+        finally:
+            self._tx_done_event.set()
 
     # ------------------------------------------------------------- host -> DUT
 
@@ -573,18 +602,18 @@ class SomeIpHostPeer:
         try:
             dut_subscriber = self._offer_until_dut_subscribes()
             if dut_subscriber is None:
-                self.errors.append("DUT never subscribed to host RX service")
+                self._record_error("DUT never subscribed to host RX service")
                 return
             self.host_to_dut_subscribed = True
             subscriber_ip, subscriber_port, eventgroup_counter = dut_subscriber
             self._send_subscribe_ack(eventgroup_counter)
-            self._rx_subscription_event.set()
+            self._rx_subscribed_event.set()
             self._start_rx_notifications.wait()
             if self._stop.is_set():
                 return
             self._send_notifications_to_dut((subscriber_ip, subscriber_port))
         except Exception as exc:  # pragma: no cover - diagnostic only
-            self.errors.append(f"host_to_dut_loop crashed: {exc}")
+            self._record_error(f"host_to_dut_loop crashed: {exc}")
 
     def _send_offer(self) -> None:
         entry = _build_sd_entry(
@@ -592,7 +621,7 @@ class SomeIpHostPeer:
             self._cfg.rx_service_id,
             self._cfg.rx_instance_id,
             self._cfg.major_version,
-            120,
+            SD_TTL_SECONDS,
             has_endpoint_option=True,
         )
         packet = self._build_sd_packet(
@@ -604,17 +633,20 @@ class SomeIpHostPeer:
     def _offer_until_dut_subscribes(self) -> Optional[tuple[str, int, int]]:
         """Send OfferService on multicast every ``offer_cycle_s`` until the
         DUT replies with SubscribeEventgroup on our unicast SD socket."""
-        deadline = time.monotonic() + 30.0
+        deadline = time.monotonic() + self._cfg.sd_timeout_s
         next_offer = 0.0
-        while not self._stop.is_set() and time.monotonic() < deadline:
+        while not self._stop.is_set():
             now = time.monotonic()
+            remaining = deadline - now
+            if remaining <= 0:
+                break
             if now >= next_offer:
                 self._send_offer()
                 next_offer = now + self._cfg.offer_cycle_s
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
 
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                break
             try:
                 entry = self._subscriptions.get(timeout=min(0.5, remaining))
             except queue.Empty:
@@ -636,7 +668,7 @@ class SomeIpHostPeer:
             self._cfg.rx_service_id,
             self._cfg.rx_instance_id,
             self._cfg.major_version,
-            120,
+            SD_TTL_SECONDS,
             self._cfg.rx_eventgroup_id,
             eventgroup_counter=eventgroup_counter,
         )
@@ -654,6 +686,7 @@ class SomeIpHostPeer:
                 self._cfg.rx_event_id,
                 payload,
                 session_id=(i + 1) & 0xFFFF or 1,
+                interface_version=self._cfg.major_version,
             )
             self._tx_notif_sock.sendto(notification, (subscriber_ip, subscriber_port))
             self.host_to_dut_sent += 1
