@@ -19,9 +19,11 @@ extensions = ["score_sphinx_bundle"]
 
 required_in_id = ["gatewayd", "socom", "gib", "serializer", "someipd"]
 
-# Component requirements link upward to communication-module feature
-# requirements (``feat_req__com__*``) owned by eclipse-score/communication.
-# Those needs are not currently imported via ``needs_external_needs`` in this
-# project, so sphinx-needs reports the links as unresolved. Suppress until the
-# external-needs source is wired in.
+# Pin source-only Open SOME/IP references to the upstream revision.
+SPEC_REPO = "https://github.com/some-ip-com/open-someip-spec"
+SPEC_COMMIT = "4860461802c23f41c6227befcb25cc80e7d68771"
+
+# Existing component requirements also reference communication-module feature
+# requirements (``feat_req__com__*``), which are not part of the Open SOME/IP
+# import. Keep suppressing unresolved links for those external references.
 suppress_warnings = ["needs.link_outgoing"]

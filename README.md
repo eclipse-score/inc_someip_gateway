@@ -95,6 +95,33 @@ bazel run //score/someipd:someipd_example
 
 For current Bazel-based integration testing backends (Linux QEMU, and QNX QEMU) and defaults, see [quality/README.md](quality/README.md).
 
+## Imported Open SOME/IP requirements
+
+The docs build imports metadata-only stakeholder requirements from the pinned
+Open SOME/IP specification. The upstream license is Community-Spec-1.0, not
+Apache-2.0: do not copy its requirement titles or prose into this repository.
+
+- **IDs:** `stkh_req__extspec__<part>_<number>`, where `<part>` comes from the
+  upstream ID `feat_req_<part>_<number>` (e.g. `someip` or `someipsd`). Browse
+  them, with links to the upstream source line, at
+  `_build/requirements/extspec/index.html`
+  after running `bazel run //:docs`.
+- **Allowed links:** feature requirements may reference an imported need with
+  `:derived_from:`. Component requirements may only derive from feature
+  requirements. Tests link to imported needs with `fully_verifies` or
+  `partially_verifies`. The metamodel in `score_docs_as_code` is authoritative.
+- **Pins:** the upstream commit is set in the `open_someip_spec` archive in
+  `MODULE.bazel` (URL, `strip_prefix`, `integrity`) and in `SPEC_COMMIT` in
+  `docs/conf.py`. `//tools/extneeds:update_open_someip_spec_test` fails if they
+  differ.
+- **Update:** run
+  `python3 tools/extneeds/update_open_someip_spec.py <40-character-commit>`.
+  It downloads the archive to compute `integrity` (pass `--integrity` to supply
+  it instead), updates both pins, then builds and checks the docs. Add
+  `--verify-source-links` to also verify the generated line numbers and IDs
+  against the fetched sources, and `--bazel-arg=<option>` (repeatable) to pass
+  extra Bazel options.
+
 
 ## 📝 Configuration
 

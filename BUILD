@@ -26,6 +26,7 @@ exports_files([
 exports_files([
     ".clang-tidy",
     ".ruff.toml",
+    "docs/conf.py",
 ])
 
 # ==============================================================================
@@ -34,6 +35,11 @@ exports_files([
 
 docs(
     bundles = [
+        {
+            "bundle": "//docs_extspec:docs_bundle",
+            "mount_at": "requirements/extspec",
+            "attach_to": "requirements/index",
+        },
         {
             "bundle": "//score/config:docs_bundle",
             "mount_at": "config",
