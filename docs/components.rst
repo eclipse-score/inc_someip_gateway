@@ -12,8 +12,8 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-Components
-==========
+Component Documentation
+=======================
 
 .. Anchor point for docs_bundles
 .. toctree::

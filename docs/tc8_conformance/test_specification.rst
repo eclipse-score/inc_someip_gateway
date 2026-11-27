@@ -68,7 +68,7 @@ TC8-SD-002: Offer Entry Format
 
 :OA Spec Reference: Section 6.1.5.1, SOMEIPSRV_FORMAT_14-18
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_002_offer_entry_format``
+:Test Function: ``TestSDOfferFormat::test_tc8_sd_002_offer_entry_format``
 :Requirement: ``comp_req__tc8_conformance__sd_offer_format``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -78,7 +78,7 @@ instance ID, major/minor version, and TTL as configured.
 
 **Preconditions:**
 
-- ``someipd`` started without ``gatewayd``
+- ``someipd``, the ETS stub, and ``gatewayd`` started as the DUT stack
 - Multicast route available (``224.0.0.0/4``)
 
 **Stimuli:**
@@ -93,7 +93,7 @@ TC8-SD-003: Cyclic Offer Timing
 
 :OA Spec Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_02
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_003_cyclic_offer_timing``
+:Test Function: ``TestSDOfferFormat::test_tc8_sd_003_cyclic_offer_timing``
 :Requirement: ``comp_req__tc8_conformance__sd_cyclic_timing``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -115,7 +115,7 @@ TC8-SD-004: FindService Known Service
 
 :OA Spec Reference: Section 6.1.6, SOMEIP_ETS_171
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_004_find_known_service_unicast_offer``
+:Test Function: ``TestSDFindResponse::test_tc8_sd_004_find_known_service_unicast_offer``
 :Requirement: ``comp_req__tc8_conformance__sd_find_response``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -139,7 +139,7 @@ TC8-SD-006: Subscribe Eventgroup Ack
 
 :OA Spec Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_13
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_006_subscribe_valid_eventgroup_ack``
+:Test Function: ``TestSDSubscribeLifecycle::test_tc8_sd_006_subscribe_valid_eventgroup_ack``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -164,7 +164,7 @@ TC8-SD-007: Subscribe Unknown Eventgroup Nack
 
 :OA Spec Reference: Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_19; Section 6.1.6, SOMEIP_ETS_140
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_007_subscribe_unknown_eventgroup_nack``
+:Test Function: ``TestSDSubscribeLifecycle::test_tc8_sd_007_subscribe_unknown_eventgroup_nack``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -187,7 +187,7 @@ TC8-SD-008: StopSubscribe Ceases Notifications
 
 :OA Spec Reference: Section 6.1.6, SOMEIP_ETS_108
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_008_stop_subscribe_ceases_notifications``
+:Test Function: ``TestSDSubscribeLifecycle::test_tc8_sd_008_stop_subscribe_ceases_notifications``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -215,7 +215,7 @@ TC8-SD-009: Repetition Phase Intervals
 
 :OA Spec Reference: Section 6.1.5.4, SOMEIPSRV_SD_BEHAVIOR_01
 :Test Module: ``test_sd_phases_timing.py``
-:Test Function: ``test_tc8_sd_009_repetition_phase_intervals``
+:Test Function: ``TestSDPhasesTiming::test_tc8_sd_009_repetition_phase_intervals``
 :Requirement: ``comp_req__tc8_conformance__sd_phases_timing``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -240,7 +240,7 @@ TC8-SD-011: IPv4 Endpoint Option
 
 :OA Spec Reference: Section 6.1.5.2, SOMEIPSRV_OPTIONS_01-07; Section 6.1.5.3, SOMEIPSRV_SD_MESSAGE_08
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_011_offer_ipv4_endpoint_option``
+:Test Function: ``TestSDOptionFormat::test_tc8_sd_011_offer_ipv4_endpoint_option``
 :Requirement: ``comp_req__tc8_conformance__sd_endpoint_option``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -264,7 +264,7 @@ TC8-SD-013: Multicast Eventgroup Option
 
 :OA Spec Reference: Section 6.1.5.2, SOMEIPSRV_OPTIONS_08-14
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_013_subscribe_ack_has_multicast_option``
+:Test Function: ``TestSDMulticastEventgroup::test_tc8_sd_013_subscribe_ack_has_multicast_option``
 :Requirement: ``comp_req__tc8_conformance__sd_mcast_eg``
 :DUT Config: ``tc8_someipd_sd.json``
 :Marker: ``@pytest.mark.network`` (requires non-loopback interface)
@@ -295,7 +295,7 @@ TC8-SD-014: TTL Expiry Cleanup
 
 :OA Spec Reference: Section 6.1.6, SOMEIP_ETS_095
 :Test Module: ``test_service_discovery.py``
-:Test Function: ``test_tc8_sd_014_ttl_expiry_ceases_notifications``
+:Test Function: ``TestSDTTLExpiry::test_tc8_sd_014_ttl_expiry_ceases_notifications``
 :Requirement: ``comp_req__tc8_conformance__sd_sub_lifecycle``
 :DUT Config: ``tc8_someipd_sd.json``
 
@@ -331,7 +331,8 @@ TC8-SDM-001: FindService: Any Instance (0xFFFF)
 
 **Purpose:**
 Verify that a FindService with instance_id = 0xFFFF (Any Instance) elicits an OfferService
-entry for every offered instance of the service.
+entry for every offered instance of the service. This checks SD offering only,
+no ``gatewayd`` bridge is involved.
 
 **Stimulus:**
 Send FindService with instance_id = 0xFFFF.
@@ -349,7 +350,7 @@ TC8-SDM-002: FindService: Specific Instance
 
 **Purpose:**
 Verify that a FindService with an exact instance_id elicits exactly one OfferService entry
-for that instance.
+for that instance. This checks SD offering only, no ``gatewayd`` bridge is involved.
 
 **Stimulus:**
 Send FindService with instance_id = 0x5678, then with instance_id = 0x5680.
@@ -547,7 +548,7 @@ Wait for the main phase, then send FindService with the Unicast Flag = 0.
 
 **Expected Result:**
 OfferService with IP destination address equal to the SD multicast group, received
-within ``cyclic_offer_delay`` (2 s).
+within ``cyclic_offer_delay`` (2 s) plus the 1 s tolerance time.
 
 SD Lifecycle Advanced Tests
 ----------------------------
@@ -611,6 +612,9 @@ same eventgroup.
 The entries are processed in order: a new SubscribeAck is received and the initial
 fields (``0x8005`` to ``0x8007``) arrive again after the re-subscribe.
 
+Expected failure (xfail, not strict). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` after the second subscription. Observed: the Ack is received, the initial fields are not.
+
 TC8-SDLC-005: Events Sent to Endpoint Option Port
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -632,6 +636,9 @@ The ACK arrives on the SD socket and the initial fields (``0x8005`` to ``0x8007`
 arrive on the endpoint option socket. Not verified: an option IP address that differs
 from the tester IP address.
 
+Expected failure (xfail, not strict). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` on the endpoint option socket. Observed: the Ack is received, the initial fields are not.
+
 TC8-SDLC-007: Re-subscribe After StopSubscribe
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -650,6 +657,9 @@ Subscribe, wait for the ACK, StopSubscribe, re-Subscribe.
 **Expected Result:**
 A new SubscribeAck and the initial fields (``0x8005`` to ``0x8007``) are received after
 the re-subscription.
+
+Expected failure (xfail, not strict). OA expectation: the initial fields ``0x8005`` to
+``0x8007`` after the subscription that follows the StopSubscribe. Observed: the Ack is received, the initial fields are not.
 
 TC8-SDLC-008: Session ID Increments per OfferService
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -700,7 +710,7 @@ Verify that the DUT stops sending FindService for a service after a StopOfferSer
 N/A (skipped).
 
 **Expected Result:**
-Not applicable: the DUT has no ETS client mode (``clientServiceActivate``).
+Not applicable: the OA procedure requires the DUT to handle ``clientServiceActivate`` (method 0x2F) to start its client, and the ETS application in this project has no handler for method 0x2F.
 
 TC8-SDLC-012: Multicast FindService: Any Major and Any Minor Version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -737,6 +747,9 @@ Send multicast FindService with unicast flag = 0.
 
 **Expected Result:**
 Unicast OfferService received on the tester socket.
+
+Expected failure (xfail, not strict). OA expectation: a unicast OfferService. Observed:
+no unicast OfferService received.
 
 TC8-SDLC-015: Restart: Reboot Flag and Session ID After First Restart
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1992,3 +2005,534 @@ The first Session ID after ``0xFFFF`` is ``0x0001``.
 
 The OA Pass criteria also list a SubscribeEventgroupAck, which no step sends. It is not
 checked.
+
+SOME/IP Message Format Tests
+----------------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_msg_format``
+
+Expected failure (strict xfail) for every test of ``test_msg_format``. OA expectation: a
+REQUEST gets the RESPONSE or ERROR listed per test. Observed: a REQUEST gets no reply,
+except one ERROR for a REQUEST with Protocol Version 0xFF.
+
+TC8-MSG-001: Define Service Using Service ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.5, SOMEIPSRV_BASIC_01
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_basic_01_define_service_using_service_id``
+
+**Purpose:**
+Verify that a REQUEST to a known Service ID gets a RESPONSE.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 of the service over UDP.
+
+**Expected Result:**
+RESPONSE with message type 0x80 (RESPONSE), the Service ID and Method ID of the REQUEST,
+return code E_OK.
+
+TC8-MSG-002: IP Addresses and Port of the Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_01
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_01_response_addresses``
+
+**Purpose:**
+Verify that the RESPONSE comes from the address and port the REQUEST was sent to.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 over UDP.
+
+**Expected Result:**
+RESPONSE with the checks of TC8-MSG-001, sent from the DUT IP address and the service UDP
+port.
+
+TC8-MSG-003: MSB of Method ID in Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_02
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_02_response_method_id_msb``
+
+**Purpose:**
+Verify that bit 15 of the Method ID of a RESPONSE is 0.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 over UDP.
+
+**Expected Result:**
+RESPONSE with the checks of TC8-MSG-001 and bit 15 of its Method ID set to 0.
+
+TC8-MSG-004: Copy Request ID to Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_03
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_03_copy_request_id``
+
+**Purpose:**
+Verify that the RESPONSE copies the Request ID (Client ID and Session ID) of the REQUEST.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 over UDP with Client ID ``0x0011`` and Session ID ``0x1234``.
+
+**Expected Result:**
+RESPONSE with the checks of TC8-MSG-001 and the Client ID and Session ID of the REQUEST.
+The TCP case of the OA test is TC8-TCP-001.
+
+TC8-MSG-005: Request ID Reuse
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_04
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_04_request_id_reuse``
+
+**Purpose:**
+Verify that a Request ID can be reused after its RESPONSE has arrived.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 over UDP, wait for the RESPONSE, then send the same
+REQUEST again.
+
+**Expected Result:**
+Two RESPONSEs with the checks of TC8-MSG-001 and the Request ID of the REQUEST.
+
+TC8-MSG-006: Protocol Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_05
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_05_protocol_version``
+
+**Purpose:**
+Verify that a REQUEST with a wrong Protocol Version gets an ERROR, and a REQUEST with
+Protocol Version 0x01 gets a RESPONSE.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 with Protocol Version ``0xFF``, then a REQUEST with
+Protocol Version ``0x01``.
+
+**Expected Result:**
+First an ERROR with return code E_WRONG_PROTOCOL_VERSION, copying Message ID and Request
+ID. Then a RESPONSE with the checks of TC8-MSG-001 and the Request ID of the REQUEST.
+
+TC8-MSG-007: Interface Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_06
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_06_interface_version``
+
+**Purpose:**
+Verify the Interface Version of the RESPONSE, and that an unknown Interface Version gets
+an ERROR.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 with the major version of the service, then a REQUEST
+with Interface Version ``0xFF``.
+
+**Expected Result:**
+First a RESPONSE with the checks of TC8-MSG-001, the Request ID of the REQUEST and the
+major version of the service. Then an ERROR with return code E_WRONG_INTERFACE_VERSION,
+copying Message ID, Request ID and Interface Version.
+
+TC8-MSG-008: Message Type and Response After a Request
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_07
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_07_message_type_response``
+
+**Purpose:**
+Verify that a REQUEST (message type 0x00) gets a RESPONSE (message type 0x80).
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 over UDP.
+
+**Expected Result:**
+RESPONSE with the checks of TC8-MSG-001 and the Request ID of the REQUEST.
+
+TC8-MSG-009: Message Type and Unknown Service ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_10
+:Requirement: ``comp_req__tc8_conformance__msg_error_codes``
+:Test Function: ``TestMessageFormat::test_onwire_10_unknown_service``
+
+**Purpose:**
+Verify that a REQUEST to an unknown Service ID gets an ERROR.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 of the known service and check its RESPONSE. Then send
+a REQUEST to Service ID ``0xBEEF``.
+
+**Expected Result:**
+ERROR with return code E_UNKNOWN_SERVICE, copying Message ID and Request ID. The OA test
+has no alternative of silence.
+
+TC8-MSG-010: Return Code for Normal Request Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_11
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestMessageFormat::test_onwire_11_return_code_ok``
+
+**Purpose:**
+Verify that a normal RESPONSE carries return code E_OK.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 over UDP.
+
+**Expected Result:**
+RESPONSE with the checks of TC8-MSG-001.
+
+TC8-MSG-011: Return Code for Unknown Method ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.6, SOMEIPSRV_ONWIRE_12
+:Requirement: ``comp_req__tc8_conformance__msg_error_codes``
+:Test Function: ``TestMessageFormat::test_onwire_12_unknown_method``
+
+**Purpose:**
+Verify that a REQUEST with an unknown Method ID gets an ERROR.
+
+**Stimulus:**
+Send a REQUEST to the service with Method ID ``0xBEEF``.
+
+**Expected Result:**
+ERROR with return code E_UNKNOWN_METHOD, copying Message ID and Request ID.
+
+
+SOME/IP Message Protocol Compliance Tests
+-----------------------------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_msg_format``
+
+TC8-MSG-012: Fire and Forget Requests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_04
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_04_fire_and_forget``
+
+**Purpose:**
+Verify that a REQUEST_NO_RETURN gets no RESPONSE.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 and check its RESPONSE as control. Then send a
+REQUEST_NO_RETURN to the same method and listen for 2 s.
+
+**Expected Result:**
+No RESPONSE.
+
+TC8-MSG-013: Fire and Forget Requests Return No Error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_05
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_05_fire_and_forget_no_error``
+
+**Purpose:**
+Verify that a REQUEST_NO_RETURN to an unknown Method ID gets no ERROR.
+
+**Stimulus:**
+Send the control REQUEST of TC8-MSG-012. Then send a REQUEST_NO_RETURN with Method ID
+``0xBEEF`` and listen for 2 s.
+
+**Expected Result:**
+No ERROR.
+
+TC8-MSG-014: Return Code Bits of an Error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_06
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_06_return_code_two_msb_zero``
+
+**Purpose:**
+Verify that the two most significant bits of the return code of an ERROR are 0.
+
+**Stimulus:**
+Send a REQUEST with Method ID ``0xBEEF``.
+
+**Expected Result:**
+ERROR whose return code AND ``0xC0`` is 0.
+
+TC8-MSG-015: Ignore Two Most Significant Bits of Return Code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_07
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_07_ignore_return_code_bits``
+
+**Purpose:**
+Verify that the two most significant bits of the return code of a REQUEST are ignored.
+
+**Stimulus:**
+Send a REQUEST to method echoUINT8 with return code ``0xC0``.
+
+**Expected Result:**
+RESPONSE with the checks of TC8-MSG-001 and the Request ID of the REQUEST.
+
+TC8-MSG-016: No Reply to a Message Already Carrying an Error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_08
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_08_no_reply_to_error``
+
+**Purpose:**
+Verify that a REQUEST that already carries an error return code gets no ERROR.
+
+**Stimulus:**
+Send the control REQUEST of TC8-MSG-012. Then send a REQUEST to method echoUINT8 with
+return code ``0x01`` and one with return code ``0x1F``, and listen for 2 s after each.
+
+**Expected Result:**
+No ERROR for either REQUEST.
+
+Expected failure (strict xfail). OA expectation: no ERROR for a REQUEST that already
+carries an error return code. Observed: the control REQUEST gets no RESPONSE.
+
+
+TC8-MSG-017: No Payload in Error Message
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_09
+:Requirement: ``comp_req__tc8_conformance__msg_error_codes``
+:Test Function: ``TestProtocolCompliance::test_rpc_09_error_without_payload``
+
+**Purpose:**
+Verify that an ERROR carries no payload.
+
+**Stimulus:**
+Send a REQUEST with Method ID ``0xBEEF``.
+
+**Expected Result:**
+ERROR as in TC8-MSG-011 whose Length field is 8.
+
+TC8-MSG-018: Copy Message ID in Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_18
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_18_copy_message_id``
+
+**Purpose:**
+Verify that the ERROR copies the Message ID (Service ID and Method ID) of the REQUEST.
+
+**Stimulus:**
+Send a REQUEST with Method ID ``0xBEEF``.
+
+**Expected Result:**
+ERROR as in TC8-MSG-011.
+
+TC8-MSG-019: Copy Request ID in Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_19
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_19_copy_request_id``
+
+**Purpose:**
+Verify that the ERROR copies the Request ID (Client ID and Session ID) of the REQUEST.
+
+**Stimulus:**
+Send a REQUEST with Method ID ``0xBEEF``, Client ID ``0x0021`` and Session ID ``0x0016``.
+
+**Expected Result:**
+ERROR as in TC8-MSG-011, with the Client ID and Session ID of the REQUEST.
+
+TC8-MSG-020: Copy Interface Version in Response
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_20
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_rpc_20_copy_interface_version``
+
+**Purpose:**
+Verify that the ERROR copies the Interface Version of the REQUEST.
+
+**Stimulus:**
+Send a REQUEST with Method ID ``0xBEEF`` and the major version of the service as Interface
+Version.
+
+**Expected Result:**
+ERROR as in TC8-MSG-011, with the Interface Version of the REQUEST.
+
+TC8-MSG-021: Burst Test
+^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_004
+:Requirement: ``comp_req__tc8_conformance__msg_resp_header``
+:Test Function: ``TestProtocolCompliance::test_ets_004_burst``
+
+**Purpose:**
+Verify that each REQUEST of a burst gets a RESPONSE.
+
+**Stimulus:**
+Send 10 REQUESTs to method echoUINT8 back to back over UDP, with Session IDs ``0x0100`` to
+``0x0109``.
+
+**Expected Result:**
+10 RESPONSEs with the checks of TC8-MSG-001, one for each Session ID.
+
+TC8-MSG-022: Length Way Too Long
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_058
+:Requirement: ``comp_req__tc8_conformance__msg_malformed``
+:Test Function: ``TestProtocolCompliance::test_ets_058_length_way_too_long``
+
+**Purpose:**
+Verify that a message with a Length field much longer than its payload gets an ERROR or is
+ignored.
+
+**Stimulus:**
+Send the control REQUEST of TC8-MSG-012. Then send a message with Length ``0x7FF3`` and
+one with Length ``0xFFFFFFF0``, each with 8 bytes following the Length field, and listen
+for 2 s after each. Then send a valid REQUEST.
+
+**Expected Result:**
+For each message either no reply, or an ERROR with return code E_MALFORMED_MESSAGE. The
+DUT is still running and the valid REQUEST gets a RESPONSE.
+
+The follow-up REQUEST is beyond the OA steps.
+
+TC8-MSG-023: Wrong Message Type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_075
+:Requirement: ``comp_req__tc8_conformance__msg_malformed``
+:Test Function: ``TestProtocolCompliance::test_ets_075_wrong_message_type``
+
+**Purpose:**
+Verify that a message with a wrong Message Type gets an ERROR or is ignored.
+
+**Stimulus:**
+Send the control REQUEST of TC8-MSG-012. Then send a message to method echoUINT8 with
+Message Type NOTIFICATION (``0x02``) and one with the reserved Message Type ``0x04``, and
+listen for 2 s after each.
+
+**Expected Result:**
+For each message either no reply, or an ERROR with return code E_WRONG_MESSAGE_TYPE.
+
+Partially verified. The outcome "ignores the request" of OA step 2 is evidence of the OA behaviour
+only if the control REQUEST of OA step 1 got a RESPONSE. Not run as OA
+steps: the control REQUEST that precedes the stimulus.
+
+TC8-MSG-024: Wrong Service ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_077
+:Requirement: ``comp_req__tc8_conformance__msg_error_codes``
+:Test Function: ``TestProtocolCompliance::test_ets_077_wrong_service_id``
+
+**Purpose:**
+Verify that a message with a wrong Service ID gets an ERROR or is ignored.
+
+**Stimulus:**
+Send the control REQUEST of TC8-MSG-012. Then send a REQUEST to method echoUINT8 with
+Service ID ``0xBEEF`` and listen for 2 s.
+
+**Expected Result:**
+Either no reply, or an ERROR with return code E_UNKNOWN_SERVICE. This OA test allows
+ignoring the request. SOMEIPSRV_ONWIRE_10 (TC8-MSG-009) does not.
+
+Partially verified. The outcome "ignores the request" of OA step 4 is evidence of the OA behaviour
+only if the control REQUEST of OA step 3 got a RESPONSE. Not run as OA
+steps: the control REQUEST that precedes the stimulus.
+
+TC8-MSG-025: Wrong SOME/IP Protocol Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_078
+:Requirement: ``comp_req__tc8_conformance__msg_malformed``
+:Test Function: ``TestProtocolCompliance::test_ets_078_wrong_protocol_version``
+
+**Purpose:**
+Verify that a message with a wrong Protocol Version gets an ERROR or is ignored.
+
+**Stimulus:**
+Send the control REQUEST of TC8-MSG-012. Then send a REQUEST to method echoUINT8 with
+Protocol Version ``0xFF`` and listen for 2 s.
+
+**Expected Result:**
+Either no reply, or an ERROR with return code E_WRONG_PROTOCOL_VERSION. This OA test
+allows ignoring the request. SOMEIPSRV_ONWIRE_05 (TC8-MSG-006) does not.
+
+Partially verified. The outcome "ignores the request" of OA step 6 is evidence of the OA behaviour
+only if the control REQUEST of OA step 5 got a RESPONSE. Not run as OA
+steps: the control REQUEST that precedes the stimulus.
+
+
+TCP Transport Binding Tests
+---------------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_service.json``
+:Test Module: ``test_msg_format_tcp``
+
+Expected failure (strict xfail) for every test of ``test_msg_format_tcp``. OA expectation:
+a REQUEST over TCP gets a RESPONSE. Observed: the DUT sends no data after the REQUEST.
+
+TC8-TCP-001: Single TCP Connection for All Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.5.7, SOMEIPSRV_RPC_01
+:Requirement: ``comp_req__tc8_conformance__tcp_transport``
+:Test Function: ``TestTcpTransport::test_rpc_01_single_tcp_connection``
+
+**Purpose:**
+Verify that a REQUEST over a TCP connection gets a RESPONSE.
+
+**Stimulus:**
+Open a TCP connection to the service and send a REQUEST to method echoUINT8.
+
+**Expected Result:**
+RESPONSE with the checks of TC8-MSG-001 and the Request ID of the REQUEST.
+
+TC8-TCP-002: Unaligned SOME/IP Messages Over TCP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_068
+:Requirement: ``comp_req__tc8_conformance__tcp_transport``
+:Test Function: ``TestTcpTransport::test_ets_068_unaligned_messages_tcp``
+
+**Purpose:**
+Verify that three REQUESTs in one TCP segment, one of them unaligned, each get a RESPONSE.
+
+**Stimulus:**
+Open a TCP connection and send three REQUESTs to method echoUINT8array in one write. The
+payloads are empty, 2 bytes and empty, so the third message starts at offset 34.
+
+**Expected Result:**
+Three RESPONSEs with the Service ID, message type and return code checks of TC8-MSG-001
+and the Method ID of echoUINT8array, one for each Session ID.
+
+
+UDP Transport Binding Tests
+---------------------------
+
+:DUT Config: ``tests/tc8_conformance/config/tc8_someipd_sd.json``
+:Test Module: ``test_msg_format``
+
+TC8-UDP-001: Unaligned SOME/IP Messages Over UDP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:OA Reference: Section 6.1.6, SOMEIP_ETS_069
+:Requirement: ``comp_req__tc8_conformance__udp_transport``
+:Test Function: ``TestUdpTransport::test_ets_069_unaligned_messages_udp``
+
+**Purpose:**
+Verify that three REQUESTs in one UDP datagram, one of them unaligned, each get a
+RESPONSE.
+
+**Stimulus:**
+Send the three REQUESTs of TC8-TCP-002 in one UDP datagram.
+
+**Expected Result:**
+Three RESPONSEs as in TC8-TCP-002.
