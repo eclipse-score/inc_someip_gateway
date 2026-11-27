@@ -17,6 +17,7 @@ Pytest configuration and fixtures for integration tests.
 """
 
 import logging
+from dataclasses import dataclass
 import os
 import pytest
 from typing import Generator
@@ -26,9 +27,17 @@ from util import (
     tcpdump_capture,
     wait_for_opt_ready,
 )
+from score.itf.core.process.async_process import AsyncProcess
 from score.itf.plugins.core import Target
 
 pytest_plugins = ["attribute_plugin"]
+
+
+@dataclass(frozen=True)
+class GatewayProcesses:
+    target: Target
+    someipd: AsyncProcess
+    gatewayd: AsyncProcess
 
 
 @pytest.fixture(scope="function")
@@ -46,8 +55,8 @@ def clean_state(target: Target) -> Generator[Target, None, None]:
 
 
 @pytest.fixture(scope="function")
-def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
-    """Start someipd and gatewayd before tests and stop them after."""
+def gatewayd_with_someipd_processes(clean_state: Target) -> Generator[GatewayProcesses, None, None]:
+    """Start someipd and gatewayd before tests, yield their handles, and stop them after."""
 
     # Store test traffic in file for later analysis of failures.
     # tcpdump is kept alive for the entire fixture scope; the sandbox tears it
@@ -84,7 +93,11 @@ def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
                 ],
             ) as gatewayd_process:
                 assert gatewayd_process.is_running(), gatewayd_process.get_output()
-                yield clean_state
+                yield GatewayProcesses(
+                    target=clean_state,
+                    someipd=someipd_process,
+                    gatewayd=gatewayd_process,
+                )
                 assert gatewayd_process.is_running(), (
                     gatewayd_process.get_output(),
                     "exit code: ",
@@ -98,3 +111,9 @@ def gatewayd_with_someipd(clean_state: Target) -> Generator[Target, None, None]:
     finally:
         if tcpdump_host is not None:
             tcpdump_host.__exit__(None, None, None)
+
+
+@pytest.fixture(scope="function")
+def gatewayd_with_someipd(gatewayd_with_someipd_processes: GatewayProcesses) -> Target:
+    """Start someipd and gatewayd before tests and stop them after."""
+    return gatewayd_with_someipd_processes.target
