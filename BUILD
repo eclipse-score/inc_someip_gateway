@@ -12,7 +12,6 @@
 # *******************************************************************************
 
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
@@ -28,19 +27,6 @@ exports_files([
     ".clang-tidy",
     ".ruff.toml",
 ])
-
-# ==============================================================================
-# Code Formatting
-# ==============================================================================
-
-use_format_targets(
-    languages = [
-        "python",
-        "starlark",
-        "yaml",
-        "cpp",
-    ],
-)
 
 # ==============================================================================
 # Documentation
