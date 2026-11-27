@@ -2,7 +2,7 @@
   {
     "name": "test_event_exchange",
     "file": "tests/integration_test/test_event_exchange.py",
-    "line": "56",
+    "line": "74",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",

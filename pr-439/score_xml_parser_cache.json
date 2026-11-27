@@ -2,7 +2,7 @@
   {
     "name": "test_event_exchange",
     "file": "tests/integration_test/test_event_exchange.py",
-    "line": 56,
+    "line": 74,
     "need": "feat_req__some_ip_gateway__event_forwarding",
     "verify_type": "partially",
     "result": "passed",
@@ -14,7 +14,7 @@
   {
     "name": "test_event_exchange",
     "file": "tests/integration_test/test_event_exchange.py",
-    "line": 56,
+    "line": 74,
     "need": "comp_req__gatewayd__forwards_local_events",
     "verify_type": "partially",
     "result": "passed",
@@ -26,7 +26,7 @@
   {
     "name": "test_event_exchange",
     "file": "tests/integration_test/test_event_exchange.py",
-    "line": 56,
+    "line": 74,
     "need": "comp_req__gatewayd__forwards_remote_events",
     "verify_type": "partially",
     "result": "passed",
