@@ -37,18 +37,24 @@ constexpr std::byte kNonZeroFillByte{0xFFU};
 constexpr std::byte kExpectedReservedByte{0x00U};
 
 TEST(SampleLayoutTest, ZeroPayloadSampleSizeEqualsPrefixSize) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Event_config const zero_event{"zero", kZeroEventId, kZeroPayloadSize};
     EXPECT_EQ(sample_size(zero_event), kSample_prefix_size);
     EXPECT_EQ(addressed_sample_size(zero_event), kSample_prefix_size);
 }
 
 TEST(SampleLayoutTest, UnalignedPayloadSampleSizeRoundsUpToAlignment) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Event_config const unaligned_event{"unaligned", kUnalignedEventId, kUnalignedPayloadSize};
     EXPECT_EQ(addressed_sample_size(unaligned_event), kExpectedUnalignedAddressedSize);
     EXPECT_EQ(sample_size(unaligned_event), kExpectedAlignedSampleSize);
 }
 
 TEST(SampleLayoutTest, SampleMetaInfoUsesAlignedSampleSizeAndAlignment) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Event_config const unaligned_event{"unaligned", kUnalignedEventId, kUnalignedPayloadSize};
     auto const meta = sample_meta_info(unaligned_event);
     EXPECT_EQ(meta.size, kExpectedAlignedSampleSize);
@@ -56,6 +62,9 @@ TEST(SampleLayoutTest, SampleMetaInfoUsesAlignedSampleSizeAndAlignment) {
 }
 
 TEST(SampleLayoutTest, PayloadLengthRoundTripsAndZeroesAllReservedPrefixBytes) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__forwards_event_payloads");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "boundary-values");
     alignas(kSample_alignment) std::array<std::byte, kSample_prefix_size> buffer{};
     constexpr std::array kPayloadLengths{
         kZeroPayloadSize,

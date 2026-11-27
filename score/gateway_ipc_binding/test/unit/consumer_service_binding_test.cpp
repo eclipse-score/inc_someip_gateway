@@ -146,6 +146,9 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
 
 // Invalid specifier syntax fails in create() before creating a SOCom Server_connector.
 TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto const result = Consumer_service_binding::create(
         socom_runtime_, MakeServiceConfig(Role::consumer, kInvalidSpecifier));
     ASSERT_FALSE(result.has_value());
@@ -154,6 +157,9 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsInvalidInstanceSpecifier) {
 
 // Undeployed specifier fails in create() instead of waiting indefinitely in StartFindService().
 TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_invalid_config");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     StubInstanceNotResolved();
     auto const result =
         Consumer_service_binding::create(socom_runtime_, MakeServiceConfig(Role::consumer));
@@ -163,6 +169,9 @@ TEST_F(ConsumerServiceBindingTest, CreateRejectsUndeployedInstanceSpecifier) {
 
 // Returns runtime_error_service_setup_failed when SOCom make_server_connector() fails.
 TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     EXPECT_CALL(socom_runtime_, make_server_connector(_, _, _))
         .WillOnce(Return(ByMove(score::MakeUnexpected<socom::Disabled_server_connector::Uptr>(
             socom::Construction_error::duplicate_service))));
@@ -176,6 +185,8 @@ TEST_F(ConsumerServiceBindingTest, CreateFailsWhenServerConnectorCreationFails) 
 // ignored without out-of-bounds access.
 TEST_F(ConsumerServiceBindingTest,
        ServerConnectorDefaultCallbacksHandleUnsupportedOperationsAndOutOfRangeEvent) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     socom::Disabled_server_connector::Callbacks captured_cbs{};
     (void)ExpectServerConnectorCreated(&captured_cbs);
 
@@ -196,6 +207,9 @@ TEST_F(ConsumerServiceBindingTest,
 
 // Returns runtime_error_service_find_failed when LoLa StartFindService() fails.
 TEST_F(ConsumerServiceBindingTest, StartFailsWhenStartFindServiceFails) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__reports_setup_failure");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto created = CreateConsumer();
     EXPECT_CALL(service_discovery_mock(),
                 StartFindService(_, A<score::mw::com::impl::InstanceSpecifier>()))
@@ -208,6 +222,8 @@ TEST_F(ConsumerServiceBindingTest, StartFailsWhenStartFindServiceFails) {
 
 // noexcept destructor logs and continues instead of aborting if StopFindService() returns an error.
 TEST_F(ConsumerServiceBindingTest, DestructorHandlesStopFindServiceFailureGracefully) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto started = CreateAndStartConsumer();
     EXPECT_CALL(service_discovery_mock(), StopFindService(_))
         .WillOnce(Return(score::MakeUnexpected(score::mw::com::impl::ComErrc::kInvalidHandle)));
@@ -217,6 +233,8 @@ TEST_F(ConsumerServiceBindingTest, DestructorHandlesStopFindServiceFailureGracef
 // Empty discovery results or a failed GenericProxy::Create() keep the SOCom Server_connector
 // disabled.
 TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProxyCreationFailure) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto started = CreateAndStartConsumer();
     EXPECT_CALL(*started.connector_mock, enable()).Times(0);
     EXPECT_CALL(*started.connector_mock, disable()).Times(0);
@@ -237,6 +255,9 @@ TEST_F(ConsumerServiceBindingTest, FindServiceCallbackHandlesEmptyHandlesAndProx
 // callback can create a new GenericProxy.
 TEST_F(ConsumerServiceBindingTest,
        FindServiceCallbackRejectsProxyWithMissingEventOrUndersizedSample) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__rejects_mismatched_peer");
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto started = CreateAndStartConsumer();
     EXPECT_CALL(*started.connector_mock, enable()).Times(0);
     EXPECT_CALL(*started.connector_mock, disable()).Times(0);
@@ -257,6 +278,9 @@ TEST_F(ConsumerServiceBindingTest,
 // duplicate StartFindService() callbacks while a GenericProxy is active.
 TEST_F(ConsumerServiceBindingTest,
        AttachReconcilesPendingSubscriptionAndIgnoresDuplicateFindServiceHandle) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__propagates_subscriptions");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto started = CreateAndStartConsumer();
     auto* const event_mock_ptr = ExpectProxyWithEvent();
     started.callbacks.on_event_subscription_change(*started.connector_mock, kFirstEventId,
@@ -276,6 +300,8 @@ TEST_F(ConsumerServiceBindingTest,
 // Calls Unsubscribe() if SetReceiveHandler() fails after Subscribe() (LoLa aborts if GenericProxy
 // is destroyed while an event is still subscribed).
 TEST_F(ConsumerServiceBindingTest, SubscriptionRollsBackWhenSetReceiveHandlerFails) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto started = CreateAndStartConsumer();
     auto* const event_mock_ptr = ExpectProxyWithEvent();
     score::mw::com::impl::ServiceHandleContainer<score::mw::com::impl::HandleType> const handles{
@@ -297,6 +323,9 @@ TEST_F(ConsumerServiceBindingTest, SubscriptionRollsBackWhenSetReceiveHandlerFai
 // Subscribes and unsubscribes on LoLa as SOCom state changes, and unsubscribes before destroying
 // GenericProxy when the LoLa service stops offering.
 TEST_F(ConsumerServiceBindingTest, ConnectedConsumerHandlesSubscribeUnsubscribeAndPeerDetach) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__propagates_subscriptions");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "requirements-analysis");
     auto started = CreateAndStartConsumer();
     auto const sub = AttachAndSubscribeConsumer(started);
     ASSERT_FALSE(sub.receive_handler.expired());
@@ -331,6 +360,9 @@ TEST_F(ConsumerServiceBindingTest, ConnectedConsumerHandlesSubscribeUnsubscribeA
 // instead of reading out of bounds.
 TEST_F(ConsumerServiceBindingTest,
        ReceiveHandlerSkipsNullAndOversizedSamplesAndForwardsValidSamples) {
+    RecordProperty("PartiallyVerifies", "comp_req__gib__forwards_event_payloads");
+    RecordProperty("TestType", "requirements-based");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto started = CreateAndStartConsumer();
     auto const sub = AttachAndSubscribeConsumer(started);
     ASSERT_FALSE(sub.receive_handler.expired());
@@ -364,6 +396,8 @@ TEST_F(ConsumerServiceBindingTest,
 
 // Logs and returns without aborting when GetNewSamples() fails inside the noexcept callback.
 TEST_F(ConsumerServiceBindingTest, ReceiveHandlerHandlesGetNewSamplesErrorGracefully) {
+    RecordProperty("TestType", "fault-injection");
+    RecordProperty("DerivationTechnique", "error-guessing");
     auto started = CreateAndStartConsumer();
     auto const sub = AttachAndSubscribeConsumer(started);
     ASSERT_FALSE(sub.receive_handler.expired());

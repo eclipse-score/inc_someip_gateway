@@ -129,6 +129,8 @@ class RuntimeMultiThreadingTest : public SingleConnectionTest {
 };
 
 TEST_F(RuntimeMultiThreadingTest, CreationOfServerAndClientConnectorsHasNoRaceCondition) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Client_to_connect client;
 
     auto const start_clients = client.create_thread_function(connector_factory);
@@ -138,6 +140,8 @@ TEST_F(RuntimeMultiThreadingTest, CreationOfServerAndClientConnectorsHasNoRaceCo
 }
 
 TEST_F(RuntimeMultiThreadingTest, CreationOfServerAndClientConnectorsCallsCallbacksInCorrectOrder) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Client_to_connect client;
 
     auto const start_clients =

@@ -32,7 +32,7 @@ It belongs to a set of three documents that work together:
    * - **requirements.rst** (this file)
      - Defines *what* must be verified: one feature requirement and
        multiple component requirements, each linked to the S-CORE
-       requirement hierarchy.
+       requirement hierarchy. One tool requirement covers the test helpers.
    * - :doc:`test_specification`
      - Defines *how* each test runs: purpose, preconditions, stimuli,
        and expected results.
@@ -57,6 +57,9 @@ For TC8 conformance, the split is simple:
   - Describes the specific behaviour under test.
   - References the relevant AUTOSAR PRS or TC8 specification section.
   - Is verified by one or more pytest functions.
+
+* **One tool requirement** (``tool_req__tc8_harness_selfcheck``) covers the
+  test helpers themselves, not ``someipd``.
 
 Feature Requirement
 -------------------
@@ -358,3 +361,25 @@ Component Requirements: Event Notification
    4.2.4 (Notification Events), and AUTOSAR SOME/IP Service Discovery
    Protocol Specification R24-11, section 5.1.3.1.1 (Subscribe
    Eventgroup Entry).
+
+Tool Requirement: Test Helpers
+------------------------------
+
+The conformance tests rely on helper code to build messages, capture packets
+and watch the target. This is test tooling, not part of the product, so its
+requirement is a tool requirement.
+
+.. tool_req:: TC8 test helpers give the expected results on the host
+   :id: tool_req__tc8_harness_selfcheck
+   :status: valid
+   :version: 1
+   :tags: tc8, conformance, test_infrastructure
+   :satisfies: feat_req__tc8_conformance__conformance
+   :safety: QM
+   :security: NO
+
+   The TC8 test helpers shall give the expected bytes and results for known
+   inputs when run on the host, without a running ``someipd``. This covers
+   the SOME/IP and SOME/IP-SD message builders, the SD session ID counter,
+   the endpoint option checks, the target process monitor, the process helpers
+   and the packet capture helpers.

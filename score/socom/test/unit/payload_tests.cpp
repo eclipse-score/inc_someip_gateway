@@ -40,9 +40,15 @@ void check_payload(Payload const& payload, Vector_buffer const& cont) {
     check_span(payload.data(), cont);
 }
 
-TEST(Payload, NoPayloadConstruct) { EXPECT_EQ(0, empty_payload().data().size()); }
+TEST(Payload, NoPayloadConstruct) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
+    EXPECT_EQ(0, empty_payload().data().size());
+}
 
 TEST(Payload, NoPayloadMoveConstruct) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "error-guessing");
     Payload copy{empty_payload()};
 
     EXPECT_EQ(empty_payload(), copy);
@@ -50,6 +56,8 @@ TEST(Payload, NoPayloadMoveConstruct) {
 }
 
 TEST(Payload, UserDataCanBeRetrievedAfterMovingPayload) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     struct User_data {
         std::unique_ptr<int> value;
     };
@@ -66,24 +74,32 @@ TEST(Payload, UserDataCanBeRetrievedAfterMovingPayload) {
 }
 
 TEST(Payload, DefaultConstructedPayloadHasNoData) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     Payload const payload{};
 
     EXPECT_EQ(0U, payload.data().size());
 }
 
 TEST(Payload, VectorPayloadConstructInitializerList) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const payload =
         make_vector_payload({std::byte{1}, std::byte{2}, std::byte{3}, std::byte{4}, std::byte{5}});
     check_payload(payload, make_vector_buffer(1U, 2U, 3U, 4U, 5U));
 }
 
 TEST(Payload, VectorPayloadConstructVectorLVR) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto const temp_buffer = make_vector_buffer(1U, 2U, 3U, 4U, 5U);
     auto const payload = make_vector_payload(temp_buffer);
     check_payload(payload, temp_buffer);
 }
 
 TEST(Payload, OperatorEqual) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "equivalence-classes");
     auto const payload0 = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U, 5U));
     auto const payload0_same = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 4U, 5U));
     auto const payload1 = make_vector_payload(make_vector_buffer(1U, 2U, 3U, 32U, 43U, 43U));
@@ -104,6 +120,8 @@ TEST(Payload, OperatorEqual) {
 }
 
 TEST(Payload, UserDataDestructorRunsWhenPayloadIsDestroyed) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     struct User_data {
         explicit User_data(std::size_t& destroyed_count) noexcept
             : destroyed_count{&destroyed_count} {}
@@ -127,6 +145,8 @@ TEST(Payload, UserDataDestructorRunsWhenPayloadIsDestroyed) {
 }
 
 TEST(Payload, WritablePayloadSetSizeReducesDataSize) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     auto payload = make_writable_vector_payload(100);
     EXPECT_EQ(100U, payload.data().size());
 
@@ -136,6 +156,8 @@ TEST(Payload, WritablePayloadSetSizeReducesDataSize) {
 }
 
 TEST(Payload, WritablePayloadCanCarryUserData) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     struct User_data {
         int value;
     };
@@ -146,6 +168,8 @@ TEST(Payload, WritablePayloadCanCarryUserData) {
 }
 
 TEST(Payload, WritablePayloadSetSizeReturnsFalseWhenIncreasingSize) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     auto payload = make_writable_vector_payload(50);
     EXPECT_EQ(50U, payload.data().size());
 
@@ -155,6 +179,8 @@ TEST(Payload, WritablePayloadSetSizeReturnsFalseWhenIncreasingSize) {
 }
 
 TEST(Payload, WritablePayloadSetSizeWithZero) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     auto payload = make_writable_vector_payload(100);
     EXPECT_EQ(100U, payload.data().size());
 
@@ -164,6 +190,8 @@ TEST(Payload, WritablePayloadSetSizeWithZero) {
 }
 
 TEST(Payload, WritablePayloadSetSizeToSameSizeSucceeds) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     auto payload = make_writable_vector_payload(100);
     EXPECT_EQ(100U, payload.data().size());
 
@@ -173,6 +201,8 @@ TEST(Payload, WritablePayloadSetSizeToSameSizeSucceeds) {
 }
 
 TEST(Payload, WritablePayloadSetSizeMultipleTimes) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "boundary-values");
     auto payload = make_writable_vector_payload(100);
 
     EXPECT_TRUE(payload.shrink(80));
@@ -190,6 +220,8 @@ TEST(Payload, WritablePayloadSetSizeMultipleTimes) {
 }
 
 TEST(Payload, WritablePayloadWdataAndDataShareTheBuffer) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto payload = make_writable_vector_payload(100);
 
     EXPECT_TRUE(payload.shrink(50));
@@ -198,6 +230,8 @@ TEST(Payload, WritablePayloadWdataAndDataShareTheBuffer) {
 }
 
 TEST(Payload, WritablePayloadMoveAssignedFromWritablePayloadHasWritableData) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto payload = make_writable_vector_payload(32);
 
     payload = make_writable_vector_payload(16);
@@ -207,6 +241,8 @@ TEST(Payload, WritablePayloadMoveAssignedFromWritablePayloadHasWritableData) {
 }
 
 TEST(Payload, WritablePayloadMoveAssignedFromReadOnlyPayloadHasNoWritableData) {
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "design-analysis");
     auto payload = make_writable_vector_payload(32);
 
     static_cast<Payload&>(payload) = make_vector_payload(make_vector_buffer(1U, 2U, 3U));

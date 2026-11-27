@@ -20,6 +20,7 @@ import os
 import subprocess
 
 import pytest
+from attribute_plugin import add_test_properties
 
 import time
 
@@ -40,21 +41,41 @@ from capture import (
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_as_text_decodes_bytes() -> None:
     """Bytes are decoded to str with UTF-8 (replacement on error)."""
     assert as_text(b"hello") == "hello"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_as_text_passes_str_through() -> None:
     """Plain str is returned unchanged."""
     assert as_text("world") == "world"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_as_text_converts_other_types() -> None:
     """Non-str, non-bytes values are converted via str()."""
     assert as_text(42) == "42"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_as_text_handles_invalid_utf8() -> None:
     """Invalid UTF-8 bytes are replaced rather than raising."""
     result = as_text(b"\xff\xfe")
@@ -66,11 +87,21 @@ def test_as_text_handles_invalid_utf8() -> None:
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_get_content_of_file_object_none_returns_empty() -> None:
     """None input returns an empty string without raising."""
     assert _get_content_of_file_object(None) == ""
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_get_content_of_file_object_reads_pipe() -> None:
     """Content written to a pipe is read back as a str."""
     proc = subprocess.Popen(
@@ -88,6 +119,11 @@ def test_get_content_of_file_object_reads_pipe() -> None:
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_get_output_includes_stdout_and_stderr() -> None:
     """get_output returns a string containing both stdout and stderr content."""
     proc = subprocess.Popen(
@@ -101,6 +137,11 @@ def test_get_output_includes_stdout_and_stderr() -> None:
     assert "err" in output
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_get_output_empty_process() -> None:
     """A process that writes nothing returns a string (may be empty or whitespace)."""
     proc = subprocess.Popen(
@@ -118,6 +159,11 @@ def test_get_output_empty_process() -> None:
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_is_process_alive_true_for_running_process() -> None:
     """A running process is reported as alive."""
     proc = subprocess.Popen(["sleep", "5"])
@@ -128,12 +174,22 @@ def test_is_process_alive_true_for_running_process() -> None:
         proc.wait()
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_is_process_alive_false_for_missing_pid() -> None:
     """A pid with no /proc entry is reported as not alive."""
     missing_pid = 2**22  # far beyond any pid this test process could have
     assert is_process_alive(missing_pid) is False
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_is_process_alive_false_for_zombie() -> None:
     """A zombie (exited, not yet reaped) process is reported as not alive."""
     proc = subprocess.Popen(["true"])
@@ -165,6 +221,11 @@ def test_is_process_alive_false_for_zombie() -> None:
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_wait_until_process_exits_returns_output() -> None:
     """A process that exits immediately returns its output as a str."""
     proc = subprocess.Popen(
@@ -177,6 +238,11 @@ def test_wait_until_process_exits_returns_output() -> None:
     assert proc.poll() is not None
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_wait_until_process_exits_raises_on_timeout() -> None:
     """TimeoutError is raised when the process does not exit in time."""
     proc = subprocess.Popen(
@@ -197,6 +263,11 @@ def test_wait_until_process_exits_raises_on_timeout() -> None:
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_tcpdump_capture_output_file_without_packet_count_does_not_raise(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -215,6 +286,11 @@ def test_tcpdump_capture_output_file_without_packet_count_does_not_raise(
     proc.wait()
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_tcpdump_capture_pcap_mode_includes_dash_u_flag(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -238,6 +314,11 @@ def test_tcpdump_capture_pcap_mode_includes_dash_u_flag(
     assert "-U" in captured_args[0], f"-U flag missing from tcpdump args: {captured_args[0]}"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -261,6 +342,11 @@ def test_tcpdump_capture_text_mode_excludes_dash_u_flag(
     assert "-U" not in captured_args[0], f"-U should not be in text-mode args: {captured_args[0]}"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_tcpdump_capture_includes_z_flag_with_current_user(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -298,6 +384,11 @@ def test_tcpdump_capture_includes_z_flag_with_current_user(
     assert z_user == expected_user, f"-Z argument is '{z_user}', expected '{expected_user}'"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_tcpdump_capture_pcap_written_under_tmp(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -329,6 +420,11 @@ def test_tcpdump_capture_pcap_written_under_tmp(
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_stop_capture_returns_true_for_already_exited_process() -> None:
     """stop_capture returns True immediately when the process has already exited."""
     proc = subprocess.Popen(
@@ -341,6 +437,11 @@ def test_stop_capture_returns_true_for_already_exited_process() -> None:
     assert result is True
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_stop_capture_handles_permission_error() -> None:
     """PermissionError from proc.send_signal (EPERM in sandbox) returns False.
 
@@ -369,6 +470,11 @@ def test_stop_capture_handles_permission_error() -> None:
     proc.wait()
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_stop_capture_handles_process_lookup_error() -> None:
     """ProcessLookupError from proc.send_signal is treated as 'process already gone'.
 
@@ -397,6 +503,11 @@ def test_stop_capture_handles_process_lookup_error() -> None:
     proc.wait()
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_stop_capture_graceful_sigint_returns_true() -> None:
     """stop_capture sends SIGINT; the process exits cleanly, returns True."""
     proc = subprocess.Popen(
@@ -409,6 +520,11 @@ def test_stop_capture_graceful_sigint_returns_true() -> None:
     assert proc.poll() is not None, "process should have exited after stop_capture"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_stop_capture_kills_on_timeout_returns_false() -> None:
     """stop_capture falls back to SIGKILL when SIGINT is ignored; returns False.
 
@@ -442,6 +558,11 @@ def test_stop_capture_kills_on_timeout_returns_false() -> None:
     assert proc.poll() is not None, "process should be dead after SIGKILL fallback"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_stop_capture_sweeps_orphans_with_pkill(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -492,6 +613,11 @@ def test_stop_capture_sweeps_orphans_with_pkill(
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_close_pipes_and_wait_returns_true_for_already_exited_process() -> None:
     """Returns True immediately when the process has already exited."""
     proc = subprocess.Popen(["true"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -499,6 +625,11 @@ def test_close_pipes_and_wait_returns_true_for_already_exited_process() -> None:
     assert _close_pipes_and_wait(proc, timeout=2.0) is True
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_close_pipes_and_wait_terminates_process_writing_to_stdout() -> None:
     """Closing stdout causes a process still writing to it to die (SIGPIPE), without needing a kill."""
     proc = subprocess.Popen(
@@ -521,6 +652,11 @@ def test_close_pipes_and_wait_terminates_process_writing_to_stdout() -> None:
     assert not kill_called, "normal SIGPIPE exit must not require a forced kill"
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_close_pipes_and_wait_logs_slow_teardown_and_reaps_without_kill(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
@@ -569,6 +705,11 @@ def test_close_pipes_and_wait_logs_slow_teardown_and_reaps_without_kill(
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_capture_process_text_mode_uses_pipe_close_not_sigint(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -591,6 +732,11 @@ def test_capture_process_text_mode_uses_pipe_close_not_sigint(
     proc.wait()
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_capture_process_pcap_mode_uses_stop_capture(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -618,6 +764,11 @@ def test_capture_process_pcap_mode_uses_stop_capture(
 # ---------------------------------------------------------------------------
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_tcpdump_capture_raises_on_immediate_exit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -635,6 +786,11 @@ def test_tcpdump_capture_raises_on_immediate_exit(
         tcpdump_capture("icmp")
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="design-analysis",
+)
 def test_force_stop_closes_pipes_runs_stimulus_and_reaps(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -663,6 +819,11 @@ def test_force_stop_closes_pipes_runs_stimulus_and_reaps(
     assert stimulus_calls == [["true"]]
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_force_stop_raises_for_pcap_mode() -> None:
     """force_stop is text-mode only; pcap-mode writes to a file, not the pipe."""
     import capture as capture_module  # noqa: PLC0415
@@ -678,6 +839,11 @@ def test_force_stop_raises_for_pcap_mode() -> None:
         proc.wait()
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_force_stop_returns_false_if_process_survives_stimulus(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -701,6 +867,11 @@ def test_force_stop_returns_false_if_process_survives_stimulus(
         proc.wait()
 
 
+@add_test_properties(
+    partially_verifies=["tool_req__tc8_harness_selfcheck"],
+    test_type="interface-test",
+    derivation_technique="error-guessing",
+)
 def test_tcpdump_capture_does_not_raise_on_immediate_clean_exit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

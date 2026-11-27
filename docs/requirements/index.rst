@@ -100,6 +100,9 @@ IDs follow the pattern ``<type>__<scope>__<title_snake_case>``:
    * - ``aou_req``
      - ``aou_req__<component>__<title>``
      - ``aou_req__gatewayd__valid_config``
+   * - ``tool_req``
+     - ``tool_req__<scope>_<title>`` (one ``__`` only)
+     - ``tool_req__tc8_harness_selfcheck``
 
 Document Heading Standards
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -118,13 +121,32 @@ Mandatory Attributes
 Every requirement directive must include these attributes:
 
 - ``:id:`` — unique identifier per the scheme above
-- ``:status:`` — ``valid`` or ``draft``
+- ``:status:``: ``valid``, ``invalid``, or ``valid_inspected``
+- ``:version:``: integer
 - ``:safety:`` — ``QM`` or ``ASIL_B``
 - ``:security:`` — ``YES`` or ``NO``
 - ``:reqtype:`` — ``Functional``, ``Interface``, ``Process``, or ``Non-Functional``
-- ``:derived_from:`` — parent requirement ID (mandatory for feature and component levels, used for upward requirement links)
-- ``:satisfied_by:`` — component ID that implements a component requirement
-- ``:rationale:`` — justification text (mandatory for stakeholder level only)
+
+Further mandatory attributes and links by level:
+
+- ``:valid_from:``: release such as ``v0.0.0``, mandatory for stakeholder and
+  feature levels, optional for component level
+- ``:rationale:``: justification text, mandatory for stakeholder level only
+- ``:satisfied_by:``: mandatory for feature level (a ``feat`` element) and
+  component level (a ``comp`` element)
+
+Optional links:
+
+- ``:derived_from:``: parent requirement ID. A feature requirement may derive
+  from a ``stkh_req``. A component requirement may derive from a ``feat_req``.
+  Setting it is recommended for traceability.
+- ``:covers:``: ``aou_req`` ID covered by a feature or component requirement
+
+Assumption of use requirements have no links.
+
+Tool requirements (``tool_req``) cover test tooling, not the product. They
+need ``:satisfies:`` (a ``stkh_req``, ``feat_req``, ``comp_req`` or
+``gd_req``) and take no ``:reqtype:``, ``:derived_from:`` or ``:satisfied_by:``.
 
 Cross-References
 ^^^^^^^^^^^^^^^^

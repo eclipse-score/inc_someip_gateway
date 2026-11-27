@@ -17,6 +17,7 @@ and the multi-handle ``_TargetProcess.poll()`` fix. No DUT/QEMU is involved;
 everything here runs against fakes/pure functions.
 """
 
+from attribute_plugin import add_test_properties
 import ipaddress
 
 import helpers.sd_sender as sd_sender
@@ -33,7 +34,13 @@ from helpers.someip_types import (
 class TestSdSessionIdWraparound:
     """Regression for item 7: session-id must wrap from 0xFFFF to 1, never emit 0x0000."""
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_no_consecutive_duplicate_across_wraparound(self) -> None:
+        """Check no consecutive duplicate across wraparound."""
         sd_sender._last_session_id = 0xFFFE  # noqa: SLF001
         sequence = [sd_sender._next_session_id() for _ in range(5)]  # noqa: SLF001
         assert sequence == [0xFFFF, 1, 2, 3, 4]
@@ -41,7 +48,13 @@ class TestSdSessionIdWraparound:
         for a, b in zip(sequence, sequence[1:]):
             assert a != b
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_reserved_zero_never_emitted(self) -> None:
+        """Check reserved zero never emitted."""
         sd_sender._last_session_id = 0  # noqa: SLF001
         sequence = [sd_sender._next_session_id() for _ in range(0x10000 + 2)]  # noqa: SLF001
         assert 0 not in sequence
@@ -50,7 +63,13 @@ class TestSdSessionIdWraparound:
 class TestAssertOfferHasIpv4EndpointOptionMixedProtocol:
     """Regression for item 9: must pick the UDP option, not just the first one."""
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_tcp_before_udp_still_selects_udp(self) -> None:
+        """Check tcp before udp still selects udp."""
         # TCP option listed first in options_1, UDP option second: a naive
         # "take options_1[0]" implementation would incorrectly pick the TCP one.
         tcp_option = IPv4EndpointOption(
@@ -86,7 +105,13 @@ class TestTargetProcessPollAllHandles:
         def is_running(self) -> bool:
             return self._running
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_stub_handle_stopped_is_detected(self) -> None:
+        """Check stub handle stopped is detected."""
         # Only the THIRD handle (stub_proc) is stopped; primary and secondary
         # are still running. A poll() that only checked the first handle would
         # miss this and incorrectly report the process group as still alive.
@@ -97,7 +122,13 @@ class TestTargetProcessPollAllHandles:
         )
         assert proc.poll() == 0
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_secondary_handle_stopped_is_detected(self) -> None:
+        """Check secondary handle stopped is detected."""
         proc = _TargetProcess(
             proc=self._FakeAsyncProcess(running=True),
             secondary_proc=self._FakeAsyncProcess(running=False),
@@ -105,7 +136,13 @@ class TestTargetProcessPollAllHandles:
         )
         assert proc.poll() == 0
 
+    @add_test_properties(
+        partially_verifies=["tool_req__tc8_harness_selfcheck"],
+        test_type="interface-test",
+        derivation_technique="error-guessing",
+    )
     def test_all_handles_running_reports_none(self) -> None:
+        """Check all handles running reports none."""
         proc = _TargetProcess(
             proc=self._FakeAsyncProcess(running=True),
             secondary_proc=self._FakeAsyncProcess(running=True),
