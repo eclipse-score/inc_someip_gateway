@@ -531,8 +531,8 @@ Wait for the main phase and receive a cyclic OfferService. Wait
 OfferService with IP destination address equal to the SD multicast group, received
 within the listen time (``ParamListenTime``, default 10 s).
 
-The pass condition is unchanged. The test also reports whether the answer was multicast or
-unicast, and a result other than multicast is shown as XPASS.
+The test also reports whether the answer was multicast or unicast; an answer other than
+multicast is shown as XPASS.
 
 TC8-SDM-014: FindService With Unicast Flag Cleared: Multicast Response
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

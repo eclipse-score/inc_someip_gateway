@@ -109,6 +109,6 @@ def unicast_offer_received(sock: socket.socket) -> bool:
     while True:
         try:
             data, _ = sock.recvfrom(65535, socket.MSG_DONTWAIT)
-        except (BlockingIOError, socket.timeout):
+        except OSError:
             return found
         found = found or any(o.service_id == SERVICE_ID for o in parse_sd_offers(data))
