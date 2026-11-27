@@ -16,10 +16,12 @@ See ``docs/architecture/tc8_conformance_testing.rst`` for the test architecture.
 """
 
 import ipaddress
+import logging
 import socket
 import struct
 import subprocess
 import time
+import warnings
 from typing import List, Optional, Tuple
 
 import pytest
@@ -70,8 +72,10 @@ from helpers.constants import (
     SD_PORT,
     SERVICE_ID,
 )
-from helpers.timing import collect_sd_offers_from_socket
+from helpers.timing import collect_sd_offers_from_socket, unicast_offer_received
 from helpers.someip_types import SOMEIPHeader, SOMEIPSDEntry, SOMEIPSDHeader
+
+_logger = logging.getLogger(__name__)
 
 #: SOME/IP stack config template used for all tests in this module.
 SOMEIP_CONFIG: str = "tc8_someipd_sd.json"
@@ -222,6 +226,31 @@ def _wait_for_cyclic_offer(mc_sock: socket.socket, timeout_secs: float = 15.0) -
             return now
         previous = now
     pytest.fail(f"No main phase OfferService within {timeout_secs:.0f} s")
+
+
+#: A multicast Offer this much before the next cyclic slot counts as a response to the Find.
+_CYCLIC_SLOT_TOLERANCE_SECS = 0.25
+
+
+def _find_response_transport(send_sock: socket.socket, payload: Optional[bytes], next_cyclic: float) -> str:
+    """Return "unicast", "multicast" or "none" for the DUT answer to a FindService."""
+    early = payload is not None and time.monotonic() < next_cyclic - _CYCLIC_SLOT_TOLERANCE_SECS
+    if unicast_offer_received(send_sock):
+        return "unicast"
+    return "multicast" if early else "none"
+
+
+def _report_find_response(request: pytest.FixtureRequest, label: str, transport: str, mark_xfail: bool = True) -> None:
+    """Log the transport; if it is not multicast, warn and (with *mark_xfail*) mark the test xfail."""
+    _logger.info("%s: FindService answered by %s", label, transport)
+    request.node.user_properties.append(("find_response_transport", transport))
+    if transport != "multicast":
+        reason = (
+            f"{label}: FindService answered by {transport}, OA expects multicast (optional in the SD specification)"
+        )
+        warnings.warn(reason, stacklevel=2)
+        if mark_xfail:
+            request.applymarker(pytest.mark.xfail(strict=False, reason=reason))
 
 
 class TestSDOfferFormat:
@@ -1033,6 +1062,7 @@ class TestSDFindServiceTiming:
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
+        request: pytest.FixtureRequest,
     ) -> None:
         """SOMEIPSRV_SD_BEHAVIOR_03: FindService with Unicast Flag set, sent half a cyclic offer delay after
         the last OfferService, is answered with a multicast OfferService within the listen time (ParamListenTime)."""
@@ -1052,6 +1082,7 @@ class TestSDFindServiceTiming:
                 major_version=MAJOR_VERSION,
             )
             payload = capture_sd_payload(mc_sock, SOMEIPSDEntryType.OfferService, timeout_secs=_PARAM_LISTEN_TIME_SECS)
+            transport = _find_response_transport(send_sock, payload, last_offer + _CYCLIC_OFFER_DELAY_MS / 1000.0)
         finally:
             send_sock.close()
             mc_sock.close()
@@ -1060,6 +1091,7 @@ class TestSDFindServiceTiming:
             f"SOMEIPSRV_SD_BEHAVIOR_03: No multicast OfferService within the listen time "
             f"({_PARAM_LISTEN_TIME_SECS:.1f} s) of a FindService with the Unicast Flag set"
         )
+        _report_find_response(request, "SOMEIPSRV_SD_BEHAVIOR_03", transport)
 
     @add_test_properties(
         fully_verifies=["comp_req__tc8_conformance__sd_find_mcast_rsp"],
@@ -1081,6 +1113,7 @@ class TestSDFindServiceTiming:
         host_ip: str,
         dut_ip: str,
         tester_ip: str,
+        request: pytest.FixtureRequest,
     ) -> None:
         """SOMEIPSRV_SD_BEHAVIOR_04: FindService with Unicast Flag cleared is answered with a multicast
         OfferService within cyclic_offer_delay."""
@@ -1089,7 +1122,7 @@ class TestSDFindServiceTiming:
         mc_sock = open_multicast_socket(host_ip)
         send_sock = open_sender_socket(tester_ip)
         try:
-            _wait_for_cyclic_offer(mc_sock)
+            last_offer = _wait_for_cyclic_offer(mc_sock)
 
             send_find_service(
                 send_sock,
@@ -1101,10 +1134,12 @@ class TestSDFindServiceTiming:
             )
             window_secs = _CYCLIC_OFFER_DELAY_MS / 1000.0
             payload = capture_sd_payload(mc_sock, SOMEIPSDEntryType.OfferService, timeout_secs=window_secs)
+            transport = _find_response_transport(send_sock, payload, last_offer + window_secs)
         finally:
             send_sock.close()
             mc_sock.close()
 
+        _report_find_response(request, "SOMEIPSRV_SD_BEHAVIOR_04", transport, mark_xfail=False)
         assert payload is not None, (
             f"SOMEIPSRV_SD_BEHAVIOR_04: No multicast OfferService within cyclic_offer_delay "
             f"({window_secs:.1f} s) of a FindService with the Unicast Flag cleared"

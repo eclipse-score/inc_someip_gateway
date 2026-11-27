@@ -23,7 +23,7 @@ import struct
 import time
 from typing import List, Optional, Tuple
 
-from helpers.constants import SD_MULTICAST_ADDR, SD_PORT
+from helpers.constants import SD_MULTICAST_ADDR, SD_PORT, SERVICE_ID
 from helpers.sd_helpers import SO_TIMESTAMPNS, open_multicast_socket, parse_sd_offers
 from helpers.someip_types import SOMEIPSDEntry
 
@@ -101,3 +101,14 @@ def capture_sd_offers_with_timestamps(
         return collect_sd_offers_from_socket(sock, count, timeout_secs, instance_id)
     finally:
         sock.close()
+
+
+def unicast_offer_received(sock: socket.socket) -> bool:
+    """Drain *sock* without blocking and return True if an OfferService for ``SERVICE_ID`` was queued."""
+    found = False
+    while True:
+        try:
+            data, _ = sock.recvfrom(65535, socket.MSG_DONTWAIT)
+        except (BlockingIOError, socket.timeout):
+            return found
+        found = found or any(o.service_id == SERVICE_ID for o in parse_sd_offers(data))
