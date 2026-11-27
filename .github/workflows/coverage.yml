@@ -24,41 +24,13 @@ permissions:
 
 jobs:
   coverage:
-    runs-on: ubuntu-24.04
-    env:
-      # Effective line coverage gate. Raise as coverage improves (default of the
-      # tooling is 100, which this repository does not reach yet).
-      COVERAGE_THRESHOLD: 0
-    steps:
-      - uses: eclipse-score/more-disk-space@v1
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      - name: Create Bazel output base directory
-        run: |
-          sudo mkdir -p /mnt/.bazel
-          sudo chown -R $USER:$USER /mnt/.bazel
-      - name: Create config indicator file
-        run: echo "host" > .bazel_config
-      - name: Setup Bazel
-        uses: eclipse-score/cicd-actions/setup-bazel-cache@d8f1ca7808fe21b755ef3277d3581a1d57dec15f # setup-bazel-cache/v0.2.0
-        with:
-          disk-cache-key: ${{ github.job }}
-      - name: Allow linux-sandbox
-        uses: eclipse-score/cicd-actions/unblock-user-namespace-for-linux-sandbox@212bbf86267e9381da9d2daf962d12f6feafbc90 # v0.0.2
-      - run: df -h
-      - name: Collect coverage
-        run: |
-          bazel coverage //... --build_tests_only
-      - name: Generate coverage report
-        run: |
-          COVERAGE_THRESHOLD=85 bazel run @score_coverage//:generate_coverage_html -- --archive-dir coverage_artifacts
-      - name: Upload coverage artifacts
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-report
-          path: coverage_artifacts
-          if-no-files-found: error
-          retention-days: 14
-      - run: df -h
-        if: always()
+    uses: eclipse-score/cicd-workflows/.github/workflows/bazel.yml@419f87cb66c1a0eb444416ae47c4c97bdc5732fc # bazel/v0.1.0
+    with:
+      test-targets: //...
+      test-command: coverage
+      test-args: --build_tests_only
+      coverage-threshold: 85
+      cache-key: coverage
+      # docs.yml and coverage-publish.yml read the report by this name.
+      artifact-name: coverage-report
+      retention-days: 14
