@@ -101,6 +101,7 @@ py_library(
         "someip_peer.py",
     ],
     imports = [".."],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//tests/integration_test:__subpackages__"],
 )
 

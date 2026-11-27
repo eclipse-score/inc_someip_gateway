@@ -30,6 +30,7 @@ Both directions are exercised concurrently in one process on each side.
 
 import logging
 import os
+import time
 
 from attribute_plugin import add_test_properties
 from util import ShellProcess
@@ -45,12 +46,29 @@ _DUT_IP = os.environ.get("EVENT_EXCHANGE_DUT_IP", "169.254.158.190")
 _READY_FILE = "/tmp/event_exchange_ready"
 _GO_FILE = "/tmp/event_exchange_go"
 
-_SAMPLE_COUNT = 20
+_SAMPLE_COUNT = 10
 
 # Linux QEMU under TSAN/ASAN is slow; keep the app's deadline inside the
 # target timeout but generous enough to absorb SD backoff + sanitizer cost.
 _APP_TIMEOUT_MS = 60000
 _WAIT_FOR_APP_EXIT_S = 90
+
+_TX_BRIDGE_GATEWAYD_LOG = "[gatewayd] LocalServiceInstance created for instance specifier: /event_exchange/tx"
+_TX_BRIDGE_SOMEIPD_LOG = (
+    "[someipd] LocalNetworkService - Subscribing to event ping (socom_id 0) for service event_exchange_tx"
+)
+_RX_BRIDGE_GATEWAYD_LOG = "[gatewayd] RemoteServiceInstance - client_connector on_service_state_change: new state=1"
+
+
+def _wait_for_process_output(proc, needle: str, timeout_s: float, label: str) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        output = proc.get_output()
+        if needle in output:
+            return
+        assert proc.is_running(), f"{label} exited while waiting for {needle!r}:\n{output}"
+        time.sleep(0.1)
+    raise AssertionError(f"timed out waiting for {label} log {needle!r}:\n{proc.get_output()}")
 
 
 @add_test_properties(
@@ -62,9 +80,11 @@ _WAIT_FOR_APP_EXIT_S = 90
     test_type="requirements-based",
     derivation_technique="requirements-analysis",
 )
-def test_event_exchange(gatewayd_with_someipd):
+def test_event_exchange(gatewayd_with_someipd_processes):
     """End-to-end bidirectional event exchange across gatewayd + someipd."""
-    target = gatewayd_with_someipd
+    target = gatewayd_with_someipd_processes.target
+    someipd = gatewayd_with_someipd_processes.someipd
+    gatewayd = gatewayd_with_someipd_processes.gatewayd
 
     cleanup_rc, cleanup_output = target.execute(f"rm -f {_READY_FILE} {_GO_FILE}")
     assert cleanup_rc == 0, f"could not clear guest sync files: {cleanup_output!r}"
@@ -73,12 +93,14 @@ def test_event_exchange(gatewayd_with_someipd):
         host_ip=_HOST_IP,
         dut_ip=_DUT_IP,
         tx_expected_samples=_SAMPLE_COUNT,
+        tx_collect_timeout_s=_APP_TIMEOUT_MS / 1000.0,
         rx_notification_count=_SAMPLE_COUNT,
     )
 
     with SomeIpHostPeer(peer_cfg) as peer:
         # Start the guest app under test. It offers the TX skeleton, subscribes
-        # the RX proxy, writes the ready-file, then blocks for the go-file.
+        # the RX proxy, writes the ready-file, and enters the combined loop
+        # (draining RX immediately and starting TX once the go-file appears).
         with ShellProcess(
             target,
             "/opt/event_exchange_app",
@@ -109,17 +131,22 @@ def test_event_exchange(gatewayd_with_someipd):
                 f"done; test -e {_READY_FILE}"
             )
             assert ready_rc == 0, f"guest RX proxy did not become ready: {ready_output!r}"
+            _wait_for_process_output(gatewayd, _TX_BRIDGE_GATEWAYD_LOG, timeout_s=30.0, label="gatewayd")
+            _wait_for_process_output(someipd, _TX_BRIDGE_SOMEIPD_LOG, timeout_s=30.0, label="someipd")
+            _wait_for_process_output(gatewayd, _RX_BRIDGE_GATEWAYD_LOG, timeout_s=30.0, label="gatewayd")
 
             signal_rc, signal_output = target.execute(f"touch {_GO_FILE}")
             assert signal_rc == 0, f"could not signal guest event app: {signal_output!r}"
             peer.release_rx_notifications()
 
             exit_code = app.wait(timeout_s=_WAIT_FOR_APP_EXIT_S)
-            assert exit_code == 0, f"event_exchange_app exit {exit_code}. See stdout/stderr."
+            app_output = app.get_output()
+            if exit_code == 0:
+                peer.wait_for_tx_samples(timeout_s=10.0)
 
-        assert peer.wait_for_dut_to_host_complete(timeout_s=35.0), "peer did not finish collecting DUT notifications"
-
-    logging.info("app stdout:\n%s", app.get_output())
+    logging.info("app stdout:\n%s", app_output)
+    logging.info("gatewayd stdout:\n%s", gatewayd.get_output())
+    logging.info("someipd stdout:\n%s", someipd.get_output())
     logging.info(
         "peer dut_to_host: subscribed=%s ack=%s valid_samples=%s",
         peer.dut_to_host_subscribed,
@@ -133,10 +160,11 @@ def test_event_exchange(gatewayd_with_someipd):
         peer.errors,
     )
 
+    assert exit_code == 0, f"event_exchange_app exit {exit_code}. See stdout/stderr."
+    assert not peer.errors, f"peer reported errors: {peer.errors}"
     assert peer.dut_to_host_subscribe_ack, "peer never received SubscribeAck from DUT for the TX direction"
     expected_tx_counters = list(range(peer_cfg.tx_expected_samples))
     assert peer.dut_to_host_valid_samples == expected_tx_counters, (
         f"peer received TX counters {peer.dut_to_host_valid_samples} (expected {expected_tx_counters})"
     )
     assert peer.host_to_dut_subscribed, "DUT never subscribed to the host's RX service on the wire"
-    assert not peer.errors, f"peer reported errors: {peer.errors}"

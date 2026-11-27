@@ -45,9 +45,9 @@ using PingServiceSkeleton = score::mw::com::AsSkeleton<PingService>;
 using PingServiceProxy = score::mw::com::AsProxy<PingService>;
 
 struct AppOptions {
-    std::uint64_t tx_count = 20;
+    std::uint64_t tx_count = 10;
     // Number of consecutive RX samples the test requires.
-    std::uint64_t rx_count_required = 5;
+    std::uint64_t rx_count_required = 10;
     std::chrono::milliseconds tx_interval{50};
     std::chrono::milliseconds overall_timeout{30000};
     std::chrono::milliseconds find_service_interval{100};
@@ -183,6 +183,10 @@ int main(int argc, const char* argv[]) {
     while (true) {
         const auto now = std::chrono::steady_clock::now();
         if (now >= deadline) {
+            if (!tx_enabled) {
+                score::mw::log::LogError("event_exchange")
+                    << "TX go-file not seen before deadline: " << opts.go_file;
+            }
             score::mw::log::LogError("event_exchange")
                 << "timeout: sent " << tx_sent << "/" << opts.tx_count << ", received "
                 << rx_seen_counters.size() << "/" << opts.rx_count_required;
@@ -191,12 +195,16 @@ int main(int argc, const char* argv[]) {
 
         if (!tx_enabled) {
             std::error_code ec;
-            tx_enabled = std::filesystem::exists(opts.go_file, ec);
+            const bool go_exists = std::filesystem::exists(opts.go_file, ec);
             if (ec) {
                 score::mw::log::LogError("event_exchange")
                     << "could not check TX go-file: " << opts.go_file;
                 exchange_failed = true;
                 break;
+            }
+            if (go_exists) {
+                tx_enabled = true;
+                next_tx_at = now;
             }
         }
 
@@ -220,6 +228,9 @@ int main(int argc, const char* argv[]) {
         const auto get_res = rx_proxy.ping_.GetNewSamples(
             [&rx_seen_counters, &rx_next_expected_counter,
              &rx_samples_valid](score::mw::com::SamplePtr<PingPayload> sample) {
+                if (!rx_samples_valid) {
+                    return;
+                }
                 if (const auto counter =
                         matched_expected_counter(*sample, rx_next_expected_counter)) {
                     rx_seen_counters.insert(*counter);
@@ -227,7 +238,8 @@ int main(int argc, const char* argv[]) {
                 } else {
                     rx_samples_valid = false;
                     score::mw::log::LogError("event_exchange")
-                        << "invalid RX sample for counter " << rx_next_expected_counter;
+                        << "invalid RX sample for counter " << rx_next_expected_counter
+                        << " (size=" << sample->size << ")";
                 }
             },
             kMaxSampleSlots);
