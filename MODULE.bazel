@@ -62,7 +62,7 @@ bazel_dep(name = "rules_pkg", version = "1.2.0")
 # S-CORE Toolchains (DO NOT MODIFY)
 # ============================================================================
 # Toolchain dependencies.
-bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.5", dev_dependency = True)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.1.0", dev_dependency = True)
 
 bazel_dep(name = "score_bazel_platforms", version = "1.3.0")
 
@@ -178,7 +178,7 @@ use_repo(
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
 imagefs.toolchain(
     name = "score_qnx_x86_64_ifs_toolchain",
-    sdp_to_import = "@score_qcc_x86_64_toolchain_pkg",
+    sdp_to_import = "@qnx_sdp_8_0_4_pkg",
     sdp_version = "8.0.0",
     target_cpu = "x86_64",
     target_os = "qnx",
@@ -186,7 +186,7 @@ imagefs.toolchain(
 )
 imagefs.toolchain(
     name = "score_qnx_aarch64_ifs_toolchain",
-    sdp_to_import = "@score_qcc_aarch64_toolchain_pkg",
+    sdp_to_import = "@qnx_sdp_8_0_4_pkg",
     sdp_version = "8.0.0",
     target_cpu = "aarch64",
     target_os = "qnx",
@@ -218,10 +218,9 @@ qcc.toolchain(
 )
 use_repo(
     qcc,
+    "qnx_sdp_8_0_4_pkg",
     "score_qcc_aarch64_toolchain",
-    "score_qcc_aarch64_toolchain_pkg",
     "score_qcc_x86_64_toolchain",
-    "score_qcc_x86_64_toolchain_pkg",
 )
 
 # ============================================================================
