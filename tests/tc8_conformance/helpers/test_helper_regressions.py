@@ -18,8 +18,11 @@ everything here runs against fakes/pure functions.
 """
 
 import ipaddress
+import socket
+import time
 
 import helpers.sd_sender as sd_sender
+from helpers.constants import INSTANCE_ID, MAJOR_VERSION, SERVICE_ID
 from helpers.dut_lifecycle import _TargetProcess
 from helpers.someip_assertions import assert_offer_has_ipv4_endpoint_option
 from helpers.someip_types import (
@@ -28,6 +31,7 @@ from helpers.someip_types import (
     SOMEIPSDEntry,
     SOMEIPSDEntryType,
 )
+from helpers.timing import unicast_offer_received
 
 
 class TestSdSessionIdWraparound:
@@ -112,3 +116,41 @@ class TestTargetProcessPollAllHandles:
             stub_proc=self._FakeAsyncProcess(running=True),
         )
         assert proc.poll() is None
+
+
+class TestUnicastOfferReceived:
+    """unicast_offer_received drains the socket without blocking."""
+
+    @staticmethod
+    def _offer(service_id: int) -> bytes:
+        entry = SOMEIPSDEntry(
+            sd_type=SOMEIPSDEntryType.OfferService,
+            service_id=service_id,
+            instance_id=INSTANCE_ID,
+            major_version=MAJOR_VERSION,
+            ttl=3,
+            minver_or_counter=0,
+        )
+        return sd_sender._build_sd_packet((entry,))  # noqa: SLF001
+
+    @staticmethod
+    def _received(*datagrams: bytes) -> bool:
+        with (
+            socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as rx,
+            socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as tx,
+        ):
+            rx.bind(("127.0.0.1", 0))
+            for data in datagrams:
+                tx.sendto(data, rx.getsockname())
+            return unicast_offer_received(rx)
+
+    def test_offer_for_service_is_found(self) -> None:
+        assert self._received(self._offer(SERVICE_ID))
+
+    def test_nothing_queued_returns_at_once(self) -> None:
+        start = time.monotonic()
+        assert not self._received()
+        assert time.monotonic() - start < 0.5
+
+    def test_other_service_or_malformed_is_ignored(self) -> None:
+        assert not self._received(self._offer(SERVICE_ID ^ 1), b"\x01\x02\x03")
