@@ -11,32 +11,22 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "dash_license_checker")
-load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
 # Needed for coverage report by score/tooling
 exports_files(["MODULE.bazel"])
+
+# Needed by //tools/python:python_requirements for lock file regeneration
+exports_files([
+    "python_requirements_lock.txt",
+    "pyproject.toml",
+])
 
 # Expose local .clang-tidy override for the clang-tidy lint aspect
 exports_files([
     ".clang-tidy",
     ".ruff.toml",
 ])
-
-# ==============================================================================
-# Code Formatting
-# ==============================================================================
-
-use_format_targets(
-    languages = [
-        "python",
-        "starlark",
-        "yaml",
-        "cpp",
-    ],
-)
 
 # ==============================================================================
 # Documentation
@@ -126,36 +116,5 @@ test_suite(
         "//score/gateway_ipc_binding/test:gateway_ipc_binding_test",
         "//score/socom/test/stress:socom_stress_test",
     ],
-    visibility = ["//visibility:public"],
-)
-
-# ==============================================================================
-# Python Dependencies
-# ==============================================================================
-
-# Run `bazel run //:python_requirements.update` to update the lock file.
-compile_pip_requirements(
-    name = "python_requirements",
-    env_inherit = [
-        "HTTP_PROXY",
-        "HTTPS_PROXY",
-        "no_proxy",
-    ],
-    requirements_txt = "python_requirements_lock.txt",
-)
-
-# ==============================================================================
-# License Check (Eclipse Dash)
-# ==============================================================================
-# Run by the license-check CI workflow: `bazel run //:license-check`
-# Checks the Python dependencies pinned in python_requirements_lock.txt.
-filegroup(
-    name = "python_requirements_lock",
-    srcs = ["python_requirements_lock.txt"],
-)
-
-dash_license_checker(
-    src = ":python_requirements_lock",
-    file_type = "requirements",
     visibility = ["//visibility:public"],
 )
