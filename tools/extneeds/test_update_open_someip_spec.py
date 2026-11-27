@@ -58,9 +58,7 @@ class OpenSomeipPinUpdateTest(unittest.TestCase):
         )
         self.assertEqual(
             f'SPEC_COMMIT = "{commit}"\n',
-            replace_commit_pin(
-                requirements, REQUIREMENTS_PIN_PATTERN, commit, "generate_spec_requirements.py"
-            ),
+            replace_commit_pin(requirements, REQUIREMENTS_PIN_PATTERN, commit, "generate_spec_requirements.py"),
         )
 
     def test_module_pin_does_not_depend_on_attribute_order_or_other_archives(self) -> None:

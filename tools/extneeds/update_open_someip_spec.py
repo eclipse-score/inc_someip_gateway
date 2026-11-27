@@ -79,8 +79,7 @@ def extract_requirements_commit(content: str) -> str:
     matches = list(REQUIREMENTS_PIN_PATTERN.finditer(content))
     if len(matches) != 1:
         raise ValueError(
-            "expected exactly one Open SOME/IP commit pin in generate_spec_requirements.py; "
-            f"found {len(matches)}"
+            f"expected exactly one Open SOME/IP commit pin in generate_spec_requirements.py; found {len(matches)}"
         )
     return matches[0].group("commit")
 

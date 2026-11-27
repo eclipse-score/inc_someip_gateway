@@ -97,9 +97,7 @@ def main() -> None:
                 safety="QM" if need.get("safety") == "TBD" else need.get("safety", "QM"),
                 status=need["status"],
                 valid_from=args.valid_from,
-                source_url=(
-                    f"{SPEC_REPO}/blob/{SPEC_COMMIT}/src/{need['docname']}.rst#L{need['lineno']}"
-                ),
+                source_url=(f"{SPEC_REPO}/blob/{SPEC_COMMIT}/src/{need['docname']}.rst#L{need['lineno']}"),
             )
         )
 
