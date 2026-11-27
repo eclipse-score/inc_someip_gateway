@@ -14,11 +14,17 @@
 #include "sample_layout.hpp"
 
 #include <cstring>
+#include <limits>
 #include <score/assert.hpp>
 
 namespace score::gateway_ipc_binding::mw_com {
 
 std::size_t addressed_sample_size(Event_config const& event) noexcept {
+    constexpr std::size_t kMax_unwrapped_payload =
+        std::numeric_limits<std::size_t>::max() - kSample_prefix_size;
+    if (event.max_payload_size > kMax_unwrapped_payload) {
+        return std::numeric_limits<std::size_t>::max();
+    }
     return kSample_prefix_size + event.max_payload_size;
 }
 

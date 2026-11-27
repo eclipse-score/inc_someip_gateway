@@ -15,9 +15,11 @@
 #define SCORE_GATEWAY_IPC_BINDING_IMPL_PROVIDER_SERVICE_BINDING_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <type_traits>
 #include <vector>
 
 #include "score/mw/com/types.h"
@@ -30,27 +32,37 @@ namespace score::gateway_ipc_binding::mw_com {
 
 /// \brief Provider half of a bridged service: consumes it via SOCom, offers it via mw::com.
 ///
-/// \details This peer is the data source for the peer daemon. It is a SOCom `Client_connector` of
-///          the locally offered SOCom service and pushes everything it receives into a
-///          `GenericSkeleton`. See `docs/mw_com_binding.rst`, section "Role assignment".
-///
-///          Three things are propagated:
-///
-///          - availability: the skeleton is created eagerly but only offered while the local
-///            SOCom service is available
-///          - subscription: `SetReceiveHandlerRegistrationChangedHandler` on the peer's side maps
-///            to `Client_connector::subscribe_event()`. Because the two inputs, local
-///            availability and remote interest, can arrive in any order, they are kept as flags
-///            and reconciled
-///          - payload: `Allocate()` backs `on_event_payload_allocate`, `Send()` backs
-///            `on_event_update`
+/// \details Consumes a local SOCom service via `Client_connector` and publishes received events
+///          through a `GenericSkeleton`:
+///          - Availability: offers the skeleton while the local SOCom service is `available` and
+///            withdraws it on `not_available` (recreating the skeleton across unsubscribed cycles).
+///            Failed skeleton recreation or `OfferService()` rolls back cleanly so a subsequent
+///            `not_available` is a safe no-op and a later `available` retries.
+///          - Subscription: reconciles local SOCom availability and peer receive-handler interest
+///            into `Client_connector::subscribe_event(Event_mode::update)` / `unsubscribe_event()`.
+///          - Payload allocation & delivery: allocates LoLa slots tagged inline in
+///            `Writable_payload` with the owning binding, offer/skeleton epoch, and
+///            `socom::Event_id` (`logic_error_unknown_event` for out-of-range `event_id`;
+///            `runtime_error_sample_allocation_failed` when the service is not offered,
+///            `Allocate()` fails, or returns null). Event updates drop out-of-range `event_id`s,
+///            updates arriving while unoffered, unallocated, foreign-binding, stale-epoch, or
+///            cross-event payloads, and payloads exceeding `max_payload_size` without calling
+///            `Send()`.
+///          - Teardown: unsets skeleton handlers, destroys the SOCom connector, and withdraws any
+///            active offer and destroys the skeleton on destruction.
 class Provider_service_binding final : public Service_binding {
    public:
-    /// \brief Create the skeleton and the SOCom client connector for one bridged service.
-    /// \details The skeleton is not offered yet; offering follows the SOCom service state.
-    /// \param runtime SOCom runtime used to create the client connector
-    /// \param config Bridged service instance, must have `role == Role::provider`
-    /// \return The binding, or the first error encountered
+    /// \brief Creates the GenericSkeleton and SOCom client connector without offering the service.
+    /// \pre `config.role == Role::provider` and `validate(config).has_value()`.
+    /// \param runtime SOCom runtime used to create the client connector.
+    /// \param config Validated bridged provider service instance configuration.
+    /// \retval std::unique_ptr<Provider_service_binding> Created binding.
+    /// \retval Mw_com_binding_error::logic_error_invalid_instance_specifier `instance_specifier`
+    ///         is malformed.
+    /// \retval Mw_com_binding_error::runtime_error_sample_size_mismatch A skeleton event's laid-out
+    ///         sample size differs from `sample_size(event)`.
+    /// \retval Mw_com_binding_error::runtime_error_service_setup_failed Skeleton creation, event
+    ///         lookup, handler registration, or SOCom client connector creation failed.
     [[nodiscard]] static Result<std::unique_ptr<Provider_service_binding>> create(
         score::socom::Runtime& runtime, Service_config const& config) noexcept;
 
@@ -64,11 +76,22 @@ class Provider_service_binding final : public Service_binding {
     [[nodiscard]] Result<void> start() noexcept override { return {}; }
 
    private:
+    /// \brief Ownership tag and LoLa sample slot stored inline in an allocated `Writable_payload`.
+    struct Allocated_sample {
+        Provider_service_binding const* owner;
+        std::uint64_t skeleton_epoch;
+        score::socom::Event_id event_id;
+        score::mw::com::SampleAllocateePtr<void> sample;
+    };
+    static_assert(std::is_nothrow_move_constructible_v<Allocated_sample>);
+    static_assert(std::is_nothrow_destructible_v<Allocated_sample>);
+
     /// \brief Per-event state, indexed by socom::Event_id
     struct Event {
-        /// \brief Owned by m_skeleton, invalidated whenever the skeleton is destroyed/recreated
-        score::mw::com::GenericSkeletonEvent* skeleton_event;
-        std::size_t addressed_sample_size;
+        /// \brief Owned by m_skeleton, nullptr while the skeleton is torn down
+        score::mw::com::GenericSkeletonEvent* skeleton_event{nullptr};
+        std::size_t max_payload_size{0U};
+        std::size_t addressed_sample_size{0U};
         /// \brief The peer registered a receive handler, i.e. it wants this event
         bool wanted_by_peer{false};
         /// \brief The binding currently holds a SOCom subscription for this event
@@ -81,12 +104,6 @@ class Provider_service_binding final : public Service_binding {
     /// \details Used both by create() and to recreate a skeleton that was destroyed while no peer
     ///          held a subscription, see on_service_state_change().
     [[nodiscard]] Result<void> create_skeleton() noexcept;
-
-    /// \brief Look the configured events up in the skeleton and check their sample size
-    [[nodiscard]] Result<void> resolve_events(Service_config const& config) noexcept;
-
-    /// \brief Register the mw::com receive-handler-registration callbacks
-    [[nodiscard]] Result<void> register_subscription_handlers() noexcept;
 
     /// \brief Create the SOCom client connector that consumes the local service
     [[nodiscard]] Result<void> create_client_connector(score::socom::Runtime& runtime,
@@ -102,7 +119,7 @@ class Provider_service_binding final : public Service_binding {
     /// \pre m_mutex is held
     void reconcile_subscription(score::socom::Event_id event_id) noexcept;
 
-    /// \brief Serializes offering and withdrawing the mw::com service, and guards #m_offered
+    /// \brief Serializes offering, withdrawing, and recreating the mw::com skeleton
     /// \details `OfferService()` and `StopOfferService()` take the mw::com event notification
     ///          registry lock, and mw::com holds that very lock while it calls
     ///          `on_peer_interest_change()`, which needs #m_mutex. Offering under #m_mutex would
@@ -122,7 +139,10 @@ class Provider_service_binding final : public Service_binding {
     /// \brief Absent while no local SOCom service is available and no peer holds a subscription
     std::optional<score::mw::com::GenericSkeleton> m_skeleton;
     std::vector<Event> m_events;
+    std::uint64_t m_skeleton_epoch{0U};
     bool m_service_available{false};
+    /// \brief Rejects state and peer-interest callbacks once destruction begins
+    bool m_stopping{false};
     score::socom::Client_connector::Uptr m_client_connector{};
 };
 

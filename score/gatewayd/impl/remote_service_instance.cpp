@@ -13,10 +13,12 @@
 
 #include "remote_service_instance.h"
 
-#include <cstddef>
-#include <cstring>
+#include <cstdint>
 #include <iostream>
+#include <limits>
 #include <memory>
+#include <score/assert.hpp>
+#include <utility>
 
 #include "score/containers/non_relocatable_vector.h"
 #include "score/mw/com/com_error_domain.h"
@@ -26,43 +28,74 @@
 #include "score/socom/runtime.hpp"
 #include "score/someip/constants.h"
 
-using score::mw::com::GenericProxy;
-using score::mw::com::SamplePtr;
-using score::someip::EventId;
-
 namespace score::someip_gateway::gatewayd {
+
+namespace {
+
+bool is_valid_remote_config(const mw_someip_config::ServiceInstance* service_instance_config,
+                            const mw_someip_config::ServiceType* service_type_config) noexcept {
+    if ((service_instance_config == nullptr) ||
+        (service_instance_config->instance_specifier() == nullptr) ||
+        (service_type_config == nullptr) || (service_type_config->service_type_name() == nullptr) ||
+        (service_type_config->events() == nullptr) || service_type_config->events()->empty() ||
+        (service_type_config->events()->size() >
+         static_cast<std::size_t>(std::numeric_limits<socom::Event_id>::max()))) {
+        return false;
+    }
+    for (const auto* event_config : *service_type_config->events()) {
+        if ((event_config == nullptr) || (event_config->event_name() == nullptr)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+}  // namespace
 
 RemoteServiceInstance::RemoteServiceInstance(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
-    score::mw::com::GenericSkeleton&& ipc_skeleton, socom::Client_connector::Uptr client_connector,
-    std::unordered_map<std::uint16_t, EventContext> event_contexts)
+    score::mw::com::GenericSkeleton&& ipc_skeleton,
+    std::unordered_map<socom::Event_id, EventContext> event_contexts,
+    socom::Client_connector::Uptr client_connector)
     : service_instance_config_(std::move(service_instance_config)),
       service_type_config_(std::move(service_type_config)),
       ipc_skeleton_(std::move(ipc_skeleton)),
-      client_connector_(std::move(client_connector)),
-      event_contexts_(std::move(event_contexts)) {}
+      event_contexts_(std::move(event_contexts)),
+      client_connector_(std::move(client_connector)) {}
+
+RemoteServiceInstance::~RemoteServiceInstance() {
+    client_connector_.reset();
+    ipc_skeleton_.StopOfferService();
+}
 
 Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     score::mw::com::GenericSkeleton&& ipc_skeleton, socom::Runtime& socom_runtime) {
+    if (!is_valid_remote_config(service_instance_config.get(), service_type_config.get())) {
+        score::mw::log::LogError()
+            << "[gatewayd] Invalid configuration passed to RemoteServiceInstance::Create";
+        return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
+    }
+
+    auto const service_type_name = service_type_config->service_type_name()->string_view();
     auto offer_result = ipc_skeleton.OfferService();
     if (!offer_result.has_value()) {
         score::mw::log::LogError() << "[gatewayd] Failed to offer IPC skeleton for '"
-                                   << service_type_config->service_type_name()->string_view()
-                                   << "': " << offer_result.error().Message();
+                                   << service_type_name << "': " << offer_result.error().Message();
         return MakeUnexpected(score::mw::com::ComErrc::kBindingFailure);
     }
 
-    std::unordered_map<std::uint16_t, EventContext> event_contexts;
+    std::unordered_map<socom::Event_id, EventContext> event_contexts{};
+    event_contexts.reserve(service_type_config->events()->size());
+    auto skeleton_events = ipc_skeleton.GetEvents();
     socom::Event_id socom_event_id{0U};
-    auto service_type_name = service_type_config->service_type_name()->string_view();
     for (const auto* event_config : *service_type_config->events()) {
-        auto event_name = event_config->event_name()->string_view();
+        auto const event_name = event_config->event_name()->string_view();
 
-        auto events_it = ipc_skeleton.GetEvents().find(*event_config->event_name());
-        if (events_it == ipc_skeleton.GetEvents().cend()) {
+        auto events_it = skeleton_events.find(event_name);
+        if (events_it == skeleton_events.cend()) {
             score::mw::log::LogWarn()
                 << "[gatewayd] Event '" << event_name << "' not found in generic IPC skeleton";
             ++socom_event_id;
@@ -71,11 +104,11 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
         auto& ipc_event = events_it->second;
 
         const score_com_serializer* serializer = nullptr;
-        auto get_result =
+        auto const get_result =
             score_com_serializer_get(service_type_name.data(), service_type_name.size(),
                                      score_com_serializer_element_type_event, event_name.data(),
                                      event_name.size(), &serializer);
-        if (get_result != score_com_serializer_result_ok) {
+        if ((get_result != score_com_serializer_result_ok) || (serializer == nullptr)) {
             score::mw::log::LogError() << "[gatewayd] Failed to get serializer for "
                                        << service_type_name << "::" << event_name;
             ++socom_event_id;
@@ -87,20 +120,19 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
     }
 
     socom::Service_interface_identifier const iface{
-        service_type_config->service_type_name()->string_view(),
+        service_type_name,
         {service_type_config->service_version_major(),
-         static_cast<uint16_t>(service_type_config->service_version_minor())}};
+         static_cast<std::uint16_t>(service_type_config->service_version_minor())}};
 
-    socom::Service_instance const inst{service_type_config->service_type_name()->string_view()};
+    socom::Service_instance const inst{service_type_name};
 
     socom::Service_interface_definition const client_config{
-        iface, socom::to_num_of_methods(0),
+        iface, socom::to_num_of_methods(0U),
         socom::to_num_of_events(service_type_config->events()->size())};
 
-    // Create the instance first so callbacks can capture a raw pointer to it.
     auto instance = std::unique_ptr<RemoteServiceInstance>(new RemoteServiceInstance(
         std::move(service_instance_config), std::move(service_type_config), std::move(ipc_skeleton),
-        nullptr, std::move(event_contexts)));
+        std::move(event_contexts), nullptr));
 
     auto connector_result = socom_runtime.make_client_connector(
         client_config, inst,
@@ -119,10 +151,14 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
                     std::cout << "[gatewayd] RemoteServiceInstance - client_connector "
                                  "on_service_state_change: service is now available, subscribing "
                                  "to events\n";
-                    for (std::size_t i = 0;
-                         i < instance_ptr->service_type_config_->events()->size(); ++i) {
-                        (void)connector.subscribe_event(static_cast<socom::Event_id>(i),
-                                                        socom::Event_mode::update);
+                    for (auto const& [event_id, _] : instance_ptr->event_contexts_) {
+                        if (const auto sub_result =
+                                connector.subscribe_event(event_id, socom::Event_mode::update);
+                            !sub_result) {
+                            score::mw::log::LogError()
+                                << "[gatewayd] RemoteServiceInstance - Failed to subscribe event "
+                                << event_id << ": " << sub_result.error().Message();
+                        }
                     }
                 },
             .on_event_update =
@@ -134,8 +170,6 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
                                             socom::Payload) {},
             .on_event_payload_allocate = [](socom::Client_connector const&, socom::Event_id)
                 -> score::Result<socom::Writable_payload> {
-                // Payload allocation is handled by the IPC binding (read-only SHM slot from
-                // someipd). This callback is never called in normal operation.
                 SCORE_LANGUAGE_FUTURECPP_ASSERT(
                     false &&
                     "on_event_payload_allocate must not be called on RemoteServiceInstance");
@@ -145,8 +179,8 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
 
     if (!connector_result.has_value()) {
         score::mw::log::LogError()
-            << "[gatewayd] Failed to create client connector for '"
-            << instance->service_type_config_->service_type_name()->string_view() << "'";
+            << "[gatewayd] Failed to create client connector for '" << service_type_name << "'";
+        instance.reset();
         return MakeUnexpected(socom::Error::runtime_error_request_rejected);
     }
     instance->client_connector_ = std::move(connector_result).value();
@@ -155,33 +189,42 @@ Result<std::unique_ptr<RemoteServiceInstance>> RemoteServiceInstance::Create(
 }
 
 void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Payload payload) {
-    // TODO: check if the assumption holds.
-    auto event_context = event_contexts_[event_id];
-
-    auto events_it =
-        ipc_skeleton_.GetEvents().find(event_context.config->event_name()->string_view());
-    if (events_it == ipc_skeleton_.GetEvents().cend()) {
-        score::mw::log::LogError()
-            << "[gatewayd] Event '" << event_context.config->event_name()->string_view()
-            << "' not found in IPC skeleton, dropping";
+    auto const context_it = event_contexts_.find(event_id);
+    if (context_it == event_contexts_.cend()) {
+        score::mw::log::LogWarn()
+            << "[gatewayd] RemoteServiceInstance - Dropping update for unknown or skipped event "
+            << event_id;
         return;
     }
-    auto& ipc_event = events_it->second;
+    auto const& event_context = context_it->second;
 
-    // Extract payload
-    auto const message = payload.data().subspan(someip::kSomeipFullHeaderSize);
+    auto const raw_data = payload.data();
+    if (raw_data.size() < someip::kSomeipFullHeaderSize) {
+        score::mw::log::LogError()
+            << "[gatewayd] RemoteServiceInstance - Dropping truncated SOME/IP frame ("
+            << raw_data.size() << " bytes) for event "
+            << event_context.config->event_name()->string_view();
+        return;
+    }
+    auto const message = raw_data.subspan(someip::kSomeipFullHeaderSize);
 
-    auto maybe_sample = ipc_event.Allocate();
+    auto maybe_sample = event_context.ipc_event->Allocate();
     if (!maybe_sample.has_value()) {
         score::mw::log::LogError()
             << "[gatewayd] Failed to allocate IPC sample: " << maybe_sample.error().Message();
         return;
     }
     auto sample = std::move(maybe_sample).value();
+    if (sample.Get() == nullptr) {
+        score::mw::log::LogError() << "[gatewayd] Allocated IPC sample pointer is null for event "
+                                   << event_context.config->event_name()->string_view();
+        return;
+    }
 
-    auto deserialize_result = score_com_serializer_deserialize(
-        event_context.serializer, reinterpret_cast<const uint8_t*>(message.data()), message.size(),
-        sample.Get());
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    auto const deserialize_result = score_com_serializer_deserialize(
+        event_context.serializer, reinterpret_cast<const std::uint8_t*>(message.data()),
+        message.size(), sample.Get());
     if (deserialize_result != score_com_serializer_result_ok) {
         score::mw::log::LogError()
             << "[gatewayd] Deserialization failed for event "
@@ -189,62 +232,61 @@ void RemoteServiceInstance::forward_event(socom::Event_id event_id, socom::Paylo
         return;
     }
 
-    if (const auto result = ipc_event.Send(std::move(sample)); !result) {
+    if (const auto result = event_context.ipc_event->Send(std::move(sample)); !result) {
         score::mw::log::LogError()
             << "[gatewayd] RemoteServiceInstance - Failed to send IPC event: "
             << result.error().Message();
     }
-};
+}
 
 Result<void> RemoteServiceInstance::CreateAsyncRemoteService(
     std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
     socom::Runtime& socom_runtime, std::vector<std::unique_ptr<RemoteServiceInstance>>& instances) {
-    if (service_instance_config == nullptr) {
-        score::mw::log::LogError() << "[gatewayd] ERROR: Service instance config is nullptr!";
+    if (!is_valid_remote_config(service_instance_config.get(), service_type_config.get())) {
+        score::mw::log::LogError()
+            << "[gatewayd] Invalid configuration passed to CreateAsyncRemoteService";
         return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
     }
 
-    // TODO: Error handling for instance specifier creation
-    auto ipc_instance_specifier = score::mw::com::InstanceSpecifier::Create(
-                                      service_instance_config->instance_specifier()->str())
-                                      .value();
+    auto ipc_instance_specifier_result = score::mw::com::InstanceSpecifier::Create(
+        service_instance_config->instance_specifier()->str());
+    if (!ipc_instance_specifier_result.has_value()) {
+        score::mw::log::LogError()
+            << "[gatewayd] Invalid instance specifier '"
+            << service_instance_config->instance_specifier()->string_view() << "'";
+        return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
+    }
 
     score::containers::NonRelocatableVector<score::mw::com::EventInfo> events(
         service_type_config->events()->size());
 
-    auto service_type_name = service_type_config->service_type_name()->string_view();
+    auto const service_type_name = service_type_config->service_type_name()->string_view();
 
-    for (const auto& event : *service_type_config->events()) {
-        if (event == nullptr) {
-            score::mw::log::LogError()
-                << "[gatewayd] ERROR: Encountered nullptr in events configuration!";
-            return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
-        }
-
-        auto event_name = event->event_name()->string_view();
+    for (const auto* event : *service_type_config->events()) {
+        auto const event_name = event->event_name()->string_view();
         const score_com_serializer* serializer = nullptr;
-        auto get_result =
+        auto const get_result =
             score_com_serializer_get(service_type_name.data(), service_type_name.size(),
                                      score_com_serializer_element_type_event, event_name.data(),
                                      event_name.size(), &serializer);
-        if (get_result != score_com_serializer_result_ok) {
+        if ((get_result != score_com_serializer_result_ok) || (serializer == nullptr)) {
             score::mw::log::LogError() << "[gatewayd] Failed to get serializer for "
                                        << service_type_name << "::" << event_name;
             return MakeUnexpected(score::mw::com::ComErrc::kInvalidConfiguration);
         }
 
-        score::mw::com::DataTypeMetaInfo type_info{
+        score::mw::com::DataTypeMetaInfo const type_info{
             score_com_serializer_get_sizeof_type(serializer),
             score_com_serializer_get_alignof_type(serializer)};
         events.emplace_back(score::mw::com::EventInfo{event_name, type_info});
     }
 
-    score::mw::com::GenericSkeletonServiceElementInfo service_element_info;
+    score::mw::com::GenericSkeletonServiceElementInfo service_element_info{};
     service_element_info.events = events;
 
-    auto create_ipc_result =
-        score::mw::com::GenericSkeleton::Create(ipc_instance_specifier, service_element_info);
+    auto create_ipc_result = score::mw::com::GenericSkeleton::Create(*ipc_instance_specifier_result,
+                                                                     service_element_info);
     if (!create_ipc_result.has_value()) {
         score::mw::log::LogError() << "[gatewayd] Failed to create IPC skeleton for '"
                                    << service_instance_config->instance_specifier()->string_view()
@@ -268,4 +310,5 @@ Result<void> RemoteServiceInstance::CreateAsyncRemoteService(
               << service_instance_config->instance_specifier()->string_view() << "\n";
     return {};
 }
+
 }  // namespace score::someip_gateway::gatewayd

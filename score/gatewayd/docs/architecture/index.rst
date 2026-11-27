@@ -94,8 +94,8 @@ Interfaces
    :status: valid
    :included_by: real_arc_int__gatewayd_arch__local_svc
 
-   - ``LocalServiceInstance::CreateAsyncLocalServices``: Starts asynchronous ``mw::com::GenericProxy`` discovery for a configured local service instance and instantiates ``LocalServiceInstance`` (stopping discovery) once the provider is found.
-   - ``LocalServiceInstance::Create``: Enables the ``socom`` server connector toward ``someipd`` and subscribes to configured ``GenericProxyEvent`` updates to frame, serialize, and forward application samples.
+   - ``LocalServiceInstance::CreateAsyncLocalServices``: Validates configuration, starts asynchronous ``mw::com::GenericProxy`` discovery, ignores empty or duplicate callbacks, and appends at most one ``LocalServiceInstance`` to ``instances`` before stopping discovery.
+   - ``LocalServiceInstance::Create``: Enables the ``socom`` server connector toward ``someipd`` and subscribes valid ``GenericProxyEvent`` instances with ``someip::kMaxSampleCount`` (``10``), skipping missing events or serializers while preserving positional ``socom::Event_id`` indices. Outbound samples frame the 16-byte big-endian SOME/IP header with ``uint32_t`` Length ``8 + payload_size`` at bytes ``[4..7]``, drop undersized or unserializable buffers, and unsubscribe cleanly on destruction.
 
 .. real_arc_int:: RemoteServiceInstance Adapter Interface
    :id: real_arc_int__gatewayd_arch__remote_svc
@@ -116,5 +116,5 @@ Interfaces
    :status: valid
    :included_by: real_arc_int__gatewayd_arch__remote_svc
 
-   - ``RemoteServiceInstance::CreateAsyncRemoteService``: Queries event type size and alignment from ``score_com_serializer``, creates the local ``mw::com::GenericSkeleton``, and delegates to ``RemoteServiceInstance::Create``.
-   - ``RemoteServiceInstance::Create``: Offers the ``mw::com::GenericSkeleton`` to local applications and registers a ``socom`` client connector that subscribes to remote SOME/IP events when ``on_service_state_change(Service_state::available)`` fires, strips the 16-byte header, and publishes deserialized LoLa samples.
+   - ``RemoteServiceInstance::CreateAsyncRemoteService``: Synchronously validates configuration, queries event type size and alignment from ``score_com_serializer``, creates the local ``mw::com::GenericSkeleton``, and delegates to ``RemoteServiceInstance::Create``.
+   - ``RemoteServiceInstance::Create``: Offers the ``mw::com::GenericSkeleton`` to local applications and registers a ``socom`` client connector that subscribes only to valid non-skipped ``socom::Event_id`` entries when ``Service_state::available`` fires. Inbound frames shorter than 16 bytes or targeting unknown/skipped events are dropped; valid frames strip the 16-byte SOME/IP header, publish deserialized LoLa samples, and tear down the client connector and skeleton offer on destruction.

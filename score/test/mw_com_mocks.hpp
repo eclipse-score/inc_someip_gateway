@@ -16,9 +16,12 @@
 
 #include <gmock/gmock.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <score/span.hpp>
 #include <string_view>
@@ -28,6 +31,7 @@
 #include "score/memory/data_type_size_info.h"
 #include "score/mw/com/impl/bindings/mock_binding/sample_allocatee_ptr.h"
 #include "score/mw/com/impl/bindings/mock_binding/sample_ptr.h"
+#include "score/mw/com/impl/com_error.h"
 #include "score/mw/com/impl/configuration/quality_type.h"
 #include "score/mw/com/impl/enriched_instance_identifier.h"
 #include "score/mw/com/impl/find_service_handle.h"
@@ -131,20 +135,21 @@ class ServiceDiscoveryMock : public score::mw::com::impl::IServiceDiscovery {
 
 class Proxy : public score::mw::com::impl::ProxyBinding {
    public:
+    Proxy() {
+        ON_CALL(*this, SetupMethods(::testing::_))
+            .WillByDefault(::testing::Return(score::Result<void>{}));
+    }
+
     MOCK_METHOD(bool, IsEventProvided, (std::string_view), (const, override));
     MOCK_METHOD(score::Result<void>, SetupMethods, (std::size_t), (override));
     MOCK_METHOD(void, PrepareDeinitialize, (), (override));
     MOCK_METHOD(void, FinalizeDeinitialize, (), (override));
 };
 
-class GenericProxyEvent : public score::mw::com::impl::GenericProxyEventBinding {
-   public:
-    GenericProxyEvent() {
-        ON_CALL(*this, GetSubscriptionState())
-            .WillByDefault(
-                ::testing::Return(score::mw::com::impl::SubscriptionState::kNotSubscribed));
-    }
+namespace detail {
 
+class GenericProxyEventMockBase : public score::mw::com::impl::GenericProxyEventBinding {
+   public:
     MOCK_METHOD(score::mw::com::impl::SubscriptionState, GetSubscriptionState, (),
                 (const, noexcept, override));
     MOCK_METHOD(void, Unsubscribe, (), (noexcept, override));
@@ -167,8 +172,61 @@ class GenericProxyEvent : public score::mw::com::impl::GenericProxyEventBinding 
     MOCK_METHOD(score::mw::com::impl::BindingType, GetBindingType, (), (const, noexcept, override));
 };
 
+}  // namespace detail
+
+class GenericProxyEvent : public detail::GenericProxyEventMockBase {
+   public:
+    GenericProxyEvent() {
+        ON_CALL(*this, GetSubscriptionState()).WillByDefault([this]() noexcept {
+            std::lock_guard<std::mutex> const lock{state_mutex_};
+            return subscription_state_;
+        });
+        ON_CALL(*this, GetMaxSampleCount()).WillByDefault([this]() noexcept {
+            std::lock_guard<std::mutex> const lock{state_mutex_};
+            return max_sample_count_;
+        });
+        ON_CALL(*this, Subscribe(::testing::_))
+            .WillByDefault(::testing::Return(score::Result<void>{}));
+    }
+
+    score::Result<void> Subscribe(std::size_t const max_sample_count) noexcept override {
+        auto result = detail::GenericProxyEventMockBase::Subscribe(max_sample_count);
+        if (result.has_value()) {
+            std::lock_guard<std::mutex> const lock{state_mutex_};
+            subscription_state_ = score::mw::com::impl::SubscriptionState::kSubscribed;
+            auto const clamped = std::min<std::size_t>(
+                max_sample_count,
+                static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()));
+            max_sample_count_ = static_cast<std::uint16_t>(clamped);
+        }
+        return result;
+    }
+
+    void Unsubscribe() noexcept override {
+        detail::GenericProxyEventMockBase::Unsubscribe();
+        std::lock_guard<std::mutex> const lock{state_mutex_};
+        subscription_state_ = score::mw::com::impl::SubscriptionState::kNotSubscribed;
+        max_sample_count_.reset();
+    }
+
+   private:
+    mutable std::mutex state_mutex_{};
+    score::mw::com::impl::SubscriptionState subscription_state_{
+        score::mw::com::impl::SubscriptionState::kNotSubscribed};
+    std::optional<std::uint16_t> max_sample_count_{};
+};
+
 class ProxyMethod : public score::mw::com::impl::ProxyMethodBinding {
    public:
+    ProxyMethod() {
+        ON_CALL(*this, GetInArgsBuffer(::testing::_))
+            .WillByDefault(::testing::Return(
+                score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+        ON_CALL(*this, GetReturnValueBuffer(::testing::_))
+            .WillByDefault(::testing::Return(
+                score::MakeUnexpected(score::mw::com::impl::ComErrc::kBindingFailure)));
+    }
+
     MOCK_METHOD(score::Result<score::cpp::span<std::byte>>, GetInArgsBuffer, (std::size_t),
                 (override));
     MOCK_METHOD(score::Result<score::cpp::span<std::byte>>, GetReturnValueBuffer, (std::size_t),
@@ -318,9 +376,13 @@ using SkeletonMethodBindingFactoryMockGuard =
 
 inline score::mw::com::impl::SamplePtr<void> MakeMockSample(
     void* const raw_ptr, score::mw::com::impl::TrackerGuardFactory& tracker) {
+    auto guard = tracker.TakeGuard();
+    if (!guard.has_value()) {
+        return score::mw::com::impl::SamplePtr<void>{};
+    }
     return score::mw::com::impl::SamplePtr<void>{
         score::mw::com::impl::mock_binding::SamplePtr{raw_ptr, +[](void*) noexcept {}},
-        *tracker.TakeGuard()};
+        std::move(*guard)};
 }
 
 inline score::Result<score::mw::com::impl::SampleAllocateePtr<void>> MakeAllocatedSample(

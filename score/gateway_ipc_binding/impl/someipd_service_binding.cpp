@@ -38,6 +38,12 @@ Someipd_service_provider::~Someipd_service_provider() noexcept = default;
 Result<std::unique_ptr<Someipd_service_provider>> Someipd_service_provider::create(
     std::string const& instance_specifier,
     Add_service_configuration_handler add_service_configuration_handler) noexcept {
+    if (!add_service_configuration_handler) {
+        score::mw::log::LogError()
+            << kLog_tag << "Cannot create SomeipdService provider with an empty handler";
+        return MakeUnexpected(Mw_com_binding_error::logic_error_invalid_service_configuration);
+    }
+
     auto specifier = make_instance_specifier(instance_specifier);
     if (!specifier.has_value()) {
         return MakeUnexpected<std::unique_ptr<Someipd_service_provider>>(
@@ -79,8 +85,8 @@ Result<void> Someipd_service_provider::offer() noexcept {
 }
 
 Someipd_service_consumer::Someipd_service_consumer(
-    Service_configuration const& service_configuration) noexcept
-    : m_service_configuration{service_configuration} {}
+    std::unique_ptr<Service_configuration const> service_configuration) noexcept
+    : m_service_configuration{std::move(service_configuration)} {}
 
 Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::create(
     std::string const& instance_specifier,
@@ -97,9 +103,11 @@ Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::crea
             std::move(deployed).error());
     }
 
+    auto owned_configuration = std::make_unique<Service_configuration const>(service_configuration);
+
     // Not make_unique: the constructor is private.
     std::unique_ptr<Someipd_service_consumer> consumer{
-        new Someipd_service_consumer{service_configuration}};
+        new Someipd_service_consumer{std::move(owned_configuration)}};
 
     // The handler can already be invoked from within StartFindService, on this very thread. The
     // consumer is fully constructed at this point, so that is safe.
@@ -121,10 +129,12 @@ Result<std::unique_ptr<Someipd_service_consumer>> Someipd_service_consumer::crea
 }
 
 Someipd_service_consumer::~Someipd_service_consumer() noexcept {
-    // Stop discovery first, so that no handler can run while the proxy is destroyed below.
+    // Stop discovery first, so that no new handler can start while the proxy is destroyed below.
     std::optional<score::mw::com::FindServiceHandle> find_handle{};
     {
         std::lock_guard const lock{m_mutex};
+        m_stopping = true;
+        ++m_discovery_epoch;
         std::swap(find_handle, m_find_handle);
     }
     if (find_handle.has_value()) {
@@ -135,60 +145,104 @@ Someipd_service_consumer::~Someipd_service_consumer() noexcept {
                 << "Failed to stop service discovery for SomeipdService:" << stopped.error();
         }
     }
-    m_connected.store(false);
-    m_proxy.reset();
+
+    std::optional<Someipd_service_proxy> proxy_to_destroy{};
+    {
+        std::lock_guard const lock{m_mutex};
+        m_active_handle.reset();
+        m_connected.store(false);
+        std::swap(proxy_to_destroy, m_proxy);
+    }
+    proxy_to_destroy.reset();
 }
 
 bool Someipd_service_consumer::is_connected() const noexcept { return m_connected.load(); }
 
 void Someipd_service_consumer::on_find_service(
     score::mw::com::ServiceHandleContainer<score::mw::com::HandleType> handles) noexcept {
-    // Destroyed after the lock is released: the proxy destructor must not run while the mutex is
-    // held, since it synchronises with mw::com internals that can call back into discovery.
     std::optional<Someipd_service_proxy> outdated_proxy{};
 
-    {
-        std::lock_guard const lock{m_mutex};
-
-        std::swap(outdated_proxy, m_proxy);
-        m_connected.store(false);
-
-        if (handles.empty()) {
-            score::mw::log::LogInfo()
-                << kLog_tag << "SomeipdService is gone, peer is not connected anymore";
-            return;
-        }
-
-        // Only one someipd offers the instance. Should the deployment ever offer more, the
-        // first handle is as good as any.
-        auto proxy = Someipd_service_proxy::Create(handles.front());
-        // TODO: Retry Create. mw::com can report an offer that is already gone and then does not
-        // call this handler again for the same handle, so gatewayd stays disconnected.
-        if (!proxy.has_value()) {
-            score::mw::log::LogError()
-                << kLog_tag << "Failed to create SomeipdService proxy:" << proxy.error();
-            return;
-        }
-
-        // A restarted someipd needs the configuration again. Send it to every new proxy.
-        // Destroy reply before moving proxy: reply's deleter references proxy's method instance.
-        bool accepted{false};
+    if (handles.empty()) {
         {
-            auto const reply = proxy->add_service_configuration(m_service_configuration);
-            accepted = reply.has_value() && *reply.value();
+            std::lock_guard const lock{m_mutex};
+            ++m_discovery_epoch;
+            m_active_handle.reset();
+            m_connected.store(false);
+            std::swap(outdated_proxy, m_proxy);
         }
-
-        // Move proxy into m_proxy so ~Someipd_service_proxy() does not run while m_mutex is held.
-        m_proxy.emplace(std::move(proxy).value());
-        if (!accepted) {
-            score::mw::log::LogError()
-                << kLog_tag << "AddServiceConfiguration failed or was rejected";
-            return;
-        }
-        m_connected.store(true);
+        outdated_proxy.reset();
+        score::mw::log::LogInfo() << kLog_tag
+                                  << "SomeipdService is gone, peer is not connected anymore";
+        return;
     }
 
-    score::mw::log::LogInfo() << kLog_tag << "SomeipdService found, peer is connected";
+    auto const target_handle = handles.front();
+    std::uint64_t expected_epoch{0U};
+    {
+        std::lock_guard const lock{m_mutex};
+        if (m_stopping) {
+            return;
+        }
+        if (m_connected.load() && m_active_handle.has_value() &&
+            (*m_active_handle == target_handle)) {
+            return;
+        }
+        expected_epoch = ++m_discovery_epoch;
+        m_active_handle.reset();
+        m_connected.store(false);
+        std::swap(outdated_proxy, m_proxy);
+    }
+    // Proxy construction, destruction, and synchronous RPC calls must run outside m_mutex to avoid
+    // inverting lock order with mw::com's service-discovery lock.
+    outdated_proxy.reset();
+
+    auto created = Someipd_service_proxy::Create(target_handle);
+    if (!created.has_value()) {
+        score::mw::log::LogError()
+            << kLog_tag << "Failed to create SomeipdService proxy:" << created.error();
+        return;
+    }
+    std::optional<Someipd_service_proxy> candidate_proxy{std::move(created).value()};
+
+    bool superseded{false};
+    {
+        std::lock_guard const lock{m_mutex};
+        superseded = m_stopping || (m_discovery_epoch != expected_epoch);
+    }
+    if (superseded) {
+        candidate_proxy.reset();
+        return;
+    }
+
+    // Destroy reply before moving or resetting candidate_proxy: reply's deleter references the
+    // proxy's method instance.
+    bool accepted{false};
+    {
+        auto const reply = candidate_proxy->add_service_configuration(*m_service_configuration);
+        accepted = reply.has_value() && *reply.value();
+    }
+
+    if (!accepted) {
+        candidate_proxy.reset();
+        score::mw::log::LogError() << kLog_tag << "AddServiceConfiguration failed or was rejected";
+        return;
+    }
+
+    bool connected_now{false};
+    {
+        std::lock_guard const lock{m_mutex};
+        if (!m_stopping && (m_discovery_epoch == expected_epoch)) {
+            std::swap(m_proxy, candidate_proxy);
+            m_active_handle.emplace(target_handle);
+            m_connected.store(true);
+            connected_now = true;
+        }
+    }
+    candidate_proxy.reset();
+
+    if (connected_now) {
+        score::mw::log::LogInfo() << kLog_tag << "SomeipdService found, peer is connected";
+    }
 }
 
 }  // namespace score::gateway_ipc_binding::mw_com

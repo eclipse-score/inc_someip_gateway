@@ -14,7 +14,6 @@
 #ifndef IMPL_GATEWAYD_REMOTE_SERVICE_INSTANCE
 #define IMPL_GATEWAYD_REMOTE_SERVICE_INSTANCE
 
-#include <cstdint>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -31,45 +30,61 @@ class Runtime;
 
 namespace score::someip_gateway::gatewayd {
 
-/// \brief Instance of a remotely available service
-/// \details This class represents a service instance that is provided by an application
-///          running on a different ECU and offered via SOME/IP. It manages the communication
-///          between the someipd daemon and local applications that consume the remote service.
-///          The class receives messages from the someipd daemon via the SOME/IP message proxy
-///          and forwards them to local consumer applications through an IPC skeleton, making
-///          remote services accessible to applications on this ECU.
+/// \brief Bridges a remotely available SOME/IP service from someipd to local IPC consumers.
+/// \details Receives SOME/IP event notifications via a SOCom client connector and publishes
+///          deserialized samples through a local GenericSkeleton:
+///          - On Service_state::available, subscribes (in Event_mode::update) only to configured
+///            events that exist on the IPC skeleton and have a valid serializer.
+///          - Requires inbound frames of at least 16 bytes (someip::kSomeipFullHeaderSize), strips
+///            header bytes [0..15], deserializes bytes [16..) into an allocated LoLa sample slot,
+///            and publishes via GenericSkeletonEvent::Send().
+///          - Drops frames shorter than 16 bytes, updates for unknown or skipped socom::Event_id
+///            values, failed sample allocations, and failed deserializations without calling
+///            Send().
+///          - Destroys the SOCom client connector and calls StopOfferService() on destruction.
 class RemoteServiceInstance {
    public:
-    /// \brief Creates a RemoteServiceInstance
-    /// \param service_instance_config Configuration for this service instance
-    /// \param service_type_config Configuration for the service type of this instance
-    /// \param ipc_skeleton IPC skeleton for forwarding events to local consumer applications
-    /// \param socom_runtime SOCom runtime used to create the client connector
-    /// \return Result containing the created instance on success, or an error on failure
-    /// \details This factory method creates a remote service instance with the necessary
-    ///          components to receive messages from the someipd daemon and forward them to
-    ///          local applications via IPC.
+    /// \brief Synchronously offers an IPC skeleton and connects a SOCom client connector.
+    /// \param service_instance_config Service instance configuration (must not be null).
+    /// \param service_type_config Service type configuration (must not be null; service_type_name,
+    ///        a non-empty events vector, and each event entry/name must not be null).
+    /// \param ipc_skeleton IPC skeleton offered to local consumer applications.
+    /// \param socom_runtime SOCom runtime used to create the client connector.
+    /// \retval std::unique_ptr<RemoteServiceInstance> Created instance. Events missing from
+    ///         ipc_skeleton or lacking a serializer are logged and skipped while preserving
+    ///         positional socom::Event_id indices (0..N-1).
+    /// \retval ComErrc::kInvalidConfiguration Required configuration pointers or strings are null,
+    ///         or events() is null or empty (events()->empty()).
+    /// \retval ComErrc::kBindingFailure Offering ipc_skeleton failed.
+    /// \retval socom::Error::runtime_error_request_rejected SOCom client connector creation failed
+    ///         (the skeleton offer is withdrawn via StopOfferService()).
     static Result<std::unique_ptr<RemoteServiceInstance>> Create(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
         score::mw::com::GenericSkeleton&& ipc_skeleton, socom::Runtime& socom_runtime);
 
-    /// \brief Asynchronously creates a remote service instance
-    /// \param service_instance_config Configuration for the service instance to create
-    /// \param service_type_config Configuration for the service type of the instance to create
-    /// \param socom_runtime SOCom runtime used to create the client connector
-    /// \param instances Reference to the vector to store the created remote service instance
-    /// \return Result containing an Error on failure.
-    /// \details This static factory method asynchronously searches for and creates a remote
-    ///          service instance. It performs service discovery for services offered via SOME/IP
-    ///          from remote ECUs and, when found, constructs a RemoteServiceInstance object and
-    ///          adds it to the instances vector. The returned FindServiceHandle can be used to
-    ///          manage the asynchronous operation.
+    /// \brief Synchronously creates a GenericSkeleton, offers it, and appends a
+    ///        RemoteServiceInstance to instances.
+    /// \details Executes synchronously despite the Async prefix in its name.
+    /// \param service_instance_config Service instance configuration with a valid non-null
+    ///        instance_specifier.
+    /// \param service_type_config Service type configuration with a non-null, non-empty events
+    ///        vector where every event entry/name is non-null and has a valid serializer.
+    /// \param socom_runtime SOCom runtime used to create the client connector.
+    /// \param instances Output vector to which the created instance is appended on success.
+    /// \retval void Instance created and appended to instances.
+    /// \retval ComErrc::kInvalidConfiguration Null configuration fields, null or empty events()
+    ///         vector (events()->empty()), invalid instance_specifier, missing event serializer, or
+    ///         GenericSkeleton::Create failure.
+    /// \retval ComErrc::kBindingFailure RemoteServiceInstance::Create failed.
     static Result<void> CreateAsyncRemoteService(
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
         socom::Runtime& socom_runtime,
         std::vector<std::unique_ptr<RemoteServiceInstance>>& instances);
+
+    /// \brief Destroys the SOCom client connector and stops offering the IPC skeleton.
+    ~RemoteServiceInstance();
 
     RemoteServiceInstance(const RemoteServiceInstance&) = delete;
     RemoteServiceInstance& operator=(const RemoteServiceInstance&) = delete;
@@ -88,8 +103,8 @@ class RemoteServiceInstance {
         std::shared_ptr<const mw_someip_config::ServiceInstance> service_instance_config,
         std::shared_ptr<const mw_someip_config::ServiceType> service_type_config,
         score::mw::com::GenericSkeleton&& ipc_skeleton,
-        socom::Client_connector::Uptr client_connector,
-        std::unordered_map<std::uint16_t, EventContext> event_contexts);
+        std::unordered_map<socom::Event_id, EventContext> event_contexts,
+        socom::Client_connector::Uptr client_connector);
 
     void forward_event(socom::Event_id event_id, socom::Payload payload);
 
@@ -99,14 +114,12 @@ class RemoteServiceInstance {
     std::shared_ptr<const mw_someip_config::ServiceType> service_type_config_;
     /// IPC skeleton for forwarding events to local consumer applications
     score::mw::com::GenericSkeleton ipc_skeleton_;
-    /// SOCom client connector for receiving event updates from the someipd daemon.
-    /// Declared last so it is destroyed first, ensuring no callbacks fire after ipc_skeleton_
-    /// or service_type_config_ are gone.
+    /// Per-event forwarding contexts (must outlive client_connector_ callbacks)
+    std::unordered_map<socom::Event_id, EventContext> event_contexts_;
+    /// SOCom client connector for receiving event updates from the someipd daemon
     socom::Client_connector::Uptr client_connector_;
-
-    std::unordered_map<std::uint16_t, EventContext> event_contexts_;
 };
 
 }  // namespace score::someip_gateway::gatewayd
 
-#endif  // SRC_GATEWAYD_REMOTE_SERVICE_INSTANCE
+#endif  // IMPL_GATEWAYD_REMOTE_SERVICE_INSTANCE

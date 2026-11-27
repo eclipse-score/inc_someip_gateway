@@ -22,10 +22,13 @@ cc_library(
     features = COMPILER_WARNING_FEATURES,
     deps = [
         "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com_impl_headers",
         "//score/socom",
         "//score/test:mw_com_mocks",
         "//score/test:mw_com_test_fixture",
         "@googletest//:gtest",
+        "@score_baselibs//score/filesystem",
+        "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
     ],
 )
@@ -161,6 +164,31 @@ cc_test(
     name = "someipd_service_binding_test",
     size = "small",
     srcs = ["someipd_service_binding_test.cpp"],
+    features = COMPILER_WARNING_FEATURES,
+    linkstatic = True,
+    tags = [
+        "block-network",
+        "unit",
+    ],
+    visibility = ["//:__pkg__"],
+    deps = [
+        ":ipc_binding_test_fixture",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com",
+        "//score/gateway_ipc_binding:gateway_ipc_binding_mw_com_impl_headers",
+        "//score/socom",
+        "//score/socom:mock",
+        "//score/test:mw_com_mocks",
+        "//score/test:mw_com_test_fixture",
+        "@googletest//:gtest_main",
+        "@score_baselibs//score/mw/log:backend_stub_testutil",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+cc_test(
+    name = "gateway_ipc_binding_mw_com_test",
+    size = "small",
+    srcs = ["gateway_ipc_binding_mw_com_test.cpp"],
     features = COMPILER_WARNING_FEATURES,
     linkstatic = True,
     tags = [

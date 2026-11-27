@@ -25,7 +25,8 @@ namespace score::gateway_ipc_binding::mw_com {
 
 /// \brief Layout of one `mw::com` event sample exchanged by this binding.
 ///
-/// \details See `docs/mw_com_binding.rst`, section "Event sample layout":
+/// \details See `score/gateway_ipc_binding/docs/architecture/index.rst`, section "Event sample
+/// layout":
 ///
 ///     +----------------------+------------------------+
 ///     | binding prefix (8 B) | payload bytes          |
@@ -44,28 +45,36 @@ inline constexpr std::size_t kMax_payload_length =
     static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max());
 
 /// \brief Number of bytes of a sample the binding actually addresses.
-/// \details This is `kSample_prefix_size + max_payload_size`. It can be smaller
-///          than `sample_size()`, which rounds up to `kSample_alignment` because a
-///          `DataTypeMetaInfo::size` must be an integer multiple of its alignment. The padding
-///          at the end is never addressed, so spans end at this size and
-///          `Payload::data().size()` is exactly `max_payload_size`.
+/// \details Computes `kSample_prefix_size + event.max_payload_size`, saturating to
+///          `std::numeric_limits<std::size_t>::max()` if the sum would overflow `std::size_t`. It
+///          can be smaller than `sample_size()`, which rounds up to `kSample_alignment` because a
+///          `DataTypeMetaInfo::size` must be an integer multiple of its alignment. The padding at
+///          the end is never addressed, so writable spans have size `max_payload_size`.
 /// \param event Event configuration to size
-/// \return Number of addressed bytes
+/// \return Number of addressed bytes (saturated on `std::size_t` overflow)
 [[nodiscard]] std::size_t addressed_sample_size(Event_config const& event) noexcept;
 
 /// \brief mw::com meta info describing one sample of the given event.
 /// \param event Event configuration to describe
-/// \return Size and alignment to pass to GenericSkeleton::Create()
+/// \return DataTypeMetaInfo{sample_size(event), kSample_alignment} for GenericSkeleton::Create()
 [[nodiscard]] score::mw::com::DataTypeMetaInfo sample_meta_info(Event_config const& event) noexcept;
 
-/// \brief Write the payload length into the binding prefix of a sample.
+/// \brief Write the payload length into the 8-byte binding prefix of a sample.
+/// \details Encodes `static_cast<std::uint32_t>(length)` in host byte order into
+/// `sample_base[0..3]`
+///          and writes four `0x00` reserved bytes into `sample_base[4..7]`, leaving
+///          `sample_base[8..)` untouched.
+/// \pre `sample_base != nullptr` and `length <= kMax_payload_length` (checked by assertion).
 /// \param sample_base Pointer to the first byte of the sample, must not be nullptr
 /// \param length Payload length in bytes, must not exceed kMax_payload_length
 void write_payload_length(std::byte* sample_base, std::size_t length) noexcept;
 
-/// \brief Read the payload length back from the binding prefix of a sample.
+/// \brief Read the payload length back from the 8-byte binding prefix of a sample.
+/// \details Reads `std::uint32_t` in host byte order from `sample_base[0..3]` (ignoring reserved
+///          bytes `sample_base[4..7]`) and widens unsigned to `std::size_t`.
+/// \pre `sample_base != nullptr` (checked by assertion).
 /// \param sample_base Pointer to the first byte of the sample, must not be nullptr
-/// \return The payload length written by write_payload_length()
+/// \return Unsigned payload length in `[0, kMax_payload_length]`
 [[nodiscard]] std::size_t read_payload_length(std::byte const* sample_base) noexcept;
 
 }  // namespace score::gateway_ipc_binding::mw_com

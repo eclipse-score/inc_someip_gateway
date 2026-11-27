@@ -22,6 +22,9 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         "@googletest//:gtest",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/memory:data_type_size_info",
+        "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
     ],
 )
@@ -37,6 +40,8 @@ cc_library(
         "//score/socom",
         "//score/socom:mock",
         "@googletest//:gtest",
+        "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
     ],
 )
