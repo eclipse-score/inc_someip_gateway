@@ -98,12 +98,17 @@ common --features=-treat_warnings_as_errors
 common --features=external_include_paths
 
 # S-CORE Base Libraries and Communication Configuration
-common --@score_baselibs//score/json:base_library=nlohmann
 common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 
 # unshare /dev/shm and /tmp, gateway_ipc_binding tests create files in there and concurrent test runs would influence each other
 test --sandbox_tmpfs_path=/dev/shm
 test --sandbox_tmpfs_path=/tmp
+
+# Configure JDK for //:license.check.license_check
+build --java_language_version=25
+build --tool_java_language_version=25
+build --java_runtime_version=remotejdk_25
+build --tool_java_runtime_version=remotejdk_25
 
 # Coverage settings
 import %workspace%/coverage.bazelrc

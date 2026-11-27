@@ -11,4 +11,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-# Package marker for //tools/lint
+load(":linters.bzl", "use_clang_tidy_targets", "use_ruff_targets")
+
+# ==============================================================================
+# Clang-Tidy and Ruff Linting
+# ==============================================================================
+# Same code as https://github.com/eclipse-score/communication/blob/5c22c564320afa3d37a1129b827f79c93367edbd/quality/quality.md#clang-tidy
+# but the targets live in //tools/lint, not in the root package.
+# The root package must stay loadable from modules that depend on this one.
+# aspect_rules_lint and llvm_toolchain are dev dependencies and are not visible to non-root modules.
+# Run with `bazel run //tools/lint:clang-tidy.check`.
+
+use_clang_tidy_targets()
+
+use_ruff_targets()

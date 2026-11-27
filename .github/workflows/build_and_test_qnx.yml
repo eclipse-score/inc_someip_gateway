@@ -27,7 +27,7 @@ jobs:
             bazel-test-target: "//quality/... //tests/integration_test/... //tests/tc8_conformance/..."
           - bazel-config: "aarch64-qnx"
             bazel-test-target: ""
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v.0.0.3
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@200f97be787848974e55d1f4ef5615efbaa97ff8 # 2026-11-18, in sync with other workflows
     permissions:
       contents: read
       pull-requests: read

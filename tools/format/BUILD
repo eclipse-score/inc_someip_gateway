@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2024 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -11,14 +11,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-name: Copyright checks
-on:
-  workflow_call:
+load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 
-permissions:
-  contents: read
-jobs:
-  copyright-check:
-    uses: eclipse-score/cicd-workflows/.github/workflows/copyright.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v.0.0.3
-    with:
-      bazel-target: "run //:copyright.check"
+# ==============================================================================
+# Code Formatting
+# ==============================================================================
+# Run `bazel run //tools/format:format.fix` to auto-format all languages.
+use_format_targets(
+    languages = [
+        "python",
+        "starlark",
+        "yaml",
+        "cpp",
+    ],
+)
