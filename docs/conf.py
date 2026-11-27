@@ -19,18 +19,9 @@ extensions = ["score_sphinx_bundle"]
 
 required_in_id = ["gatewayd", "socom", "gib", "serializer", "someipd"]
 
-# Link source-only Open SOME/IP references to the pinned upstream revision.
+# Pin source-only Open SOME/IP references to the upstream revision.
 SPEC_REPO = "https://github.com/some-ip-com/open-someip-spec"
 SPEC_COMMIT = "4860461802c23f41c6227befcb25cc80e7d68771"
-
-needs_string_links = {
-    "spec_ref": {
-        "regex": r"^(?P<doc>[a-z0-9-]+):(?P<line>\d+)$",
-        "link_url": f"{SPEC_REPO}/blob/{SPEC_COMMIT}/src/{{{{doc}}}}.rst#L{{{{line}}}}",
-        "link_name": "{{doc}}.rst:{{line}}",
-        "options": ["hash"],
-    },
-}
 
 # Existing component requirements also reference communication-module feature
 # requirements (``feat_req__com__*``), which are not part of the Open SOME/IP

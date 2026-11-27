@@ -14,8 +14,8 @@
 """Generate mirrored stkh_req blocks for the Open SOME/IP specification.
 
 Each requirement becomes a local `stkh_req` carrying its identifier and source
-location, but not its text. The `hash` field holds "<document>:<line>", which
-Sphinx renders as a link to that line of the pinned upstream specification.
+location, but not its text. Each generated requirement includes a direct link to
+its corresponding line in the pinned upstream specification.
 """
 
 import argparse
@@ -43,10 +43,12 @@ Open SOME/IP Specification Requirements
 
 Requirements mirrored from the Open SOME/IP specification. Only identifiers and
 source locations are held here; the specification text is not reproduced.
-Follow ``hash`` to read a requirement at its source.
+Each requirement includes a direct source link.
 """
 
 REQTYPE = {"Requirement": "Functional", "Information": "Non-Functional"}
+SPEC_REPO = "https://github.com/some-ip-com/open-someip-spec"
+SPEC_COMMIT = "4860461802c23f41c6227befcb25cc80e7d68771"
 
 BLOCK = """
 .. stkh_req:: Open SOME/IP {part} {number}
@@ -58,7 +60,8 @@ BLOCK = """
    :version: 1
    :valid_from: {valid_from}
    :rationale: This mirrored source requirement is retained at the stakeholder level; see the linked upstream source line.
-   :hash: {docname}:{lineno}
+
+   Source: {source_url}
 
    Mirrored from the Open SOME/IP specification; text not reproduced.
 """
@@ -94,8 +97,9 @@ def main() -> None:
                 safety="QM" if need.get("safety") == "TBD" else need.get("safety", "QM"),
                 status=need["status"],
                 valid_from=args.valid_from,
-                docname=need["docname"],
-                lineno=need["lineno"],
+                source_url=(
+                    f"{SPEC_REPO}/blob/{SPEC_COMMIT}/src/{need['docname']}.rst#L{need['lineno']}"
+                ),
             )
         )
 

@@ -55,6 +55,7 @@ py_test(
     data = [
         "//:MODULE.bazel",
         "//:docs/conf.py",
+        ":generate_spec_requirements.py",
     ],
     imports = ["."],
     main = "test_update_open_someip_spec.py",

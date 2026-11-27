@@ -25,12 +25,14 @@ from urllib import error, request
 ROOT = Path(__file__).resolve().parents[2]
 MODULE_BAZEL = ROOT / "MODULE.bazel"
 DOCS_CONF = ROOT / "docs" / "conf.py"
+REQUIREMENTS_GENERATOR = ROOT / "tools" / "extneeds" / "generate_spec_requirements.py"
 ARCHIVE_BLOCK_PATTERN = re.compile(r"(?ms)^download_archive\(\n.*?^\)$")
 ARCHIVE_NAME_PATTERN = re.compile(r'(?m)^\s*name\s*=\s*"open_someip_spec"\s*,?\s*$')
 BLOCK_COMMIT_PATTERN = re.compile(r"(?<![0-9A-Za-z])[0-9a-f]{40}(?![0-9A-Za-z])")
 INTEGRITY_ATTRIBUTE_PATTERN = re.compile(r'(?m)^(\s*integrity\s*=\s*")[^"]*(")')
 INTEGRITY_PATTERN = re.compile(r"sha256-[A-Za-z0-9+/]{43}=")
 DOCS_PIN_PATTERN = re.compile(r'(?m)^SPEC_COMMIT = "(?P<commit>[0-9a-f]{40})"$')
+REQUIREMENTS_PIN_PATTERN = re.compile(r'(?m)^SPEC_COMMIT = "(?P<commit>[0-9a-f]{40})"$')
 SPEC_REPO_PATTERN = re.compile(r'(?m)^SPEC_REPO = "(?P<repo>https://github\.com/[^\"]+)"$')
 COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
 SOURCE_DOC_PATTERN = re.compile(r"[a-z0-9-]+")
@@ -73,13 +75,29 @@ def extract_docs_commit(content: str) -> str:
     return matches[0].group("commit")
 
 
-def check_pins_consistent(module_content: str, docs_content: str) -> str:
-    """Ensure the Bazel archive and the Sphinx source links use the same commit."""
+def extract_requirements_commit(content: str) -> str:
+    matches = list(REQUIREMENTS_PIN_PATTERN.finditer(content))
+    if len(matches) != 1:
+        raise ValueError(
+            "expected exactly one Open SOME/IP commit pin in generate_spec_requirements.py; "
+            f"found {len(matches)}"
+        )
+    return matches[0].group("commit")
+
+
+def check_pins_consistent(module_content: str, docs_content: str, requirements_content: str) -> str:
+    """Ensure the Bazel archive and generated source links use the same commit."""
     module_commit = extract_module_commit(module_content)
     docs_commit = extract_docs_commit(docs_content)
     if module_commit != docs_commit:
         raise ValueError(
             f"Open SOME/IP pins differ: MODULE.bazel uses {module_commit}, docs/conf.py uses {docs_commit}"
+        )
+    requirements_commit = extract_requirements_commit(requirements_content)
+    if module_commit != requirements_commit:
+        raise ValueError(
+            "Open SOME/IP pins differ: MODULE.bazel uses "
+            f"{module_commit}, generate_spec_requirements.py uses {requirements_commit}"
         )
     return module_commit
 
@@ -203,15 +221,20 @@ def _archive_integrity(commit: str, docs_content: str) -> str:
 def _update_pins(commit: str, integrity: str | None) -> None:
     module_content = MODULE_BAZEL.read_text(encoding="utf-8")
     docs_content = DOCS_CONF.read_text(encoding="utf-8")
+    requirements_content = REQUIREMENTS_GENERATOR.read_text(encoding="utf-8")
 
     if integrity is None:
         integrity = _archive_integrity(commit, docs_content)
         print(f"Computed archive integrity {integrity}; review it in the MODULE.bazel diff.", flush=True)
     updated_module = replace_module_pin(module_content, commit, integrity)
     updated_docs = replace_commit_pin(docs_content, DOCS_PIN_PATTERN, commit, "docs/conf.py")
+    updated_requirements = replace_commit_pin(
+        requirements_content, REQUIREMENTS_PIN_PATTERN, commit, "generate_spec_requirements.py"
+    )
 
     MODULE_BAZEL.write_text(updated_module, encoding="utf-8")
     DOCS_CONF.write_text(updated_docs, encoding="utf-8")
+    REQUIREMENTS_GENERATOR.write_text(updated_requirements, encoding="utf-8")
 
 
 def _run_validation(bazel_args: list[str], verify_source_links: bool) -> None:
@@ -282,11 +305,16 @@ def main() -> None:
         check_pins_consistent(
             MODULE_BAZEL.read_text(encoding="utf-8"),
             DOCS_CONF.read_text(encoding="utf-8"),
+            REQUIREMENTS_GENERATOR.read_text(encoding="utf-8"),
         )
     except ValueError as error:
         parser.error(str(error))
 
-    print(f"Updated the Open SOME/IP pin to {args.commit} in MODULE.bazel and docs/conf.py.", flush=True)
+    print(
+        f"Updated the Open SOME/IP pin to {args.commit} in MODULE.bazel, docs/conf.py, "
+        "and generate_spec_requirements.py.",
+        flush=True,
+    )
     try:
         _run_validation(args.bazel_arg, args.verify_source_links)
     except ValueError as error:

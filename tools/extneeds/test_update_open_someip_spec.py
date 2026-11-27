@@ -22,6 +22,7 @@ from unittest.mock import patch
 
 from update_open_someip_spec import (
     DOCS_PIN_PATTERN,
+    REQUIREMENTS_PIN_PATTERN,
     _bazel_source_dir,
     _fetch_upstream_file,
     check_pins_consistent,
@@ -46,6 +47,7 @@ class OpenSomeipPinUpdateTest(unittest.TestCase):
             f'    strip_prefix = "open-someip-spec-{old_commit}",\n    urls = ["/archive/{old_commit}.tar.gz"],\n)'
         )
         docs = f'SPEC_COMMIT = "{old_commit}"\n'
+        requirements = f'SPEC_COMMIT = "{old_commit}"\n'
 
         self.assertEqual(
             module.replace(old_commit, commit).replace("sha256-old", INTEGRITY),
@@ -53,6 +55,12 @@ class OpenSomeipPinUpdateTest(unittest.TestCase):
         )
         self.assertEqual(
             f'SPEC_COMMIT = "{commit}"\n', replace_commit_pin(docs, DOCS_PIN_PATTERN, commit, "docs/conf.py")
+        )
+        self.assertEqual(
+            f'SPEC_COMMIT = "{commit}"\n',
+            replace_commit_pin(
+                requirements, REQUIREMENTS_PIN_PATTERN, commit, "generate_spec_requirements.py"
+            ),
         )
 
     def test_module_pin_does_not_depend_on_attribute_order_or_other_archives(self) -> None:
@@ -82,9 +90,13 @@ class OpenSomeipPinUpdateTest(unittest.TestCase):
 
     def test_detects_differing_module_and_docs_pins(self) -> None:
         module = f'download_archive(\n    name = "open_someip_spec",\n    urls = ["/archive/{"a" * 40}.tar.gz"],\n)'
-        self.assertEqual("a" * 40, check_pins_consistent(module, f'SPEC_COMMIT = "{"a" * 40}"\n'))
+        docs = f'SPEC_COMMIT = "{"a" * 40}"\n'
+        requirements = f'SPEC_COMMIT = "{"a" * 40}"\n'
+        self.assertEqual("a" * 40, check_pins_consistent(module, docs, requirements))
         with self.assertRaisesRegex(ValueError, "pins differ"):
-            check_pins_consistent(module, f'SPEC_COMMIT = "{"b" * 40}"\n')
+            check_pins_consistent(module, f'SPEC_COMMIT = "{"b" * 40}"\n', requirements)
+        with self.assertRaisesRegex(ValueError, "generate_spec_requirements.py uses"):
+            check_pins_consistent(module, docs, f'SPEC_COMMIT = "{"b" * 40}"\n')
 
     def test_rejects_malformed_integrity(self) -> None:
         validate_integrity(INTEGRITY)
@@ -96,6 +108,7 @@ class OpenSomeipPinUpdateTest(unittest.TestCase):
         check_pins_consistent(
             (root / "MODULE.bazel").read_text(encoding="utf-8"),
             (root / "docs" / "conf.py").read_text(encoding="utf-8"),
+            (root / "tools" / "extneeds" / "generate_spec_requirements.py").read_text(encoding="utf-8"),
         )
 
     def test_rejects_non_full_commit(self) -> None:

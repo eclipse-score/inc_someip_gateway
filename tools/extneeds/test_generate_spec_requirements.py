@@ -48,6 +48,14 @@ class GenerateSpecRequirementsTest(unittest.TestCase):
 
         self.assertIn("\n   :status: invalid\n", generated)
         self.assertNotIn(":status: valid", generated)
+        self.assertIn(
+            "\n   :rationale: This mirrored source requirement is retained at the stakeholder level; "
+            "see the linked upstream source line.\n\n   Source: "
+            "https://github.com/some-ip-com/open-someip-spec/"
+            "blob/4860461802c23f41c6227befcb25cc80e7d68771/src/someip-sd.rst#L7\n",
+            generated,
+        )
+        self.assertNotIn(":hash:", generated)
 
 
 if __name__ == "__main__":
