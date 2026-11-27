@@ -92,6 +92,7 @@ test_suite(
         "//score/gateway_ipc_binding/test/unit:consumer_service_binding_test",
         "//score/gateway_ipc_binding/test/unit:error_test",
         "//score/gateway_ipc_binding/test/unit:fixed_size_container_test",
+        "//score/gateway_ipc_binding/test/unit:gateway_ipc_binding_mw_com_test",
         "//score/gateway_ipc_binding/test/unit:provider_service_binding_test",
         "//score/gateway_ipc_binding/test/unit:sample_layout_test",
         "//score/gateway_ipc_binding/test/unit:service_binding_test",
