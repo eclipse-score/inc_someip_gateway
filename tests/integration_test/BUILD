@@ -153,3 +153,47 @@ integration_test(
         "@score_tooling//python_basics/score_pytest:attribute_plugin",
     ],
 )
+
+# ---------------------------------------------------------------------------
+# Feature end-to-end integration test for feat_req__some_ip_gateway__event_forwarding.
+# Single-stack guest (someipd + gatewayd + event_exchange_app) talks to a
+# host-side Python SOME/IP+SD peer over the tap interface; both directions
+# (TX and RX) run concurrently in one test.
+# ---------------------------------------------------------------------------
+
+pkg_files(
+    name = "event-exchange-pkg",
+    testonly = True,
+    srcs = [
+        ":vsomeip-runtime-pkg",
+        "//score/gatewayd",
+        "//score/serializer:null_serializer",
+        "//score/someipd",
+        "//tests/integration_test/event_exchange:config/app_mw_com_config.json",
+        "//tests/integration_test/event_exchange:config/gatewayd_mw_com_config.json",
+        "//tests/integration_test/event_exchange:config/someipd_mw_com_config.json",
+        "//tests/integration_test/event_exchange:config/vsomeip.json",
+        "//tests/integration_test/event_exchange:event_exchange_app",
+        "//tests/integration_test/event_exchange:mw_someip_config_bin",
+    ],
+    attributes = pkg_attributes(
+        mode = "0777",
+    ),
+)
+
+integration_test(
+    name = "test_event_exchange",
+    timeout = "moderate",
+    srcs = [
+        "conftest.py",
+        "test_event_exchange.py",
+        "util.py",
+    ],
+    filesystem = ":event-exchange-pkg",
+    deps = [
+        "//tests/common:capture",
+        "//tests/integration_test/event_exchange:someip_peer",
+        "@score_someip_gateway_pip//pytest",
+        "@score_tooling//python_basics/score_pytest:attribute_plugin",
+    ],
+)

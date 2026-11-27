@@ -1,0 +1,55 @@
+{
+    "ipc_instance_id": 2,
+    "service_types": [
+        {
+            "service_type_name": "event_exchange_tx",
+            "service_id": 4660,
+            "service_version_major": 1,
+            "service_version_minor": 0,
+            "events": [
+                {
+                    "event_name": "ping",
+                    "event_id": 32769,
+                    "eventgroup_ids": [
+                        32769
+                    ],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 256
+                    }
+                }
+            ],
+            "local_service_instances": [
+                {
+                    "instance_specifier": "/event_exchange/tx",
+                    "instance_id": 1
+                }
+            ]
+        },
+        {
+            "service_type_name": "event_exchange_rx",
+            "service_id": 4661,
+            "service_version_major": 1,
+            "service_version_minor": 0,
+            "events": [
+                {
+                    "event_name": "ping",
+                    "event_id": 32770,
+                    "eventgroup_ids": [
+                        32770
+                    ],
+                    "serialization_config_type": "NullSerializerConfig",
+                    "serialization_config": {
+                        "max_message_size": 256
+                    }
+                }
+            ],
+            "remote_service_instances": [
+                {
+                    "instance_specifier": "/event_exchange/rx",
+                    "instance_id": 1
+                }
+            ]
+        }
+    ]
+}

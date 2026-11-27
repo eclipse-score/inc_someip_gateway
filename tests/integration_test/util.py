@@ -14,6 +14,7 @@
 from collections.abc import Sequence
 import logging
 import subprocess
+import time
 from score.itf.plugins.core import Target
 from types import TracebackType
 from score.itf.core.process.async_process import AsyncProcess
@@ -28,6 +29,7 @@ __all__ = [
     "get_running_processes_on_target",
     "is_tcpdump_running",
     "tcpdump_capture",
+    "wait_for_opt_ready",
     "wait_until_process_exits",
 ]
 
@@ -109,6 +111,34 @@ def is_tcpdump_running(pid: int | None = None) -> tuple[bool, str]:
         tcpdump_name in ps_aux_text or tcpdump_name_github in ps_aux_text,
         ps_aux_text,
     )
+
+
+def wait_for_opt_ready(target: Target, timeout_s: float = 30.0) -> None:
+    """Wait for the /opt payload to be available on the target (#356).
+
+    On Linux QEMU the integration-test filesystem is attached as a block
+    device (``/dev/vdb``) and auto-mounted at ``/opt``; the mount occasionally
+    is not ready when the test first executes. We poll ``/opt`` and, while it
+    looks empty, repeatedly try ``mount /dev/vdb /opt`` as a best-effort
+    nudge. On QNX the payload is baked into the IFS image so ``/opt`` is
+    populated from boot and this returns immediately.
+
+    Called by the ``clean_state`` fixture before any assertions; transparent
+    (no-op) when ``/opt`` is already populated.
+    """
+    sysname_rc, sysname_out = target.execute("uname -s")
+    if sysname_rc == 0 and b"QNX" in sysname_out:
+        return
+
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        rc, out = target.execute("ls -A /opt")
+        if rc == 0 and out.strip():
+            return
+        target.execute("mount /dev/vdb /opt 2>/dev/null || true")
+        time.sleep(0.5)
+
+    raise AssertionError(f"/opt payload not available within {timeout_s:.0f} s (did /dev/vdb fail to attach?)")
 
 
 def check_environment_and_mark(target: Target) -> bool:

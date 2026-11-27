@@ -51,6 +51,39 @@ General service-instance and versioning semantics remain owned by ``mw::com``.
    When started with the ``--help`` command-line argument, gatewayd shall
    print its usage text and exit with a success exit code.
 
+.. comp_req:: gatewayd forwards local service events to the SOME/IP network
+   :id: comp_req__gatewayd__forwards_local_events
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Functional
+   :derived_from: feat_req__some_ip_gateway__event_forwarding, feat_req__com__event_type, feat_req__com__producer_consumer
+   :satisfied_by: comp__gatewayd
+
+   For every ``local_service_instances`` entry in the SOME/IP configuration,
+   gatewayd shall subscribe to the ``mw::com`` skeleton offered by the local
+   application, serialize each received sample via ``score_com_serializer``,
+   frame it with the 16-byte SOME/IP header, and forward the framed message to
+   ``someipd`` via the gateway IPC binding for transmission on the SOME/IP
+   network as a notification of the configured event.
+
+.. comp_req:: gatewayd forwards remote SOME/IP events to local mw::com subscribers
+   :id: comp_req__gatewayd__forwards_remote_events
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :reqtype: Functional
+   :derived_from: feat_req__some_ip_gateway__event_forwarding, feat_req__com__event_type, feat_req__com__producer_consumer
+   :satisfied_by: comp__gatewayd
+
+   For every ``remote_service_instances`` entry in the SOME/IP configuration,
+   gatewayd shall offer a local ``mw::com`` skeleton and, for each event
+   notification received from ``someipd`` via the gateway IPC binding, strip
+   the 16-byte SOME/IP header, deserialize the remaining payload via
+   ``score_com_serializer``, and publish the sample to local subscribers.
+
 .. aou_req:: Integrity of the SOME/IP configuration file
    :id: aou_req__gatewayd__someip_config_integrity
    :status: valid

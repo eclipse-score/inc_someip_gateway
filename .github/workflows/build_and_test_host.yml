@@ -101,18 +101,29 @@ jobs:
       - name: Run Linux QEMU integration tests
         run: |
           bazel test --config=qemu-integration --test_tag_filters=-tc8_time_sensitive ${{ matrix.bazel_args }} ${{ matrix.targets }}
-      - name: Stage TC8 test reports
+      - name: Stage test reports
         if: always() && matrix.name == 'default'
         run: |
-          source=bazel-out/k8-fastbuild/testlogs/tests/tc8_conformance
-          if [ -d "$source" ]; then
-            find "$source" "$source/qemu" -mindepth 1 -maxdepth 1 -type d ! -path "$source/qemu" -print0 | while IFS= read -r -d '' test_dir; do
-              test_name="$(basename "$test_dir")"
+          tc8_source=bazel-out/k8-fastbuild/testlogs/tests/tc8_conformance
+          integration_source=bazel-out/k8-fastbuild/testlogs/tests/integration_test
+          for source in "$tc8_source" "$tc8_source/qemu"; do
+            if [ -d "$source" ]; then
+              find "$source" -mindepth 1 -maxdepth 1 -type d ! -path "$tc8_source/qemu" -print0 | while IFS= read -r -d '' test_dir; do
+                test_name="$(basename "$test_dir")"
+                dest="tc8-test-reports/$test_name"
+                mkdir -p "$dest"
+                cp -R "$test_dir/." "$dest/"
+              done
+            fi
+          done
+          for test_name in test_event_exchange test_gateway_startup; do
+            test_xml="$integration_source/$test_name/test.xml"
+            if [ -f "$test_xml" ]; then
               dest="tc8-test-reports/$test_name"
               mkdir -p "$dest"
-              cp -R "$test_dir/." "$dest/"
-            done
-          fi
+              cp "$test_xml" "$dest/test.xml"
+            fi
+          done
       - name: Upload TC8 test reports
         if: always() && matrix.name == 'default'
         uses: actions/upload-artifact@v7
