@@ -96,7 +96,13 @@ class _SdEntry:
     options: tuple[tuple[str, int, int], ...] = ()
 
 
-def _someip_packet(service_id: int, method_id: int, payload: bytes, session_id: int = 1) -> bytes:
+def _someip_packet(
+    service_id: int,
+    method_id: int,
+    payload: bytes,
+    session_id: int = 1,
+    interface_version: int = 1,
+) -> bytes:
     return (
         struct.pack(
             "!HHIHHBBBB",
@@ -106,7 +112,7 @@ def _someip_packet(service_id: int, method_id: int, payload: bytes, session_id: 
             0,
             session_id,
             1,
-            1,
+            interface_version,
             SOMEIP_NOTIFICATION,
             0,
         )
@@ -114,15 +120,31 @@ def _someip_packet(service_id: int, method_id: int, payload: bytes, session_id: 
     )
 
 
-def _parse_someip(packet: bytes) -> tuple[int, int, int, bytes]:
+def _parse_someip(
+    packet: bytes, expected_interface_version: Optional[int] = None
+) -> tuple[int, int, int, int, int, bytes]:
     if len(packet) < 16:
         raise ValueError("short SOME/IP packet")
-    service_id, method_id, length, _, _, protocol, interface_version, message_type, return_code = struct.unpack_from(
-        "!HHIHHBBBB", packet
-    )
-    if protocol != 1 or interface_version != 1 or return_code != 0 or length < 8 or len(packet) != length + 8:
-        raise ValueError("malformed SOME/IP packet")
-    return service_id, method_id, message_type, packet[16:]
+    (
+        service_id,
+        method_id,
+        length,
+        _,
+        _,
+        protocol,
+        interface_version,
+        message_type,
+        return_code,
+    ) = struct.unpack_from("!HHIHHBBBB", packet)
+    if protocol != 1 or length < 8 or len(packet) != length + 8:
+        raise ValueError(f"malformed SOME/IP packet: protocol={protocol} length={length} packet_len={len(packet)}")
+    if return_code != 0:
+        raise ValueError(f"unexpected SOME/IP return_code=0x{return_code:02x}")
+    if expected_interface_version is not None and interface_version != expected_interface_version:
+        raise ValueError(
+            f"unexpected SOME/IP interface_version={interface_version} (expected {expected_interface_version})"
+        )
+    return service_id, method_id, message_type, interface_version, return_code, packet[16:]
 
 
 def _endpoint_option(address: str, port: int) -> bytes:
@@ -131,7 +153,7 @@ def _endpoint_option(address: str, port: int) -> bytes:
 
 def _parse_sd_datagram(packet: bytes) -> list[_SdEntry]:
     try:
-        service_id, method_id, message_type, payload = _parse_someip(packet)
+        service_id, method_id, message_type, _, _, payload = _parse_someip(packet, expected_interface_version=1)
         if (
             service_id != SD_SERVICE_ID
             or method_id != SD_METHOD_ID
