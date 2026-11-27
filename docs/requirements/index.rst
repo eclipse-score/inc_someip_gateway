@@ -129,5 +129,5 @@ Every requirement directive must include these attributes:
 Cross-References
 ^^^^^^^^^^^^^^^^
 
-- TC8 conformance test requirements are maintained in :doc:`/tc8_conformance/index`
+- TC8 conformance test requirements are maintained in :doc:`../tc8_conformance/index`
   alongside their test specifications.
