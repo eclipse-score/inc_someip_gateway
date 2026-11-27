@@ -394,7 +394,7 @@ class ConsumerServiceBindingTest : public IpcBindingTestFixture {
         socom::Event_id const event_id, std::size_t const expected_count,
         CapturedEventUpdates& out_captured) {
         EXPECT_CALL(connector, update_event(event_id, _))
-            .Times(expected_count)
+            .Times(static_cast<int>(expected_count))
             .WillRepeatedly([&out_captured](socom::Event_id, socom::Payload payload) {
                 auto const* const sample = payload.get_user_data<score::mw::com::SamplePtr<void>>();
                 auto const has_sample = (sample != nullptr) && (sample->get() != nullptr);
