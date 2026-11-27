@@ -12,6 +12,7 @@
 # *******************************************************************************
 
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@score_tooling//:defs.bzl", "dash_license_checker")
 
 # ==============================================================================
 # Python Dependency Lock File Update
@@ -26,4 +27,15 @@ compile_pip_requirements(
         "no_proxy",
     ],
     requirements_txt = "//:python_requirements_lock.txt",
+)
+
+# ==============================================================================
+# License Check (Eclipse Dash)
+# ==============================================================================
+# Run by the license-check CI workflow: `bazel run //tools/python:license-check`
+# Checks the Python dependencies pinned in python_requirements_lock.txt.
+dash_license_checker(
+    src = "//:python_requirements_lock.txt",
+    file_type = "requirements",
+    visibility = ["//visibility:public"],
 )

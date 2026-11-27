@@ -25,6 +25,6 @@ jobs:
     uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@ace627933d0924894a3d066254f25d099732612e # license-check/v0.0.0
     with:
       repo-url: "${{ github.server_url }}/${{ github.repository }}"
-      bazel-target: "run //:license-check"
+      bazel-target: "run //tools/python:license-check"
     secrets:
       dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}
