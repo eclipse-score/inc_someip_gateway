@@ -27,10 +27,10 @@ jobs:
           - bazel_args: ""
             targets: "//..."
             name: "default"
-          - bazel_args: "--features=asan --features=lsan --features=ubsan_clang"
+          - bazel_args: "--config=asan_ubsan_lsan"
             targets: "//score/... //tests/..."
             name: "with ASAN, LSAN, UBSAN"
-          - bazel_args: "--features=tsan"
+          - bazel_args: "--config=tsan"
             targets: "//score/... //tests/..."
             name: "with TSAN"
     name: Bazel test ${{ matrix.name }}
@@ -67,10 +67,10 @@ jobs:
           - bazel_args: ""
             targets: "//quality/... //tests/integration_test/... //tests/tc8_conformance/..."
             name: "default"
-          - bazel_args: "--features=asan --features=lsan --features=ubsan_clang"
+          - bazel_args: "--config=asan_ubsan_lsan"
             targets: "//quality/... //tests/integration_test/..."
             name: "with ASAN, LSAN, UBSAN"
-          - bazel_args: "--features=tsan"
+          - bazel_args: "--config=tsan"
             targets: "//quality/... //tests/integration_test/..."
             name: "with TSAN"
     name: Integration tests ${{ matrix.name }}
@@ -100,7 +100,8 @@ jobs:
           sudo chmod 666 /dev/kvm
       - name: Run Linux QEMU integration tests
         run: |
-          bazel test --config=qemu-integration --test_tag_filters=-tc8_time_sensitive ${{ matrix.bazel_args }} ${{ matrix.targets }}
+          # Keep the QEMU runner selected after applying the sanitizer configuration.
+          bazel test ${{ matrix.bazel_args }} --config=qemu-integration --test_tag_filters=-tc8_time_sensitive ${{ matrix.targets }}
       - name: Stage TC8 test reports
         if: always() && matrix.name == 'default'
         run: |

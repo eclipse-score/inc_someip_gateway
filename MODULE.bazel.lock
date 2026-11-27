@@ -3256,7 +3256,7 @@
     "@@score_bazel_cpp_toolchains+//extensions:gcc.bzl%gcc": {
       "general": {
         "bzlTransitiveDigest": "B8q0vqoyCF73c604BGTN8TCFKF0Ep76GQiW3O313m10=",
-        "usagesDigest": "x2UGtsrhsYGyxMKs9eGINBjC5TEmbLhlmXFqF7tkqo8=",
+        "usagesDigest": "4jRrfpxnMAPRYkJnnPB3ysniHQ9/5PcqCOilsuRKsMA=",
         "recordedInputs": [
           "REPO_MAPPING:,score_cpp_policies score_cpp_policies+",
           "REPO_MAPPING:bazel_tools,rules_cc rules_cc+",
@@ -3400,7 +3400,13 @@
               "extra_cxx_compile_flags": [],
               "extra_known_features": [
                 "@@score_cpp_policies+//warnings/gcc/features:strict_warnings",
-                "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings"
+                "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings",
+                "@@score_cpp_policies+//sanitizers/features:asan",
+                "@@score_cpp_policies+//sanitizers/features:debug_symbols",
+                "@@score_cpp_policies+//sanitizers/features:lsan",
+                "@@score_cpp_policies+//sanitizers/features:tsan",
+                "@@score_cpp_policies+//sanitizers/features:ubsan_base",
+                "@@score_cpp_policies+//sanitizers/features:ubsan_gcc"
               ],
               "extra_enabled_features": [
                 "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings"
@@ -3431,7 +3437,13 @@
               "extra_cxx_compile_flags": [],
               "extra_known_features": [
                 "@@score_cpp_policies+//warnings/gcc/features:strict_warnings",
-                "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings"
+                "@@score_cpp_policies+//warnings/gcc/features:all_wall_warnings",
+                "@@score_cpp_policies+//sanitizers/features:asan",
+                "@@score_cpp_policies+//sanitizers/features:debug_symbols",
+                "@@score_cpp_policies+//sanitizers/features:lsan",
+                "@@score_cpp_policies+//sanitizers/features:tsan",
+                "@@score_cpp_policies+//sanitizers/features:ubsan_base",
+                "@@score_cpp_policies+//sanitizers/features:ubsan_gcc"
               ],
               "extra_enabled_features": [
                 "@@score_cpp_policies+//warnings/gcc/features:minimal_warnings"
